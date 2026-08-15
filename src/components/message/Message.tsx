@@ -1,5 +1,6 @@
 import React from 'react';
 import { type ChatMessage, type UploadedFile, type SideViewContent } from '@/types';
+import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { MessageContent } from './MessageContent';
 import { MessageActions } from './MessageActions';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -15,7 +16,7 @@ interface MessageProps {
   onDeleteMessage: (messageId: string) => void;
   onRetryMessage: (messageId: string) => void;
   onImageClick: (file: UploadedFile) => void;
-  onOpenHtmlPreview: (html: string, options?: { initialTrueFullscreen?: boolean }) => void;
+  onOpenHtmlPreview: OpenHtmlPreviewHandler;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   showThoughts: boolean;
   onContinueGeneration: (messageId: string) => void;

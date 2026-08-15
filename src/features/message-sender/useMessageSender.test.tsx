@@ -93,7 +93,7 @@ vi.mock('@/services/api/fileApi', () => ({
 
 import { useMessageSender } from './useMessageSender';
 import { createMessageSenderProps, type MessageSenderPropsOverrides } from '@/test/hooks/factories';
-import { createChatSettings, createUploadedFile } from '@/test/data/factories';
+import { createChatMessage, createChatSettings, createUploadedFile } from '@/test/data/factories';
 import { useChatStore } from '@/stores/chatStore';
 import { createDefaultThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
 import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES } from '@/utils/codeExecution';
@@ -542,6 +542,74 @@ describe('useMessageSender', () => {
     unmount();
   });
 
+  it('omits historical Gemini Files API ids before sending in OpenAI-compatible mode', async () => {
+    mockGetModelCapabilities.mockImplementation((modelId: string) => ({
+      isTtsModel: false,
+      isFlashImageModel: false,
+      isGemini3ImageModel: modelId === 'gemini-3-pro-image-preview',
+    }));
+
+    const { result, unmount } = renderMessageSender({
+      activeSessionId: 'session-1',
+      appSettings: {
+        thirdPartyApi: {
+          providers: {
+            ...createDefaultThirdPartyApiSettings().providers,
+            openai: { ...createDefaultThirdPartyApiSettings().providers.openai, modelId: 'gpt-5.6-sol' },
+          },
+        },
+      },
+      currentChatSettings: {
+        modelId: 'gpt-5.6-sol',
+        providerId: 'openai',
+      },
+      messages: [
+        createChatMessage({
+          id: 'user-1',
+          content: 'summarize this',
+          files: [
+            createUploadedFile({
+              id: 'file-remote',
+              name: 'remote-only.pdf',
+              type: 'application/pdf',
+              fileApiName: 'files/expired',
+              fileUri: 'https://files/expired',
+              transferStrategy: 'remote-file-id',
+            }),
+          ],
+        }),
+      ],
+    });
+
+    await act(async () => {
+      await result.current.handleSendMessage({ text: 'try again' });
+    });
+
+    expect(mockGetFileMetadataApi).not.toHaveBeenCalled();
+    expect(mockSendStandardMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'try again',
+        props: expect.objectContaining({
+          messages: [
+            expect.objectContaining({
+              id: 'user-1',
+              content: 'summarize this',
+              files: [
+                expect.objectContaining({
+                  id: 'file-remote',
+                  omittedFromApiHistory: true,
+                  fileApiName: undefined,
+                  fileUri: undefined,
+                }),
+              ],
+            }),
+          ],
+        }),
+      }),
+    );
+    unmount();
+  });
+
   it('creates a localized error session when no model is selected', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
@@ -766,6 +834,137 @@ describe('useMessageSender', () => {
             isProcessing: false,
           }),
         ],
+      }),
+    );
+    unmount();
+  });
+
+  it('refreshes an expired Files API reference in history before a text follow-up', async () => {
+    mockGetFileMetadataApi.mockResolvedValue(null);
+    const rawFile = new File(['image-bytes'], 'reference.png', { type: 'image/png' });
+    const staleFile = createUploadedFile({
+      id: 'file-history',
+      name: 'reference.png',
+      type: 'image/png',
+      size: rawFile.size,
+      rawFile,
+      fileApiName: 'files/expired',
+      fileUri: 'https://files/expired',
+      uploadState: 'active',
+      transferStrategy: 'files-api',
+    });
+    const historyUserMessage = createChatMessage({
+      id: 'user-1',
+      content: 'describe this image',
+      files: [staleFile],
+      apiParts: [
+        { fileData: { mimeType: 'image/png', fileUri: 'https://files/expired' } },
+        { text: 'describe this image' },
+      ],
+    });
+
+    const { result, unmount } = renderMessageSender({
+      activeSessionId: 'session-1',
+      currentChatSettings: {
+        modelId: 'gemini-3.1-pro-preview',
+      },
+      messages: [historyUserMessage, createChatMessage({ id: 'model-1', role: 'model', content: 'a cat' })],
+    });
+
+    await act(async () => {
+      await result.current.handleSendMessage({ text: 'what color is it?' });
+    });
+
+    expect(mockUploadFileApi).toHaveBeenCalledWith(
+      'api-key',
+      rawFile,
+      'image/png',
+      'reference.png',
+      expect.any(AbortSignal),
+    );
+    expect(mockSenderStoreActions.updateAndPersistSessions).toHaveBeenCalled();
+    expect(mockSendStandardMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'what color is it?',
+        props: expect.objectContaining({
+          messages: [
+            expect.objectContaining({
+              id: 'user-1',
+              files: [
+                expect.objectContaining({
+                  id: 'file-history',
+                  fileApiName: 'files/refreshed',
+                  fileUri: 'https://files/refreshed',
+                }),
+              ],
+              apiParts: [
+                { fileData: { mimeType: 'image/png', fileUri: 'https://files/refreshed' } },
+                { text: 'describe this image' },
+              ],
+            }),
+            expect.objectContaining({ id: 'model-1' }),
+          ],
+        }),
+      }),
+    );
+    unmount();
+  });
+
+  it('continues a follow-up after dropping an expired historical Files API id that has no local backup', async () => {
+    mockGetFileMetadataApi.mockResolvedValue(null);
+    const staleFile = createUploadedFile({
+      id: 'file-remote',
+      name: 'remote-only.pdf',
+      type: 'application/pdf',
+      fileApiName: 'files/expired',
+      fileUri: 'https://files/expired',
+      uploadState: 'active',
+      transferStrategy: 'remote-file-id',
+    });
+
+    const { result, unmount } = renderMessageSender({
+      activeSessionId: 'session-1',
+      currentChatSettings: {
+        modelId: 'gemini-3.1-pro-preview',
+      },
+      messages: [
+        createChatMessage({
+          id: 'user-1',
+          content: 'summarize this',
+          files: [staleFile],
+          apiParts: [
+            { fileData: { mimeType: 'application/pdf', fileUri: 'https://files/expired' } },
+            { text: 'summarize this' },
+          ],
+        }),
+      ],
+    });
+
+    await act(async () => {
+      await result.current.handleSendMessage({ text: 'try again' });
+    });
+
+    expect(mockUploadFileApi).not.toHaveBeenCalled();
+    expect(mockSendStandardMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'try again',
+        props: expect.objectContaining({
+          messages: [
+            expect.objectContaining({
+              id: 'user-1',
+              content: 'summarize this',
+              files: [
+                expect.objectContaining({
+                  id: 'file-remote',
+                  fileApiName: undefined,
+                  fileUri: undefined,
+                  uploadState: 'failed',
+                  omittedFromApiHistory: true,
+                }),
+              ],
+            }),
+          ],
+        }),
       }),
     );
     unmount();

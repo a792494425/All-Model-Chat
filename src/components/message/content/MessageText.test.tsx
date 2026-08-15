@@ -233,6 +233,7 @@ describe('MessageText', () => {
 
     expect(onOpenHtmlPreview).toHaveBeenCalledWith('<div style="display:flex"><span>Ready</span></div>', {
       initialTrueFullscreen: false,
+      privilege: 'unrestricted',
     });
   });
 

@@ -4,6 +4,7 @@ import { PREVIEW_BRIDGE_SCRIPT } from './previewBridgeScript';
 import { hydrateChartsIntoDocument } from './chartRendererScript';
 import { sanitizeElementTree } from './previewSanitizer';
 import { STREAMING_PREVIEW_RUNNER_SCRIPT } from './streamingPreviewRunnerScript';
+import type { HtmlPreviewPrivilege } from './previewPrivilege';
 
 export {
   HTML_PREVIEW_CLEAR_SELECTION_EVENT,
@@ -452,7 +453,13 @@ const appendBridgeScriptToDocument = (parsedDocument: Document): string => {
   return `<!DOCTYPE html>${parsedDocument.documentElement.outerHTML}`;
 };
 
-export const buildHtmlPreviewSrcDoc = (
+type HtmlPreviewSrcDocOptions = {
+  baseFontSize?: number;
+  themeId?: string;
+  privilege?: HtmlPreviewPrivilege;
+};
+
+const buildSanitizedHtmlPreviewSrcDoc = (
   htmlContent: string,
   options: { baseFontSize?: number; themeId?: string } = {},
 ): string => {
@@ -468,6 +475,39 @@ export const buildHtmlPreviewSrcDoc = (
   }
   const srcDoc = appendBridgeScriptToDocument(parsedDocument);
   return prepareHtmlPreviewSrcDoc(srcDoc, options);
+};
+
+const buildUnrestrictedPreviewDocument = (htmlContent: string): string => {
+  if (!htmlContent) {
+    return `<!DOCTYPE html><html><head></head><body></body></html>`;
+  }
+
+  // Parse whatever the model produced. DOMParser auto-wraps fragments in a full
+  // <html><head></head><body> document without rewriting existing markup, so no
+  // `/<html[\s>]/` sniffing is needed — a fragment and a full document both end
+  // up with the bridge appended to the real body. Unlike string replacement
+  // (`replace(/<\/body>/i, …)`) this cannot land the bridge inside a `</body>`
+  // literal in a <script> string or <pre> text.
+  const parsedDocument = parsePreviewDocument(htmlContent);
+  if (!parsedDocument) {
+    return htmlContent;
+  }
+
+  return appendBridgeScriptToDocument(parsedDocument);
+};
+
+/**
+ * One HTML preview runtime, two privilege tiers.
+ *
+ * Default `sanitized` is the Live Artifact widget (CSP, sanitizer, theme, KaTeX).
+ * `unrestricted` is the code-block demo player (no sanitizer/CSP/theme/KaTeX).
+ */
+export const buildHtmlPreviewSrcDoc = (htmlContent: string, options: HtmlPreviewSrcDocOptions = {}): string => {
+  if (options.privilege === 'unrestricted') {
+    return buildUnrestrictedPreviewDocument(htmlContent);
+  }
+
+  return buildSanitizedHtmlPreviewSrcDoc(htmlContent, options);
 };
 
 export const buildStreamingHtmlPreviewSrcDoc = (options: { baseFontSize?: number; themeId?: string } = {}): string => {
@@ -488,48 +528,27 @@ export const buildStreamingHtmlPreviewSrcDoc = (options: { baseFontSize?: number
 };
 
 /**
- * Build an unrestricted HTML preview srcDoc for the **code-block** preview
- * window (modal + side panel only).
- *
- * Intentionally does NOT apply:
- * - HTML sanitization (scripts/iframes/event handlers kept)
- * - Preview CSP meta (no resource blocking)
- * - Live-artifact theme shell (no height/background/color overrides)
- * - KaTeX rewrite (avoids mangling literal `$` content)
- *
- * Live Artifacts (message bubbles) must keep using `buildHtmlPreviewSrcDoc`.
+ * Code-block demo player. Same runtime as `buildHtmlPreviewSrcDoc` with
+ * `privilege: 'unrestricted'`.
  */
 export const buildUnrestrictedHtmlPreviewSrcDoc = (
   htmlContent: string,
-  _options: { baseFontSize?: number; themeId?: string } = {},
+  options: { baseFontSize?: number; themeId?: string } = {},
 ): string => {
-  if (!htmlContent) {
-    return `<!DOCTYPE html><html><head></head><body></body></html>`;
-  }
-
-  // Parse whatever the model produced. DOMParser auto-wraps fragments in a full
-  // <html><head></head><body> document without rewriting existing markup, so no
-  // `/<html[\s>]/` sniffing is needed — a fragment and a full document both end
-  // up with the bridge appended to the real body. Unlike string replacement
-  // (`replace(/<\/body>/i, …)`) this cannot land the bridge inside a `</body>`
-  // literal in a <script> string or <pre> text.
-  const parsedDocument = parsePreviewDocument(htmlContent);
-  if (!parsedDocument) {
-    return htmlContent;
-  }
-
-  return appendBridgeScriptToDocument(parsedDocument);
+  return buildHtmlPreviewSrcDoc(htmlContent, { ...options, privilege: 'unrestricted' });
 };
 
 export const createStaticPreviewSnapshotContainer = async (
   htmlContent: string,
   targetDocument: Document,
-  options: { themeId?: string } = {},
+  options: { themeId?: string; sanitize?: boolean } = {},
 ): Promise<{ container: HTMLElement; cleanup: () => void }> => {
   const parser = new DOMParser();
   const parsedDocument = parser.parseFromString(htmlContent, 'text/html');
 
-  sanitizeElementTree(parsedDocument);
+  if (options.sanitize !== false) {
+    sanitizeElementTree(parsedDocument);
+  }
   // Hydrate declarative charts as static SVG so the PNG export matches the
   // on-screen artifact. The theme style (varsOnly) is injected so chart SVG
   // colors resolve on the parent page, which never defines --amc-live-artifact-*.

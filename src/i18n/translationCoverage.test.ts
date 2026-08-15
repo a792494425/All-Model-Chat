@@ -42,6 +42,9 @@ describe('translation coverage for protected UI surfaces', () => {
     expect(t('fileProcessingZip').replace('{filename}', 'demo.zip')).toBe('正在处理 demo.zip…');
     expect(t('uploadCancelledByUser')).toBe('用户已取消上传。');
     expect(t('voiceInputFailedWithMessage').replace('{message}', 'X')).toBe('语音输入失败：X');
+    expect(t('fileProcessingBackendFailedWithMessage').replace('{message}', 'X')).toBe('后端处理失败：X');
+    expect(t('uploadApiProcessingFailedWithMessage').replace('{message}', 'X')).toBe('文件 API 处理失败：X');
+    expect(t('fileIdAdderProcessingFailedWithMessage').replace('{message}', 'X')).toBe('文件 API 处理失败：X');
     expect(t('diagramGraphvizTitle')).toBe('Graphviz 图表');
     expect(t('diagramMermaidTitle')).toBe('Mermaid 图表');
     expect(t('scenariosTitleRequired')).toBe('场景标题不能为空。');
@@ -52,6 +55,10 @@ describe('translation coverage for protected UI surfaces', () => {
     expect(t('assistantAvatarAlt')).toBe('助手头像');
     expect(t('messageSenderErrorWithPrefix').replace('{prefix}', '错误').replace('{message}', 'X')).toBe('错误：X');
     expect(t('messageSenderApiKeyNotConfigured')).toBe('未在设置中配置 API 密钥。');
+    expect(t('messageSenderEmptyReply')).toBe('模型结束了这一轮，但没有给出可见回复。请重试。');
+    expect(t('messageSenderEmptyReplyWithThoughts')).toBe(
+      '模型结束了这一轮，但没有给出可见回复（只有思考过程）。可以重试，或调低思考等级后再试。',
+    );
     expect(t('messageSenderTtsErrorPrefix')).toBe('语音生成错误');
     expect(t('messageSenderImageEditErrorPrefix')).toBe('图像编辑错误');
     expect(t('messageSenderAudioReadyTitle')).toBe('音频已生成');
@@ -226,12 +233,13 @@ describe('translation coverage for protected UI surfaces', () => {
       {
         file: 'src/components/modals/html-preview/HtmlPreviewHeader.tsx',
         snippets: [
-          '"React App"',
           '"HTML Preview"',
+          '"Unrestricted demo"',
+          '"Live Artifact"',
           '"Zoom Out"',
           '"Zoom In"',
           '"Reload"',
-          '"Download HTML"',
+          '"Download source HTML"',
           '"Screenshot"',
           '"Exit Fullscreen"',
           '"Fullscreen"',
@@ -241,6 +249,10 @@ describe('translation coverage for protected UI surfaces', () => {
       {
         file: 'src/components/modals/html-preview/HtmlPreviewContent.tsx',
         snippets: ['"HTML Content Preview"'],
+      },
+      {
+        file: 'src/components/message/blocks/ArtifactFrame.tsx',
+        snippets: ['Open larger preview'],
       },
       {
         file: 'src/components/header/Header.tsx',
@@ -634,6 +646,13 @@ describe('translation coverage for protected UI surfaces', () => {
       {
         file: 'src/components/shared/AudioPlayer.tsx',
         snippets: ['"Pause"', '"Play"', '"Playback Speed"', '"Download Audio"'],
+      },
+      {
+        file: 'src/features/message-sender/useChatStreamHandler.ts',
+        snippets: [
+          'The model returned no reply (only reasoning was produced).',
+          '模型没有返回任何回答',
+        ],
       },
       {
         file: 'src/features/message-sender/useMessageSender.ts',

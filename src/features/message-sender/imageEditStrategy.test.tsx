@@ -9,6 +9,7 @@ const {
   buildContentPartsMock,
   createChatHistoryForApiMock,
   performOptimisticSessionUpdateMock,
+  createMessageMock,
   createUploadedFileFromBase64Mock,
 } = vi.hoisted(() => ({
   handleApiErrorMock: vi.fn(),
@@ -16,6 +17,13 @@ const {
   buildContentPartsMock: vi.fn(),
   createChatHistoryForApiMock: vi.fn(),
   performOptimisticSessionUpdateMock: vi.fn((prev: unknown) => prev),
+  createMessageMock: vi.fn((role: string, content: string, options: Record<string, unknown> = {}) => ({
+    id: options.id ?? `${role}-message`,
+    role,
+    content,
+    timestamp: new Date('2026-04-21T00:00:00.000Z'),
+    ...options,
+  })),
   createUploadedFileFromBase64Mock: vi.fn(() => ({
     id: 'file-1',
     name: 'edited-image-1.png',
@@ -52,6 +60,7 @@ vi.mock('@/utils/chat/session', async () => {
 
   return createChatSessionMockModule({
     performOptimisticSessionUpdate: performOptimisticSessionUpdateMock,
+    createMessage: createMessageMock,
   });
 });
 
@@ -163,6 +172,13 @@ describe('imageEditStrategy', () => {
       }),
     );
     expect(runMessageLifecycle).toHaveBeenCalledOnce();
+    expect(createMessageMock).toHaveBeenCalledWith(
+      'user',
+      'edit this image',
+      expect.objectContaining({
+        apiParts: [{ text: 'edit this image' }],
+      }),
+    );
   });
 
   it('uses translated image edit errors and partial failure notes', async () => {

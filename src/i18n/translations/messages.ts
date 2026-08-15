@@ -181,17 +181,19 @@ export const messagesTranslations = {
   pdfLoading: { en: 'Loading PDF...', zh: '正在加载 PDF…' },
   pdfLoadFailed: { en: 'Failed to load PDF.', zh: 'PDF 加载失败。' },
   pdfLoadFailedWithMessage: { en: 'Failed to load PDF: {message}', zh: 'PDF 加载失败：{message}' },
-  htmlPreviewReactApp: { en: 'React App', zh: 'React 应用' },
   htmlPreviewTitle: { en: 'HTML Preview', zh: 'HTML 预览' },
+  htmlPreviewDemoSubtitle: { en: 'Unrestricted demo', zh: '完整演示' },
+  htmlPreviewArtifactSubtitle: { en: 'Live Artifact', zh: 'Live Artifact' },
   htmlPreviewZoomOut: { en: 'Zoom Out', zh: '缩小' },
   htmlPreviewZoomIn: { en: 'Zoom In', zh: '放大' },
   htmlPreviewReload: { en: 'Reload', zh: '重新加载' },
-  htmlPreviewDownloadHtml: { en: 'Download HTML', zh: '下载 HTML' },
+  htmlPreviewDownloadHtml: { en: 'Download source HTML', zh: '下载源码 HTML' },
   htmlPreviewScreenshot: { en: 'Screenshot', zh: '截图' },
   htmlPreviewExitFullscreen: { en: 'Exit Fullscreen', zh: '退出全屏' },
   htmlPreviewFullscreen: { en: 'Fullscreen', zh: '全屏' },
   htmlPreviewClose: { en: 'Close', zh: '关闭' },
   htmlPreviewIframeTitle: { en: 'HTML Content Preview', zh: 'HTML 内容预览' },
+  htmlPreviewOpenLarger: { en: 'Open larger preview', zh: '放大预览' },
   htmlPreviewScreenshotFailed: {
     en: 'Sorry, the screenshot could not be captured. Please check the console for errors.',
     zh: '截图失败，请查看控制台了解详情。',
@@ -278,8 +280,7 @@ export const messagesTranslations = {
     en: 'The model did not provide a response. This might be due to safety filters or other content restrictions.',
     zh: '模型未提供任何回复。这可能是由于安全过滤器或其他内容限制所致。',
   },
-  codeFullscreenMonitor: { en: 'Monitor Fullscreen', zh: '显示器全屏' },
-  codeFullscreenModal: { en: 'Preview Overlay', zh: '预览弹窗' },
+  codeFullscreenModal: { en: 'Open preview', zh: '打开预览' },
 
   // Live Artifact Interaction Diagnostic (P0-1)
   liveArtifactInteractionInvalidTitle: {

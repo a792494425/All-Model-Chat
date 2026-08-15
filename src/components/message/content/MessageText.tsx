@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { type ChatMessage, type UploadedFile, type AppSettings, type SideViewContent } from '@/types';
+import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { useI18n } from '@/contexts/I18nContext';
 import { LazyMarkdownRenderer } from '@/components/message/LazyMarkdownRenderer';
 import { GroundedResponse } from '@/components/message/GroundedResponse';
@@ -28,7 +29,7 @@ interface MessageTextProps {
   themeId: string;
   baseFontSize: number;
   onImageClick: (file: UploadedFile) => void;
-  onOpenHtmlPreview: (html: string, options?: { initialTrueFullscreen?: boolean }) => void;
+  onOpenHtmlPreview: OpenHtmlPreviewHandler;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   expandCodeBlocksByDefault: boolean;
   isMermaidRenderingEnabled: boolean;
@@ -139,7 +140,10 @@ export const MessageText: React.FC<MessageTextProps> = ({
         const previewableBlock = extractAutoPreviewableBlock(markdownContent);
         if (previewableBlock) {
           previewTimeout = window.setTimeout(() => {
-            onOpenHtmlPreview(previewableBlock.content, { initialTrueFullscreen: false });
+            onOpenHtmlPreview(previewableBlock.content, {
+              initialTrueFullscreen: false,
+              privilege: 'unrestricted',
+            });
           }, 100);
         }
       }

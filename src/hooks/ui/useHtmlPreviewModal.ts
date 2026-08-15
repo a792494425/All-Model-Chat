@@ -4,20 +4,16 @@ import { useWindowContext } from '@/contexts/WindowContext';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { sanitizeFilename, triggerDownload } from '@/utils/export/core';
 import { useFullscreen } from './useFullscreen';
+import { useHtmlPreviewGraphvizRelay } from './useHtmlPreviewGraphvizRelay';
 import {
   createStaticPreviewSnapshotContainer,
   HTML_PREVIEW_CLEAR_SELECTION_EVENT,
-  HTML_PREVIEW_DIAGNOSTIC_EVENT,
-  HTML_PREVIEW_GRAPHVIZ_RENDER_REQUEST_EVENT,
-  HTML_PREVIEW_GRAPHVIZ_RENDER_RESPONSE_EVENT,
   HTML_PREVIEW_MESSAGE_CHANNEL,
 } from '@/utils/html-preview/previewDocument';
-import { renderDotToSvgCached, type DotRenderResult } from '@/features/graphviz/vizRuntime';
+import { resolveHtmlPreviewBridgeEvent } from '@/utils/html-preview/previewParentBridge';
+import { DEFAULT_HTML_PREVIEW_PRIVILEGE, type HtmlPreviewPrivilege } from '@/utils/html-preview/previewPrivilege';
 import { useI18n } from '@/contexts/I18nContext';
-import {
-  normalizeLiveArtifactFollowupPayload,
-  type LiveArtifactFollowupPayload,
-} from '@/utils/live-artifacts/liveArtifactFollowup';
+import { type LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
 import {
   createRelayedLiveArtifactSelectionDetail,
   dispatchLiveArtifactSelection,
@@ -34,27 +30,14 @@ interface UseHtmlPreviewModalProps {
   onClose: () => void;
   htmlContent: string | null;
   initialTrueFullscreenRequest?: boolean;
+  privilege?: HtmlPreviewPrivilege;
+  themeId?: string;
   iframeRef: RefObject<HTMLIFrameElement>;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
 }
 
 type DocumentWithWebkitFullscreen = Document & {
   webkitFullscreenElement?: Element | null;
-};
-
-type HtmlPreviewBridgeMessage = {
-  channel?: string;
-  event?:
-    | 'ready'
-    | 'resize'
-    | 'escape'
-    | 'followup'
-    | 'selection'
-    | 'diagnostic'
-    | 'graphviz-render-request'
-    | 'graphviz-render-response';
-  payload?: unknown;
-  height?: number;
 };
 
 const MAX_PREVIEW_CONTENT_HEIGHT = 200_000;
@@ -64,6 +47,8 @@ export const useHtmlPreviewModal = ({
   onClose,
   htmlContent,
   initialTrueFullscreenRequest,
+  privilege = DEFAULT_HTML_PREVIEW_PRIVILEGE,
+  themeId,
   iframeRef,
   onLiveArtifactFollowUp,
 }: UseHtmlPreviewModalProps) => {
@@ -82,6 +67,12 @@ export const useHtmlPreviewModal = ({
 
   const { document: targetDocument, window: targetWindow } = useWindowContext();
   const { enterFullscreen, exitFullscreen } = useFullscreen();
+  useHtmlPreviewGraphvizRelay({
+    iframeRef,
+    privilege,
+    themeId,
+    enabled: isOpen,
+  });
   const postClearSelection = useCallback(() => {
     iframeRef.current?.contentWindow?.postMessage(
       {
@@ -158,90 +149,54 @@ export const useHtmlPreviewModal = ({
       return undefined;
     }
 
-    const handleMessage = (event: MessageEvent<HtmlPreviewBridgeMessage>) => {
-      const data = event.data;
-      if (!data || data.channel !== HTML_PREVIEW_MESSAGE_CHANNEL) {
+    const handleMessage = (event: MessageEvent) => {
+      const resolved = resolveHtmlPreviewBridgeEvent({
+        event,
+        iframeWindow: iframeRef.current?.contentWindow,
+        privilege,
+        parentOrigin: targetWindow.location.origin,
+      });
+      if (!resolved) {
         return;
       }
 
-      // Accept opaque-origin (no allow-same-origin) or same-origin posts from our iframe.
-      // Unrestricted code-block preview uses allow-same-origin so demos can use storage APIs.
-      const iframeWindow = iframeRef.current?.contentWindow;
-      if (!iframeWindow || event.source !== iframeWindow) {
-        return;
-      }
-
-      const allowedOrigin = event.origin === 'null' || event.origin === targetWindow.location.origin;
-      if (!allowedOrigin) {
-        return;
-      }
-
-      if (data.event === 'ready') {
+      if (resolved.kind === 'ready') {
         setContentHeight(0);
         setIsPreviewReady(true);
         return;
       }
 
-      if (data.event === 'resize' && typeof data.height === 'number' && Number.isFinite(data.height)) {
-        const nextHeight = Math.min(Math.ceil(data.height), MAX_PREVIEW_CONTENT_HEIGHT);
+      if (resolved.kind === 'resize') {
+        const nextHeight = Math.min(Math.ceil(resolved.height), MAX_PREVIEW_CONTENT_HEIGHT);
         setContentHeight((current) => (current === nextHeight ? current : nextHeight));
         return;
       }
 
-      if (data.event === 'escape' && !isTrueFullscreen) {
+      if (resolved.kind === 'escape' && !isTrueFullscreen) {
         onClose();
         return;
       }
 
-      if (data.event === 'selection') {
+      if (resolved.kind === 'selection') {
         dispatchLiveArtifactSelection(
           targetWindow,
-          createRelayedLiveArtifactSelectionDetail(iframeRef.current, data.payload, scale),
+          createRelayedLiveArtifactSelectionDetail(iframeRef.current, resolved.payload, scale),
         );
         return;
       }
 
-      if (data.event === 'followup') {
-        const payload = normalizeLiveArtifactFollowupPayload(data.payload);
-        if (!payload) {
-          logService.warn('Ignored invalid Live Artifact follow-up payload.');
-          return;
-        }
-
-        onLiveArtifactFollowUp?.(payload);
+      if (resolved.kind === 'followup') {
+        onLiveArtifactFollowUp?.(resolved.payload);
         return;
       }
 
-      if (data.event === HTML_PREVIEW_DIAGNOSTIC_EVENT) {
-        logService.warn('Live Artifact preview diagnostic:', data.payload);
+      if (resolved.kind === 'invalid-followup') {
+        logService.warn('Ignored invalid Live Artifact follow-up payload.');
         return;
       }
 
-      // The unrestricted code-block preview embeds the same bridge, so its
-      // graphviz nodes post render requests here. Without this branch they
-      // would hang "pending" forever.
-      if (data.event === HTML_PREVIEW_GRAPHVIZ_RENDER_REQUEST_EVENT) {
-        const payload = data.payload;
-        if (
-          !payload ||
-          typeof payload !== 'object' ||
-          typeof (payload as { id?: unknown }).id !== 'string' ||
-          typeof (payload as { dot?: unknown }).dot !== 'string'
-        ) {
-          return;
-        }
-        const { id, dot } = payload as { id: string; dot: string };
-        void renderDotToSvgCached(dot).then((result: DotRenderResult) => {
-          iframeWindow?.postMessage(
-            {
-              channel: HTML_PREVIEW_MESSAGE_CHANNEL,
-              event: HTML_PREVIEW_GRAPHVIZ_RENDER_RESPONSE_EVENT,
-              payload: result.ok ? { id, ok: true, svg: result.svg } : { id, ok: false, error: result.error },
-            },
-            '*',
-          );
-        });
-        return;
+      if (resolved.kind === 'diagnostic') {
+        logService.warn('Live Artifact preview diagnostic:', resolved.payload);
       }
     };
 
@@ -249,7 +204,7 @@ export const useHtmlPreviewModal = ({
     return () => {
       targetWindow.removeEventListener('message', handleMessage);
     };
-  }, [iframeRef, isOpen, isTrueFullscreen, onClose, onLiveArtifactFollowUp, scale, targetWindow]);
+  }, [iframeRef, isOpen, isTrueFullscreen, onClose, onLiveArtifactFollowUp, privilege, scale, targetWindow]);
 
   useEffect(() => {
     const handleClearSelection = () => {
@@ -326,7 +281,9 @@ export const useHtmlPreviewModal = ({
         // The iframe is not readable (sandboxed / not mounted): build a static
         // snapshot from the source HTML instead. Async so graphviz nodes can be
         // hydrated before the frame is exported.
-        const snapshot = await createStaticPreviewSnapshotContainer(htmlContent, targetDocument);
+        const snapshot = await createStaticPreviewSnapshotContainer(htmlContent, targetDocument, {
+          sanitize: privilege !== 'unrestricted',
+        });
         snapshotCleanup = snapshot.cleanup;
         exportTarget = snapshot.container;
       }
@@ -356,6 +313,7 @@ export const useHtmlPreviewModal = ({
     isScreenshotting,
     t,
     targetDocument,
+    privilege,
   ]);
 
   const handleRefresh = useCallback(() => {

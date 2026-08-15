@@ -365,6 +365,75 @@ describe('useApp', () => {
     unmount();
   });
 
+  it('preserves the locked API key when saving chat settings if Files API references remain', () => {
+    const fileMessage: ChatMessage = {
+      id: 'message-file',
+      role: 'user',
+      content: 'see this',
+      timestamp: new Date('2026-04-20T08:00:00.000Z'),
+      files: [
+        {
+          id: 'file-1',
+          name: 'notes.pdf',
+          type: 'application/pdf',
+          size: 10,
+          fileApiName: 'files/abc',
+          fileUri: 'https://files/abc',
+          uploadState: 'active',
+        },
+      ],
+    };
+    currentChatState.messages = [fileMessage];
+    currentChatState.activeChat = {
+      ...hydratedSession,
+      messages: [fileMessage],
+      settings: {
+        ...hydratedSession.settings,
+        lockedApiKey: 'locked-key',
+        temperature: 0.2,
+      },
+    };
+
+    const { result, unmount } = renderHook(() => useApp());
+
+    act(() => {
+      result.current.handleSaveCurrentChatSettings({
+        ...currentChatState.activeChat!.settings,
+        temperature: 1.2,
+      });
+    });
+
+    expect(currentChatState.activeChat.settings.temperature).toBe(1.2);
+    expect(currentChatState.activeChat.settings.lockedApiKey).toBe('locked-key');
+
+    unmount();
+  });
+
+  it('preserves the locked API key when saving chat settings even if no Files API references remain', () => {
+    currentChatState.activeChat = {
+      ...hydratedSession,
+      settings: {
+        ...hydratedSession.settings,
+        lockedApiKey: 'locked-key',
+        temperature: 0.2,
+      },
+    };
+
+    const { result, unmount } = renderHook(() => useApp());
+
+    act(() => {
+      result.current.handleSaveCurrentChatSettings({
+        ...currentChatState.activeChat!.settings,
+        temperature: 1.2,
+      });
+    });
+
+    expect(currentChatState.activeChat.settings.temperature).toBe(1.2);
+    expect(currentChatState.activeChat.settings.lockedApiKey).toBe('locked-key');
+
+    unmount();
+  });
+
   it('displays the independent OpenAI-compatible model name in a third-party session', () => {
     const thirdPartyDefaults = createDefaultThirdPartyApiSettings();
     currentAppSettings = {

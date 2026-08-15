@@ -206,6 +206,10 @@ export const chatInputTranslations = {
   fileProcessingDropped: { en: 'Processing dropped files...', zh: '正在处理拖放的文件…' },
   fileProcessingTimedOut: { en: 'File processing timed out.', zh: '文件处理超时。' },
   fileProcessingBackendFailed: { en: 'Backend processing failed.', zh: '后端处理失败。' },
+  fileProcessingBackendFailedWithMessage: {
+    en: 'Backend processing failed: {message}',
+    zh: '后端处理失败：{message}',
+  },
   uploadUnsupportedType: { en: 'Unsupported file type: {filename}', zh: '不支持的文件类型：{filename}' },
   uploadMissingApiKey: {
     en: 'API key was not available for file upload.',
@@ -213,6 +217,10 @@ export const chatInputTranslations = {
   },
   uploadStarting: { en: 'Starting...', zh: '正在开始…' },
   uploadApiProcessingFailed: { en: 'File API processing failed', zh: '文件 API 处理失败' },
+  uploadApiProcessingFailedWithMessage: {
+    en: 'File API processing failed: {message}',
+    zh: '文件 API 处理失败：{message}',
+  },
   uploadFailedWithMessage: { en: 'Upload failed: {message}', zh: '上传失败：{message}' },
   uploadCancelledByUser: { en: 'Upload cancelled by user.', zh: '用户已取消上传。' },
   uploadCancelled: { en: 'Upload cancelled.', zh: '上传已取消。' },
@@ -231,6 +239,14 @@ export const chatInputTranslations = {
   // Message sending errors and generation feedback
   messageSenderApiErrorPrefix: { en: 'Error', zh: '错误' },
   messageSenderUnknownError: { en: 'An unknown error occurred.', zh: '发生未知错误。' },
+  messageSenderEmptyReply: {
+    en: 'The model finished this turn without a visible reply. Please retry.',
+    zh: '模型结束了这一轮，但没有给出可见回复。请重试。',
+  },
+  messageSenderEmptyReplyWithThoughts: {
+    en: 'The model finished this turn without a visible reply (only reasoning was produced). You can retry, or lower the thinking level and try again.',
+    zh: '模型结束了这一轮，但没有给出可见回复（只有思考过程）。可以重试，或调低思考等级后再试。',
+  },
   messageSenderApiKeyNotConfigured: {
     en: 'API key is not configured in settings.',
     zh: '未在设置中配置 API 密钥。',
@@ -351,6 +367,14 @@ export const chatInputTranslations = {
     en: 'Could not refresh the remote file reference for {filename}. Please try again or attach the file again.',
     zh: '无法刷新 {filename} 的远端文件引用。请重试或重新附加该文件。',
   },
+  messageSenderFileReferenceVerifyFailed: {
+    en: 'Could not verify the remote file reference for {filename}. Please try again.',
+    zh: '无法确认 {filename} 的远端文件引用是否仍有效。请重试。',
+  },
+  messageSenderHistoryFileReferenceUnavailable: {
+    en: '{filename} is no longer available via the Files API. It was removed from later turns so the chat can continue. Reattach the file if the model still needs it.',
+    zh: '{filename} 的 Files API 引用已失效，已从后续对话中移除以免整段聊天报错。如果模型仍需要该文件，请重新附加。',
+  },
   messageSenderOpenaiCompatibleFileReferenceUnsupported: {
     en: 'OpenAI-compatible mode cannot send Gemini Files API remote references. Reattach {filename} as a local image, audio, or text file, or switch back to the Gemini API.',
     zh: 'OpenAI 兼容模式不能发送 Gemini Files API 远端引用。请重新附加 {filename} 作为本地图片、音频或文本文件，或切回 Gemini API。',
@@ -389,6 +413,10 @@ export const chatInputTranslations = {
   fileIdAdderLoadingFile: { en: 'Loading {id}...', zh: '正在加载 {id}…' },
   fileIdAdderUnsupportedType: { en: 'Unsupported file type: {type}', zh: '不支持的文件类型：{type}' },
   fileIdAdderProcessingFailed: { en: 'File API processing failed', zh: '文件 API 处理失败' },
+  fileIdAdderProcessingFailedWithMessage: {
+    en: 'File API processing failed: {message}',
+    zh: '文件 API 处理失败：{message}',
+  },
   fileIdAdderNotFound: { en: 'File with ID {id} not found or inaccessible.', zh: '找不到文件 {id}，或您无权访问。' },
   fileIdAdderNotFoundShort: { en: 'File not found.', zh: '文件不存在。' },
   fileIdAdderNotFoundLabel: { en: 'Not Found: {id}', zh: '未找到：{id}' },

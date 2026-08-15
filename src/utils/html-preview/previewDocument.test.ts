@@ -421,6 +421,26 @@ describe('htmlPreview utilities', () => {
     expect(srcDoc).toContain(HTML_PREVIEW_MESSAGE_CHANNEL);
   });
 
+  it('uses the same unrestricted engine when privilege is passed to the shared builder', () => {
+    const html = '<section onclick="x()">Hi</section>';
+
+    expect(buildHtmlPreviewSrcDoc(html, { privilege: 'unrestricted' })).toBe(buildUnrestrictedHtmlPreviewSrcDoc(html));
+    expect(buildHtmlPreviewSrcDoc(html)).not.toContain('onclick=');
+  });
+
+  it('keeps inline handlers in unrestricted screenshot fallbacks', async () => {
+    const { container, cleanup } = await createStaticPreviewSnapshotContainer(
+      '<html><body><button onclick="run()">Go</button></body></html>',
+      document,
+      { sanitize: false },
+    );
+
+    expect(container.querySelector('[onclick]')?.getAttribute('onclick')).toBe('run()');
+    expect(container.textContent).toContain('Go');
+
+    cleanup();
+  });
+
   describe('DOM-layer injection (script/comment/pre containing </body>)', () => {
     it('does not inject the bridge into a script string containing </body> (live artifacts)', () => {
       // Live Artifacts sanitize <script> tags entirely, so the script containing

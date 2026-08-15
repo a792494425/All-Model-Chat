@@ -5,6 +5,7 @@ import { createStandardChatProps, type StandardChatPropsOverrides } from '@/test
 import { MediaResolution } from '@/types';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
 import { createDefaultThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
+import { createMessage } from '@/utils/chat/session';
 import type { PreparedModelRequest } from './useModelRequestRunner';
 
 const {
@@ -272,6 +273,39 @@ describe('standardChatStrategy', () => {
       'user',
       undefined,
       undefined,
+    );
+
+    unmount();
+  });
+
+  it('stores the sent protocol parts on the user message', async () => {
+    const promptParts = [
+      { fileData: { mimeType: 'image/png', fileUri: 'files/abc' } },
+      { text: 'analyze the csv' },
+    ];
+    mockBuildContentParts.mockResolvedValue({
+      contentParts: promptParts,
+      enrichedFiles: [],
+    });
+
+    const { result, unmount } = renderStandardChat();
+
+    await act(async () => {
+      await result.current.sendStandardMessage({
+        text: 'analyze the csv',
+        files: [],
+        editingMessageId: null,
+        activeModelId: 'gemini-3-flash-preview',
+        request: createPreparedRequest(),
+      });
+    });
+
+    expect(createMessage).toHaveBeenCalledWith(
+      'user',
+      'analyze the csv',
+      expect.objectContaining({
+        apiParts: promptParts,
+      }),
     );
 
     unmount();

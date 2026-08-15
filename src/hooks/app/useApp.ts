@@ -226,7 +226,7 @@ export const useApp = (): AppViewModel => {
       setCurrentChatSettings((prevChatSettings) => ({
         ...prevChatSettings,
         ...newSettings,
-        lockedApiKey: null,
+        lockedApiKey: prevChatSettings.lockedApiKey ?? null,
       }));
     },
     [activeSessionId, currentChatSettings.modelId, handleSelectModelInHeader, setCurrentChatSettings],

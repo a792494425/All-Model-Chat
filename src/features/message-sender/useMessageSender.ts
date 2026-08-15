@@ -14,10 +14,16 @@ import { useChatStore } from '@/stores/chatStore';
 import { isServerCodeExecutionMode } from '@/utils/codeExecution';
 import { getModelCapabilities } from '@/utils/model/modelCapabilities';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
+import { updateSessionById } from '@/utils/chat/sessionMutations';
+import { sessionHasGeminiFilesApiReferences, usesGeminiFilesApiReference } from '@/utils/chat/geminiFilesApi';
 
-import { ensureFilesApiReferences, formatFileReferenceErrorMessage } from './fileApiReference';
+import {
+  ensureFilesApiReferences,
+  ensureHistoryFilesApiReferences,
+  formatFileReferenceErrorMessage,
+} from './fileApiReference';
 import { sendImageEditMessage } from './imageEditStrategy';
-import { prepareFilesForOpenAICompatibleMode } from './openaiCompatibleFiles';
+import { prepareFilesForOpenAICompatibleMode, prepareHistoryForOpenAICompatibleMode } from './openaiCompatibleFiles';
 import { validateMessageBeforeSend } from './sendMessageValidation';
 import { createSenderStoreActions } from './senderStoreActions';
 import { sendStandardMessage } from './standardChatStrategy';
@@ -171,6 +177,7 @@ export const useMessageSender = (props: MessageSenderProps) => {
         activeModelId,
         apiRoute,
         files: filesToUse,
+        historyMessages: messages,
         keySettings: sessionToUpdate,
         generationId: continueTargetMessage ? (effectiveEditingId ?? undefined) : undefined,
         // Continue reuses the target's generation id so stream state stays
@@ -210,6 +217,47 @@ export const useMessageSender = (props: MessageSenderProps) => {
         return;
       }
       const filesReadyForSend = fileReferenceResult.files;
+      let messagesForTurn = messages;
+
+      const persistHistoryIfChanged = (nextMessages: ChatMessage[], changed: boolean) => {
+        if (!changed || !activeSessionId) {
+          return;
+        }
+
+        const refreshedById = new Map(nextMessages.map((message) => [message.id, message]));
+        const keepLockedApiKey =
+          sessionHasGeminiFilesApiReferences(nextMessages) ||
+          filesReadyForSend.some((file) => usesGeminiFilesApiReference(file));
+        updateAndPersistSessions((prev) =>
+          updateSessionById(prev, activeSessionId, (session) => ({
+            ...session,
+            messages: session.messages.map((message) => refreshedById.get(message.id) ?? message),
+            settings: keepLockedApiKey ? session.settings : { ...session.settings, lockedApiKey: null },
+          })),
+        );
+      };
+
+      if (apiRoute.apiMode === 'third-party' && !isTtsModel) {
+        const historyReferenceResult = await prepareHistoryForOpenAICompatibleMode({
+          messages,
+          translate: t,
+        });
+        messagesForTurn = historyReferenceResult.messages;
+        persistHistoryIfChanged(historyReferenceResult.messages, historyReferenceResult.changed);
+      } else if (apiRoute.apiMode !== 'third-party' && !isTtsModel) {
+        const historyReferenceResult = await ensureHistoryFilesApiReferences({
+          messages,
+          apiKey: keyToUse,
+          abortSignal: newAbortController.signal,
+          translate: t,
+        });
+        if (!historyReferenceResult.ok) {
+          setAppFileError(formatFileReferenceErrorMessage(historyReferenceResult, t));
+          return;
+        }
+        messagesForTurn = historyReferenceResult.messages;
+        persistHistoryIfChanged(historyReferenceResult.messages, historyReferenceResult.changed);
+      }
 
       if (appSettings.isAutoScrollOnSendEnabled) {
         userScrolledUpRef.current = false;
@@ -236,8 +284,10 @@ export const useMessageSender = (props: MessageSenderProps) => {
       }
 
       if (isImageEditModel || (isGemini3Image && appSettings.generateQuadImages)) {
-        const editIndex = effectiveEditingId ? messages.findIndex((message) => message.id === effectiveEditingId) : -1;
-        const historyMessages = editIndex !== -1 ? messages.slice(0, editIndex) : messages;
+        const editIndex = effectiveEditingId
+          ? messagesForTurn.findIndex((message) => message.id === effectiveEditingId)
+          : -1;
+        const historyMessages = editIndex !== -1 ? messagesForTurn.slice(0, editIndex) : messagesForTurn;
         await sendImageEditMessage({
           keyToUse,
           activeSessionId,
@@ -267,7 +317,7 @@ export const useMessageSender = (props: MessageSenderProps) => {
         props: {
           appSettings,
           currentChatSettings: sessionToUpdate,
-          messages,
+          messages: messagesForTurn,
           setEditingMessageId,
           setAppFileError,
           aspectRatio,

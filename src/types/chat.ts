@@ -39,6 +39,8 @@ export interface UploadedFile {
   fileApiExpirationTime?: string;
   transferStrategy?: FileTransferStrategy;
   uploadState?: 'pending' | 'uploading' | 'processing_api' | 'active' | 'failed' | 'cancelled';
+  /** When true, history replay emits a protocol omission note instead of file bytes. */
+  omittedFromApiHistory?: boolean;
   abortController?: AbortController;
   uploadSpeed?: string;
   videoMetadata?: VideoMetadata;

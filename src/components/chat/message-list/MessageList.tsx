@@ -86,8 +86,7 @@ const MessageListComponent: React.FC = () => {
   const {
     previewFile,
     isHtmlPreviewModalOpen,
-    htmlToPreview,
-    initialTrueFullscreenRequest,
+    htmlPreview,
     configuringFile,
     setConfiguringFile,
     handleFileClick,
@@ -231,8 +230,7 @@ const MessageListComponent: React.FC = () => {
         currentImageIndex={currentImageIndex}
         imageCount={allImages.length}
         isHtmlPreviewModalOpen={isHtmlPreviewModalOpen}
-        htmlToPreview={htmlToPreview}
-        initialTrueFullscreenRequest={initialTrueFullscreenRequest}
+        htmlPreview={htmlPreview}
         handleCloseHtmlPreview={handleCloseHtmlPreview}
         handleLiveArtifactFollowUp={handleLiveArtifactFollowUp}
         configuringFile={configuringFile}

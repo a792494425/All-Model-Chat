@@ -65,6 +65,21 @@ describe('buildContentParts', () => {
     expect(contentParts).toEqual([{ text: 'Hello' }]);
   });
 
+  it('inserts a protocol omission note for files marked omitted from API history', async () => {
+    const file = makeFile({
+      name: 'deck.pdf',
+      type: 'application/pdf',
+      uploadState: 'failed',
+      error: 'unavailable',
+      omittedFromApiHistory: true,
+    });
+    const { contentParts } = await buildContentParts('look at this', [file]);
+    expect(contentParts).toEqual([
+      { text: expect.stringContaining('deck.pdf') },
+      { text: 'look at this' },
+    ]);
+  });
+
   it('skips files not in active state', async () => {
     const file = makeFile({ uploadState: 'pending' });
     const { contentParts } = await buildContentParts('Hello', [file]);

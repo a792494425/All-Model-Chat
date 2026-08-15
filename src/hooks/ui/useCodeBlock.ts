@@ -5,6 +5,7 @@ import { getCodeBlockPreviewType } from '@/utils/previewableMarkdown';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { triggerDownload, sanitizeFilename } from '@/utils/export/core';
 import { type SideViewContent } from '@/types';
+import { type OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { useI18n } from '@/contexts/I18nContext';
 
 const COLLAPSE_THRESHOLD_PX = 320;
@@ -77,7 +78,7 @@ interface UseCodeBlockProps {
   children: React.ReactNode;
   className?: string;
   expandCodeBlocksByDefault: boolean;
-  onOpenHtmlPreview: (html: string, options?: { initialTrueFullscreen?: boolean }) => void;
+  onOpenHtmlPreview: OpenHtmlPreviewHandler;
   onOpenSidePanel: (content: SideViewContent) => void;
 }
 
@@ -212,8 +213,8 @@ export const useCodeBlock = ({
     });
   };
 
-  const handleFullscreenPreview = (trueFullscreen: boolean) => {
-    onOpenHtmlPreview(resolvedCodeText, { initialTrueFullscreen: trueFullscreen });
+  const handleOpenPreview = () => {
+    onOpenHtmlPreview(resolvedCodeText, { privilege: 'unrestricted' });
   };
 
   const handleDownload = () => {
@@ -243,7 +244,7 @@ export const useCodeBlock = ({
     handleToggleExpand,
     handleCopy,
     handleOpenSide,
-    handleFullscreenPreview,
+    handleOpenPreview,
     handleDownload,
     codeElement,
     resolvedCodeText,

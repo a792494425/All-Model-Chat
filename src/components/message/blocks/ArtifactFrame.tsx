@@ -1,25 +1,22 @@
 import { logService } from '@/services/logService';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Maximize2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { useWindowContext } from '@/contexts/WindowContext';
+import { SMALL_ICON_BUTTON_CLASS } from '@/constants/buttonClasses';
 import {
   buildStreamingHtmlPreviewRenderPayload,
   buildHtmlPreviewSrcDoc,
   buildStreamingHtmlPreviewSrcDoc,
   whenKatexReady,
   HTML_PREVIEW_CLEAR_SELECTION_EVENT,
-  HTML_PREVIEW_COPY_EVENT,
-  HTML_PREVIEW_DIAGNOSTIC_EVENT,
-  HTML_PREVIEW_GRAPHVIZ_RENDER_REQUEST_EVENT,
-  HTML_PREVIEW_GRAPHVIZ_RENDER_RESPONSE_EVENT,
   HTML_PREVIEW_MESSAGE_CHANNEL,
   HTML_PREVIEW_STREAM_RENDER_EVENT,
 } from '@/utils/html-preview/previewDocument';
-import { renderDotToSvgCached, type DotRenderResult } from '@/features/graphviz/vizRuntime';
-import {
-  normalizeLiveArtifactFollowupPayload,
-  type LiveArtifactFollowupPayload,
-} from '@/utils/live-artifacts/liveArtifactFollowup';
+import { resolveHtmlPreviewBridgeEvent } from '@/utils/html-preview/previewParentBridge';
+import { HTML_PREVIEW_SANDBOX } from '@/utils/html-preview/previewPrivilege';
+import { useHtmlPreviewGraphvizRelay } from '@/hooks/ui/useHtmlPreviewGraphvizRelay';
+import { type LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
 import {
   createRelayedLiveArtifactSelectionDetail,
   dispatchLiveArtifactSelection,
@@ -33,23 +30,8 @@ interface ArtifactFrameProps {
   baseFontSize?: number;
   themeId?: string;
   onFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
+  onOpenPreview?: () => void;
 }
-
-type HtmlPreviewBridgeMessage = {
-  channel?: string;
-  event?:
-    | 'ready'
-    | 'escape'
-    | 'resize'
-    | 'followup'
-    | 'selection'
-    | 'copy'
-    | 'diagnostic'
-    | 'graphviz-render-request'
-    | 'graphviz-render-response';
-  height?: number;
-  payload?: unknown;
-};
 
 const MIN_FRAME_HEIGHT = 120;
 const DEFAULT_FRAME_HEIGHT = 320;
@@ -108,10 +90,16 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
   baseFontSize,
   themeId,
   onFollowUp,
+  onOpenPreview,
 }) => {
   const { t } = useI18n();
   const { window: targetWindow } = useWindowContext();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  useHtmlPreviewGraphvizRelay({
+    iframeRef,
+    privilege: 'sanitized',
+    themeId,
+  });
   const latestStreamingHtmlRef = useRef(html);
   const isLoadingRef = useRef(isLoading);
   const lastPostedStreamingHtmlRef = useRef<string | null>(null);
@@ -275,119 +263,75 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
   }, [isLoading]);
 
   useEffect(() => {
-    const handleMessage = (event: MessageEvent<HtmlPreviewBridgeMessage>) => {
-      const data = event.data;
-      if (!data || data.channel !== HTML_PREVIEW_MESSAGE_CHANNEL) {
+    const handleMessage = (event: MessageEvent) => {
+      const resolved = resolveHtmlPreviewBridgeEvent({
+        event,
+        iframeWindow: iframeRef.current?.contentWindow,
+        privilege: 'sanitized',
+        parentOrigin: targetWindow.location.origin,
+      });
+      if (!resolved) {
         return;
       }
 
-      // Sandboxed iframes without allow-same-origin post messages from the opaque origin "null".
-      if (event.origin !== 'null') {
-        return;
-      }
-
-      const iframeWindow = iframeRef.current?.contentWindow;
-      if (iframeWindow && event.source !== iframeWindow) {
-        return;
-      }
-
-      // Bridge ready means the streaming runner is listening — re-push HTML that may
-      // have been posted too early (or lost during Virtuoso remount).
-      if (data.event === 'ready') {
+      if (resolved.kind === 'ready') {
         flushStreamingHtmlNow(true);
         return;
       }
 
-      if (data.event === 'selection') {
+      if (resolved.kind === 'selection') {
         dispatchLiveArtifactSelection(
           targetWindow,
-          createRelayedLiveArtifactSelectionDetail(iframeRef.current, data.payload),
+          createRelayedLiveArtifactSelectionDetail(iframeRef.current, resolved.payload),
         );
         return;
       }
 
-      if (data.event === 'followup') {
-        const payload = normalizeLiveArtifactFollowupPayload(data.payload);
-        if (!payload) {
-          logService.warn('Ignored invalid Live Artifact follow-up payload.');
-          return;
-        }
-
-        onFollowUp?.(payload);
+      if (resolved.kind === 'followup') {
+        onFollowUp?.(resolved.payload);
         return;
       }
 
-      if (data.event === HTML_PREVIEW_COPY_EVENT) {
-        const copyText =
-          data.payload && typeof data.payload === 'object' && 'text' in data.payload
-            ? (data.payload as { text?: unknown }).text
-            : undefined;
-        if (typeof copyText === 'string' && copyText.trim()) {
-          // The sandboxed iframe lacks allow-same-origin, so navigator.clipboard
-          // is unavailable there; the parent page writes to the clipboard instead.
-          targetWindow.navigator.clipboard?.writeText(copyText).catch((error: unknown) => {
-            logService.warn('Failed to copy Live Artifact text:', error);
-          });
-        }
+      if (resolved.kind === 'invalid-followup') {
+        logService.warn('Ignored invalid Live Artifact follow-up payload.');
         return;
       }
 
-      if (data.event === HTML_PREVIEW_DIAGNOSTIC_EVENT) {
-        logService.warn('Live Artifact preview diagnostic:', data.payload);
-        return;
-      }
-
-      // The sandboxed iframe cannot run viz.js (WASM + opaque origin), so it
-      // forwards `data-amc-graphviz` nodes here for layout on the parent page.
-      // Render results are cached by theme+dot, so repeated requests across
-      // remounts are cheap.
-      if (data.event === HTML_PREVIEW_GRAPHVIZ_RENDER_REQUEST_EVENT) {
-        const payload = data.payload;
-        if (
-          !payload ||
-          typeof payload !== 'object' ||
-          typeof (payload as { id?: unknown }).id !== 'string' ||
-          typeof (payload as { dot?: unknown }).dot !== 'string'
-        ) {
-          return;
-        }
-        const { id, dot } = payload as { id: string; dot: string };
-        void renderDotToSvgCached(dot, { themeId }).then((result: DotRenderResult) => {
-          iframeWindow?.postMessage(
-            {
-              channel: HTML_PREVIEW_MESSAGE_CHANNEL,
-              event: HTML_PREVIEW_GRAPHVIZ_RENDER_RESPONSE_EVENT,
-              payload: result.ok ? { id, ok: true, svg: result.svg } : { id, ok: false, error: result.error },
-            },
-            '*',
-          );
+      if (resolved.kind === 'copy') {
+        // The sandboxed iframe lacks allow-same-origin, so navigator.clipboard
+        // is unavailable there; the parent page writes to the clipboard instead.
+        targetWindow.navigator.clipboard?.writeText(resolved.text).catch((error: unknown) => {
+          logService.warn('Failed to copy Live Artifact text:', error);
         });
         return;
       }
 
-      if (data.event !== 'resize') {
+      if (resolved.kind === 'diagnostic') {
+        logService.warn('Live Artifact preview diagnostic:', resolved.payload);
         return;
       }
 
-      if (typeof data.height === 'number' && Number.isFinite(data.height)) {
-        const nextHeight = normalizeFrameHeight(data.height);
-        cacheFrameHeight(heightCacheKey, nextHeight);
-        // While streaming, only the streaming key is written so the content
-        // (final-html) cache is not polluted with intermediate frame heights.
-        // The streaming key is not derived from the message content, so each
-        // write replaces the same entry instead of churning the LRU.
-        if (!isLoading && heightCacheKey !== contentHeightCacheKey) {
-          cacheFrameHeight(contentHeightCacheKey, nextHeight);
-        }
-        if (streamingHeightCacheKey && heightCacheKey !== streamingHeightCacheKey) {
-          cacheFrameHeight(streamingHeightCacheKey, nextHeight);
-        }
-        setFrameHeightState((currentState) =>
-          currentState.heightCacheKey === heightCacheKey && currentState.height === nextHeight
-            ? currentState
-            : { heightCacheKey, height: nextHeight },
-        );
+      if (resolved.kind !== 'resize') {
+        return;
       }
+
+      const nextHeight = normalizeFrameHeight(resolved.height);
+      cacheFrameHeight(heightCacheKey, nextHeight);
+      // While streaming, only the streaming key is written so the content
+      // (final-html) cache is not polluted with intermediate frame heights.
+      // The streaming key is not derived from the message content, so each
+      // write replaces the same entry instead of churning the LRU.
+      if (!isLoading && heightCacheKey !== contentHeightCacheKey) {
+        cacheFrameHeight(contentHeightCacheKey, nextHeight);
+      }
+      if (streamingHeightCacheKey && heightCacheKey !== streamingHeightCacheKey) {
+        cacheFrameHeight(streamingHeightCacheKey, nextHeight);
+      }
+      setFrameHeightState((currentState) =>
+        currentState.heightCacheKey === heightCacheKey && currentState.height === nextHeight
+          ? currentState
+          : { heightCacheKey, height: nextHeight },
+      );
     };
 
     targetWindow.addEventListener('message', handleMessage);
@@ -400,7 +344,6 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
     onFollowUp,
     streamingHeightCacheKey,
     targetWindow,
-    themeId,
   ]);
 
   useEffect(() => {
@@ -436,7 +379,7 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
           className="h-full w-full border-0 bg-transparent"
           // SECURITY: allow-same-origin is intentionally omitted (opaque origin).
           // allow-popups enables target="_blank" external links in Live Artifacts.
-          sandbox="allow-scripts allow-forms allow-popups allow-modals allow-downloads"
+          sandbox={HTML_PREVIEW_SANDBOX.sanitized}
           allow="clipboard-write"
           scrolling="no"
           onLoad={() => {
@@ -445,6 +388,17 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
           }}
         />
       </div>
+      {onOpenPreview && !isLoading && (
+        <button
+          type="button"
+          className={`${SMALL_ICON_BUTTON_CLASS} absolute right-2 top-2 z-10 border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)]/90 shadow-sm opacity-100 sm:opacity-0 sm:group-hover/artifact:opacity-100 sm:focus-visible:opacity-100 sm:group-focus-within/artifact:opacity-100`}
+          title={t('htmlPreviewOpenLarger')}
+          aria-label={t('htmlPreviewOpenLarger')}
+          onClick={onOpenPreview}
+        >
+          <Maximize2 size={16} strokeWidth={2} />
+        </button>
+      )}
     </div>
   );
 };

@@ -11,6 +11,7 @@ import { logService } from '@/services/logService';
 import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/apiKeySelection';
 import { generateUniqueId } from '@/utils/chat/ids';
 import { getFileMetadataApi } from '@/services/api/fileApi';
+import { formatGeminiFileApiProcessingError, toFileApiExpirationTime } from '@/utils/chat/geminiFilesApi';
 import {
   createProcessingPlaceholderFile,
   getUploadLifecycleForGeminiState,
@@ -127,11 +128,19 @@ export const useFileIdAdder = ({
             size: Number(fileMetadata.sizeBytes) || 0,
             fileUri: fileMetadata.uri,
             fileApiName: fileMetadata.name || fileApiId,
+            fileApiExpirationTime: toFileApiExpirationTime(fileMetadata.expirationTime),
             transferStrategy: 'remote-file-id',
             isProcessing,
             progress: 100,
             uploadState,
-            error: uploadState === 'failed' ? t('fileIdAdderProcessingFailed') : undefined,
+            error:
+              uploadState === 'failed'
+                ? formatGeminiFileApiProcessingError(
+                    fileMetadata,
+                    t('fileIdAdderProcessingFailed'),
+                    t('fileIdAdderProcessingFailedWithMessage'),
+                  )
+                : undefined,
             mediaResolution: defaultResolution,
           };
           setSelectedFiles((prev) => prev.map((selectedFile) => (selectedFile.id === tempId ? newFile : selectedFile)));

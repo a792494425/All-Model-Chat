@@ -49,6 +49,28 @@ describe('useApiErrorHandler', () => {
     );
   });
 
+  it('writes empty-reply notices without API-error quoting', () => {
+    const updateAndPersistSessions = vi.fn();
+    const { result } = renderHookWithProviders(() => useApiErrorHandler(updateAndPersistSessions), { language: 'zh' });
+    const error = Object.assign(new Error('模型结束了这一轮，但没有给出可见回复。请重试。'), {
+      name: 'EmptyReplyError',
+    });
+
+    act(() => {
+      result.current.handleApiError(error, 'session-1', 'generation-1');
+    });
+
+    const updater = updateAndPersistSessions.mock.calls[0]?.[0];
+    const finalState = updater([createSession()]);
+    expect(finalState[0].messages[0]).toEqual(
+      expect.objectContaining({
+        role: 'error',
+        content: '模型结束了这一轮，但没有给出可见回复。请重试。',
+        isLoading: false,
+      }),
+    );
+  });
+
   it('localizes silent API key configuration errors', () => {
     const updateAndPersistSessions = vi.fn();
     const { result } = renderHookWithProviders(() => useApiErrorHandler(updateAndPersistSessions), { language: 'zh' });

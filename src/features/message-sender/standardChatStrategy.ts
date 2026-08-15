@@ -118,6 +118,7 @@ export const sendStandardMessage = async ({
     runMessageLifecycle,
     placement,
     userMessageOptions: {
+      apiParts: promptParts,
       cumulativeTotalTokens: cumulativeTotalTokens > 0 ? cumulativeTotalTokens : undefined,
     },
     modelMessageOptions: {

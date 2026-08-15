@@ -1,13 +1,21 @@
 import { logService } from '@/services/logService';
 import React, { useRef, useState, useEffect, type RefObject } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { buildUnrestrictedHtmlPreviewSrcDoc } from '@/utils/html-preview/previewDocument';
+import { buildHtmlPreviewSrcDoc } from '@/utils/html-preview/previewDocument';
+import {
+  DEFAULT_HTML_PREVIEW_PRIVILEGE,
+  HTML_PREVIEW_SANDBOX,
+  type HtmlPreviewPrivilege,
+} from '@/utils/html-preview/previewPrivilege';
 
 interface HtmlPreviewContentProps {
   iframeRef: RefObject<HTMLIFrameElement>;
   htmlContent: string;
   scale: number;
   contentHeight: number;
+  privilege?: HtmlPreviewPrivilege;
+  themeId?: string;
+  baseFontSize?: number;
 }
 
 export const HtmlPreviewContent: React.FC<HtmlPreviewContentProps> = ({
@@ -15,6 +23,9 @@ export const HtmlPreviewContent: React.FC<HtmlPreviewContentProps> = ({
   htmlContent,
   scale,
   contentHeight,
+  privilege = DEFAULT_HTML_PREVIEW_PRIVILEGE,
+  themeId,
+  baseFontSize,
 }) => {
   const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -36,30 +47,32 @@ export const HtmlPreviewContent: React.FC<HtmlPreviewContentProps> = ({
     logService.error('Iframe loading error:', event);
   };
 
+  const isUnrestricted = privilege === 'unrestricted';
+
   return (
     <div ref={containerRef} className="flex-grow relative overflow-auto custom-scrollbar bg-[var(--theme-bg-tertiary)]">
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.05]"
-        style={{
-          backgroundImage: `radial-gradient(var(--theme-text-tertiary) 1px, transparent 1px)`,
-          backgroundSize: '20px 20px',
-        }}
-      />
+      {isUnrestricted && (
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.05]"
+          style={{
+            backgroundImage: `radial-gradient(var(--theme-text-tertiary) 1px, transparent 1px)`,
+            backgroundSize: '20px 20px',
+          }}
+        />
+      )}
 
       <iframe
         ref={iframeRef}
-        srcDoc={buildUnrestrictedHtmlPreviewSrcDoc(htmlContent)}
+        srcDoc={buildHtmlPreviewSrcDoc(htmlContent, { privilege, themeId, baseFontSize })}
         title={t('htmlPreviewIframeTitle')}
-        className="border-none bg-white shadow-sm origin-top-left"
+        className={`border-none shadow-sm origin-top-left ${isUnrestricted ? 'bg-white' : 'bg-[var(--theme-bg-primary)]'}`}
         style={{
           width: `${100 / scale}%`,
           height: iframeHeight,
           transform: `scale(${scale})`,
         }}
-        // Code-block preview is intentionally unrestricted so full HTML/CSS/JS demos
-        // render (CDN scripts, localStorage, same-origin APIs, nested frames, etc.).
-        // Live Artifacts in the message list keep a stricter sandbox without same-origin.
-        sandbox="allow-scripts allow-forms allow-popups allow-modals allow-downloads allow-same-origin allow-popups-to-escape-sandbox allow-presentation allow-pointer-lock allow-top-navigation-by-user-activation"
+        sandbox={HTML_PREVIEW_SANDBOX[privilege]}
+        allow={privilege === 'sanitized' ? 'clipboard-write' : undefined}
         onError={handleIframeError}
       />
     </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { Check, Copy, Maximize2, ChevronDown, ChevronUp, Download, Expand, Sidebar, Play, Loader2 } from 'lucide-react';
+import { Check, Copy, Maximize2, ChevronDown, ChevronUp, Download, Sidebar, Play, Loader2 } from 'lucide-react';
 import { MESSAGE_BLOCK_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { LanguageIcon } from '@/components/message/code/LanguageIcon';
 
@@ -14,7 +14,7 @@ interface CodeHeaderProps {
   onCopy: () => void;
   onDownload: () => void;
   onOpenSide: () => void;
-  onFullscreen: (trueFullscreen: boolean) => void;
+  onOpenPreview: () => void;
   canRun?: boolean;
   isRunning?: boolean;
   onRun?: () => void;
@@ -30,7 +30,7 @@ export const CodeHeader: React.FC<CodeHeaderProps> = ({
   onCopy,
   onDownload,
   onOpenSide,
-  onFullscreen,
+  onOpenPreview,
   canRun,
   isRunning,
   onRun,
@@ -61,10 +61,7 @@ export const CodeHeader: React.FC<CodeHeaderProps> = ({
             <button className={headerButtonClass} title={t('diagramOpenSidePanel')} onClick={onOpenSide}>
               <Sidebar size={16} strokeWidth={2} />
             </button>
-            <button className={headerButtonClass} title={t('codeFullscreenMonitor')} onClick={() => onFullscreen(true)}>
-              <Expand size={16} strokeWidth={2} />
-            </button>
-            <button className={headerButtonClass} title={t('codeFullscreenModal')} onClick={() => onFullscreen(false)}>
+            <button className={headerButtonClass} title={t('codeFullscreenModal')} onClick={onOpenPreview}>
               <Maximize2 size={16} strokeWidth={2} />
             </button>
           </>

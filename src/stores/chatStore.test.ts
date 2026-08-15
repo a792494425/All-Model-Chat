@@ -97,6 +97,7 @@ describe('chatStore', () => {
       imageOutputMode: 'IMAGE_TEXT',
       personGeneration: 'ALLOW_ADULT',
       isSwitchingModel: false,
+      pendingLockedApiKey: null,
     });
   });
 
@@ -620,7 +621,23 @@ describe('chatStore', () => {
       expect(sessions[0].settings.modelId).toBe('new-model');
     });
 
-    it('does nothing when no active session', () => {
+    it('clears a pending locked API key when a session becomes active', () => {
+      useChatStore.setState({ pendingLockedApiKey: 'pending-key' });
+      useChatStore.getState().setActiveSessionId('s1');
+      expect(useChatStore.getState().pendingLockedApiKey).toBeNull();
+    });
+
+    it('stashes a pending locked API key when there is no active session', () => {
+      useChatStore.getState().setSavedSessions([makeSession({ id: 's1' })]);
+      useChatStore.getState().setCurrentChatSettings((prev) => ({
+        ...prev,
+        lockedApiKey: 'pending-key',
+      }));
+      expect(dbService.saveSession).not.toHaveBeenCalled();
+      expect(useChatStore.getState().pendingLockedApiKey).toBe('pending-key');
+    });
+
+    it('does not persist settings when no active session', () => {
       useChatStore.getState().setSavedSessions([makeSession({ id: 's1' })]);
       useChatStore.getState().setCurrentChatSettings((prev) => ({
         ...prev,

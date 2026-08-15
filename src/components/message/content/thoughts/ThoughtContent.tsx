@@ -1,6 +1,7 @@
 import React from 'react';
 import { LazyMarkdownRenderer } from '@/components/message/LazyMarkdownRenderer';
 import { type SideViewContent, type UploadedFile } from '@/types';
+import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { useMessageStream } from '@/hooks/ui/useMessageStream';
 
 interface ThoughtContentProps {
@@ -8,7 +9,7 @@ interface ThoughtContentProps {
   isLoading: boolean;
   content: string; // Persisted content
   onImageClick: (file: UploadedFile) => void;
-  onOpenHtmlPreview: (html: string, options?: { initialTrueFullscreen?: boolean }) => void;
+  onOpenHtmlPreview: OpenHtmlPreviewHandler;
   expandCodeBlocksByDefault: boolean;
   isMermaidRenderingEnabled: boolean;
   isGraphvizRenderingEnabled: boolean;

@@ -61,6 +61,35 @@ describe('ArtifactFrame', () => {
     expect(iframe?.getAttribute('srcdoc')).toContain('--amc-live-artifact-font-size:18px');
   });
 
+  it('offers a larger preview that keeps the sanitized Live Artifact engine', () => {
+    const onOpenPreview = vi.fn();
+
+    act(() => {
+      renderer.root.render(
+        <ArtifactFrame html="<section><p>Artifact text</p></section>" onOpenPreview={onOpenPreview} />,
+      );
+    });
+
+    const openButton = renderer.container.querySelector('button[title="Open larger preview"]') as HTMLButtonElement;
+    expect(openButton).not.toBeNull();
+
+    act(() => {
+      openButton.click();
+    });
+
+    expect(onOpenPreview).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the larger-preview action while the artifact is still streaming', () => {
+    act(() => {
+      renderer.root.render(
+        <ArtifactFrame html="<section><p>Artifact text</p></section>" isLoading onOpenPreview={vi.fn()} />,
+      );
+    });
+
+    expect(renderer.container.querySelector('button[title="Open larger preview"]')).toBeNull();
+  });
+
   it('injects transparent Live Artifact theme tokens into static artifact documents', () => {
     act(() => {
       renderer.root.render(<ArtifactFrame html="<section><p>Artifact text</p></section>" themeId="onyx" />);

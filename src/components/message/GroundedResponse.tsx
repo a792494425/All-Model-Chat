@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { type UploadedFile, type SideViewContent } from '@/types';
+import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { LazyMarkdownRenderer } from './LazyMarkdownRenderer';
 import { insertCitations, extractSources } from './grounded-response/groundingSources';
 import { extractMapsPlaces } from '@/utils/groundingMetadata';
@@ -15,7 +16,7 @@ interface GroundedResponseProps {
   metadata: unknown;
   urlContextMetadata?: unknown;
   isLoading: boolean;
-  onOpenHtmlPreview: (html: string, options?: { initialTrueFullscreen?: boolean }) => void;
+  onOpenHtmlPreview: OpenHtmlPreviewHandler;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   expandCodeBlocksByDefault: boolean;
   onImageClick: (file: UploadedFile) => void;

@@ -7,6 +7,7 @@ import { TableBlock } from './blocks/TableBlock';
 import { ToolResultBlock } from './blocks/ToolResultBlock';
 import { DeferredDiagramBlock } from './blocks/DeferredDiagramBlock';
 import { type UploadedFile, type SideViewContent } from '@/types';
+import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { extractTextFromNode } from '@/utils/reactNodeText';
 import { InlineCode } from './code/InlineCode';
 import { transformMarkdownTextSegments } from '@/utils/markdownSegments';
@@ -23,7 +24,7 @@ export interface MarkdownRendererProps {
   messageId?: string;
   isLoading: boolean;
   onImageClick: (file: UploadedFile) => void;
-  onOpenHtmlPreview: (html: string, options?: { initialTrueFullscreen?: boolean }) => void;
+  onOpenHtmlPreview: OpenHtmlPreviewHandler;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   expandCodeBlocksByDefault: boolean;
   isMermaidRenderingEnabled: boolean;

@@ -88,6 +88,7 @@ export const sendImageEditMessage = async ({
   t,
 }: SendImageEditMessageParams) => {
   const imageFiles = files.filter((file) => isImageMimeType(file.type));
+  const { contentParts: promptParts } = await buildContentParts(text, imageFiles, currentChatSettings.modelId);
 
   await runOptimisticMessagePipeline({
     activeSessionId,
@@ -105,8 +106,10 @@ export const sendImageEditMessage = async ({
     abortController,
     errorPrefix: t('messageSenderImageEditErrorPrefix'),
     runMessageLifecycle,
+    userMessageOptions: {
+      apiParts: promptParts,
+    },
     execute: async () => {
-      const { contentParts: promptParts } = await buildContentParts(text, imageFiles, currentChatSettings.modelId);
       const alwaysKeepThinking =
         currentChatSettings.alwaysKeepThinkingInContext ?? appSettings.alwaysKeepThinkingInContext ?? false;
       const shouldStripThinking = shouldStripThinkingFromContext(

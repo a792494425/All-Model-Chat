@@ -37,8 +37,8 @@ const appearanceSettings = {
   },
   settingsAutoFullscreenHtmlLabel: { en: 'Auto-open Preview', zh: '自动打开预览' },
   settingsAutoFullscreenHtmlTooltip: {
-    en: 'Automatically open a fullscreen preview after an HTML or SVG block is generated.',
-    zh: '在 HTML 或 SVG 代码块生成后自动打开全屏预览。',
+    en: 'Automatically open a preview after an HTML or SVG code block is generated. Live Artifacts that already render in the message are not opened again.',
+    zh: '在 HTML 或 SVG 代码块生成后自动打开预览。已在消息中内联渲染的 Live Artifacts 不会再次打开。',
   },
   settingsUnwrapMislabeledHtmlLabel: { en: 'Render mislabeled HTML code blocks', zh: '渲染误标记的 HTML 代码块' },
   settingsUnwrapMislabeledHtmlTooltip: {

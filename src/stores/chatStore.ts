@@ -7,6 +7,7 @@ import {
   type ChatSettingsUpdater,
 } from '@/types';
 import { dbService } from '@/services/db/dbService';
+import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { logService } from '@/services/logService';
 import { rehydrateSessionFiles } from '@/utils/chat/session';
 import { syncActiveSessionRoute, type SessionHistoryMode } from './sessionRouteSync';
@@ -56,6 +57,7 @@ interface ChatState extends ChatUiSliceState {
   savedGroups: ChatGroup[];
   activeSessionId: string | null;
   activeMessages: ChatMessage[];
+  pendingLockedApiKey: string | null;
 
   _activeJobs: { current: Map<string, AbortController> };
   _userScrolledUp: { current: boolean };
@@ -119,6 +121,7 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
   savedGroups: [],
   activeSessionId: null,
   activeMessages: [],
+  pendingLockedApiKey: null,
 
   ...createChatUiSlice<ChatState & ChatActions>(set),
 
@@ -138,7 +141,10 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
 
   setActiveSessionId: (value, options) => {
     const nextValue = resolveUpdaterOrValue(value, get().activeSessionId);
-    set({ activeSessionId: nextValue });
+    set({
+      activeSessionId: nextValue,
+      ...(nextValue !== get().activeSessionId ? { pendingLockedApiKey: null } : {}),
+    });
     syncActiveSessionRoute(nextValue, options?.history ?? 'auto');
   },
 
@@ -462,8 +468,15 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
   },
 
   setCurrentChatSettings: (updater) => {
-    const { activeSessionId } = get();
-    if (!activeSessionId) return;
+    const { activeSessionId, pendingLockedApiKey } = get();
+    if (!activeSessionId) {
+      const nextSettings = updater({
+        ...DEFAULT_CHAT_SETTINGS,
+        lockedApiKey: pendingLockedApiKey,
+      });
+      set({ pendingLockedApiKey: nextSettings.lockedApiKey ?? null });
+      return;
+    }
     get().updateAndPersistSessions((prevSessions) =>
       updateSessionByIdInSessions(prevSessions, activeSessionId, (session) => ({
         ...session,

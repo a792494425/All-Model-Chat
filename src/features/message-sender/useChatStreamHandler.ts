@@ -224,10 +224,13 @@ export const useChatStreamHandler = ({
             );
           });
           if (!hasMeaningfulApiPart) {
+            const t = getTranslator(lang);
             const emptyReplyError = new Error(
-              lang === 'zh'
-                ? '模型没有返回任何回答（只产出了思考过程）。请重试或降低思考等级。'
-                : 'The model returned no reply (only reasoning was produced). Please retry or lower the thinking level.',
+              t(
+                streamState.thoughts.trim()
+                  ? 'messageSenderEmptyReplyWithThoughts'
+                  : 'messageSenderEmptyReply',
+              ),
             );
             emptyReplyError.name = 'EmptyReplyError';
             logService.warn(`Empty reply detected for message ${generationId} in session ${currentSessionId}`);

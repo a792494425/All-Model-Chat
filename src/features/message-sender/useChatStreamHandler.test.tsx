@@ -63,9 +63,10 @@ vi.mock('@/utils/chatPricingEvidence', () => ({
   resolveChatExactPricing: vi.fn(() => ({})),
 }));
 
-vi.mock('@/i18n/translations', () => ({
-  getTranslator: () => () => '',
-}));
+vi.mock('@/i18n/translations', async () => {
+  const actual = await vi.importActual<typeof import('@/i18n/translations')>('@/i18n/translations');
+  return actual;
+});
 
 vi.mock('./completionFeedback', () => ({
   emitCompletionFeedback: vi.fn(),
@@ -116,8 +117,20 @@ describe('useChatStreamHandler empty-reply guard', () => {
     expect(handleApiErrorMock).toHaveBeenCalledTimes(1);
     const [error] = handleApiErrorMock.mock.calls[0];
     expect(error.name).toBe('EmptyReplyError');
+    expect(error.message).toBe('模型结束了这一轮，但没有给出可见回复（只有思考过程）。可以重试，或调低思考等级后再试。');
     expect(finishActiveGenerationJobMock).toHaveBeenCalled();
     expect(logWarnMock).toHaveBeenCalledWith(expect.stringContaining('Empty reply detected'));
+  });
+
+  it('does not claim reasoning was produced when the empty reply had no thoughts', () => {
+    const { streamOnComplete } = getHandlers();
+
+    streamOnComplete(undefined, undefined, undefined, undefined);
+
+    expect(handleApiErrorMock).toHaveBeenCalledTimes(1);
+    const [error] = handleApiErrorMock.mock.calls[0];
+    expect(error.name).toBe('EmptyReplyError');
+    expect(error.message).toBe('模型结束了这一轮，但没有给出可见回复。请重试。');
   });
 
   it('does not treat an empty reply as an error when a meaningful part was received', () => {

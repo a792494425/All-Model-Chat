@@ -4,6 +4,7 @@ import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/apiKey
 import { logService } from '@/services/logService';
 import { POLLING_INTERVAL_MS, MAX_POLLING_DURATION_MS } from '@/services/api/filePollingConfig';
 import { getFileMetadataApi } from '@/services/api/fileApi';
+import { formatGeminiFileApiProcessingError } from '@/utils/chat/geminiFilesApi';
 import { useI18n } from '@/contexts/I18nContext';
 
 const MAX_POLLING_BACKOFF_MULTIPLIER = 8;
@@ -164,7 +165,11 @@ export const useFilePolling = ({
                 selectedFile.id === fileId
                   ? {
                       ...selectedFile,
-                      error: tRef.current('fileProcessingBackendFailed'),
+                      error: formatGeminiFileApiProcessingError(
+                        metadata,
+                        tRef.current('fileProcessingBackendFailed'),
+                        tRef.current('fileProcessingBackendFailedWithMessage'),
+                      ),
                       uploadState: 'failed',
                       isProcessing: false,
                     }

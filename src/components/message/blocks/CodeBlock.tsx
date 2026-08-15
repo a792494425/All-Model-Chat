@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, X, Terminal, AlertTriangle, FileOutput, RotateCcw } from 'lucide-react';
 import { type SideViewContent } from '@/types';
+import { type OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { useCodeBlock } from '@/hooks/ui/useCodeBlock';
 import { usePyodide } from '@/features/local-python/usePyodide';
 import { CodeHeader } from './parts/CodeHeader';
@@ -28,7 +29,7 @@ interface CodeBlockProps {
   children: React.ReactNode;
   cacheKey?: string;
   className?: string;
-  onOpenHtmlPreview: (html: string, options?: { initialTrueFullscreen?: boolean }) => void;
+  onOpenHtmlPreview: OpenHtmlPreviewHandler;
   expandCodeBlocksByDefault: boolean;
   onOpenSidePanel: (content: SideViewContent) => void;
   showPreviewControls?: boolean;
@@ -83,7 +84,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
     handleToggleExpand,
     handleCopy,
     handleOpenSide,
-    handleFullscreenPreview,
+    handleOpenPreview,
     handleDownload,
     codeElement,
     resolvedCodeText,
@@ -228,6 +229,13 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
         baseFontSize={props.liveArtifactFontSize}
         themeId={props.themeId}
         onFollowUp={props.onLiveArtifactFollowUp}
+        onOpenPreview={() =>
+          props.onOpenHtmlPreview(resolvedCodeText, {
+            privilege: 'sanitized',
+            themeId: props.themeId,
+            baseFontSize: props.liveArtifactFontSize,
+          })
+        }
       />
     );
   }
@@ -244,7 +252,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
         onCopy={handleCopy}
         onDownload={handleDownload}
         onOpenSide={handleOpenSide}
-        onFullscreen={handleFullscreenPreview}
+        onOpenPreview={handleOpenPreview}
         canRun={isPython}
         isRunning={isRunning}
         onRun={handleRun}

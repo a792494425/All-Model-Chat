@@ -1,6 +1,7 @@
 import { logService } from '@/services/logService';
 import React, { useMemo, useState } from 'react';
 import { type ChatMessage, type AppSettings, type SideViewContent, type UploadedFile } from '@/types';
+import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { getGeminiKeyForRequest } from '@/utils/apiKeySelection';
 import { getThinkingStreamTail, parseThinkingSections } from '@/utils/chat/parsing';
 import { THINKING_STRIP_MAX_SOURCE_LINES } from './thoughts/thinkingStripMetrics';
@@ -21,7 +22,7 @@ interface MessageThoughtsProps {
   appSettings: AppSettings;
   themeId: string;
   onImageClick: (file: UploadedFile) => void;
-  onOpenHtmlPreview: (html: string, options?: { initialTrueFullscreen?: boolean }) => void;
+  onOpenHtmlPreview: OpenHtmlPreviewHandler;
   expandCodeBlocksByDefault: boolean;
   isMermaidRenderingEnabled: boolean;
   isGraphvizRenderingEnabled: boolean;

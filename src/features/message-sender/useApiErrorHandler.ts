@@ -60,14 +60,18 @@ export const useApiErrorHandler = (updateAndPersistSessions: SessionsUpdater) =>
       }
 
       let errorMessage = t('messageSenderUnknownError');
+      const quoteAsApiError = !(error instanceof Error && error.name === 'EmptyReplyError');
       if (error instanceof Error) {
-        errorMessage =
-          error.name === 'SilentError'
-            ? t('messageSenderApiKeyNotConfigured')
-            : formatMessageSenderText(t('messageSenderErrorWithPrefix'), {
-                prefix: resolvedErrorPrefix,
-                message: error.message,
-              });
+        if (error.name === 'SilentError') {
+          errorMessage = t('messageSenderApiKeyNotConfigured');
+        } else if (error.name === 'EmptyReplyError') {
+          errorMessage = error.message;
+        } else {
+          errorMessage = formatMessageSenderText(t('messageSenderErrorWithPrefix'), {
+            prefix: resolvedErrorPrefix,
+            message: error.message,
+          });
+        }
       } else {
         errorMessage = formatMessageSenderText(t('messageSenderErrorWithPrefix'), {
           prefix: resolvedErrorPrefix,
@@ -76,16 +80,21 @@ export const useApiErrorHandler = (updateAndPersistSessions: SessionsUpdater) =>
       }
 
       updateAndPersistSessions((previousSessions) =>
-        updateMessageInSession(previousSessions, sessionId, modelMessageId, (message) => ({
-          ...message,
-          role: 'error',
-          content:
-            (partialContent !== undefined ? partialContent : message.content || '').trim() + `\n\n[${errorMessage}]`,
-          thoughts: partialThoughts !== undefined ? partialThoughts : message.thoughts,
-          isLoading: false,
-          generationEndTime: new Date(),
-          thinkingTimeMs: fallbackThinkingTimeMs(message),
-        })),
+        updateMessageInSession(previousSessions, sessionId, modelMessageId, (message) => {
+          const partial = (partialContent !== undefined ? partialContent : message.content || '').trim();
+          const errorBody = quoteAsApiError ? `[${errorMessage}]` : errorMessage;
+          const content = quoteAsApiError || partial ? `${partial}\n\n${errorBody}` : errorBody;
+
+          return {
+            ...message,
+            role: 'error',
+            content,
+            thoughts: partialThoughts !== undefined ? partialThoughts : message.thoughts,
+            isLoading: false,
+            generationEndTime: new Date(),
+            thinkingTimeMs: fallbackThinkingTimeMs(message),
+          };
+        }),
       );
 
       // 仅标准聊天流的错误写入完成标记(TTS/图片编辑等乐观 pipeline 的调用

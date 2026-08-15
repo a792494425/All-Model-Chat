@@ -7,6 +7,7 @@ import { releaseManagedObjectUrl } from '@/services/objectUrlManager';
 import { generateUniqueId } from '@/utils/chat/ids';
 import { fileToBlobUrl } from '@/utils/file/filePreviewUrls';
 import { uploadFileApi } from '@/services/api/fileApi';
+import { formatGeminiFileApiProcessingError, toFileApiExpirationTime } from '@/utils/chat/geminiFilesApi';
 import {
   createProcessingPlaceholderFile,
   formatSpeed,
@@ -169,10 +170,18 @@ export const uploadFileItem = async ({
                 progress: 100,
                 fileUri: uploadedFileInfo.uri,
                 fileApiName: uploadedFileInfo.name,
+                fileApiExpirationTime: toFileApiExpirationTime(uploadedFileInfo.expirationTime),
                 rawFile: file,
                 transferStrategy: 'files-api',
                 uploadState,
-                error: uploadState === 'failed' ? t('uploadApiProcessingFailed') : selectedFile.error || undefined,
+                error:
+                  uploadState === 'failed'
+                    ? formatGeminiFileApiProcessingError(
+                        uploadedFileInfo,
+                        t('uploadApiProcessingFailed'),
+                        t('uploadApiProcessingFailedWithMessage'),
+                      )
+                    : selectedFile.error || undefined,
                 abortController: undefined,
                 uploadSpeed: undefined,
               }

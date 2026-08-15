@@ -91,4 +91,50 @@ describe('useFilePolling', () => {
     expect(getFileMetadataApiMock).toHaveBeenCalledTimes(2);
     unmount();
   });
+
+  it('surfaces File.error.message when polling reaches FAILED', async () => {
+    getFileMetadataApiMock.mockResolvedValue({
+      state: 'FAILED',
+      error: { code: 3, message: 'Video codec is not supported.' },
+    });
+
+    const processingFile = createUploadedFile({
+      id: 'file-processing',
+      name: 'video.mp4',
+      type: 'video/mp4',
+      uploadState: 'processing_api',
+      isProcessing: true,
+      fileApiName: 'files/video-123',
+    });
+    const setSelectedFiles = vi.fn();
+
+    const { unmount } = renderHookWithProviders(
+      () =>
+        useFilePolling({
+          appSettings: createAppSettings(),
+          selectedFiles: [processingFile],
+          setSelectedFiles,
+          currentChatSettings: createChatSettings(),
+        }),
+      { language: 'en' },
+    );
+
+    await act(async () => {
+      await flushPromises();
+    });
+
+    expect(setSelectedFiles).toHaveBeenCalled();
+    const updater = setSelectedFiles.mock.calls.at(-1)?.[0] as (
+      files: Array<typeof processingFile>,
+    ) => Array<typeof processingFile>;
+    expect(updater([processingFile])[0]).toEqual(
+      expect.objectContaining({
+        uploadState: 'failed',
+        isProcessing: false,
+        error: 'Backend processing failed: Video codec is not supported.',
+      }),
+    );
+
+    unmount();
+  });
 });
