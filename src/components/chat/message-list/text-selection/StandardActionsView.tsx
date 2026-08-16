@@ -8,7 +8,7 @@ interface StandardActionsViewProps {
   onInsert?: (e: React.MouseEvent) => void;
   onCopy: (e: React.MouseEvent) => void;
   onSearch: (e: React.MouseEvent) => void;
-  onTTS?: (e: React.MouseEvent) => void;
+  onTTS?: (e: React.SyntheticEvent) => void;
   isCopied: boolean;
   /** Non-null shows a transient error message attached to the TTS button. */
   ttsError?: string | null;
@@ -70,7 +70,15 @@ export const StandardActionsView: React.FC<StandardActionsViewProps> = ({
         <>
           <div className="mx-0.5 h-3.5 w-px shrink-0 bg-[var(--theme-border-secondary)]" />
           <button
+            onPointerDown={(event) => {
+              if (event.pointerType === 'mouse') return;
+              onTTS(event);
+            }}
             onMouseDown={onTTS}
+            onMouseUp={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
             className={`${actionButtonClass} ${ttsError ? 'text-[var(--theme-text-danger)]' : ''}`}
             title={ttsError ?? t('ttsReadAloud')}
             aria-label={ttsError ?? t('ttsReadAloud')}

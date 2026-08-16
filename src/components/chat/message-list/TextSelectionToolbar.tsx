@@ -1,5 +1,6 @@
 import { logService } from '@/services/logService';
 import React, { useEffect, useRef, useState, type RefObject } from 'react';
+import { flushSync } from 'react-dom';
 import { useSettingsStore } from '@/stores/settingsStore';
 
 import { useSelectionPosition } from '@/hooks/text-selection/useSelectionPosition';
@@ -52,14 +53,17 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
   }, []);
 
   const audioState = useSelectionAudio();
+  const ttsInFlightRef = useRef(false);
 
-  const { position, setPosition, selectedText, selectedCopyText, clearSelection } = useSelectionPosition({
-    containerRef,
-    isAudioActive: audioState.isPlaying || audioState.isLoading,
-    toolbarRef,
-    onCopySuccess: showCopiedFeedback,
-    preserveFormattingOnCopy,
-  });
+  const { position, setPosition, selectedText, selectedSpeechText, selectedCopyText, clearSelection } =
+    useSelectionPosition({
+      containerRef,
+      isAudioActive: audioState.isPlaying || audioState.isLoading,
+      isAudioActiveRef: audioState.isAudioActiveRef,
+      toolbarRef,
+      onCopySuccess: showCopiedFeedback,
+      preserveFormattingOnCopy,
+    });
 
   const { handleDragStart, isDragging } = useSelectionDrag({
     toolbarRef,
@@ -102,20 +106,30 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
     clearSelection();
   };
 
-  const handleTTSClick = async (e: React.MouseEvent) => {
+  const handleTTSClick = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!onTTS || !selectedText) return;
+    if (ttsInFlightRef.current || !onTTS) return;
 
-    audioState.setIsLoading(true);
+    const text = (selectedSpeechText || selectedText).trim();
+    if (!text) return;
+
+    ttsInFlightRef.current = true;
+    flushSync(() => {
+      audioState.setIsLoading(true);
+    });
+    audioState.armFromUserGesture();
+
     try {
-      const result = await onTTS(selectedText);
+      const result = await onTTS(text);
       if ('url' in result) {
         audioState.play(result.url);
       } else {
+        ttsInFlightRef.current = false;
         audioState.fail(result.error);
       }
     } catch (ttsError) {
+      ttsInFlightRef.current = false;
       logService.error('TTS Failed:', ttsError);
       audioState.fail(ttsError instanceof Error ? ttsError.message : 'TTS generation failed.');
     } finally {
@@ -126,6 +140,7 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
   const handleCloseAudio = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    ttsInFlightRef.current = false;
     audioState.stop();
     clearSelection();
   };
