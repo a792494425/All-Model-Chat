@@ -11,6 +11,7 @@ import { isImageMimeType } from '@/utils/file/fileTypeClassification';
 import { CREATE_TEXT_FILE_EDITOR_LAST_EXTENSION_KEY } from '@/constants/storageKeys';
 import { useI18n } from '@/contexts/I18nContext';
 import { CREATE_FILE_EXTENSION_OPTIONS } from './createFileExtensionOptions';
+import { deriveDefaultFilename } from './deriveDefaultFilename';
 
 interface UseCreateFileEditorProps {
   initialContent: string;
@@ -39,17 +40,19 @@ export const useCreateFileEditor = ({
   const [debouncedEditorContent, setDebouncedEditorContent] = useState(initialInlineImagesRef.current.editorContent);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const [filenameBase, setFilenameBase] = useState(() => {
-    if (!initialFilename) return '';
-    const lastDotIndex = initialFilename.lastIndexOf('.');
-    if (lastDotIndex === -1) return initialFilename;
-    return initialFilename.substring(0, lastDotIndex);
-  });
+  const initialFilenameBase = !initialFilename
+    ? ''
+    : initialFilename.lastIndexOf('.') === -1
+      ? initialFilename
+      : initialFilename.substring(0, initialFilename.lastIndexOf('.'));
 
-  const [extension, setExtension] = useState(() => {
+  const [filenameBase, setFilenameBase] = useState(initialFilenameBase);
+
+  const initialExtension = useMemo(() => {
     if (!initialFilename) {
       if (typeof window !== 'undefined') {
         const storedExtension = window.localStorage.getItem(CREATE_TEXT_FILE_EDITOR_LAST_EXTENSION_KEY);
@@ -61,9 +64,10 @@ export const useCreateFileEditor = ({
     }
     const lastDotIndex = initialFilename.lastIndexOf('.');
     if (lastDotIndex === -1) return '.md';
-    const ext = initialFilename.substring(lastDotIndex);
-    return ext;
-  });
+    return initialFilename.substring(lastDotIndex);
+  }, [initialFilename]);
+
+  const [extension, setExtension] = useState(initialExtension);
 
   const handleSetExtension = useCallback((nextExtension: string) => {
     setExtension(nextExtension);
@@ -76,6 +80,13 @@ export const useCreateFileEditor = ({
   const isEditing = initialFilename !== '';
   const isPdf = extension === '.pdf';
   const supportsRichPreview = ['.md', '.markdown', '.pdf'].includes(extension);
+
+  const derivedFilename = useMemo(() => deriveDefaultFilename(textContent), [textContent]);
+
+  const isDirty =
+    textContent !== initialInlineImagesRef.current.editorContent ||
+    filenameBase !== initialFilenameBase ||
+    extension !== initialExtension;
 
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedEditorContent(textContent), EDITOR_CONTENT_DEBOUNCE_MS);
@@ -96,22 +107,23 @@ export const useCreateFileEditor = ({
       },
     );
 
-  const handleSave = async (isProcessing: boolean) => {
-    if (isProcessing) return;
+  const handleSave = async (isBusy: boolean) => {
+    if (isBusy) return;
 
-    let finalName = filenameBase.trim() || `file-${Date.now()}`;
+    let finalName = filenameBase.trim() || derivedFilename || `file-${Date.now()}`;
     if (!finalName.endsWith(extension)) {
       finalName += extension;
     }
 
     if (isPdf) {
       setIsExportingPdf(true);
+      setPdfError(null);
       try {
         const pdfBlob = await generatePdfBlob(finalName);
         onConfirm(pdfBlob, finalName);
       } catch (error) {
         logService.error('PDF generation error:', error);
-        alert(t('createTextPdfError'));
+        setPdfError(t('createTextPdfError'));
       } finally {
         setIsExportingPdf(false);
       }
@@ -122,14 +134,15 @@ export const useCreateFileEditor = ({
 
   const handleDownloadPdf = async () => {
     setIsExportingPdf(true);
-    const finalName = `${filenameBase.trim() || 'document'}.pdf`;
+    setPdfError(null);
+    const finalName = `${filenameBase.trim() || derivedFilename || 'document'}.pdf`;
 
     try {
       const pdfBlob = await generatePdfBlob(finalName);
       triggerDownload(createManagedObjectUrl(pdfBlob), finalName);
     } catch (error) {
       logService.error('PDF Export failed:', error);
-      alert(t('createTextPdfError'));
+      setPdfError(t('createTextPdfError'));
     } finally {
       setIsExportingPdf(false);
     }
@@ -278,6 +291,9 @@ export const useCreateFileEditor = ({
     isPreviewMode,
     setIsPreviewMode,
     isExportingPdf,
+    pdfError,
+    derivedFilename,
+    isDirty,
     textareaRef,
     isEditing,
     isPdf,

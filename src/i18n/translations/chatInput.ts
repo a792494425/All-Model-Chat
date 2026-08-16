@@ -187,6 +187,9 @@ export const chatInputTranslations = {
   createTextGeneratedWith: { en: 'Generated with AMC WebUI', zh: '由 AMC WebUI 生成' },
   createTextCreateButton: { en: 'Create File', zh: '创建文件' },
   createTextPdfError: { en: 'Error generating PDF.', zh: '生成 PDF 失败。' },
+  createTextUnsavedTitle: { en: 'Discard changes?', zh: '放弃更改？' },
+  createTextUnsavedMessage: { en: 'Your unsaved edits will be lost.', zh: '未保存的修改将会丢失。' },
+  createTextUnsavedConfirm: { en: 'Discard', zh: '放弃' },
 
   // File pre-processing
   screenCaptureUnsupported: {
