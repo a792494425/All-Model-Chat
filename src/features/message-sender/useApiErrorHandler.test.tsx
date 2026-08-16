@@ -5,12 +5,6 @@ import { createChatSettings } from '@/test/data/factories';
 import type { SavedChatSession } from '@/types';
 import { useApiErrorHandler } from './useApiErrorHandler';
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 const createSession = (): SavedChatSession => ({
   id: 'session-1',
   title: 'Session',

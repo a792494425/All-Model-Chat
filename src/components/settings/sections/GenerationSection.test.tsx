@@ -2,6 +2,7 @@ import { act } from 'react';
 import { setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { setupStoreStateReset } from '@/test/stores/reset';
 import { MediaResolution } from '@/types';
 import { GenerationSection } from './GenerationSection';
@@ -103,5 +104,39 @@ describe('GenerationSection', () => {
     });
 
     expect(renderer.container.textContent).not.toContain('Ultra High');
+  });
+
+  it('shows numeric parameter values as neutral badges instead of link-colored text', async () => {
+    await act(async () => {
+      renderer.root.render(
+        <GenerationSection modelId="gemini-2.5-flash" currentSettings={baseSettings} onUpdateSetting={vi.fn()} />,
+      );
+    });
+
+    const monoSpans = Array.from(renderer.container.querySelectorAll('span.font-mono'));
+    expect(monoSpans.length).toBeGreaterThanOrEqual(2);
+    for (const span of monoSpans) {
+      expect(span.className).not.toContain('text-[var(--theme-text-link)]');
+      expect(span.className).toContain('tabular-nums');
+    }
+  });
+
+  it('gates advanced parameters behind the global advanced mode switch only', async () => {
+    useSettingsUiStore.setState({ isAdvancedModeEnabled: false });
+
+    await act(async () => {
+      renderer.root.render(
+        <GenerationSection modelId="gemini-2.5-flash" currentSettings={baseSettings} onUpdateSetting={vi.fn()} />,
+      );
+    });
+
+    expect(renderer.container.querySelector('#top-k-slider')).toBeNull();
+    expect(renderer.container.textContent).not.toContain('Show Advanced Parameters');
+
+    await act(async () => {
+      useSettingsUiStore.setState({ isAdvancedModeEnabled: true });
+    });
+
+    expect(renderer.container.querySelector('#top-k-slider')).not.toBeNull();
   });
 });

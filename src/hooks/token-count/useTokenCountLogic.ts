@@ -24,6 +24,7 @@ import {
   SERVER_MANAGED_API_KEY,
 } from '@/utils/apiKeySelection';
 import { useI18n } from '@/contexts/I18nContext';
+import { formatI18nErrorMessage } from '@/i18n/interpolate';
 
 interface UseTokenCountLogicProps {
   isOpen: boolean;
@@ -132,7 +133,7 @@ export const useTokenCountLogic = ({
       } catch (tokenCountError) {
         logService.error('Token calculation failed', tokenCountError);
         const message = getErrorMessage(tokenCountError);
-        setError(t('tokenCountErrorWithMessage').replace('{message}', message));
+        setError(formatI18nErrorMessage(t, 'tokenCountErrorWithMessage', message));
       } finally {
         setIsLoading(false);
       }

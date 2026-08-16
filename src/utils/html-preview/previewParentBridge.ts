@@ -1,5 +1,7 @@
-import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
-import { normalizeLiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
+import {
+  type LiveArtifactFollowupPayload,
+  normalizeLiveArtifactFollowupPayload,
+} from '@/utils/live-artifacts/liveArtifactFollowup';
 import {
   HTML_PREVIEW_COPY_EVENT,
   HTML_PREVIEW_DIAGNOSTIC_EVENT,

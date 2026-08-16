@@ -7,6 +7,7 @@ import { MainContent } from './components/layout/MainContent';
 import { PiPPlaceholder } from './components/layout/PiPPlaceholder';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { PwaUpdateBanner } from './components/pwa/PwaUpdateBanner';
+import { ToastViewport } from './components/shared/toast/ToastViewport';
 
 const App: React.FC = () => {
   return (
@@ -82,6 +83,7 @@ const AppContent: React.FC = () => {
           onDismiss={eventsState.dismissUpdateBanner}
         />
       ) : null}
+      <ToastViewport />
     </div>
   );
 };

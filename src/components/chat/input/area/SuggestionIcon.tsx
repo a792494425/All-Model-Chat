@@ -1,5 +1,6 @@
 import {
   Languages,
+  MousePointer2,
   ScanText,
   AudioWaveform,
   Captions,
@@ -17,6 +18,8 @@ export const SuggestionIcon = ({ iconName, className }: { iconName?: string; cla
       return <AppWindow className={className} size={size} />;
     case 'Languages':
       return <Languages className={className} size={size} />;
+    case 'MousePointer2':
+      return <MousePointer2 className={className} size={size} />;
     case 'ScanText':
       return <ScanText className={className} size={size} />;
     case 'Scan':

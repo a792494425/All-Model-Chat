@@ -45,6 +45,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       const translator = getTranslator(language);
 
       return (
+      // Deliberately hardcoded: the error boundary renders before/outside the
+      // theme provider, so --theme-* variables are not guaranteed here.
         <div className="flex h-full items-center justify-center bg-gray-900 p-8">
           <div className="max-w-md rounded-xl bg-gray-800 p-8 text-center shadow-2xl">
             <div className="mb-4 text-5xl">&#9888;&#65039;</div>

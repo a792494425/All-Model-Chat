@@ -22,12 +22,6 @@ vi.mock('@/utils/file/filePreviewUrls', () => {
   };
 });
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 import { uploadFileItem } from './uploadFileItem';
 
 describe('uploadFileItem', () => {

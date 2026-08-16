@@ -31,6 +31,8 @@ const ONYX_THEME_COLORS: ThemeColors = {
   bgInfo: 'rgba(30, 58, 138, 0.25)',
   textInfo: '#60a5fa',
   bgWarning: 'rgba(120, 53, 15, 0.25)',
+  bgWarningStrong: '#b45309',
+  bgWarningStrongHover: '#92400e',
   textWarning: '#fbbf24',
 
   // Text
@@ -92,6 +94,8 @@ const PEARL_THEME_COLORS: ThemeColors = {
   bgInfo: 'rgba(37, 99, 235, 0.06)',
   textInfo: '#2563eb',
   bgWarning: 'rgba(212, 167, 44, 0.1)',
+  bgWarningStrong: '#d97706',
+  bgWarningStrongHover: '#b45309',
   textWarning: '#825f0a',
 
   // Text
@@ -153,6 +157,8 @@ const GRAPHITE_THEME_COLORS: ThemeColors = {
   bgInfo: 'rgba(37, 99, 235, 0.22)',
   textInfo: '#93c5fd',
   bgWarning: 'rgba(120, 53, 15, 0.28)',
+  bgWarningStrong: '#b45309',
+  bgWarningStrongHover: '#92400e',
   textWarning: '#fde68a',
 
   // Text

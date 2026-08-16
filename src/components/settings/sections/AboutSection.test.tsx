@@ -124,4 +124,17 @@ describe('AboutSection', () => {
 
     expect(releaseLink?.getAttribute('title')).toBe(`有新版本：${nextPatchVersion}`);
   });
+
+  it('uses quiet settings actions instead of lifted marketplace chrome', async () => {
+    await renderAboutSection();
+
+    const html = renderer.container.innerHTML;
+    const github = renderer.container.querySelector('[data-settings-item="about-github"]');
+
+    expect(html).not.toContain('hover:-translate-y');
+    expect(html).not.toContain('#24292F');
+    expect(html).not.toContain('bg-gradient-to-r');
+    expect(html).not.toContain('animate-ping');
+    expect(github?.className).toContain('border-[var(--theme-border-secondary)]');
+  });
 });

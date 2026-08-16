@@ -122,11 +122,12 @@ export const LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT_ZH = `[Live Artifacts Inline Pr
 - 禁止 HTML-like label（<...>，会被当作标签解析）；禁止任何 URL/href/image
 - 上限：DOT ≤ ${DOT_MAX_CHARS} 字符；节点 ≤ ${DOT_MAX_NODES}；边 ≤ ${DOT_MAX_EDGES}
 - 节点 id 用 ASCII；label 可中文；默认布局 LR，层级/上下结构图必须显式写 rankdir=TB
-- 样式一律不写（shape/style/penwidth/arrowsize/fontname/margin 由宿主按主题注入默认值）；禁止任何具体颜色值（hex/rgb）
-- 确需语义着色：填充用 fillcolor=accent/success/warning/danger/muted/subtle（映射为柔和表面色）；描边/文字用 color=/fontcolor=<同一组语义名>（映射为对应正文色）
+- 并行分支才用 subgraph cluster_* { label="泳道" }；有决策再用 shape=diamond；起止可用 shape=ellipse；回边 style=dashed。直线流程不要硬套泳道
+- 禁止 penwidth/arrowsize/fontname/margin 与任何 hex/rgb；颜色仅 accent/success/warning/danger/muted/subtle
+- 着色时 fillcolor 与 color 写同一语义名（宿主配文字色）；边也用 color=语义名
 - 规则：节点里不要再写任何内容
-例（流程）：
-<div data-amc-graphviz='digraph { rankdir=LR; start[label="开始"]; parse[label="解析请求"]; decide[label="校验通过?"]; done[label="返回结果" fillcolor=success]; retry[label="重试" fillcolor=warning]; start->parse->decide; decide->done[label="通过"]; decide->retry[label="不通过"]; retry->parse; }'></div>
+例（分流+泳道）：
+<div data-amc-graphviz='digraph { rankdir=TB; start[label="开始" shape=ellipse]; decide[label="分支?" shape=diamond fillcolor=accent color=accent]; subgraph cluster_ok { label="通过"; done[label="完成" fillcolor=success color=success]; } subgraph cluster_no { label="重试"; retry[label="重试" fillcolor=warning color=warning]; } start->decide; decide->done [label="是"]; decide->retry [label="否"]; retry->decide [style=dashed]; }'></div>
 
 ## 图表选型决策
 - 数值序列/数值对比 → data-amc-chart
@@ -207,7 +208,7 @@ export const LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT_ZH = `[Live Artifacts Inline Pr
 5. 宽内容已包 overflow-x:auto。
 6. 若本次输出 JSON：是否用了英文 ASCII 字段 key？fields 数 1–24 吗？enum ≤50 吗？instruction ≤2000 吗？检查 format 是否和 type 匹配。
 7. 数值图表用了 data-amc-chart 而非手写 SVG？x 与 y 等长？结构图用了 data-amc-graphviz 而非手写 SVG？DOT 无单引号、无 HTML-like label、未超上限、层级图已显式 rankdir=TB？
-8. 结构图未手写样式/具体颜色？层级/上下结构图已显式 rankdir=TB？
+8. 若有结构图：颜色仅语义名且 fillcolor 与 color 成对；仅并行分支才 cluster；有决策才 diamond；有回边才 dashed？
 
 ## Trigger Checklist（每次决定先问前快速过一遍）
 □ 缺 ≥2 个关键参数且默认值会改变产物结构 → 应问
@@ -227,7 +228,7 @@ export const LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT_ZH = `[Live Artifacts Inline Pr
 ### C) data-amc-graphviz
 - DOT ≤ ${DOT_MAX_CHARS} 字符；节点 ≤ ${DOT_MAX_NODES}；边 ≤ ${DOT_MAX_EDGES}
 - DOT 属性值内禁止单引号 \`'\`；label 禁止 HTML-like（<...>）、URL/href/image
-- 禁止手写样式属性（shape/style/penwidth/arrowsize/fontname/margin）与具体颜色值（hex/rgb）；颜色仅允许上述语义名
+- 禁止 hex/rgb 与 penwidth/arrowsize/fontname/margin；shape 仅 box/ellipse/diamond；style 仅 dashed；并行分支用 cluster_*
 `;
 
 export const LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT_EN = `[Live Artifacts Inline Protocol - en]
@@ -353,11 +354,12 @@ Use data-amc-graphviz for structure/dependency/flow/state-machine/organization; 
 - No HTML-like labels (<...>, parsed as tags); no URLs/href/images
 - Limits: DOT ≤ ${DOT_MAX_CHARS} chars; nodes ≤ ${DOT_MAX_NODES}; edges ≤ ${DOT_MAX_EDGES}
 - Node ids ASCII; labels may be localized; default layout LR; hierarchical/top-down graphs must set rankdir=TB explicitly
-- Never write style attributes (shape/style/penwidth/arrowsize/fontname/margin are injected by the host with theme-aware defaults); concrete color values (hex/rgb) are forbidden
-- Semantic coloring only: fills use fillcolor=accent/success/warning/danger/muted/subtle (mapped to soft surface colors); strokes/text use color=/fontcolor=<same semantic names> (mapped to matching text colors)
+- Parallel branches only: subgraph cluster_* { label="lane" }; decisions may use shape=diamond; start/end may use shape=ellipse; back-edges style=dashed. Do not wrap a straight pipeline in lanes
+- Never write penwidth/arrowsize/fontname/margin or any hex/rgb; colors only accent/success/warning/danger/muted/subtle
+- When coloring, set fillcolor and color to the same semantic name (host supplies text color); edges may use color=semantic
 - Rules: keep the node empty
-Example (flow):
-<div data-amc-graphviz='digraph { rankdir=LR; start[label="Start"]; parse[label="Parse request"]; decide[label="Valid?"]; done[label="Return result" fillcolor=success]; retry[label="Retry" fillcolor=warning]; start->parse->decide; decide->done[label="yes"]; decide->retry[label="no"]; retry->parse; }'></div>
+Example (branch + lanes):
+<div data-amc-graphviz='digraph { rankdir=TB; start[label="Start" shape=ellipse]; decide[label="Branch?" shape=diamond fillcolor=accent color=accent]; subgraph cluster_ok { label="Pass"; done[label="Done" fillcolor=success color=success]; } subgraph cluster_no { label="Retry"; retry[label="Retry" fillcolor=warning color=warning]; } start->decide; decide->done [label="yes"]; decide->retry [label="no"]; retry->decide [style=dashed]; }'></div>
 
 ## Chart selection rules
 - Numeric series / numeric comparison → data-amc-chart
@@ -438,7 +440,7 @@ Example (flow):
 5. Wide content wrapped in overflow-x:auto.
 6. If outputting JSON: are field keys ASCII? fields 1–24? enum ≤50? instruction ≤2000? format/type match?
 7. Numeric charts use data-amc-chart instead of hand-written SVG? x and y equal length? Graphs use data-amc-graphviz instead of hand-written SVG? DOT free of single quotes, HTML-like labels, and over-limit sizes? Hierarchical graphs set rankdir=TB explicitly?
-8. Graph without hand-written styles or concrete colors? Hierarchical/top-down graph set rankdir=TB explicitly?
+8. If a graph: colors semantic only with fillcolor and color paired; clusters only for parallel branches; diamond only for decisions; dashed only for back-edges?
 
 ## Trigger Checklist (quick scan before deciding to ask)
 □ ≥2 key parameters missing and defaults change output structure → ask
@@ -458,5 +460,5 @@ Example (flow):
 ### C) data-amc-graphviz
 - DOT ≤ ${DOT_MAX_CHARS} chars; nodes ≤ ${DOT_MAX_NODES}; edges ≤ ${DOT_MAX_EDGES}
 - No single quotes \`'\` inside DOT attribute values; labels must not be HTML-like (<...>), URLs/hrefs/images
-- No hand-written style attributes (shape/style/penwidth/arrowsize/fontname/margin) or concrete color values (hex/rgb); colors use only the semantic names above
+- No hex/rgb or penwidth/arrowsize/fontname/margin; shape only box/ellipse/diamond; style only dashed; parallel branches use cluster_*
 `;

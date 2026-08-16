@@ -3,6 +3,7 @@ import { ArrowDown } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import type { ThinkingSection } from '@/utils/chat/parsing';
 import { THINKING_STRIP_CONTENT_HEIGHT_REM } from './thinkingStripMetrics';
+import { interpolate } from '@/i18n/interpolate';
 
 interface ThinkingSectionsStripProps {
   sections: ThinkingSection[];
@@ -77,7 +78,7 @@ export const ThinkingSectionsStrip: React.FC<ThinkingSectionsStripProps> = ({ se
             data-thinking-section-counter="true"
             className="flex-shrink-0 rounded-full bg-[var(--theme-bg-tertiary)] px-1.5 py-0.5 font-mono text-[10px] leading-none text-[var(--theme-text-tertiary)]"
           >
-            {t('thinkingSectionCounter').replace('{index}', String(sections.length))}
+            {interpolate(t('thinkingSectionCounter'), { index: String(sections.length) })}
           </span>
         </div>
       </div>

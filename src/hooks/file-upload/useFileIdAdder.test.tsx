@@ -22,12 +22,6 @@ vi.mock('@/utils/apiKeySelection', () => ({
   ),
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/services/api/fileApi', () => ({
   getFileMetadataApi: getFileMetadataMock,
 }));

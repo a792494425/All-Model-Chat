@@ -125,4 +125,52 @@ describe('UI clarity regressions', () => {
     expect(toggleItem).toContain('onKeyDown');
     expect(apiConfigToggle).toContain('onKeyDown');
   });
+
+  it('keeps remaining chrome surfaces off marketplace lift, rainbow icons, and hardcoded shells', () => {
+    const exportOptions = readSourceFile('components/message/buttons/export/ExportOptions.tsx');
+    const exportModal = readSourceFile('components/message/buttons/export/ExportModal.tsx');
+    const exportChatModal = readSourceFile('components/modals/ExportChatModal.tsx');
+    const about = readSourceFile('components/settings/sections/AboutSection.tsx');
+    const pwaBanner = readSourceFile('components/pwa/PwaUpdateBanner.tsx');
+    const helpModal = readSourceFile('components/modals/HelpModal.tsx');
+    const slashMenu = readSourceFile('components/chat/input/SlashCommandMenu.tsx');
+    const apiUsage = readSourceFile('components/log-viewer/ApiUsageTab.tsx');
+    const usageOverview = readSourceFile('components/log-viewer/UsageOverviewTab.tsx');
+    const tokenUsage = readSourceFile('components/log-viewer/TokenUsageTab.tsx');
+    const logViewer = readSourceFile('components/log-viewer/LogViewer.tsx');
+
+    expect(exportOptions).not.toContain('hover:-translate-y');
+    expect(exportOptions).not.toContain('lg:grid-cols-4');
+    expect(exportOptions).not.toContain('text-green-500');
+    expect(exportModal).toContain('text-[var(--theme-text-primary)]');
+    expect(exportModal).not.toContain('text-[var(--theme-text-link)]');
+    expect(exportModal).toContain('max-w-sm');
+    expect(exportModal).not.toContain('max-w-lg');
+    expect(exportChatModal).not.toContain('text-[var(--theme-text-link)]');
+    expect(exportChatModal).toContain('max-w-sm');
+
+    expect(about).not.toContain('hover:-translate-y');
+    expect(about).not.toContain('#24292F');
+    expect(about).not.toContain('bg-gradient-to-r');
+    expect(about).not.toContain('animate-ping');
+
+    expect(pwaBanner).not.toContain('bg-slate-950');
+    expect(pwaBanner).not.toContain('bg-cyan-400');
+    expect(pwaBanner).toContain('--theme-bg-primary');
+
+    expect(helpModal).not.toContain('w-10 h-10');
+    expect(helpModal).toContain('type="search"');
+    expect(slashMenu).not.toContain('tracking-widest');
+    expect(slashMenu).not.toContain('w-1 h-6');
+    expect(slashMenu).not.toContain('shadow-2xl');
+
+    expect(apiUsage).not.toContain('lg:grid-cols-3');
+    expect(apiUsage).not.toContain('bg-green-900');
+    expect(usageOverview).not.toContain('xl:grid-cols-6');
+    expect(usageOverview).not.toContain('rounded-2xl');
+    expect(tokenUsage).not.toContain('text-[var(--theme-text-link)]');
+    expect(logViewer).not.toContain('h-[95vh]');
+    expect(logViewer).toContain('sm:h-[85vh]');
+    expect(logViewer).toContain('sm:max-h-[800px]');
+  });
 });

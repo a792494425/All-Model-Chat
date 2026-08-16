@@ -6,6 +6,7 @@ import type {
   LiveArtifactInteractionDiagnosis,
   LiveArtifactInteractionParseError,
 } from '@/utils/live-artifacts/liveArtifactInteraction';
+import { interpolate } from '@/i18n/interpolate';
 
 interface LiveArtifactInteractionDiagnosticProps {
   diagnosis: LiveArtifactInteractionDiagnosis;
@@ -32,7 +33,7 @@ export const LiveArtifactInteractionDiagnostic: React.FC<LiveArtifactInteraction
 
     const reasons = diagnosis.errors.map((e) => e.message).join('；');
     const payload: LiveArtifactFollowupPayload = {
-      instruction: t('liveArtifactInteractionRetryPrompt').replace('{reasons}', reasons),
+      instruction: interpolate(t('liveArtifactInteractionRetryPrompt'), { reasons }),
       title: t('liveArtifactInteractionInvalidTitle'),
       source: 'amc-live-artifact-interaction:diagnostic',
       state: { errors: diagnosis.errors.map((e) => e.code) },

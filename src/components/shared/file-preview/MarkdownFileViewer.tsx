@@ -8,6 +8,8 @@ import { LARGE_FILE_PREVIEW_LENGTH_THRESHOLD, shouldDeferMarkdownPreview } from 
 import { extractMarkdownToc, type MarkdownTocItem } from './markdownToc';
 import { getMarkdownDocumentStats } from './markdownDocumentStats';
 import { VirtualSourceViewer } from './VirtualSourceViewer';
+import { interpolate } from '@/i18n/interpolate';
+import { isEditableElement } from '@/utils/chat-input/focus';
 
 const TOGGLE_BUTTON_BASE_CLASS =
   'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors';
@@ -203,9 +205,7 @@ export const MarkdownFileViewer: React.FC<MarkdownFileViewerProps> = ({
       if (isEditable) return;
 
       const activeElement = document.activeElement as HTMLElement | null;
-      const isEditingFieldFocused =
-        !!activeElement &&
-        (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable);
+      const isEditingFieldFocused = !!activeElement && isEditableElement(activeElement);
 
       if (isEditingFieldFocused) return;
 
@@ -310,10 +310,7 @@ export const MarkdownFileViewer: React.FC<MarkdownFileViewerProps> = ({
           )}
 
           <p className="text-xs text-[var(--theme-text-tertiary)]">
-            {t('markdownPreviewStats')
-              .replace('{lines}', String(documentStats.lines))
-              .replace('{words}', String(documentStats.words))
-              .replace('{characters}', String(documentStats.characters))}
+            {interpolate(t('markdownPreviewStats'), { lines: String(documentStats.lines), words: String(documentStats.words), characters: String(documentStats.characters) })}
           </p>
         </div>
       </div>

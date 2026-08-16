@@ -14,7 +14,7 @@ const placeCaretAtEnd = (textarea: HTMLTextAreaElement) => {
 // 侧边栏内的可编辑控件（如会话重命名输入框）。
 // 注意：链接/按钮（例如「新聊天」）不在此列——它们只是动作入口，
 // 点击后应正常把焦点移到聊天输入框。
-const isEditableElement = (element: HTMLElement): boolean =>
+export const isEditableElement = (element: HTMLElement): boolean =>
   element.tagName === 'INPUT' ||
   element.tagName === 'TEXTAREA' ||
   element.tagName === 'SELECT' ||

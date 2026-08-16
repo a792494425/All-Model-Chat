@@ -1,5 +1,5 @@
 import { logService } from '@/services/logService';
-import { type ChangeEvent, useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { type ChangeEvent, useState, useEffect, useRef, useCallback } from 'react';
 import { type SavedScenario } from '@/types';
 import { type translations } from '@/i18n/translations';
 import { generateUniqueId } from '@/utils/chat/ids';
@@ -13,6 +13,8 @@ import {
   SYSTEM_SCENARIO_IDS,
   BUILT_IN_SCENARIO_IDS,
 } from '@/features/scenarios/scenarioLibrary';
+import { interpolate } from '@/i18n/interpolate';
+import { toastError, toastInfo, toastSuccess } from '@/stores/toastStore';
 
 type ModalView = 'list' | 'editor';
 
@@ -20,63 +22,52 @@ interface UseScenarioManagerProps {
   isOpen: boolean;
   savedScenarios: SavedScenario[];
   onSaveAllScenarios: (scenarios: SavedScenario[]) => void;
-  onClose: () => void;
   t: (key: keyof typeof translations, fallback?: string) => string;
 }
 
-export const useScenarioManager = ({
-  isOpen,
-  savedScenarios,
-  onSaveAllScenarios,
-  onClose,
-  t,
-}: UseScenarioManagerProps) => {
+export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios, t }: UseScenarioManagerProps) => {
   const [scenarios, setScenarios] = useState<SavedScenario[]>(savedScenarios);
   const [view, setView] = useState<ModalView>('list');
   const [editingScenario, setEditingScenario] = useState<SavedScenario | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
   const importInputRef = useRef<HTMLInputElement>(null);
-  const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const clearFeedbackTimeout = useCallback(() => {
-    if (feedbackTimeoutRef.current !== null) {
-      clearTimeout(feedbackTimeoutRef.current);
-      feedbackTimeoutRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => () => clearFeedbackTimeout(), [clearFeedbackTimeout]);
+  const scenariosRef = useRef(scenarios);
+  scenariosRef.current = scenarios;
 
   useEffect(() => {
-    if (isOpen) {
-      clearFeedbackTimeout();
-      setScenarios(savedScenarios);
-      setView('list');
-      setEditingScenario(null);
-      setFeedback(null);
-      setSearchQuery('');
+    if (!isOpen) return;
+    // Re-sync from storage only when the modal opens. In-session persists must
+    // not wipe search or kick the user out of the editor.
+    setScenarios(savedScenarios);
+    setView('list');
+    setEditingScenario(null);
+    setSearchQuery('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Open-only reset; savedScenarios is read from the opening render.
+  }, [isOpen]);
+
+  const isEditingSystemScenario = Boolean(editingScenario && SYSTEM_SCENARIO_IDS.includes(editingScenario.id));
+  const hasUnsavedChanges = view === 'editor' && !isEditingSystemScenario;
+
+  const showFeedback = useCallback((type: 'success' | 'error' | 'info', message: string) => {
+    if (type === 'error') {
+      toastError(message);
+      return;
     }
-  }, [clearFeedbackTimeout, isOpen, savedScenarios]);
+    if (type === 'success') {
+      toastSuccess(message);
+      return;
+    }
+    toastInfo(message);
+  }, []);
 
-  const hasUnsavedChanges = useMemo(
-    () =>
-      JSON.stringify(getExportableUserScenarios(scenarios)) !==
-      JSON.stringify(getExportableUserScenarios(savedScenarios)),
-    [savedScenarios, scenarios],
-  );
-
-  const showFeedback = useCallback(
-    (type: 'success' | 'error' | 'info', message: string, duration: number = 3000) => {
-      clearFeedbackTimeout();
-      setFeedback({ type, message });
-      feedbackTimeoutRef.current = setTimeout(() => {
-        setFeedback(null);
-        feedbackTimeoutRef.current = null;
-      }, duration);
+  const commitUserScenarios = useCallback(
+    (userScenarios: SavedScenario[]) => {
+      const next = buildSavedScenarios(userScenarios);
+      setScenarios(next);
+      onSaveAllScenarios(next);
     },
-    [clearFeedbackTimeout],
+    [onSaveAllScenarios],
   );
 
   const handleStartAddNew = useCallback(() => {
@@ -94,14 +85,14 @@ export const useScenarioManager = ({
       const newScenario: SavedScenario = {
         ...scenario,
         id: generateUniqueId(),
-        title: t('scenariosCopyTitle').replace('{title}', scenario.title),
+        title: interpolate(t('scenariosCopyTitle'), { title: scenario.title }),
         messages: scenario.messages.map((message) => ({ ...message, id: generateUniqueId() })),
       };
 
-      setScenarios((prev) => buildSavedScenarios([newScenario, ...getExportableUserScenarios(prev)]));
+      commitUserScenarios([newScenario, ...getExportableUserScenarios(scenariosRef.current)]);
       showFeedback('success', t('scenariosFeedbackDuplicated'));
     },
-    [showFeedback, t],
+    [commitUserScenarios, showFeedback, t],
   );
 
   const handleCancelEdit = useCallback(() => {
@@ -115,37 +106,29 @@ export const useScenarioManager = ({
         showFeedback('error', t('scenariosTitleRequired'));
         return;
       }
-      setScenarios((prev) => {
-        const nextUserScenarios = getExportableUserScenarios(prev);
-        const existing = nextUserScenarios.find((scenario) => scenario.id === scenarioToSave.id);
-        if (existing) {
-          return buildSavedScenarios(
-            nextUserScenarios.map((scenario) => (scenario.id === scenarioToSave.id ? scenarioToSave : scenario)),
-          );
-        }
-        return buildSavedScenarios([...nextUserScenarios, scenarioToSave]);
-      });
+      const nextUserScenarios = getExportableUserScenarios(scenariosRef.current);
+      const existing = nextUserScenarios.find((scenario) => scenario.id === scenarioToSave.id);
+      commitUserScenarios(
+        existing
+          ? nextUserScenarios.map((scenario) => (scenario.id === scenarioToSave.id ? scenarioToSave : scenario))
+          : [...nextUserScenarios, scenarioToSave],
+      );
       showFeedback('success', t('scenariosFeedbackSaved'));
       setView('list');
       setEditingScenario(null);
     },
-    [showFeedback, t],
+    [commitUserScenarios, showFeedback, t],
   );
 
   const handleDeleteScenario = useCallback(
     (scenarioId: string) => {
-      setScenarios((prev) =>
-        buildSavedScenarios(getExportableUserScenarios(prev).filter((scenario) => scenario.id !== scenarioId)),
+      commitUserScenarios(
+        getExportableUserScenarios(scenariosRef.current).filter((scenario) => scenario.id !== scenarioId),
       );
       showFeedback('info', t('scenariosFeedbackDeleted'));
     },
-    [showFeedback, t],
+    [commitUserScenarios, showFeedback, t],
   );
-
-  const handleSaveAllAndClose = useCallback(() => {
-    onSaveAllScenarios(scenarios);
-    onClose();
-  }, [onSaveAllScenarios, scenarios, onClose]);
 
   const handleExportScenarios = useCallback(() => {
     const scenariosToExport = getExportableUserScenarios(scenarios);
@@ -185,9 +168,9 @@ export const useScenarioManager = ({
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = (loadEvent) => {
         try {
-          const text = event.target?.result as string;
+          const text = loadEvent.target?.result as string;
           const importPayload = JSON.parse(text);
 
           if (
@@ -196,14 +179,12 @@ export const useScenarioManager = ({
             Array.isArray(importPayload.scenarios)
           ) {
             const importedScenarios = importPayload.scenarios as SavedScenario[];
-            setScenarios((prev) =>
-              buildSavedScenarios(
-                mergeImportedScenarios({
-                  existingScenarios: prev,
-                  importedScenarios,
-                  createId: generateUniqueId,
-                }),
-              ),
+            commitUserScenarios(
+              mergeImportedScenarios({
+                existingScenarios: scenariosRef.current,
+                importedScenarios,
+                createId: generateUniqueId,
+              }),
             );
             showFeedback('success', t('scenariosFeedbackImported'));
           } else {
@@ -218,7 +199,7 @@ export const useScenarioManager = ({
       };
       reader.readAsText(file);
     },
-    [showFeedback, t],
+    [commitUserScenarios, showFeedback, t],
   );
 
   return {
@@ -227,7 +208,6 @@ export const useScenarioManager = ({
     editingScenario,
     searchQuery,
     setSearchQuery,
-    feedback,
     importInputRef,
     systemScenarioIds: SYSTEM_SCENARIO_IDS,
     builtInScenarioIds: BUILT_IN_SCENARIO_IDS,
@@ -240,7 +220,6 @@ export const useScenarioManager = ({
       handleCancelEdit,
       handleSaveScenario,
       handleDeleteScenario,
-      handleSaveAllAndClose,
       handleExportScenarios,
       handleExportSingleScenario,
       handleImportScenarios,

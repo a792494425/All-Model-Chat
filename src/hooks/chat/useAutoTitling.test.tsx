@@ -28,12 +28,6 @@ vi.mock('@/utils/apiKeySelection', () => ({
   getGeminiKeyForRequest: getGeminiKeyForRequestMock,
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 const createSession = (overrides: Partial<SavedChatSession> = {}): SavedChatSession => ({
   id: 'session-1',
   title: 'New Chat',

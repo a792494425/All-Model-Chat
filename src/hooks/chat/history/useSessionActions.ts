@@ -6,6 +6,7 @@ import { cleanupFilePreviewUrls } from '@/utils/file/filePreviewUrls';
 import { dbService } from '@/services/db/dbService';
 import { removeSessionScopedLocalStorageEntries } from '@/utils/sessionLocalStorage';
 import { useI18n } from '@/contexts/I18nContext';
+import { interpolate } from '@/i18n/interpolate';
 
 interface UseSessionActionsProps {
   updateAndPersistSessions: (
@@ -85,7 +86,7 @@ export const useSessionActions = ({ updateAndPersistSessions, activeJobs }: UseS
         const newSession = createNewSession(
           fullSessionToDuplicate.settings,
           duplicatedMessages,
-          t('historyCopyTitle').replace('{title}', duplicateTitle),
+          interpolate(t('historyCopyTitle'), { title: duplicateTitle }),
           null,
           'manual',
         );

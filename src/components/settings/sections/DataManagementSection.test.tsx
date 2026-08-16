@@ -127,4 +127,29 @@ describe('DataManagementSection', () => {
     const toggle = renderer.container.querySelector('input[type="checkbox"]') as HTMLInputElement;
     expect(toggle.checked).toBe(true);
   });
+
+  it('grades danger zone actions by severity using theme tokens', async () => {
+    await renderDataManagementSection();
+
+    const zone = renderer.container.querySelector<HTMLElement>('[data-settings-item="data-danger"]');
+    expect(zone).not.toBeNull();
+    expect(zone!.className).not.toContain('from-red-600');
+    expect(zone!.className).toContain('var(--theme-text-danger)');
+
+    const findZoneButton = (label: string) => {
+      const button = Array.from(zone!.querySelectorAll('button')).find((b) => b.textContent?.trim() === label);
+      expect(button).toBeDefined();
+      return button!;
+    };
+
+    const resetButton = findZoneButton('Reset Settings Only');
+    const clearHistoryButton = findZoneButton('Delete Chats and Groups');
+    const clearCacheButton = findZoneButton('Delete All App Data');
+
+    // Severity escalates: neutral reset < danger-outline history < solid danger wipe.
+    expect(resetButton.className).not.toContain('text-[var(--theme-text-danger)]');
+    expect(clearHistoryButton.className).toContain('text-[var(--theme-text-danger)]');
+    expect(clearHistoryButton.className).toContain('bg-transparent');
+    expect(clearCacheButton.className).toContain('bg-[var(--theme-bg-danger)]');
+  });
 });

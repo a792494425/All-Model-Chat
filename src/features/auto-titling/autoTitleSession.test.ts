@@ -27,12 +27,6 @@ vi.mock('@/services/db/dbService', async () => {
   });
 });
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 const makeUserMessage = (content: string) => ({
   id: `user-${content.length}`,
   role: 'user' as const,

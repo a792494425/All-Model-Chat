@@ -1,6 +1,7 @@
 import { useEffect, useRef, type Dispatch, type MutableRefObject, type RefObject, type SetStateAction } from 'react';
 import type { AppSettings, InputCommand } from '@/types';
 import { isShortcutPressed } from '@/utils/keyboardShortcuts';
+import { isEditableElement } from '@/utils/chat-input/focus';
 
 interface UseChatInputGlobalEffectsParams {
   appSettings: AppSettings;
@@ -146,7 +147,7 @@ export const useChatInputGlobalEffects = ({
       }
 
       const target = event.target as HTMLElement;
-      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      const isInput = isEditableElement(target);
 
       if (isInput) {
         return;
@@ -185,11 +186,7 @@ export const useChatInputGlobalEffects = ({
       }
 
       const target = event.target as HTMLElement;
-      const isInput =
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'SELECT' ||
-        target.isContentEditable;
+      const isInput = isEditableElement(target);
 
       if (isShortcutPressed(event, 'input.clearDraft', appSettings)) {
         if (isInput && target !== textareaRef.current) {

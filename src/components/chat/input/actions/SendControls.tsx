@@ -8,6 +8,7 @@ import {
   useChatInputActionsContext,
   useChatInputComposerStatusContext,
 } from '@/components/chat/input/ChatInputContext';
+import { interpolate } from '@/i18n/interpolate';
 
 interface Ripple {
   x: number;
@@ -22,7 +23,6 @@ const QUEUE_BUTTON_ICON_SIZE = SEND_BUTTON_ICON_SIZE - 1;
 const STOP_ICON_SIZE = 10;
 const SEND_BUTTON_SIZE_CLASS = '!h-10 !w-10';
 
-const formatQueuedCount = (template: string, count: number) => template.replace('{count}', String(count));
 
 export const SendControls: React.FC = () => {
   const { isLoading, isWaitingForUpload } = useChatInputActionsContext();
@@ -71,7 +71,7 @@ export const SendControls: React.FC = () => {
     bgClass =
       'bg-[var(--theme-bg-danger)] hover:bg-[var(--theme-bg-danger-hover)] text-[var(--theme-icon-stop)] shadow-sm';
   } else if (isEdit) {
-    bgClass = 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm';
+    bgClass = 'bg-[var(--theme-bg-warning-strong)] hover:bg-[var(--theme-bg-warning-strong-hover)] text-white shadow-sm';
   } else if (isUpload) {
     bgClass =
       'bg-[var(--theme-bg-danger)] hover:bg-[var(--theme-bg-danger-hover)] text-[var(--theme-icon-stop)] shadow-sm';
@@ -156,8 +156,8 @@ export const SendControls: React.FC = () => {
           {queuedCount > 0 && (
             <span
               className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--theme-bg-accent)] px-1 text-[10px] font-semibold text-[var(--theme-text-accent)]"
-              title={formatQueuedCount(t('queuedSubmissionCountTitle'), queuedCount)}
-              aria-label={formatQueuedCount(t('queuedSubmissionCountTitle'), queuedCount)}
+              title={interpolate(t('queuedSubmissionCountTitle'), { count: queuedCount })}
+              aria-label={interpolate(t('queuedSubmissionCountTitle'), { count: queuedCount })}
             >
               {queuedCount}
             </span>

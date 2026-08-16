@@ -279,6 +279,46 @@ describe('TableBlock', () => {
     expect(written).not.toContain('<td');
   });
 
+  it('colors copy-success feedback with the theme success token instead of hardcoded green', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+
+    await act(async () => {
+      renderer.root.render(
+        <WindowProvider window={window} document={document}>
+          <TableBlock>
+            <thead>
+              <tr>
+                <th>Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Alice</td>
+              </tr>
+            </tbody>
+          </TableBlock>
+        </WindowProvider>,
+      );
+    });
+
+    const copyButton = renderer.container.querySelector('button[aria-label="Copy table as markdown"]');
+
+    await act(async () => {
+      copyButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flushPromises();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      await flushPromises();
+    });
+
+    expect(renderer.container.querySelector('.text-green-500')).toBeNull();
+    const successIcon = renderer.container.querySelector('.text-\\[var\\(--theme-text-success\\)\\]');
+    expect(successIcon).not.toBeNull();
+  });
+
   it('prefixes the CSV export with a UTF-8 BOM so Excel reads CJK correctly', async () => {
     const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:csv-bom');
 

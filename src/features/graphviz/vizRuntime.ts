@@ -33,6 +33,12 @@ interface DotRenderOptions {
    * passes the user's manual LR/TB toggle here.
    */
   layout?: 'LR' | 'TB';
+  /**
+   * Chat ```graphviz``` / ```dot``` blocks pass true so author hex and named
+   * colors survive. Live Artifacts keep the default (false) and scrub
+   * hardcoded colors down to the theme palette.
+   */
+  preserveAuthorColors?: boolean;
 }
 
 type VizInstance = {
@@ -104,14 +110,14 @@ export const resolveDotLayout = (dot: string, forced?: 'LR' | 'TB'): 'LR' | 'TB'
 
 export const getGraphvizCacheKey = (dot: string, options: DotRenderOptions = {}): string => {
   const layout = resolveDotLayout(dot, options.layout);
-  return `${RENDER_STYLE_VERSION}:${options.themeId ?? ''}:${layout}:${hashString(dot)}`;
+  const colorMode = options.preserveAuthorColors ? 'author' : 'theme';
+  return `${RENDER_STYLE_VERSION}:${options.themeId ?? ''}:${layout}:${colorMode}:${hashString(dot)}`;
 };
 
 // Semantic color names allowed by the Live Artifacts graphviz DSL. Strokes and
-// text map to the theme's readable text colors; fills map to the soft surface
-// colors — the same values `buildPreviewThemeStyle` emits as
-// `--amc-live-artifact-*` tokens, so a data-amc-graphviz diagram and a
-// data-amc-chart beside it resolve to identical colors on every theme.
+// text map to the theme's readable text colors; fills are flattened onto the
+// theme surface so a data-amc-graphviz diagram stays on-theme without washing
+// out on a transparent canvas.
 const SEMANTIC_COLOR_ATTRS = ['color', 'fontcolor', 'fillcolor', 'bgcolor', 'bordercolor'];
 const SEMANTIC_COLOR_NAMES = ['accent', 'success', 'warning', 'danger', 'muted', 'subtle'];
 const SEMANTIC_TEXT_MAP: Record<string, keyof Theme['colors']> = {
@@ -141,6 +147,35 @@ const toHexByte = (value: number): string =>
     .toString(16)
     .padStart(2, '0');
 
+const HEX_COLOR_PATTERN = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+
+type RgbaColor = { r: number; g: number; b: number; a: number };
+
+const parseCssColor = (color: string): RgbaColor | null => {
+  const trimmed = color.trim();
+  const rgba = RGBA_CSS_COLOR_PATTERN.exec(trimmed);
+  if (rgba) {
+    return {
+      r: Number(rgba[1]),
+      g: Number(rgba[2]),
+      b: Number(rgba[3]),
+      a: rgba[4] === undefined ? 1 : Number(rgba[4]),
+    };
+  }
+  const hex = HEX_COLOR_PATTERN.exec(trimmed);
+  if (!hex) return null;
+  let digits = hex[1];
+  if (digits.length === 3) {
+    digits = `${digits[0]}${digits[0]}${digits[1]}${digits[1]}${digits[2]}${digits[2]}`;
+  }
+  return {
+    r: parseInt(digits.slice(0, 2), 16),
+    g: parseInt(digits.slice(2, 4), 16),
+    b: parseInt(digits.slice(4, 6), 16),
+    a: digits.length === 8 ? parseInt(digits.slice(6, 8), 16) / 255 : 1,
+  };
+};
+
 /**
  * Graphviz accepts X11 color names, `#hex`, HSV triples, and float rgb lists —
  * but not CSS `rgb()/rgba()` functions. An unrecognized color silently falls
@@ -162,9 +197,32 @@ export const normalizeGraphvizColor = (color: string): string => {
   return `#${toHexByte(Number(r))}${toHexByte(Number(g))}${toHexByte(Number(b))}${toHexByte(alpha)}`;
 };
 
+/** Graphviz nodes are small; HTML surface alphas (~0.06–0.1) read as almost white. */
+export const GRAPHVIZ_MIN_FILL_ALPHA = 0.22;
+
+/**
+ * Flatten a (possibly translucent) theme surface onto an opaque base so Graphviz
+ * fills stay visible against `bgcolor=transparent`. Already-opaque hex passes
+ * through. Used for semantic fillcolor/bgcolor, not for strokes.
+ */
+export const flattenGraphvizFill = (color: string, onto: string): string => {
+  const fg = parseCssColor(color);
+  if (!fg) return normalizeGraphvizColor(color);
+  if (fg.a >= 0.999) {
+    return `#${toHexByte(fg.r)}${toHexByte(fg.g)}${toHexByte(fg.b)}`;
+  }
+  const bg = parseCssColor(onto) ?? { r: 255, g: 255, b: 255, a: 1 };
+  const alpha = Math.max(fg.a, GRAPHVIZ_MIN_FILL_ALPHA);
+  const mix = (channel: number, base: number) => channel * alpha + base * (1 - alpha);
+  return `#${toHexByte(mix(fg.r, bg.r))}${toHexByte(mix(fg.g, bg.g))}${toHexByte(mix(fg.b, bg.b))}`;
+};
+
+export const GRAPHVIZ_SVG_FONT_FAMILY =
+  '"PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", Helvetica, sans-serif';
+
 // Bump when the injected default styling changes so cached SVGs rendered with
 // the previous style are never reused (see getGraphvizCacheKey).
-const RENDER_STYLE_VERSION = 'v4';
+const RENDER_STYLE_VERSION = 'v5';
 
 /**
  * Theme-aware default styles injected before the model's own DOT so a bare
@@ -176,10 +234,11 @@ const RENDER_STYLE_VERSION = 'v4';
 export const buildThemeDefaults = (colors: Theme['colors']): string => `
   graph [
     bgcolor="transparent"
-    pad="0.15"
-    nodesep="0.35"
-    ranksep="0.55"
-    splines="polyline"
+    pad="0.24"
+    nodesep="0.45"
+    ranksep="0.7"
+    splines="true"
+    compound="true"
     outputorder="edgesfirst"
     newrank="true"
     fontname="Helvetica"
@@ -188,12 +247,12 @@ export const buildThemeDefaults = (colors: Theme['colors']): string => `
   node [
     shape="box"
     style="rounded,filled"
-    fillcolor="${normalizeGraphvizColor(colors.bgInput)}"
+    fillcolor="${flattenGraphvizFill(colors.bgInput, colors.bgInput)}"
     color="${normalizeGraphvizColor(colors.borderSecondary)}"
     fontname="Helvetica"
     fontcolor="${normalizeGraphvizColor(colors.textPrimary)}"
-    penwidth="1"
-    margin="0.14,0.08"
+    penwidth="1.2"
+    margin="0.18,0.1"
   ];
   edge [
     color="${normalizeGraphvizColor(colors.textSecondary)}"
@@ -203,6 +262,58 @@ export const buildThemeDefaults = (colors: Theme['colors']): string => `
     arrowsize="0.8"
   ];
 `;
+
+/**
+ * After hardcoded color attributes are deleted, comma-separated lists often
+ * become `label="x", , , shape=box` or `[penwidth=2, ]`. Graphviz treats an
+ * empty attribute as a syntax error (commonly reported near `,` or `;`).
+ * Commas inside quoted labels / font stacks must be left alone.
+ */
+const cleanupEmptyDotAttributes = (dot: string): string => {
+  let out = '';
+  let quote: '"' | "'" | null = null;
+  let escaped = false;
+
+  for (let i = 0; i < dot.length; i += 1) {
+    const ch = dot[i];
+
+    if (quote) {
+      out += ch;
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === quote) {
+        quote = null;
+      }
+      continue;
+    }
+
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      out += ch;
+      continue;
+    }
+
+    if (ch === ',') {
+      let nextIndex = i + 1;
+      while (nextIndex < dot.length && /\s/.test(dot[nextIndex])) {
+        nextIndex += 1;
+      }
+      const next = dot[nextIndex];
+      if (next === ',' || next === ']') {
+        continue;
+      }
+      if (out.trimEnd().endsWith('[')) {
+        continue;
+      }
+    }
+
+    out += ch;
+  }
+
+  return out;
+};
 
 export const applyThemeAndLayout = (dot: string, options: DotRenderOptions): string => {
   let code = dot;
@@ -222,8 +333,10 @@ export const applyThemeAndLayout = (dot: string, options: DotRenderOptions): str
   }
 
   // Semantic color names → theme values. The regex is anchored to a known
-  // color attribute so `label="accent"` prose is never rewritten. Fills use the
-  // soft surface palette; strokes/text use the readable text palette.
+  // color attribute so `label="accent"` prose is never rewritten. Fills are
+  // flattened onto the theme surface; strokes/text use the readable text palette.
+  // fillcolor/bgcolor also pair a matching color+fontcolor so a lone
+  // `fillcolor=success` is not a pale box with a gray border.
   const semanticColorPattern = new RegExp(
     `\\b(${SEMANTIC_COLOR_ATTRS.join('|')})\\s*=\\s*["']?(${SEMANTIC_COLOR_NAMES.join('|')})["']?`,
     'gi',
@@ -251,13 +364,20 @@ export const applyThemeAndLayout = (dot: string, options: DotRenderOptions): str
     `${attrName}\\s*=\\s*["']?(?:rgba?\\([^)]*\\)|#[0-9a-fA-F]{3,8}|${namedColorValue})["']?`,
     'gi',
   );
-  code = code.replace(hardcodedColorPattern, '');
+  if (!options.preserveAuthorColors) {
+    code = cleanupEmptyDotAttributes(code.replace(hardcodedColorPattern, ''));
+  }
 
   code = code.replace(semanticColorPattern, (_match, attr: string, name: string) => {
+    const semantic = name.toLowerCase();
+    const stroke = normalizeGraphvizColor(colors[SEMANTIC_TEXT_MAP[semantic] ?? 'textPrimary']);
     const isFill = attr.toLowerCase() === 'fillcolor' || attr.toLowerCase() === 'bgcolor';
-    const map = isFill ? SEMANTIC_FILL_MAP : SEMANTIC_TEXT_MAP;
-    const colorKey = map[name.toLowerCase()] ?? 'textPrimary';
-    return `${attr}="${normalizeGraphvizColor(colors[colorKey])}"`;
+    if (isFill) {
+      const fillKey = SEMANTIC_FILL_MAP[semantic] ?? 'bgInput';
+      const fill = flattenGraphvizFill(colors[fillKey], colors.bgInput);
+      return `${attr}="${fill}" color="${stroke}" fontcolor="${stroke}"`;
+    }
+    return `${attr}="${stroke}"`;
   });
 
   // Theme defaults are injected after the opening brace and after semantic color
@@ -269,7 +389,41 @@ export const applyThemeAndLayout = (dot: string, options: DotRenderOptions): str
     code = code.slice(0, openBraceIndex + 1) + themeDefaults + code.slice(openBraceIndex + 1);
   }
 
+  code = injectClusterDefaults(code, colors);
+
   return code;
+};
+
+const injectClusterDefaults = (dot: string, colors: Theme['colors']): string => {
+  const clusterStyle = `
+    style="rounded,dashed"
+    penwidth="1.35"
+    color="${normalizeGraphvizColor(colors.borderSecondary)}"
+    fontcolor="${normalizeGraphvizColor(colors.textSecondary)}"
+    bgcolor="${flattenGraphvizFill(colors.bgTertiary, colors.bgInput)}"
+    margin="16"
+    fontsize="11"
+    fontname="Helvetica"
+`;
+  return dot.replace(/\bsubgraph\s+(cluster\w*)\s*\{/gi, (match) => `${match}${clusterStyle}`);
+};
+
+const applyGraphvizSvgFonts = (svg: SVGSVGElement): void => {
+  const rewrite = (el: Element) => {
+    if (el.hasAttribute('font-family')) {
+      el.setAttribute('font-family', GRAPHVIZ_SVG_FONT_FAMILY);
+    }
+    const style = el.getAttribute('style');
+    if (style && /font-family\s*:/i.test(style)) {
+      el.setAttribute(
+        'style',
+        style.replace(/font-family\s*:\s*[^;]+/gi, `font-family: ${GRAPHVIZ_SVG_FONT_FAMILY}`),
+      );
+    }
+  };
+  svg.setAttribute('font-family', GRAPHVIZ_SVG_FONT_FAMILY);
+  rewrite(svg);
+  svg.querySelectorAll('[font-family], [style]').forEach(rewrite);
 };
 
 const sanitizeSvg = (svg: string): string => {
@@ -322,6 +476,7 @@ export const renderDotToSvg = async (dot: string, options: DotRenderOptions = {}
     const vizInstance = await getVizInstance();
     const processedCode = applyThemeAndLayout(code, options);
     const svgElement = await vizInstance.renderSVGElement(processedCode);
+    applyGraphvizSvgFonts(svgElement);
 
     // Keep the SVG at its natural width so narrow diagrams center via
     // margin:auto and wide ones scroll in the container instead of being

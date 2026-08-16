@@ -151,4 +151,23 @@ describe('LogViewer', () => {
     expect(findButton('Overview')).toBeDefined();
     expect(document.body.textContent).not.toContain('Search logs...');
   });
+
+  it('matches the settings modal shell height', () => {
+    act(() => {
+      renderer.root.render(
+        <LogViewer
+          isOpen
+          onClose={vi.fn()}
+          appSettings={DEFAULT_APP_SETTINGS}
+          currentChatSettings={DEFAULT_CHAT_SETTINGS}
+        />,
+      );
+    });
+
+    const dialog = document.body.querySelector('[role="dialog"]');
+
+    expect(dialog?.className).toContain('sm:h-[85vh]');
+    expect(dialog?.className).toContain('sm:max-h-[800px]');
+    expect(dialog?.className).not.toContain('h-[95vh]');
+  });
 });

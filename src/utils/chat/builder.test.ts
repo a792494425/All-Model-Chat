@@ -8,12 +8,6 @@ vi.mock('@/utils/file/fileEncoding', () => ({
   fileToString: vi.fn().mockResolvedValue('file text content'),
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/utils/model/modelCapabilities', () => ({
   isGemini3Model: vi.fn((id: string) => id?.includes('gemini-3')),
 }));

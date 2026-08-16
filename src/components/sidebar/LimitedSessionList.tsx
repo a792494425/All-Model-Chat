@@ -4,6 +4,7 @@ import { type SavedChatSession } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { SessionItem } from './SessionItem';
 import { type SessionItemPassedProps } from './GroupItem';
+import { interpolate } from '@/i18n/interpolate';
 
 const INITIAL_VISIBLE_SESSION_COUNT = 80;
 const SESSION_LIST_INCREMENT = 80;
@@ -14,7 +15,6 @@ interface LimitedSessionListProps {
   className?: string;
 }
 
-const formatShowMoreLabel = (template: string, count: number) => template.replace('{count}', String(count));
 
 export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({ sessions, sessionItemProps, className }) => {
   const { t } = useI18n();
@@ -78,9 +78,9 @@ export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({ sessions
             })
           }
           className="mx-1 my-1 w-[calc(100%-0.5rem)] rounded-lg px-3 py-2 text-left text-xs font-medium text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)]"
-          aria-label={formatShowMoreLabel(t('historyShowMoreChats'), remainingCount)}
+          aria-label={interpolate(t('historyShowMoreChats'), { count: remainingCount })}
         >
-          {formatShowMoreLabel(t('historyShowMoreChats'), remainingCount)}
+          {interpolate(t('historyShowMoreChats'), { count: remainingCount })}
         </button>
       )}
     </>

@@ -103,6 +103,43 @@ describe('promptRegistry', () => {
     expect(enPrompt).not.toContain('Full HTML Page Capabilities');
   });
 
+  it('teaches Live Artifacts graphviz clusters and a small shape whitelist', async () => {
+    const zhPrompt = await loadLiveArtifactsSystemPrompt('zh');
+    const enPrompt = await loadLiveArtifactsSystemPrompt('en');
+
+    expect(zhPrompt).toContain('subgraph cluster_');
+    expect(zhPrompt).toContain('shape=diamond');
+    expect(zhPrompt).toContain('style=dashed');
+    expect(zhPrompt).toContain('fillcolor 与 color');
+    expect(zhPrompt).toContain('不要硬套泳道');
+    expect(zhPrompt).not.toContain('样式一律不写');
+
+    expect(enPrompt).toContain('subgraph cluster_');
+    expect(enPrompt).toContain('shape=diamond');
+    expect(enPrompt).toContain('style=dashed');
+    expect(enPrompt).toContain('Do not wrap a straight pipeline in lanes');
+    expect(enPrompt).not.toContain('Never write style attributes');
+  });
+
+  it('keeps Live Artifacts graphviz examples complete and under DOT limits', async () => {
+    const { isProbablyCompleteDot } = await import('@/utils/html-preview/graphvizRendererScript');
+    const { countDotEdges, countDotNodes, DOT_MAX_CHARS, DOT_MAX_EDGES, DOT_MAX_NODES } = await import(
+      '@/features/graphviz/graphvizLimits'
+    );
+
+    for (const language of ['zh', 'en'] as const) {
+      const prompt = await loadLiveArtifactsSystemPrompt(language);
+      const examples = [...prompt.matchAll(/data-amc-graphviz='([^']+)'/g)].map((match) => match[1]);
+      expect(examples.length).toBeGreaterThanOrEqual(2);
+      for (const dot of examples) {
+        expect(isProbablyCompleteDot(dot)).toBe(true);
+        expect(dot.length).toBeLessThanOrEqual(DOT_MAX_CHARS);
+        expect(countDotNodes(dot)).toBeLessThanOrEqual(DOT_MAX_NODES);
+        expect(countDotEdges(dot)).toBeLessThanOrEqual(DOT_MAX_EDGES);
+      }
+    }
+  });
+
   it('tells Live Artifacts inline fragments not to emit mislabeled css or markdown code blocks', async () => {
     const zhPrompt = await loadLiveArtifactsSystemPrompt('zh');
     const enPrompt = await loadLiveArtifactsSystemPrompt('en');

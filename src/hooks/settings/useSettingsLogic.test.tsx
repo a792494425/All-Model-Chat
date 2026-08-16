@@ -1,6 +1,7 @@
 import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
+import type { AppSettings } from '@/types';
 import { useSettingsLogic } from './useSettingsLogic';
 import { renderHook } from '@/test/render/renderer';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';
@@ -139,6 +140,63 @@ describe('useSettingsLogic', () => {
     );
 
     expect(result.current.activeTab).toBe('models');
+    unmount();
+  });
+
+  it('preserves API connection and MCP configuration when resetting settings to defaults', () => {
+    const onSave = vi.fn();
+    const currentSettings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      systemInstruction: 'Custom prompt',
+      apiKey: 'stored-api-key',
+      useCustomApiConfig: true,
+      mcpServers: [
+        {
+          id: 'alpha',
+          name: 'Alpha',
+          enabled: true,
+          transport: 'stdio',
+          command: 'npx',
+        },
+      ],
+      thirdPartyApi: {
+        providers: {
+          ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
+          openai: {
+            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers.openai,
+            apiKey: 'sk-third-party',
+          },
+        },
+      },
+    };
+
+    const { result, unmount } = renderHook(() =>
+      useSettingsLogic({
+        isOpen: true,
+        currentSettings,
+        onSave,
+        onClearAllHistory: vi.fn(),
+        onClearCache: vi.fn(),
+        onImportHistory: vi.fn(),
+        t: (key: string) => key,
+      }),
+    );
+
+    act(() => {
+      result.current.handleResetToDefaults();
+    });
+    act(() => {
+      result.current.confirmConfig.onConfirm();
+    });
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+    const savedSettings = onSave.mock.calls[0][0] as AppSettings;
+    expect(savedSettings.systemInstruction).toBe('');
+    expect(savedSettings.apiKey).toBe('stored-api-key');
+    expect(savedSettings.useCustomApiConfig).toBe(true);
+    expect(savedSettings.mcpServers).toEqual(currentSettings.mcpServers);
+    expect(savedSettings.thirdPartyApi.providers.openai.apiKey).toBe('sk-third-party');
+
     unmount();
   });
 

@@ -3,12 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ChatMessage, SavedChatSession } from '@/types';
 import { createChatSettings } from '@/test/data/factories';
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 import { useMessageActions } from './useMessageActions';
 import { finishActiveGenerationJob, startActiveGenerationJob } from '@/features/message-sender/activeGenerationJobs';
 import { createDeferred, renderHook } from '@/test/render/renderer';

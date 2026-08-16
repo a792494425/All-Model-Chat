@@ -301,6 +301,8 @@ describe('source readability boundaries', () => {
       'Decorative gradient orb — neutral only, no accent/blue tint',
       'Mobile-only close row; desktop close lives in the content pane.',
       'Search container aligned with main header baseline',
+      'Search collapses the tab list into a desktop-only match-count status.',
+      'Danger severity escalates by consequence: reset < delete chats < wipe all data.',
     ]);
     const jsxCommentPattern = /\{\/\*\s*([^*]+?)\s*\*\/\}/g;
     const unexpectedComments = listProjectSourceFiles('src')

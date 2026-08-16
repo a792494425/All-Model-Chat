@@ -1,5 +1,4 @@
 import type { MutableRefObject } from 'react';
-import { getErrorMessage } from '@/utils/errorMessage';
 import { type AppSettings, type ChatProviderId, type UploadedFile, type MediaResolution } from '@/types';
 import { SUPPORTED_UPLOAD_MIME_TYPES } from '@/constants/fileTypeSupport';
 import { logService } from '@/services/logService';
@@ -16,6 +15,7 @@ import {
   shouldUseFileApi,
 } from './fileUploadPolicy';
 import { getTranslator } from '@/i18n/translations';
+import { interpolate, formatI18nErrorMessage } from '@/i18n/interpolate';
 
 type Translator = ReturnType<typeof getTranslator>;
 
@@ -63,7 +63,7 @@ export const uploadFileItem = async ({
         size: file.size,
         isProcessing: false,
         progress: 0,
-        error: t('uploadUnsupportedType').replace('{filename}', file.name),
+        error: interpolate(t('uploadUnsupportedType'), { filename: file.name }),
         uploadState: 'failed',
       },
     ]);
@@ -189,7 +189,7 @@ export const uploadFileItem = async ({
         ),
       );
     } catch (uploadError) {
-      let errorMsg = t('uploadFailedWithMessage').replace('{message}', getErrorMessage(uploadError));
+      let errorMsg = formatI18nErrorMessage(t, 'uploadFailedWithMessage', uploadError);
       let uploadStateUpdate: UploadedFile['uploadState'] = 'failed';
 
       if (uploadError instanceof Error && uploadError.name === 'AbortError') {

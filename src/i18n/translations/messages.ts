@@ -158,6 +158,8 @@ export const messagesTranslations = {
   },
   filePreviewRenderMarkdownAnyway: { en: 'Render Markdown anyway', zh: '仍然渲染 Markdown' },
   filePreviewDiscardUnsavedChanges: { en: 'Discard unsaved changes?', zh: '放弃未保存的更改吗？' },
+  filePreviewDiscardUnsavedMessage: { en: 'Your unsaved edits will be lost.', zh: '未保存的修改将会丢失。' },
+  filePreviewDiscardUnsavedConfirm: { en: 'Discard', zh: '放弃' },
   markdownPreviewDocument: { en: 'Markdown document', zh: 'Markdown 文档' },
   markdownPreviewPreview: { en: 'Preview', zh: '预览' },
   markdownPreviewSource: { en: 'Source', zh: '源码' },

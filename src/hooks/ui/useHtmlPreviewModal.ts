@@ -13,12 +13,14 @@ import {
 import { resolveHtmlPreviewBridgeEvent } from '@/utils/html-preview/previewParentBridge';
 import { DEFAULT_HTML_PREVIEW_PRIVILEGE, type HtmlPreviewPrivilege } from '@/utils/html-preview/previewPrivilege';
 import { useI18n } from '@/contexts/I18nContext';
+import { toastError } from '@/stores/toastStore';
 import { type LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
 import {
   createRelayedLiveArtifactSelectionDetail,
   dispatchLiveArtifactSelection,
   LIVE_ARTIFACT_CLEAR_SELECTION_EVENT,
 } from '@/utils/text-selection/liveArtifactSelection';
+import { formatI18nErrorMessage } from '@/i18n/interpolate';
 
 const ZOOM_STEP = 0.1;
 const MIN_ZOOM = 0.25;
@@ -295,12 +297,12 @@ export const useHtmlPreviewModal = ({
         scale: 2,
         messages: {
           imageTooLarge: t('exportImageTooLarge'),
-          exportFailed: (message) => t('exportFailedWithMessage').replace('{message}', message),
+          exportFailed: (message) => formatI18nErrorMessage(t, 'exportFailedWithMessage', message),
         },
       });
     } catch (screenshotError) {
       logService.error('Failed to take screenshot of iframe content:', screenshotError);
-      alert(t('htmlPreviewScreenshotFailed'));
+      toastError(t('htmlPreviewScreenshotFailed'));
     } finally {
       snapshotCleanup?.();
       setIsScreenshotting(false);

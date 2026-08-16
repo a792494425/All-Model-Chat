@@ -7,6 +7,7 @@ import { IconHistory } from '@/components/icons';
 import { useChatStore } from '@/stores/chatStore';
 import type { SavedChatSession } from '@/types';
 import { SIDEBAR_ICON_BUTTON_CLASS } from './sidebarStyles';
+import { interpolate } from '@/i18n/interpolate';
 
 interface CollapsedRecentChatsButtonProps {
   sessions: SavedChatSession[];
@@ -22,7 +23,6 @@ const CLOSE_DELAY_MS = 120;
 
 type PopoverOpenMode = 'hover' | 'focus' | 'click';
 
-const formatCompletedCount = (template: string, count: number) => template.replace('{count}', String(count));
 
 export const CollapsedRecentChatsButton: React.FC<CollapsedRecentChatsButtonProps> = ({
   sessions,
@@ -220,8 +220,8 @@ export const CollapsedRecentChatsButton: React.FC<CollapsedRecentChatsButtonProp
         {completedCount > 0 && (
           <span
             className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--theme-bg-accent)] px-1 text-[10px] font-semibold text-[var(--theme-text-accent)]"
-            title={formatCompletedCount(t('sessionCompletedCountTitle'), completedCount)}
-            aria-label={formatCompletedCount(t('sessionCompletedCountTitle'), completedCount)}
+            title={interpolate(t('sessionCompletedCountTitle'), { count: completedCount })}
+            aria-label={interpolate(t('sessionCompletedCountTitle'), { count: completedCount })}
           >
             {completedCount}
           </span>

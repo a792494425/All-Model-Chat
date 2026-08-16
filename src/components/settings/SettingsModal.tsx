@@ -23,7 +23,13 @@ import {
 } from '@/constants/designTokens';
 import { MODAL_CLOSE_BUTTON_CLASS } from '@/constants/buttonClasses';
 import type { SettingsTab } from '@/stores/settingsUiStore';
+import {
+  SETTINGS_SEARCH_RESULTS_ID,
+  settingsSearchOptionId,
+} from '@/constants/settingsSearchCatalog';
 import { searchSettingsCatalog, type SettingsSearchResult } from '@/utils/settingsSearch';
+import { interpolate } from '@/i18n/interpolate';
+import { isEditableElement } from '@/utils/chat-input/focus';
 
 const SETTINGS_FOCUS_HIGHLIGHT_CLASSES = [
   'ring-2',
@@ -176,6 +182,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [searchSelectedIndex, setSearchSelectedIndex] = useState(0);
 
   const searchResults = useMemo(() => searchSettingsCatalog(searchQuery, t), [searchQuery, t]);
+  // Results can shrink without a query change (language switch recomputes
+  // matches), so clamp the selection instead of indexing past the end.
+  const clampedSearchSelectedIndex = Math.min(searchSelectedIndex, Math.max(searchResults.length - 1, 0));
+  const activeSearchOptionId =
+    searchResults.length > 0 ? settingsSearchOptionId(clampedSearchSelectedIndex) : null;
 
   useEffect(() => {
     setSearchSelectedIndex(0);
@@ -201,14 +212,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
 
-    const isEditableTarget = (target: EventTarget | null) => {
-      if (!(target instanceof HTMLElement)) return false;
-      const tag = target.tagName;
-      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
-    };
-
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+      // IME composition (e.g. pinyin): keystrokes belong to the composition,
+      // not to result navigation — Enter confirms the candidate instead.
+      if (event.isComposing) return;
 
       if (isSearching && searchResults.length > 0) {
         if (event.key === 'ArrowDown') {
@@ -222,7 +230,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           return;
         }
         if (event.key === 'Enter') {
-          const selected = searchResults[searchSelectedIndex];
+          const selected = searchResults[clampedSearchSelectedIndex];
           if (selected) {
             event.preventDefault();
             handleSelectSearchResult(selected);
@@ -231,7 +239,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         }
       }
 
-      if (event.key !== '/' || isEditableTarget(event.target)) return;
+      if (event.key !== '/' || event.target instanceof HTMLElement && isEditableElement(event.target)) return;
       event.preventDefault();
       searchInputRef.current?.focus();
       searchInputRef.current?.select();
@@ -239,7 +247,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleSelectSearchResult, isOpen, isSearching, searchResults, searchSelectedIndex]);
+  }, [
+    clampedSearchSelectedIndex,
+    handleSelectSearchResult,
+    isOpen,
+    isSearching,
+    searchResults,
+  ]);
+
+  // While searching, Escape clears the query before the Modal's own
+  // document-level close handler can run — the capture listener wins the
+  // race regardless of where focus sits.
+  useEffect(() => {
+    if (!isOpen || !isSearching) return undefined;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.isComposing) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setSearchQuery('');
+    };
+
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+  }, [isOpen, isSearching]);
 
   useEffect(() => {
     if (!activeTabUsesScope && settingsScope !== 'defaults') {
@@ -305,6 +336,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           searchInputRef={searchInputRef}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          resultsCount={searchResults.length}
+          searchExpanded={isSearching}
+          searchResultsId={SETTINGS_SEARCH_RESULTS_ID}
+          searchActiveOptionId={activeSearchOptionId}
         />
 
         <main className="flex-1 flex flex-col min-w-0 bg-[var(--theme-bg-primary)] relative overflow-hidden">
@@ -315,9 +350,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           >
             <div className="max-w-3xl mx-auto w-full pb-4 md:pb-6 md:min-h-[48px] flex flex-col justify-center">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="hidden md:block text-xl font-semibold text-[var(--theme-text-primary)] min-w-0 truncate">
-                  {isSearching ? t('settingsSearchAria') : activeTabLabelKey ? t(activeTabLabelKey) : ''}
+                <h2
+                  className={`${isSearching ? 'block' : 'hidden md:block'} text-xl font-semibold text-[var(--theme-text-primary)] min-w-0 truncate`}
+                >
+                  {isSearching ? t('settingsSearchResultsTitle') : activeTabLabelKey ? t(activeTabLabelKey) : ''}
                 </h2>
+                {isSearching && (
+                  <span
+                    data-settings-search-count
+                    className="md:hidden flex-shrink-0 text-xs font-medium text-[var(--theme-text-secondary)]"
+                  >
+                    {interpolate(t('settingsSearchResultsCount'), { count: searchResults.length })}
+                  </span>
+                )}
                 <div className="flex items-center gap-2 sm:gap-3 ml-auto">
                   {activeTabUsesScope && (
                     <div
@@ -365,7 +410,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <SettingsSearchResults
                   results={searchResults}
                   onSelect={handleSelectSearchResult}
-                  selectedIndex={searchSelectedIndex}
+                  selectedIndex={clampedSearchSelectedIndex}
                   query={searchQuery}
                 />
               </div>

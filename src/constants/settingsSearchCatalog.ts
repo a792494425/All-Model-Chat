@@ -424,3 +424,9 @@ export const SETTINGS_SEARCH_CATALOG: SettingsSearchEntry[] = [
   ...shortcutsEntries,
   ...aboutEntries,
 ];
+
+/** DOM id of the container holding the rendered search results. */
+export const SETTINGS_SEARCH_RESULTS_ID = 'settings-search-results';
+
+/** DOM id of the flat-index result option, referenced by aria-activedescendant. */
+export const settingsSearchOptionId = (index: number): string => `settings-search-option-${index}`;

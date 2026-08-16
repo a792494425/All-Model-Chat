@@ -20,5 +20,7 @@ export const Z_INDEX_FULLSCREEN_CHAT_INPUT = 'z-[2000]';
 export const Z_INDEX_MODAL_BACKDROP = 'z-[2100]';
 export const Z_INDEX_TABLE_FULLSCREEN = 'z-[2200]';
 export const Z_INDEX_SIDE_PANEL_MOBILE = 'z-[3000]';
+/** Toast notifications: above modals and side panels, below text-selection overlays. */
+export const Z_INDEX_TOAST_VIEWPORT = 'z-[4000]';
 /** Topmost overlays: text-selection toolbar, side-panel resize mask. */
 export const Z_INDEX_TOPMOST_OVERLAY = 'z-[9999]';

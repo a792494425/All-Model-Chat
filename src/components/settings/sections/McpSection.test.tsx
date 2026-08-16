@@ -1,5 +1,5 @@
-import { act, type ComponentProps } from 'react';
-import { fireEvent } from '@testing-library/react';
+import { act, type ComponentProps, useCallback, useState } from 'react';
+import { fireEvent, within } from '@testing-library/react';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
 import { renderWithProviders, setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import type { AppSettings } from '@/types';
@@ -22,6 +22,26 @@ describe('McpSection', () => {
   const renderMcpSection = async (overrides: Partial<ComponentProps<typeof McpSection>> = {}) => {
     await act(async () => {
       renderer.root.render(<McpSection settings={DEFAULT_APP_SETTINGS} onUpdate={vi.fn()} {...overrides} />);
+    });
+  };
+
+  // McpSection is fully controlled: in production every edit flows through
+  // onUpdate into persisted settings and re-renders the section. These bugs
+  // only reproduce when updates feed back into the settings prop.
+  const StatefulMcpSection = ({ initialSettings }: { initialSettings: AppSettings }) => {
+    const [settings, setSettings] = useState(initialSettings);
+    const handleUpdate = useCallback(
+      <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
+        setSettings((prev) => ({ ...prev, [key]: value }));
+      },
+      [],
+    );
+    return <McpSection settings={settings} onUpdate={handleUpdate} />;
+  };
+
+  const renderStatefulMcpSection = async (initialSettings: AppSettings) => {
+    await act(async () => {
+      renderer.root.render(<StatefulMcpSection initialSettings={initialSettings} />);
     });
   };
 
@@ -172,6 +192,172 @@ describe('McpSection', () => {
     });
   });
 
+  it('labels each server enable switch with its server name', async () => {
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [
+        {
+          id: 'first',
+          name: 'First Server',
+          enabled: true,
+          transport: 'stdio',
+          command: 'npx',
+        },
+        {
+          id: 'second',
+          name: 'Second Server',
+          enabled: false,
+          transport: 'stdio',
+          command: 'node',
+        },
+      ],
+    };
+
+    await renderMcpSection({ settings });
+
+    const switches = Array.from(renderer.container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
+    expect(switches).toHaveLength(2);
+    expect(switches[0].getAttribute('aria-label')).toBe('First Server');
+    expect(switches[1].getAttribute('aria-label')).toBe('Second Server');
+  });
+
+  it('toggles a server enabled state through the shared switch', async () => {
+    const onUpdate = vi.fn();
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [
+        {
+          id: 'first',
+          name: 'First Server',
+          enabled: false,
+          transport: 'stdio',
+          command: 'npx',
+        },
+      ],
+    };
+
+    await renderMcpSection({ settings, onUpdate });
+
+    const switchInput = renderer.container.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    expect(switchInput).not.toBeNull();
+
+    await act(async () => {
+      fireEvent.click(switchInput!);
+    });
+
+    expect(onUpdate).toHaveBeenCalledWith('mcpServers', [
+      expect.objectContaining({ id: 'first', enabled: true }),
+    ]);
+  });
+
+  it('keeps focus on the server id input while the id is being edited', async () => {
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [
+        {
+          id: 'alpha',
+          name: 'Alpha',
+          enabled: true,
+          transport: 'stdio',
+          command: 'npx',
+        },
+      ],
+    };
+
+    await renderStatefulMcpSection(settings);
+
+    const idInput = within(renderer.container).getByLabelText('Server ID');
+    idInput.focus();
+
+    await act(async () => {
+      fireEvent.change(idInput, { target: { value: 'alpha-2' } });
+    });
+
+    expect(idInput).toHaveFocus();
+  });
+
+  it('keeps capability test results when the server id is edited', async () => {
+    fetchMcpServerCapabilitiesMock.mockResolvedValue({
+      tools: [{ name: 'read_file' }],
+      resources: [],
+      resourceTemplates: [],
+      prompts: [],
+    });
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [
+        {
+          id: 'alpha',
+          name: 'Alpha',
+          enabled: true,
+          transport: 'http',
+          url: 'https://mcp.example.com/mcp',
+        },
+      ],
+    };
+
+    await renderStatefulMcpSection(settings);
+
+    await act(async () => {
+      fireEvent.click(within(renderer.container).getByRole('button', { name: 'Test' }));
+    });
+
+    expect(renderer.container.textContent).toContain('Tools 1');
+
+    await act(async () => {
+      fireEvent.change(within(renderer.container).getByLabelText('Server ID'), {
+        target: { value: 'beta' },
+      });
+    });
+
+    expect(renderer.container.textContent).toContain('Tools 1');
+  });
+
+  it('keeps capability test results on the tested server when an earlier server is removed', async () => {
+    fetchMcpServerCapabilitiesMock.mockResolvedValue({
+      tools: [{ name: 'read_file' }],
+      resources: [],
+      resourceTemplates: [],
+      prompts: [],
+    });
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [
+        {
+          id: 'first',
+          name: 'First Server',
+          enabled: false,
+          transport: 'stdio',
+          command: 'node',
+        },
+        {
+          id: 'second',
+          name: 'Second Server',
+          enabled: true,
+          transport: 'http',
+          url: 'https://mcp.example.com/mcp',
+        },
+      ],
+    };
+
+    await renderStatefulMcpSection(settings);
+
+    const testButtons = within(renderer.container).getAllByRole('button', { name: 'Test' });
+    expect(testButtons).toHaveLength(2);
+
+    await act(async () => {
+      fireEvent.click(testButtons[1]);
+    });
+    expect(renderer.container.textContent).toContain('Tools 1');
+
+    await act(async () => {
+      fireEvent.click(within(renderer.container).getAllByLabelText('Remove MCP server')[0]);
+    });
+
+    expect(renderer.container.textContent).toContain('Second Server');
+    expect(renderer.container.textContent).toContain('Tools 1');
+  });
+
   it('contains long server names in the card header', async () => {
     const longName = 'A very long MCP server name that should stay contained inside the card header';
     const settings: AppSettings = {
@@ -189,8 +375,8 @@ describe('McpSection', () => {
 
     await renderMcpSection({ settings });
 
-    const serverLabel = Array.from(renderer.container.querySelectorAll('label')).find(
-      (label) => label.textContent === longName,
+    const serverLabel = Array.from(renderer.container.querySelectorAll('span')).find(
+      (span) => span.textContent === longName,
     );
     const header = serverLabel?.closest('[data-mcp-server-card-header]');
     const actions = header?.querySelector('[data-mcp-server-card-actions]');

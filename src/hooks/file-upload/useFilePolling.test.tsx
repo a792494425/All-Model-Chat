@@ -19,12 +19,6 @@ vi.mock('@/utils/apiKeySelection', () => ({
   getGeminiKeyForRequest: getGeminiKeyForRequestMock,
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 describe('useFilePolling', () => {
   beforeEach(() => {
     vi.useFakeTimers();

@@ -5,12 +5,6 @@ import { setupStoreStateReset } from '@/test/stores/reset';
 import { ToolsMenu } from './ToolsMenu';
 import { createChatToolToggleStatesFromFlags } from '@/test/chat-tools/fixtures';
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 const toolUtilityActions = {
   onCountTokens: () => {},
 };

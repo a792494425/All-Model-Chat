@@ -18,6 +18,8 @@ export interface ThemeColors {
   bgInfo: string;
   textInfo: string;
   bgWarning: string;
+  bgWarningStrong: string;
+  bgWarningStrongHover: string;
   textWarning: string;
 
   // Text

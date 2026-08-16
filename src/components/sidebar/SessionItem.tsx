@@ -6,6 +6,7 @@ import { SessionItemMenu } from './SessionItemMenu';
 import { LoadingDots } from '@/components/shared/LoadingDots';
 import { useChatStore } from '@/stores/chatStore';
 import { SESSION_DRAG_TYPE } from './sidebarDragTypes';
+import { Z_INDEX_TOPMOST_OVERLAY } from '@/constants/layout';
 
 interface SessionItemProps {
   session: SavedChatSession;
@@ -113,7 +114,7 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
     // is removed on the next tick after setDragImage captures it.
     const ghost = document.createElement('div');
     ghost.className =
-      'fixed top-0 left-0 z-[9999] pointer-events-none flex items-center gap-2 rounded-md bg-[var(--theme-bg-primary)] px-2.5 py-1.5 text-sm font-medium text-[var(--theme-text-primary)] shadow-lg';
+      `fixed top-0 left-0 ${Z_INDEX_TOPMOST_OVERLAY} pointer-events-none flex items-center gap-2 rounded-md bg-[var(--theme-bg-primary)] px-2.5 py-1.5 text-sm font-medium text-[var(--theme-text-primary)] shadow-lg`;
     if (session.isPinned) {
       const pinIcon = document.createElement('span');
       pinIcon.innerHTML =

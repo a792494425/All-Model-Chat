@@ -225,7 +225,7 @@ VITE_OPENAI_API_KEY=your_openai_compatible_key_here
 
 项目包含双容器部署：
 
-- `web`：Nginx 托管前端静态资源，并反向代理 `/api/*` 到 `api` 服务
+- `web`：Node 轻量服务托管前端静态资源，并反向代理 `/api/*` 到 `api` 服务
 - `api`：Node 服务，提供 `/api/gemini/*` 代理
 
 运行方式：

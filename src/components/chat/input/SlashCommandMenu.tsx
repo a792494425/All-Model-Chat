@@ -3,6 +3,11 @@ import { CornerDownLeft } from 'lucide-react';
 import { CommandIcon } from '@/components/icons/CommandIcon';
 import type { SlashCommand as SlashMenuItem } from '@/types/slashCommands';
 import { useI18n } from '@/contexts/I18nContext';
+import {
+  SETTINGS_KBD_KEY_CLASS,
+  SETTINGS_NAV_ACTIVE_CLASS,
+  SETTINGS_SECTION_LABEL_CLASS,
+} from '@/constants/designTokens';
 
 interface SlashCommandMenuProps {
   isOpen: boolean;
@@ -43,81 +48,54 @@ const SlashCommandMenuComponent: React.FC<SlashCommandMenuProps> = ({
     <div className={finalClassName} style={{ animation: 'fadeInUp 0.15s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
       <div
         data-slash-command-frame="true"
-        className="bg-[var(--theme-bg-secondary)] border border-[var(--theme-border-secondary)] rounded-xl shadow-2xl max-h-80 overflow-hidden flex flex-col"
+        className="flex max-h-80 flex-col overflow-hidden rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)] shadow-premium"
       >
         <div
           ref={scrollContainerRef}
           data-slash-command-scroll="true"
-          className="max-h-80 overflow-y-auto custom-scrollbar flex flex-col scroll-pt-10"
+          className="custom-scrollbar flex max-h-80 flex-col overflow-y-auto scroll-pt-10"
         >
-          <div className="sticky top-0 z-10 bg-[var(--theme-bg-secondary)] border-b border-[var(--theme-border-secondary)] px-3 py-2 flex justify-between items-center">
-            <span className="text-xs font-bold text-[var(--theme-text-tertiary)] uppercase tracking-widest">
-              {t('slashCommandsTitle')}
-            </span>
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)] px-3 py-2">
+            <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('slashCommandsTitle')}</span>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[var(--theme-text-tertiary)] bg-[var(--theme-bg-primary)] px-1.5 py-0.5 rounded border border-[var(--theme-border-secondary)]">
-                {t('slashCommandsNavigateHint')}
-              </span>
-              <span className="text-xs text-[var(--theme-text-tertiary)] bg-[var(--theme-bg-primary)] px-1.5 py-0.5 rounded border border-[var(--theme-border-secondary)]">
-                {t('slashCommandsSelectHint')}
-              </span>
+              <kbd className={SETTINGS_KBD_KEY_CLASS}>{t('slashCommandsNavigateHint')}</kbd>
+              <kbd className={SETTINGS_KBD_KEY_CLASS}>{t('slashCommandsSelectHint')}</kbd>
             </div>
           </div>
 
-          <ul className="p-1.5 space-y-0.5">
+          <ul className="space-y-0.5 p-1.5">
             {commands.map((command, index) => {
               const isSelected = selectedIndex === index;
               return (
-                <li key={command.name} ref={isSelected ? selectedItemRef : null} className="relative">
+                <li key={command.name} ref={isSelected ? selectedItemRef : null}>
                   <button
                     type="button"
                     onClick={() => onSelect(command)}
-                    className={`
-                                        group relative w-full text-left px-3 py-2.5 flex items-center gap-3 rounded-lg transition-all duration-150
-                                        ${
-                                          isSelected
-                                            ? 'bg-[var(--theme-bg-tertiary)]'
-                                            : 'hover:bg-[var(--theme-bg-tertiary)]/50'
-                                        }
-                                    `}
+                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
+                      isSelected ? SETTINGS_NAV_ACTIVE_CLASS : 'hover:bg-[var(--theme-bg-tertiary)]/50'
+                    }`}
                     aria-selected={isSelected}
                     role="option"
                   >
-                    {isSelected && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[var(--theme-bg-accent)] rounded-r-full" />
-                    )}
-
-                    <div
-                      className={`
-                                        flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md transition-colors duration-200
-                                        ${
-                                          isSelected
-                                            ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-sm ring-1 ring-[var(--theme-border-secondary)]'
-                                            : 'bg-[var(--theme-bg-input)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-secondary)]'
-                                        }
-                                    `}
-                    >
+                    <span className="flex-shrink-0 text-[var(--theme-text-tertiary)]">
                       <CommandIcon icon={command.icon} />
-                    </div>
-
-                    <div className="flex-grow min-w-0 flex flex-col justify-center gap-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-bold tracking-tight text-[var(--theme-text-primary)]">
-                          /{command.name}
-                        </span>
-                      </div>
-                      <p
-                        className={`text-xs truncate ${isSelected ? 'text-[var(--theme-text-secondary)]' : 'text-[var(--theme-text-tertiary)]'}`}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-mono text-sm font-medium text-[var(--theme-text-primary)]">
+                        /{command.name}
+                      </span>
+                      <span
+                        className={`block truncate text-xs ${isSelected ? 'text-[var(--theme-text-secondary)]' : 'text-[var(--theme-text-tertiary)]'}`}
                       >
                         {command.description}
-                      </p>
-                    </div>
-
-                    {isSelected && (
-                      <div className="flex-shrink-0 hidden sm:flex items-center gap-1 text-xs font-medium text-[var(--theme-text-secondary)] animate-in fade-in slide-in-from-left-1 duration-200">
-                        <CornerDownLeft size={12} />
-                      </div>
-                    )}
+                      </span>
+                    </span>
+                    {isSelected ? (
+                      <CornerDownLeft
+                        size={12}
+                        className="hidden flex-shrink-0 text-[var(--theme-text-tertiary)] sm:block"
+                      />
+                    ) : null}
                   </button>
                 </li>
               );

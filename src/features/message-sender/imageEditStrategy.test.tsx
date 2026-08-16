@@ -49,12 +49,6 @@ vi.mock('@/utils/chat/builder', () => ({
     'A previously generated image is missing from this image edit history. Please reattach the image or start a new image edit turn.',
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/utils/chat/session', async () => {
   const { createChatSessionMockModule } = await import('@/test/doubles/moduleMocks');
 

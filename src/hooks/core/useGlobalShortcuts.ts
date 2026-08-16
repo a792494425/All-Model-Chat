@@ -6,6 +6,7 @@ import { isShortcutPressed } from '@/utils/keyboardShortcuts';
 import { getTabCycleModelIds } from '@/utils/model/modelCatalog';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
 import { buildProviderAwareModelList } from '@/utils/thirdPartyApiProviders';
+import { isEditableElement } from '@/utils/chat-input/focus';
 
 interface UseGlobalShortcutsProps {
   appSettings: AppSettings;
@@ -48,12 +49,7 @@ export const useGlobalShortcuts = ({
       const targetDocument = event.view?.document || document;
       const activeElement = targetDocument.activeElement as HTMLElement;
 
-      const isGenerallyInputFocused =
-        activeElement &&
-        (activeElement.tagName.toLowerCase() === 'input' ||
-          activeElement.tagName.toLowerCase() === 'textarea' ||
-          activeElement.tagName.toLowerCase() === 'select' ||
-          activeElement.isContentEditable);
+      const isGenerallyInputFocused = activeElement instanceof HTMLElement && isEditableElement(activeElement);
 
       if (isShortcutPressed(event, 'global.stopCancel', appSettings)) {
         if (isLoading) {

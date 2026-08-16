@@ -4,6 +4,7 @@ import { prepareAudioForGeminiTranscription } from '@/features/audio/audioCompre
 import { useRecorder } from '@/hooks/core/useRecorder';
 import { useTextAreaInsert } from '@/hooks/useTextAreaInsert';
 import { useI18n } from '@/contexts/I18nContext';
+import { formatI18nErrorMessage } from '@/i18n/interpolate';
 
 interface UseVoiceInputProps {
   onTranscribeAudio: (file: File) => Promise<string | null>;
@@ -60,7 +61,7 @@ export const useVoiceInput = ({
         } catch (error) {
           logService.error('Error processing/transcribing audio:', error);
           const message = error instanceof Error ? error.message : t('voiceInputFailed');
-          reportError(t('voiceInputFailedWithMessage').replace('{message}', message));
+          reportError(formatI18nErrorMessage(t, 'voiceInputFailedWithMessage', message));
         } finally {
           setIsTranscribing(false);
           setIsFinalizingRecording(false);

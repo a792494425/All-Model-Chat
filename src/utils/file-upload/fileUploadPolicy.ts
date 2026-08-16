@@ -16,6 +16,7 @@ import {
 import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES, isServerCodeExecutionMode } from '@/utils/codeExecution';
 import { isTextFile } from '@/utils/file/fileTypeClassification';
 import { getTranslator } from '@/i18n/translations';
+import { interpolate } from '@/i18n/interpolate';
 
 type Translator = ReturnType<typeof getTranslator>;
 
@@ -238,14 +239,14 @@ export const buildFileUploadPreflight = (
 
   const noticeParts: string[] = [];
   if (emptyNames.length > 0) {
-    noticeParts.push(t('uploadSkippedEmpty').replace('{filenames}', emptyNames.join(', ')));
+    noticeParts.push(interpolate(t('uploadSkippedEmpty'), { filenames: emptyNames.join(', ') }));
   }
   if (duplicateNames.length > 0) {
-    noticeParts.push(t('uploadSkippedDuplicates').replace('{filenames}', duplicateNames.join(', ')));
+    noticeParts.push(interpolate(t('uploadSkippedDuplicates'), { filenames: duplicateNames.join(', ') }));
   }
 
   if (unsupportedNames.length > 0) {
-    noticeParts.push(t('uploadUnsupportedTypes').replace('{filenames}', unsupportedNames.join(', ')));
+    noticeParts.push(interpolate(t('uploadUnsupportedTypes'), { filenames: unsupportedNames.join(', ') }));
   }
 
   return {

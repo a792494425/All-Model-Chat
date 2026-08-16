@@ -221,7 +221,7 @@ Example Base URLs:
 
 The Docker deployment contains two services:
 
-- `web`: Nginx serves the frontend and proxies `/api/*` to the API service.
+- `web`: lightweight Node server serves the frontend and proxies `/api/*` to the API service.
 - `api`: Node service for `/api/gemini/*`.
 
 ```bash

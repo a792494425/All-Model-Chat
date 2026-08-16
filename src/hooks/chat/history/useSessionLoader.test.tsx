@@ -24,12 +24,6 @@ const {
   mockResolveSupportedModelId: vi.fn((modelId: string | undefined, fallback: string) => modelId ?? fallback),
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/services/db/dbService', async () => {
   const { createDbServiceMockModule } = await import('@/test/doubles/moduleMocks');
 

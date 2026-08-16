@@ -14,12 +14,6 @@ vi.mock('@/utils/file/fileEncoding', () => ({
   blobToBase64: blobToBase64Mock,
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 import { generateSpeechApi, transcribeAudioApi } from './audioApi';
 
 describe('generateSpeechApi request config', () => {

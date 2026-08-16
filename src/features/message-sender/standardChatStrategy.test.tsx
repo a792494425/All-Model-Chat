@@ -41,12 +41,6 @@ const {
   })),
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/utils/apiKeySelection', () => ({
   getKeyForRequest: mockGetKeyForRequest,
 }));

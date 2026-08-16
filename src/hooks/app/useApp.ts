@@ -1,11 +1,11 @@
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
-import { getErrorMessage } from '@/utils/errorMessage';
 import { useAppSettings } from '@/hooks/core/useAppSettings';
 import { useChat } from '@/hooks/chat/useChat';
 import { useAppUi } from '@/hooks/core/useAppUi';
 import { useAppEvents } from '@/hooks/core/useAppEvents';
 import { usePictureInPicture } from '@/hooks/core/usePictureInPicture';
 import { logService } from '@/services/logService';
+import { toastError } from '@/stores/toastStore';
 import { getTranslator } from '@/i18n/translations';
 import { applyThemeToDocument } from '@/utils/themeDom';
 import { useUIStore } from '@/stores/uiStore';
@@ -30,6 +30,7 @@ import { focusChatInput } from '@/utils/chat-input/focus';
 import { useAppPromptModes } from './useAppPromptModes';
 import { DEFAULT_THINKING_BUDGET } from '@/constants/modelConfiguration';
 import { getModelCapabilities } from '@/utils/model/modelCapabilities';
+import { formatI18nErrorMessage } from '@/i18n/interpolate';
 
 type AppTranslator = ReturnType<typeof getTranslator>;
 type ChatViewModel = ReturnType<typeof useChat>;
@@ -198,7 +199,7 @@ export const useApp = (): AppViewModel => {
         setIsExportModalOpen(false);
       } catch (error) {
         logService.error(`Chat export failed (format: ${format})`, { error });
-        alert(t('exportFailedWithMessage').replace('{message}', getErrorMessage(error)));
+        toastError(formatI18nErrorMessage(t, 'exportFailedWithMessage', error));
       } finally {
         setExportStatus('idle');
       }

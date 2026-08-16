@@ -85,7 +85,7 @@ export const ShortcutsSection: React.FC<ShortcutsSectionProps> = ({
                     </div>
                   </div>
                   {item.id === 'input.cycleModels' && (
-                    <div className="pb-3 pt-1">
+                    <div className="pb-3 pt-1" data-settings-item="shortcuts-cycle-models">
                       <TabCycleModelsCard
                         availableModels={availableModels}
                         configuredIds={currentSettings.tabModelCycleIds}

@@ -4,6 +4,13 @@ import { type SavedScenario, type ScenarioCategory } from '@/types';
 import { Search, User, Library, Inbox } from 'lucide-react';
 import { ScenarioItem } from './ScenarioItem';
 import { CATEGORY_META, CATEGORY_ORDER, getCategory } from '@/features/scenarios/scenarioCategories';
+import {
+  SETTINGS_NAV_ACTIVE_CLASS,
+  SETTINGS_NAV_IDLE_CLASS,
+  SETTINGS_SEGMENTED_ACTIVE_CLASS,
+  SETTINGS_SEGMENTED_IDLE_CLASS,
+  SETTINGS_SEGMENTED_TRACK_CLASS,
+} from '@/constants/designTokens';
 
 interface ScenarioListProps {
   scenarios: SavedScenario[];
@@ -37,13 +44,10 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
   onView,
 }) => {
   const { t } = useI18n();
-  // Default to "mine" when the user has authored scenarios, otherwise land on the
-  // built-in presets so a fresh install never shows an empty library first.
   const hasCustomScenarios = scenarios.some((scenario) => !builtInScenarioIds.includes(scenario.id));
   const [ownerScope, setOwnerScope] = useState<OwnerScope>(hasCustomScenarios ? 'mine' : 'builtin');
   const [activeCategory, setActiveCategory] = useState<ScenarioCategory | 'all'>('all');
 
-  // Only show category chips that actually have scenarios within the current scope.
   const availableCategories = useMemo(() => {
     const present = new Set<ScenarioCategory>();
     const builtInSet = new Set(builtInScenarioIds);
@@ -56,7 +60,6 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
     return CATEGORY_ORDER.filter((category) => present.has(category));
   }, [scenarios, ownerScope, builtInScenarioIds]);
 
-  // If the active category is no longer represented, reset to "all".
   const effectiveCategory =
     activeCategory === 'all' || availableCategories.includes(activeCategory) ? activeCategory : 'all';
 
@@ -85,40 +88,45 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
 
   const ownerTabs: { id: OwnerScope; labelKey: string; icon: React.ElementType }[] = [
     { id: 'mine', labelKey: 'scenariosTabMine', icon: User },
-    { id: 'builtin', labelKey: 'scenariosCategorySystem', icon: Library },
+    { id: 'builtin', labelKey: 'scenariosTabBuiltin', icon: Library },
   ];
 
   return (
-    <div className="flex flex-col h-full gap-3 sm:gap-4">
+    <div className="flex h-full min-h-0 flex-col gap-3">
       <div className="relative group flex-shrink-0">
-        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--theme-text-tertiary)] group-focus-within:text-[var(--theme-text-primary)] transition-colors">
-          <Search size={18} />
-        </div>
+        <Search
+          size={16}
+          strokeWidth={1.5}
+          className="pointer-events-none absolute left-3 top-1/2 z-[1] -translate-y-1/2 text-[var(--theme-text-tertiary)] transition-colors group-hover:text-[var(--theme-text-secondary)] group-focus-within:text-[var(--theme-text-primary)]"
+          aria-hidden
+        />
         <input
-          type="text"
-          placeholder={t('historySearchPlaceholder')}
+          type="search"
+          placeholder={t('scenariosSearchPlaceholder')}
+          aria-label={t('scenariosSearchPlaceholder')}
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-[var(--theme-bg-input)] border border-[var(--theme-border-secondary)] rounded-xl text-sm font-medium text-[var(--theme-text-primary)] placeholder-[var(--theme-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)] focus:border-transparent transition-all shadow-sm"
+          onChange={(event) => setSearchQuery(event.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+          className="h-10 w-full rounded-lg border border-transparent bg-[var(--theme-bg-tertiary)]/45 pl-9 pr-3 text-sm text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)]/70 focus:bg-[var(--theme-bg-tertiary)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--theme-border-focus)]/35"
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 flex-shrink-0">
-        <div className="flex p-1 bg-[var(--theme-bg-input)] border border-[var(--theme-border-secondary)] rounded-xl w-full sm:w-auto overflow-x-auto no-scrollbar">
+      <div className="flex flex-shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+        <div className={`${SETTINGS_SEGMENTED_TRACK_CLASS} w-full sm:w-auto`}>
           {ownerTabs.map((tab) => {
             const isActive = ownerScope === tab.id;
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setOwnerScope(tab.id)}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 whitespace-nowrap ${
-                  isActive
-                    ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-link)] shadow-sm'
-                    : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)]'
+                className={`flex flex-1 items-center justify-center gap-1.5 sm:flex-none ${
+                  isActive ? SETTINGS_SEGMENTED_ACTIVE_CLASS : SETTINGS_SEGMENTED_IDLE_CLASS
                 }`}
               >
-                <Icon size={16} strokeWidth={isActive ? 2 : 1.5} />
+                <Icon size={14} strokeWidth={isActive ? 2 : 1.5} />
                 <span>{t(tab.labelKey)}</span>
               </button>
             );
@@ -127,7 +135,7 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
 
         {availableCategories.length > 0 && (
           <div
-            className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5"
+            className="flex items-center gap-1 overflow-x-auto no-scrollbar"
             role="group"
             aria-label={t('scenariosCategoryAria')}
           >
@@ -136,41 +144,35 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
               onClick={() => setActiveCategory('all')}
               label={t('scenariosFilterAll')}
             />
-            {availableCategories.map((category) => {
-              const meta = CATEGORY_META[category];
-              return (
-                <CategoryChip
-                  key={category}
-                  active={effectiveCategory === category}
-                  onClick={() => setActiveCategory(category)}
-                  label={t(meta.labelKey)}
-                  chipClass={meta.chipClass}
-                  emoji={meta.emoji}
-                />
-              );
-            })}
+            {availableCategories.map((category) => (
+              <CategoryChip
+                key={category}
+                active={effectiveCategory === category}
+                onClick={() => setActiveCategory(category)}
+                label={t(CATEGORY_META[category].labelKey)}
+              />
+            ))}
           </div>
         )}
       </div>
 
-      <div className="flex-grow overflow-y-auto custom-scrollbar pr-1 pb-4 min-h-0">
+      <div className="min-h-0 flex-grow overflow-y-auto custom-scrollbar">
         {filteredScenarios.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-[var(--theme-text-tertiary)]">
-            <div className="p-4 rounded-full bg-[var(--theme-bg-input)] mb-4">
-              <Inbox size={48} className="opacity-30" strokeWidth={1} />
-            </div>
-            <p className="text-base font-medium text-[var(--theme-text-secondary)]">{t('scenariosEmptySearch')}</p>
+          <div className="flex h-56 flex-col items-center justify-center text-[var(--theme-text-tertiary)]">
+            <Inbox size={28} className="mb-3 opacity-40" strokeWidth={1.5} />
+            <p className="text-sm text-[var(--theme-text-secondary)]">{t('scenariosEmptySearch')}</p>
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => setSearchQuery('')}
-                className="mt-2 text-[var(--theme-text-link)] hover:underline text-sm"
+                className="mt-2 text-sm text-[var(--theme-text-link)] hover:underline"
               >
                 {t('scenariosClearSearch')}
               </button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <ul className="flex flex-col">
             {filteredScenarios.map((scenario) => {
               const isSystem = systemScenarioIds.includes(scenario.id);
               return (
@@ -187,7 +189,7 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
                 />
               );
             })}
-          </div>
+          </ul>
         )}
       </div>
     </div>
@@ -198,20 +200,14 @@ const CategoryChip: React.FC<{
   active: boolean;
   onClick: () => void;
   label: string;
-  chipClass?: string;
-  emoji?: string;
-}> = ({ active, onClick, label, chipClass, emoji }) => (
+}> = ({ active, onClick, label }) => (
   <button
+    type="button"
     onClick={onClick}
-    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition-all ${
-      active
-        ? chipClass
-          ? `${chipClass} border-transparent`
-          : 'bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] border-transparent'
-        : 'bg-[var(--theme-bg-input)] border-[var(--theme-border-secondary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:border-[var(--theme-border-focus)]'
+    className={`flex-shrink-0 rounded-md px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)] ${
+      active ? SETTINGS_NAV_ACTIVE_CLASS : SETTINGS_NAV_IDLE_CLASS
     }`}
   >
-    {emoji && <span aria-hidden="true">{emoji}</span>}
     {label}
   </button>
 );

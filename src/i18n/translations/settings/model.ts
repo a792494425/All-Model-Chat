@@ -7,6 +7,7 @@ const modelSettings = {
   settingsSystemPrompt: { en: 'Default System Prompt', zh: '默认系统提示' },
   settingsTemperature: { en: 'Temperature', zh: '温度' },
   settingsTopP: { en: 'Top P', zh: 'Top P' },
+  settingsTopK: { en: 'Top K', zh: 'Top K' },
   settingsShowThoughts: { en: 'Show Model Reasoning', zh: '显示模型推理' },
   settingsShowThoughtsTooltip: {
     en: "Displays the model's reasoning before the final answer. Requires reasoning mode to be enabled.",

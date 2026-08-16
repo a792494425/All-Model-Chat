@@ -5,12 +5,6 @@ import { setupStoreStateReset } from '@/test/stores/reset';
 import { createChatInputActionsContextValue } from '@/test/chat-input/contextFixtures';
 import { ChatInputActionsContext } from './ChatInputContext';
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/hooks/ui/usePortaledMenu', () => ({
   usePortaledMenu: () => ({
     isOpen: true,

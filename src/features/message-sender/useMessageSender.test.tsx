@@ -80,12 +80,6 @@ vi.mock('@/utils/chat/session', () => ({
   rehydrateSessionFiles: vi.fn((session) => session),
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/services/api/fileApi', () => ({
   getFileMetadataApi: mockGetFileMetadataApi,
   uploadFileApi: mockUploadFileApi,

@@ -35,7 +35,7 @@ export const ApiProxySettings: React.FC<ApiProxySettingsProps> = ({
   const previewUrl = buildGeminiRequestPreviewUrl(currentBaseUrl, DEFAULT_MODEL_ID, 'generateContent');
 
   return (
-    <div className="space-y-3 pt-2">
+    <div className="space-y-3 pt-2" data-settings-item="api-proxy">
       <div className="flex items-center justify-between py-2">
         <div className="flex items-center gap-2">
           <label

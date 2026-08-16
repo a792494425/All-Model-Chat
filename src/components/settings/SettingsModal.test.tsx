@@ -183,8 +183,8 @@ describe('SettingsModal', () => {
     expect(document.body.textContent).toContain('Render Mermaid Diagrams');
     expect(document.body.textContent).toMatch(/result/i);
 
-    const mermaidResult = Array.from(document.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Render Mermaid Diagrams'),
+    const mermaidResult = Array.from(document.querySelectorAll('[role="option"]')).find((option) =>
+      option.textContent?.includes('Render Mermaid Diagrams'),
     );
     expect(mermaidResult).toBeDefined();
 
@@ -197,5 +197,145 @@ describe('SettingsModal', () => {
     expect(document.body.textContent).toContain('Rendering & Preview');
     expect(document.body.textContent).toContain('Render Mermaid Diagrams');
     expect(document.querySelector('[data-settings-item="interface-mermaid"]')).not.toBeNull();
+  });
+  it('shows a search results title on mobile while searching', async () => {
+    await ensureFeatureTranslations('settings');
+    await renderSettingsModal();
+
+    const searchInput = document.querySelector<HTMLInputElement>('input[aria-label="Search settings"]');
+    expect(searchInput).not.toBeNull();
+
+    await act(async () => {
+      fireEvent.change(searchInput!, { target: { value: 'theme' } });
+    });
+
+    const title = document.querySelector('main h2');
+    expect(title?.textContent).toBe('Search Results');
+    // Visible on mobile too while searching (normally the title is desktop-only).
+    expect(title?.className).not.toContain('hidden');
+  });
+
+  it('does not select a search result while an IME composition is confirming', async () => {
+    await ensureFeatureTranslations('settings');
+    await renderSettingsModal();
+
+    const searchInput = document.querySelector<HTMLInputElement>('input[aria-label="Search settings"]');
+    await act(async () => {
+      fireEvent.change(searchInput!, { target: { value: 'mermaid' } });
+    });
+
+    // Enter confirming a pinyin composition must not pick a result.
+    await act(async () => {
+      fireEvent.keyDown(window, { key: 'Enter', isComposing: true });
+    });
+
+    expect(searchInput?.value).toBe('mermaid');
+    expect(document.querySelector('[data-settings-item="interface-mermaid"]')).toBeNull();
+
+    await act(async () => {
+      fireEvent.keyDown(window, { key: 'Enter' });
+    });
+
+    expect(document.querySelector('[data-settings-item="interface-mermaid"]')).not.toBeNull();
+  });
+
+  it('exits search before closing the modal when Escape fires outside the input', async () => {
+    await ensureFeatureTranslations('settings');
+    const onClose = vi.fn();
+    await renderSettingsModal({ onClose });
+
+    const searchInput = document.querySelector<HTMLInputElement>('input[aria-label="Search settings"]');
+    await act(async () => {
+      fireEvent.change(searchInput!, { target: { value: 'theme' } });
+    });
+
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+    });
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(searchInput?.value).toBe('');
+  });
+
+  it('announces the search match count to screen readers', async () => {
+    await ensureFeatureTranslations('settings');
+    await renderSettingsModal();
+
+    const searchInput = document.querySelector<HTMLInputElement>('input[aria-label="Search settings"]');
+    await act(async () => {
+      fireEvent.change(searchInput!, { target: { value: 'theme' } });
+    });
+
+    const status = document.querySelector('[data-settings-search-status]');
+    expect(status?.getAttribute('role')).toBe('status');
+  });
+
+  it('wires the search input to the results listbox', async () => {
+    await ensureFeatureTranslations('settings');
+    await renderSettingsModal();
+
+    const searchInput = document.querySelector<HTMLInputElement>('input[aria-label="Search settings"]');
+    expect(searchInput?.getAttribute('aria-expanded')).toBe('false');
+
+    await act(async () => {
+      fireEvent.change(searchInput!, { target: { value: 'theme' } });
+    });
+
+    expect(searchInput?.getAttribute('aria-expanded')).toBe('true');
+    expect(searchInput?.getAttribute('aria-controls')).toBe('settings-search-results');
+    expect(searchInput?.getAttribute('aria-activedescendant')).toBe('settings-search-option-0');
+  });
+
+  it('keeps one mobile gutter across all sidebar rows', async () => {
+    await renderSettingsModal();
+
+    const aside = document.querySelector('aside');
+    expect(aside).not.toBeNull();
+    const rows = [
+      aside?.children[0],
+      aside?.children[1],
+      aside?.querySelector('nav'),
+      aside?.lastElementChild,
+    ];
+    for (const row of rows) {
+      expect((row as HTMLElement)?.className.split(' ')).toContain('px-4');
+    }
+  });
+
+  it('moves the mobile match count inline and hides the sidebar status while searching', async () => {
+    await ensureFeatureTranslations('settings');
+    await renderSettingsModal();
+
+    const searchInput = document.querySelector<HTMLInputElement>('input[aria-label="Search settings"]');
+    await act(async () => {
+      fireEvent.change(searchInput!, { target: { value: 'theme' } });
+    });
+
+    // Sidebar status (count + Esc hint) is desktop-only; touch devices lack Esc.
+    const status = document.querySelector('[data-settings-search-status]');
+    expect(status?.className.split(' ')).toContain('hidden');
+    expect(status?.className.split(' ')).toContain('md:flex');
+
+    // Mobile gets the count inline next to the results title instead.
+    const count = document.querySelector('[data-settings-search-count]');
+    expect(count?.className.split(' ')).toContain('md:hidden');
+    expect(count?.textContent).toMatch(/\d/);
+  });
+
+  it('hides the advanced-mode footer on mobile while searching', async () => {
+    await ensureFeatureTranslations('settings');
+    await renderSettingsModal();
+
+    const searchInput = document.querySelector<HTMLInputElement>('input[aria-label="Search settings"]');
+    await act(async () => {
+      fireEvent.change(searchInput!, { target: { value: 'theme' } });
+    });
+
+    const advancedButton = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Advanced Mode'),
+    );
+    const footerRow = advancedButton?.closest('div.flex-shrink-0');
+    expect(footerRow?.className.split(' ')).toContain('hidden');
+    expect(footerRow?.className.split(' ')).toContain('md:block');
   });
 });

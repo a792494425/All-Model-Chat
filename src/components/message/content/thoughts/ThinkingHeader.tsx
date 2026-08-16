@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react';
 import { GoogleSpinner } from '@/components/icons/GoogleSpinner';
 import { ThinkingTimer } from '@/components/message/ThinkingTimer';
 import { formatDuration } from '@/utils/durationFormat';
+import { interpolate } from '@/i18n/interpolate';
 
 interface ThinkingHeaderProps {
   isLoading: boolean;
@@ -42,10 +43,7 @@ export const ThinkingHeader: React.FC<ThinkingHeaderProps> = ({
           {hasSettledThinking ? (
             <div className="flex items-baseline gap-2 min-w-0">
               <span className="flex items-center gap-1.5 text-base text-[var(--theme-text-secondary)] font-medium truncate opacity-90">
-                {t('thinkingTookTime').replace(
-                  '{duration}',
-                  formatDuration(Math.round(finalThinkingDurationMs / 1000)),
-                )}
+                {interpolate(t('thinkingTookTime'), { duration: formatDuration(Math.round(finalThinkingDurationMs / 1000)), })}
               </span>
               {firstTokenTimeMs !== undefined && (
                 <span className="text-xs text-[var(--theme-text-tertiary)] font-mono opacity-70 whitespace-nowrap">

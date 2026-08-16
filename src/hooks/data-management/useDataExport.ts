@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { type AppSettings, type SavedScenario, type ChatGroup } from '@/types';
 import { logService } from '@/services/logService';
+import { toastError } from '@/stores/toastStore';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { serializeSessionForPortableExport } from '@/utils/chat/session';
 import { triggerDownload } from '@/utils/export/core';
@@ -57,7 +58,7 @@ export const useDataExport = ({ appSettings, savedGroups, savedScenarios, t }: U
       triggerDownload(createManagedObjectUrl(blob), `amc-webui-settings-${date}.json`);
     } catch (error) {
       logService.error('Failed to export settings', { error });
-      alert(t('exportFailedTitle'));
+      toastError(t('exportFailedTitle'));
     }
   }, [appSettings, t]);
 
@@ -83,7 +84,7 @@ export const useDataExport = ({ appSettings, savedGroups, savedScenarios, t }: U
       triggerDownload(createManagedObjectUrl(blob), `amc-webui-history-${date}.json`);
     } catch (error) {
       logService.error('Failed to export history', { error });
-      alert(t('exportFailedTitle'));
+      toastError(t('exportFailedTitle'));
     }
   }, [savedGroups, t]);
 
@@ -97,7 +98,7 @@ export const useDataExport = ({ appSettings, savedGroups, savedScenarios, t }: U
       triggerDownload(createManagedObjectUrl(blob), `amc-webui-scenarios-${date}.json`);
     } catch (error) {
       logService.error('Failed to export scenarios', { error });
-      alert(t('exportFailedTitle'));
+      toastError(t('exportFailedTitle'));
     }
   }, [savedScenarios, t]);
 

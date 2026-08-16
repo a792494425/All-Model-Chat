@@ -1,7 +1,6 @@
 import React from 'react';
-import { X, Loader2, Download } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { Modal } from '@/components/shared/Modal';
-import { useResponsiveValue } from '@/hooks/useDevice';
 import { ExportOptions } from '@/components/message/buttons/export/ExportOptions';
 import { MODAL_CLOSE_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { useI18n } from '@/contexts/I18nContext';
@@ -15,45 +14,39 @@ interface ExportChatModalProps {
 
 export const ExportChatModal: React.FC<ExportChatModalProps> = ({ isOpen, onClose, onExport, exportStatus }) => {
   const { t } = useI18n();
-  const headingIconSize = useResponsiveValue(20, 24);
   const isLoading = exportStatus === 'exporting';
 
   return (
-    <Modal isOpen={isOpen} onClose={isLoading ? () => {} : onClose}>
-      <div
-        className="bg-[var(--theme-bg-primary)] rounded-xl shadow-premium w-full max-w-md sm:max-w-2xl flex flex-col"
-        role="document"
-      >
-        <div className="flex-shrink-0 flex justify-between items-center p-3 sm:p-4 border-b border-[var(--theme-border-primary)]">
-          <h2
-            id="export-chat-title"
-            className="text-lg sm:text-xl font-semibold text-[var(--theme-text-link)] flex items-center"
-          >
-            <Download size={headingIconSize} className="mr-2.5 opacity-80" />
-            {t('exportChatTitle')}
-          </h2>
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            className={`${MODAL_CLOSE_BUTTON_CLASS} disabled:opacity-50`}
-            aria-label={t('exportCloseDialogAria')}
-          >
-            <X size={22} />
-          </button>
-        </div>
-
-        <div className="p-4 sm:p-6">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-40 text-[var(--theme-text-secondary)]">
-              <Loader2 size={36} className="animate-spin text-[var(--theme-text-link)] mb-4" />
-              <p className="text-base font-medium">{t('exportConversationLoading')}</p>
-              <p className="text-sm mt-1">{t('exportConversationWaitHint')}</p>
-            </div>
-          ) : (
-            <ExportOptions onExport={onExport} variant="chat" />
-          )}
-        </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={isLoading ? () => {} : onClose}
+      noPadding
+      ariaLabelledBy="export-chat-title"
+      contentClassName="w-full max-w-sm overflow-hidden rounded-xl border border-[var(--theme-border-primary)] bg-[var(--theme-bg-primary)] shadow-premium"
+    >
+      <div className="flex items-center justify-between border-b border-[var(--theme-border-secondary)]/60 px-3.5 py-2.5">
+        <h2 id="export-chat-title" className="text-sm font-semibold text-[var(--theme-text-primary)]">
+          {t('exportChatTitle')}
+        </h2>
+        <button
+          onClick={onClose}
+          disabled={isLoading}
+          className={`${MODAL_CLOSE_BUTTON_CLASS} disabled:opacity-50`}
+          aria-label={t('exportCloseDialogAria')}
+        >
+          <X size={16} />
+        </button>
       </div>
+
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center px-4 py-8 text-[var(--theme-text-secondary)]">
+          <Loader2 size={20} className="mb-3 animate-spin text-[var(--theme-text-tertiary)]" />
+          <p className="text-sm font-medium">{t('exportConversationLoading')}</p>
+          <p className="mt-1 text-xs text-[var(--theme-text-tertiary)]">{t('exportConversationWaitHint')}</p>
+        </div>
+      ) : (
+        <ExportOptions onExport={onExport} variant="chat" />
+      )}
     </Modal>
   );
 };

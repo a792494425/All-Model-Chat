@@ -308,30 +308,6 @@ export const extractAutoPreviewableBlock = (
   return null;
 };
 
-export const extractPreviewableCodeBlock = (
-  markdownContent: string,
-): { content: string; markupType: PreviewMarkupType } | null => {
-  if (!markdownContent) return null;
-
-  for (const match of markdownContent.matchAll(FENCED_CODE_BLOCK_REGEX)) {
-    const rawLanguage = match[1] ?? '';
-    const rawContent = match[2] ?? '';
-    const content = rawContent.trim();
-    const markupType = getCodeBlockPreviewType(content, rawLanguage);
-
-    if (markupType) {
-      return { content, markupType };
-    }
-  }
-
-  const standaloneDocumentType = getStandaloneDocumentPreviewType(markdownContent);
-  if (standaloneDocumentType) {
-    return { content: markdownContent.trim(), markupType: standaloneDocumentType };
-  }
-
-  return null;
-};
-
 type ArtifactSegment = {
   html: string;
   markupType: PreviewMarkupType;

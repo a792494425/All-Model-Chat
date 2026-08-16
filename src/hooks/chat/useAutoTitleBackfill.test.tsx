@@ -15,12 +15,6 @@ vi.mock('@/services/db/dbService', async () => {
   return createDbServiceMockModule({ getSession: mockDbGetSession });
 });
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/features/auto-titling/autoTitleSession', () => ({
   autoTitleSession: autoTitleSessionMock,
   isSessionAutoTitleEligible: isEligibleMock,

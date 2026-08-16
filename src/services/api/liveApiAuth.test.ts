@@ -15,12 +15,6 @@ vi.mock('@google/genai', () => ({
   }),
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 describe('getLiveApiClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();

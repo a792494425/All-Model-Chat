@@ -7,12 +7,6 @@ import {
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
 import { MediaResolution, type ThinkingLevel } from '@/types';
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/utils/model/modelCapabilities', async () => {
   const actual = await vi.importActual<typeof import('@/utils/model/modelCapabilities')>(
     '@/utils/model/modelCapabilities',

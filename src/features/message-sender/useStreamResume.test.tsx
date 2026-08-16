@@ -66,11 +66,6 @@ vi.mock('./activeGenerationJobs', () => ({
   hasActiveGenerationJobForSession: vi.fn(() => false),
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-  return createLogServiceMockModule();
-});
-
 import { useStreamResume } from './useStreamResume';
 import { createAppSettings, createChatSettings } from '@/test/data/factories';
 import {

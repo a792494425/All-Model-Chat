@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+vi.unmock('./logService');
 import { createDeferred } from '@/test/render/renderer';
 
 const { mockAddApiUsageRecord, mockAddLogs, mockPruneLogs, mockClearLogs, mockClearApiUsage, mockGetLogs } = vi.hoisted(

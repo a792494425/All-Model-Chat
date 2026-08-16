@@ -3,6 +3,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { ChevronDown, Keyboard } from 'lucide-react';
 import { type ModelOption } from '@/types';
 import { getQuickSwitchModelIds, getTabCycleModelIds } from '@/utils/model/modelCatalog';
+import { interpolate } from '@/i18n/interpolate';
 
 interface TabCycleModelsCardProps {
   availableModels: ModelOption[];
@@ -26,7 +27,7 @@ export const TabCycleModelsCard: React.FC<TabCycleModelsCardProps> = ({ availabl
   );
 
   const cycleSummary = useMemo(
-    () => t('shortcutsCycleModelsScopeSummary').replace('{count}', String(effectiveTabCycleIds.length)),
+    () => interpolate(t('shortcutsCycleModelsScopeSummary'), { count: String(effectiveTabCycleIds.length) }),
     [effectiveTabCycleIds.length, t],
   );
 

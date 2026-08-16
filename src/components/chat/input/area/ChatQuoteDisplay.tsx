@@ -2,6 +2,7 @@ import React from 'react';
 import { Quote, Trash2 } from 'lucide-react';
 import { LazyMarkdownRenderer } from '@/components/message/LazyMarkdownRenderer';
 import { useI18n } from '@/contexts/I18nContext';
+import { interpolate } from '@/i18n/interpolate';
 
 interface ChatQuoteDisplayProps {
   quotes: string[];
@@ -28,7 +29,7 @@ const ChatQuoteDisplayComponent: React.FC<ChatQuoteDisplayProps> = ({ quotes, on
           <div className="flex-grow min-w-0 pr-6">
             {quotes.length > 1 && (
               <div className="text-xs font-bold text-[var(--theme-text-tertiary)] uppercase tracking-wider mb-1">
-                {t('quoteNumberLabel').replace('{number}', String(index + 1))}
+                {interpolate(t('quoteNumberLabel'), { number: String(index + 1) })}
               </div>
             )}
             <div className="max-h-[160px] overflow-y-auto custom-scrollbar">

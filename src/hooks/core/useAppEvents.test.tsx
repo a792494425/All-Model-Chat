@@ -26,12 +26,6 @@ vi.mock('@/hooks/ui/useFullscreen', () => ({
   }),
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/pwa/install', () => ({
   getPwaInstallState: vi.fn(() => ({ state: 'installed' })),
   getManualInstallMessage: vi.fn(() => 'manual install'),

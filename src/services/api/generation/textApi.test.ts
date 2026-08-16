@@ -13,12 +13,6 @@ vi.mock('@/services/api/apiClient', async () => {
   };
 });
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 import { generateSuggestionsApi, generateTitleApi, translateTextApi } from './textApi';
 
 describe('textApi prompt construction', () => {

@@ -4,6 +4,7 @@ import { type UploadedFile } from '@/types';
 import { MOBILE_BREAKPOINT_PX } from '@/constants/layout';
 import { ensurePdfWorkerConfigured } from '@/utils/pdfRuntime';
 import { useI18n } from '@/contexts/I18nContext';
+import { formatI18nErrorMessage } from '@/i18n/interpolate';
 
 const PDF_TABLET_BREAKPOINT_PX = 1024;
 const INITIAL_MOBILE_SCALE = 0.6;
@@ -86,7 +87,7 @@ export const usePdfViewer = (_file: UploadedFile) => {
 
   const onDocumentLoadError = (error: Error) => {
     setIsLoading(false);
-    setError(t('pdfLoadFailedWithMessage').replace('{message}', error.message));
+    setError(formatI18nErrorMessage(t, 'pdfLoadFailedWithMessage', error.message));
     logService.error('PDF Load Error:', error);
   };
 

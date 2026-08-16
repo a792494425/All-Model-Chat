@@ -10,12 +10,6 @@ import {
 } from './apiKeySelection';
 import { logService } from '@/services/logService';
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 describe('getKeyForRequest', () => {
   beforeEach(() => {
     vi.clearAllMocks();

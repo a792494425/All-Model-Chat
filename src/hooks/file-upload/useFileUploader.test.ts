@@ -27,12 +27,6 @@ vi.mock('@/utils/chat/ids', () => ({
   generateUniqueId: vi.fn(() => 'file-1'),
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 describe('useFileUploader — third-party sessions never hit the Gemini Files API', () => {
   beforeEach(() => {
     vi.clearAllMocks();

@@ -144,7 +144,7 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-3 pb-4">
+      <div className="space-y-3 pb-4" data-settings-item="api-config">
         <ApiConfigToggle
           useCustomApiConfig={useCustomApiConfig}
           setUseCustomApiConfig={handleUseCustomApiConfigChange}

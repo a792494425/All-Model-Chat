@@ -1,10 +1,23 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, MousePointer2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { SUGGESTIONS_KEYS } from '@/constants/welcomeSuggestions';
 import { SUGGESTION_CHIP_ACTIVE_CLASS, SUGGESTION_CHIP_CLASS } from '@/constants/designTokens';
 import { SuggestionIcon } from './SuggestionIcon';
 import { type translations } from '@/i18n/translations';
+
+/** Scroll-arrow chrome shared by both directions. */
+const SUGGESTION_SCROLL_ARROW_CLASSES =
+  'absolute top-1/2 -translate-y-[calc(50%+4px)] z-10 p-1.5 rounded-full bg-[var(--theme-bg-primary)]/95 border border-[var(--theme-border-secondary)] shadow-md text-[var(--theme-text-primary)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)] focus-visible:border-[var(--theme-border-focus)]';
+
+/** Hidden-by-default state that stays reachable via keyboard focus. */
+const SUGGESTION_SCROLL_ARROW_HIDDEN_CLASSES =
+  'opacity-0 pointer-events-none focus-visible:opacity-100 focus-visible:pointer-events-auto';
+
+/** Trailing state dot — separates toggle chips (BBox / Guide) from one-shot actions. */
+const SuggestionToggleDot = () => (
+  <span aria-hidden="true" className="h-1 w-1 flex-shrink-0 rounded-full bg-current opacity-50" />
+);
 
 interface ChatSuggestionsProps {
   show: boolean;
@@ -31,6 +44,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
+  const [isRowScrollable, setIsRowScrollable] = useState(false);
   const [isSuggestionsHovered, setIsSuggestionsHovered] = useState(false);
 
   const checkScroll = useCallback(() => {
@@ -38,6 +52,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
       const { scrollLeft, scrollWidth, clientWidth } = suggestionsRef.current;
       setShowLeftArrow(scrollLeft > 5); // Small threshold
       setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5);
+      setIsRowScrollable(scrollWidth - clientWidth > 5);
     }
   }, []);
 
@@ -68,7 +83,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
       <div
         ref={suggestionsRef}
         onScroll={checkScroll}
-        className="flex gap-2 overflow-x-auto pb-1 px-1 no-scrollbar fade-mask-x scroll-smooth"
+        className={`flex gap-2 overflow-x-auto pb-1 px-1 no-scrollbar scroll-smooth ${isRowScrollable ? 'fade-mask-x' : ''}`}
       >
         {SUGGESTIONS_KEYS.map((suggestion, index) => (
           <React.Fragment key={index}>
@@ -101,6 +116,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
                   >
                     <SuggestionIcon iconName="Scan" />
                     <span>{t('bboxButtonShort')}</span>
+                    <SuggestionToggleDot />
                   </button>
                 )}
                 {onToggleGuide && (
@@ -112,8 +128,9 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
                     aria-pressed={!!isGuideModeActive}
                     title={t('guideButtonTitle')}
                   >
-                    <MousePointer2 size={13} />
+                    <SuggestionIcon iconName="MousePointer2" />
                     <span>{t('guideButtonShort')}</span>
+                    <SuggestionToggleDot />
                   </button>
                 )}
               </>
@@ -126,7 +143,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
         <button
           type="button"
           onClick={() => handleScroll('left')}
-          className={`absolute left-0 top-1/2 -translate-y-[calc(50%+4px)] z-10 p-1.5 rounded-full bg-[var(--theme-bg-primary)]/95 border border-[var(--theme-border-secondary)] shadow-md text-[var(--theme-text-primary)] transition-all duration-200 ${isSuggestionsHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          className={`${SUGGESTION_SCROLL_ARROW_CLASSES} left-0 ${isSuggestionsHovered ? 'opacity-100' : SUGGESTION_SCROLL_ARROW_HIDDEN_CLASSES}`}
           aria-label={t('suggestionsScrollLeft')}
         >
           <ChevronLeft size={16} strokeWidth={2} />
@@ -136,7 +153,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
         <button
           type="button"
           onClick={() => handleScroll('right')}
-          className={`absolute right-0 top-1/2 -translate-y-[calc(50%+4px)] z-10 p-1.5 rounded-full bg-[var(--theme-bg-primary)]/95 border border-[var(--theme-border-secondary)] shadow-md text-[var(--theme-text-primary)] transition-all duration-200 ${isSuggestionsHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          className={`${SUGGESTION_SCROLL_ARROW_CLASSES} right-0 ${isSuggestionsHovered ? 'opacity-100' : SUGGESTION_SCROLL_ARROW_HIDDEN_CLASSES}`}
           aria-label={t('suggestionsScrollRight')}
         >
           <ChevronRight size={16} strokeWidth={2} />

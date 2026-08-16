@@ -175,12 +175,6 @@ vi.mock('@/utils/themeDom', () => ({
   applyThemeToDocument: vi.fn(),
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 describe('useApp', () => {
   beforeEach(() => {
     vi.clearAllMocks();

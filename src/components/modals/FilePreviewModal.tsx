@@ -15,6 +15,8 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { isShortcutPressed } from '@/utils/keyboardShortcuts';
 import { getFileKindFlags, isMarkdownFile, isTextFile } from '@/utils/file/fileTypeClassification';
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';
+import { interpolate } from '@/i18n/interpolate';
+import { isEditableElement } from '@/utils/chat-input/focus';
 
 const LazyPdfViewer = lazyNamedComponent(() => import('@/components/shared/file-preview/PdfViewerEntry'), 'PdfViewer');
 
@@ -94,11 +96,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
         const selection = window.getSelection();
         const hasActiveSelection = !!selection && !selection.isCollapsed && selection.toString().length > 0;
         const activeElement = document.activeElement as HTMLElement | null;
-        const isEditingFieldFocused =
-          !!activeElement &&
-          (activeElement.tagName === 'INPUT' ||
-            activeElement.tagName === 'TEXTAREA' ||
-            activeElement.isContentEditable);
+        const isEditingFieldFocused = !!activeElement && isEditableElement(activeElement);
 
         if (hasActiveSelection || isEditingFieldFocused) {
           return;
@@ -200,7 +198,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
     <Modal isOpen={true} onClose={onClose} noPadding backdropClassName="bg-black/95" contentClassName="w-full h-full">
       <div className="w-full h-full relative flex flex-col">
         <h2 id="file-preview-modal-title" className="sr-only">
-          {t('imageZoomTitle').replace('{filename}', file.name)}
+          {interpolate(t('imageZoomTitle'), { filename: file.name })}
         </h2>
 
         <FilePreviewHeader

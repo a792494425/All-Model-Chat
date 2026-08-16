@@ -20,13 +20,16 @@ const RADIUS_CLASS = {
 /** Composer outer shell (non-fullscreen). */
 export const COMPOSER_SHELL_RADIUS_CLASS = RADIUS_CLASS.pill;
 
+/** Shared geometry + focus treatment for suggestion chips. Mobile keeps a
+ *  taller body (py-2.5) than desktop so touch targets stay comfortable. */
+const SUGGESTION_CHIP_BASE_CLASS =
+  'flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-medium whitespace-nowrap transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)]';
+
 /** Default / hover suggestion chip (soft, no elevation). */
-export const SUGGESTION_CHIP_CLASS =
-  'flex items-center gap-[0.3rem] sm:gap-[0.4rem] px-[0.6rem] py-[0.4rem] sm:px-[0.8rem] sm:py-[0.5rem] rounded-lg border border-[var(--theme-border-secondary)]/70 bg-[var(--theme-bg-tertiary)]/35 text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] hover:border-[var(--theme-border-secondary)] text-xs sm:text-sm font-medium whitespace-nowrap transition-colors';
+export const SUGGESTION_CHIP_CLASS = `${SUGGESTION_CHIP_BASE_CLASS} border-[var(--theme-border-secondary)]/70 bg-[var(--theme-bg-tertiary)]/35 text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] hover:border-[var(--theme-border-focus)]`;
 
 /** Active mode chip (BBox / Guide) — stronger than hover. */
-export const SUGGESTION_CHIP_ACTIVE_CLASS =
-  'flex items-center gap-[0.3rem] sm:gap-[0.4rem] px-[0.6rem] py-[0.4rem] sm:px-[0.8rem] sm:py-[0.5rem] rounded-lg border border-[var(--theme-bg-accent)] bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] hover:bg-[var(--theme-bg-accent-hover)] hover:border-[var(--theme-bg-accent-hover)] text-xs sm:text-sm font-medium whitespace-nowrap transition-colors shadow-sm';
+export const SUGGESTION_CHIP_ACTIVE_CLASS = `${SUGGESTION_CHIP_BASE_CLASS} border-[var(--theme-bg-accent)] bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] hover:bg-[var(--theme-bg-accent-hover)] hover:border-[var(--theme-bg-accent-hover)] shadow-sm`;
 
 /** Intra-cluster gap for composer icon groups. */
 export const COMPOSER_CLUSTER_GAP_CLASS = 'gap-0.5 sm:gap-1';
@@ -70,6 +73,10 @@ export const SETTINGS_SECTION_LABEL_CLASS =
 /** Numeric value badge (font size, etc.) — neutral, not link-colored. */
 export const SETTINGS_VALUE_BADGE_CLASS =
   'rounded-md bg-[var(--theme-bg-tertiary)] px-2 py-0.5 font-mono text-sm tabular-nums text-[var(--theme-text-primary)]';
+
+/** Keyboard key hint (shortcut affordance, e.g. '/' or 'Esc'). */
+export const SETTINGS_KBD_KEY_CLASS =
+  'rounded border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-tertiary)] px-1.5 py-px font-mono text-[10px] leading-4 text-[var(--theme-text-secondary)]';
 
 /** Segmented control track (theme, language, scope). */
 export const SETTINGS_SEGMENTED_TRACK_CLASS =

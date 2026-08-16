@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ensureFeatureTranslations } from '@/i18n/featureTranslations';
 import { getTranslator } from '@/i18n/coreTranslations';
 import { SETTINGS_TAB_LABEL_KEYS } from '@/constants/settingsTabs';
+import type { SettingsSearchEntry } from '@/constants/settingsSearchCatalog';
 import type { SettingsTab } from '@/stores/settingsUiStore';
 import {
   searchSettingsCatalog,
@@ -62,6 +63,49 @@ describe('searchSettingsCatalog', () => {
       expect(result.tabLabel).toBe(t(SETTINGS_TAB_LABEL_KEYS[result.tab]));
       expect(result.tabLabel.length).toBeGreaterThan(0);
     }
+  });
+
+  it('matches multi-word queries with terms in any order', async () => {
+    await ensureFeatureTranslations('settings');
+    const t = getTranslator('en');
+
+    // "Clear History" label — the reversed word order must still match.
+    const reversed = searchSettingsCatalog('history clear', t);
+    expect(reversed.some((result) => result.id === 'data-clear-history')).toBe(true);
+  });
+
+  it('matches multi-word queries with terms split across label and group', async () => {
+    await ensureFeatureTranslations('settings');
+    const t = getTranslator('en');
+
+    // "streaming" lives in the label, "behavior" in the group heading.
+    const results = searchSettingsCatalog('streaming behavior', t);
+    expect(results.some((result) => result.id === 'interface-streaming')).toBe(true);
+  });
+
+  it('requires every term of a multi-word query to match', async () => {
+    await ensureFeatureTranslations('settings');
+    const t = getTranslator('en');
+
+    const results = searchSettingsCatalog('streaming nonexistent-term', t);
+    expect(results.some((result) => result.id === 'interface-streaming')).toBe(false);
+  });
+
+  it('ranks label matches before description-only matches', () => {
+    const texts: Record<string, string> = {
+      'label-primary': 'Notifications',
+      'label-secondary': 'Sounds',
+      'desc-secondary': 'notification feedback sounds',
+    };
+    const t = (key: string) => texts[key] ?? key;
+    const catalog: SettingsSearchEntry[] = [
+      { id: 'entry-secondary', tab: 'interface', labelKey: 'label-secondary', descriptionKey: 'desc-secondary' },
+      { id: 'entry-primary', tab: 'interface', labelKey: 'label-primary' },
+    ];
+
+    const results = searchSettingsCatalog('notification', t, catalog);
+
+    expect(results.map((result) => result.id)).toEqual(['entry-primary', 'entry-secondary']);
   });
 });
 

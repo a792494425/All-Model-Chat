@@ -135,6 +135,62 @@ describe('SettingsSearchResults', () => {
     expect(selected?.textContent).toContain('m-7');
   });
 
+  it('exposes listbox/option semantics with ids for aria-activedescendant', () => {
+    act(() => {
+      renderer.root.render(
+        <SettingsSearchResults
+          results={[makeResult('interface-theme'), makeResult('interface-font-size')]}
+          onSelect={vi.fn()}
+          selectedIndex={1}
+          query="theme"
+        />,
+      );
+    });
+
+    const listbox = renderer.container.querySelector('[role="listbox"]');
+    expect(listbox).not.toBeNull();
+
+    const options = renderer.container.querySelectorAll('[role="option"]');
+    expect(options[0].id).toBe('settings-search-option-0');
+    expect(options[0].getAttribute('aria-selected')).toBe('false');
+    expect(options[1].id).toBe('settings-search-option-1');
+    expect(options[1].getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('marks each grouped section as its own labelled listbox', () => {
+    const results = Array.from({ length: 10 }, (_, i) =>
+      makeResult(`m-${i}`, { tab: i < 5 ? 'models' : 'api', groupLabel: undefined }),
+    );
+
+    act(() => {
+      renderer.root.render(<SettingsSearchResults results={results} onSelect={vi.fn()} selectedIndex={0} query="m" />);
+    });
+
+    const listboxes = renderer.container.querySelectorAll('[role="listbox"]');
+    expect(listboxes.length).toBe(2);
+    for (const listbox of Array.from(listboxes)) {
+      expect(listbox.getAttribute('aria-labelledby')).toBeTruthy();
+    }
+  });
+
+  it('selects a result on click', () => {
+    const onSelect = vi.fn();
+
+    act(() => {
+      renderer.root.render(
+        <SettingsSearchResults results={[makeResult('interface-theme')]} onSelect={onSelect} selectedIndex={0} query="theme" />,
+      );
+    });
+
+    act(() => {
+      renderer.container
+        .querySelector('[role="option"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'interface-theme' }));
+  });
+
   it('scrolls the selected item into view when the selection changes', () => {
     const results = Array.from({ length: 3 }, (_, i) => makeResult(`m-${i}`));
 

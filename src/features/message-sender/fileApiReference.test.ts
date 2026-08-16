@@ -11,12 +11,6 @@ vi.mock('@/services/api/fileApi', () => ({
   uploadFileApi: mockUploadFileApi,
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 import {
   ensureFilesApiReferences,
   ensureHistoryFilesApiReferences,

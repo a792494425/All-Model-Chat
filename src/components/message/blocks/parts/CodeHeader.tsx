@@ -3,6 +3,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { Check, Copy, Maximize2, ChevronDown, ChevronUp, Download, Sidebar, Play, Loader2 } from 'lucide-react';
 import { MESSAGE_BLOCK_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { LanguageIcon } from '@/components/message/code/LanguageIcon';
+import { interpolate } from '@/i18n/interpolate';
 
 interface CodeHeaderProps {
   language: string;
@@ -68,7 +69,7 @@ export const CodeHeader: React.FC<CodeHeaderProps> = ({
         )}
         <button
           className={headerButtonClass}
-          title={t('codeDownloadLanguage').replace('{language}', language.toUpperCase())}
+          title={interpolate(t('codeDownloadLanguage'), { language: language.toUpperCase() })}
           onClick={onDownload}
         >
           <Download size={16} strokeWidth={2} />

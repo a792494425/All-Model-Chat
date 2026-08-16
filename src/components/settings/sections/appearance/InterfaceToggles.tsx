@@ -1,5 +1,6 @@
 import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
+import { toastError } from '@/stores/toastStore';
 import { ToggleItem } from '@/components/shared/ToggleItem';
 import { type AppSettings } from '@/types';
 import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
@@ -37,12 +38,12 @@ export const InterfaceToggles: React.FC<InterfaceTogglesProps> = ({ settings, on
   const handleNotificationToggle = async (enabled: boolean) => {
     if (enabled) {
       if (!('Notification' in window)) {
-        alert(t('settingsNotificationsUnsupported'));
+        toastError(t('settingsNotificationsUnsupported'));
         return;
       }
 
       if (Notification.permission === 'denied') {
-        alert(t('settingsNotificationsBlocked'));
+        toastError(t('settingsNotificationsBlocked'));
         return;
       }
 

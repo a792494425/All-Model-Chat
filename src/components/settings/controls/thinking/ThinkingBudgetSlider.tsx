@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calculator } from 'lucide-react';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
+import { SETTINGS_VALUE_BADGE_CLASS } from '@/constants/designTokens';
 import { useI18n } from '@/contexts/I18nContext';
 
 interface ThinkingBudgetSliderProps {
@@ -24,9 +25,7 @@ export const ThinkingBudgetSlider: React.FC<ThinkingBudgetSliderProps> = ({
         <label className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)] flex items-center gap-1.5">
           <Calculator size={12} /> {t('settingsThinkingBudget')}
         </label>
-        <span className="text-xs font-mono text-[var(--theme-text-link)] bg-[var(--theme-bg-tertiary)] px-2 py-0.5 rounded border border-[var(--theme-border-secondary)]">
-          {parseInt(value || '0').toLocaleString()} tokens
-        </span>
+        <span className={SETTINGS_VALUE_BADGE_CLASS}>{parseInt(value || '0').toLocaleString()} tokens</span>
       </div>
 
       <div className="flex items-center gap-4">

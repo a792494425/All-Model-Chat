@@ -7,8 +7,8 @@ const dataSettings = {
   settingsDangerZone: { en: 'Destructive Actions', zh: '高风险操作' },
   settingsReset: { en: 'Reset Settings Only', zh: '仅重置设置' },
   settingsResetConfirm: {
-    en: 'Are you sure you want to reset all settings to their default values? This does not affect chat history. Your current changes will be lost.',
-    zh: '您确定要将所有设置重置为默认值吗？这不会影响您的聊天记录。您当前的更改将丢失。',
+    en: 'Are you sure you want to reset all settings to their default values? This does not affect chat history, API keys, third-party API providers, or MCP servers. Your current changes will be lost.',
+    zh: '您确定要将所有设置重置为默认值吗？这不会影响您的聊天记录、API 密钥、第三方 API 提供商配置和 MCP 服务器。您当前的更改将丢失。',
   },
   settingsClearHistory: { en: 'Delete Chats and Groups', zh: '删除对话与分组' },
   settingsClearHistoryConfirm: {

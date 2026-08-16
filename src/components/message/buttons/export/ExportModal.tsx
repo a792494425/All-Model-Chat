@@ -1,10 +1,11 @@
 import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { Download, X, Loader2 } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { Modal } from '@/components/shared/Modal';
 import { ExportOptions } from './ExportOptions';
 import { type ExportType } from './useMessageExport';
-import { useResponsiveValue } from '@/hooks/useDevice';
+import { MODAL_CLOSE_BUTTON_CLASS } from '@/constants/buttonClasses';
+import { interpolate } from '@/i18n/interpolate';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -15,43 +16,40 @@ interface ExportModalProps {
 
 export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onExport, exportingType }) => {
   const { t } = useI18n();
-  const headingIconSize = useResponsiveValue(20, 24);
 
   return (
-    <Modal isOpen={isOpen} onClose={() => !exportingType && onClose()}>
-      <div
-        className="bg-[var(--theme-bg-primary)] rounded-xl shadow-premium w-full max-w-md sm:max-w-2xl flex flex-col"
-        role="document"
-      >
-        <div className="flex-shrink-0 flex justify-between items-center p-3 sm:p-4 border-b border-[var(--theme-border-primary)]">
-          <h2 className="text-lg sm:text-xl font-semibold text-[var(--theme-text-link)] flex items-center">
-            <Download size={headingIconSize} className="mr-2.5 opacity-80" />
-            {t('exportMessageDialogTitle')}
-          </h2>
-          <button
-            onClick={onClose}
-            disabled={!!exportingType}
-            className="text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)] transition-colors p-1 rounded-full disabled:opacity-50"
-            aria-label={t('exportCloseDialogAria')}
-          >
-            <X size={22} />
-          </button>
-        </div>
-
-        <div className="p-4 sm:p-6">
-          {exportingType ? (
-            <div className="flex flex-col items-center justify-center h-40 text-[var(--theme-text-secondary)]">
-              <Loader2 size={36} className="animate-spin text-[var(--theme-text-link)] mb-4" />
-              <p className="text-base font-medium">
-                {t('exportingTitle').replace('{type}', exportingType.toUpperCase())}
-              </p>
-              <p className="text-sm mt-1">{t('exportProcessingMessageContent')}</p>
-            </div>
-          ) : (
-            <ExportOptions onExport={onExport} />
-          )}
-        </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={() => !exportingType && onClose()}
+      noPadding
+      ariaLabelledBy="export-message-title"
+      contentClassName="w-full max-w-sm overflow-hidden rounded-xl border border-[var(--theme-border-primary)] bg-[var(--theme-bg-primary)] shadow-premium"
+    >
+      <div className="flex items-center justify-between border-b border-[var(--theme-border-secondary)]/60 px-3.5 py-2.5">
+        <h2 id="export-message-title" className="text-sm font-semibold text-[var(--theme-text-primary)]">
+          {t('exportMessageDialogTitle')}
+        </h2>
+        <button
+          onClick={onClose}
+          disabled={!!exportingType}
+          className={`${MODAL_CLOSE_BUTTON_CLASS} disabled:opacity-50`}
+          aria-label={t('exportCloseDialogAria')}
+        >
+          <X size={16} />
+        </button>
       </div>
+
+      {exportingType ? (
+        <div className="flex flex-col items-center justify-center px-4 py-8 text-[var(--theme-text-secondary)]">
+          <Loader2 size={20} className="mb-3 animate-spin text-[var(--theme-text-tertiary)]" />
+          <p className="text-sm font-medium">
+            {interpolate(t('exportingTitle'), { type: exportingType.toUpperCase() })}
+          </p>
+          <p className="mt-1 text-xs text-[var(--theme-text-tertiary)]">{t('exportProcessingMessageContent')}</p>
+        </div>
+      ) : (
+        <ExportOptions onExport={onExport} />
+      )}
     </Modal>
   );
 };

@@ -3,13 +3,13 @@ export const scenariosTranslations = {
   scenariosTitle: { en: 'Preset Scenarios', zh: '预设场景' },
   scenariosTitleCreate: { en: 'Create New Scenario', zh: '创建新场景' },
   scenariosCloseAria: { en: 'Close scenarios manager', zh: '关闭场景管理器' },
-  scenariosFeedbackSaved: { en: 'Scenario saved!', zh: '场景已保存！' },
+  scenariosFeedbackSaved: { en: 'Scenario saved', zh: '场景已保存' },
   scenariosFeedbackEmpty: { en: 'Scenario is empty. Add some messages first.', zh: '场景为空。请先添加一些消息。' },
-  scenariosFeedbackLoaded: { en: 'Current scenario loaded into chat!', zh: '当前场景已加载到聊天中！' },
-  scenariosFeedbackDeleted: { en: 'Scenario deleted.', zh: '场景已删除。' },
+  scenariosFeedbackLoaded: { en: 'Opened as a new chat', zh: '已用该场景新建会话' },
+  scenariosFeedbackDeleted: { en: 'Scenario deleted', zh: '场景已删除' },
   scenariosFeedbackEmptyExport: { en: 'Scenario is empty. Nothing to export.', zh: '场景为空，无可导出内容。' },
-  scenariosFeedbackExported: { en: 'Scenario exported!', zh: '场景已导出！' },
-  scenariosFeedbackImported: { en: 'Scenario imported successfully!', zh: '场景导入成功！' },
+  scenariosFeedbackExported: { en: 'Scenario exported', zh: '场景已导出' },
+  scenariosFeedbackImported: { en: 'Scenario imported', zh: '场景导入成功' },
   scenariosFeedbackImportFailed: {
     en: 'Failed to import scenario. Invalid file format or content.',
     zh: '场景导入失败。文件格式或内容无效。',
@@ -32,17 +32,16 @@ export const scenariosTranslations = {
   scenariosEditorCancelButton: { en: 'Cancel', zh: '取消' },
   scenariosEditorUpdateButton: { en: 'Update Message', zh: '更新消息' },
   scenariosEditTitle: { en: 'Edit message', zh: '编辑消息' },
+  scenariosEditScenarioTitle: { en: 'Edit scenario', zh: '编辑场景' },
   scenariosDeleteTitle: { en: 'Delete message', zh: '删除消息' },
+  scenariosDeleteScenarioTitle: { en: 'Delete scenario', zh: '删除场景' },
   scenariosDuplicateTitle: { en: 'Duplicate scenario', zh: '创建副本' },
   scenariosExportSingleTitle: { en: 'Export scenario', zh: '导出场景' },
   scenariosViewTitle: { en: 'View scenario', zh: '查看场景' },
   scenariosSystemPresetReadonlyBadge: { en: 'System Preset (Read Only)', zh: '系统预设（只读）' },
-  scenariosEditorBadge: { en: 'Editor', zh: '编辑器' },
 
   // Scenario editor actions
-  scenariosCreateButton: { en: 'Add', zh: '添加' },
-  scenariosSaveAll: { en: 'Save All', zh: '全部保存' },
-  scenariosSaveAndCloseTitle: { en: 'Save all scenarios and close', zh: '保存全部场景并关闭' },
+  scenariosCreateButton: { en: 'New', zh: '新建' },
   scenariosMoreActions: { en: 'More actions', zh: '更多操作' },
   scenariosEditorSaveScenario: { en: 'Save Scenario', zh: '保存场景' },
   scenariosEditorSaveScenarioTitle: { en: 'Save this scenario', zh: '保存该场景' },
@@ -60,6 +59,8 @@ export const scenariosTranslations = {
 
   // Tabs
   scenariosTabMine: { en: 'My Scenarios', zh: '我的场景' },
+  scenariosTabBuiltin: { en: 'Built-in', zh: '内置' },
+  scenariosSearchPlaceholder: { en: 'Search scenarios...', zh: '搜索场景…' },
   scenariosEmptySearch: { en: 'No scenarios found.', zh: '未找到场景。' },
   scenariosClearSearch: { en: 'Clear search query', zh: '清除搜索内容' },
 
@@ -73,7 +74,6 @@ export const scenariosTranslations = {
   scenariosCategoryAria: { en: 'Filter by category', zh: '按分类筛选' },
 
   // Card actions
-  scenariosUseButton: { en: 'Use', zh: '使用' },
   scenariosUseButtonTitle: { en: 'Load this scenario into chat', zh: '加载该场景到聊天' },
   scenariosActionsAria: { en: 'Scenario actions', zh: '场景操作' },
   scenariosPreviewFallback: { en: 'No description', zh: '暂无描述' },

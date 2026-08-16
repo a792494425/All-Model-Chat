@@ -8,6 +8,7 @@ import { formatFileSize } from '@/utils/file/fileSize';
 import { getFileCardMeta } from '@/components/shared/file-preview/fileCardMeta';
 import { useI18n } from '@/contexts/I18nContext';
 import { FileThumbnail } from '@/components/chat/input/files/FileThumbnail';
+import { interpolate } from '@/i18n/interpolate';
 
 interface FileDisplayProps {
   file: UploadedFile;
@@ -128,7 +129,7 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
                 }}
                 title={
                   file.mediaResolution
-                    ? t('filePreviewConfigureResolution').replace('{resolution}', file.mediaResolution)
+                    ? interpolate(t('filePreviewConfigureResolution'), { resolution: file.mediaResolution })
                     : t('selectedFileConfigureFile')
                 }
                 className={`p-1.5 rounded-full bg-black/75 hover:bg-black/90 transition-colors ${getResolutionColor(file.mediaResolution)}`}
@@ -138,7 +139,7 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
             ) : file.mediaResolution ? (
               <div
                 className={`p-1.5 rounded-full bg-black/75 ${getResolutionColor(file.mediaResolution)}`}
-                title={t('filePreviewResolutionLabel').replace('{resolution}', file.mediaResolution)}
+                title={interpolate(t('filePreviewResolutionLabel'), { resolution: file.mediaResolution })}
               >
                 <SlidersHorizontal size={14} strokeWidth={2} />
               </div>
@@ -204,7 +205,7 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
           {file.mediaResolution && (
             <span
               className="flex items-center gap-0.5 text-[var(--theme-text-link)] ml-1 flex-shrink-0"
-              title={t('filePreviewResolutionLabel').replace('{resolution}', file.mediaResolution)}
+              title={interpolate(t('filePreviewResolutionLabel'), { resolution: file.mediaResolution })}
             >
               <SlidersHorizontal size={10} />
             </span>

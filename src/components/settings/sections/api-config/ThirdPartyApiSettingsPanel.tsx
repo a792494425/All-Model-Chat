@@ -146,8 +146,8 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
   };
 
   return (
-    <div className="space-y-3">
-      <div className="space-y-1.5">
+    <div className="space-y-3" data-settings-item="api-provider">
+      <div className="space-y-1.5" data-settings-item="api-third-party">
         {THIRD_PARTY_PROVIDER_IDS.map((providerId) => {
           const config = thirdPartyApi?.providers?.[providerId];
           const isEnabled = config?.enabled === true;

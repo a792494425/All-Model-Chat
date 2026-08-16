@@ -9,11 +9,6 @@ const { mockGetSession, mockGetAllSessionMetadata, mockGetAllGroups, mockRehydra
   mockRehydrateSessionFiles: vi.fn((session: { messages?: unknown[]; [key: string]: unknown }) => session),
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/services/db/dbService', async () => {
   const { createDbServiceMockModule } = await import('@/test/doubles/moduleMocks');
   return createDbServiceMockModule({

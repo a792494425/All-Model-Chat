@@ -36,12 +36,6 @@ vi.mock('@/services/api/anthropicApi', () => ({
   sendAnthropicMessageNonStream: sendAnthropicMessageNonStreamMock,
 }));
 
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 describe('ApiConfigSection', () => {
   const renderer = setupTestRenderer();
   setupStoreStateReset();

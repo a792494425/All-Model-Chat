@@ -6,6 +6,7 @@ import { MESSAGE_BLOCK_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { DiagramWrapper } from './parts/DiagramWrapper';
 import { useI18n } from '@/contexts/I18nContext';
 import { getVizInstance, renderDotToSvgCached } from '@/features/graphviz/vizRuntime';
+import { interpolate } from '@/i18n/interpolate';
 
 const GRAPHVIZ_EXPORT_SCALE = 5;
 
@@ -81,7 +82,11 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
 
     setIsRendering(true);
 
-    const result = await renderDotToSvgCached(code, { themeId, layout: effectiveLayout });
+    const result = await renderDotToSvgCached(code, {
+      themeId,
+      layout: effectiveLayout,
+      preserveAuthorColors: true,
+    });
 
     if (result.ok) {
       setSvgContent(result.svg);
@@ -143,7 +148,7 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
       onClick={handleToggleLayout}
       disabled={isRendering}
       className={MESSAGE_BLOCK_BUTTON_CLASS}
-      title={t('diagramToggleLayout').replace('{layout}', effectiveLayout)}
+      title={interpolate(t('diagramToggleLayout'), { layout: effectiveLayout })}
     >
       {isRendering ? <Loader2 size={14} className="animate-spin" /> : <Repeat size={14} />}
     </button>

@@ -4,6 +4,7 @@ import { DOT_MAX_CHARS, DOT_MAX_EDGES } from './graphvizLimits';
 import {
   applyThemeAndLayout,
   buildThemeDefaults,
+  flattenGraphvizFill,
   getGraphvizCacheKey,
   normalizeGraphvizColor,
   renderDotToSvg,
@@ -69,13 +70,22 @@ describe('getGraphvizCacheKey', () => {
   });
 
   it('prefixes the key with the render style version', () => {
-    expect(getGraphvizCacheKey('digraph { A -> B }')).toMatch(/^v4:/);
+    expect(getGraphvizCacheKey('digraph { A -> B }')).toMatch(/^v5:/);
   });
 
   it('differs when layout differs for the same dot', () => {
     const lr = getGraphvizCacheKey('digraph { rankdir=TB; A -> B }', { layout: 'LR' });
     const tb = getGraphvizCacheKey('digraph { rankdir=TB; A -> B }', { layout: 'TB' });
     expect(lr).not.toBe(tb);
+  });
+
+  it('differs when author-color preservation differs for the same dot', () => {
+    const scrubbed = getGraphvizCacheKey('digraph { A [fillcolor="#000"] }', { themeId: 'pearl' });
+    const preserved = getGraphvizCacheKey('digraph { A [fillcolor="#000"] }', {
+      themeId: 'pearl',
+      preserveAuthorColors: true,
+    });
+    expect(scrubbed).not.toBe(preserved);
   });
 });
 
@@ -117,6 +127,18 @@ describe('normalizeGraphvizColor', () => {
   });
 });
 
+describe('flattenGraphvizFill', () => {
+  it('composites translucent surfaces onto an opaque base with a minimum alpha', () => {
+    // pearl bgSuccess is 10% green; Graphviz nodes need a stronger opaque mint.
+    expect(flattenGraphvizFill('rgba(22, 163, 74, 0.1)', '#ffffff')).toBe('#ccebd7');
+  });
+
+  it('leaves already-opaque hex unchanged', () => {
+    expect(flattenGraphvizFill('#ffffff', '#000000')).toBe('#ffffff');
+    expect(flattenGraphvizFill('#141418', '#000000')).toBe('#141418');
+  });
+});
+
 describe('buildThemeDefaults', () => {
   it('injects rounded filled card defaults with breathing spacing', () => {
     const defaults = buildThemeDefaults(PEARL);
@@ -124,9 +146,11 @@ describe('buildThemeDefaults', () => {
     expect(defaults).toContain('style="rounded,filled"');
     expect(defaults).toContain('fillcolor="#ffffff"'); // pearl bgInput
     expect(defaults).toContain('color="#d5d5dc"'); // pearl borderSecondary
-    expect(defaults).toContain('pad="0.15"');
-    expect(defaults).toContain('nodesep="0.35"');
-    expect(defaults).toContain('ranksep="0.55"');
+    expect(defaults).toContain('pad="0.24"');
+    expect(defaults).toContain('nodesep="0.45"');
+    expect(defaults).toContain('ranksep="0.7"');
+    expect(defaults).toContain('splines="true"');
+    expect(defaults).toContain('compound="true"');
     expect(defaults).toContain('arrowsize="0.8"');
     expect(defaults).toContain('penwidth="1.25"');
   });
@@ -145,18 +169,23 @@ describe('applyThemeAndLayout (v2 theme defaults)', () => {
     expect(code).toContain('style="rounded,filled"');
     expect(code).toContain('fillcolor="#ffffff"'); // pearl bgInput default node fill
     expect(code).toContain('color="#d5d5dc"'); // pearl borderSecondary node stroke
-    expect(code).toContain('pad="0.15"');
+    expect(code).toContain('pad="0.24"');
+    expect(code).toContain('splines="true"');
     expect(code).toContain('arrowsize="0.8"');
     expect(code).toContain('rankdir="LR"');
   });
 
-  it('maps semantic fills to soft surface colors as 8-digit hex (Graphviz-safe)', () => {
+  it('maps semantic fills to opaque composites and pairs matching stroke/text', () => {
     const code = applyThemeAndLayout('digraph { n1[fillcolor=success]; n2[fillcolor=warning] }', { themeId: 'pearl' });
-    expect(code).toContain('fillcolor="#16a34a1a"'); // pearl bgSuccess, rgba() -> #RRGGBBAA
-    expect(code).toContain('fillcolor="#d4a72c1a"'); // pearl bgWarning
-    // Graphviz cannot parse CSS rgba() functions (it would fall back to opaque
-    // black); the injected DOT must never contain one.
+    const successFill = flattenGraphvizFill(PEARL.bgSuccess, PEARL.bgInput);
+    const warningFill = flattenGraphvizFill(PEARL.bgWarning, PEARL.bgInput);
+    expect(code).toContain(`fillcolor="${successFill}"`);
+    expect(code).toContain(`fillcolor="${warningFill}"`);
+    expect(code).toContain('color="#16a34a"'); // pearl textSuccess paired onto n1
+    expect(code).toContain('fontcolor="#16a34a"');
+    expect(code).toContain('color="#825f0a"'); // pearl textWarning paired onto n2
     expect(code).not.toContain('rgba(');
+    expect(code).not.toMatch(/fillcolor="#[0-9a-fA-F]{8}"/);
   });
 
   it('maps semantic strokes and text to readable text colors', () => {
@@ -166,18 +195,18 @@ describe('applyThemeAndLayout (v2 theme defaults)', () => {
   });
 
   it('maps the accent fill from its rgba surface color, and strokes stay 6-digit hex', () => {
-    // bgInfo is authored as rgba() in every theme; without normalization this
-    // fill parses as opaque black. The stroke/text map already reads as hex and
-    // passes through untouched.
     const code = applyThemeAndLayout('digraph { a[fillcolor=accent]; b[color=accent] }', { themeId: 'pearl' });
-    expect(code).toContain('fillcolor="#2563eb0f"'); // pearl bgInfo -> #RRGGBBAA
-    expect(code).toContain('color="#2563eb"'); // pearl textLink stays as-is
+    const accentFill = flattenGraphvizFill(PEARL.bgInfo, PEARL.bgInput);
+    expect(code).toContain(`fillcolor="${accentFill}"`);
+    expect(code).toContain('color="#2563eb"'); // pearl textLink
+    expect(code).not.toContain('rgba(');
   });
 
   it('uses onyx surface colors for the dark theme', () => {
+    const ONYX = AVAILABLE_THEMES.find((theme) => theme.id === 'onyx')!.colors;
     const code = applyThemeAndLayout('digraph { n1; n2[fillcolor=success] }', { themeId: 'onyx' });
     expect(code).toContain('fillcolor="#141418"'); // onyx bgInput default node fill
-    expect(code).toContain('fillcolor="#064e3b40"'); // onyx bgSuccess, rgba() -> #RRGGBBAA
+    expect(code).toContain(`fillcolor="${flattenGraphvizFill(ONYX.bgSuccess, ONYX.bgInput)}"`);
   });
 
   it('keeps an explicit rankdir and rewrites RL/BT into the LR/TB families', () => {
@@ -210,7 +239,7 @@ describe('applyThemeAndLayout (v2 theme defaults)', () => {
 
   it('keeps semantic color names through the scrub and maps them to theme colors', () => {
     const code = applyThemeAndLayout('digraph { n1[fillcolor=success]; n2[fontcolor=muted] }', { themeId: 'pearl' });
-    expect(code).toContain('fillcolor="#16a34a1a"'); // pearl bgSuccess
+    expect(code).toContain(`fillcolor="${flattenGraphvizFill(PEARL.bgSuccess, PEARL.bgInput)}"`);
     expect(code).toContain('fontcolor="#4a4a55"'); // pearl textSecondary
   });
 
@@ -232,6 +261,45 @@ describe('applyThemeAndLayout (v2 theme defaults)', () => {
     const result = await renderDotToSvg('digraph { LabelNode[label="accent is blue"] }', { themeId: 'pearl' });
     expect(result.ok).toBe(true);
     expect(readProcessedCode((result as { ok: true; svg: string }).svg)).toContain('accent is blue');
+  });
+
+  it('preserves author hex colors in ```graphviz``` diagrams instead of scrubbing them', () => {
+    const source =
+      'digraph { task [label="入口", fillcolor="#F8FAFC", color="#64748B", fontcolor="#0F172A", shape=ellipse] }';
+    const code = applyThemeAndLayout(source, { themeId: 'pearl', preserveAuthorColors: true });
+    expect(code).toContain('fillcolor="#F8FAFC"');
+    expect(code).toContain('color="#64748B"');
+    expect(code).toContain('fontcolor="#0F172A"');
+    expect(code).not.toMatch(/,\s*,/);
+  });
+
+  it('does not leave empty comma attributes after stripping Live Artifacts hardcoded colors', () => {
+    const source =
+      'digraph { task [label="入口, 保留逗号", fillcolor="#F8FAFC", color="#64748B", fontcolor="#0F172A", shape=ellipse] }';
+    const code = applyThemeAndLayout(source, { themeId: 'pearl' });
+    expect(code).not.toContain('fillcolor="#F8FAFC"');
+    expect(code).not.toMatch(/,\s*,/);
+    expect(code).toContain('label="入口, 保留逗号"');
+    expect(code).toContain('shape=ellipse');
+  });
+
+  it('lets an explicit semantic stroke on the same node win over fill pairing', () => {
+    const code = applyThemeAndLayout('digraph { n1[fillcolor=success color=accent] }', { themeId: 'pearl' });
+    expect(code).toContain(`fillcolor="${flattenGraphvizFill(PEARL.bgSuccess, PEARL.bgInput)}"`);
+    const nodeAttr = code.slice(code.indexOf('n1['), code.indexOf(']', code.indexOf('n1[')) + 1);
+    expect(nodeAttr.lastIndexOf('color="#2563eb"')).toBeGreaterThan(nodeAttr.indexOf('color="#16a34a"'));
+  });
+
+  it('injects rounded dashed defaults into cluster subgraphs', () => {
+    const code = applyThemeAndLayout(
+      'digraph { subgraph cluster_infer { label="推理"; n1; } }',
+      { themeId: 'pearl' },
+    );
+    expect(code).toContain('compound="true"');
+    const clusterBody = code.slice(code.indexOf('subgraph cluster_infer'));
+    expect(clusterBody).toContain('style="rounded,dashed"');
+    expect(clusterBody).toContain('color="#d5d5dc"');
+    expect(clusterBody).toContain('label="推理"');
   });
 });
 
@@ -279,6 +347,24 @@ describe('renderDotToSvg', () => {
     expect(code).toContain('arrowsize="0.8"');
     expect(code).toContain('fontname="Helvetica"');
     expect(code).not.toContain('system-ui');
+  });
+
+  it('rewrites Helvetica in the SVG to a CJK-capable font stack', async () => {
+    fakeInstance.renderSVGElement.mockImplementationOnce(async (code: string) => {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('data-code', code);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('font-family', 'Helvetica');
+      text.textContent = '节点';
+      svg.appendChild(text);
+      return svg;
+    });
+
+    const result = await renderDotToSvg('digraph { Font -> Test }');
+    expect(result.ok).toBe(true);
+    const svg = (result as { ok: true; svg: string }).svg;
+    expect(svg).toContain('PingFang SC');
+    expect(svg).not.toMatch(/font-family="Helvetica"/);
   });
 
   it('rewrites an explicit rankdir when a layout is forced', async () => {

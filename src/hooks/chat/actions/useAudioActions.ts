@@ -6,6 +6,7 @@ import { transcribeAudioApi } from '@/services/api/generation/audioApi';
 import { useI18n } from '@/contexts/I18nContext';
 import { isThirdPartyApiRoute } from '@/utils/chatApiRoute';
 import { usesRemoteFileReference } from '@/utils/chat/fileTransferStrategy';
+import { formatI18nErrorMessage } from '@/i18n/interpolate';
 
 interface UseAudioActionsProps {
   appSettings: AppSettings;
@@ -51,7 +52,7 @@ export const useAudioActions = ({
         return transcribedText;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : t('transcriptionUnknownError');
-        setAppFileError(t('transcriptionFailedWithMessage').replace('{message}', errorMessage));
+        setAppFileError(formatI18nErrorMessage(t, 'transcriptionFailedWithMessage', errorMessage));
         logService.error('Transcription failed in handler', { error });
         return null;
       }

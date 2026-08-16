@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AudioLines, ChevronDown, Image as ImageIcon, Info, SlidersHorizontal, SquarePen, X } from 'lucide-react';
+import { AudioLines, Image as ImageIcon, Info, SquarePen, X } from 'lucide-react';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
-import { SETTINGS_OUTLINE_BUTTON_CLASS, SMALL_ICON_BUTTON_CLASS } from '@/constants/buttonClasses';
+import { SMALL_ICON_BUTTON_CLASS } from '@/constants/buttonClasses';
+import { SETTINGS_VALUE_BADGE_CLASS } from '@/constants/designTokens';
 import { type AppSettings, MediaResolution } from '@/types';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';
@@ -45,7 +46,6 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
   const hideThinkingInContext = currentSettings.hideThinkingInContext ?? false;
   const alwaysKeepThinkingInContext = currentSettings.alwaysKeepThinkingInContext ?? false;
   const isAdvancedModeEnabled = useSettingsUiStore((state) => state.isAdvancedModeEnabled);
-  const [isAdvancedExpanded, setIsAdvancedExpanded] = useState(false);
   const [isSystemPromptExpanded, setIsSystemPromptExpanded] = useState(false);
   const [localPrompt, setLocalPrompt] = useState(systemInstruction);
   const skipNextPromptBlurCommitRef = useRef(false);
@@ -82,15 +82,17 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
     <div className="max-w-3xl mx-auto space-y-8">
       {!isThirdPartyMode && (
         <div data-settings-item="models-thinking">
-          <ThinkingControl
-            modelId={modelId}
-            thinkingBudget={thinkingBudget}
-            setThinkingBudget={(value) => onUpdateSetting('thinkingBudget', value)}
-            thinkingLevel={thinkingLevel}
-            setThinkingLevel={(value) => onUpdateSetting('thinkingLevel', value)}
-            showThoughts={showThoughts}
-            setShowThoughts={(value) => onUpdateSetting('showThoughts', value)}
-          />
+          <div data-settings-item="models-show-thoughts">
+            <ThinkingControl
+              modelId={modelId}
+              thinkingBudget={thinkingBudget}
+              setThinkingBudget={(value) => onUpdateSetting('thinkingBudget', value)}
+              thinkingLevel={thinkingLevel}
+              setThinkingLevel={(value) => onUpdateSetting('thinkingLevel', value)}
+              showThoughts={showThoughts}
+              setShowThoughts={(value) => onUpdateSetting('showThoughts', value)}
+            />
+          </div>
         </div>
       )}
 
@@ -177,7 +179,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                 <Info size={14} className="ml-2 text-[var(--theme-text-tertiary)] cursor-help" strokeWidth={1.5} />
               </Tooltip>
             </label>
-            <span className="text-sm font-mono text-[var(--theme-text-link)]">{Number(temperature).toFixed(2)}</span>
+            <span className={SETTINGS_VALUE_BADGE_CLASS}>{Number(temperature).toFixed(2)}</span>
           </div>
           <input
             id="temperature-slider"
@@ -202,7 +204,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                 <Info size={14} className="ml-2 text-[var(--theme-text-tertiary)] cursor-help" strokeWidth={1.5} />
               </Tooltip>
             </label>
-            <span className="text-sm font-mono text-[var(--theme-text-link)]">{Number(topP).toFixed(2)}</span>
+            <span className={SETTINGS_VALUE_BADGE_CLASS}>{Number(topP).toFixed(2)}</span>
           </div>
           <input
             id="top-p-slider"
@@ -218,26 +220,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
       </div>
 
       <div className="pt-2">
-        {!isAdvancedModeEnabled && (
-          <button
-            type="button"
-            onClick={() => setIsAdvancedExpanded((prev) => !prev)}
-            className={`${SETTINGS_OUTLINE_BUTTON_CLASS} w-full justify-between py-2 text-xs text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)]`}
-          >
-            <span className="flex items-center gap-2">
-              <SlidersHorizontal size={14} />
-              <span>
-                {isAdvancedExpanded ? t('settingsHideAdvancedParameters') : t('settingsShowAdvancedParameters')}
-              </span>
-            </span>
-            <ChevronDown
-              size={14}
-              className={`transition-transform duration-200 ${isAdvancedExpanded ? 'rotate-180' : ''}`}
-            />
-          </button>
-        )}
-
-        {(isAdvancedModeEnabled || isAdvancedExpanded) && (
+        {isAdvancedModeEnabled && (
           <div className="mt-4 space-y-5 rounded-lg border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-tertiary)]/20 p-4 transition-all">
             {!isThirdPartyMode && (
               <div>
@@ -246,7 +229,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                     htmlFor="top-k-slider"
                     className="text-sm font-medium text-[var(--theme-text-primary)] flex items-center"
                   >
-                    Top K
+                    {t('settingsTopK')}
                     <Tooltip text={t('settingsTopKTooltip')}>
                       <Info
                         size={14}
@@ -255,7 +238,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                       />
                     </Tooltip>
                   </label>
-                  <span className="text-sm font-mono text-[var(--theme-text-link)]">{topK}</span>
+                  <span className={SETTINGS_VALUE_BADGE_CLASS}>{topK}</span>
                 </div>
                 <input
                   id="top-k-slider"
@@ -271,39 +254,43 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
             )}
 
             {!isThirdPartyMode && mediaResolution && (
-              <Select
-                id="media-resolution-select"
-                label=""
-                layout="horizontal"
-                labelContent={
-                  <span className="flex items-center text-sm font-medium text-[var(--theme-text-primary)]">
-                    <ImageIcon size={14} className="mr-2 text-[var(--theme-text-secondary)]" />
-                    {t('settingsMediaResolution')}
-                    <Tooltip
-                      text={
-                        isNativeAudio ? t('settingsMediaResolutionLiveTooltip') : t('settingsMediaResolutionTooltip')
-                      }
-                    >
-                      <Info
-                        size={14}
-                        className="ml-2 text-[var(--theme-text-tertiary)] cursor-help"
-                        strokeWidth={1.5}
-                      />
-                    </Tooltip>
-                  </span>
-                }
-                value={mediaResolution}
-                onChange={(event) => onUpdateSetting('mediaResolution', event.target.value as MediaResolution)}
-              >
-                <option value={MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED}>{t('mediaResolutionUnspecified')}</option>
-                <option value={MediaResolution.MEDIA_RESOLUTION_LOW}>{t('mediaResolutionLow')}</option>
-                {!isNativeAudio && (
-                  <option value={MediaResolution.MEDIA_RESOLUTION_MEDIUM}>{t('mediaResolutionMedium')}</option>
-                )}
-                {!isNativeAudio && (
-                  <option value={MediaResolution.MEDIA_RESOLUTION_HIGH}>{t('mediaResolutionHigh')}</option>
-                )}
-              </Select>
+              <div data-settings-item="models-media-resolution">
+                <Select
+                  id="media-resolution-select"
+                  label=""
+                  layout="horizontal"
+                  labelContent={
+                    <span className="flex items-center text-sm font-medium text-[var(--theme-text-primary)]">
+                      <ImageIcon size={14} className="mr-2 text-[var(--theme-text-secondary)]" />
+                      {t('settingsMediaResolution')}
+                      <Tooltip
+                        text={
+                          isNativeAudio ? t('settingsMediaResolutionLiveTooltip') : t('settingsMediaResolutionTooltip')
+                        }
+                      >
+                        <Info
+                          size={14}
+                          className="ml-2 text-[var(--theme-text-tertiary)] cursor-help"
+                          strokeWidth={1.5}
+                        />
+                      </Tooltip>
+                    </span>
+                  }
+                  value={mediaResolution}
+                  onChange={(event) => onUpdateSetting('mediaResolution', event.target.value as MediaResolution)}
+                >
+                  <option value={MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED}>
+                    {t('mediaResolutionUnspecified')}
+                  </option>
+                  <option value={MediaResolution.MEDIA_RESOLUTION_LOW}>{t('mediaResolutionLow')}</option>
+                  {!isNativeAudio && (
+                    <option value={MediaResolution.MEDIA_RESOLUTION_MEDIUM}>{t('mediaResolutionMedium')}</option>
+                  )}
+                  {!isNativeAudio && (
+                    <option value={MediaResolution.MEDIA_RESOLUTION_HIGH}>{t('mediaResolutionHigh')}</option>
+                  )}
+                </Select>
+              </div>
             )}
 
             {!isThirdPartyMode && (
@@ -323,15 +310,17 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                   }}
                   tooltip={t('settingsHideThinkingInContextTooltip')}
                 />
-                <ToggleItem
-                  label={t('settingsAlwaysKeepThinkingInContextLabel')}
-                  checked={alwaysKeepThinkingInContext}
-                  onChange={(value) => {
-                    onUpdateSetting('alwaysKeepThinkingInContext', value);
-                    if (value) onUpdateSetting('hideThinkingInContext', false);
-                  }}
-                  tooltip={t('settingsAlwaysKeepThinkingInContextTooltip')}
-                />
+                <div data-settings-item="models-always-keep-thinking">
+                  <ToggleItem
+                    label={t('settingsAlwaysKeepThinkingInContextLabel')}
+                    checked={alwaysKeepThinkingInContext}
+                    onChange={(value) => {
+                      onUpdateSetting('alwaysKeepThinkingInContext', value);
+                      if (value) onUpdateSetting('hideThinkingInContext', false);
+                    }}
+                    tooltip={t('settingsAlwaysKeepThinkingInContextTooltip')}
+                  />
+                </div>
               </div>
             )}
           </div>

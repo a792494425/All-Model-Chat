@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   extractAutoPreviewableBlock,
-  extractPreviewableCodeBlock,
   getAutoPreviewType,
   getCodeBlockPreviewType,
   isLikelyHtml,
@@ -91,12 +90,7 @@ describe('previewableMarkdown detection', () => {
   it('treats standalone html fragments as previewable even when the fence language is wrong', () => {
     const fragment = '<div style="display:flex;gap:12px"><span>Ready</span></div>';
 
-    expect(getCodeBlockPreviewType(fragment, 'css')).toBe('html');
-    expect(extractPreviewableCodeBlock(`\`\`\`css\n${fragment}\n\`\`\``)).toEqual({
-      content: fragment,
-      markupType: 'html',
-    });
-  });
+    expect(getCodeBlockPreviewType(fragment, 'css')).toBe('html');  });
 
   it('treats richer inline artifact primitives as previewable html fragments', () => {
     expect(getCodeBlockPreviewType('<label for="tone">Tone</label>')).toBe('html');
@@ -106,21 +100,6 @@ describe('previewableMarkdown detection', () => {
 
   it('does not treat embedded html strings inside code as previewable fragments', () => {
     expect(getCodeBlockPreviewType('const card = `<div>Ready</div>`;', 'js')).toBe(null);
-  });
-
-  it('extracts previewable fenced blocks using the same rules regardless of language case', () => {
-    expect(extractPreviewableCodeBlock('```HTML\n<div>Hello</div>\n```')).toEqual({
-      content: '<div>Hello</div>',
-      markupType: 'html',
-    });
-  });
-
-  it('extracts unlabeled fenced html documents but ignores generic xml blocks', () => {
-    expect(extractPreviewableCodeBlock('```\n<html><body>Hello</body></html>\n```')).toEqual({
-      content: '<html><body>Hello</body></html>',
-      markupType: 'html',
-    });
-    expect(extractPreviewableCodeBlock('```xml\n<note><to>Jane</to></note>\n```')).toBe(null);
   });
 
   it('removes markdown-breaking blank lines inside standalone raw html fragments', () => {

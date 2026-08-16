@@ -17,6 +17,19 @@ interface UseSettingsLogicProps {
   t: (key: keyof typeof translations) => string;
 }
 
+/** Connection, credential, and integration data that "Reset Settings Only"
+ * carries over: resetting app preferences must not wipe API keys, deployment
+ * flags, third-party providers, or MCP servers. */
+const SETTINGS_RESET_PRESERVED_KEYS: ReadonlyArray<keyof AppSettings> = [
+  'apiKey',
+  'useCustomApiConfig',
+  'serverManagedApi',
+  'useApiProxy',
+  'apiProxyUrl',
+  'mcpServers',
+  'thirdPartyApi',
+];
+
 export const useSettingsLogic = ({
   isOpen,
   currentSettings,
@@ -71,7 +84,12 @@ export const useSettingsLogic = ({
       isOpen: true,
       title: t('settingsReset'),
       message: t('settingsResetConfirm'),
-      onConfirm: () => onSave(DEFAULT_APP_SETTINGS),
+      onConfirm: () => {
+        const preserved = Object.fromEntries(
+          SETTINGS_RESET_PRESERVED_KEYS.map((key) => [key, latestSettingsRef.current[key]]),
+        ) as Pick<AppSettings, (typeof SETTINGS_RESET_PRESERVED_KEYS)[number]>;
+        onSave({ ...DEFAULT_APP_SETTINGS, ...preserved });
+      },
       isDanger: true,
       confirmLabel: t('settingsReset'),
     });

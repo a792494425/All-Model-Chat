@@ -4,18 +4,6 @@ const { mockGetRuntimeConfigAppSettingsOverrides } = vi.hoisted(() => ({
   mockGetRuntimeConfigAppSettingsOverrides: vi.fn(() => ({})),
 }));
 
-vi.mock('@/services/db/dbService', async () => {
-  const { createDbServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createDbServiceMockModule();
-});
-
-vi.mock('@/services/logService', async () => {
-  const { createLogServiceMockModule } = await import('@/test/doubles/moduleMocks');
-
-  return createLogServiceMockModule();
-});
-
 vi.mock('@/runtime/runtimeConfig', () => ({
   getRuntimeConfigAppSettingsOverrides: mockGetRuntimeConfigAppSettingsOverrides,
 }));

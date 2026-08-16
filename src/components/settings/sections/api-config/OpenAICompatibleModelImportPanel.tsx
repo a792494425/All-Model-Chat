@@ -13,6 +13,7 @@ import {
   type EditableOpenAICompatibleModelRow,
   parsePastedOpenAICompatibleModelIds,
 } from './openaiCompatibleModelListState';
+import { interpolate } from '@/i18n/interpolate';
 
 interface OpenAICompatibleModelImportPanelProps {
   rows: EditableOpenAICompatibleModelRow[];
@@ -102,7 +103,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
 
     onCommitRows([...rows, ...rowsToAdd]);
     setBatchModelText('');
-    setManagerMessage(t('settingsOpenAICompatibleModelPasteAdded').replace('{count}', String(rowsToAdd.length)));
+    setManagerMessage(interpolate(t('settingsOpenAICompatibleModelPasteAdded'), { count: String(rowsToAdd.length) }));
   };
 
   const handleToggleFetchedModel = (modelId: string, checked: boolean) => {
@@ -141,7 +142,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
 
     onCommitRows([...rows, ...rowsToAdd]);
     setSelectedFetchedModelIds(new Set());
-    setManagerMessage(t('settingsOpenAICompatibleModelImportAdded').replace('{count}', String(rowsToAdd.length)));
+    setManagerMessage(interpolate(t('settingsOpenAICompatibleModelImportAdded'), { count: String(rowsToAdd.length) }));
   };
 
   return (
@@ -213,9 +214,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs text-[var(--theme-text-tertiary)]">
-                {t('settingsOpenAICompatibleFetchedPreviewCount')
-                  .replace('{count}', String(fetchedPreviewModels.length))
-                  .replace('{selected}', String(selectedImportableFetchedModelIds.length))}
+                {interpolate(t('settingsOpenAICompatibleFetchedPreviewCount'), { count: String(fetchedPreviewModels.length), selected: String(selectedImportableFetchedModelIds.length) })}
               </span>
               <div className="flex items-center gap-2">
                 <button

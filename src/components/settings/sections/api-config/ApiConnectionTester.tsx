@@ -71,13 +71,13 @@ export const ApiConnectionTester: React.FC<ApiConnectionTesterProps> = ({
       </div>
 
       {testStatus === 'success' && (
-        <div className="flex items-center gap-2 p-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-600 text-sm animate-in fade-in slide-in-from-top-1">
+        <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--theme-bg-success)] border border-[var(--theme-text-success)]/25 text-[var(--theme-text-success)] text-sm animate-in fade-in slide-in-from-top-1">
           <CheckCircle2 size={16} />
           <span>{t('apiConfigTestSuccess')}</span>
         </div>
       )}
       {testStatus === 'error' && (
-        <div className="flex items-start gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 text-sm animate-in fade-in slide-in-from-top-1">
+        <div className="flex items-start gap-2 p-2 rounded-lg bg-[var(--theme-bg-danger)] border border-[var(--theme-text-danger)]/25 text-[var(--theme-text-danger)] text-sm animate-in fade-in slide-in-from-top-1">
           <XCircle size={16} className="flex-shrink-0 mt-0.5" />
           <div className="flex flex-col">
             <span className="font-medium">{t('apiConfigTestFailed')}</span>

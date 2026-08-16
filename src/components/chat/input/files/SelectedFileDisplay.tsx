@@ -20,6 +20,7 @@ import { isTextFile } from '@/utils/file/fileTypeClassification';
 import { getFileCardMeta } from '@/components/shared/file-preview/fileCardMeta';
 import { useI18n } from '@/contexts/I18nContext';
 import { FileThumbnail } from './FileThumbnail';
+import { interpolate } from '@/i18n/interpolate';
 
 interface SelectedFileDisplayProps {
   file: UploadedFile;
@@ -170,7 +171,7 @@ export const SelectedFileDisplay: React.FC<SelectedFileDisplayProps> = ({
             {isFailed
               ? file.error || t('selectedFileErrorFallback')
               : isUploading
-                ? t('selectedFileUploading').replace('{percent}', String(uploadPercent))
+                ? interpolate(t('selectedFileUploading'), { percent: String(uploadPercent) })
                 : isProcessing
                   ? t('selectedFileProcessingGemini')
                   : isCancelled

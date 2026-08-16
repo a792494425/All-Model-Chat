@@ -185,7 +185,7 @@ export const TableBlock: React.FC<TableBlockProps> = ({ children, className, nod
             className={`p-1.5 rounded-lg bg-[var(--theme-bg-primary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] shadow-sm border border-[var(--theme-border-secondary)] transition-colors ${FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS}`}
             title={isCopied ? t('copied') : t('tableCopyMarkdown')}
           >
-            {isCopied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+            {isCopied ? <Check size={16} className="text-[var(--theme-text-success)]" /> : <Copy size={16} />}
           </button>
 
           <div className="relative" ref={menuRef}>
@@ -210,7 +210,7 @@ export const TableBlock: React.FC<TableBlockProps> = ({ children, className, nod
                   onClick={handleDownloadExcel}
                   className={`${MENU_ITEM_BUTTON_CLASS} ${MENU_ITEM_DEFAULT_STATE_CLASS} px-4 py-3 gap-3`}
                 >
-                  <FileSpreadsheet size={16} className="text-green-500" />
+                  <FileSpreadsheet size={16} className="text-[var(--theme-text-success)]" />
                   <span>{t('exportToExcel')}</span>
                 </button>
               </div>
@@ -255,7 +255,7 @@ export const TableBlock: React.FC<TableBlockProps> = ({ children, className, nod
           className={`p-1.5 rounded-md text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors ${FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS}`}
           title={isCopied ? t('copied') : t('tableCopyMarkdown')}
         >
-          {isCopied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+          {isCopied ? <Check size={14} className="text-[var(--theme-text-success)]" /> : <Copy size={14} />}
         </button>
 
         <div className="relative" ref={menuRef}>
@@ -280,7 +280,7 @@ export const TableBlock: React.FC<TableBlockProps> = ({ children, className, nod
                 onClick={handleDownloadExcel}
                 className={`${MENU_ITEM_COMPACT_BUTTON_CLASS} ${MENU_ITEM_DEFAULT_STATE_CLASS}`}
               >
-                <FileSpreadsheet size={14} className="text-green-500" />
+                <FileSpreadsheet size={14} className="text-[var(--theme-text-success)]" />
                 <span>{t('exportToExcel')}</span>
               </button>
             </div>

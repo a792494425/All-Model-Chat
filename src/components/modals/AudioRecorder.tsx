@@ -2,6 +2,7 @@ import { logService } from '@/services/logService';
 import React, { useState } from 'react';
 import { Mic, X, Loader2, AlertCircle, ChevronRight } from 'lucide-react';
 import { Modal } from '@/components/shared/Modal';
+import { toastError } from '@/stores/toastStore';
 import { AudioPlayer } from '@/components/shared/AudioPlayer';
 import { useAudioRecorder } from '@/features/audio/useAudioRecorder';
 import { SYSTEM_AUDIO_CAPTURE_FAILED_WARNING, SYSTEM_AUDIO_NOT_SHARED_WARNING } from '@/features/audio/audioProcessing';
@@ -53,7 +54,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
       await onRecord(file);
     } catch (saveError) {
       logService.error('Failed to save audio recording.', saveError);
-      alert(t('audioRecorderFailedToSave'));
+      toastError(t('audioRecorderFailedToSave'));
       setIsSaving(false);
     }
   };

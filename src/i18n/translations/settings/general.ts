@@ -22,11 +22,11 @@ const generalSettings = {
   settingsSearchPlaceholder: { en: 'Search settings…', zh: '搜索设置…' },
   settingsSearchNoResults: { en: 'No matching settings.', zh: '未找到匹配的设置。' },
   settingsSearchResultsCount: { en: '{count} results', zh: '{count} 个结果' },
+  settingsSearchResultsTitle: { en: 'Search Results', zh: '搜索结果' },
+  settingsSearchEscHint: { en: 'to clear', zh: '清除搜索' },
   settingsSearchClearAria: { en: 'Clear search', zh: '清除搜索' },
   settingsSearchAria: { en: 'Search settings', zh: '搜索设置' },
   settingsAdvancedMode: { en: 'Advanced Mode', zh: '高级模式' },
-  settingsShowAdvancedParameters: { en: 'Show Advanced Parameters', zh: '展开高级微调参数' },
-  settingsHideAdvancedParameters: { en: 'Hide Advanced Parameters', zh: '折叠高级微调参数' },
 
   usageTitle: { en: 'API Usage', zh: 'API 用量' },
   usageDescription: {

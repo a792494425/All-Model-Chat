@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { Plus, RefreshCw, Trash2 } from 'lucide-react';
 import type { AppSettings, McpServerAuthType, McpServerConfig, McpServerTransport } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
+import { Toggle } from '@/components/shared/Toggle';
 import { SETTINGS_OUTLINE_BUTTON_CLASS, SMALL_ICON_DANGER_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { fetchMcpServerCapabilities, type McpServerCapabilities } from '@/services/api/mcpApi';
+import { interpolate } from '@/i18n/interpolate';
 
 interface McpSectionProps {
   settings: AppSettings;
@@ -30,9 +32,6 @@ const createMcpServer = (name: string): McpServerConfig => ({
   args: [],
   env: {},
 });
-
-const getCapabilityStateKey = (server: McpServerConfig, index: number): string =>
-  `${server.id || 'mcp-server'}-${index}`;
 
 const formatLines = (items: string[] | undefined): string => (items ?? []).join('\n');
 
@@ -71,6 +70,26 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
   const servers = settings.mcpServers ?? [];
   const [capabilityStates, setCapabilityStates] = useState<Record<string, CapabilityTestState>>({});
 
+  // Card identities must stay stable across edits: the server id is
+  // user-editable on every keystroke and indexes shift when a server is
+  // removed, so neither can back React keys or capability test state.
+  const nextCardKeyIdRef = useRef(0);
+  const createCardKey = useCallback(() => `mcp-card-${++nextCardKeyIdRef.current}`, []);
+  const [cardKeys, setCardKeys] = useState<string[]>(() => servers.map(createCardKey));
+
+  useEffect(() => {
+    setCardKeys((prev) => {
+      if (prev.length === servers.length) {
+        return prev;
+      }
+      // Servers were replaced externally (import/reset): realign by position.
+      if (servers.length > prev.length) {
+        return [...prev, ...Array.from({ length: servers.length - prev.length }, createCardKey)];
+      }
+      return prev.slice(0, servers.length);
+    });
+  }, [servers.length, createCardKey]);
+
   const updateServers = (nextServers: McpServerConfig[]) => {
     onUpdate('mcpServers', nextServers);
   };
@@ -80,11 +99,24 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
   };
 
   const removeServer = (serverIndex: number) => {
+    const removedCardKey = cardKeys[serverIndex];
     updateServers(servers.filter((_, index) => index !== serverIndex));
+    setCardKeys((keys) => keys.filter((_, index) => index !== serverIndex));
+    if (removedCardKey !== undefined) {
+      setCapabilityStates((prev) => {
+        if (!(removedCardKey in prev)) {
+          return prev;
+        }
+        const next = { ...prev };
+        delete next[removedCardKey];
+        return next;
+      });
+    }
   };
 
   const addServer = () => {
     updateServers([...servers, createMcpServer(t('settingsMcpNewServer'))]);
+    setCardKeys((keys) => [...keys, createCardKey()]);
   };
 
   const handleTransportChange = (serverIndex: number, server: McpServerConfig, transport: McpServerTransport) => {
@@ -113,17 +145,16 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
     });
   };
 
-  const testServerCapabilities = async (server: McpServerConfig, serverIndex: number) => {
-    const key = getCapabilityStateKey(server, serverIndex);
-    setCapabilityStates((prev) => ({ ...prev, [key]: { status: 'loading' } }));
+  const testServerCapabilities = async (server: McpServerConfig, cardKey: string) => {
+    setCapabilityStates((prev) => ({ ...prev, [cardKey]: { status: 'loading' } }));
 
     try {
       const capabilities = await fetchMcpServerCapabilities({ ...server, enabled: true });
-      setCapabilityStates((prev) => ({ ...prev, [key]: { status: 'success', capabilities } }));
+      setCapabilityStates((prev) => ({ ...prev, [cardKey]: { status: 'success', capabilities } }));
     } catch (error) {
       setCapabilityStates((prev) => ({
         ...prev,
-        [key]: {
+        [cardKey]: {
           status: 'error',
           error: getErrorMessage(error),
         },
@@ -155,12 +186,11 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
       ) : (
         <div className="space-y-4">
           {servers.map((server, index) => {
-            const stateKey = getCapabilityStateKey(server, index);
+            const stateKey = cardKeys[index] ?? `mcp-card-fallback-${index}`;
             const capabilityState = capabilityStates[stateKey];
             const capabilities = capabilityState?.status === 'success' ? capabilityState.capabilities : undefined;
             const capabilityErrors = capabilities?.errors ?? [];
             const resourceCount = (capabilities?.resources.length ?? 0) + (capabilities?.resourceTemplates.length ?? 0);
-            const enabledInputId = `mcp-enabled-${stateKey}`;
 
             return (
               <section
@@ -173,27 +203,22 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                   className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex min-w-0 items-center gap-2">
-                    <input
-                      id={enabledInputId}
-                      type="checkbox"
-                      checked={server.enabled}
-                      onChange={(event) => updateServer(index, { enabled: event.target.checked })}
-                      className="h-4 w-4 shrink-0 rounded border-[var(--theme-border-secondary)] text-[var(--theme-text-link)] focus:ring-[var(--theme-border-focus)]"
-                    />
-                    <label
-                      htmlFor={enabledInputId}
-                      className="min-w-0 truncate text-sm font-medium text-[var(--theme-text-primary)]"
-                    >
-                      {server.name || t('settingsMcpUnnamedServer').replace('{index}', String(index + 1))}
-                    </label>
+                    <span className="min-w-0 truncate text-sm font-medium text-[var(--theme-text-primary)]">
+                      {server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}
+                    </span>
                   </div>
                   <div
                     data-mcp-server-card-actions
                     className="flex shrink-0 items-center gap-2 self-start sm:self-auto"
                   >
+                    <Toggle
+                      checked={server.enabled}
+                      onChange={(enabled) => updateServer(index, { enabled })}
+                      ariaLabel={server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}
+                    />
                     <button
                       type="button"
-                      onClick={() => testServerCapabilities(server, index)}
+                      onClick={() => testServerCapabilities(server, stateKey)}
                       disabled={capabilityState?.status === 'loading'}
                       className={`${SETTINGS_OUTLINE_BUTTON_CLASS} shrink-0 whitespace-nowrap`}
                     >
@@ -234,7 +259,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                     />
                   </label>
 
-                  <label className="space-y-2">
+                  <label className="space-y-2" data-settings-item={index === 0 ? 'mcp-transport' : undefined}>
                     <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpTransport')}</span>
                     <select
                       value={server.transport}

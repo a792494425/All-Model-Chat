@@ -1,10 +1,11 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
-import { getErrorMessage } from '@/utils/errorMessage';
 import { type AppSettings, type SavedChatSession, type SavedScenario, type ChatGroup, type ChatMessage } from '@/types';
 import { logService } from '@/services/logService';
+import { toastError, toastSuccess } from '@/stores/toastStore';
 import { generateUniqueId } from '@/utils/chat/ids';
 import { mergeImportedScenarios } from '@/features/scenarios/scenarioLibrary';
 import { sanitizeImportedAppSettings } from '@/schemas/appSettingsSchema';
+import { interpolate, formatI18nErrorMessage } from '@/i18n/interpolate';
 
 type SessionsUpdater = (updater: (prev: SavedChatSession[]) => SavedChatSession[]) => void;
 type GroupsUpdater = (updater: (prev: ChatGroup[]) => ChatGroup[]) => void;
@@ -95,19 +96,17 @@ export const useDataImport = ({
           } else {
             const foundType = typeof importPayload?.type === 'string' ? importPayload.type : t('exportNotApplicable');
             throw new Error(
-              t('settingsImportInvalidFileFormat')
-                .replace('{expectedType}', expectedType)
-                .replace('{foundType}', foundType),
+              interpolate(t('settingsImportInvalidFileFormat'), { expectedType, foundType }),
             );
           }
         } catch (error) {
           logService.error(`Failed to import ${expectedType}`, { error });
-          alert(t('settingsImportErrorWithMessage').replace('{message}', getErrorMessage(error)));
+          toastError(formatI18nErrorMessage(t, 'settingsImportErrorWithMessage', error));
         }
       };
       reader.onerror = (event) => {
         logService.error(`Failed to read ${expectedType} file`, { error: event });
-        alert(t('settingsImportError'));
+        toastError(t('settingsImportError'));
       };
       reader.readAsText(file);
     },
@@ -119,7 +118,7 @@ export const useDataImport = ({
       handleImportFile<ImportedSettingsPayload>(file, 'AllModelChat-Settings', (data) => {
         const newSettings = sanitizeImportedAppSettings(data.settings);
         setAppSettings(newSettings);
-        alert(t('settingsImportSuccess'));
+        toastSuccess(t('settingsImportSuccess'));
       });
     },
     [handleImportFile, setAppSettings, t],
@@ -146,7 +145,7 @@ export const useDataImport = ({
             });
           }
 
-          alert(t('settingsImportHistorySuccess'));
+          toastSuccess(t('settingsImportHistorySuccess'));
         } else {
           throw new Error(t('settingsImportHistoryInvalidData'));
         }
@@ -166,7 +165,7 @@ export const useDataImport = ({
               createId: generateUniqueId,
             }),
           );
-          alert(t('scenariosFeedbackImported'));
+          toastSuccess(t('scenariosFeedbackImported'));
         } else {
           throw new Error(t('settingsImportScenariosInvalidData'));
         }
