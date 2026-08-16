@@ -54,7 +54,7 @@ export const TokenCountModal: React.FC<TokenCountModalProps> = (props) => {
     >
       <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)]/50">
         <h2 className="text-lg font-semibold text-[var(--theme-text-primary)] flex items-center gap-2">
-          <Calculator size={20} className="text-[var(--theme-text-link)]" />
+          <Calculator size={20} className="text-[var(--theme-text-tertiary)]" />
           {t('tokenModalTitle')}
         </h2>
         <button onClick={onClose} className={MODAL_CLOSE_BUTTON_CLASS}>

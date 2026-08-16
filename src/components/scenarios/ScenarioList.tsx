@@ -7,6 +7,7 @@ import { CATEGORY_META, CATEGORY_ORDER, getCategory } from '@/features/scenarios
 import {
   SETTINGS_NAV_ACTIVE_CLASS,
   SETTINGS_NAV_IDLE_CLASS,
+  SETTINGS_SEARCH_INPUT_CLASS,
   SETTINGS_SEGMENTED_ACTIVE_CLASS,
   SETTINGS_SEGMENTED_IDLE_CLASS,
   SETTINGS_SEGMENTED_TRACK_CLASS,
@@ -48,25 +49,27 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
   const [ownerScope, setOwnerScope] = useState<OwnerScope>(hasCustomScenarios ? 'mine' : 'builtin');
   const [activeCategory, setActiveCategory] = useState<ScenarioCategory | 'all'>('all');
 
+  const builtInSet = useMemo(() => new Set(builtInScenarioIds), [builtInScenarioIds]);
+  const isBuiltinScope = ownerScope === 'builtin';
+
+  const scopedScenarios = useMemo(
+    () => scenarios.filter((scenario) => builtInSet.has(scenario.id) === isBuiltinScope),
+    [scenarios, builtInSet, isBuiltinScope],
+  );
+
   const availableCategories = useMemo(() => {
     const present = new Set<ScenarioCategory>();
-    const builtInSet = new Set(builtInScenarioIds);
-    const inScope = (scenario: SavedScenario) => builtInSet.has(scenario.id) === (ownerScope === 'builtin');
-    scenarios.forEach((scenario) => {
-      if (inScope(scenario)) {
-        present.add(getCategory(scenario.category));
-      }
+    scopedScenarios.forEach((scenario) => {
+      present.add(getCategory(scenario.category));
     });
     return CATEGORY_ORDER.filter((category) => present.has(category));
-  }, [scenarios, ownerScope, builtInScenarioIds]);
+  }, [scopedScenarios]);
 
   const effectiveCategory =
     activeCategory === 'all' || availableCategories.includes(activeCategory) ? activeCategory : 'all';
 
   const filteredScenarios = useMemo(() => {
-    const builtInSet = new Set(builtInScenarioIds);
-    const inScope = (scenario: SavedScenario) => builtInSet.has(scenario.id) === (ownerScope === 'builtin');
-    let list = scenarios.filter(inScope);
+    let list = scopedScenarios;
 
     if (effectiveCategory !== 'all') {
       list = list.filter((scenario) => getCategory(scenario.category) === effectiveCategory);
@@ -84,7 +87,7 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
     }
 
     return list;
-  }, [scenarios, searchQuery, effectiveCategory, ownerScope, builtInScenarioIds]);
+  }, [scopedScenarios, searchQuery, effectiveCategory]);
 
   const ownerTabs: { id: OwnerScope; labelKey: string; icon: React.ElementType }[] = [
     { id: 'mine', labelKey: 'scenariosTabMine', icon: User },
@@ -108,7 +111,7 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
           onChange={(event) => setSearchQuery(event.target.value)}
           autoComplete="off"
           spellCheck={false}
-          className="h-10 w-full rounded-lg border border-transparent bg-[var(--theme-bg-tertiary)]/45 pl-9 pr-3 text-sm text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)]/70 focus:bg-[var(--theme-bg-tertiary)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--theme-border-focus)]/35"
+          className={SETTINGS_SEARCH_INPUT_CLASS}
         />
       </div>
 

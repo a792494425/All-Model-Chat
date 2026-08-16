@@ -11,7 +11,7 @@ interface CreateFileBodyProps {
   supportsRichPreview: boolean;
   useMonospaceFont: boolean;
   handlePaste: (e: React.ClipboardEvent<HTMLTextAreaElement>) => void;
-  handleDrop: (e: React.DragEvent, isDragging: boolean) => void;
+  handleDrop: (e: React.DragEvent) => void;
   onSaveKeyDown: (event: React.KeyboardEvent<HTMLElement>) => void;
   themeId: string;
 }
@@ -53,7 +53,7 @@ export const CreateFileBody: React.FC<CreateFileBodyProps> = ({
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    handleDrop(e, isDragging);
+    handleDrop(e);
     setIsDragging(false);
   };
 

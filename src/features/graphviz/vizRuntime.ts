@@ -20,7 +20,7 @@ import { DOT_MAX_CHARS, DOT_MAX_EDGES, DOT_MAX_NODES, countDotEdges, countDotNod
  * chunk) lazy: it is only fetched the first time a diagram actually renders.
  */
 
-export type DotRenderResult =
+type DotRenderResult =
   | { ok: true; svg: string }
   | { ok: false; error: 'empty' | 'too-large'; message?: never }
   | { ok: false; error: 'render-failed'; message: string };
@@ -198,7 +198,7 @@ export const normalizeGraphvizColor = (color: string): string => {
 };
 
 /** Graphviz nodes are small; HTML surface alphas (~0.06–0.1) read as almost white. */
-export const GRAPHVIZ_MIN_FILL_ALPHA = 0.22;
+const GRAPHVIZ_MIN_FILL_ALPHA = 0.22;
 
 /**
  * Flatten a (possibly translucent) theme surface onto an opaque base so Graphviz
@@ -217,7 +217,7 @@ export const flattenGraphvizFill = (color: string, onto: string): string => {
   return `#${toHexByte(mix(fg.r, bg.r))}${toHexByte(mix(fg.g, bg.g))}${toHexByte(mix(fg.b, bg.b))}`;
 };
 
-export const GRAPHVIZ_SVG_FONT_FAMILY =
+const GRAPHVIZ_SVG_FONT_FAMILY =
   '"PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", Helvetica, sans-serif';
 
 // Bump when the injected default styling changes so cached SVGs rendered with

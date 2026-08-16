@@ -10,6 +10,7 @@ import { AudioVisualizer } from '@/components/audio/AudioVisualizer';
 import { RecorderControls } from '@/components/audio/RecorderControls';
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { MODAL_CLOSE_BUTTON_CLASS } from '@/constants/buttonClasses';
+import { SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
 import { formatClockTime } from '@/utils/formatClockTime';
 import { useI18n } from '@/contexts/I18nContext';
 
@@ -78,7 +79,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
     >
       <div className="flex items-center justify-between px-5 pt-4 pb-3 bg-[var(--theme-bg-primary)]">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--theme-text-primary)]">
-          <Mic size={20} className="text-[var(--theme-text-link)]" />
+          <Mic size={20} className="text-[var(--theme-text-tertiary)]" />
           {viewState === 'review' ? t('audioRecorderPreviewTitle') : t('audioRecorderTitle')}
         </h2>
         <button onClick={onCancel} aria-label={t('close')} className={MODAL_CLOSE_BUTTON_CLASS}>
@@ -94,7 +95,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
           </div>
         )}
         {systemAudioWarning && !error && (
-          <div className="mb-4 w-full rounded-md border border-amber-300/60 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+          <div className="mb-4 w-full rounded-md border border-[var(--theme-text-warning)]/35 bg-[var(--theme-bg-warning)] px-3 py-2 text-sm text-[var(--theme-text-warning)]">
             {getSystemAudioWarningText(systemAudioWarning)}
           </div>
         )}
@@ -104,7 +105,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
             {isInitializing && (
               <div className="px-3 py-2.5">
                 <div className="flex min-w-0 items-center gap-2">
-                  <Loader2 size={15} className="shrink-0 animate-spin text-[var(--theme-text-link)]" />
+                  <Loader2 size={15} className="shrink-0 animate-spin text-[var(--theme-text-tertiary)]" />
                   <p className="text-sm font-medium text-[var(--theme-text-primary)]">
                     {t('audioRecorderAccessingMicrophone')}
                   </p>
@@ -161,8 +162,8 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
 
             <AudioVisualizer stream={stream} />
 
-            <div className="flex items-center gap-2 text-xs font-medium text-[var(--theme-text-tertiary)] uppercase tracking-widest">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <div className={`flex items-center gap-2 ${SETTINGS_SECTION_LABEL_CLASS}`}>
+              <div className="h-2 w-2 rounded-full bg-[var(--theme-text-danger)]"></div>
               {t('audioRecorderRecordingStatus')}
             </div>
           </div>
@@ -171,9 +172,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
         {viewState === 'review' && audioUrl && (
           <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="flex flex-col items-center mb-6">
-              <div className="text-xs text-[var(--theme-text-tertiary)] mb-1 uppercase tracking-wide">
-                {t('audioRecorderTotalDuration')}
-              </div>
+              <div className={`${SETTINGS_SECTION_LABEL_CLASS} mb-1`}>{t('audioRecorderTotalDuration')}</div>
               <div className="text-3xl font-mono text-[var(--theme-text-primary)]">
                 {formatClockTime(recordingTime)}
               </div>

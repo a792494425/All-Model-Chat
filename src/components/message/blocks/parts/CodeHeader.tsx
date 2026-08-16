@@ -38,7 +38,7 @@ export const CodeHeader: React.FC<CodeHeaderProps> = ({
 }) => {
   const { t } = useI18n();
   const headerButtonClass = `${MESSAGE_BLOCK_BUTTON_CLASS} !min-h-10 !min-w-10 !rounded-md !p-0 !opacity-90 hover:!opacity-100 hover:bg-[var(--theme-bg-tertiary)]/40`;
-  const runButtonClass = `${headerButtonClass} ${isRunning ? 'text-[var(--theme-text-link)]' : 'text-emerald-500 hover:text-emerald-400'} !bg-transparent`;
+  const runButtonClass = `${headerButtonClass} ${isRunning ? 'text-[var(--theme-text-link)]' : ''} !bg-transparent`;
 
   return (
     <div className="sticky top-0 z-10 flex select-none items-center justify-between gap-2 rounded-t-lg border-b border-[var(--theme-border-secondary)] bg-[var(--theme-bg-code-block-header)] px-3 py-0 transition-all">

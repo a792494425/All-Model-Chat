@@ -59,6 +59,9 @@ describe('UI clarity regressions', () => {
       'components/shared/file-preview/TextFileViewer.tsx',
       'components/modals/FilePreviewModal.tsx',
       'components/chat/input/LiveStatusBanner.tsx',
+      'components/chat/input/QueuedSubmissionCard.tsx',
+      'components/chat/message-list/text-selection/AudioPlayerView.tsx',
+      'components/modals/MarkdownPreviewModal.tsx',
     ];
 
     for (const relativePath of files) {
@@ -84,6 +87,15 @@ describe('UI clarity regressions', () => {
     expect(diagramWrapper).toContain('bg-[var(--theme-bg-code-block-header)]');
     expect(diagramWrapper).not.toContain('border-[var(--theme-border-secondary)] border-b-0');
     expect(diagramWrapper).not.toContain('bg-[var(--theme-bg-tertiary)]/45');
+  });
+
+  it('keeps message bubbles inset from the history sidebar', () => {
+    const layout = readSourceFile('constants/layout.ts');
+    const messageList = readSourceFile('components/chat/message-list/MessageList.tsx');
+
+    expect(layout).toContain("CHAT_MESSAGE_LIST_GUTTER_CLASS = 'px-4 sm:px-5 md:px-6'");
+    expect(messageList).toContain('CHAT_MESSAGE_LIST_GUTTER_CLASS');
+    expect(messageList).not.toContain('px-1.5 sm:px-2 md:px-3');
   });
 
   it('uses dynamic viewport height for the app root to avoid mobile browser chrome jumps', () => {
@@ -128,6 +140,7 @@ describe('UI clarity regressions', () => {
 
   it('keeps remaining chrome surfaces off marketplace lift, rainbow icons, and hardcoded shells', () => {
     const exportOptions = readSourceFile('components/message/buttons/export/ExportOptions.tsx');
+    const exportDialogShell = readSourceFile('components/message/buttons/export/ExportDialogShell.tsx');
     const exportModal = readSourceFile('components/message/buttons/export/ExportModal.tsx');
     const exportChatModal = readSourceFile('components/modals/ExportChatModal.tsx');
     const about = readSourceFile('components/settings/sections/AboutSection.tsx');
@@ -142,12 +155,14 @@ describe('UI clarity regressions', () => {
     expect(exportOptions).not.toContain('hover:-translate-y');
     expect(exportOptions).not.toContain('lg:grid-cols-4');
     expect(exportOptions).not.toContain('text-green-500');
-    expect(exportModal).toContain('text-[var(--theme-text-primary)]');
+    expect(exportDialogShell).toContain('text-[var(--theme-text-primary)]');
+    expect(exportDialogShell).not.toContain('text-[var(--theme-text-link)]');
+    expect(exportDialogShell).toContain('max-w-sm');
+    expect(exportDialogShell).not.toContain('max-w-lg');
+    expect(exportModal).toContain('ExportDialogShell');
     expect(exportModal).not.toContain('text-[var(--theme-text-link)]');
-    expect(exportModal).toContain('max-w-sm');
-    expect(exportModal).not.toContain('max-w-lg');
+    expect(exportChatModal).toContain('ExportDialogShell');
     expect(exportChatModal).not.toContain('text-[var(--theme-text-link)]');
-    expect(exportChatModal).toContain('max-w-sm');
 
     expect(about).not.toContain('hover:-translate-y');
     expect(about).not.toContain('#24292F');
@@ -172,5 +187,102 @@ describe('UI clarity regressions', () => {
     expect(logViewer).not.toContain('h-[95vh]');
     expect(logViewer).toContain('sm:h-[85vh]');
     expect(logViewer).toContain('sm:max-h-[800px]');
+  });
+
+  it('keeps composer, token, live, and leftover chrome off rainbow palettes', () => {
+    const liveControls = readSourceFile('components/chat/input/actions/LiveControls.tsx');
+    const fileThumbnail = readSourceFile('components/chat/input/files/FileThumbnail.tsx');
+    const toolsMenu = readSourceFile('components/chat/input/ToolsMenu.tsx');
+    const tokenFooter = readSourceFile('components/modals/token-count/TokenCountFooter.tsx');
+    const tokenModal = readSourceFile('components/modals/TokenCountModal.tsx');
+    const audioRecorder = readSourceFile('components/modals/AudioRecorder.tsx');
+    const liveBanner = readSourceFile('components/chat/input/LiveStatusBanner.tsx');
+    const queuedCard = readSourceFile('components/chat/input/QueuedSubmissionCard.tsx');
+    const audioPlayer = readSourceFile('components/chat/message-list/text-selection/AudioPlayerView.tsx');
+    const safety = readSourceFile('components/settings/sections/SafetySection.tsx');
+    const thinkingMode = readSourceFile('components/settings/controls/thinking/ThinkingModeSelector.tsx');
+    const mediaResolution = readSourceFile('components/chat/input/toolbar/MediaResolutionSelector.tsx');
+    const codeHeader = readSourceFile('components/message/blocks/parts/CodeHeader.tsx');
+    const tableBlock = readSourceFile('components/message/blocks/TableBlock.tsx');
+    const createFileHeader = readSourceFile('components/modals/create-file/CreateFileHeader.tsx');
+    const settingsSidebar = readSourceFile('components/settings/SettingsSidebar.tsx');
+    const htmlPreviewHeader = readSourceFile('components/modals/html-preview/HtmlPreviewHeader.tsx');
+    const contextUrls = readSourceFile('components/message/grounded-response/ContextUrls.tsx');
+    const searchSources = readSourceFile('components/message/grounded-response/SearchSources.tsx');
+    const mapsWidget = readSourceFile('components/message/grounded-response/MapsWidget.tsx');
+    const logColors = readSourceFile('components/log-viewer/logColorClasses.ts');
+    const collapsedRecent = readSourceFile('components/sidebar/CollapsedRecentChatsButton.tsx');
+    const markdownPreview = readSourceFile('components/modals/MarkdownPreviewModal.tsx');
+    const filePreview = readSourceFile('components/modals/FilePreviewModal.tsx');
+    const openaiModels = readSourceFile(
+      'components/settings/sections/api-config/OpenAICompatibleCurrentModelsPanel.tsx',
+    );
+    const pdfMain = readSourceFile('components/shared/file-preview/pdf-viewer/PdfMainContent.tsx');
+
+    expect(liveControls).not.toContain('text-purple-500');
+    expect(liveControls).not.toContain('text-red-500');
+    expect(liveControls).not.toContain('animate-pulse');
+    expect(liveControls).toContain('theme-icon-settings');
+    expect(liveControls).toContain('theme-text-danger');
+
+    expect(fileThumbnail).not.toContain('purple-950');
+    expect(fileThumbnail).not.toContain('cyan-950');
+    expect(fileThumbnail).not.toContain('cyan-200');
+    expect(fileThumbnail).toContain('theme-bg-code-block');
+
+    expect(toolsMenu).not.toContain('bg-blue-500/10');
+    expect(toolsMenu).not.toContain('group-hover:scale-75');
+    expect(toolsMenu).not.toContain('group-hover:-rotate-90');
+    expect(toolsMenu).toContain('theme-bg-accent');
+
+    expect(tokenFooter).not.toContain('text-2xl');
+    expect(tokenFooter).not.toContain('theme-text-link');
+    expect(tokenFooter).toContain('SETTINGS_PRIMARY_ACTION_BUTTON_CLASS');
+    expect(tokenModal).not.toContain('theme-text-link');
+
+    expect(audioRecorder).not.toContain('amber-50');
+    expect(audioRecorder).not.toContain('dark:amber');
+    expect(audioRecorder).not.toContain('tracking-widest');
+    expect(audioRecorder).not.toContain('theme-text-link');
+    expect(audioRecorder).toContain('theme-text-warning');
+
+    expect(liveBanner).not.toContain('bg-blue-500');
+    expect(liveBanner).toContain('theme-bg-accent');
+
+    expect(queuedCard).not.toContain('rgba(15,23,42');
+    expect(queuedCard).toContain('COMPOSER_SHELL_RADIUS_CLASS');
+
+    expect(audioPlayer).not.toContain('ring-white/10');
+    expect(audioPlayer).toContain('shadow-premium');
+
+    expect(safety).not.toContain('text-red-500');
+    expect(safety).not.toContain('text-orange-500');
+    expect(safety).not.toContain('text-green-500');
+    expect(thinkingMode).not.toContain('text-amber-500');
+    expect(thinkingMode).not.toContain('text-red-500');
+    expect(mediaResolution).not.toContain('text-blue-500');
+    expect(mediaResolution).not.toContain('text-amber-500');
+    expect(codeHeader).not.toContain('text-emerald-500');
+    expect(tableBlock).not.toContain('text-blue-500');
+    expect(createFileHeader).not.toContain('theme-text-link');
+    expect(settingsSidebar).not.toContain('theme-text-link');
+    expect(htmlPreviewHeader).not.toContain('orange-500');
+
+    expect(contextUrls).not.toContain('text-green-500');
+    expect(contextUrls).not.toContain('tracking-widest');
+    expect(searchSources).not.toContain('tracking-widest');
+    expect(mapsWidget).not.toContain('tracking-widest');
+    expect(mapsWidget).not.toContain('rounded-2xl');
+
+    expect(logColors).not.toContain('purple-900');
+    expect(logColors).not.toContain('text-blue-400');
+    expect(logColors).toContain('theme-text-danger');
+
+    expect(collapsedRecent).not.toContain('rounded-2xl');
+    expect(markdownPreview).not.toContain('rounded-2xl');
+    expect(markdownPreview).not.toContain('hover:text-red-500');
+    expect(filePreview).not.toContain('bg-white/15');
+    expect(openaiModels).toContain('SETTINGS_SEARCH_INPUT_CLASS');
+    expect(pdfMain).not.toContain('tracking-widest');
   });
 });

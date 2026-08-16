@@ -19,7 +19,6 @@ const { loadableScenario, scenarioManagerState } = vi.hoisted(() => ({
     systemScenarioIds: [],
     builtInScenarioIds: [],
     hasUnsavedChanges: true,
-    showFeedback: vi.fn(),
     actions: {
       handleStartAddNew: vi.fn(),
       handleStartEdit: vi.fn(),
@@ -36,6 +35,11 @@ const { loadableScenario, scenarioManagerState } = vi.hoisted(() => ({
 
 vi.mock('@/hooks/scenarios/useScenarioManager', () => ({
   useScenarioManager: () => scenarioManagerState,
+}));
+
+vi.mock('@/stores/toastStore', () => ({
+  toastError: vi.fn(),
+  toastSuccess: vi.fn(),
 }));
 
 vi.mock('@/components/shared/Modal', () => ({

@@ -94,7 +94,7 @@ const LazyPdfPage = ({
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-50 text-gray-300">
-          <span className="text-sm font-mono font-medium tracking-widest">PAGE {pageNum}</span>
+          <span className="text-sm font-mono font-medium">PAGE {pageNum}</span>
         </div>
       )}
     </div>

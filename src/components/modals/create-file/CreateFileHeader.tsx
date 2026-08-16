@@ -7,6 +7,7 @@ interface CreateFileHeaderProps {
   isEditing: boolean;
   isPdf: boolean;
   isExportingPdf: boolean;
+  canDownloadPdf: boolean;
   supportsRichPreview: boolean;
   isPreviewMode: boolean;
   setIsPreviewMode: (mode: boolean) => void;
@@ -25,6 +26,7 @@ export const CreateFileHeader: React.FC<CreateFileHeaderProps> = ({
   isEditing,
   isPdf,
   isExportingPdf,
+  canDownloadPdf,
   supportsRichPreview,
   isPreviewMode,
   setIsPreviewMode,
@@ -46,14 +48,14 @@ export const CreateFileHeader: React.FC<CreateFileHeaderProps> = ({
           id={titleId}
           className="text-lg font-semibold text-[var(--theme-text-primary)] flex items-center gap-2 min-w-0"
         >
-          <FileText size={20} className="text-[var(--theme-text-link)] flex-shrink-0" />
+          <FileText size={20} className="text-[var(--theme-text-tertiary)] flex-shrink-0" />
           <span className="truncate">{isEditing ? t('createTextEditTitle') : t('createTextTitle')}</span>
         </h2>
         <div className="flex items-center gap-2 flex-shrink-0">
           {isPdf && (
             <button
               onClick={handleDownloadPdf}
-              disabled={isExportingPdf}
+              disabled={isExportingPdf || !canDownloadPdf}
               className="flex items-center justify-center h-9 w-9 sm:w-auto sm:px-3 rounded-lg text-xs font-medium transition-colors bg-[var(--theme-bg-input)] text-[var(--theme-text-primary)] border border-[var(--theme-border-secondary)] hover:bg-[var(--theme-bg-tertiary)] disabled:opacity-50"
               title={t('createTextDownloadPdf')}
             >

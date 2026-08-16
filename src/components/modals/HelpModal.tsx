@@ -6,6 +6,7 @@ import { CommandIcon } from '@/components/icons/CommandIcon';
 import { type CommandInfo } from '@/types';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { MODAL_CLOSE_BUTTON_CLASS } from '@/constants/buttonClasses';
+import { SETTINGS_SEARCH_INPUT_CLASS } from '@/constants/designTokens';
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
 
 interface HelpModalProps {
@@ -69,7 +70,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, commands 
               autoFocus
               autoComplete="off"
               spellCheck={false}
-              className="h-10 w-full rounded-lg border border-transparent bg-[var(--theme-bg-tertiary)]/45 pl-9 pr-3 text-sm text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)]/70 focus:bg-[var(--theme-bg-tertiary)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--theme-border-focus)]/35"
+              className={SETTINGS_SEARCH_INPUT_CLASS}
             />
           </div>
         </div>

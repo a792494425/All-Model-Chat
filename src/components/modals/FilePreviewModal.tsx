@@ -313,8 +313,8 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
           ) : isAudio ? (
             <div className="w-full h-full flex items-center justify-center">
               {previewFile.dataUrl && (
-                <div className="max-w-[calc(100vw-2rem)] bg-white/15 p-4 sm:p-8 rounded-2xl border border-white/10 shadow-2xl flex flex-col items-center gap-4">
-                  <FileAudio size={64} className="text-white/50" />
+                <div className="max-w-[calc(100vw-2rem)] bg-[var(--theme-bg-secondary)] p-4 sm:p-8 rounded-xl border border-[var(--theme-border-secondary)] shadow-2xl flex flex-col items-center gap-4">
+                  <FileAudio size={64} className="text-[var(--theme-text-tertiary)]" />
                   <audio src={previewFile.dataUrl} controls className="w-full max-w-full sm:w-[400px]" />
                 </div>
               )}

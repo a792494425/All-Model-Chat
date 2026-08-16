@@ -49,7 +49,7 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex h-11 items-center gap-2.5 rounded-full border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)]/95 px-3 py-1.5 text-xs font-medium text-[var(--theme-text-primary)] shadow-[0_10px_28px_rgba(0,0,0,0.16)] backdrop-blur-xl">
+      <div className="flex h-11 items-center gap-2.5 rounded-full border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] px-3 py-1.5 text-xs font-medium text-[var(--theme-text-primary)] shadow-premium">
         <span data-audio-loading-spinner className="flex h-8 w-8 items-center justify-center">
           <GoogleSpinner size={20} />
         </span>
@@ -64,7 +64,7 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
     <div
       aria-label="Text selection audio player"
       data-audio-player-surface
-      className="flex h-11 w-[min(24rem,calc(100vw-1rem))] items-center gap-2 rounded-full border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)]/95 py-1.5 pl-1.5 pr-2 shadow-[0_12px_34px_rgba(0,0,0,0.18)] backdrop-blur-xl ring-1 ring-white/10 dark:ring-white/5"
+      className="flex h-11 w-[min(24rem,calc(100vw-1rem))] items-center gap-2 rounded-full border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] py-1.5 pl-1.5 pr-2 shadow-premium"
     >
       <div
         onMouseDown={onDragStart}

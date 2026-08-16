@@ -41,7 +41,11 @@ export const ThinkingModeSelector: React.FC<ThinkingModeSelectorProps> = ({
             : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-primary)]/50'
         }`}
       >
-        <Settings2 size={14} strokeWidth={2} className={mode === 'custom' ? 'text-amber-500' : 'opacity-70'} />
+        <Settings2
+          size={14}
+          strokeWidth={2}
+          className={mode === 'custom' ? 'text-[var(--theme-text-primary)]' : 'opacity-70'}
+        />
         {t('settingsThinkingModeCustom')}
       </button>
 
@@ -54,7 +58,11 @@ export const ThinkingModeSelector: React.FC<ThinkingModeSelectorProps> = ({
               : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-primary)]/50'
           }`}
         >
-          <Ban size={14} strokeWidth={2} className={mode === 'off' ? 'text-red-500' : 'opacity-70'} />
+          <Ban
+            size={14}
+            strokeWidth={2}
+            className={mode === 'off' ? 'text-[var(--theme-text-primary)]' : 'opacity-70'}
+          />
           {t('settingsThinkingModeOff')}
         </button>
       )}

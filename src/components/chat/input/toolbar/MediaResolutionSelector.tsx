@@ -46,9 +46,9 @@ export const MediaResolutionSelector: React.FC<MediaResolutionSelectorProps> = (
         <option key={option.value} value={option.value}>
           <span className="flex items-center gap-2">
             {isNativeAudioModel ? (
-              <Zap size={14} className="text-amber-500" />
+              <Zap size={14} className="text-[var(--theme-text-tertiary)]" />
             ) : (
-              <Settings2 size={14} className="text-blue-500" />
+              <Settings2 size={14} className="text-[var(--theme-text-tertiary)]" />
             )}
             <span>{option.label}</span>
           </span>

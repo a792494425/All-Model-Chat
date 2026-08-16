@@ -132,10 +132,10 @@ export const MarkdownPreviewModal: React.FC<MarkdownPreviewModalProps> = ({
       isOpen={true}
       onClose={handleClose}
       noPadding
-      backdropClassName="bg-black/45 backdrop-blur-sm"
+      backdropClassName="bg-black/45"
       contentClassName="w-[min(1600px,98vw)] h-[min(1000px,96vh)]"
     >
-      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)] text-[var(--theme-text-primary)] shadow-2xl">
+      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)] text-[var(--theme-text-primary)] shadow-2xl">
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--theme-bg-accent)]/10 text-[var(--theme-bg-accent)]">
@@ -197,7 +197,7 @@ export const MarkdownPreviewModal: React.FC<MarkdownPreviewModalProps> = ({
             <button
               type="button"
               onClick={isEditing ? handleToggleEdit : handleClose}
-              className="rounded-lg border border-[var(--theme-border-secondary)] p-2 text-[var(--theme-text-secondary)] hover:border-red-400/60 hover:text-red-500"
+              className="rounded-lg border border-[var(--theme-border-secondary)] p-2 text-[var(--theme-text-secondary)] hover:border-[var(--theme-text-danger)]/60 hover:text-[var(--theme-text-danger)]"
               title={isEditing ? t('filePreviewCancelEdit') : t('imageZoomCloseTitle')}
             >
               <X size={18} />

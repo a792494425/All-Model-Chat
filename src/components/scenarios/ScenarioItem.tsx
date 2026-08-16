@@ -108,7 +108,7 @@ export const ScenarioItem: React.FC<ScenarioItemProps> = ({
           <span className="flex-shrink-0 tabular-nums">
             {interpolate(t('scenariosMessageCount'), { count: String(messageCount) })}
           </span>
-          {hasSystemPrompt && <span className="flex-shrink-0">{t('scenariosHasSystemPrompt')}</span>}
+          {hasSystemPrompt && <span className="flex-shrink-0">{t('scenariosSystemPromptLabel')}</span>}
         </span>
       </button>
 

@@ -126,18 +126,23 @@ export const Modal: React.FC<ModalProps> = ({
   }, [isOpen, isActuallyOpen]);
 
   useEffect(() => {
+    const isTopmostDialog = (modalNode: HTMLElement) => {
+      const dialogs = targetDocument.querySelectorAll('[role="dialog"]');
+      return dialogs.length === 0 || dialogs[dialogs.length - 1] === modalNode;
+    };
+
     const handleKeyDown = (event: KeyboardEvent) => {
+      const modalNode = modalContentRef.current;
+      if (!modalNode || !isTopmostDialog(modalNode)) {
+        return;
+      }
+
       if (event.key === 'Escape') {
         onClose();
         return;
       }
 
       if (event.key !== 'Tab') {
-        return;
-      }
-
-      const modalNode = modalContentRef.current;
-      if (!modalNode) {
         return;
       }
 

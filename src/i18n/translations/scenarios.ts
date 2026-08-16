@@ -45,7 +45,6 @@ export const scenariosTranslations = {
   scenariosMoreActions: { en: 'More actions', zh: '更多操作' },
   scenariosEditorSaveScenario: { en: 'Save Scenario', zh: '保存场景' },
   scenariosEditorSaveScenarioTitle: { en: 'Save this scenario', zh: '保存该场景' },
-  scenariosHasSystemPrompt: { en: 'System Prompt', zh: '系统提示' },
   scenariosMessageCount: { en: '{count} msgs', zh: '{count} 条消息' },
   scenariosSystemPromptLabel: { en: 'System Prompt', zh: '系统提示' },
   scenariosSystemPromptPlaceholder: {
@@ -82,8 +81,8 @@ export const scenariosTranslations = {
   scenariosEditorCategoryLabel: { en: 'Category', zh: '分类' },
   scenariosEditorDescriptionLabel: { en: 'Description', zh: '描述' },
   scenariosEditorDescriptionPlaceholder: {
-    en: 'A short summary shown on the card...',
-    zh: '一句话描述，显示在卡片上…',
+    en: 'A short summary shown in the list...',
+    zh: '一句话描述，显示在列表中…',
   },
   scenariosEditorSet: { en: 'Set', zh: '已设置' },
 

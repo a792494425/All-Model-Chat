@@ -169,7 +169,9 @@ describe('CreateTextFileEditor UI', () => {
     await renderEditor({ onConfirm });
 
     const input = document.body.querySelector<HTMLInputElement>('[data-create-file-header] input')!;
+    const textarea = document.body.querySelector('textarea')!;
     await act(async () => {
+      typeInto(textarea, 'hello');
       typeInto(input, 'notes');
     });
     await act(async () => {
@@ -180,6 +182,95 @@ describe('CreateTextFileEditor UI', () => {
 
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(onConfirm.mock.calls[0][1]).toBe('notes.md');
+  });
+
+  it('does not create an empty file from a filename-only draft', async () => {
+    const onConfirm = vi.fn();
+    await renderEditor({ onConfirm });
+
+    const input = document.body.querySelector<HTMLInputElement>('[data-create-file-header] input')!;
+    await act(async () => {
+      typeInto(input, 'notes');
+    });
+
+    const saveButton = Array.from(document.body.querySelectorAll('button')).find(
+      (button) => button.getAttribute('title') === 'Create File',
+    );
+    expect(saveButton).toBeTruthy();
+    expect(saveButton).toBeDisabled();
+
+    await act(async () => {
+      input.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('still creates a file while a chat response is generating', async () => {
+    const onConfirm = vi.fn();
+    await renderEditor({ onConfirm, isLoading: true, isProcessing: true });
+
+    const textarea = document.body.querySelector('textarea')!;
+    await act(async () => {
+      typeInto(textarea, '# Still works');
+    });
+
+    const saveButton = Array.from(document.body.querySelectorAll('button')).find(
+      (button) => button.getAttribute('title') === 'Create File',
+    );
+    expect(saveButton).not.toBeDisabled();
+
+    await act(async () => {
+      saveButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    expect(onConfirm.mock.calls[0][1]).toBe('Still works.md');
+  });
+
+  it('creates only one file when save is triggered twice', async () => {
+    const onConfirm = vi.fn();
+    await renderEditor({ onConfirm });
+
+    const textarea = document.body.querySelector('textarea')!;
+    const saveButton = Array.from(document.body.querySelectorAll('button')).find(
+      (button) => button.getAttribute('title') === 'Create File',
+    )!;
+
+    await act(async () => {
+      typeInto(textarea, 'once');
+    });
+    await act(async () => {
+      saveButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      saveButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the selected extension even if the filename field already includes one', async () => {
+    const onConfirm = vi.fn();
+    await renderEditor({ onConfirm });
+
+    const input = document.body.querySelector<HTMLInputElement>('[data-create-file-header] input')!;
+    const textarea = document.body.querySelector('textarea')!;
+    const select = document.body.querySelector('select')!;
+
+    await act(async () => {
+      typeInto(textarea, 'body');
+      typeInto(input, 'notes.MD');
+      select.value = '.txt';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await act(async () => {
+      input.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(onConfirm).toHaveBeenCalledWith('body', 'notes.txt');
   });
 
   it('hints the derived filename in the empty filename field', async () => {
@@ -236,7 +327,7 @@ describe('CreateTextFileEditor UI', () => {
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
     createMarkdownPdfBlobMock.mockRejectedValue(new Error('boom'));
 
-    await renderEditor({ initialFilename: 'doc.pdf' });
+    await renderEditor({ initialFilename: 'doc.pdf', initialContent: '# Doc' });
 
     const saveButton = Array.from(document.body.querySelectorAll('button')).find(
       (button) => button.getAttribute('title') === 'Save',

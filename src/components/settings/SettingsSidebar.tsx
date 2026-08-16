@@ -4,11 +4,7 @@ import { KeyRound, LayoutPanelLeft, Network, SlidersHorizontal, X } from 'lucide
 import { type SettingsTab, type SettingsTabDescriptor, useSettingsUiStore } from '@/stores/settingsUiStore';
 import { IconAbout, IconData, IconKeyboard } from '@/components/icons';
 import { Toggle } from '@/components/shared/Toggle';
-import {
-  SETTINGS_KBD_KEY_CLASS,
-  SETTINGS_NAV_ACTIVE_CLASS,
-  SETTINGS_NAV_IDLE_CLASS,
-} from '@/constants/designTokens';
+import { SETTINGS_KBD_KEY_CLASS, SETTINGS_NAV_ACTIVE_CLASS, SETTINGS_NAV_IDLE_CLASS } from '@/constants/designTokens';
 import { SettingsSearchBar } from './SettingsSearchBar';
 import { interpolate } from '@/i18n/interpolate';
 
@@ -163,9 +159,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
         </nav>
       )}
 
-      <div
-        className={`flex-shrink-0 px-4 py-2 md:p-3 ${isSearching ? 'hidden md:block' : ''}`}
-      >
+      <div className={`flex-shrink-0 px-4 py-2 md:p-3 ${isSearching ? 'hidden md:block' : ''}`}>
         <div
           className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 ${
             isAdvancedModeEnabled ? 'bg-[var(--theme-bg-accent)]/15' : ''
@@ -176,7 +170,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
             onClick={toggleAdvancedMode}
             className={`flex items-center gap-2 rounded-md px-1 py-0.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)] ${
               isAdvancedModeEnabled
-                ? 'text-[var(--theme-text-link)]'
+                ? 'text-[var(--theme-text-primary)]'
                 : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)]'
             }`}
             aria-pressed={isAdvancedModeEnabled}
@@ -184,11 +178,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
             <SlidersHorizontal size={14} />
             <span>{t('settingsAdvancedMode')}</span>
           </button>
-          <Toggle
-            checked={isAdvancedModeEnabled}
-            onChange={toggleAdvancedMode}
-            ariaLabel={t('settingsAdvancedMode')}
-          />
+          <Toggle checked={isAdvancedModeEnabled} onChange={toggleAdvancedMode} ariaLabel={t('settingsAdvancedMode')} />
         </div>
       </div>
     </aside>

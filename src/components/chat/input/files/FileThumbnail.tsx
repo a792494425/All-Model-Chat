@@ -165,14 +165,14 @@ const AudioThumbnail = ({ file }: { file: UploadedFile }) => {
   return (
     <div
       data-thumbnail-kind="audio"
-      className="flex h-full w-full items-center justify-center overflow-hidden bg-gradient-to-br from-purple-950 via-slate-950 to-cyan-950 px-2"
+      className="flex h-full w-full items-center justify-center overflow-hidden bg-[var(--theme-bg-code-block)] px-2"
     >
       <div className="flex h-12 w-full items-center justify-center gap-0.5">
         {bars.map((height, index) => (
           <span
             key={index}
             data-waveform-bar="true"
-            className="w-1 rounded-full bg-cyan-200/80 shadow-[0_0_8px_rgba(103,232,249,0.35)]"
+            className="w-1 rounded-full bg-[var(--theme-text-tertiary)]/70"
             style={{ height: `${Math.min(88, height)}%` }}
           />
         ))}

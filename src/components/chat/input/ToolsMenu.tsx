@@ -42,16 +42,14 @@ const ActiveToolBadge: React.FC<{
     <div className="h-4 w-px bg-[var(--theme-border-secondary)] mx-1.5"></div>
     <button
       type="button"
-      className="group flex items-center gap-1.5 bg-blue-500/10 text-[var(--theme-text-link)] text-sm px-2.5 py-1 rounded-full transition-all select-none hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] cursor-pointer border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)]"
+      className="group flex cursor-pointer items-center gap-1.5 rounded-full border-0 bg-[var(--theme-bg-accent)]/10 px-2.5 py-1 text-sm text-[var(--theme-text-primary)] transition-colors select-none hover:bg-[var(--theme-bg-tertiary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)]"
       style={{ animation: `fadeInUp 0.3s ease-out both` }}
       onClick={onRemove}
       aria-label={removeAriaLabel}
     >
-      <div className="relative flex items-center justify-center w-3.5 h-3.5">
-        <span className="absolute inset-0 flex items-center justify-center transition-all duration-200 opacity-100 scale-100 group-hover:opacity-0 group-hover:scale-75 rotate-0 group-hover:-rotate-90">
-          {icon}
-        </span>
-        <span className="absolute inset-0 flex items-center justify-center transition-all duration-200 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 rotate-90 group-hover:rotate-0 text-[var(--theme-icon-error)]">
+      <div className="relative flex h-3.5 w-3.5 items-center justify-center">
+        <span className="flex items-center justify-center group-hover:opacity-0">{icon}</span>
+        <span className="absolute inset-0 flex items-center justify-center text-[var(--theme-icon-error)] opacity-0 group-hover:opacity-100">
           <X size={14} strokeWidth={2.5} />
         </span>
       </div>

@@ -203,7 +203,7 @@ export const TableBlock: React.FC<TableBlockProps> = ({ children, className, nod
                   onClick={handleDownloadCSV}
                   className={`${MENU_ITEM_BUTTON_CLASS} ${MENU_ITEM_DEFAULT_STATE_CLASS} px-4 py-3 gap-3`}
                 >
-                  <FileText size={16} className="text-blue-500" />
+                  <FileText size={16} className="text-[var(--theme-text-tertiary)]" />
                   <span>{t('exportToCSV')}</span>
                 </button>
                 <button
@@ -273,7 +273,7 @@ export const TableBlock: React.FC<TableBlockProps> = ({ children, className, nod
                 onClick={handleDownloadCSV}
                 className={`${MENU_ITEM_COMPACT_BUTTON_CLASS} ${MENU_ITEM_DEFAULT_STATE_CLASS}`}
               >
-                <FileText size={14} className="text-blue-500" />
+                <FileText size={14} className="text-[var(--theme-text-tertiary)]" />
                 <span>{t('exportToCSV')}</span>
               </button>
               <button

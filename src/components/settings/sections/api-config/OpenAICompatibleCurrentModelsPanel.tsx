@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Minus, Search } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { SMALL_ICON_DANGER_BUTTON_CLASS } from '@/constants/buttonClasses';
+import { SETTINGS_SEARCH_INPUT_CLASS } from '@/constants/designTokens';
 import {
   type EditableOpenAICompatibleModelRow,
   getOpenAICompatibleModelName,
@@ -52,7 +53,7 @@ export const OpenAICompatibleCurrentModelsPanel: React.FC<OpenAICompatibleCurren
           type="search"
           value={modelSearchText}
           onChange={(event) => setModelSearchText(event.target.value)}
-          className="w-full rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] py-2 pl-9 pr-3 text-sm text-[var(--theme-text-primary)] outline-none transition-colors placeholder:text-[var(--theme-text-tertiary)] focus:border-[var(--theme-border-focus)] focus:ring-2 focus:ring-[var(--theme-border-focus)]/15"
+          className={SETTINGS_SEARCH_INPUT_CLASS}
           placeholder={t('settingsOpenAICompatibleModelSearch')}
           aria-label={t('settingsOpenAICompatibleModelSearch')}
           data-openai-compatible-model-search-input="true"

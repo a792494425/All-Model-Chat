@@ -9,7 +9,7 @@ export interface ToastEntry {
   durationMs: number;
 }
 
-export interface ShowToastOptions {
+interface ShowToastOptions {
   type?: ToastType;
   durationMs?: number;
 }

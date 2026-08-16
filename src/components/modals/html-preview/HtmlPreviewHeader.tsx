@@ -48,7 +48,7 @@ export const HtmlPreviewHeader: React.FC<HtmlPreviewHeaderProps> = ({
   return (
     <header className="h-[45px] px-4 flex items-center justify-between gap-4 bg-[var(--theme-bg-primary)] border-b border-[var(--theme-border-secondary)] z-10 select-none">
       <div className="flex items-center gap-3 min-w-0 overflow-hidden">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-orange-500/10">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--theme-bg-tertiary)]/45 text-[var(--theme-text-tertiary)]">
           <IconHtml5 size={20} />
         </div>
         <div className="flex flex-col min-w-0">

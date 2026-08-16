@@ -1,4 +1,6 @@
 const MAX_DERIVED_FILENAME_LENGTH = 60;
+const MARKDOWN_LINK_PATTERN = /\[([^\]]+)\]\([^)]*\)/g;
+const MARKDOWN_IMAGE_PATTERN = /!\[([^\]]*)\]\([^)]*\)/g;
 const MARKDOWN_EMPHASIS_PATTERN = /\*\*|__|\*|~~|`/g;
 const UNSAFE_FILENAME_CHAR_PATTERN = /[<>:"/\\|?*#]/g;
 
@@ -9,6 +11,8 @@ const UNSAFE_FILENAME_CHAR_PATTERN = /[<>:"/\\|?*#]/g;
  */
 const cleanFilenameCandidate = (candidate: string): string | null => {
   const cleaned = candidate
+    .replace(MARKDOWN_IMAGE_PATTERN, '$1')
+    .replace(MARKDOWN_LINK_PATTERN, '$1')
     .replace(MARKDOWN_EMPHASIS_PATTERN, '')
     .replace(UNSAFE_FILENAME_CHAR_PATTERN, '')
     .replace(/\s+/g, ' ')

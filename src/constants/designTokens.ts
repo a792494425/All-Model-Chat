@@ -93,3 +93,7 @@ export const SETTINGS_NAV_ACTIVE_CLASS = 'bg-[var(--theme-bg-accent)]/10 text-[v
 
 export const SETTINGS_NAV_IDLE_CLASS =
   'text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)]/50 hover:text-[var(--theme-text-primary)]';
+
+/** Quiet type=search field used in Help and Preset Scenarios. */
+export const SETTINGS_SEARCH_INPUT_CLASS =
+  'h-10 w-full rounded-lg border border-transparent bg-[var(--theme-bg-tertiary)]/45 pl-9 pr-3 text-sm text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)]/70 focus:bg-[var(--theme-bg-tertiary)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--theme-border-focus)]/35';

@@ -141,7 +141,12 @@ describe('translation coverage for protected UI surfaces', () => {
       },
       {
         file: 'src/components/message/buttons/export/ExportModal.tsx',
-        snippets: ['Close export dialog', 'Processing message content...'],
+        snippets: [
+          'Close export dialog',
+          'Processing message content...',
+          'Export Message',
+          'Exporting {type}...',
+        ],
       },
       {
         file: 'src/components/message/buttons/export/ExportOptions.tsx',
@@ -493,10 +498,6 @@ describe('translation coverage for protected UI surfaces', () => {
       {
         file: 'src/hooks/scenarios/useScenarioManager.ts',
         snippets: ['Scenario deleted.'],
-      },
-      {
-        file: 'src/components/message/buttons/export/ExportModal.tsx',
-        snippets: ['Export Message', 'Exporting {type}...'],
       },
       {
         file: 'src/hooks/chat/history/useGroupActions.ts',

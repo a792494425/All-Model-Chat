@@ -7,6 +7,7 @@ import { ConfirmationModal } from '@/components/modals/ConfirmationModal';
 import { ScenarioEditor } from './ScenarioEditor';
 import { ScenarioList } from './ScenarioList';
 import { useScenarioManager } from '@/hooks/scenarios/useScenarioManager';
+import { toastError, toastSuccess } from '@/stores/toastStore';
 import {
   ICON_BUTTON_CLASS,
   MODAL_CLOSE_BUTTON_CLASS,
@@ -45,7 +46,6 @@ export const PreloadedMessagesModal: React.FC<PreloadedMessagesModalProps> = ({
     systemScenarioIds,
     builtInScenarioIds,
     hasUnsavedChanges,
-    showFeedback,
     actions,
   } = useScenarioManager({
     isOpen,
@@ -108,11 +108,11 @@ export const PreloadedMessagesModal: React.FC<PreloadedMessagesModalProps> = ({
 
   const handleLoadAndClose = (scenario: SavedScenario) => {
     if (scenario.messages.length === 0 && !scenario.systemInstruction?.trim()) {
-      showFeedback('error', t('scenariosFeedbackEmpty'));
+      toastError(t('scenariosFeedbackEmpty'));
       return;
     }
     onLoadScenario(scenario);
-    showFeedback('success', t('scenariosFeedbackLoaded'));
+    toastSuccess(t('scenariosFeedbackLoaded'));
     clearDelayedCloseTimeout();
     delayedCloseTimeoutRef.current = setTimeout(() => {
       delayedCloseTimeoutRef.current = null;

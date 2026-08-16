@@ -13,6 +13,7 @@ import { MessageListModals } from './MessageListModals';
 import { isGemini3Model } from '@/utils/model/modelCapabilities';
 import { getVisibleChatMessages } from '@/utils/chat/visibility';
 import { isMarkdownFile } from '@/utils/file/fileTypeClassification';
+import { CHAT_MESSAGE_LIST_GUTTER_CLASS } from '@/constants/layout';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -132,7 +133,7 @@ const MessageListComponent: React.FC = () => {
   );
   const renderMessageItem = React.useCallback(
     (index: number, message: (typeof visibleMessages)[number]) => (
-      <div className="px-1.5 sm:px-2 md:px-3 max-w-7xl mx-auto w-full">
+      <div className={`${CHAT_MESSAGE_LIST_GUTTER_CLASS} max-w-7xl mx-auto w-full`}>
         <Message
           key={message.id}
           message={message}

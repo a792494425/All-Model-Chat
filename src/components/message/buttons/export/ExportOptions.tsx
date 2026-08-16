@@ -9,13 +9,6 @@ interface ExportOptionsProps {
   variant?: 'message' | 'chat';
 }
 
-const FORMAT_BADGE: Record<ExportType, string> = {
-  png: 'PNG',
-  html: 'HTML',
-  txt: 'TXT',
-  json: 'JSON',
-};
-
 export const ExportOptions: React.FC<ExportOptionsProps> = ({ onExport, variant = 'message' }) => {
   const { t } = useI18n();
 
@@ -54,7 +47,7 @@ export const ExportOptions: React.FC<ExportOptionsProps> = ({ onExport, variant 
             className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-[var(--theme-bg-tertiary)]/70 ${FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS}`}
           >
             <span className={`${SETTINGS_VALUE_BADGE_CLASS} inline-flex w-12 shrink-0 justify-center`}>
-              {FORMAT_BADGE[exportOption.id]}
+              {exportOption.id.toUpperCase()}
             </span>
             <span className="min-w-0 flex-1 text-sm font-medium leading-snug text-[var(--theme-text-primary)]">
               {exportOption.desc}

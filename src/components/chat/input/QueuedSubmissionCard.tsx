@@ -3,6 +3,7 @@ import { CornerDownLeft, GripVertical, Trash2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { FOCUS_VISIBLE_RING_INPUT_OFFSET_CLASS } from '@/constants/focusClasses';
 import { SMALL_ICON_DANGER_BUTTON_CLASS } from '@/constants/buttonClasses';
+import { COMPOSER_SHELL_RADIUS_CLASS } from '@/constants/designTokens';
 
 interface QueuedSubmissionCardProps {
   title: string;
@@ -40,7 +41,7 @@ const QueuedSubmissionCardComponent: React.FC<QueuedSubmissionCardProps> = ({
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      className={`flex min-h-14 items-start justify-between gap-2 rounded-[24px] border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)]/85 px-3 pb-4 pt-2 text-sm shadow-[0_4px_14px_rgba(15,23,42,0.08)] backdrop-blur-sm ${
+      className={`flex min-h-14 items-start justify-between gap-2 border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] px-3 pb-4 pt-2 text-sm ${COMPOSER_SHELL_RADIUS_CLASS} ${
         isDragging ? 'opacity-60' : ''
       }`}
     >

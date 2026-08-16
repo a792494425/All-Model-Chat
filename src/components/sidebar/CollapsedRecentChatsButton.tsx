@@ -23,7 +23,6 @@ const CLOSE_DELAY_MS = 120;
 
 type PopoverOpenMode = 'hover' | 'focus' | 'click';
 
-
 export const CollapsedRecentChatsButton: React.FC<CollapsedRecentChatsButtonProps> = ({
   sessions,
   activeSessionId,
@@ -233,7 +232,7 @@ export const CollapsedRecentChatsButton: React.FC<CollapsedRecentChatsButtonProp
           <div
             ref={panelRef}
             style={panelPosition}
-            className="overflow-hidden rounded-2xl border border-[var(--theme-border-primary)] bg-[var(--theme-bg-primary)] shadow-premium"
+            className="overflow-hidden rounded-xl border border-[var(--theme-border-primary)] bg-[var(--theme-bg-primary)] shadow-premium"
             onMouseEnter={() => {
               if (openMode === 'click') {
                 clearCloseTimer();

@@ -10,7 +10,13 @@ describe('deriveDefaultFilename', () => {
     expect(deriveDefaultFilename('\n\n  hello world  \nsecond line')).toBe('hello world');
   });
 
-  it('strips markdown emphasis and filesystem-unsafe characters', () => {
+  it('strips markdown links so a heading link does not become the filename', () => {
+    expect(deriveDefaultFilename('# [Anthropic 自曝安全漏洞](https://linux.do/t/topic/2763210)\n\nbody')).toBe(
+      'Anthropic 自曝安全漏洞',
+    );
+  });
+
+  it('strips markdown emphasis and unsafe filename characters', () => {
     expect(deriveDefaultFilename('# **Bold** `code` title')).toBe('Bold code title');
     expect(deriveDefaultFilename('a/b:c?d*e')).toBe('abcde');
   });

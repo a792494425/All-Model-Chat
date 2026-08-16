@@ -6,8 +6,6 @@ import { SETTINGS_KBD_KEY_CLASS } from '@/constants/designTokens';
 interface CreateFileFooterProps {
   onSave: () => void;
   isEditing: boolean;
-  isProcessing: boolean;
-  isLoading: boolean;
   isExportingPdf: boolean;
   canSave: boolean;
   shortcutHint: string;
@@ -17,8 +15,6 @@ interface CreateFileFooterProps {
 export const CreateFileFooter: React.FC<CreateFileFooterProps> = ({
   onSave,
   isEditing,
-  isProcessing,
-  isLoading,
   isExportingPdf,
   canSave,
   shortcutHint,
@@ -46,7 +42,7 @@ export const CreateFileFooter: React.FC<CreateFileFooterProps> = ({
         <button
           type="button"
           onClick={onSave}
-          disabled={!canSave || isProcessing || isLoading || isExportingPdf}
+          disabled={!canSave || isExportingPdf}
           className="h-9 px-3 sm:px-4 text-sm font-medium bg-[var(--theme-bg-accent)] hover:bg-[var(--theme-bg-accent-hover)] text-[var(--theme-text-accent)] rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap flex-shrink-0"
           title={isEditing ? t('save') : t('createTextCreateButton')}
         >

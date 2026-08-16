@@ -30,8 +30,6 @@ export const CreateTextFileEditor: React.FC<CreateTextFileEditorProps> = (props)
   const {
     onConfirm,
     onCancel,
-    isProcessing,
-    isLoading,
     initialContent = '',
     initialFilename = '',
     themeId,
@@ -72,14 +70,14 @@ export const CreateTextFileEditor: React.FC<CreateTextFileEditorProps> = (props)
     isPasteRichTextAsMarkdownEnabled,
   });
 
-  const isBusy = isProcessing || isLoading;
+  const isBusy = isExportingPdf;
 
   const handleSaveKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (event.key !== 'Enter' || !(event.metaKey || event.ctrlKey)) return;
     if (event.nativeEvent.isComposing) return;
     event.preventDefault();
-    if (isBusy || isExportingPdf) return;
-    void handleSave(false);
+    if (isBusy) return;
+    void handleSave();
   };
 
   const requestClose = () => {
@@ -102,6 +100,7 @@ export const CreateTextFileEditor: React.FC<CreateTextFileEditorProps> = (props)
             isEditing={isEditing}
             isPdf={isPdf}
             isExportingPdf={isExportingPdf}
+            canDownloadPdf={!!textContent.trim()}
             supportsRichPreview={supportsRichPreview}
             isPreviewMode={isPreviewMode}
             setIsPreviewMode={setIsPreviewMode}
@@ -133,12 +132,10 @@ export const CreateTextFileEditor: React.FC<CreateTextFileEditorProps> = (props)
         }
         footer={
           <CreateFileFooter
-            onSave={() => handleSave(isBusy)}
+            onSave={() => void handleSave()}
             isEditing={isEditing}
-            isProcessing={isProcessing}
-            isLoading={isLoading}
             isExportingPdf={isExportingPdf}
-            canSave={!!textContent.trim() || !!filenameBase.trim()}
+            canSave={!!textContent.trim()}
             shortcutHint={saveShortcutHint}
             pdfError={pdfError}
           />

@@ -1,7 +1,8 @@
 import { act } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getExportableUserScenarios } from '@/features/scenarios/scenarioLibrary';
 import { type translations } from '@/i18n/translations';
+import { useToastStore } from '@/stores/toastStore';
 import { renderHook } from '@/test/render/renderer';
 import type { SavedScenario } from '@/types';
 import { useScenarioManager } from './useScenarioManager';
@@ -24,6 +25,26 @@ const createHookProps = (overrides: Partial<Parameters<typeof useScenarioManager
 });
 
 describe('useScenarioManager', () => {
+  afterEach(() => {
+    useToastStore.setState({ toasts: [] });
+  });
+
+  it('rejects a save without a title', () => {
+    const props = createHookProps();
+    const { result, unmount } = renderHook(() => useScenarioManager(props));
+
+    act(() => {
+      result.current.actions.handleSaveScenario({ ...userScenario, title: '  ' });
+    });
+
+    expect(props.onSaveAllScenarios).not.toHaveBeenCalled();
+    expect(useToastStore.getState().toasts[0]).toMatchObject({
+      type: 'error',
+      message: 'scenariosTitleRequired',
+    });
+    unmount();
+  });
+
   it('persists immediately when a scenario is saved', () => {
     const props = createHookProps();
     const { result, unmount } = renderHook(() => useScenarioManager(props));

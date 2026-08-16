@@ -49,18 +49,6 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
   const isEditingSystemScenario = Boolean(editingScenario && SYSTEM_SCENARIO_IDS.includes(editingScenario.id));
   const hasUnsavedChanges = view === 'editor' && !isEditingSystemScenario;
 
-  const showFeedback = useCallback((type: 'success' | 'error' | 'info', message: string) => {
-    if (type === 'error') {
-      toastError(message);
-      return;
-    }
-    if (type === 'success') {
-      toastSuccess(message);
-      return;
-    }
-    toastInfo(message);
-  }, []);
-
   const commitUserScenarios = useCallback(
     (userScenarios: SavedScenario[]) => {
       const next = buildSavedScenarios(userScenarios);
@@ -90,9 +78,9 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
       };
 
       commitUserScenarios([newScenario, ...getExportableUserScenarios(scenariosRef.current)]);
-      showFeedback('success', t('scenariosFeedbackDuplicated'));
+      toastSuccess(t('scenariosFeedbackDuplicated'));
     },
-    [commitUserScenarios, showFeedback, t],
+    [commitUserScenarios, t],
   );
 
   const handleCancelEdit = useCallback(() => {
@@ -103,7 +91,7 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
   const handleSaveScenario = useCallback(
     (scenarioToSave: SavedScenario) => {
       if (!scenarioToSave.title.trim()) {
-        showFeedback('error', t('scenariosTitleRequired'));
+        toastError(t('scenariosTitleRequired'));
         return;
       }
       const nextUserScenarios = getExportableUserScenarios(scenariosRef.current);
@@ -113,11 +101,11 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
           ? nextUserScenarios.map((scenario) => (scenario.id === scenarioToSave.id ? scenarioToSave : scenario))
           : [...nextUserScenarios, scenarioToSave],
       );
-      showFeedback('success', t('scenariosFeedbackSaved'));
+      toastSuccess(t('scenariosFeedbackSaved'));
       setView('list');
       setEditingScenario(null);
     },
-    [commitUserScenarios, showFeedback, t],
+    [commitUserScenarios, t],
   );
 
   const handleDeleteScenario = useCallback(
@@ -125,16 +113,16 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
       commitUserScenarios(
         getExportableUserScenarios(scenariosRef.current).filter((scenario) => scenario.id !== scenarioId),
       );
-      showFeedback('info', t('scenariosFeedbackDeleted'));
+      toastInfo(t('scenariosFeedbackDeleted'));
     },
-    [commitUserScenarios, showFeedback, t],
+    [commitUserScenarios, t],
   );
 
   const handleExportScenarios = useCallback(() => {
     const scenariosToExport = getExportableUserScenarios(scenarios);
 
     if (scenariosToExport.length === 0) {
-      showFeedback('info', t('scenariosFeedbackEmptyExport'));
+      toastInfo(t('scenariosFeedbackEmptyExport'));
       return;
     }
 
@@ -143,8 +131,8 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
     const blob = new Blob([jsonString], { type: 'application/json' });
     const date = new Date().toISOString().slice(0, 10);
     triggerDownload(createManagedObjectUrl(blob), `scenarios-export-${date}.json`);
-    showFeedback('success', t('scenariosFeedbackExported'));
-  }, [scenarios, showFeedback, t]);
+    toastSuccess(t('scenariosFeedbackExported'));
+  }, [scenarios, t]);
 
   const handleExportSingleScenario = useCallback(
     (scenario: SavedScenario) => {
@@ -157,9 +145,9 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
       const jsonString = JSON.stringify(exportPayload, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       triggerDownload(createManagedObjectUrl(blob), `scenario-${safeTitle}.json`);
-      showFeedback('success', t('scenariosFeedbackExported'));
+      toastSuccess(t('scenariosFeedbackExported'));
     },
-    [showFeedback, t],
+    [t],
   );
 
   const handleImportScenarios = useCallback(
@@ -186,20 +174,20 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
                 createId: generateUniqueId,
               }),
             );
-            showFeedback('success', t('scenariosFeedbackImported'));
+            toastSuccess(t('scenariosFeedbackImported'));
           } else {
             throw new Error('Invalid format');
           }
         } catch (error) {
           logService.error('Import failed', error);
-          showFeedback('error', t('scenariosFeedbackImportFailed'));
+          toastError(t('scenariosFeedbackImportFailed'));
         } finally {
           if (importInputRef.current) importInputRef.current.value = '';
         }
       };
       reader.readAsText(file);
     },
-    [commitUserScenarios, showFeedback, t],
+    [commitUserScenarios, t],
   );
 
   return {
@@ -212,7 +200,6 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
     systemScenarioIds: SYSTEM_SCENARIO_IDS,
     builtInScenarioIds: BUILT_IN_SCENARIO_IDS,
     hasUnsavedChanges,
-    showFeedback,
     actions: {
       handleStartAddNew,
       handleStartEdit,

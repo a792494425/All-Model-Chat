@@ -43,14 +43,6 @@ const THRESHOLD_LABEL_KEYS: Record<HarmBlockThreshold, string> = {
   [HarmBlockThreshold.BLOCK_LOW_AND_ABOVE]: 'safetyThresholdBlockLowAndAbove',
 };
 
-const STEP_TEXT_COLOR_CLASSES = [
-  'text-red-500',
-  'text-orange-500',
-  'text-yellow-500',
-  'text-blue-500',
-  'text-green-500',
-];
-
 type SliderValueMap = Record<HarmCategory, number>;
 
 const clampIndex = (index: number) => {
@@ -152,11 +144,7 @@ export const SafetySection: React.FC<SafetySectionProps> = ({
                 <label className="text-sm font-medium text-[var(--theme-text-primary)]">
                   {t(CATEGORY_TRANSLATION_KEYS[category])}
                 </label>
-                <span
-                  className={`text-xs font-bold uppercase tracking-wider ${
-                    STEP_TEXT_COLOR_CLASSES[sliderValue] || 'text-[var(--theme-text-primary)]'
-                  }`}
-                >
+                <span className="text-xs font-medium uppercase tracking-wider text-[var(--theme-text-primary)]">
                   {t(THRESHOLD_LABEL_KEYS[effectiveThreshold])}
                 </span>
               </div>
