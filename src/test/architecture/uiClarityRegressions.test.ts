@@ -89,13 +89,16 @@ describe('UI clarity regressions', () => {
     expect(diagramWrapper).not.toContain('bg-[var(--theme-bg-tertiary)]/45');
   });
 
-  it('keeps message bubbles inset from the history sidebar', () => {
+  it('insets only user message bubbles from the history sidebar', () => {
     const layout = readSourceFile('constants/layout.ts');
     const messageList = readSourceFile('components/chat/message-list/MessageList.tsx');
+    const message = readSourceFile('components/message/Message.tsx');
 
-    expect(layout).toContain("CHAT_MESSAGE_LIST_GUTTER_CLASS = 'px-4 sm:px-5 md:px-6'");
-    expect(messageList).toContain('CHAT_MESSAGE_LIST_GUTTER_CLASS');
-    expect(messageList).not.toContain('px-1.5 sm:px-2 md:px-3');
+    expect(layout).toContain("CHAT_USER_MESSAGE_INSET_CLASS = 'ml-12 sm:ml-16 md:ml-20'");
+    expect(layout).not.toContain('CHAT_MESSAGE_LIST_GUTTER_CLASS');
+    expect(messageList).toContain('px-1.5 sm:px-2 md:px-3');
+    expect(messageList).not.toContain('CHAT_MESSAGE_LIST_GUTTER_CLASS');
+    expect(message).toContain('CHAT_USER_MESSAGE_INSET_CLASS');
   });
 
   it('uses dynamic viewport height for the app root to avoid mobile browser chrome jumps', () => {

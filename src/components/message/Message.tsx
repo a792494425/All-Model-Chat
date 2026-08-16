@@ -4,6 +4,7 @@ import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivile
 import { MessageContent } from './MessageContent';
 import { MessageActions } from './MessageActions';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { CHAT_USER_MESSAGE_INSET_CLASS } from '@/constants/layout';
 import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
 import type { UserMessageCollapseController } from './content/userMessageCollapse';
 
@@ -49,7 +50,7 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
 
   const widthConstraints =
     message.role === 'user'
-      ? 'max-w-[80%] sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl'
+      ? `${CHAT_USER_MESSAGE_INSET_CLASS} max-w-[80%] sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl`
       : 'max-w-[calc(100%-2.5rem)] sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl';
 
   let bubbleClasses = `flex flex-col min-w-0 transition-all duration-200 ${widthConstraints} message-content-container `;

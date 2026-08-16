@@ -11,8 +11,8 @@ export const FOCUS_HISTORY_SEARCH_EVENT = 'amc:focus-history-search';
 /** Max content width for the chat input area and its empty-state suggestions. */
 export const CHAT_INPUT_MAX_WIDTH_CLASS = 'max-w-[44rem]';
 
-/** Horizontal inset for the message list so bubbles stay off the history sidebar. */
-export const CHAT_MESSAGE_LIST_GUTTER_CLASS = 'px-4 sm:px-5 md:px-6';
+/** Left inset on user bubbles only, so the bubble tail stays off the history sidebar. */
+export const CHAT_USER_MESSAGE_INSET_CLASS = 'ml-12 sm:ml-16 md:ml-20';
 
 /**
  * Z-index layering. Kept as full Tailwind class strings so the JIT compiler can
