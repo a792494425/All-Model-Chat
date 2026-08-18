@@ -298,7 +298,6 @@ describe('source readability boundaries', () => {
       'Wrap toolbar in z-indexed container to ensure dropdowns render above status banner',
       'Use chunkIndex+1 to match the [N] citation markers in the text body.',
       // Layout / design constraints (not section narration)
-      'Decorative gradient orb — neutral only, no accent/blue tint',
       'Mobile-only close row; desktop close lives in the content pane.',
       'Search container aligned with main header baseline',
       'Search collapses the tab list into a desktop-only match-count status.',
