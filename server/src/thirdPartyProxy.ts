@@ -3,6 +3,10 @@ import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { isPrivateNetworkHostname } from '../../shared/privateNetwork.js';
+import {
+  parseThirdPartyExtraHeadersHeader,
+  THIRD_PARTY_EXTRA_HEADERS_HEADER,
+} from '../../shared/thirdPartyExtraHeaders.js';
 import { getCorsHeaders, sendJson } from './cors.js';
 import type { ThirdPartyProxyRoute } from './config.js';
 import { runDetachedUpstream, maybeStreamWithSharedJob, type StreamJob } from './streamJobStore.js';
@@ -27,6 +31,7 @@ const STRIPPED_PROXY_REQUEST_HEADERS = new Set([
   // route table entry). It is consumed by resolveRoute and must not leak
   // upstream.
   'x-third-party-base-url',
+  'x-third-party-extra-headers',
 ]);
 
 const THIRD_PARTY_PROVIDER_HEADER = 'x-third-party-provider';
@@ -121,6 +126,13 @@ function buildProxyHeaders(request: IncomingMessage, route: ResolvedRoute, provi
   if (route.apiKey) {
     headers.set('authorization', `Bearer ${route.apiKey}`);
     headers.set('x-api-key', route.apiKey);
+  }
+
+  const extraHeadersHeader = request.headers[THIRD_PARTY_EXTRA_HEADERS_HEADER];
+  const extraHeadersRaw = Array.isArray(extraHeadersHeader) ? extraHeadersHeader[0] : extraHeadersHeader;
+  const extraHeaders = parseThirdPartyExtraHeadersHeader(extraHeadersRaw);
+  for (const [name, value] of Object.entries(extraHeaders)) {
+    headers.set(name, value);
   }
 
   return headers;

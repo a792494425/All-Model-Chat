@@ -57,6 +57,41 @@ describe('ChatInput', () => {
     expect(valueProbe?.textContent).toBe('Original message updated');
   });
 
+  it('does not re-apply a commanded replace after the user continues editing', async () => {
+    const providerValue = createProviderValue({
+      id: 1,
+      mode: 'replace',
+      text: 'Original message',
+    });
+
+    await act(async () => {
+      renderChatInput(providerValue);
+    });
+
+    const textarea = renderer.container.querySelector<HTMLTextAreaElement>('[data-testid="chat-input-textarea"]');
+    expect(textarea).not.toBeNull();
+
+    await act(async () => {
+      if (!textarea) {
+        return;
+      }
+
+      setTextareaValue(textarea, 'Original message updated');
+    });
+
+    const providerValueAgain = createProviderValue({
+      id: 1,
+      mode: 'replace',
+      text: 'Original message',
+    });
+
+    await act(async () => {
+      renderChatInput(providerValueAgain);
+    });
+
+    expect(textarea?.value).toBe('Original message updated');
+  });
+
   it('focuses replacement commands at the bottom of the filled input', async () => {
     vi.useFakeTimers();
     try {
@@ -208,6 +243,47 @@ describe('ChatInput', () => {
     expect(textarea?.value).toBe('ni');
   });
 
+  it('does not submit the IME confirmation Enter, then sends on the next Enter', async () => {
+    const onSendMessage = vi.fn();
+    const providerValue = createProviderValue(null);
+    providerValue.input.isLoading = false;
+    providerValue.input.isEditing = false;
+    providerValue.input.editMode = 'resend';
+    providerValue.input.editingMessageId = null;
+    providerValue.input.onSendMessage = onSendMessage;
+
+    await act(async () => {
+      renderChatInput(providerValue);
+    });
+
+    const textarea = renderer.container.querySelector<HTMLTextAreaElement>('[data-testid="chat-input-textarea"]');
+    expect(textarea).not.toBeNull();
+
+    await act(async () => {
+      if (!textarea) {
+        return;
+      }
+
+      setTextareaValue(textarea, '你好');
+      textarea.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+      textarea.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true }));
+      dispatchKeyDown(textarea, 'Enter');
+    });
+
+    expect(onSendMessage).not.toHaveBeenCalled();
+    expect(textarea?.value).toBe('你好');
+
+    await act(async () => {
+      if (!textarea) {
+        return;
+      }
+
+      dispatchKeyDown(textarea, 'Enter');
+    });
+
+    expect(onSendMessage).toHaveBeenCalledWith('你好', { isFastMode: false, files: undefined });
+  });
+
   it('sends Live text turns with selected attachments through client content', async () => {
     const onAddUserMessage = vi.fn();
     const selectedFiles: UploadedFile[] = [
@@ -218,6 +294,8 @@ describe('ChatInput', () => {
         size: 128,
         uploadState: 'active',
         fileUri: 'files/diagram',
+        fileApiName: 'files/diagram',
+        fileApiExpirationTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       },
     ];
     const providerValue = createProviderValue(null);

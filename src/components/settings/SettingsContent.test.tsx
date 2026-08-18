@@ -2,7 +2,7 @@ import { act, type ComponentProps } from 'react';
 import { setupTestRenderer } from '@/test/render/renderer';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
-import { createDefaultThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
+import { createThirdPartyConnection } from '@/test/data/factories';
 import { type ApiMode } from '@/types';
 import { SettingsContent } from './SettingsContent';
 import type { SettingsTab } from '@/stores/settingsUiStore';
@@ -25,20 +25,17 @@ const buildOpenaiProviderSettings = (
     models?: Array<{ id: string; name: string; isPinned?: boolean }>;
   } = {},
 ) => {
-  const defaults = createDefaultThirdPartyApiSettings();
   return {
     thirdPartyApi: {
-      providers: {
-        ...defaults.providers,
-        openai: {
+      connections: [
+        createThirdPartyConnection({
+          id: 'openai',
           apiKey: null,
-          baseUrl: defaults.providers.openai.baseUrl,
-          modelId: overrides.modelId ?? defaults.providers.openai.modelId,
-          models: overrides.models ?? defaults.providers.openai.models,
-          protocol: 'openai-compatible' as const,
+          modelId: overrides.modelId,
+          models: overrides.models,
           enabled: true,
-        },
-      },
+        }),
+      ],
     },
   };
 };
@@ -342,17 +339,15 @@ describe('SettingsContent', () => {
           currentSettings={{
             ...DEFAULT_APP_SETTINGS,
             thirdPartyApi: {
-              providers: {
-                ...createDefaultThirdPartyApiSettings().providers,
-                openai: {
+              connections: [
+                createThirdPartyConnection({
+                  id: 'openai',
                   apiKey: null,
-                  baseUrl: 'https://api.openai.com/v1',
                   modelId: 'gpt-5.6-sol',
                   models: [{ id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true }],
-                  protocol: 'openai-compatible',
                   enabled: false,
-                },
-              },
+                }),
+              ],
             },
           }}
           availableModels={[{ id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' }]}
@@ -534,8 +529,25 @@ describe('SettingsContent', () => {
 
     expect(mockShortcutsSection.lastProps!.availableModels).toEqual([
       { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', apiMode: 'gemini-native' },
-      { id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true, apiMode: 'third-party', providerId: 'openai' },
-      { id: 'gpt-4.1', name: 'GPT-4.1', apiMode: 'third-party', providerId: 'openai' },
+      {
+        id: 'gpt-5.6-sol',
+        name: 'GPT-5.6 Sol',
+        isPinned: true,
+        apiMode: 'third-party',
+        providerId: 'openai',
+        templateId: 'openai',
+        connectionName: 'OpenAI',
+        missingApiKey: true,
+      },
+      {
+        id: 'gpt-4.1',
+        name: 'GPT-4.1',
+        apiMode: 'third-party',
+        providerId: 'openai',
+        templateId: 'openai',
+        connectionName: 'OpenAI',
+        missingApiKey: true,
+      },
     ]);
   });
 

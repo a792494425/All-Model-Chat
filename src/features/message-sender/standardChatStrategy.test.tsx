@@ -3,8 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { sendStandardMessage } from './standardChatStrategy';
 import { createStandardChatProps, type StandardChatPropsOverrides } from '@/test/hooks/factories';
 import { MediaResolution } from '@/types';
-import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
-import { createDefaultThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
+import { createThirdPartyConnection } from '@/test/data/factories';
 import { createMessage } from '@/utils/chat/session';
 import type { PreparedModelRequest } from './useModelRequestRunner';
 
@@ -273,10 +272,7 @@ describe('standardChatStrategy', () => {
   });
 
   it('stores the sent protocol parts on the user message', async () => {
-    const promptParts = [
-      { fileData: { mimeType: 'image/png', fileUri: 'files/abc' } },
-      { text: 'analyze the csv' },
-    ];
+    const promptParts = [{ fileData: { mimeType: 'image/png', fileUri: 'files/abc' } }, { text: 'analyze the csv' }];
     mockBuildContentParts.mockResolvedValue({
       contentParts: promptParts,
       enrichedFiles: [],
@@ -408,16 +404,15 @@ describe('standardChatStrategy', () => {
       appSettings: {
         apiKey: 'gemini-key',
         thirdPartyApi: {
-          providers: {
-            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
-            openai: {
+          connections: [
+            createThirdPartyConnection({
+              id: 'openai',
               apiKey: 'openai-key',
               baseUrl: 'https://api.openai.com/v1',
               modelId: 'gpt-5.6-sol',
               models: [{ id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true }],
-              protocol: 'openai-compatible',
-            },
-          },
+            }),
+          ],
         },
       },
       currentChatSettings: {
@@ -482,27 +477,27 @@ describe('standardChatStrategy', () => {
   });
 
   it('routes a third-party session through its own provider when the global mode is Gemini', async () => {
-    const providers = DEFAULT_APP_SETTINGS.thirdPartyApi.providers;
     const getStreamHandlers = vi.fn(() => ({
       streamOnError: vi.fn(),
       streamOnComplete: vi.fn(),
       streamOnPart: vi.fn(),
       onThoughtChunk: vi.fn(),
     }));
+
     const { result, unmount } = renderStandardChat({
       appSettings: {
         thirdPartyApi: {
-          providers: {
-            ...providers,
-            openai: { ...providers.openai, apiKey: 'openai-key', enabled: true },
-            kimi: {
-              ...providers.kimi,
+          connections: [
+            createThirdPartyConnection({ id: 'openai', apiKey: 'openai-key', enabled: true }),
+            createThirdPartyConnection({
+              id: 'kimi',
+              templateId: 'kimi',
               apiKey: 'kimi-key',
               enabled: true,
               modelId: 'kimi-k3-turbo',
               models: [{ id: 'kimi-k3-turbo', name: 'Kimi K3 Turbo', isPinned: true }],
-            },
-          },
+            }),
+          ],
         },
       },
       currentChatSettings: {
@@ -558,16 +553,15 @@ describe('standardChatStrategy', () => {
         apiKey: 'gemini-key',
         isStreamingEnabled: false,
         thirdPartyApi: {
-          providers: {
-            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
-            openai: {
+          connections: [
+            createThirdPartyConnection({
+              id: 'openai',
               apiKey: 'openai-key',
               baseUrl: 'https://api.openai.com/v1',
               modelId: 'gpt-4.1-custom',
               models: [{ id: 'gpt-4.1-custom', name: 'GPT-4.1 Custom', isPinned: true }],
-              protocol: 'openai-compatible',
-            },
-          },
+            }),
+          ],
         },
       },
       currentChatSettings: {
@@ -621,17 +615,13 @@ describe('standardChatStrategy', () => {
       appSettings: {
         apiKey: 'gemini-key',
         thirdPartyApi: {
-          providers: {
-            ...createDefaultThirdPartyApiSettings().providers,
-            openai: {
+          connections: [
+            createThirdPartyConnection({
+              id: 'openai',
               apiKey: 'openai-key',
-              baseUrl: 'https://api.openai.com/v1',
-              modelId: 'gpt-5.6-sol',
-              models: [{ id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol' }],
-              protocol: 'openai-compatible',
               enabled: false,
-            },
-          },
+            }),
+          ],
         },
       },
     });

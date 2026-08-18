@@ -33,8 +33,8 @@ export const ThinkingHeader: React.FC<ThinkingHeaderProps> = ({
   return (
     <div className="flex items-center gap-2 min-w-0 overflow-hidden flex-grow">
       {isLoading && (
-        <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 transition-colors duration-300">
-          <GoogleSpinner size={20} />
+        <div className="flex items-center justify-center flex-shrink-0">
+          <GoogleSpinner size={14} />
         </div>
       )}
 
@@ -43,9 +43,11 @@ export const ThinkingHeader: React.FC<ThinkingHeaderProps> = ({
           {hasSettledThinking ? (
             <div className="flex items-baseline gap-2 min-w-0">
               <span className="flex items-center gap-1.5 text-base text-[var(--theme-text-secondary)] font-medium truncate opacity-90">
-                {interpolate(t('thinkingTookTime'), { duration: formatDuration(Math.round(finalThinkingDurationMs / 1000)), })}
+                {interpolate(t('thinkingTookTime'), {
+                  duration: formatDuration(Math.round(finalThinkingDurationMs / 1000)),
+                })}
               </span>
-              {firstTokenTimeMs !== undefined && (
+              {firstTokenTimeMs !== undefined && firstTokenTimeMs > 0 && (
                 <span className="text-xs text-[var(--theme-text-tertiary)] font-mono opacity-70 whitespace-nowrap">
                   {t('metricsTtft')}: {(firstTokenTimeMs / 1000).toFixed(2)}s
                 </span>
@@ -61,22 +63,12 @@ export const ThinkingHeader: React.FC<ThinkingHeaderProps> = ({
                   <ThinkingTimer startTimeMs={effectiveTimerStartMs} />
                 </span>
               )}
-              {firstTokenTimeMs !== undefined && (
-                <span className="text-xs text-[var(--theme-text-tertiary)] font-mono opacity-70 whitespace-nowrap">
-                  {t('metricsTtft')}: {(firstTokenTimeMs / 1000).toFixed(2)}s
-                </span>
-              )}
             </div>
           ) : (
             <div className="flex items-baseline gap-2 min-w-0">
               <span className="flex items-center gap-1.5 text-base text-[var(--theme-text-secondary)] font-medium truncate opacity-90">
                 {t('thinkingProcess')}
               </span>
-              {firstTokenTimeMs !== undefined && (
-                <span className="text-xs text-[var(--theme-text-tertiary)] font-mono opacity-70 whitespace-nowrap">
-                  {t('metricsTtft')}: {(firstTokenTimeMs / 1000).toFixed(2)}s
-                </span>
-              )}
             </div>
           )}
         </div>

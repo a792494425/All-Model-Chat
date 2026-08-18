@@ -3,8 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ModelOption } from '@/types';
 import { FOCUS_HISTORY_SEARCH_EVENT } from '@/constants/layout';
 import { useAppEvents } from './useAppEvents';
-import { createAppSettings, createChatSettings } from '@/test/data/factories';
-import { createDefaultThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
+import { createAppSettings, createChatSettings, createThirdPartyConnection } from '@/test/data/factories';
 import { setTestMatchMedia } from '@/test/browser/environment';
 import { renderHook } from '@/test/render/renderer';
 
@@ -205,14 +204,7 @@ describe('useAppEvents PWA lifecycle', () => {
     const openaiProviderSettings = createAppSettings({
       ...appSettings,
       thirdPartyApi: {
-        providers: {
-          ...createDefaultThirdPartyApiSettings().providers,
-          openai: {
-            ...createDefaultThirdPartyApiSettings().providers.openai,
-            modelId: 'gpt-5.5',
-            enabled: true,
-          },
-        },
+        connections: [createThirdPartyConnection({ id: 'openai', modelId: 'gpt-5.5', enabled: true })],
       },
     });
     const textarea = document.createElement('textarea');
@@ -262,10 +254,7 @@ describe('useAppEvents PWA lifecycle', () => {
     const geminiSettings = createAppSettings({
       ...appSettings,
       thirdPartyApi: {
-        providers: {
-          ...createDefaultThirdPartyApiSettings().providers,
-          openai: { ...createDefaultThirdPartyApiSettings().providers.openai, modelId: 'gpt-4.1', enabled: true },
-        },
+        connections: [createThirdPartyConnection({ id: 'openai', modelId: 'gpt-4.1', enabled: true })],
       },
       tabModelCycleIds: ['gpt-5.5'],
     });
@@ -315,15 +304,14 @@ describe('useAppEvents PWA lifecycle', () => {
     const geminiSettings = createAppSettings({
       ...appSettings,
       thirdPartyApi: {
-        providers: {
-          ...createDefaultThirdPartyApiSettings().providers,
-          openai: {
-            ...createDefaultThirdPartyApiSettings().providers.openai,
+        connections: [
+          createThirdPartyConnection({
+            id: 'openai',
             modelId: 'gpt-4.1',
             enabled: true,
             models: [{ id: 'gpt-5.5', name: 'GPT-5.5', isPinned: true }],
-          },
-        },
+          }),
+        ],
       },
       tabModelCycleIds: ['gemini-3.1-pro-preview', 'gemini-3-flash-preview', 'gpt-5.5'],
     });

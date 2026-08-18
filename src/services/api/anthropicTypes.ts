@@ -9,6 +9,7 @@ export interface AnthropicChatConfig {
   thinkingBudget?: number;
   /** Maps to output_config.effort on adaptive Claude models (Fable 5 / Opus 5 / Sonnet 5, …). */
   thinkingLevel?: ThinkingLevel;
+  extraHeaders?: Record<string, string> | null;
 }
 
 export type AnthropicContentBlock =

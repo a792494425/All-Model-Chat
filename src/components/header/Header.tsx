@@ -4,7 +4,7 @@ import { Wand2, PictureInPicture, PictureInPicture2 } from 'lucide-react';
 import { IconNewChat, IconSidebarToggle, IconScenarios } from '@/components/icons';
 import { useI18n } from '@/contexts/I18nContext';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
-import { type ModelOption, type ThinkingLevel, type ThirdPartyProviderId } from '@/types';
+import { type ModelOption, type ThinkingLevel, type ChatProviderId } from '@/types';
 
 import { HeaderModelSelector } from './HeaderModelSelector';
 
@@ -18,7 +18,7 @@ interface HeaderProps {
   currentModelName: string;
   availableModels: ModelOption[];
   selectedModelId: string;
-  onSelectModel: (modelId: string, providerId?: ThirdPartyProviderId) => void;
+  onSelectModel: (modelId: string, providerId?: ChatProviderId) => void;
   isSwitchingModel: boolean;
   isHistorySidebarOpen: boolean;
   onLoadLiveArtifactsPrompt: () => void;

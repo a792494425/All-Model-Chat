@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
 import type { SavedChatSession } from '@/types';
 import { useSuggestions } from './useSuggestions';
-import { createDefaultThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
+import { createThirdPartyConnection } from '@/test/data/factories';
 
 const { generateSuggestionsApiMock, getGeminiKeyForRequestMock } = vi.hoisted(() => ({
   generateSuggestionsApiMock: vi.fn(),
@@ -59,10 +59,7 @@ describe('useSuggestions', () => {
       ...DEFAULT_APP_SETTINGS,
       apiKey: 'gemini-key',
       thirdPartyApi: {
-        providers: {
-          ...createDefaultThirdPartyApiSettings().providers,
-          openai: { ...createDefaultThirdPartyApiSettings().providers.openai, apiKey: 'openai-key', enabled: true },
-        },
+        connections: [createThirdPartyConnection({ id: 'openai', apiKey: 'openai-key', enabled: true })],
       },
     };
     // The active session routes third-party (providerId openai). The Gemini

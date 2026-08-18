@@ -10,6 +10,7 @@ interface ApiKeyInputProps {
   label?: string;
   placeholder?: string;
   helpText?: string;
+  inputId?: string;
 }
 
 export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
@@ -19,6 +20,7 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   label,
   placeholder,
   helpText,
+  inputId = 'api-key-input',
 }) => {
   const { t } = useI18n();
   const [isFocused, setIsFocused] = useState(false);
@@ -32,14 +34,14 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   return (
     <div className="space-y-2">
       <label
-        htmlFor="api-key-input"
+        htmlFor={inputId}
         className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]"
       >
         {label || t('settingsApiKey')}
       </label>
       <div className="relative">
         <textarea
-          id="api-key-input"
+          id={inputId}
           rows={3}
           value={apiKey || ''}
           onChange={(e) => {

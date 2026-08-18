@@ -156,6 +156,7 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
         >
           <div className="space-y-5">
             <ApiKeyInput
+              inputId="gemini-api-key-input"
               apiKey={apiKey}
               setApiKey={(nextApiKey) => {
                 setApiKey(nextApiKey);

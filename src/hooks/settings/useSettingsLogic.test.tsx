@@ -1,6 +1,7 @@
 import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
+import { createThirdPartyConnection } from '@/test/data/factories';
 import type { AppSettings } from '@/types';
 import { useSettingsLogic } from './useSettingsLogic';
 import { renderHook } from '@/test/render/renderer';
@@ -160,13 +161,7 @@ describe('useSettingsLogic', () => {
         },
       ],
       thirdPartyApi: {
-        providers: {
-          ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
-          openai: {
-            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers.openai,
-            apiKey: 'sk-third-party',
-          },
-        },
+        connections: [createThirdPartyConnection({ id: 'openai', apiKey: 'sk-third-party' })],
       },
     };
 
@@ -195,7 +190,9 @@ describe('useSettingsLogic', () => {
     expect(savedSettings.apiKey).toBe('stored-api-key');
     expect(savedSettings.useCustomApiConfig).toBe(true);
     expect(savedSettings.mcpServers).toEqual(currentSettings.mcpServers);
-    expect(savedSettings.thirdPartyApi.providers.openai.apiKey).toBe('sk-third-party');
+    expect(savedSettings.thirdPartyApi.connections.find((connection) => connection.id === 'openai')?.apiKey).toBe(
+      'sk-third-party',
+    );
 
     unmount();
   });

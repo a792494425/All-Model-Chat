@@ -162,4 +162,56 @@ describe('ModelPicker behavior', () => {
     expect(thirdPartySections[1]?.textContent).toContain('Qwen');
     expect(thirdPartySections[1]?.textContent).toContain('Qwen3.7 Max');
   });
+
+  it('badges connections without a key and does not select unavailable models', () => {
+    const onSelect = vi.fn();
+
+    act(() => {
+      renderer.root.render(
+        renderPicker({
+          models: [
+            { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', apiMode: 'gemini-native' },
+            {
+              id: 'gpt-4o',
+              name: 'GPT-4o',
+              apiMode: 'third-party',
+              providerId: 'openai',
+              connectionName: 'OpenAI',
+              missingApiKey: true,
+            },
+            {
+              id: 'old-model',
+              name: 'Old Model',
+              apiMode: 'third-party',
+              providerId: 'removed',
+              connectionName: 'Removed',
+              unavailable: true,
+            },
+          ],
+          selectedId: 'gemini-3-flash-preview',
+          onSelect,
+        }),
+      );
+    });
+
+    act(() => {
+      renderer.container
+        .querySelector('[data-testid="model-picker-trigger"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(renderer.container.textContent).toContain('No key');
+    expect(renderer.container.textContent).toContain('Unavailable');
+    expect(renderer.container.textContent).toContain('Pick another model');
+
+    const unavailableOption = Array.from(renderer.container.querySelectorAll('[role="option"]')).find((option) =>
+      option.textContent?.includes('Old Model'),
+    );
+    expect(unavailableOption?.getAttribute('aria-disabled')).toBe('true');
+
+    act(() => {
+      unavailableOption?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    expect(onSelect).not.toHaveBeenCalled();
+  });
 });

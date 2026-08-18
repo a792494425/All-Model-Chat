@@ -211,6 +211,7 @@ export const useChatInput = () => {
       isFullscreen: inputState.isFullscreen,
       isMobile: inputState.isMobile,
       isComposingRef: inputState.isComposingRef,
+      compositionEndedAtRef: inputState.compositionEndedAtRef,
       setInputText: inputState.setInputText,
       handleToggleFullscreen: inputState.handleToggleFullscreen,
     },

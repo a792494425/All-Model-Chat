@@ -15,11 +15,14 @@ const isImeCompositionEvent = (event: React.KeyboardEvent<HTMLTextAreaElement>) 
   event.nativeEvent.keyCode === IME_PROCESS_KEY_CODE ||
   event.nativeEvent.which === IME_PROCESS_KEY_CODE;
 
+const IME_CONFIRMATION_GRACE_MS = 100;
+
 interface ChatInputKeyboardState {
   inputText: string;
   isFullscreen: boolean;
   isMobile: boolean;
   isComposingRef: MutableRefObject<boolean>;
+  compositionEndedAtRef: MutableRefObject<number>;
   setInputText: Dispatch<SetStateAction<string>>;
   handleToggleFullscreen: () => void;
 }
@@ -59,7 +62,15 @@ export const useChatInputKeyboard = ({
   onCancelEdit,
   onEditLastUserMessage,
 }: UseChatInputKeyboardParams) => {
-  const { inputText, isFullscreen, isMobile, isComposingRef, setInputText, handleToggleFullscreen } = keyboardState;
+  const {
+    inputText,
+    isFullscreen,
+    isMobile,
+    isComposingRef,
+    compositionEndedAtRef,
+    setInputText,
+    handleToggleFullscreen,
+  } = keyboardState;
 
   const handleInputChange = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -71,6 +82,13 @@ export const useChatInputKeyboard = ({
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (isComposingRef.current || isImeCompositionEvent(event)) {
+        return;
+      }
+
+      const isImeConfirmationKey = event.key === 'Enter' || event.key === 'Tab';
+      if (isImeConfirmationKey && Date.now() - compositionEndedAtRef.current < IME_CONFIRMATION_GRACE_MS) {
+        event.preventDefault();
+        compositionEndedAtRef.current = 0;
         return;
       }
 
@@ -180,7 +198,10 @@ export const useChatInputKeyboard = ({
         return;
       }
 
-      if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
+      const isNativeEnterNewLine = event.key === 'Enter' && !event.ctrlKey && !event.altKey && !event.metaKey;
+
+      // Let the textarea insert the newline so the native undo stack stays intact.
+      if (isNativeEnterNewLine) {
         return;
       }
 
@@ -202,6 +223,7 @@ export const useChatInputKeyboard = ({
       appSettings,
       canQueueMessage,
       canSend,
+      compositionEndedAtRef,
       handleSubmit,
       handleToggleFullscreen,
       inputText,

@@ -84,6 +84,42 @@ describe('openaiCompatibleApi', () => {
     );
   });
 
+  it('merges allowlisted extra headers and the proxy JSON envelope onto the request', async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => {
+      return new Response(JSON.stringify({ choices: [{ message: { content: 'ok' } }] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await sendOpenAICompatibleMessageNonStream(
+      'api-key',
+      'gpt-5.6-sol',
+      [],
+      [{ text: 'hi' }],
+      {
+        baseUrl: 'https://openrouter.ai/api/v1',
+        extraHeaders: { 'HTTP-Referer': 'https://example.com', 'X-Title': 'AMC', Cookie: 'secret' },
+      },
+      new AbortController().signal,
+      vi.fn(),
+      vi.fn(),
+      'user',
+      'openrouter',
+    );
+
+    const headers = (fetchMock.mock.calls[0]?.[1] as RequestInit).headers as Record<string, string>;
+    expect(headers['x-third-party-provider']).toBe('openrouter');
+    expect(headers['HTTP-Referer']).toBe('https://example.com');
+    expect(headers['X-Title']).toBe('AMC');
+    expect(headers.Cookie).toBeUndefined();
+    expect(JSON.parse(headers['x-third-party-extra-headers'])).toEqual({
+      'HTTP-Referer': 'https://example.com',
+      'X-Title': 'AMC',
+    });
+  });
+
   it('reports Gemini fileData parts instead of silently dropping them', async () => {
     const fetchMock = vi.fn<typeof fetch>();
     vi.stubGlobal('fetch', fetchMock);

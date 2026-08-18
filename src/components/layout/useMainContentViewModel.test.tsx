@@ -8,7 +8,7 @@ import {
   createChatRuntimeApp,
   createChatSettings,
 } from '@/test/layout/fixtures';
-import { createDefaultThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
+import { createThirdPartyConnection } from '@/test/data/factories';
 import { ChatRuntimeProvider, useChatHeaderRuntime } from './chat-runtime/ChatRuntimeContext';
 
 const mockStores = vi.hoisted(() => {
@@ -57,24 +57,21 @@ type BuildAppOverrides = Omit<Partial<AppViewModel>, 'chatState'> & {
 
 const buildApp = (overrides: BuildAppOverrides = {}) => {
   const { chatState: chatStateOverrides, ...appOverrides } = overrides;
-  const baseDefaults = createDefaultThirdPartyApiSettings();
   const appSettings = createAppSettings({
     modelId: 'gemini-3-flash-preview',
     thirdPartyApi: {
-      providers: {
-        ...baseDefaults.providers,
-        openai: {
+      connections: [
+        createThirdPartyConnection({
+          id: 'openai',
           apiKey: null,
-          baseUrl: baseDefaults.providers.openai.baseUrl,
           modelId: 'gpt-5.6-sol',
           models: [
             { id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true },
             { id: 'gpt-4.1', name: 'GPT-4.1' },
           ],
-          protocol: 'openai-compatible',
           enabled: true,
-        },
-      },
+        }),
+      ],
     },
   });
   const handleSelectModelInHeader = vi.fn();
@@ -113,23 +110,20 @@ const buildOpenaiProviderAppSettings = (overrides: {
   modelId?: string;
   models?: Array<{ id: string; name: string; isPinned?: boolean }>;
 }) => {
-  const defaults = createDefaultThirdPartyApiSettings();
   const enabled = overrides.enabled ?? true;
   return {
     ...createAppSettings(),
     modelId: 'gemini-3-flash-preview',
     thirdPartyApi: {
-      providers: {
-        ...defaults.providers,
-        openai: {
+      connections: [
+        createThirdPartyConnection({
+          id: 'openai',
           apiKey: null,
-          baseUrl: defaults.providers.openai.baseUrl,
-          modelId: overrides.modelId ?? defaults.providers.openai.modelId,
-          models: overrides.models ?? defaults.providers.openai.models,
-          protocol: 'openai-compatible' as const,
+          modelId: overrides.modelId,
+          models: overrides.models,
           enabled,
-        },
-      },
+        }),
+      ],
     },
   };
 };
@@ -155,8 +149,25 @@ describe('chat runtime values', () => {
 
     expect(header.availableModels).toEqual([
       { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', apiMode: 'gemini-native' },
-      { id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true, apiMode: 'third-party', providerId: 'openai' },
-      { id: 'gpt-4.1', name: 'GPT-4.1', apiMode: 'third-party', providerId: 'openai' },
+      {
+        id: 'gpt-5.6-sol',
+        name: 'GPT-5.6 Sol',
+        isPinned: true,
+        apiMode: 'third-party',
+        providerId: 'openai',
+        templateId: 'openai',
+        connectionName: 'OpenAI',
+        missingApiKey: true,
+      },
+      {
+        id: 'gpt-4.1',
+        name: 'GPT-4.1',
+        apiMode: 'third-party',
+        providerId: 'openai',
+        templateId: 'openai',
+        connectionName: 'OpenAI',
+        missingApiKey: true,
+      },
     ]);
     expect(header.selectedModelId).toBe('gpt-5.6-sol');
     expect(header.currentModelName).toBe('GPT-5.6 Sol');
@@ -187,7 +198,16 @@ describe('chat runtime values', () => {
 
     expect(header.availableModels).toEqual([
       { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', apiMode: 'gemini-native' },
-      { id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true, apiMode: 'third-party', providerId: 'openai' },
+      {
+        id: 'gpt-5.6-sol',
+        name: 'GPT-5.6 Sol',
+        isPinned: true,
+        apiMode: 'third-party',
+        providerId: 'openai',
+        templateId: 'openai',
+        connectionName: 'OpenAI',
+        missingApiKey: true,
+      },
     ]);
     expect(header.selectedModelId).toBe('gemini-3-flash-preview');
 
@@ -230,23 +250,20 @@ describe('chat runtime values', () => {
   });
 
   it('shows enabled third-party models in the header', () => {
-    const defaults = createDefaultThirdPartyApiSettings();
     const app = buildApp({
       appSettings: {
         ...createAppSettings(),
         modelId: 'gemini-3-flash-preview',
         thirdPartyApi: {
-          providers: {
-            ...defaults.providers,
-            openai: {
+          connections: [
+            createThirdPartyConnection({
+              id: 'openai',
               apiKey: null,
-              baseUrl: defaults.providers.openai.baseUrl,
               modelId: 'gpt-5.6-sol',
               models: [{ id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true }],
-              protocol: 'openai-compatible',
               enabled: true,
-            },
-          },
+            }),
+          ],
         },
       } as AppViewModel['appSettings'],
       getCurrentModelDisplayName: vi.fn(() => 'Gemini 3 Flash Preview'),
@@ -256,7 +273,16 @@ describe('chat runtime values', () => {
 
     expect(header.availableModels).toEqual([
       { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', apiMode: 'gemini-native' },
-      { id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true, apiMode: 'third-party', providerId: 'openai' },
+      {
+        id: 'gpt-5.6-sol',
+        name: 'GPT-5.6 Sol',
+        isPinned: true,
+        apiMode: 'third-party',
+        providerId: 'openai',
+        templateId: 'openai',
+        connectionName: 'OpenAI',
+        missingApiKey: true,
+      },
     ]);
     expect(header.selectedModelId).toBe('gemini-3-flash-preview');
 

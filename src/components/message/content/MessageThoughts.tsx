@@ -37,8 +37,6 @@ export const MessageThoughts: React.FC<MessageThoughtsProps> = ({
   onImageClick,
   onOpenHtmlPreview,
   expandCodeBlocksByDefault,
-  isMermaidRenderingEnabled,
-  isGraphvizRenderingEnabled,
   onOpenSidePanel,
 }) => {
   const { content, thoughts, isLoading, role, id: messageId } = message;
@@ -75,19 +73,17 @@ export const MessageThoughts: React.FC<MessageThoughtsProps> = ({
   // tail window via the null return.
   const thinkingSections = useMemo(() => parseThinkingSections(effectiveThoughts), [effectiveThoughts]);
 
-  // Preview strip is a "thinking in progress" indicator: visible while thoughts
-  // are still streaming, regardless of whether the full message has finished
-  // loading. thinkingActive is the reliable signal that the model is currently
-  // reasoning — it flips off when thinking settles (content switch) but turns
-  // back on if the model re-enters thinking (interleaved thought after code
-  // execution), so the strip re-shows instead of staying collapsed. Before the
-  // first commit (or for older messages without the field) the strip shows as
-  // long as no thinking time has been settled yet.
+  // Preview strip is a live collapsed readout of thinking in progress.
+  // Hide it as soon as thinking settles (thinkingTimeMs is committed /
+  // thinkingActive is false), even if the answer is still streaming — otherwise
+  // the last section sits outside the accordion until the whole message ends.
+  // thinkingActive true re-opens it for interleaved re-thinking. Older messages
+  // without those fields keep the strip while loading and no time has settled.
   const showThinkingStrip =
     !isExpanded &&
-    !!isLoading &&
     thoughtsTail.length > 0 &&
-    (message.thinkingActive === true || (message.thinkingActive === undefined && message.thinkingTimeMs === undefined));
+    (message.thinkingActive === true ||
+      (!!isLoading && message.thinkingActive === undefined && message.thinkingTimeMs === undefined));
 
   if (!areThoughtsVisible) return null;
 
@@ -198,23 +194,23 @@ export const MessageThoughts: React.FC<MessageThoughtsProps> = ({
           />
         )}
 
-        <div className={`thought-process-accordion ${isExpanded ? 'expanded' : ''}`}>
-          <div className="thought-process-inner">
-            <ThoughtContent
-              messageId={messageId}
-              isLoading={!!isLoading}
-              content={isShowingTranslation && translatedThoughts ? translatedThoughts : effectiveThoughts}
-              onImageClick={onImageClick}
-              onOpenHtmlPreview={onOpenHtmlPreview}
-              expandCodeBlocksByDefault={expandCodeBlocksByDefault}
-              isMermaidRenderingEnabled={isMermaidRenderingEnabled}
-              isGraphvizRenderingEnabled={isGraphvizRenderingEnabled}
-              themeId={themeId}
-              onOpenSidePanel={onOpenSidePanel}
-              unwrapMislabeledHtmlBlocks={appSettings.unwrapMislabeledHtmlBlocks ?? true}
-            />
+        {isExpanded && (
+          <div className="thought-process-accordion expanded">
+            <div className="thought-process-inner">
+              <ThoughtContent
+                messageId={messageId}
+                isLoading={!!isLoading}
+                content={isShowingTranslation && translatedThoughts ? translatedThoughts : effectiveThoughts}
+                onImageClick={onImageClick}
+                onOpenHtmlPreview={onOpenHtmlPreview}
+                expandCodeBlocksByDefault={expandCodeBlocksByDefault}
+                themeId={themeId}
+                onOpenSidePanel={onOpenSidePanel}
+                unwrapMislabeledHtmlBlocks={appSettings.unwrapMislabeledHtmlBlocks ?? true}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

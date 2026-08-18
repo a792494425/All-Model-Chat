@@ -48,6 +48,14 @@ vi.mock('./thoughts/ThoughtContent', () => ({
   ThoughtContent: ({ content }: { content: string }) => <div data-testid="thought-content">{content}</div>,
 }));
 
+const expandThoughts = (container: HTMLElement) => {
+  act(() => {
+    container
+      .querySelector<HTMLElement>('[role="button"][aria-expanded="false"]')
+      ?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  });
+};
+
 describe('MessageThoughts', () => {
   const renderer = setupProviderTestRenderer({ providers: { language: 'en' } });
 
@@ -178,7 +186,7 @@ describe('MessageThoughts', () => {
     expect(renderer.container.querySelector('[data-thinking-strip="true"]')).toBeNull();
   });
 
-  it('does not show the strip when thinkingTimeMs is set, even if the message is still loading', () => {
+  it('hides the strip once thinkingTimeMs is set, even if the reply is still streaming', () => {
     mockUseMessageStream.mockReturnValue({
       streamContent: '',
       streamThoughts: '',
@@ -188,11 +196,12 @@ describe('MessageThoughts', () => {
       renderer.render(
         <MessageThoughts
           message={{
-            id: 'message-strip-thinking-ended',
+            id: 'message-strip-thinking-settled',
             role: 'model',
             content: 'Response text',
             thoughts: '## Step one\nFirst thought',
             isLoading: true,
+            thinkingActive: false,
             thinkingTimeMs: 4500,
             timestamp: new Date('2026-04-21T00:00:00.000Z'),
           }}
@@ -209,7 +218,41 @@ describe('MessageThoughts', () => {
       );
     });
 
-    // thinkingTimeMs is set → thinking has ended → strip hidden even though isLoading is true
+    expect(renderer.container.querySelector('[data-thinking-strip="true"]')).toBeNull();
+  });
+
+  it('hides the strip once the message finishes loading', () => {
+    mockUseMessageStream.mockReturnValue({
+      streamContent: '',
+      streamThoughts: '',
+    });
+
+    act(() => {
+      renderer.render(
+        <MessageThoughts
+          message={{
+            id: 'message-strip-finished',
+            role: 'model',
+            content: 'Response text',
+            thoughts: '## Step one\nFirst thought',
+            isLoading: false,
+            thinkingActive: false,
+            thinkingTimeMs: 4500,
+            timestamp: new Date('2026-04-21T00:00:00.000Z'),
+          }}
+          showThoughts={true}
+          appSettings={createAppSettings()}
+          themeId="pearl"
+          onImageClick={vi.fn()}
+          onOpenHtmlPreview={vi.fn()}
+          expandCodeBlocksByDefault={false}
+          isMermaidRenderingEnabled={true}
+          isGraphvizRenderingEnabled={true}
+          onOpenSidePanel={vi.fn()}
+        />,
+      );
+    });
+
     expect(renderer.container.querySelector('[data-thinking-strip="true"]')).toBeNull();
   });
 
@@ -272,6 +315,10 @@ describe('MessageThoughts', () => {
     });
 
     expect(renderer.container.querySelector('.message-thoughts-block')).not.toBeNull();
+    expect(renderer.container.querySelector('[data-testid="thought-content"]')).toBeNull();
+
+    expandThoughts(renderer.container);
+
     expect(renderer.container.querySelector('[data-testid="thought-content"]')?.textContent).toBe('Plan carefully.');
   });
 
@@ -304,9 +351,44 @@ describe('MessageThoughts', () => {
       );
     });
 
+    expect(renderer.container.querySelector('[data-testid="thought-content"]')).toBeNull();
+
+    expandThoughts(renderer.container);
+
     expect(renderer.container.querySelector('[data-testid="thought-content"]')?.textContent).toBe(
       'Drafting the answer',
     );
+  });
+
+  it('does not mount thought markdown until the panel is expanded', () => {
+    act(() => {
+      renderer.render(
+        <MessageThoughts
+          message={{
+            id: 'message-lazy-thoughts',
+            role: 'model',
+            content: '',
+            thoughts: 'Plan carefully.',
+            timestamp: new Date('2026-04-21T00:00:00.000Z'),
+          }}
+          showThoughts={true}
+          appSettings={createAppSettings()}
+          themeId="pearl"
+          onImageClick={vi.fn()}
+          onOpenHtmlPreview={vi.fn()}
+          expandCodeBlocksByDefault={false}
+          isMermaidRenderingEnabled={true}
+          isGraphvizRenderingEnabled={true}
+          onOpenSidePanel={vi.fn()}
+        />,
+      );
+    });
+
+    expect(renderer.container.querySelector('[data-testid="thought-content"]')).toBeNull();
+
+    expandThoughts(renderer.container);
+
+    expect(renderer.container.querySelector('[data-testid="thought-content"]')?.textContent).toBe('Plan carefully.');
   });
 
   it('renders third-party thinking as a flat strip even when thoughts contain sectioned headers', () => {

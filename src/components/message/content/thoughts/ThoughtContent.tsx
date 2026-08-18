@@ -11,8 +11,6 @@ interface ThoughtContentProps {
   onImageClick: (file: UploadedFile) => void;
   onOpenHtmlPreview: OpenHtmlPreviewHandler;
   expandCodeBlocksByDefault: boolean;
-  isMermaidRenderingEnabled: boolean;
-  isGraphvizRenderingEnabled: boolean;
   themeId: string;
   onOpenSidePanel: (content: SideViewContent) => void;
   unwrapMislabeledHtmlBlocks?: boolean;
@@ -25,8 +23,6 @@ export const ThoughtContent: React.FC<ThoughtContentProps> = ({
   onImageClick,
   onOpenHtmlPreview,
   expandCodeBlocksByDefault,
-  isMermaidRenderingEnabled,
-  isGraphvizRenderingEnabled,
   themeId,
   onOpenSidePanel,
   unwrapMislabeledHtmlBlocks,
@@ -45,9 +41,9 @@ export const ThoughtContent: React.FC<ThoughtContentProps> = ({
           onImageClick={onImageClick}
           onOpenHtmlPreview={onOpenHtmlPreview}
           expandCodeBlocksByDefault={expandCodeBlocksByDefault}
-          isMermaidRenderingEnabled={isMermaidRenderingEnabled}
-          isGraphvizRenderingEnabled={isGraphvizRenderingEnabled}
-          allowHtml={true}
+          isMermaidRenderingEnabled={false}
+          isGraphvizRenderingEnabled={false}
+          allowHtml={false}
           themeId={themeId}
           onOpenSidePanel={onOpenSidePanel}
           unwrapMislabeledHtmlBlocks={unwrapMislabeledHtmlBlocks}

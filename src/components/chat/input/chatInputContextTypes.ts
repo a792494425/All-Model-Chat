@@ -111,6 +111,7 @@ export interface ChatInputState {
   justInitiatedFileOpRef: MutableRefObject<boolean>;
   prevIsProcessingFileRef: MutableRefObject<boolean>;
   isComposingRef: MutableRefObject<boolean>;
+  compositionEndedAtRef: MutableRefObject<number>;
   handleCompositionStart: () => void;
   handleCompositionEnd: () => void;
   clearCurrentDraft: () => void;

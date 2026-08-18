@@ -3,14 +3,14 @@ import {
   type AppSettings,
   type ChatSettings as IndividualChatSettings,
   type SavedChatSession,
-  type ThirdPartyProviderId,
+  type ChatProviderId,
   GEMINI_PROVIDER_ID,
 } from '@/types';
 import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { createNewSession } from '@/utils/chat/session';
 import { focusChatInput } from '@/utils/chat-input/focus';
 import { resolveModelSwitchSettings } from '@/utils/model/modelSwitchSettings';
-import { getEnabledThirdPartyProviders, resolveProviderForModelId } from '@/utils/thirdPartyApiProviders';
+import { findThirdPartyConnection, getEnabledThirdPartyProviders, resolveProviderForModelId } from '@/utils/thirdPartyApiProviders';
 
 interface UseModelSelectionProps {
   appSettings: AppSettings;
@@ -48,18 +48,19 @@ export const useModelSelection = ({
   userScrolledUpRef,
 }: UseModelSelectionProps) => {
   const handleSelectModelInHeader = useCallback(
-    (modelId: string, explicitProviderId?: ThirdPartyProviderId) => {
+    (modelId: string, explicitProviderId?: ChatProviderId) => {
       const thirdPartyModels = getEnabledThirdPartyProviders(appSettings);
       const isThirdPartyModel = thirdPartyModels.some(({ config }) => config.models.some((m) => m.id === modelId));
-      // An explicit providerId (point-to-point pick from the header) wins. When
-      // absent (keyboard tab cycle, legacy callers), keep the old inference so
-      // the session still routes deterministically.
-      const provider =
-        explicitProviderId && appSettings.thirdPartyApi?.providers[explicitProviderId]
-          ? { id: explicitProviderId, config: appSettings.thirdPartyApi.providers[explicitProviderId] }
-          : isThirdPartyModel
+      const explicitConnection =
+        explicitProviderId && explicitProviderId !== GEMINI_PROVIDER_ID
+          ? findThirdPartyConnection(appSettings, explicitProviderId)
+          : undefined;
+      const inferredProvider =
+        !explicitProviderId || explicitProviderId === GEMINI_PROVIDER_ID
+          ? isThirdPartyModel
             ? resolveProviderForModelId(appSettings, modelId)
-            : undefined;
+            : undefined
+          : undefined;
       const sourceSettings = activeSessionId ? currentChatSettings : appSettings;
       const resolvedModelSettings: Partial<IndividualChatSettings> = resolveModelSwitchSettings({
         currentSettings: currentChatSettings,
@@ -71,7 +72,11 @@ export const useModelSelection = ({
       // resolvedModelSettings — keeps the session self-consistent and never
       // touches a global mode.
       const routingSettings: Pick<IndividualChatSettings, 'providerId'> =
-        provider && provider.config ? { providerId: provider.id } : { providerId: GEMINI_PROVIDER_ID };
+        explicitProviderId && explicitProviderId !== GEMINI_PROVIDER_ID
+          ? { providerId: explicitConnection?.id ?? explicitProviderId }
+          : inferredProvider
+            ? { providerId: inferredProvider.id }
+            : { providerId: GEMINI_PROVIDER_ID };
       const nextModelSettings = { ...resolvedModelSettings, ...routingSettings };
 
       if (!activeSessionId) {

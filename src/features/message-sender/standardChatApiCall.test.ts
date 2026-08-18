@@ -24,7 +24,10 @@ const mocks = vi.hoisted(() => ({
   clearPendingStreamJob: vi.fn(),
 }));
 
-vi.mock('@/utils/chatApiRoute', () => ({ resolveChatApiRoute: mocks.resolveChatApiRoute }));
+vi.mock('@/utils/chatApiRoute', () => ({
+  resolveChatApiRoute: mocks.resolveChatApiRoute,
+  isUnavailableThirdPartyRoute: (route: { unavailable?: string }) => route.unavailable !== undefined,
+}));
 vi.mock('@/services/api/geminiApiBaseUrl', () => ({ isGeminiProxyRelativePath: mocks.isGeminiProxyRelativePath }));
 vi.mock('@/utils/chat/builder', () => ({ createChatHistoryForApi: mocks.createChatHistoryForApi }));
 vi.mock('@/services/api/generationConfig', () => ({
@@ -133,7 +136,7 @@ describe('performStandardChatApiCall', () => {
 
   it('routes a streaming third-party turn to the provider stream and tags thought provenance', async () => {
     mocks.resolveChatApiRoute.mockReturnValue({
-      provider: { protocol: 'anthropic', baseUrl: 'https://api.anthropic.com' },
+      provider: { protocol: 'anthropic', baseUrl: 'https://api.anthropic.com', templateId: 'anthropic', extraHeaders: {} },
       providerId: 'anthropic',
       modelId: 'claude-x',
     });
@@ -152,7 +155,12 @@ describe('performStandardChatApiCall', () => {
 
   it('routes a non-streaming third-party turn to the non-stream client and routes thrown errors to streamOnError', async () => {
     mocks.resolveChatApiRoute.mockReturnValue({
-      provider: { protocol: 'openai-compatible', baseUrl: 'https://api.openai.com' },
+      provider: {
+        protocol: 'openai-compatible',
+        baseUrl: 'https://api.openai.com',
+        templateId: 'openai',
+        extraHeaders: {},
+      },
       providerId: 'openai',
       modelId: 'gpt-x',
     });

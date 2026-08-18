@@ -53,7 +53,12 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
     if (!target || !shadow) return;
 
     if (!isComposingRef.current && target.value !== value) {
+      const selectionStart = target.selectionStart;
+      const selectionEnd = target.selectionEnd;
       target.value = value;
+      const nextStart = Math.min(selectionStart, value.length);
+      const nextEnd = Math.min(selectionEnd, value.length);
+      target.setSelectionRange(nextStart, nextEnd);
     }
 
     // Reset shadow height to allow accurate shrinking measurement

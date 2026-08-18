@@ -12,6 +12,7 @@ interface ApiConnectionTesterProps {
   availableModels?: ModelOption[];
   testModelId?: string;
   onModelChange?: (id: string) => void;
+  testModelSelectId?: string;
 }
 
 export const ApiConnectionTester: React.FC<ApiConnectionTesterProps> = ({
@@ -22,6 +23,7 @@ export const ApiConnectionTester: React.FC<ApiConnectionTesterProps> = ({
   availableModels,
   testModelId,
   onModelChange,
+  testModelSelectId = 'api-test-model',
 }) => {
   const { t } = useI18n();
   return (
@@ -30,7 +32,7 @@ export const ApiConnectionTester: React.FC<ApiConnectionTesterProps> = ({
         {availableModels && availableModels.length > 0 && onModelChange && testModelId && (
           <div className="flex-grow">
             <Select
-              id="api-test-model"
+              id={testModelSelectId}
               label={t('settingsApiTestModel')}
               layout="horizontal"
               value={testModelId}

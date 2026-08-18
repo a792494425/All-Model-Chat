@@ -105,7 +105,7 @@ export const OpenAICompatibleModelListEditor: React.FC<OpenAICompatibleModelList
               onClick={handleOpenFetchPreview}
               disabled={isFetchModelsDisabled || isFetchingModels}
               className={SETTINGS_INLINE_ACTION_BUTTON_CLASS}
-              title={t('settingsFetchModelList')}
+              title={isFetchModelsDisabled ? t('settingsFetchModelListNeedsKeyAndUrl') : t('settingsFetchModelList')}
             >
               {isFetchingModels ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
               {isFetchingModels ? t('settingsFetchingModelList') : t('settingsFetchModelList')}

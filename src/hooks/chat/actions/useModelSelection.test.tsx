@@ -11,31 +11,28 @@ vi.mock('@/utils/model/modelSwitchSettings', () => ({
 }));
 
 import { useModelSelection } from './useModelSelection';
-import { createAppSettings, createChatSettings, createSavedChatSession } from '@/test/data/factories';
+import { createAppSettings, createChatSettings, createSavedChatSession, createThirdPartyConnection } from '@/test/data/factories';
 import { renderHook } from '@/test/render/renderer';
-import { createDefaultThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
 import { GEMINI_PROVIDER_ID } from '@/types';
 
-const appSettingsWithSharedModel = (): ReturnType<typeof createAppSettings> => {
-  const providers = createDefaultThirdPartyApiSettings().providers;
-  return createAppSettings({
+const appSettingsWithSharedModel = (): ReturnType<typeof createAppSettings> =>
+  createAppSettings({
     thirdPartyApi: {
-      providers: {
-        ...providers,
-        openai: {
-          ...providers.openai,
+      connections: [
+        createThirdPartyConnection({
+          id: 'openai',
           enabled: true,
           models: [{ id: 'shared-model', name: 'Shared (OpenAI)' }],
-        },
-        kimi: {
-          ...providers.kimi,
+        }),
+        createThirdPartyConnection({
+          id: 'kimi',
+          templateId: 'kimi',
           enabled: true,
           models: [{ id: 'shared-model', name: 'Shared (Kimi)' }],
-        },
-      },
+        }),
+      ],
     },
   });
-};
 
 describe('useModelSelection', () => {
   it('clears third-party session routing when selecting a Gemini model', () => {

@@ -44,7 +44,8 @@ import type {
   StreamHandlerFunctions,
 } from './messageSenderTypes';
 import type { resolveStandardChatTurn } from './standardChatTurn';
-import { resolveChatApiRoute } from '@/utils/chatApiRoute';
+import { resolveChatApiRoute, isUnavailableThirdPartyRoute } from '@/utils/chatApiRoute';
+import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
 
 interface StandardChatApiCallContext {
   appSettings: StandardChatProps['appSettings'];
@@ -166,6 +167,17 @@ export const performStandardChatApiCall = async ({
     sessionToUpdate,
     finalParts,
   );
+
+  if (isUnavailableThirdPartyRoute(apiRoute)) {
+    streamOnError(
+      new Error(
+        apiRoute.unavailable === 'disabled'
+          ? 'Third-party connection is disabled.'
+          : 'Third-party connection is unavailable.',
+      ),
+    );
+    return;
+  }
   const wrappedStreamOnComplete: typeof streamOnComplete = (usage, grounding, urlContext) => {
     clearPendingStreamJob(finalSessionId);
     streamOnComplete(usage, grounding, urlContext);
@@ -185,11 +197,11 @@ export const performStandardChatApiCall = async ({
       topP: sessionToUpdate.topP,
       thinkingLevel: sessionToUpdate.thinkingLevel,
       thinkingBudget: sessionToUpdate.thinkingBudget,
+      extraHeaders: activeProvider.extraHeaders,
     };
     const isAnthropic = activeProvider.protocol === 'anthropic';
-    // Tagged so the api container's third-party proxy can route to the right
-    // upstream in THIRD_PARTY_ROUTES. Null in static deploys (no proxy).
-    const providerId = apiRoute.providerId ?? null;
+    // Docker THIRD_PARTY_ROUTES is keyed by template, not connection UUID.
+    const providerId = getProxyProviderHeader(activeProvider.templateId);
 
     if (appSettings.isStreamingEnabled) {
       // Stamp thinking provenance on every third-party streaming callback; the

@@ -40,8 +40,15 @@ export const ModelListView: React.FC<ModelListViewProps> = ({
           <div key={section.key} className="space-y-1" data-provider-section={section.providerKey}>
             {section.providerKey && (
               <div className="px-2 pt-1 pb-1 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--theme-text-tertiary)]">
-                {t(getModelProviderSectionLabelKey(section.providerKey))}
+                {section.label ?? t(getModelProviderSectionLabelKey(section.providerKey))}
+                {section.unavailable ? ` · ${t('thirdPartyConnectionUnavailable')}` : ''}
+                {section.missingApiKey ? ` · ${t('thirdPartyApiKeyMissing')}` : ''}
               </div>
+            )}
+            {section.unavailable && (
+              <p className="px-2 pb-1 text-xs text-[var(--theme-text-tertiary)]">
+                {t('thirdPartyConnectionUnavailableHint')}
+              </p>
             )}
             {section.entries.map((entry) => {
               const isSelected =
@@ -50,20 +57,30 @@ export const ModelListView: React.FC<ModelListViewProps> = ({
               // Two third-party providers may list the same model id — scope the
               // key and testid by provider so they stay distinct.
               const optionKey = `${entry.model.providerId ?? 'gemini-native'}:${entry.id}`;
+              const isUnavailable = Boolean(entry.model.unavailable);
 
               return (
                 <button
                   type="button"
                   key={optionKey}
                   data-testid={`settings-model-option-${optionKey}`}
+                  aria-disabled={isUnavailable}
+                  disabled={isUnavailable}
                   onPointerDown={(event) => {
                     event.preventDefault();
                   }}
-                  onClick={() => onSelectModel(entry.id, entry.model.apiMode)}
+                  onClick={() => {
+                    if (isUnavailable) {
+                      return;
+                    }
+                    onSelectModel(entry.id, entry.model.apiMode);
+                  }}
                   className={`w-full flex items-start gap-3 px-3 py-2.5 text-sm rounded-xl border transition-colors text-left ${
-                    isSelected
-                      ? 'bg-[var(--theme-bg-accent)]/10 border-[var(--theme-border-focus)] text-[var(--theme-text-primary)]'
-                      : 'border-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)]/50 hover:border-[var(--theme-border-secondary)] hover:text-[var(--theme-text-primary)]'
+                    isUnavailable
+                      ? 'opacity-50 cursor-not-allowed border-transparent text-[var(--theme-text-secondary)]'
+                      : isSelected
+                        ? 'bg-[var(--theme-bg-accent)]/10 border-[var(--theme-border-focus)] text-[var(--theme-text-primary)]'
+                        : 'border-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)]/50 hover:border-[var(--theme-border-secondary)] hover:text-[var(--theme-text-primary)]'
                   }`}
                 >
                   <div
@@ -76,6 +93,11 @@ export const ModelListView: React.FC<ModelListViewProps> = ({
                       <span className={`font-medium truncate ${isSelected ? 'text-[var(--theme-text-link)]' : ''}`}>
                         {entry.name}
                       </span>
+                      {entry.model.missingApiKey && (
+                        <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--theme-bg-warning)] text-[var(--theme-text-warning)]">
+                          {t('thirdPartyApiKeyMissing')}
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs text-[var(--theme-text-tertiary)] font-mono truncate opacity-70">
                       {entry.id}

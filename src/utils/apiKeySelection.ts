@@ -1,9 +1,13 @@
-import { type AppSettings, type ChatSettings, type ThirdPartyProviderConfig } from '@/types';
-import { API_KEY_LAST_USED_INDEX_KEY } from '@/constants/storageKeys';
+import { type AppSettings, type ChatSettings, type ThirdPartyConnection } from '@/types';
+import { API_KEY_LAST_USED_INDEX_BY_TARGET_KEY, API_KEY_LAST_USED_INDEX_KEY } from '@/constants/storageKeys';
 import { logService } from '@/services/logService';
-import { resolveChatApiRoute } from './chatApiRoute';
+import { isUnavailableThirdPartyRoute, resolveChatApiRoute } from './chatApiRoute';
 
 export const SERVER_MANAGED_API_KEY = '__SERVER_MANAGED_API_KEY__';
+export const GEMINI_API_KEY_ROTATION_TARGET = '__gemini__';
+
+export const THIRD_PARTY_CONNECTION_MISSING_ERROR = 'Third-party connection is unavailable.';
+export const THIRD_PARTY_CONNECTION_DISABLED_ERROR = 'Third-party connection is disabled.';
 
 type ServerManagedProxyEligibility = Pick<
   AppSettings,
@@ -24,7 +28,7 @@ type GetKeyForRequestOptions = {
   skipIncrement?: boolean;
   skipUsageLogging?: boolean;
   apiMode?: ApiKeyRequestMode;
-  provider?: ThirdPartyProviderConfig;
+  provider?: ThirdPartyConnection;
 };
 
 const resolveApiKeyRequestMode = (
@@ -36,22 +40,16 @@ const resolveApiKeyRequestMode = (
     return apiMode;
   }
 
-  // Follow the session's routing decision, not a global mode that can drift
-  // stale after switching to a differently-routed chat.
   return resolveChatApiRoute(appSettings, currentChatSettings).apiMode === 'third-party'
     ? 'third-party'
     : 'gemini-native';
 };
 
-// Resolve the provider whose key should be used. An explicit `options.provider`
-// wins (callers already resolved the route), then the session's routing
-// decision (the derived (providerId, modelId) key), then the global active
-// provider as a last-resort fallback.
 const resolveProviderForKey = (
   appSettings: AppSettings,
   currentChatSettings: ChatSettings,
   options: GetKeyForRequestOptions,
-): ThirdPartyProviderConfig | undefined => {
+): ThirdPartyConnection | undefined => {
   if (options.provider) {
     return options.provider;
   }
@@ -100,6 +98,39 @@ export const parseApiKeys = (apiKeysString: string | null): string[] => {
     .filter((apiKey) => apiKey.length > 0);
 };
 
+const readRotationMap = (): Record<string, number> => {
+  try {
+    const storedMap = localStorage.getItem(API_KEY_LAST_USED_INDEX_BY_TARGET_KEY);
+    if (storedMap) {
+      const parsed: unknown = JSON.parse(storedMap);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed as Record<string, number>;
+      }
+    }
+
+    const legacyIndex = localStorage.getItem(API_KEY_LAST_USED_INDEX_KEY);
+    if (legacyIndex !== null) {
+      const parsed = parseInt(legacyIndex, 10);
+      if (!Number.isNaN(parsed)) {
+        return { [GEMINI_API_KEY_ROTATION_TARGET]: parsed };
+      }
+    }
+  } catch (storageError) {
+    logService.error('Could not parse last used API key index', storageError);
+  }
+
+  return {};
+};
+
+const writeRotationIndex = (targetId: string, index: number) => {
+  try {
+    const nextMap = { ...readRotationMap(), [targetId]: index };
+    localStorage.setItem(API_KEY_LAST_USED_INDEX_BY_TARGET_KEY, JSON.stringify(nextMap));
+  } catch (storageError) {
+    logService.error('Could not save last used API key index', storageError);
+  }
+};
+
 export const getKeyForRequest = (
   appSettings: AppSettings,
   currentChatSettings: ChatSettings,
@@ -108,11 +139,21 @@ export const getKeyForRequest = (
   const { skipIncrement = false } = options;
   const { skipUsageLogging = false } = options;
   const apiKeyRequestMode = resolveApiKeyRequestMode(appSettings, currentChatSettings, options.apiMode);
+  const route = resolveChatApiRoute(appSettings, currentChatSettings);
+
+  if ((options.apiMode ?? 'active') === 'active' && isUnavailableThirdPartyRoute(route)) {
+    return {
+      error:
+        route.unavailable === 'disabled' ? THIRD_PARTY_CONNECTION_DISABLED_ERROR : THIRD_PARTY_CONNECTION_MISSING_ERROR,
+    };
+  }
+
   const shouldUseServerManagedMarker =
     apiKeyRequestMode !== 'third-party' && isServerManagedApiEnabledForProxyRequests(appSettings);
+  const shouldLogUsage = !skipUsageLogging && (apiKeyRequestMode === 'third-party' || appSettings.useCustomApiConfig);
 
   const logUsage = (key: string) => {
-    if (appSettings.useCustomApiConfig && !skipUsageLogging) {
+    if (shouldLogUsage) {
       logService.recordApiKeyUsage(key);
     }
   };
@@ -149,15 +190,12 @@ export const getKeyForRequest = (
     return { key, isNewKey };
   }
 
-  let lastUsedIndex = -1;
-  try {
-    const storedIndex = localStorage.getItem(API_KEY_LAST_USED_INDEX_KEY);
-    if (storedIndex !== null) {
-      lastUsedIndex = parseInt(storedIndex, 10);
-    }
-  } catch (storageError) {
-    logService.error('Could not parse last used API key index', storageError);
-  }
+  const rotationTarget =
+    apiKeyRequestMode === 'third-party'
+      ? (options.provider?.id ?? route.providerId ?? GEMINI_API_KEY_ROTATION_TARGET)
+      : GEMINI_API_KEY_ROTATION_TARGET;
+  const rotationMap = readRotationMap();
+  let lastUsedIndex = rotationMap[rotationTarget] ?? -1;
 
   if (isNaN(lastUsedIndex) || lastUsedIndex < 0 || lastUsedIndex >= availableKeys.length) {
     lastUsedIndex = -1;
@@ -169,11 +207,7 @@ export const getKeyForRequest = (
     targetIndex = lastUsedIndex === -1 ? 0 : lastUsedIndex;
   } else {
     targetIndex = (lastUsedIndex + 1) % availableKeys.length;
-    try {
-      localStorage.setItem(API_KEY_LAST_USED_INDEX_KEY, targetIndex.toString());
-    } catch (storageError) {
-      logService.error('Could not save last used API key index', storageError);
-    }
+    writeRotationIndex(rotationTarget, targetIndex);
   }
 
   const nextKey = availableKeys[targetIndex];
@@ -203,6 +237,10 @@ const getApiKeyErrorTranslationKey = (error: string): string | null => {
       return 'apiRuntimeKeyNotConfigured';
     case 'No valid API keys found.':
       return 'apiRuntimeNoValidKeysFound';
+    case THIRD_PARTY_CONNECTION_MISSING_ERROR:
+      return 'apiRuntimeThirdPartyConnectionMissing';
+    case THIRD_PARTY_CONNECTION_DISABLED_ERROR:
+      return 'apiRuntimeThirdPartyConnectionDisabled';
     default:
       return null;
   }

@@ -113,13 +113,44 @@ describe('buildModelCatalogSections', () => {
 
     expect(sections.map((section) => ({ key: section.key, label: section.label }))).toEqual([
       { key: 'gemini-native', label: undefined },
-      { key: 'third-party:openai', label: 'OpenAI' },
       { key: 'third-party:anthropic', label: 'Anthropic' },
+      { key: 'third-party:openai', label: 'OpenAI' },
       { key: 'third-party:qwen', label: 'Qwen' },
     ]);
     expect(
       sections.find((section) => section.key === 'third-party:anthropic')?.entries.map((entry) => entry.id),
     ).toEqual(['claude-fable-5']);
+  });
+
+  it('flags unavailable and missing-key connection sections for picker chrome', () => {
+    const entries = buildModelCatalog([
+      {
+        id: 'gpt-4o',
+        name: 'GPT-4o',
+        apiMode: 'third-party',
+        providerId: 'openai',
+        connectionName: 'OpenAI',
+        missingApiKey: true,
+      },
+      {
+        id: 'old-model',
+        name: 'Old Model',
+        apiMode: 'third-party',
+        providerId: 'removed',
+        connectionName: 'Removed',
+        unavailable: true,
+      },
+    ]);
+
+    const sections = buildModelCatalogSections(entries);
+    expect(sections.find((section) => section.key === 'third-party:openai')).toMatchObject({
+      missingApiKey: true,
+      unavailable: false,
+    });
+    expect(sections.find((section) => section.key === 'third-party:removed')).toMatchObject({
+      unavailable: true,
+      missingApiKey: false,
+    });
   });
 });
 

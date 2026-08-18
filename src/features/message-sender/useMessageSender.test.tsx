@@ -87,9 +87,8 @@ vi.mock('@/services/api/fileApi', () => ({
 
 import { useMessageSender } from './useMessageSender';
 import { createMessageSenderProps, type MessageSenderPropsOverrides } from '@/test/hooks/factories';
-import { createChatMessage, createChatSettings, createUploadedFile } from '@/test/data/factories';
+import { createChatMessage, createChatSettings, createThirdPartyConnection, createUploadedFile } from '@/test/data/factories';
 import { useChatStore } from '@/stores/chatStore';
-import { createDefaultThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
 import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES } from '@/utils/codeExecution';
 
 describe('useMessageSender', () => {
@@ -438,10 +437,7 @@ describe('useMessageSender', () => {
     const { result, unmount } = renderMessageSender({
       appSettings: {
         thirdPartyApi: {
-          providers: {
-            ...createDefaultThirdPartyApiSettings().providers,
-            openai: { ...createDefaultThirdPartyApiSettings().providers.openai, modelId: 'gpt-5.6-sol' },
-          },
+          connections: [createThirdPartyConnection({ id: 'openai', modelId: 'gpt-5.6-sol' })],
         },
       },
       currentChatSettings: {
@@ -509,10 +505,7 @@ describe('useMessageSender', () => {
     const { result, unmount } = renderMessageSender({
       appSettings: {
         thirdPartyApi: {
-          providers: {
-            ...createDefaultThirdPartyApiSettings().providers,
-            openai: { ...createDefaultThirdPartyApiSettings().providers.openai, modelId: 'gpt-5.6-sol' },
-          },
+          connections: [createThirdPartyConnection({ id: 'openai', modelId: 'gpt-5.6-sol' })],
         },
       },
       currentChatSettings: {
@@ -547,10 +540,7 @@ describe('useMessageSender', () => {
       activeSessionId: 'session-1',
       appSettings: {
         thirdPartyApi: {
-          providers: {
-            ...createDefaultThirdPartyApiSettings().providers,
-            openai: { ...createDefaultThirdPartyApiSettings().providers.openai, modelId: 'gpt-5.6-sol' },
-          },
+          connections: [createThirdPartyConnection({ id: 'openai', modelId: 'gpt-5.6-sol' })],
         },
       },
       currentChatSettings: {

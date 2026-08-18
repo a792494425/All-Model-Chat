@@ -7,7 +7,6 @@ import {
   type McpServerConfig,
   type SafetySetting,
   APP_LANGUAGE_IDS,
-  CHAT_PROVIDER_IDS,
   HarmBlockThreshold,
   HarmCategory,
   LIVE_ARTIFACTS_PROMPT_MODES,
@@ -193,9 +192,7 @@ const sanitizeMcpServers = (value: unknown, fallback: McpServerConfig[]): McpSer
 /**
  * Fold legacy top-level `openaiCompatible*` fields (pre-thirdPartyApi layout)
  * into `thirdPartyApi.providers.openai`. Runs on the raw input before parsing
- * so both the import path and the local store load path migrate persisted old
- * settings into the current provider-map shape. Explicit provider values win
- * over legacy ones, so repeated migration is idempotent.
+ * so sanitizeThirdPartyApiSettings can migrate that map into `connections`.
  */
 export const migrateLegacyOpenAICompatibleInput = (value: unknown): Partial<AppSettings> => {
   if (!isRecord(value)) {
@@ -232,7 +229,7 @@ export const migrateLegacyOpenAICompatibleInput = (value: unknown): Partial<AppS
 
 const appSettingsSchema: z.ZodType<AppSettings> = z.object({
   modelId: stringWithDefault(DEFAULT_APP_SETTINGS.modelId),
-  providerId: optionalWithDefault(z.enum(CHAT_PROVIDER_IDS), DEFAULT_APP_SETTINGS.providerId),
+  providerId: optionalWithDefault(z.string().min(1), DEFAULT_APP_SETTINGS.providerId),
   temperature: numberWithDefault(DEFAULT_APP_SETTINGS.temperature),
   topP: numberWithDefault(DEFAULT_APP_SETTINGS.topP),
   topK: numberWithDefault(DEFAULT_APP_SETTINGS.topK),

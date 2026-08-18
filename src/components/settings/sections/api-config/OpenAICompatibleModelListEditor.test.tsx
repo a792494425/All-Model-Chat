@@ -342,6 +342,27 @@ describe('OpenAICompatibleModelListEditor', () => {
     expect(document.body.textContent).toContain('Imported 1 models.');
   });
 
+  it('explains why fetch is disabled when the connection is missing a key or URL', () => {
+    act(() => {
+      renderer.root.render(
+        <OpenAICompatibleModelListEditor
+          models={[{ id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true }]}
+          selectedModelId="gpt-5.6-sol"
+          onModelsChange={vi.fn()}
+          onSelectedModelChange={vi.fn()}
+          onFetchModelsForImportPreview={vi.fn()}
+          isFetchModelsDisabled
+        />,
+      );
+    });
+
+    const fetchButton = Array.from(renderer.container.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Fetch Models'),
+    );
+    expect(fetchButton?.getAttribute('disabled')).not.toBeNull();
+    expect(fetchButton?.getAttribute('title')).toBe('Add an API key and Base URL to fetch models.');
+  });
+
   describe('focus retention during editing (regression)', () => {
     it('keeps focus on the Model ID input across consecutive keystrokes', () => {
       act(() => {

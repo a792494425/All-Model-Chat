@@ -142,8 +142,7 @@ function buildLoadedAppSettings(
     storedSettings?.transcriptionModelId === LEGACY_DEFAULT_TRANSCRIPTION_MODEL_ID &&
     preloadOverrides?.transcriptionModelId === undefined;
   // Fold legacy top-level openaiCompatible* fields (pre-thirdPartyApi layout)
-  // into thirdPartyApi.providers.openai before sanitizing. Idempotent: explicit
-  // provider values win, so already-migrated data is untouched.
+  // into thirdPartyApi.providers.openai before sanitizing into connections.
   const migratedStoredSettings = migrateLegacyOpenAICompatibleInput(storedSettings ?? {});
   const appSettings = sanitizeAppSettings({
     ...defaultSettings,

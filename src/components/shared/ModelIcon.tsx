@@ -12,8 +12,8 @@ import kimiLogoUrl from '@/assets/model-icons/providers/kimi.png';
 import glmLogoUrl from '@/assets/model-icons/providers/glm.png';
 import customLogoUrl from '@/assets/model-icons/providers/custom.png';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
-import { THIRD_PARTY_PROVIDER_LABELS } from '@/utils/thirdPartyApiProviders';
-import { type ModelOption, type ThirdPartyProviderId } from '@/types';
+import { THIRD_PARTY_PROVIDER_LABELS, THIRD_PARTY_TEMPLATE_LABELS } from '@/utils/thirdPartyApiProviders';
+import { type ModelOption, type ThirdPartyProviderId, type ThirdPartyTemplateId, GEMINI_PROVIDER_ID } from '@/types';
 
 /** Brand logos/PNGs read smaller than stroke icons at the same px; 22 keeps list rows balanced. */
 const MODEL_ICON_SIZE = 22;
@@ -27,6 +27,40 @@ const THIRD_PARTY_PROVIDER_LOGO: Record<ThirdPartyProviderId, string> = {
   kimi: kimiLogoUrl,
   glm: glmLogoUrl,
   custom: customLogoUrl,
+};
+
+const THIRD_PARTY_TEMPLATE_LOGO: Record<ThirdPartyTemplateId, string> = {
+  openai: openaiLogoUrl,
+  deepseek: deepseekLogoUrl,
+  anthropic: anthropicLogoUrl,
+  openrouter: openrouterLogoUrl,
+  qwen: qwenLogoUrl,
+  kimi: kimiLogoUrl,
+  glm: glmLogoUrl,
+  'custom-openai': customLogoUrl,
+  'custom-anthropic': customLogoUrl,
+};
+
+export const resolveThirdPartyLogoKey = (templateId?: string, providerId?: string): string => {
+  const raw = templateId || providerId || '';
+  if (raw === 'custom-openai' || raw === 'custom-anthropic' || raw === 'custom') {
+    return 'custom';
+  }
+  if (raw in THIRD_PARTY_PROVIDER_LOGO || raw in THIRD_PARTY_TEMPLATE_LOGO) {
+    return raw;
+  }
+  return 'custom';
+};
+
+export const getThirdPartyTemplateLogo = (templateId?: string, providerId?: string): string => {
+  const key = resolveThirdPartyLogoKey(templateId, providerId);
+  if (key in THIRD_PARTY_TEMPLATE_LOGO) {
+    return THIRD_PARTY_TEMPLATE_LOGO[key as ThirdPartyTemplateId];
+  }
+  if (key in THIRD_PARTY_PROVIDER_LOGO) {
+    return THIRD_PARTY_PROVIDER_LOGO[key as ThirdPartyProviderId];
+  }
+  return customLogoUrl;
 };
 
 type ModelBrandIconKey = 'gemini' | 'gemma' | 'nanobanana';
@@ -56,18 +90,34 @@ const BrandModelIcon = ({ brand, size = MODEL_ICON_SIZE }: { brand: ModelBrandIc
   />
 );
 
-const ProviderLogo = ({ providerId, size = MODEL_ICON_SIZE }: { providerId: ThirdPartyProviderId; size?: number }) => (
-  <img
-    src={THIRD_PARTY_PROVIDER_LOGO[providerId]}
-    alt={THIRD_PARTY_PROVIDER_LABELS[providerId] ?? providerId}
-    width={size}
-    height={size}
-    draggable={false}
-    data-model-provider-logo={providerId}
-    className="flex-shrink-0 object-contain"
-    style={{ width: size, height: size }}
-  />
-);
+const ProviderLogo = ({
+  templateId,
+  providerId,
+  size = MODEL_ICON_SIZE,
+}: {
+  templateId?: string;
+  providerId?: string;
+  size?: number;
+}) => {
+  const logoKey = resolveThirdPartyLogoKey(templateId, providerId);
+  const label =
+    (templateId && THIRD_PARTY_TEMPLATE_LABELS[templateId as ThirdPartyTemplateId]) ||
+    (providerId && THIRD_PARTY_PROVIDER_LABELS[providerId as ThirdPartyProviderId]) ||
+    logoKey;
+
+  return (
+    <img
+      src={getThirdPartyTemplateLogo(templateId, providerId)}
+      alt={label}
+      width={size}
+      height={size}
+      draggable={false}
+      data-model-provider-logo={logoKey}
+      className="flex-shrink-0 object-contain"
+      style={{ width: size, height: size }}
+    />
+  );
+};
 
 const resolveBrandIcon = (model: ModelOption): ModelBrandIconKey | null => {
   const normalizedId = model.id.toLowerCase();
@@ -109,10 +159,8 @@ export const getModelIcon = (model: ModelOption | undefined) => {
     return <BrandModelIcon brand={brand} />;
   }
 
-  if (model.providerId) {
-    // When a provider logo asset exists it takes precedence over the colored
-    // box fallback so the picker shows the real brand mark.
-    return <ProviderLogo providerId={model.providerId} />;
+  if (model.templateId || (model.providerId && model.providerId !== GEMINI_PROVIDER_ID)) {
+    return <ProviderLogo templateId={model.templateId} providerId={model.providerId} />;
   }
 
   if (model.isPinned) {

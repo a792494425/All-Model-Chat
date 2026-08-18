@@ -41,6 +41,7 @@ describe('getModelIcon', () => {
         isPinned: true,
         apiMode: 'third-party',
         providerId,
+        templateId: providerId === 'custom' ? 'custom-openai' : providerId,
       });
 
       expect(html).toContain(`data-model-provider-logo="${providerId}"`);

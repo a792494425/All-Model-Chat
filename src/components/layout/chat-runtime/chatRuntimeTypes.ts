@@ -10,7 +10,7 @@ import type {
   ModelOption,
   SideViewContent,
   ThinkingLevel,
-  ThirdPartyProviderId,
+  ChatProviderId,
   UploadedFile,
   VideoMetadata,
 } from '@/types';
@@ -35,7 +35,7 @@ export interface ChatHeaderRuntimeValue {
   onOpenScenariosModal: () => void;
   onToggleHistorySidebar: () => void;
   onLoadLiveArtifactsPrompt: () => void;
-  onSelectModel: (modelId: string, providerId?: ThirdPartyProviderId) => void;
+  onSelectModel: (modelId: string, providerId?: ChatProviderId) => void;
   onSetThinkingLevel: (level: ThinkingLevel) => void;
   onToggleGemmaReasoning: () => void;
   onTogglePip: () => void;
@@ -75,7 +75,7 @@ export interface ChatInputRuntimeValue {
   onToggleLiveArtifactsPrompt: () => void;
   onTogglePinCurrentSession: () => void;
   onRetryLastTurn: () => void;
-  onSelectModel: (modelId: string, providerId?: ThirdPartyProviderId) => void;
+  onSelectModel: (modelId: string, providerId?: ChatProviderId) => void;
   availableModels: ModelOption[];
   onEditLastUserMessage: () => void;
   onTogglePip: () => void;

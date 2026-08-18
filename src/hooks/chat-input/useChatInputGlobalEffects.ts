@@ -39,10 +39,19 @@ export const useChatInputGlobalEffects = ({
   insertText,
   handlePasteAction,
 }: UseChatInputGlobalEffectsParams) => {
+  const appliedCommandKeyRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!commandedInput) {
       return;
     }
+
+    const commandKey = `${commandedInput.id}:${commandedInput.mode ?? 'replace'}:${commandedInput.text}`;
+    if (appliedCommandKeyRef.current === commandKey) {
+      return;
+    }
+
+    appliedCommandKeyRef.current = commandKey;
 
     if (commandedInput.mode === 'quote') {
       setQuotes((prev) => [...prev, commandedInput.text]);
@@ -182,6 +191,10 @@ export const useChatInputGlobalEffects = ({
   useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
       if (isAnyModalOpen) {
+        return;
+      }
+
+      if (event.isComposing || event.key === 'Process' || event.keyCode === 229) {
         return;
       }
 

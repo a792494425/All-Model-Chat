@@ -344,10 +344,16 @@ describe('useDataImport', () => {
 
     expect(didImportSettings).toBe(true);
     // Legacy openaiCompatible* fields fold into thirdPartyApi.providers.openai on import.
-    expect(importedSettings.thirdPartyApi.providers.openai.apiKey).toBe('openai-key');
-    expect(importedSettings.thirdPartyApi.providers.openai.baseUrl).toBe('https://openai-compatible.example.com/v1');
-    expect(importedSettings.thirdPartyApi.providers.openai.modelId).toBe('custom-model');
-    expect(importedSettings.thirdPartyApi.providers.openai.models).toEqual([
+    expect(importedSettings.thirdPartyApi.connections.find((connection) => connection.id === 'openai')?.apiKey).toBe(
+      'openai-key',
+    );
+    expect(importedSettings.thirdPartyApi.connections.find((connection) => connection.id === 'openai')?.baseUrl).toBe(
+      'https://openai-compatible.example.com/v1',
+    );
+    expect(importedSettings.thirdPartyApi.connections.find((connection) => connection.id === 'openai')?.modelId).toBe(
+      'custom-model',
+    );
+    expect(importedSettings.thirdPartyApi.connections.find((connection) => connection.id === 'openai')?.models).toEqual([
       {
         id: 'custom-model',
         name: 'Custom Model',

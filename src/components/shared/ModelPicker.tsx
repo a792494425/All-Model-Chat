@@ -1,6 +1,6 @@
 import { useI18n } from '@/contexts/I18nContext';
 import React, { useId, useMemo, useRef, useState, type RefObject } from 'react';
-import { type ModelOption, type ThirdPartyProviderId } from '@/types';
+import { type ModelOption, type ChatProviderId } from '@/types';
 import { Check } from 'lucide-react';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import {
@@ -15,7 +15,7 @@ import { getModelIcon } from './ModelIcon';
 interface ModelPickerProps {
   models: ModelOption[];
   selectedId: string;
-  onSelect: (modelId: string, providerId?: ThirdPartyProviderId) => void;
+  onSelect: (modelId: string, providerId?: ChatProviderId) => void;
 
   renderTrigger: (props: {
     isOpen: boolean;
@@ -77,19 +77,32 @@ export const ModelPicker: React.FC<ModelPickerProps> = ({
   const activeDescendantId = activeOptionKey ? `model-picker-option-${activeOptionKey}` : undefined;
 
   const handleSelectModel = (entry: ModelCatalogEntry) => {
+    if (entry.model.unavailable) {
+      return;
+    }
     onSelect(entry.id, entry.model.providerId);
     setPickerOpen(false);
   };
 
+  const selectableIndexes = visibleEntries
+    .map((entry, index) => (entry.model.unavailable ? -1 : index))
+    .filter((index) => index >= 0);
+
   const moveActiveEntry = (directionStep: 1 | -1) => {
-    if (visibleEntries.length === 0) {
+    if (selectableIndexes.length === 0) {
       setActiveEntryIndex(-1);
       return;
     }
 
-    const currentIndex = activeIndexRef.current >= 0 ? activeIndexRef.current : getInitialActiveIndex();
-    const nextIndex = (currentIndex + directionStep + visibleEntries.length) % visibleEntries.length;
-    setActiveEntryIndex(nextIndex);
+    const currentIndex = activeIndexRef.current;
+    const positionInSelectable = selectableIndexes.indexOf(currentIndex);
+    const nextPosition =
+      positionInSelectable === -1
+        ? directionStep === 1
+          ? 0
+          : selectableIndexes.length - 1
+        : (positionInSelectable + directionStep + selectableIndexes.length) % selectableIndexes.length;
+    setActiveEntryIndex(selectableIndexes[nextPosition]);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -184,25 +197,40 @@ export const ModelPicker: React.FC<ModelPickerProps> = ({
                       {section.providerKey && (
                         <div className="px-2 pt-1 pb-1 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--theme-text-tertiary)]">
                           {section.label ?? t(getModelProviderSectionLabelKey(section.providerKey))}
+                          {section.unavailable ? ` · ${t('thirdPartyConnectionUnavailable')}` : ''}
+                          {section.missingApiKey ? ` · ${t('thirdPartyApiKeyMissing')}` : ''}
                         </div>
+                      )}
+                      {section.unavailable && (
+                        <p className="px-2 pb-1 text-xs text-[var(--theme-text-tertiary)]">
+                          {t('thirdPartyConnectionUnavailableHint')}
+                        </p>
                       )}
                       {section.entries.map((entry) => {
                         const isSelected = entry.id === selectedId;
                         const isActive = visibleEntries[activeIndex]?.id === entry.id;
                         const optionKey = `${entry.model.providerId ?? 'gemini'}:${entry.id}`;
+                        const isUnavailable = Boolean(entry.model.unavailable);
 
                         return (
                           <button
                             key={optionKey}
                             id={`model-picker-option-${optionKey}`}
                             role="option"
+                            type="button"
                             aria-selected={isSelected}
+                            aria-disabled={isUnavailable}
+                            disabled={isUnavailable}
                             onClick={() => handleSelectModel(entry)}
-                            className={`group w-full text-left px-3 py-2.5 text-sm rounded-xl flex items-start justify-between transition-colors cursor-pointer outline-none border ${
-                              isSelected
-                                ? 'bg-[var(--theme-bg-tertiary)]/60 border-[var(--theme-border-secondary)]'
-                                : 'bg-transparent border-transparent hover:bg-[var(--theme-bg-tertiary)] hover:border-[var(--theme-border-secondary)]'
-                            } ${isActive && !isSelected ? 'bg-[var(--theme-bg-tertiary)] border-[var(--theme-border-secondary)]' : ''}`}
+                            className={`group w-full text-left px-3 py-2.5 text-sm rounded-xl flex items-start justify-between transition-colors outline-none border ${
+                              isUnavailable
+                                ? 'opacity-50 cursor-not-allowed border-transparent'
+                                : `cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-[var(--theme-bg-tertiary)]/60 border-[var(--theme-border-secondary)]'
+                                      : 'bg-transparent border-transparent hover:bg-[var(--theme-bg-tertiary)] hover:border-[var(--theme-border-secondary)]'
+                                  } ${isActive && !isSelected ? 'bg-[var(--theme-bg-tertiary)] border-[var(--theme-border-secondary)]' : ''}`
+                            }`}
                           >
                             <div className="flex items-start gap-2.5 min-w-0 flex-grow overflow-hidden">
                               <div className="mt-0.5 flex-shrink-0">{getModelIcon(entry.model)}</div>
@@ -214,6 +242,11 @@ export const ModelPicker: React.FC<ModelPickerProps> = ({
                                   >
                                     {entry.name}
                                   </span>
+                                  {entry.model.missingApiKey && (
+                                    <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--theme-bg-warning)] text-[var(--theme-text-warning)]">
+                                      {t('thirdPartyApiKeyMissing')}
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="mt-1 truncate font-mono text-xs text-[var(--theme-text-tertiary)]">
                                   {entry.id}

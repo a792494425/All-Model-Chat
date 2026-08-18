@@ -17,14 +17,7 @@ import {
   type OpenAIResponsePayload,
 } from './openaiCompatibleTypes';
 import { buildOpenAICompatibleChatCompletionsUrl, buildOpenAICompatibleModelsUrl } from './openaiCompatibleUrls';
-
-// Tag every request with the provider id so the api container's third-party
-// proxy can look up the correct upstream route. Defaults to "openai".
-const THIRD_PARTY_PROVIDER_HEADER = 'x-third-party-provider';
-// In pure-BYOK mode (no server route table entry), the browser supplies the
-// provider's real baseUrl here so the proxy can forward without a configured
-// THIRD_PARTY_ROUTES entry.
-const THIRD_PARTY_BASE_URL_HEADER = 'x-third-party-base-url';
+import { buildThirdPartyForwardHeaders } from './thirdPartyRequestHeaders';
 
 const createRequestInit = (
   apiKey: string,
@@ -32,13 +25,13 @@ const createRequestInit = (
   abortSignal: AbortSignal,
   providerId?: string | null,
   baseUrl?: string | null,
+  extraHeaders?: Record<string, string> | null,
 ): RequestInit => ({
   method: 'POST',
   headers: {
     authorization: `Bearer ${apiKey}`,
     'content-type': 'application/json',
-    ...(providerId ? { [THIRD_PARTY_PROVIDER_HEADER]: providerId } : {}),
-    ...(baseUrl ? { [THIRD_PARTY_BASE_URL_HEADER]: baseUrl } : {}),
+    ...buildThirdPartyForwardHeaders({ proxyProviderId: providerId, baseUrl, extraHeaders }),
   },
   body: JSON.stringify(body),
   signal: abortSignal,
@@ -49,12 +42,12 @@ const createGetRequestInit = (
   abortSignal: AbortSignal,
   providerId?: string | null,
   baseUrl?: string | null,
+  extraHeaders?: Record<string, string> | null,
 ): RequestInit => ({
   method: 'GET',
   headers: {
     authorization: `Bearer ${apiKey}`,
-    ...(providerId ? { [THIRD_PARTY_PROVIDER_HEADER]: providerId } : {}),
-    ...(baseUrl ? { [THIRD_PARTY_BASE_URL_HEADER]: baseUrl } : {}),
+    ...buildThirdPartyForwardHeaders({ proxyProviderId: providerId, baseUrl, extraHeaders }),
   },
   signal: abortSignal,
 });
@@ -64,10 +57,11 @@ export const fetchOpenAICompatibleModels = async (
   baseUrl: string | null | undefined,
   abortSignal: AbortSignal,
   providerId?: string | null,
+  extraHeaders?: Record<string, string> | null,
 ): Promise<ModelOption[]> => {
   const response = await fetch(
     buildOpenAICompatibleModelsUrl(baseUrl),
-    createGetRequestInit(apiKey, abortSignal, providerId, baseUrl),
+    createGetRequestInit(apiKey, abortSignal, providerId, baseUrl, extraHeaders),
   );
 
   if (!response.ok) {
@@ -110,6 +104,7 @@ export const sendOpenAICompatibleMessageNonStream: NonStreamMessageSender = asyn
         abortSignal,
         providerId,
         compatibleConfig.baseUrl,
+        compatibleConfig.extraHeaders,
       ),
     );
 
@@ -168,6 +163,7 @@ export const sendOpenAICompatibleMessageStream: StreamMessageSender = async (
         abortSignal,
         providerId,
         compatibleConfig.baseUrl,
+        compatibleConfig.extraHeaders,
       ),
     );
 

@@ -69,4 +69,36 @@ describe('ModelListView', () => {
 
     expect(onSelectModel).toHaveBeenCalledWith('gpt-5.6-sol', 'third-party');
   });
+
+  it('does not select an unavailable third-party model', () => {
+    const onSelectModel = vi.fn();
+
+    act(() => {
+      renderer.root.render(
+        <ModelListView
+          availableModels={[
+            { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', apiMode: 'gemini-native' },
+            {
+              id: 'old-model',
+              name: 'Old Model',
+              apiMode: 'third-party',
+              providerId: 'removed',
+              connectionName: 'Removed',
+              unavailable: true,
+            },
+          ]}
+          selectedModelId="gemini-3-flash-preview"
+          onSelectModel={onSelectModel}
+        />,
+      );
+    });
+
+    act(() => {
+      renderer.container
+        .querySelector('[data-testid="settings-model-option-removed:old-model"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onSelectModel).not.toHaveBeenCalled();
+  });
 });

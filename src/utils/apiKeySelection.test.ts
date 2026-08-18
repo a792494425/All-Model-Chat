@@ -1,18 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
+import { createThirdPartyConnection } from '@/test/data/factories';
 import { type ChatSettings, GEMINI_PROVIDER_ID } from '@/types';
+import { API_KEY_LAST_USED_INDEX_BY_TARGET_KEY } from '@/constants/storageKeys';
 import {
   formatApiKeyErrorMessage,
   getGeminiKeyForRequest,
   getKeyForRequest,
   isServerManagedApiEnabledForProxyRequests,
   SERVER_MANAGED_API_KEY,
+  THIRD_PARTY_CONNECTION_DISABLED_ERROR,
+  THIRD_PARTY_CONNECTION_MISSING_ERROR,
 } from './apiKeySelection';
 import { logService } from '@/services/logService';
 
 describe('getKeyForRequest', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.removeItem(API_KEY_LAST_USED_INDEX_BY_TARGET_KEY);
   });
 
   const chatSettings: ChatSettings = {
@@ -27,7 +32,7 @@ describe('getKeyForRequest', () => {
     thinkingBudget: 0,
   };
 
-  const openaiProvider = { ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers.openai, apiKey: 'openai-key' };
+  const openaiProvider = createThirdPartyConnection({ id: 'openai', apiKey: 'openai-key' });
 
   it('returns server-managed marker key when using proxy custom config with no browser key', () => {
     const result = getKeyForRequest(
@@ -90,10 +95,7 @@ describe('getKeyForRequest', () => {
         useCustomApiConfig: true,
         apiKey: 'gemini-key',
         thirdPartyApi: {
-          providers: {
-            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
-            openai: openaiProvider,
-          },
+          connections: [openaiProvider],
         },
       },
       {
@@ -118,10 +120,7 @@ describe('getKeyForRequest', () => {
         useCustomApiConfig: true,
         apiKey: 'gemini-key',
         thirdPartyApi: {
-          providers: {
-            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
-            openai: { ...openaiProvider, enabled: true },
-          },
+          connections: [{ ...openaiProvider, enabled: true }],
         },
       },
       {
@@ -138,18 +137,17 @@ describe('getKeyForRequest', () => {
   });
 
   it('uses the explicit session provider key over the default openai provider', () => {
-    const kimiProvider = { ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers.kimi, apiKey: 'kimi-key' };
+    const kimiProvider = createThirdPartyConnection({ id: 'kimi', templateId: 'kimi', apiKey: 'kimi-key' });
     const result = getKeyForRequest(
       {
         ...DEFAULT_APP_SETTINGS,
         useCustomApiConfig: true,
         apiKey: 'gemini-key',
         thirdPartyApi: {
-          providers: {
-            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
-            openai: { ...openaiProvider, enabled: true },
-            kimi: { ...kimiProvider, enabled: true },
-          },
+          connections: [
+            { ...openaiProvider, enabled: true },
+            { ...kimiProvider, enabled: true },
+          ],
         },
       },
       {
@@ -169,10 +167,7 @@ describe('getKeyForRequest', () => {
         useCustomApiConfig: true,
         apiKey: 'gemini-key',
         thirdPartyApi: {
-          providers: {
-            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
-            openai: { ...openaiProvider, apiKey: null },
-          },
+          connections: [{ ...openaiProvider, apiKey: null }],
         },
       },
       {
@@ -226,10 +221,7 @@ describe('getKeyForRequest', () => {
         useCustomApiConfig: true,
         apiKey: 'gemini-key',
         thirdPartyApi: {
-          providers: {
-            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
-            openai: openaiProvider,
-          },
+          connections: [openaiProvider],
         },
       },
       {
@@ -254,10 +246,7 @@ describe('getKeyForRequest', () => {
         useCustomApiConfig: true,
         apiKey: null,
         thirdPartyApi: {
-          providers: {
-            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
-            openai: openaiProvider,
-          },
+          connections: [openaiProvider],
         },
       },
       {
@@ -272,21 +261,18 @@ describe('getKeyForRequest', () => {
   });
 
   it('resolves the anthropic provider key when the session routes there', () => {
-    const anthropicProvider = {
+    const anthropicProvider = createThirdPartyConnection({
+      id: 'anthropic',
+      templateId: 'anthropic',
       apiKey: 'sk-ant-test',
-      baseUrl: 'https://api.anthropic.com',
       modelId: 'claude-sonnet-5',
       models: [{ id: 'claude-sonnet-5', name: 'Claude Sonnet 5', isPinned: true }],
-      protocol: 'anthropic' as const,
-    };
+    });
     const result = getKeyForRequest(
       {
         ...DEFAULT_APP_SETTINGS,
         thirdPartyApi: {
-          providers: {
-            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
-            anthropic: anthropicProvider,
-          },
+          connections: [anthropicProvider],
         },
       },
       {
@@ -300,15 +286,93 @@ describe('getKeyForRequest', () => {
     expect((result as { key: string }).key).toBe('sk-ant-test');
   });
 
+  it('records third-party key usage even when Gemini custom config is off', () => {
+    getKeyForRequest(
+      {
+        ...DEFAULT_APP_SETTINGS,
+        useCustomApiConfig: false,
+        thirdPartyApi: {
+          connections: [openaiProvider],
+        },
+      },
+      {
+        ...chatSettings,
+        modelId: openaiProvider.modelId,
+        providerId: 'openai',
+      },
+    );
+
+    expect(logService.recordApiKeyUsage).toHaveBeenCalledWith('openai-key');
+  });
+
+  it('returns a missing-connection error instead of falling back to Gemini', () => {
+    const result = getKeyForRequest(
+      {
+        ...DEFAULT_APP_SETTINGS,
+        useCustomApiConfig: true,
+        apiKey: 'gemini-key',
+        thirdPartyApi: { connections: [] },
+      },
+      {
+        ...chatSettings,
+        modelId: 'gpt-4o',
+        providerId: 'removed-id',
+      },
+    );
+
+    expect(result).toEqual({ error: THIRD_PARTY_CONNECTION_MISSING_ERROR });
+  });
+
+  it('returns a disabled-connection error instead of falling back to Gemini', () => {
+    const result = getKeyForRequest(
+      {
+        ...DEFAULT_APP_SETTINGS,
+        useCustomApiConfig: true,
+        apiKey: 'gemini-key',
+        thirdPartyApi: {
+          connections: [createThirdPartyConnection({ id: 'openai', enabled: false, apiKey: 'openai-key' })],
+        },
+      },
+      {
+        ...chatSettings,
+        modelId: 'gpt-5.6-sol',
+        providerId: 'openai',
+      },
+    );
+
+    expect(result).toEqual({ error: THIRD_PARTY_CONNECTION_DISABLED_ERROR });
+  });
+
+  it('rotates Gemini and connection keys independently', () => {
+    const geminiSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      useCustomApiConfig: true,
+      apiKey: 'g1,g2',
+    };
+    const openaiSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      thirdPartyApi: {
+        connections: [createThirdPartyConnection({ id: 'openai', apiKey: 'o1,o2' })],
+      },
+    };
+    const openaiChat = {
+      ...chatSettings,
+      modelId: 'gpt-5.6-sol',
+      providerId: 'openai',
+    };
+
+    expect(getKeyForRequest(geminiSettings, chatSettings)).toEqual({ key: 'g1', isNewKey: true });
+    expect(getKeyForRequest(openaiSettings, openaiChat)).toEqual({ key: 'o1', isNewKey: true });
+    expect(getKeyForRequest(geminiSettings, chatSettings)).toEqual({ key: 'g2', isNewKey: true });
+    expect(getKeyForRequest(openaiSettings, openaiChat)).toEqual({ key: 'o2', isNewKey: true });
+  });
+
   it('returns error when third-party provider has no api key', () => {
     const result = getKeyForRequest(
       {
         ...DEFAULT_APP_SETTINGS,
         thirdPartyApi: {
-          providers: {
-            ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers,
-            anthropic: { ...DEFAULT_APP_SETTINGS.thirdPartyApi.providers.anthropic, apiKey: null },
-          },
+          connections: [createThirdPartyConnection({ id: 'anthropic', templateId: 'anthropic', apiKey: null })],
         },
       },
       {
@@ -352,6 +416,12 @@ describe('formatApiKeyErrorMessage', () => {
 
     expect(formatApiKeyErrorMessage('API Key not configured.', translate)).toBe(
       'translated:apiRuntimeKeyNotConfigured',
+    );
+    expect(formatApiKeyErrorMessage(THIRD_PARTY_CONNECTION_MISSING_ERROR, translate)).toBe(
+      'translated:apiRuntimeThirdPartyConnectionMissing',
+    );
+    expect(formatApiKeyErrorMessage(THIRD_PARTY_CONNECTION_DISABLED_ERROR, translate)).toBe(
+      'translated:apiRuntimeThirdPartyConnectionDisabled',
     );
     expect(formatApiKeyErrorMessage('custom failure', translate)).toBe('custom failure');
   });

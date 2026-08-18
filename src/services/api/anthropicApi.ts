@@ -14,16 +14,9 @@ import {
   type AnthropicStreamEvent,
 } from './anthropicTypes';
 import { buildAnthropicMessagesUrl, buildAnthropicModelsUrl } from './anthropicUrls';
+import { buildThirdPartyForwardHeaders } from './thirdPartyRequestHeaders';
 
 const ANTHROPIC_VERSION = '2023-06-01';
-
-// Tag every request with the provider id so the api container's third-party
-// proxy can look up the correct upstream route. Defaults to "anthropic".
-const THIRD_PARTY_PROVIDER_HEADER = 'x-third-party-provider';
-// In pure-BYOK mode (no server route table entry), the browser supplies the
-// provider's real baseUrl here so the proxy can forward without a configured
-// THIRD_PARTY_ROUTES entry.
-const THIRD_PARTY_BASE_URL_HEADER = 'x-third-party-base-url';
 
 const createRequestInit = (
   apiKey: string,
@@ -31,14 +24,14 @@ const createRequestInit = (
   abortSignal: AbortSignal,
   providerId?: string | null,
   baseUrl?: string | null,
+  extraHeaders?: Record<string, string> | null,
 ): RequestInit => ({
   method: 'POST',
   headers: {
     'x-api-key': apiKey,
     'anthropic-version': ANTHROPIC_VERSION,
     'content-type': 'application/json',
-    ...(providerId ? { [THIRD_PARTY_PROVIDER_HEADER]: providerId } : {}),
-    ...(baseUrl ? { [THIRD_PARTY_BASE_URL_HEADER]: baseUrl } : {}),
+    ...buildThirdPartyForwardHeaders({ proxyProviderId: providerId, baseUrl, extraHeaders }),
   },
   body: JSON.stringify(body),
   signal: abortSignal,
@@ -49,13 +42,13 @@ const createGetRequestInit = (
   abortSignal: AbortSignal,
   providerId?: string | null,
   baseUrl?: string | null,
+  extraHeaders?: Record<string, string> | null,
 ): RequestInit => ({
   method: 'GET',
   headers: {
     'x-api-key': apiKey,
     'anthropic-version': ANTHROPIC_VERSION,
-    ...(providerId ? { [THIRD_PARTY_PROVIDER_HEADER]: providerId } : {}),
-    ...(baseUrl ? { [THIRD_PARTY_BASE_URL_HEADER]: baseUrl } : {}),
+    ...buildThirdPartyForwardHeaders({ proxyProviderId: providerId, baseUrl, extraHeaders }),
   },
   signal: abortSignal,
 });
@@ -65,10 +58,11 @@ export const fetchAnthropicModels = async (
   baseUrl: string | null | undefined,
   abortSignal: AbortSignal,
   providerId?: string | null,
+  extraHeaders?: Record<string, string> | null,
 ): Promise<ModelOption[]> => {
   const response = await fetch(
     buildAnthropicModelsUrl(baseUrl),
-    createGetRequestInit(apiKey, abortSignal, providerId, baseUrl),
+    createGetRequestInit(apiKey, abortSignal, providerId, baseUrl, extraHeaders),
   );
   if (!response.ok) {
     throw new Error(await readResponseErrorMessage(response, 'Anthropic'));
@@ -107,6 +101,7 @@ export const sendAnthropicMessageNonStream: NonStreamMessageSender = async (
         abortSignal,
         providerId,
         anthropicConfig.baseUrl,
+        anthropicConfig.extraHeaders,
       ),
     );
     if (!response.ok) {
@@ -155,6 +150,7 @@ export const sendAnthropicMessageStream: StreamMessageSender = async (
         abortSignal,
         providerId,
         anthropicConfig.baseUrl,
+        anthropicConfig.extraHeaders,
       ),
     );
     if (!response.ok) {

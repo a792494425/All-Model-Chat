@@ -5,11 +5,15 @@ import {
   type ChatSettings,
   type SavedChatSession,
   type Theme,
+  type ThirdPartyApiSettings,
+  type ThirdPartyConnection,
+  type ThirdPartyTemplateId,
   type UploadedFile,
   GEMINI_PROVIDER_ID,
+  THIRD_PARTY_TEMPLATE_IDS,
 } from '@/types';
 import { AVAILABLE_THEMES } from '@/constants/themeRegistry';
-import { createDefaultThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
+import { createDefaultThirdPartyApiSettings, getThirdPartyTemplateDefaults } from '@/utils/thirdPartyApiProviders';
 
 export const createChatSettings = (overrides: Partial<ChatSettings> = {}): ChatSettings => ({
   modelId: 'gemini-3.1-pro-preview',
@@ -116,4 +120,44 @@ export const createSavedChatSessionMetadata = (overrides: Partial<SavedChatSessi
 export const createTheme = (overrides: Partial<Theme> = {}): Theme => ({
   ...AVAILABLE_THEMES.find((theme) => theme.id === 'pearl')!,
   ...overrides,
+});
+
+const resolveFactoryTemplateId = (overrides: Partial<ThirdPartyConnection>): ThirdPartyTemplateId => {
+  if (overrides.templateId) {
+    return overrides.templateId;
+  }
+  if (overrides.id === 'custom') {
+    return 'custom-openai';
+  }
+  if (overrides.id && (THIRD_PARTY_TEMPLATE_IDS as readonly string[]).includes(overrides.id)) {
+    return overrides.id as ThirdPartyTemplateId;
+  }
+  return 'openai';
+};
+
+export const createThirdPartyConnection = (overrides: Partial<ThirdPartyConnection> = {}): ThirdPartyConnection => {
+  const templateId = resolveFactoryTemplateId(overrides);
+  const defaults = getThirdPartyTemplateDefaults(templateId);
+  const id =
+    overrides.id ?? (templateId === 'custom-openai' || templateId === 'custom-anthropic' ? 'custom' : templateId);
+
+  const { extraHeaders, models, modelId, ...rest } = overrides;
+
+  return {
+    id,
+    name: defaults.name,
+    templateId,
+    protocol: defaults.protocol,
+    apiKey: null,
+    baseUrl: defaults.baseUrl,
+    enabled: true,
+    ...rest,
+    extraHeaders: { ...(extraHeaders ?? {}) },
+    models: models ?? defaults.models,
+    modelId: modelId ?? defaults.modelId,
+  };
+};
+
+export const createThirdPartyApiSettings = (connections: ThirdPartyConnection[] = []): ThirdPartyApiSettings => ({
+  connections,
 });

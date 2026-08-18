@@ -7,6 +7,7 @@ export interface OpenAICompatibleChatConfig {
   temperature?: number;
   topP?: number;
   thinkingLevel?: ThinkingLevel;
+  extraHeaders?: Record<string, string> | null;
 }
 
 export type OpenAIMessageContent =

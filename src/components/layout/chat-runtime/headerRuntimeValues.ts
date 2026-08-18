@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react';
 
 import type { AppViewModel } from '@/hooks/app/useApp';
-import type { ThirdPartyProviderId } from '@/types';
-import { getEnabledThirdPartyProviders } from '@/utils/thirdPartyApiProviders';
+import type { ChatProviderId } from '@/types';
+import { buildProviderAwareModelList } from '@/utils/thirdPartyApiProviders';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
 import { buildNewTabHref } from '@/utils/chat/lastActiveSession';
 import type { ChatHeaderRuntimeValue } from './chatRuntimeTypes';
@@ -16,21 +16,10 @@ interface HeaderRuntimeValuesOptions {
 const buildHeaderModels = (
   appSettings: AppViewModel['appSettings'],
   apiModels: AppViewModel['chatState']['apiModels'],
+  currentChatSettings: AppViewModel['chatState']['currentChatSettings'],
 ) => {
   const geminiModels = apiModels.map((model) => ({ ...model, apiMode: 'gemini-native' as const }));
-  // Third-party models show in the header whenever their provider is enabled —
-  // picking one routes the session to that provider. Same-named ids from
-  // different providers are all kept (the picker groups them per provider), so
-  // a model that exists on two providers stays selectable on both.
-  const thirdPartyModels = getEnabledThirdPartyProviders(appSettings).flatMap(({ id, config }) =>
-    config.models.map((model) => ({
-      ...model,
-      apiMode: 'third-party' as const,
-      providerId: id,
-    })),
-  );
-
-  return [...geminiModels, ...thirdPartyModels];
+  return buildProviderAwareModelList(appSettings, geminiModels, currentChatSettings);
 };
 
 export const useChatHeaderRuntimeValues = ({
@@ -85,12 +74,15 @@ export const useChatHeaderRuntimeValues = ({
 
   const currentModelName = getCurrentModelDisplayName();
   const currentApiRoute = resolveChatApiRoute(appSettings, currentChatSettings);
-  const headerAvailableModels = useMemo(() => buildHeaderModels(appSettings, apiModels), [appSettings, apiModels]);
+  const headerAvailableModels = useMemo(
+    () => buildHeaderModels(appSettings, apiModels, currentChatSettings),
+    [appSettings, apiModels, currentChatSettings],
+  );
   const headerSelectedModelId = currentApiRoute.modelId;
   // Picking a model only affects the active session's (providerId, modelId) —
   // it no longer flips a global apiMode/isThirdPartyApiEnabled.
   const handleHeaderSelectModel = useCallback(
-    (modelId: string, providerId?: ThirdPartyProviderId) => {
+    (modelId: string, providerId?: ChatProviderId) => {
       handleSelectModelInHeader(modelId, providerId);
     },
     [handleSelectModelInHeader],

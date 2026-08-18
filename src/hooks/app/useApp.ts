@@ -128,8 +128,8 @@ export const useApp = (): AppViewModel => {
   }, [pipState.pipWindow, currentTheme, appSettings]);
 
   const providerAwareModels = useMemo(
-    () => buildProviderAwareModelList(appSettings, apiModels),
-    [appSettings, apiModels],
+    () => buildProviderAwareModelList(appSettings, apiModels, currentChatSettings),
+    [appSettings, apiModels, currentChatSettings],
   );
 
   const eventsState = useAppEvents({

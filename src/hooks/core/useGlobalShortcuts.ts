@@ -1,7 +1,7 @@
 import { useEffect, type Dispatch, type SetStateAction } from 'react';
 import { CHAT_INPUT_TEXTAREA_SELECTOR, FOCUS_HISTORY_SEARCH_EVENT } from '@/constants/layout';
 import { useFullscreen } from '@/hooks/ui/useFullscreen';
-import type { AppSettings, ChatSettings, ModelOption, ThirdPartyProviderId } from '@/types';
+import type { AppSettings, ChatSettings, ModelOption, ChatProviderId } from '@/types';
 import { isShortcutPressed } from '@/utils/keyboardShortcuts';
 import { getTabCycleModelIds } from '@/utils/model/modelCatalog';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
@@ -14,7 +14,7 @@ interface UseGlobalShortcutsProps {
   startNewChat: () => void;
   currentChatSettings: ChatSettings;
   availableModels: ModelOption[];
-  handleSelectModelInHeader: (modelId: string, providerId?: ThirdPartyProviderId) => void;
+  handleSelectModelInHeader: (modelId: string, providerId?: ChatProviderId) => void;
   setIsLogViewerOpen: (isOpen: boolean | ((prev: boolean) => boolean)) => void;
   onTogglePip: () => void;
   isPipSupported: boolean;

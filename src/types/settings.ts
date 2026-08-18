@@ -5,7 +5,16 @@ export interface ModelOption {
   name: string;
   isPinned?: boolean;
   apiMode?: ApiMode;
-  providerId?: ThirdPartyProviderId;
+  /** Session routing id: Gemini native or a third-party connection id. */
+  providerId?: ChatProviderId;
+  /** Template used to render the connection logo; independent of connection id. */
+  templateId?: ThirdPartyTemplateId;
+  /** User-visible connection name for picker grouping. */
+  connectionName?: string;
+  /** True when this entry is the current session's model on a missing/disabled connection. */
+  unavailable?: boolean;
+  /** True when the connection is enabled but has no API key yet. */
+  missingApiKey?: boolean;
 }
 
 export enum HarmCategory {
@@ -62,8 +71,8 @@ export type { McpServerAuthType, McpServerConfig, McpServerTransport };
 /** Wire protocol supported by a third-party API provider. */
 export type ThirdPartyApiProtocol = 'openai-compatible' | 'anthropic';
 
-/** Identifiers for built-in third-party API providers. */
-export const THIRD_PARTY_PROVIDER_IDS = [
+/** Legacy persisted provider map keys (pre-connection-list settings). */
+export const LEGACY_THIRD_PARTY_PROVIDER_IDS = [
   'openai',
   'deepseek',
   'anthropic',
@@ -73,32 +82,44 @@ export const THIRD_PARTY_PROVIDER_IDS = [
   'glm',
   'custom',
 ] as const;
-export type ThirdPartyProviderId = (typeof THIRD_PARTY_PROVIDER_IDS)[number];
+export type LegacyThirdPartyProviderId = (typeof LEGACY_THIRD_PARTY_PROVIDER_IDS)[number];
+/** @deprecated Use ThirdPartyTemplateId or a connection id. Kept for logos and migration. */
+export type ThirdPartyProviderId = LegacyThirdPartyProviderId;
 
-/** Every provider a session can route to: the built-in Gemini API or one of the
- * third-party providers. Absent = derive from the modelId (gemini by default). */
-export const CHAT_PROVIDER_IDS = [GEMINI_PROVIDER_ID, ...THIRD_PARTY_PROVIDER_IDS] as const;
-export type ChatProviderId = (typeof CHAT_PROVIDER_IDS)[number];
+/** Create-connection templates. `custom` is not a template; it migrates to custom-openai. */
+export const THIRD_PARTY_TEMPLATE_IDS = [
+  'openai',
+  'deepseek',
+  'anthropic',
+  'openrouter',
+  'qwen',
+  'kimi',
+  'glm',
+  'custom-openai',
+  'custom-anthropic',
+] as const;
+export type ThirdPartyTemplateId = (typeof THIRD_PARTY_TEMPLATE_IDS)[number];
 
-/** Connection + model configuration for a single third-party provider. */
-export interface ThirdPartyProviderConfig {
+/** Session routing id: Gemini native, a migrated legacy provider id, or a UUID. */
+export type ChatProviderId = string;
+
+/** Connection + model configuration for a single third-party endpoint. */
+export interface ThirdPartyConnection {
+  id: string;
+  name: string;
+  templateId: ThirdPartyTemplateId;
+  protocol: ThirdPartyApiProtocol;
   apiKey: string | null;
   baseUrl: string | null;
+  extraHeaders: Record<string, string>;
   modelId: string;
   models: ModelOption[];
-  protocol: ThirdPartyApiProtocol;
-  enabled?: boolean;
+  enabled: boolean;
 }
 
-/**
- * Top-level container for all third-party provider configurations.
- *
- * No global "active provider" field: which provider a chat uses is decided per
- * session by its stored (providerId, modelId), and the settings panel's
- * expanded-card memory is local component state, not persisted settings.
- */
+/** Third-party connections. Sessions route by stored (providerId, modelId). */
 export interface ThirdPartyApiSettings {
-  providers: Record<ThirdPartyProviderId, ThirdPartyProviderConfig>;
+  connections: ThirdPartyConnection[];
 }
 
 /** All valid thinking levels — used for both type checking and runtime validation. */
@@ -166,15 +187,25 @@ export interface ChatSettings {
 
 export type ChatSettingsUpdater = (updater: (prevSettings: ChatSettings) => ChatSettings) => void;
 
+const DROPPED_LEGACY_PROVIDER_IDS = new Set(['openai-compatible']);
+
 /**
- * Normalize a persisted session providerId read from storage/imports.
- * Only known provider ids survive; legacy 'openai-compatible' folds to
- * gemini-native (the routing decision only recognizes real provider ids).
+ * Normalize a persisted session providerId. Any non-empty connection id survives
+ * (including UUIDs). Legacy `openai-compatible` is dropped so routing falls back
+ * to Gemini / modelId inference.
  */
-export const normalizeProviderId = (value: unknown): ChatProviderId | undefined =>
-  typeof value === 'string' && (CHAT_PROVIDER_IDS as readonly string[]).includes(value)
-    ? (value as ChatProviderId)
-    : undefined;
+export const normalizeProviderId = (value: unknown): ChatProviderId | undefined => {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed || DROPPED_LEGACY_PROVIDER_IDS.has(trimmed)) {
+    return undefined;
+  }
+
+  return trimmed;
+};
 
 export interface AppSettings extends ChatSettings {
   themeId: 'system' | 'onyx' | 'graphite' | 'pearl';

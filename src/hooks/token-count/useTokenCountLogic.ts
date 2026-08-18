@@ -1,7 +1,7 @@
 import { logService } from '@/services/logService';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { type UploadedFile, type AppSettings, type ThirdPartyProviderId, MediaResolution } from '@/types';
+import { type UploadedFile, type AppSettings, type ChatProviderId, MediaResolution } from '@/types';
 import { buildContentParts } from '@/utils/chat/builder';
 import { isServerCodeExecutionMode } from '@/utils/codeExecution';
 import { generateUniqueId } from '@/utils/chat/ids';
@@ -219,7 +219,7 @@ export const useTokenCountLogic = ({
     performCalculation(text, files, selectedModelId);
   };
 
-  const handleModelSelect = (id: string, _providerId?: ThirdPartyProviderId) => {
+  const handleModelSelect = (id: string, _providerId?: ChatProviderId) => {
     setSelectedModelId(id);
     setTokenCount(null);
   };
