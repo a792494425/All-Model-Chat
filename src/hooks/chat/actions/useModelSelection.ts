@@ -10,7 +10,11 @@ import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { createNewSession } from '@/utils/chat/session';
 import { focusChatInput } from '@/utils/chat-input/focus';
 import { resolveModelSwitchSettings } from '@/utils/model/modelSwitchSettings';
-import { findThirdPartyConnection, getEnabledThirdPartyProviders, resolveProviderForModelId } from '@/utils/thirdPartyApiProviders';
+import {
+  findThirdPartyConnection,
+  getEnabledThirdPartyProviders,
+  resolveProviderForModelId,
+} from '@/utils/thirdPartyApiProviders';
 
 interface UseModelSelectionProps {
   appSettings: AppSettings;

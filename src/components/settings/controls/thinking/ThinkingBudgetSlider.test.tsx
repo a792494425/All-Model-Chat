@@ -8,9 +8,7 @@ describe('ThinkingBudgetSlider', () => {
 
   const renderSlider = async () => {
     await act(async () => {
-      renderer.root.render(
-        <ThinkingBudgetSlider minBudget={512} maxBudget={24576} value="4096" onChange={vi.fn()} />,
-      );
+      renderer.root.render(<ThinkingBudgetSlider minBudget={512} maxBudget={24576} value="4096" onChange={vi.fn()} />);
     });
   };
 

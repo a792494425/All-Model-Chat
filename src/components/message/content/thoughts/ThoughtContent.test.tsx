@@ -41,15 +41,13 @@ describe('ThoughtContent', () => {
       );
     });
 
-    expect(mockLazyMarkdownRenderer).toHaveBeenCalled();
-    const markdownProps = mockLazyMarkdownRenderer.mock.calls[0]?.[0] as {
-      allowHtml?: boolean;
-      isMermaidRenderingEnabled?: boolean;
-      isGraphvizRenderingEnabled?: boolean;
-    };
-
-    expect(markdownProps.allowHtml).toBe(false);
-    expect(markdownProps.isMermaidRenderingEnabled).toBe(false);
-    expect(markdownProps.isGraphvizRenderingEnabled).toBe(false);
+    expect(mockLazyMarkdownRenderer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allowHtml: false,
+        isMermaidRenderingEnabled: false,
+        isGraphvizRenderingEnabled: false,
+      }),
+      expect.anything(),
+    );
   });
 });

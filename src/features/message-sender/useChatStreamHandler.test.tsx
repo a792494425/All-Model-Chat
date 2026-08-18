@@ -117,7 +117,9 @@ describe('useChatStreamHandler empty-reply guard', () => {
     expect(handleApiErrorMock).toHaveBeenCalledTimes(1);
     const [error] = handleApiErrorMock.mock.calls[0];
     expect(error.name).toBe('EmptyReplyError');
-    expect(error.message).toBe('模型结束了这一轮，但没有给出可见回复（只有思考过程）。可以重试，或调低思考等级后再试。');
+    expect(error.message).toBe(
+      '模型结束了这一轮，但没有给出可见回复（只有思考过程）。可以重试，或调低思考等级后再试。',
+    );
     expect(finishActiveGenerationJobMock).toHaveBeenCalled();
     expect(logWarnMock).toHaveBeenCalledWith(expect.stringContaining('Empty reply detected'));
   });

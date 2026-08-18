@@ -90,7 +90,8 @@ describe('previewableMarkdown detection', () => {
   it('treats standalone html fragments as previewable even when the fence language is wrong', () => {
     const fragment = '<div style="display:flex;gap:12px"><span>Ready</span></div>';
 
-    expect(getCodeBlockPreviewType(fragment, 'css')).toBe('html');  });
+    expect(getCodeBlockPreviewType(fragment, 'css')).toBe('html');
+  });
 
   it('treats richer inline artifact primitives as previewable html fragments', () => {
     expect(getCodeBlockPreviewType('<label for="tone">Tone</label>')).toBe('html');

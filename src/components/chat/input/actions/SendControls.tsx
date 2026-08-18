@@ -23,7 +23,6 @@ const QUEUE_BUTTON_ICON_SIZE = SEND_BUTTON_ICON_SIZE - 1;
 const STOP_ICON_SIZE = 10;
 const SEND_BUTTON_SIZE_CLASS = '!h-10 !w-10';
 
-
 export const SendControls: React.FC = () => {
   const { isLoading, isWaitingForUpload } = useChatInputActionsContext();
   const { canSend, canQueueMessage, queuedCount, onFastSendMessage, onQueueMessage, onCancelPendingUploadSend } =
@@ -71,7 +70,8 @@ export const SendControls: React.FC = () => {
     bgClass =
       'bg-[var(--theme-bg-danger)] hover:bg-[var(--theme-bg-danger-hover)] text-[var(--theme-icon-stop)] shadow-sm';
   } else if (isEdit) {
-    bgClass = 'bg-[var(--theme-bg-warning-strong)] hover:bg-[var(--theme-bg-warning-strong-hover)] text-white shadow-sm';
+    bgClass =
+      'bg-[var(--theme-bg-warning-strong)] hover:bg-[var(--theme-bg-warning-strong-hover)] text-white shadow-sm';
   } else if (isUpload) {
     bgClass =
       'bg-[var(--theme-bg-danger)] hover:bg-[var(--theme-bg-danger-hover)] text-[var(--theme-icon-stop)] shadow-sm';

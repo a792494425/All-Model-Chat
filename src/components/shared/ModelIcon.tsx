@@ -41,7 +41,7 @@ const THIRD_PARTY_TEMPLATE_LOGO: Record<ThirdPartyTemplateId, string> = {
   'custom-anthropic': customLogoUrl,
 };
 
-export const resolveThirdPartyLogoKey = (templateId?: string, providerId?: string): string => {
+const resolveThirdPartyLogoKey = (templateId?: string, providerId?: string): string => {
   const raw = templateId || providerId || '';
   if (raw === 'custom-openai' || raw === 'custom-anthropic' || raw === 'custom') {
     return 'custom';

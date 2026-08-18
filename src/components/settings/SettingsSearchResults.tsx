@@ -3,10 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { SETTINGS_SECTION_CARD_CLASS } from '@/constants/designTokens';
 import { SETTINGS_TAB_LABEL_KEYS } from '@/constants/settingsTabs';
-import {
-  SETTINGS_SEARCH_RESULTS_ID,
-  settingsSearchOptionId,
-} from '@/constants/settingsSearchCatalog';
+import { SETTINGS_SEARCH_RESULTS_ID, settingsSearchOptionId } from '@/constants/settingsSearchCatalog';
 import { groupSettingsSearchResults, type SettingsSearchResult } from '@/utils/settingsSearch';
 import { HighlightedText } from './HighlightedText';
 
@@ -96,7 +93,10 @@ export const SettingsSearchResults: React.FC<SettingsSearchResultsProps> = ({
           const headingId = `settings-search-group-${group.tab}`;
           return (
             <section key={group.tab} aria-labelledby={headingId}>
-              <h3 id={headingId} className="px-1 pb-1 text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+              <h3
+                id={headingId}
+                className="px-1 pb-1 text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]"
+              >
                 {t(SETTINGS_TAB_LABEL_KEYS[group.tab])} ({group.results.length})
               </h3>
               <ul

@@ -3,8 +3,7 @@ import { releaseManagedObjectUrl } from '@/services/objectUrlManager';
 
 // Tiny silent WAV used to unlock a media element during the TTS click gesture
 // so playback can start later, after the async speech request returns.
-const SILENT_WAV =
-  'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+const SILENT_WAV = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
 export const useSelectionAudio = () => {
   const [isPlaying, setIsPlaying] = useState(false);

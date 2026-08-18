@@ -68,10 +68,7 @@ describe('buildContentParts', () => {
       omittedFromApiHistory: true,
     });
     const { contentParts } = await buildContentParts('look at this', [file]);
-    expect(contentParts).toEqual([
-      { text: expect.stringContaining('deck.pdf') },
-      { text: 'look at this' },
-    ]);
+    expect(contentParts).toEqual([{ text: expect.stringContaining('deck.pdf') }, { text: 'look at this' }]);
   });
 
   it('skips files not in active state', async () => {

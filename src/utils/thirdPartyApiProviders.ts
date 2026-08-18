@@ -165,7 +165,7 @@ export const getConnectionDisplayTemplateId = (
   return connection.protocol === 'anthropic' ? 'custom-anthropic' : 'custom-openai';
 };
 
-export type ThirdPartyConnectionStatusKind = 'disabled' | 'missing-key' | 'missing-url' | 'ready';
+type ThirdPartyConnectionStatusKind = 'disabled' | 'missing-key' | 'missing-url' | 'ready';
 
 export const getThirdPartyConnectionStatus = (
   connection: Pick<ThirdPartyConnection, 'enabled' | 'apiKey' | 'baseUrl'>,
@@ -229,7 +229,7 @@ const sanitizeExtraHeaders = (value: unknown): Record<string, string> => {
   return headers;
 };
 
-export const sanitizeThirdPartyConnection = (
+const sanitizeThirdPartyConnection = (
   value: Partial<ThirdPartyConnection> | undefined,
   fallbackTemplateId: ThirdPartyTemplateId = 'custom-openai',
 ): ThirdPartyConnection | null => {
@@ -342,7 +342,7 @@ export const sanitizeThirdPartyApiSettings = (value: unknown): ThirdPartyApiSett
   return createDefaultThirdPartyApiSettings();
 };
 
-export const getThirdPartyConnections = (settings: Pick<AppSettings, 'thirdPartyApi'>): ThirdPartyConnection[] =>
+const getThirdPartyConnections = (settings: Pick<AppSettings, 'thirdPartyApi'>): ThirdPartyConnection[] =>
   settings.thirdPartyApi?.connections ?? [];
 
 export const findThirdPartyConnection = (
@@ -413,7 +413,7 @@ export const buildProviderAwareModelList = (
   ];
 };
 
-export const nextConnectionName = (connections: ThirdPartyConnection[], baseName: string): string => {
+const nextConnectionName = (connections: ThirdPartyConnection[], baseName: string): string => {
   const names = new Set(connections.map((connection) => connection.name));
   if (!names.has(baseName)) {
     return baseName;

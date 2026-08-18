@@ -214,7 +214,10 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs text-[var(--theme-text-tertiary)]">
-                {interpolate(t('settingsOpenAICompatibleFetchedPreviewCount'), { count: String(fetchedPreviewModels.length), selected: String(selectedImportableFetchedModelIds.length) })}
+                {interpolate(t('settingsOpenAICompatibleFetchedPreviewCount'), {
+                  count: String(fetchedPreviewModels.length),
+                  selected: String(selectedImportableFetchedModelIds.length),
+                })}
               </span>
               <div className="flex items-center gap-2">
                 <button

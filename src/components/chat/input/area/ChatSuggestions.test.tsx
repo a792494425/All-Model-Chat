@@ -29,7 +29,8 @@ describe('ChatSuggestions button sizing', () => {
   });
 
   it('gives chips the app-standard keyboard focus ring', () => {
-    const focusRing = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)]';
+    const focusRing =
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)]';
     expect(SUGGESTION_CHIP_CLASS).toContain(focusRing);
     expect(SUGGESTION_CHIP_ACTIVE_CLASS).toContain(focusRing);
   });
@@ -95,7 +96,9 @@ describe('ChatSuggestions rendering', () => {
     await renderSuggestions();
 
     const buttons = Array.from(renderer.container.querySelectorAll('button')).filter(
-      (button) => button.getAttribute('aria-label') !== renderer.container.querySelector('button[aria-label*="scroll" i]')?.getAttribute('aria-label'),
+      (button) =>
+        button.getAttribute('aria-label') !==
+        renderer.container.querySelector('button[aria-label*="scroll" i]')?.getAttribute('aria-label'),
     );
     const toggles = buttons.filter((button) => button.hasAttribute('aria-pressed'));
     const actions = buttons.filter((button) => !button.hasAttribute('aria-pressed'));

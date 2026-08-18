@@ -23,10 +23,7 @@ import {
 } from '@/constants/designTokens';
 import { MODAL_CLOSE_BUTTON_CLASS } from '@/constants/buttonClasses';
 import type { SettingsTab } from '@/stores/settingsUiStore';
-import {
-  SETTINGS_SEARCH_RESULTS_ID,
-  settingsSearchOptionId,
-} from '@/constants/settingsSearchCatalog';
+import { SETTINGS_SEARCH_RESULTS_ID, settingsSearchOptionId } from '@/constants/settingsSearchCatalog';
 import { searchSettingsCatalog, type SettingsSearchResult } from '@/utils/settingsSearch';
 import { interpolate } from '@/i18n/interpolate';
 import { isEditableElement } from '@/utils/chat-input/focus';
@@ -185,8 +182,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   // Results can shrink without a query change (language switch recomputes
   // matches), so clamp the selection instead of indexing past the end.
   const clampedSearchSelectedIndex = Math.min(searchSelectedIndex, Math.max(searchResults.length - 1, 0));
-  const activeSearchOptionId =
-    searchResults.length > 0 ? settingsSearchOptionId(clampedSearchSelectedIndex) : null;
+  const activeSearchOptionId = searchResults.length > 0 ? settingsSearchOptionId(clampedSearchSelectedIndex) : null;
 
   useEffect(() => {
     setSearchSelectedIndex(0);
@@ -239,7 +235,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         }
       }
 
-      if (event.key !== '/' || event.target instanceof HTMLElement && isEditableElement(event.target)) return;
+      if (event.key !== '/' || (event.target instanceof HTMLElement && isEditableElement(event.target))) return;
       event.preventDefault();
       searchInputRef.current?.focus();
       searchInputRef.current?.select();
@@ -247,13 +243,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [
-    clampedSearchSelectedIndex,
-    handleSelectSearchResult,
-    isOpen,
-    isSearching,
-    searchResults,
-  ]);
+  }, [clampedSearchSelectedIndex, handleSelectSearchResult, isOpen, isSearching, searchResults]);
 
   // While searching, Escape clears the query before the Modal's own
   // document-level close handler can run — the capture listener wins the

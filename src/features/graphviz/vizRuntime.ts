@@ -415,10 +415,7 @@ const applyGraphvizSvgFonts = (svg: SVGSVGElement): void => {
     }
     const style = el.getAttribute('style');
     if (style && /font-family\s*:/i.test(style)) {
-      el.setAttribute(
-        'style',
-        style.replace(/font-family\s*:\s*[^;]+/gi, `font-family: ${GRAPHVIZ_SVG_FONT_FAMILY}`),
-      );
+      el.setAttribute('style', style.replace(/font-family\s*:\s*[^;]+/gi, `font-family: ${GRAPHVIZ_SVG_FONT_FAMILY}`));
     }
   };
   svg.setAttribute('font-family', GRAPHVIZ_SVG_FONT_FAMILY);

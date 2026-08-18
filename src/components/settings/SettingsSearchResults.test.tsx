@@ -178,14 +178,17 @@ describe('SettingsSearchResults', () => {
 
     act(() => {
       renderer.root.render(
-        <SettingsSearchResults results={[makeResult('interface-theme')]} onSelect={onSelect} selectedIndex={0} query="theme" />,
+        <SettingsSearchResults
+          results={[makeResult('interface-theme')]}
+          onSelect={onSelect}
+          selectedIndex={0}
+          query="theme"
+        />,
       );
     });
 
     act(() => {
-      renderer.container
-        .querySelector('[role="option"]')
-        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      renderer.container.querySelector('[role="option"]')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
 
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'interface-theme' }));

@@ -95,9 +95,7 @@ export const useDataImport = ({
             onValid(importPayload);
           } else {
             const foundType = typeof importPayload?.type === 'string' ? importPayload.type : t('exportNotApplicable');
-            throw new Error(
-              interpolate(t('settingsImportInvalidFileFormat'), { expectedType, foundType }),
-            );
+            throw new Error(interpolate(t('settingsImportInvalidFileFormat'), { expectedType, foundType }));
           }
         } catch (error) {
           logService.error(`Failed to import ${expectedType}`, { error });

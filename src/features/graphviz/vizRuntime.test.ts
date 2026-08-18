@@ -291,10 +291,7 @@ describe('applyThemeAndLayout (v2 theme defaults)', () => {
   });
 
   it('injects rounded dashed defaults into cluster subgraphs', () => {
-    const code = applyThemeAndLayout(
-      'digraph { subgraph cluster_infer { label="推理"; n1; } }',
-      { themeId: 'pearl' },
-    );
+    const code = applyThemeAndLayout('digraph { subgraph cluster_infer { label="推理"; n1; } }', { themeId: 'pearl' });
     expect(code).toContain('compound="true"');
     const clusterBody = code.slice(code.indexOf('subgraph cluster_infer'));
     expect(clusterBody).toContain('style="rounded,dashed"');

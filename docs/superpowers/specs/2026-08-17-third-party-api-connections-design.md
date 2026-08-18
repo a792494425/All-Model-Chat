@@ -5,15 +5,15 @@ Status: draft, awaiting review before implementation plan
 
 Chooser decisions (canvas `third-party-api-chooser`):
 
-| Decision | Choice |
-| --- | --- |
-| Audience | Official vendor keys **and** gateways |
-| Settings shape | **B. Connection list + templates** (Gemini stays its own block) |
-| Fetch `/models` then import | Yes |
-| Same template, multiple connections | Yes |
-| Protocol picker on custom connections | OpenAI-compatible **or** Anthropic |
-| Extra request headers | Yes (advanced) |
-| Azure / Vertex in v1 | **No** |
+| Decision                              | Choice                                                          |
+| ------------------------------------- | --------------------------------------------------------------- |
+| Audience                              | Official vendor keys **and** gateways                           |
+| Settings shape                        | **B. Connection list + templates** (Gemini stays its own block) |
+| Fetch `/models` then import           | Yes                                                             |
+| Same template, multiple connections   | Yes                                                             |
+| Protocol picker on custom connections | OpenAI-compatible **or** Anthropic                              |
+| Extra request headers                 | Yes (advanced)                                                  |
+| Azure / Vertex in v1                  | **No**                                                          |
 
 ## 1. Goal
 
@@ -200,13 +200,13 @@ Third-party entries do not show Live / Files / Search as available. Keep using e
 
 ## 11. Errors and unavailable connections
 
-| Situation | Behavior |
-| --- | --- |
-| Connection missing | Session stays on old `(providerId, modelId)`; composer error: connection removed; do not rewrite to Gemini |
-| Connection disabled | Same, copy says disabled |
-| No key | Existing “API Key not configured.”, already translated |
-| Fetch models fails | Inline error on the connection card; catalog unchanged |
-| Test connection fails | Existing tester error; does not disable the connection |
+| Situation             | Behavior                                                                                                   |
+| --------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Connection missing    | Session stays on old `(providerId, modelId)`; composer error: connection removed; do not rewrite to Gemini |
+| Connection disabled   | Same, copy says disabled                                                                                   |
+| No key                | Existing “API Key not configured.”, already translated                                                     |
+| Fetch models fails    | Inline error on the connection card; catalog unchanged                                                     |
+| Test connection fails | Existing tester error; does not disable the connection                                                     |
 
 ## 12. Tests that must move with the design
 

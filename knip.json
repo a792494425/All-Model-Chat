@@ -1,8 +1,5 @@
 {
-  "entry": [
-    "server/src/index.ts",
-    "src/pwa/sw.ts"
-  ],
+  "entry": ["server/src/index.ts", "src/pwa/sw.ts"],
   "ignore": [
     "docker/web-server.js",
     "public/runtime-config.js",
@@ -11,9 +8,5 @@
     "src/utils/export/image.ts",
     "src/utils/export/templates.ts"
   ],
-  "ignoreDependencies": [
-    "pdfjs-dist",
-    "pyodide",
-    "lamejs"
-  ]
+  "ignoreDependencies": ["pdfjs-dist", "pyodide", "lamejs", "hono", "@iconify-json/material-icon-theme"]
 }

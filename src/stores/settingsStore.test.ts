@@ -225,9 +225,7 @@ describe('settingsStore', () => {
       expect(appSettings.modelId).toBe('gemini-3.1-pro-preview');
       const openai = appSettings.thirdPartyApi.connections.find((connection) => connection.id === 'openai');
       expect(openai?.modelId).toBe('openai/custom-gpt');
-      expect(openai?.models).toEqual([
-        { id: 'openai/custom-gpt', name: 'Custom GPT', isPinned: true },
-      ]);
+      expect(openai?.models).toEqual([{ id: 'openai/custom-gpt', name: 'Custom GPT', isPinned: true }]);
     });
 
     it('forces Gemini Native mode when stored settings have OpenAI-compatible API disabled', async () => {
@@ -350,9 +348,9 @@ describe('settingsStore', () => {
 
       await useSettingsStore.getState().loadSettings();
 
-      const openai = useSettingsStore.getState().appSettings.thirdPartyApi.connections.find(
-        (connection) => connection.id === 'openai',
-      );
+      const openai = useSettingsStore
+        .getState()
+        .appSettings.thirdPartyApi.connections.find((connection) => connection.id === 'openai');
       expect(openai?.apiKey).toBe('sk-legacy');
       expect(openai?.baseUrl).toBe('https://legacy.example.com/v1');
       expect(openai?.modelId).toBe('legacy-gpt');
@@ -382,9 +380,9 @@ describe('settingsStore', () => {
 
       await useSettingsStore.getState().loadSettings();
 
-      const anthropic = useSettingsStore.getState().appSettings.thirdPartyApi.connections.find(
-        (connection) => connection.id === 'anthropic',
-      );
+      const anthropic = useSettingsStore
+        .getState()
+        .appSettings.thirdPartyApi.connections.find((connection) => connection.id === 'anthropic');
       expect(anthropic?.protocol).toBe('anthropic');
       expect(anthropic?.enabled).toBe(false);
       expect(anthropic?.models.filter((model) => model.id === 'claude-fable-5')).toHaveLength(1);

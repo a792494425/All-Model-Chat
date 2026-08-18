@@ -30,12 +30,9 @@ describe('McpSection', () => {
   // only reproduce when updates feed back into the settings prop.
   const StatefulMcpSection = ({ initialSettings }: { initialSettings: AppSettings }) => {
     const [settings, setSettings] = useState(initialSettings);
-    const handleUpdate = useCallback(
-      <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
-        setSettings((prev) => ({ ...prev, [key]: value }));
-      },
-      [],
-    );
+    const handleUpdate = useCallback(<K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
+      setSettings((prev) => ({ ...prev, [key]: value }));
+    }, []);
     return <McpSection settings={settings} onUpdate={handleUpdate} />;
   };
 
@@ -245,9 +242,7 @@ describe('McpSection', () => {
       fireEvent.click(switchInput!);
     });
 
-    expect(onUpdate).toHaveBeenCalledWith('mcpServers', [
-      expect.objectContaining({ id: 'first', enabled: true }),
-    ]);
+    expect(onUpdate).toHaveBeenCalledWith('mcpServers', [expect.objectContaining({ id: 'first', enabled: true })]);
   });
 
   it('keeps focus on the server id input while the id is being edited', async () => {

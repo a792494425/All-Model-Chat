@@ -1,6 +1,6 @@
 import { isImageMimeType } from '@/utils/file/fileTypeClassification';
 
-export type ClipboardPastePlan =
+type ClipboardPastePlan =
   | { kind: 'image'; file: File }
   | { kind: 'html'; html: string; plain: string }
   | { kind: 'default' };

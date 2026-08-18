@@ -226,11 +226,7 @@ export const useChatStreamHandler = ({
           if (!hasMeaningfulApiPart) {
             const t = getTranslator(lang);
             const emptyReplyError = new Error(
-              t(
-                streamState.thoughts.trim()
-                  ? 'messageSenderEmptyReplyWithThoughts'
-                  : 'messageSenderEmptyReply',
-              ),
+              t(streamState.thoughts.trim() ? 'messageSenderEmptyReplyWithThoughts' : 'messageSenderEmptyReply'),
             );
             emptyReplyError.name = 'EmptyReplyError';
             logService.warn(`Empty reply detected for message ${generationId} in session ${currentSessionId}`);

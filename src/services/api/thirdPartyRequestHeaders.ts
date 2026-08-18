@@ -3,8 +3,8 @@ import {
   THIRD_PARTY_EXTRA_HEADERS_HEADER,
 } from '../../../shared/thirdPartyExtraHeaders';
 
-export const THIRD_PARTY_PROVIDER_HEADER = 'x-third-party-provider';
-export const THIRD_PARTY_BASE_URL_HEADER = 'x-third-party-base-url';
+const THIRD_PARTY_PROVIDER_HEADER = 'x-third-party-provider';
+const THIRD_PARTY_BASE_URL_HEADER = 'x-third-party-base-url';
 
 export const buildThirdPartyForwardHeaders = (options: {
   proxyProviderId?: string | null;

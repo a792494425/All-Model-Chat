@@ -51,9 +51,7 @@ describe('TextSelectionToolbar', () => {
     const onTTS = vi.fn(async () => ({ url: 'blob:quick-tts' }));
 
     await act(async () => {
-      renderer.render(
-        <TextSelectionToolbar onQuote={vi.fn()} onTTS={onTTS} containerRef={host} />,
-      );
+      renderer.render(<TextSelectionToolbar onQuote={vi.fn()} onTTS={onTTS} containerRef={host} />);
     });
 
     selectNode(strong);
@@ -85,9 +83,7 @@ describe('TextSelectionToolbar', () => {
     );
 
     await act(async () => {
-      renderer.render(
-        <TextSelectionToolbar onQuote={vi.fn()} onTTS={onTTS} containerRef={host} />,
-      );
+      renderer.render(<TextSelectionToolbar onQuote={vi.fn()} onTTS={onTTS} containerRef={host} />);
     });
 
     selectNode(paragraph);
@@ -125,9 +121,7 @@ describe('TextSelectionToolbar', () => {
     const onTTS = vi.fn(async () => ({ url: 'blob:quick-tts' }));
 
     await act(async () => {
-      renderer.render(
-        <TextSelectionToolbar onQuote={vi.fn()} onTTS={onTTS} containerRef={host} />,
-      );
+      renderer.render(<TextSelectionToolbar onQuote={vi.fn()} onTTS={onTTS} containerRef={host} />);
     });
 
     selectNode(strong);

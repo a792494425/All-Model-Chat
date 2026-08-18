@@ -123,9 +123,8 @@ describe('promptRegistry', () => {
 
   it('keeps Live Artifacts graphviz examples complete and under DOT limits', async () => {
     const { isProbablyCompleteDot } = await import('@/utils/html-preview/graphvizRendererScript');
-    const { countDotEdges, countDotNodes, DOT_MAX_CHARS, DOT_MAX_EDGES, DOT_MAX_NODES } = await import(
-      '@/features/graphviz/graphvizLimits'
-    );
+    const { countDotEdges, countDotNodes, DOT_MAX_CHARS, DOT_MAX_EDGES, DOT_MAX_NODES } =
+      await import('@/features/graphviz/graphvizLimits');
 
     for (const language of ['zh', 'en'] as const) {
       const prompt = await loadLiveArtifactsSystemPrompt(language);

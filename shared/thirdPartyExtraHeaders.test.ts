@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  parseThirdPartyExtraHeadersHeader,
-  sanitizeThirdPartyExtraHeaders,
-} from './thirdPartyExtraHeaders';
+import { parseThirdPartyExtraHeadersHeader, sanitizeThirdPartyExtraHeaders } from './thirdPartyExtraHeaders';
 
 describe('sanitizeThirdPartyExtraHeaders', () => {
   it('keeps the v1 allowlist and drops blocked or malformed names', () => {

@@ -291,12 +291,7 @@ describe('SettingsModal', () => {
 
     const aside = document.querySelector('aside');
     expect(aside).not.toBeNull();
-    const rows = [
-      aside?.children[0],
-      aside?.children[1],
-      aside?.querySelector('nav'),
-      aside?.lastElementChild,
-    ];
+    const rows = [aside?.children[0], aside?.children[1], aside?.querySelector('nav'), aside?.lastElementChild];
     for (const row of rows) {
       expect((row as HTMLElement)?.className.split(' ')).toContain('px-4');
     }

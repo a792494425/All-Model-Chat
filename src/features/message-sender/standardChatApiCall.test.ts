@@ -136,7 +136,12 @@ describe('performStandardChatApiCall', () => {
 
   it('routes a streaming third-party turn to the provider stream and tags thought provenance', async () => {
     mocks.resolveChatApiRoute.mockReturnValue({
-      provider: { protocol: 'anthropic', baseUrl: 'https://api.anthropic.com', templateId: 'anthropic', extraHeaders: {} },
+      provider: {
+        protocol: 'anthropic',
+        baseUrl: 'https://api.anthropic.com',
+        templateId: 'anthropic',
+        extraHeaders: {},
+      },
       providerId: 'anthropic',
       modelId: 'claude-x',
     });
@@ -244,7 +249,10 @@ describe('performStandardChatApiCall', () => {
     await performStandardChatApiCall(params as never);
 
     expect(mocks.sendStatelessMessageNonStreamApi).toHaveBeenCalledTimes(1);
-    expect(handlers.streamOnPart).toHaveBeenCalledWith({ text: 'answer' }, { recordFirstToken: false, source: 'gemini' });
+    expect(handlers.streamOnPart).toHaveBeenCalledWith(
+      { text: 'answer' },
+      { recordFirstToken: false, source: 'gemini' },
+    );
     expect(handlers.onThoughtChunk).toHaveBeenCalledWith('thoughts', { recordFirstToken: false, source: 'gemini' });
     expect(handlers.streamOnComplete).toHaveBeenCalledWith({ totalTokenCount: 3 }, undefined, undefined);
   });

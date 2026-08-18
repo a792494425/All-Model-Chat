@@ -4,7 +4,7 @@ import { logService } from '@/services/logService';
 import { isUnavailableThirdPartyRoute, resolveChatApiRoute } from './chatApiRoute';
 
 export const SERVER_MANAGED_API_KEY = '__SERVER_MANAGED_API_KEY__';
-export const GEMINI_API_KEY_ROTATION_TARGET = '__gemini__';
+const GEMINI_API_KEY_ROTATION_TARGET = '__gemini__';
 
 export const THIRD_PARTY_CONNECTION_MISSING_ERROR = 'Third-party connection is unavailable.';
 export const THIRD_PARTY_CONNECTION_DISABLED_ERROR = 'Third-party connection is disabled.';

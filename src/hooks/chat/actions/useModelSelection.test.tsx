@@ -11,7 +11,12 @@ vi.mock('@/utils/model/modelSwitchSettings', () => ({
 }));
 
 import { useModelSelection } from './useModelSelection';
-import { createAppSettings, createChatSettings, createSavedChatSession, createThirdPartyConnection } from '@/test/data/factories';
+import {
+  createAppSettings,
+  createChatSettings,
+  createSavedChatSession,
+  createThirdPartyConnection,
+} from '@/test/data/factories';
 import { renderHook } from '@/test/render/renderer';
 import { GEMINI_PROVIDER_ID } from '@/types';
 

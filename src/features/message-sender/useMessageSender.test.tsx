@@ -87,7 +87,12 @@ vi.mock('@/services/api/fileApi', () => ({
 
 import { useMessageSender } from './useMessageSender';
 import { createMessageSenderProps, type MessageSenderPropsOverrides } from '@/test/hooks/factories';
-import { createChatMessage, createChatSettings, createThirdPartyConnection, createUploadedFile } from '@/test/data/factories';
+import {
+  createChatMessage,
+  createChatSettings,
+  createThirdPartyConnection,
+  createUploadedFile,
+} from '@/test/data/factories';
 import { useChatStore } from '@/stores/chatStore';
 import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES } from '@/utils/codeExecution';
 

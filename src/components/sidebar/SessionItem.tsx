@@ -113,8 +113,7 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
     // not show the whole row snapshot. It must be in the DOM at dragstart, and
     // is removed on the next tick after setDragImage captures it.
     const ghost = document.createElement('div');
-    ghost.className =
-      `fixed top-0 left-0 ${Z_INDEX_TOPMOST_OVERLAY} pointer-events-none flex items-center gap-2 rounded-md bg-[var(--theme-bg-primary)] px-2.5 py-1.5 text-sm font-medium text-[var(--theme-text-primary)] shadow-lg`;
+    ghost.className = `fixed top-0 left-0 ${Z_INDEX_TOPMOST_OVERLAY} pointer-events-none flex items-center gap-2 rounded-md bg-[var(--theme-bg-primary)] px-2.5 py-1.5 text-sm font-medium text-[var(--theme-text-primary)] shadow-lg`;
     if (session.isPinned) {
       const pinIcon = document.createElement('span');
       pinIcon.innerHTML =

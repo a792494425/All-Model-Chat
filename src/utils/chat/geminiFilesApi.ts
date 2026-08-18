@@ -64,7 +64,9 @@ export const shouldRefreshGeminiFilesApiReferenceFromExpiration = (file: GeminiF
 type GeminiFileApiErrorSource = {
   error?: {
     message?: unknown;
+    code?: unknown;
   } | null;
+  state?: unknown;
 } | null;
 
 const getGeminiFileApiErrorMessage = (file: GeminiFileApiErrorSource | undefined): string | undefined => {

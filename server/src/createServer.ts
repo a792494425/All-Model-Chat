@@ -196,10 +196,7 @@ export function createServer(config: CreateServerConfig, dependencies: CreateSer
       sendJson(request, response, 404, { error: 'Not found' }, resolvedConfig.allowedOrigins);
     } catch (error) {
       // The 500 body stays generic; the diagnostics only go to the server log.
-      console.error(
-        '[server] Unhandled request error:',
-        error instanceof Error ? error.message : String(error),
-      );
+      console.error('[server] Unhandled request error:', error instanceof Error ? error.message : String(error));
       sendJson(request, response, 500, { error: 'Internal server error' }, resolvedConfig.allowedOrigins);
     }
   });

@@ -310,7 +310,11 @@ export const MarkdownFileViewer: React.FC<MarkdownFileViewerProps> = ({
           )}
 
           <p className="text-xs text-[var(--theme-text-tertiary)]">
-            {interpolate(t('markdownPreviewStats'), { lines: String(documentStats.lines), words: String(documentStats.words), characters: String(documentStats.characters) })}
+            {interpolate(t('markdownPreviewStats'), {
+              lines: String(documentStats.lines),
+              words: String(documentStats.words),
+              characters: String(documentStats.characters),
+            })}
           </p>
         </div>
       </div>

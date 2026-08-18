@@ -5,7 +5,6 @@ import {
   type ChatSettings,
   type SavedChatSession,
   type Theme,
-  type ThirdPartyApiSettings,
   type ThirdPartyConnection,
   type ThirdPartyTemplateId,
   type UploadedFile,
@@ -157,7 +156,3 @@ export const createThirdPartyConnection = (overrides: Partial<ThirdPartyConnecti
     modelId: modelId ?? defaults.modelId,
   };
 };
-
-export const createThirdPartyApiSettings = (connections: ThirdPartyConnection[] = []): ThirdPartyApiSettings => ({
-  connections,
-});

@@ -141,12 +141,7 @@ describe('translation coverage for protected UI surfaces', () => {
       },
       {
         file: 'src/components/message/buttons/export/ExportModal.tsx',
-        snippets: [
-          'Close export dialog',
-          'Processing message content...',
-          'Export Message',
-          'Exporting {type}...',
-        ],
+        snippets: ['Close export dialog', 'Processing message content...', 'Export Message', 'Exporting {type}...'],
       },
       {
         file: 'src/components/message/buttons/export/ExportOptions.tsx',
@@ -650,10 +645,7 @@ describe('translation coverage for protected UI surfaces', () => {
       },
       {
         file: 'src/features/message-sender/useChatStreamHandler.ts',
-        snippets: [
-          'The model returned no reply (only reasoning was produced).',
-          '模型没有返回任何回答',
-        ],
+        snippets: ['The model returned no reply (only reasoning was produced).', '模型没有返回任何回答'],
       },
       {
         file: 'src/features/message-sender/useMessageSender.ts',

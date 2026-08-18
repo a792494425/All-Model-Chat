@@ -15,7 +15,6 @@ interface LimitedSessionListProps {
   className?: string;
 }
 
-
 export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({ sessions, sessionItemProps, className }) => {
   const { t } = useI18n();
   const [animatedParent] = useAutoAnimate<HTMLUListElement>({ duration: 200 });

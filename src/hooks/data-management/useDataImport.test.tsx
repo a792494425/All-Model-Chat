@@ -353,16 +353,18 @@ describe('useDataImport', () => {
     expect(importedSettings.thirdPartyApi.connections.find((connection) => connection.id === 'openai')?.modelId).toBe(
       'custom-model',
     );
-    expect(importedSettings.thirdPartyApi.connections.find((connection) => connection.id === 'openai')?.models).toEqual([
-      {
-        id: 'custom-model',
-        name: 'Custom Model',
-        isPinned: true,
-        // The legacy 'openai-compatible' model tag is normalized to
-        // 'third-party' during sanitize (normalizeModelApiModeTag).
-        apiMode: 'third-party',
-      },
-    ]);
+    expect(importedSettings.thirdPartyApi.connections.find((connection) => connection.id === 'openai')?.models).toEqual(
+      [
+        {
+          id: 'custom-model',
+          name: 'Custom Model',
+          isPinned: true,
+          // The legacy 'openai-compatible' model tag is normalized to
+          // 'third-party' during sanitize (normalizeModelApiModeTag).
+          apiMode: 'third-party',
+        },
+      ],
+    );
     // Legacy 'openai-compatible' apiMode is no longer part of the settings
     // shape; routing derives from (providerId, modelId) so the import falls
     // back to gemini-native.
