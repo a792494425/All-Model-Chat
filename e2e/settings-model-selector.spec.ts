@@ -53,8 +53,9 @@ test('editing the system prompt still persists when switching to models and sele
   await textarea.click();
   await textarea.fill('Persist this prompt while selecting a model');
 
-  const targetButton = page.getByTestId('settings-model-option-gemma-4-31b-it');
+  const targetButton = page.getByTestId('settings-model-option-gemini-native:gemma-4-31b-it');
 
+  await targetButton.scrollIntoViewIfNeeded();
   await targetButton.click();
 
   await expect(targetButton).toContainText('Active');
@@ -68,7 +69,7 @@ test('editing the system prompt still persists when switching to models and sele
     .click();
 
   await expect(textarea).toHaveValue('Persist this prompt while selecting a model');
-  await expect(page.getByTestId('settings-model-option-gemma-4-31b-it')).toContainText('Active');
+  await expect(page.getByTestId('settings-model-option-gemini-native:gemma-4-31b-it')).toContainText('Active');
 });
 
 test('workspace settings content does not expose a horizontal scrollbar', async ({ page }) => {
