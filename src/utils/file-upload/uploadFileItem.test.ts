@@ -103,4 +103,34 @@ describe('uploadFileItem', () => {
       }),
     );
   });
+
+  it('inlines extensionless files as text instead of rejecting them as unsupported', async () => {
+    const file = new File(['FROM node:24'], 'Dockerfile', { type: '' });
+    let selectedFiles: UploadedFile[] = [];
+    const setSelectedFiles = (updater: UploadedFile[] | ((prev: UploadedFile[]) => UploadedFile[])) => {
+      selectedFiles = typeof updater === 'function' ? updater(selectedFiles) : updater;
+    };
+
+    await uploadFileItem({
+      file,
+      keyToUse: null,
+      defaultResolution: undefined,
+      appSettings: DEFAULT_APP_SETTINGS,
+      setSelectedFiles,
+      uploadStatsRef: {
+        current: new Map<string, { lastLoaded: number; lastTime: number }>(),
+      },
+    });
+
+    expect(uploadFileMock).not.toHaveBeenCalled();
+    expect(selectedFiles[0]).toEqual(
+      expect.objectContaining({
+        name: 'Dockerfile',
+        type: 'text/plain',
+        uploadState: 'active',
+        transferStrategy: 'inline',
+      }),
+    );
+    expect(selectedFiles[0].error).toBeUndefined();
+  });
 });

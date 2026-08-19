@@ -102,6 +102,16 @@ describe('file upload strategy limits', () => {
     expect(getEffectiveMimeType(file)).toBe('text/x-python');
   });
 
+  it('imports extensionless files as text/plain when the browser leaves MIME empty or generic', () => {
+    expect(getEffectiveMimeType(createFile('Dockerfile', '', 1024))).toBe('text/plain');
+    expect(getEffectiveMimeType(createFile('LICENSE', 'application/octet-stream', 1024))).toBe('text/plain');
+    expect(getEffectiveMimeType(createFile('Gemini 3.8 Flash 专项核验', '', 1024))).toBe('text/plain');
+  });
+
+  it('keeps a real media MIME type even when the filename has no suffix', () => {
+    expect(getEffectiveMimeType(createFile('photo', 'image/png', 1024))).toBe('image/png');
+  });
+
   it('forces text/code files onto the Files API earlier when server-side code execution is enabled', () => {
     const settings = makeSettings({
       isCodeExecutionEnabled: true,
@@ -187,6 +197,16 @@ describe('buildFileUploadPreflight', () => {
 
     expect(result.filesToUpload).toEqual([unsupported]);
     expect(result.notice).toContain('Unsupported file types: archive.rar');
+  });
+
+  it('does not flag extensionless files as unsupported', () => {
+    const settings = makeSettings();
+    const makefile = createFile('Makefile', '', 4096);
+
+    const result = buildFileUploadPreflight([makefile], settings, []);
+
+    expect(result.filesToUpload).toEqual([makefile]);
+    expect(result.notice).toBeNull();
   });
 
   it('surfaces audio MIME types that Gemini does not support', () => {
