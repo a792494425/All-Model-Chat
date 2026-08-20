@@ -45,12 +45,12 @@ describe('getDefaultModelOptions', () => {
     expect(models.some((model) => model.id === 'gemini-3-flash')).toBe(false);
   });
 
-  it('does not include removed Gemini 3.1 Flash Lite or 3.5 Flash text models', () => {
+  it('does not include removed Gemini 3.1 Flash Lite, 3.5 Flash or 3.6 Flash text models', () => {
     const models = getDefaultModelOptions();
 
     expect(models.some((model) => model.id === 'gemini-3.1-flash-lite')).toBe(false);
     expect(models.some((model) => model.id === 'gemini-3.5-flash')).toBe(false);
-    expect(models.some((model) => model.id === 'gemini-3.6-flash')).toBe(true);
+    expect(models.some((model) => model.id === 'gemini-3.6-flash')).toBe(false);
     expect(models.some((model) => model.id === 'gemini-3.5-flash-lite')).toBe(true);
   });
 
