@@ -72,6 +72,11 @@ describe('settingsStore', () => {
       expect(useSettingsStore.getState().language).toBe('zh');
     });
 
+    it('resolves language when language changes to ja', () => {
+      useSettingsStore.getState().setAppSettings((prev) => ({ ...prev, language: 'ja' }));
+      expect(useSettingsStore.getState().language).toBe('ja');
+    });
+
     it('persists to IndexedDB when settings are loaded', async () => {
       useSettingsStore.setState({ isSettingsLoaded: true });
       useSettingsStore.getState().setAppSettings((prev) => ({
@@ -292,6 +297,24 @@ describe('settingsStore', () => {
       vi.mocked(dbService.getAppSettings).mockResolvedValue(createStoredSettingsSnapshot({ language: 'system' }));
       await useSettingsStore.getState().loadSettings();
       expect(useSettingsStore.getState().language).toBe('zh');
+      Object.defineProperty(navigator, 'language', { value: originalLang, configurable: true });
+    });
+
+    it('resolves system language to ja when browser is ja-JP', async () => {
+      const originalLang = navigator.language;
+      Object.defineProperty(navigator, 'language', { value: 'ja-JP', configurable: true });
+      vi.mocked(dbService.getAppSettings).mockResolvedValue(createStoredSettingsSnapshot({ language: 'system' }));
+      await useSettingsStore.getState().loadSettings();
+      expect(useSettingsStore.getState().language).toBe('ja');
+      Object.defineProperty(navigator, 'language', { value: originalLang, configurable: true });
+    });
+
+    it('resolves system language to en for unsupported fr-FR during pilot', async () => {
+      const originalLang = navigator.language;
+      Object.defineProperty(navigator, 'language', { value: 'fr-FR', configurable: true });
+      vi.mocked(dbService.getAppSettings).mockResolvedValue(createStoredSettingsSnapshot({ language: 'system' }));
+      await useSettingsStore.getState().loadSettings();
+      expect(useSettingsStore.getState().language).toBe('en');
       Object.defineProperty(navigator, 'language', { value: originalLang, configurable: true });
     });
 

@@ -5,7 +5,7 @@ import { type Theme } from '@/types/theme';
 import { DEFAULT_FILES_API_CONFIG, getDefaultAppSettings } from '@/constants/settingsDefaults';
 import { AVAILABLE_THEMES, DEFAULT_THEME_ID } from '@/constants/themeRegistry';
 import { logService } from '@/services/logService';
-import type { SupportedLanguage } from '@/i18n/languageRegistry';
+import { BROWSER_LANG_PREFIX_MAP, SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/i18n/languageRegistry';
 import { migrateRemovedModelId } from '@/constants/modelConfiguration';
 import { resolveSupportedModelId } from '@/utils/model/modelSorting';
 import { dbService } from '@/services/db/dbService';
@@ -42,15 +42,12 @@ function resolveThemeId(themeId: string): ConcreteThemeId {
 function resolveLanguage(language: string): SupportedLanguage {
   const settingLang = language || 'system';
   if (settingLang === 'system') {
-    const browserLang = navigator.language.toLowerCase();
-    if (browserLang.startsWith('zh')) return 'zh';
-    if (browserLang.startsWith('ja')) return 'ja';
-    return 'en';
+    const prefix = navigator.language.toLowerCase().split('-')[0];
+    return BROWSER_LANG_PREFIX_MAP[prefix] ?? 'en';
   }
-  if (settingLang === 'zh' || settingLang === 'ja' || settingLang === 'en') {
-    return settingLang;
-  }
-  return 'en';
+  return (SUPPORTED_LANGUAGES as readonly string[]).includes(settingLang)
+    ? (settingLang as SupportedLanguage)
+    : 'en';
 }
 
 function computeTheme(themeId: string): Theme {
