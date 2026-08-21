@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
+import { SUPPORTED_LANGUAGES } from './languageRegistry';
 import { ensureAllFeatureTranslations, getTranslator, translations } from './translations';
 
 const projectRoot = path.resolve(__dirname, '../..');
@@ -105,6 +106,82 @@ describe('translation coverage for protected UI surfaces', () => {
     expect(t('shortcutsNewChat')).toBe('新規チャットを開始');
     expect(t('back')).toBe('戻る');
     expect(t('unknown')).toBe('不明');
+  });
+
+  it('uses real Korean copy for protected translation keys', async () => {
+    await ensureAllFeatureTranslations();
+    const t = getTranslator('ko');
+
+    expect(t('cancel')).toBe('취소');
+    expect(t('save')).toBe('저장');
+    expect(t('delete')).toBe('삭제');
+    expect(t('newChat')).toBe('새 채팅');
+    expect(t('search')).toBe('검색');
+    expect(t('copy')).toBe('복사');
+    expect(t('download')).toBe('다운로드');
+    expect(t('settingsTitle')).toBe('설정');
+    expect(t('settingsTheme')).toBe('테마');
+    expect(t('settingsLanguage')).toBe('언어');
+    expect(t('settingsLanguageKo')).toBe('한국어');
+    expect(t('historyTitle')).toBe('기록');
+    expect(t('back')).toBe('뒤로');
+  });
+
+  it('uses real Spanish copy for protected translation keys', async () => {
+    await ensureAllFeatureTranslations();
+    const t = getTranslator('es');
+
+    expect(t('cancel')).toBe('Cancelar');
+    expect(t('save')).toBe('Guardar');
+    expect(t('delete')).toBe('Eliminar');
+    expect(t('newChat')).toBe('Nuevo chat');
+    expect(t('search')).toBe('Buscar');
+    expect(t('copy')).toBe('Copiar');
+    expect(t('download')).toBe('Descargar');
+    expect(t('settingsTitle')).toBe('Ajustes');
+    expect(t('settingsTheme')).toBe('Tema');
+    expect(t('settingsLanguage')).toBe('Idioma');
+    expect(t('settingsLanguageEs')).toBe('Español');
+    expect(t('historyTitle')).toBe('Historial');
+    expect(t('back')).toBe('Atrás');
+  });
+
+  it('uses real French copy for protected translation keys', async () => {
+    await ensureAllFeatureTranslations();
+    const t = getTranslator('fr');
+
+    expect(t('cancel')).toBe('Annuler');
+    expect(t('save')).toBe('Enregistrer');
+    expect(t('delete')).toBe('Supprimer');
+    expect(t('newChat')).toBe('Nouvelle discussion');
+    expect(t('search')).toBe('Rechercher');
+    expect(t('copy')).toBe('Copier');
+    expect(t('download')).toBe('Télécharger');
+    expect(t('settingsTitle')).toBe('Paramètres');
+    expect(t('settingsTheme')).toBe('Thème');
+    expect(t('settingsLanguage')).toBe('Langue');
+    expect(t('settingsLanguageFr')).toBe('Français');
+    expect(t('historyTitle')).toBe('Historique');
+    expect(t('back')).toBe('Retour');
+  });
+
+  it('uses real German copy for protected translation keys', async () => {
+    await ensureAllFeatureTranslations();
+    const t = getTranslator('de');
+
+    expect(t('cancel')).toBe('Abbrechen');
+    expect(t('save')).toBe('Speichern');
+    expect(t('delete')).toBe('Löschen');
+    expect(t('newChat')).toBe('Neuer Chat');
+    expect(t('search')).toBe('Suchen');
+    expect(t('copy')).toBe('Kopieren');
+    expect(t('download')).toBe('Herunterladen');
+    expect(t('settingsTitle')).toBe('Einstellungen');
+    expect(t('settingsTheme')).toBe('Design');
+    expect(t('settingsLanguage')).toBe('Sprache');
+    expect(t('settingsLanguageDe')).toBe('Deutsch');
+    expect(t('historyTitle')).toBe('Verlauf');
+    expect(t('back')).toBe('Zurück');
   });
 
   it('keeps Chinese UI copy on full-width punctuation where applicable', async () => {
@@ -726,19 +803,19 @@ describe('translation coverage for protected UI surfaces', () => {
     });
   });
 
-  it('every key has ja', async () => {
+  it('every key has every supported language', async () => {
     await ensureAllFeatureTranslations();
-    const missing = Object.entries(translations)
-      .filter(([, v]) => !(v as { ja?: string }).ja)
-      .map(([k]) => k);
+    const missing = Object.entries(translations).flatMap(([key, value]) =>
+      SUPPORTED_LANGUAGES.filter((lang) => !(value as Record<string, string>)[lang]).map((lang) => `${key}:${lang}`),
+    );
     expect(missing).toEqual([]);
   });
 
-  it('does not miss ja for any key', async () => {
+  it('does not miss any language for any key', async () => {
     await ensureAllFeatureTranslations();
-    const missing = Object.entries(translations)
-      .filter(([, v]) => !(v as { ja?: string }).ja)
-      .map(([k]) => k);
+    const missing = Object.entries(translations).flatMap(([key, value]) =>
+      SUPPORTED_LANGUAGES.filter((lang) => !(value as Record<string, string>)[lang]).map((lang) => `${key}:${lang}`),
+    );
     expect(missing).toEqual([]);
   });
 

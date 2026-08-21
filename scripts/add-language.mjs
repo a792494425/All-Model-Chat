@@ -60,7 +60,11 @@ for (const rel of files) {
   }
   let content = fs.readFileSync(full, 'utf8');
 
-  if (content.includes(`${newLang}:`)) {
+  // Precise idempotency check: a real entry has `lang:` followed by a quote.
+  // A bare substring test (content.includes(`${newLang}:`)) false-positives on
+  // words like `mode:` / `types:` and silently skips the whole file.
+  const langPresentRegex = new RegExp(`${newLang}\\s*:\\s*(['"\`])`);
+  if (langPresentRegex.test(content)) {
     console.log(`Skip ${rel}: already has ${newLang}`);
     skipped++;
     continue;

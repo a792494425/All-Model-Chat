@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 
-const SUPPORTED_LANGUAGES = ['en', 'zh', 'ja'];
+const SUPPORTED_LANGUAGES = ['en', 'zh', 'ja', 'ko', 'es', 'fr', 'de'];
 
 // Explicit file list + dynamic settings discovery to stay future-proof
 const baseFiles = [

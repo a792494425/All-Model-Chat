@@ -1,4 +1,4 @@
-export const SUPPORTED_LANGUAGES = ['en', 'zh', 'ja'] as const;
+export const SUPPORTED_LANGUAGES = ['en', 'zh', 'ja', 'ko', 'es', 'fr', 'de'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const APP_LANGUAGE_IDS = [...SUPPORTED_LANGUAGES, 'system'] as const;
@@ -8,9 +8,17 @@ export const LANGUAGE_META: Record<SupportedLanguage, { label: string; nativeLab
   en: { label: 'English', nativeLabel: 'English', flag: '🇺🇸' },
   zh: { label: 'Chinese', nativeLabel: '中文', flag: '🇨🇳' },
   ja: { label: 'Japanese', nativeLabel: '日本語', flag: '🇯🇵' },
+  ko: { label: 'Korean', nativeLabel: '한국어', flag: '🇰🇷' },
+  es: { label: 'Spanish', nativeLabel: 'Español', flag: '🇪🇸' },
+  fr: { label: 'French', nativeLabel: 'Français', flag: '🇫🇷' },
+  de: { label: 'German', nativeLabel: 'Deutsch', flag: '🇩🇪' },
 };
 
 export const BROWSER_LANG_PREFIX_MAP: Record<string, SupportedLanguage> = {
   zh: 'zh',
   ja: 'ja',
+  ko: 'ko',
+  es: 'es',
+  fr: 'fr',
+  de: 'de',
 };

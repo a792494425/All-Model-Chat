@@ -38,14 +38,15 @@ export const isBboxSystemInstruction = (instruction?: string | null) =>
 export const isHdGuideSystemInstruction = (instruction?: string | null) =>
   !!instruction && instruction.includes(HD_GUIDE_PROMPT_MARKER);
 
+// Languages without a dedicated Live Artifacts prompt (ja, ko, es, fr, de)
+// fall back to the EN prompt via the `?? .en` lookup below, hence Partial.
 const LIVE_ARTIFACT_PROMPT_EXPORT_BY_MODE: Record<
   LiveArtifactsPromptMode,
-  Record<PromptLanguage, keyof LiveArtifactsPromptModule>
+  { en: keyof LiveArtifactsPromptModule } & Partial<Record<PromptLanguage, keyof LiveArtifactsPromptModule>>
 > = {
   inline: {
     en: 'LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT_EN',
     zh: 'LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT_ZH',
-    ja: 'LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT_EN',
   },
 };
 

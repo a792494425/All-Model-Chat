@@ -309,9 +309,18 @@ describe('settingsStore', () => {
       Object.defineProperty(navigator, 'language', { value: originalLang, configurable: true });
     });
 
-    it('resolves system language to en for unsupported fr-FR during pilot', async () => {
+    it('resolves system language to fr for fr-FR browsers', async () => {
       const originalLang = navigator.language;
       Object.defineProperty(navigator, 'language', { value: 'fr-FR', configurable: true });
+      vi.mocked(dbService.getAppSettings).mockResolvedValue(createStoredSettingsSnapshot({ language: 'system' }));
+      await useSettingsStore.getState().loadSettings();
+      expect(useSettingsStore.getState().language).toBe('fr');
+      Object.defineProperty(navigator, 'language', { value: originalLang, configurable: true });
+    });
+
+    it('resolves system language to en for unsupported locales like it-IT', async () => {
+      const originalLang = navigator.language;
+      Object.defineProperty(navigator, 'language', { value: 'it-IT', configurable: true });
       vi.mocked(dbService.getAppSettings).mockResolvedValue(createStoredSettingsSnapshot({ language: 'system' }));
       await useSettingsStore.getState().loadSettings();
       expect(useSettingsStore.getState().language).toBe('en');
