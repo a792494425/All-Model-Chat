@@ -29,7 +29,9 @@
     "test:coverage": "node scripts/run-vitest.mjs run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "generate:icons": "node scripts/generate-material-icons.mjs"
+    "generate:icons": "node scripts/generate-material-icons.mjs",
+    "i18n:check": "node scripts/check-i18n-coverage.mjs",
+    "i18n:add": "node scripts/add-language.mjs"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
