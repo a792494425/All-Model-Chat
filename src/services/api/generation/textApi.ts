@@ -14,6 +14,18 @@ const SCHEMA_TYPE = {
 const SUGGESTION_COUNT = 3;
 const TEXT_GENERATION_MODEL_ID = 'gemini-3.5-flash-lite';
 
+// English names of each UI language, used to steer auxiliary-model output
+// (titles, suggestions) into the user's language.
+const SUGGESTION_LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
+  en: 'English',
+  zh: 'Simplified Chinese',
+  ja: 'Japanese',
+  ko: 'Korean',
+  es: 'Spanish',
+  fr: 'French',
+  de: 'German',
+};
+
 // Auxiliary requests (titles, suggestions) are small, latency-sensitive calls.
 // An idle timeout bounds them so a hung request cannot leave a session stuck in
 // `generatingTitleSessionIds` (which would skip every later attempt).
@@ -80,6 +92,12 @@ const buildTranslationContents = (text: string, targetLanguage: string): Structu
   },
 ];
 
+// Non-English UI languages get the English prompt plus an explicit output-
+// language directive, so titles/suggestions come back in the user's language
+// instead of English. zh keeps its fully native prompt.
+const outputLanguageDirective = (language: SupportedLanguage) =>
+  language === 'en' ? '' : ` Respond in ${SUGGESTION_LANGUAGE_LABELS[language]}.`;
+
 const buildSuggestionContents = (
   userContent: string,
   modelContent: string,
@@ -95,7 +113,7 @@ const buildSuggestionContents = (
 1. 如果助手最后在提问，建议必须是针对该问题的回答。
 2. 建议应简练（20字以内），涵盖不同角度（如：追问细节、请求示例、或提出质疑）。
 3. 语气自然，符合人类对话习惯。`
-      : `As a conversation expert, predict the ${suggestionCountText} most likely short follow-up messages the USER would send based on the conversation context in the following separate content parts.`;
+      : `As a conversation expert, predict the ${suggestionCountText} most likely short follow-up messages the USER would send based on the conversation context in the following separate content parts.${outputLanguageDirective(language)}`;
 
   return [
     {
@@ -127,7 +145,7 @@ const buildTitleContents = (
         text:
           language === 'zh'
             ? '根据后续独立内容片段中的对话，创建一个非常简短、简洁的标题（最多4-6个词）。不要使用引号或任何其他格式。只返回标题文本。'
-            : 'Based on the conversation in the following separate content parts, create a very short, concise title (4-6 words max). Do not use quotes or any other formatting. Just return the text of the title.',
+            : `Based on the conversation in the following separate content parts, create a very short, concise title (4-6 words max). Do not use quotes or any other formatting. Just return the text of the title.${outputLanguageDirective(language)}`,
       },
       { text: language === 'zh' ? '用户消息:' : 'USER message:' },
       { text: userContent },

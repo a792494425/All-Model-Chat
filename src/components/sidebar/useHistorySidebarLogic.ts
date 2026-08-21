@@ -25,6 +25,17 @@ interface UseHistorySidebarLogicProps {
   onSelectSession: (sessionId: string) => void;
 }
 
+// BCP-47 locales for month-name buckets in the sidebar date grouping.
+const DATE_LOCALES: Record<SupportedLanguage, string> = {
+  en: 'en-US',
+  zh: 'zh-CN-u-nu-hanidec',
+  ja: 'ja-JP',
+  ko: 'ko-KR',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  de: 'de-DE',
+};
+
 const categorizeSessionsByDate = (
   sessions: SavedChatSession[],
   language: SupportedLanguage,
@@ -61,7 +72,7 @@ const categorizeSessionsByDate = (
     } else if (sessionDate >= thirtyDaysAgoStart) {
       categoryName = categoryKeys.thirtyDays;
     } else {
-      categoryName = new Intl.DateTimeFormat(language === 'zh' ? 'zh-CN-u-nu-hanidec' : 'en-US', {
+      categoryName = new Intl.DateTimeFormat(DATE_LOCALES[language] ?? 'en-US', {
         year: 'numeric',
         month: 'long',
       }).format(sessionDate);

@@ -195,14 +195,14 @@ export const chatInputTranslations = {
   createTextCreateButton: { en: 'Create File', zh: '创建文件', ja: 'ファイルを作成', de: 'Datei erstellen', fr: 'Créer le fichier', es: 'Crear archivo', ko: '파일 만들기' },
   createTextPdfError: { en: 'Error generating PDF.', zh: '生成 PDF 失败。', ja: 'PDFの生成中にエラーが発生しました。', de: 'Fehler beim Erzeugen des PDFs.', fr: 'Erreur lors de la génération du PDF.', es: 'Error al generar el PDF.', ko: 'PDF 생성 중 오류가 발생했습니다.' },
   createTextUnsavedTitle: { en: 'Discard changes?', zh: '放弃更改？', ja: '変更を破棄しますか？', de: 'Änderungen verwerfen?', fr: 'Ignorer les modifications ?', es: '¿Descartar cambios?', ko: '변경사항을 버리시겠습니까?' },
-  createTextUnsavedMessage: { en: 'Your unsaved edits will be lost.', zh: '未保存的修改将会丢失。', ja: '保存されていない編集内容は失われます。', de: 'Deine ungespeicherten Änderungen gehen verloren.', fr: 'Vos modifications non enregistrées seront perdues.', es: 'Tus cambios sin guardar se perderán.', ko: '저장되지 않은 편집 내용이 사라집니다.' },
+  createTextUnsavedMessage: { en: 'Your unsaved edits will be lost.', zh: '未保存的修改将会丢失。', ja: '保存されていない編集内容は失われます。', de: 'Ihre ungespeicherten Änderungen gehen verloren.', fr: 'Vos modifications non enregistrées seront perdues.', es: 'Tus cambios sin guardar se perderán.', ko: '저장되지 않은 편집 내용이 사라집니다.' },
   createTextUnsavedConfirm: { en: 'Discard', zh: '放弃', ja: '破棄', de: 'Verwerfen', fr: 'Ignorer', es: 'Descartar', ko: '버리기' },
 
   // File pre-processing
   screenCaptureUnsupported: {
     en: 'Your browser does not support screen capture.',
     zh: '当前浏览器不支持屏幕捕获。',
-    ja: 'お使いのブラウザは画面キャプチャに対応していません。', de: 'Dein Browser unterstützt keine Bildschirmaufnahme.', fr: 'Votre navigateur ne prend pas en charge la capture d\'écran.', es: 'Tu navegador no admite la captura de pantalla.', ko: '브라우저에서 화면 캡처를 지원하지 않습니다.',
+    ja: 'お使いのブラウザは画面キャプチャに対応していません。', de: 'Ihr Browser unterstützt keine Bildschirmaufnahme.', fr: 'Votre navigateur ne prend pas en charge la capture d\'écran.', es: 'Tu navegador no admite la captura de pantalla.', ko: '브라우저에서 화면 캡처를 지원하지 않습니다.',
   },
   screenCaptureStartFailed: {
     en: 'Could not start screen capture: {message}',

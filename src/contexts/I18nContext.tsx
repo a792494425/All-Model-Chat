@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getTranslator } from '@/i18n/coreTranslations';
 import type { SupportedLanguage } from '@/i18n/languageRegistry';
@@ -12,10 +12,26 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
+// Keep the document language attribute in sync for screen readers, browser
+// auto-translate prompts, and Intl fallback heuristics.
+const HTML_LANG_BY_LANGUAGE: Record<SupportedLanguage, string> = {
+  en: 'en',
+  zh: 'zh-CN',
+  ja: 'ja',
+  ko: 'ko',
+  es: 'es',
+  fr: 'fr',
+  de: 'de',
+};
+
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const language = useSettingsStore((state) => state.language);
   const t = useMemo(() => getTranslator(language), [language]);
   const value = useMemo(() => ({ language, t }), [language, t]);
+
+  useEffect(() => {
+    document.documentElement.lang = HTML_LANG_BY_LANGUAGE[language];
+  }, [language]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 };

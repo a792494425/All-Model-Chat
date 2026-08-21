@@ -66,7 +66,7 @@ export const messagesTranslations = {
     zh: '请输入允许范围内的值。',
     ja: '許容範囲内の値を入力してください。', de: 'Gib einen Wert innerhalb des zulässigen Bereichs ein.', fr: 'Saisissez une valeur dans la plage autorisée.', es: 'Introduce un valor dentro del rango permitido.', ko: '허용된 범위 내의 값을 입력하세요.',
   },
-  liveArtifactInteractionEnum: { en: 'Choose an allowed option.', zh: '请选择允许的选项。', ja: '許容された選択肢から選んでください。', de: 'Wähle eine zulässige Option.', fr: 'Choisissez une option autorisée.', es: 'Elige una opción permitida.', ko: '허용된 옵션을 선택하세요.' },
+  liveArtifactInteractionEnum: { en: 'Choose an allowed option.', zh: '请选择允许的选项。', ja: '許容された選択肢から選んでください。', de: 'Wählen Sie eine zulässige Option.', fr: 'Choisissez une option autorisée.', es: 'Elige una opción permitida.', ko: '허용된 옵션을 선택하세요.' },
   liveArtifactInteractionInvalidDate: {
     en: 'Enter a date in YYYY-MM-DD format.',
     zh: '请输入 YYYY-MM-DD 格式的日期。',
@@ -167,7 +167,7 @@ export const messagesTranslations = {
   filePreviewCopyFailed: {
     en: 'Failed to copy to clipboard. Your browser might not support this feature or require permissions.',
     zh: '复制到剪贴板失败。您的浏览器可能不支持此功能或需要额外权限。',
-    ja: 'クリップボードへのコピーに失敗しました。お使いのブラウザがこの機能に対応していないか、権限が必要な可能性があります。', de: 'Kopieren in die Zwischenablage fehlgeschlagen. Dein Browser unterstützt diese Funktion möglicherweise nicht oder benötigt Berechtigungen.', fr: 'Échec de la copie dans le presse-papiers. Votre navigateur ne prend peut-être pas en charge cette fonctionnalité ou nécessite des autorisations.', es: 'No se pudo copiar al portapapeles. Es posible que tu navegador no admita esta función o requiera permisos.', ko: '클립보드에 복사하지 못했습니다. 브라우저가 이 기능을 지원하지 않거나 권한이 필요할 수 있습니다.',
+    ja: 'クリップボードへのコピーに失敗しました。お使いのブラウザがこの機能に対応していないか、権限が必要な可能性があります。', de: 'Kopieren in die Zwischenablage fehlgeschlagen. Ihr Browser unterstützt diese Funktion möglicherweise nicht oder benötigt Berechtigungen.', fr: 'Échec de la copie dans le presse-papiers. Votre navigateur ne prend peut-être pas en charge cette fonctionnalité ou nécessite des autorisations.', es: 'No se pudo copiar al portapapeles. Es posible que tu navegador no admita esta función o requiera permisos.', ko: '클립보드에 복사하지 못했습니다. 브라우저가 이 기능을 지원하지 않거나 권한이 필요할 수 있습니다.',
   },
   filePreviewLargeMarkdownNotice: {
     en: 'Large Markdown file detected. Showing plain text first to keep the preview responsive.',
@@ -176,7 +176,7 @@ export const messagesTranslations = {
   },
   filePreviewRenderMarkdownAnyway: { en: 'Render Markdown anyway', zh: '仍然渲染 Markdown', ja: 'それでもMarkdownをレンダリング', de: 'Markdown trotzdem rendern', fr: 'Rendre le Markdown quand même', es: 'Renderizar Markdown de todos modos', ko: '그래도 Markdown 렌더링' },
   filePreviewDiscardUnsavedChanges: { en: 'Discard unsaved changes?', zh: '放弃未保存的更改吗？', ja: '保存されていない変更を破棄しますか？', de: 'Ungespeicherte Änderungen verwerfen?', fr: 'Ignorer les modifications non enregistrées ?', es: '¿Descartar cambios no guardados?', ko: '저장되지 않은 변경 사항을 버리시겠습니까?' },
-  filePreviewDiscardUnsavedMessage: { en: 'Your unsaved edits will be lost.', zh: '未保存的修改将会丢失。', ja: '保存されていない編集内容は失われます。', de: 'Deine ungespeicherten Bearbeitungen gehen verloren.', fr: 'Vos modifications non enregistrées seront perdues.', es: 'Tus ediciones no guardadas se perderán.', ko: '저장되지 않은 편집 내용이 사라집니다.' },
+  filePreviewDiscardUnsavedMessage: { en: 'Your unsaved edits will be lost.', zh: '未保存的修改将会丢失。', ja: '保存されていない編集内容は失われます。', de: 'Ihre ungespeicherten Bearbeitungen gehen verloren.', fr: 'Vos modifications non enregistrées seront perdues.', es: 'Tus ediciones no guardadas se perderán.', ko: '저장되지 않은 편집 내용이 사라집니다.' },
   filePreviewDiscardUnsavedConfirm: { en: 'Discard', zh: '放弃', ja: '破棄', de: 'Verwerfen', fr: 'Ignorer', es: 'Descartar', ko: '버리기' },
   markdownPreviewDocument: { en: 'Markdown document', zh: 'Markdown 文档', ja: 'Markdown文書', de: 'Markdown-Dokument', fr: 'Document Markdown', es: 'Documento Markdown', ko: 'Markdown 문서' },
   markdownPreviewPreview: { en: 'Preview', zh: '预览', ja: 'プレビュー', de: 'Vorschau', fr: 'Aperçu', es: 'Vista previa', ko: '미리 보기' },
