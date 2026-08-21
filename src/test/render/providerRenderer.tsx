@@ -30,8 +30,7 @@ type ProviderTestRendererOptions = Omit<TestRendererOptions, 'wrapper'> & {
 
 const setTestLanguage = (language: TestProviderOptions['language']) => {
   if (language) {
-    // settingsStore will be widened to SupportedLanguage in Task 2; cast interim to satisfy typecheck
-    useSettingsStore.setState({ language } as unknown as { language: 'en' | 'zh' });
+    useSettingsStore.setState({ language });
   }
 };
 

@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { type SavedChatSession, type Theme } from '@/types';
 import { logService } from '@/services/logService';
 import { toastError } from '@/stores/toastStore';
@@ -12,7 +13,7 @@ import { formatI18nErrorMessage } from '@/i18n/interpolate';
 interface UseChatSessionExportProps {
   activeChat: SavedChatSession | undefined;
   currentTheme: Theme;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
   t: (key: string) => string;
 }
 

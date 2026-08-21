@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { type AppSettings, type SavedChatSession } from '@/types';
 import { dbService } from '@/services/db/dbService';
 import { logService } from '@/services/logService';
@@ -7,7 +8,7 @@ import { autoTitleSession, isSessionAutoTitleEligible } from '@/features/auto-ti
 
 interface AutoTitleBackfillProps {
   appSettings: AppSettings;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
 }
 
 export const useAutoTitleBackfill = ({ appSettings, language }: AutoTitleBackfillProps) => {

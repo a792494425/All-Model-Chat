@@ -5,6 +5,7 @@ import { type Theme } from '@/types/theme';
 import { DEFAULT_FILES_API_CONFIG, getDefaultAppSettings } from '@/constants/settingsDefaults';
 import { AVAILABLE_THEMES, DEFAULT_THEME_ID } from '@/constants/themeRegistry';
 import { logService } from '@/services/logService';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { migrateRemovedModelId } from '@/constants/modelConfiguration';
 import { resolveSupportedModelId } from '@/utils/model/modelSorting';
 import { dbService } from '@/services/db/dbService';
@@ -20,7 +21,7 @@ const LEGACY_DEFAULT_TRANSCRIPTION_MODEL_ID = 'gemini-3-flash-preview';
 interface SettingsState {
   appSettings: AppSettings;
   currentTheme: Theme;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
   isSettingsLoaded: boolean;
   pendingPreloadSettingsOverrides: Partial<AppSettings> | null;
 }
@@ -38,13 +39,18 @@ function resolveThemeId(themeId: string): ConcreteThemeId {
   return themeId as ConcreteThemeId;
 }
 
-function resolveLanguage(language: string): 'en' | 'zh' {
+function resolveLanguage(language: string): SupportedLanguage {
   const settingLang = language || 'system';
   if (settingLang === 'system') {
     const browserLang = navigator.language.toLowerCase();
-    return browserLang.startsWith('zh') ? 'zh' : 'en';
+    if (browserLang.startsWith('zh')) return 'zh';
+    if (browserLang.startsWith('ja')) return 'ja';
+    return 'en';
   }
-  return settingLang as 'en' | 'zh';
+  if (settingLang === 'zh' || settingLang === 'ja' || settingLang === 'en') {
+    return settingLang;
+  }
+  return 'en';
 }
 
 function computeTheme(themeId: string): Theme {

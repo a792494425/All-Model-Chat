@@ -1,4 +1,5 @@
 import { type ThinkingLevel } from '@google/genai';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { executeConfiguredApiRequest } from '@/services/api/apiExecutor';
 import { logService } from '@/services/logService';
 import { normalizeThinkingLevelForModel } from '@/utils/model/modelCapabilities';
@@ -82,7 +83,7 @@ const buildTranslationContents = (text: string, targetLanguage: string): Structu
 const buildSuggestionContents = (
   userContent: string,
   modelContent: string,
-  language: 'en' | 'zh',
+  language: SupportedLanguage,
   fallback = false,
 ): StructuredTextContent => {
   const suggestionCountText = String(SUGGESTION_COUNT);
@@ -117,7 +118,7 @@ const buildSuggestionContents = (
 const buildTitleContents = (
   userContent: string,
   modelContent: string,
-  language: 'en' | 'zh',
+  language: SupportedLanguage,
 ): StructuredTextContent => [
   {
     role: 'user',
@@ -172,7 +173,7 @@ export const generateSuggestionsApi = async (
   apiKey: string,
   userContent: string,
   modelContent: string,
-  language: 'en' | 'zh',
+  language: SupportedLanguage,
 ): Promise<string[]> => {
   const contents = buildSuggestionContents(
     clampForSuggestions(userContent),
@@ -270,7 +271,7 @@ export const generateTitleApi = async (
   apiKey: string,
   userContent: string,
   modelContent: string,
-  language: 'en' | 'zh',
+  language: SupportedLanguage,
 ): Promise<string> => {
   const contents = buildTitleContents(userContent, modelContent, language);
   const timeoutController = new AbortController();

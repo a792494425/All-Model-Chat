@@ -1,4 +1,5 @@
 import type { MutableRefObject } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import {
   type AppSettings,
   type ChatMessage,
@@ -59,7 +60,7 @@ export interface BaseSenderProps {
   setSessionLoading: (sessionId: string, isLoading: boolean) => void;
   activeJobs: MutableRefObject<Map<string, AbortController>>;
   setAppFileError: (error: string | null) => void;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
 }
 
 export interface StandardChatProps extends BaseSenderProps {

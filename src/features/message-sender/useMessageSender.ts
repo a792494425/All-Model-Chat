@@ -1,4 +1,5 @@
 import { type MutableRefObject, useCallback, useMemo } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import {
   type AppSettings,
   type ChatMessage,
@@ -49,7 +50,7 @@ interface MessageSenderProps {
   userScrolledUpRef: MutableRefObject<boolean>;
   activeSessionId: string | null;
   sessionKeyMapRef: MutableRefObject<Map<string, string>>;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
 }
 
 export const useMessageSender = (props: MessageSenderProps) => {

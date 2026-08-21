@@ -1,4 +1,5 @@
 import { type Dispatch, type MutableRefObject, type SetStateAction, useCallback } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import {
   type AppSettings,
   type SavedChatSession,
@@ -36,7 +37,7 @@ interface ChatHistoryProps {
   updateAndPersistSessions: SessionsUpdater;
   updateAndPersistGroups: GroupsUpdater;
   activeChat: SavedChatSession | undefined;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
   userScrolledUpRef: MutableRefObject<boolean>;
   selectedFiles: UploadedFile[];
   fileDraftsRef: MutableRefObject<Record<string, UploadedFile[]>>;

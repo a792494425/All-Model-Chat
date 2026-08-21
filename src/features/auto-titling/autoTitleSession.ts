@@ -1,4 +1,5 @@
 import { type AppSettings, type ChatMessage, type SavedChatSession } from '@/types';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { getGeminiKeyForRequest } from '@/utils/apiKeySelection';
 import { generateTitleApi } from '@/services/api/generation/textApi';
 import { generateSessionTitle } from '@/utils/chat/session';
@@ -107,7 +108,7 @@ export const isSessionAutoTitleEligible = (session: SavedChatSession): boolean =
 interface AutoTitleSessionOptions {
   session: SavedChatSession;
   appSettings: AppSettings;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
   stickyKey?: string;
   updateAndPersistSessions: AutoTitleSessionsUpdater;
 }

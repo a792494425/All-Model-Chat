@@ -1,4 +1,5 @@
 import { type Dispatch, type SetStateAction, useRef, useCallback, useMemo } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { type AppSettings, type UploadedFile } from '@/types';
 import { useModels } from '@/hooks/core/useModels';
 import { useChatHistory } from './useChatHistory';
@@ -24,7 +25,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 export const useChat = (
   appSettings: AppSettings,
   setAppSettings: Dispatch<SetStateAction<AppSettings>>,
-  language: 'en' | 'zh',
+  language: SupportedLanguage,
 ) => {
   const { activeChat, currentChatSettings, isLoading, activeSessionId, savedSessions, activeMessages } =
     useChatState(appSettings);

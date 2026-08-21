@@ -1,4 +1,5 @@
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 
 import {
   isBboxSystemInstruction,
@@ -25,7 +26,7 @@ interface LiveArtifactsPromptOverrideState {
 }
 
 interface UseAppPromptModesOptions {
-  language?: 'en' | 'zh';
+  language?: SupportedLanguage;
   appSettings: {
     systemInstruction?: string | null;
     liveArtifactsPromptMode?: AppSettings['liveArtifactsPromptMode'];

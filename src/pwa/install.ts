@@ -9,8 +9,8 @@ interface PwaInstallSnapshot {
 }
 
 const resolveLanguage = (language: AppLanguage, navigatorLanguage?: string): SupportedLanguage => {
-  if (language !== 'system') {
-    return language as SupportedLanguage;
+  if (language === 'zh' || language === 'ja' || language === 'en') {
+    return language;
   }
 
   const lower = navigatorLanguage?.toLowerCase() ?? '';
@@ -59,7 +59,11 @@ export const getManualInstallMessage = (
 ) => {
   const resolvedLanguage = resolveLanguage(language, navigatorLanguage);
 
-  return resolvedLanguage === 'zh'
-    ? '请使用浏览器菜单将此应用安装到设备。'
-    : 'Use your browser menu to install this app.';
+  if (resolvedLanguage === 'zh') {
+    return '请使用浏览器菜单将此应用安装到设备。';
+  }
+  if (resolvedLanguage === 'ja') {
+    return 'ブラウザのメニューからこのアプリをインストールしてください。';
+  }
+  return 'Use your browser menu to install this app.';
 };

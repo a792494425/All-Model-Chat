@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { type ChatMessage } from '@/types';
 
 interface UseAppTitleProps {
   isLoading: boolean;
   messages: ChatMessage[];
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
   sessionTitle: string;
 }
 

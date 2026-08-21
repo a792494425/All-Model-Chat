@@ -1,4 +1,5 @@
 import { type MutableRefObject, useEffect, useRef, useCallback } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { type AppSettings, type SavedChatSession, type ChatSettings as IndividualChatSettings } from '@/types';
 import { logService } from '@/services/logService';
 import { getGeminiKeyForRequest } from '@/utils/apiKeySelection';
@@ -18,7 +19,7 @@ interface SuggestionsProps {
   activeChat: SavedChatSession | undefined;
   isLoading: boolean;
   updateMessageInSession: MessageUpdater;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
   sessionKeyMapRef?: MutableRefObject<Map<string, string>>;
 }
 

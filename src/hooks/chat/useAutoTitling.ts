@@ -1,4 +1,5 @@
 import { type Dispatch, type MutableRefObject, type SetStateAction, useCallback, useEffect, useRef } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { type AppSettings, type SavedChatSession } from '@/types';
 import { autoTitleSession, isSessionAutoTitleEligible } from '@/features/auto-titling/autoTitleSession';
 import { getVisibleChatMessages } from '@/utils/chat/visibility';
@@ -10,7 +11,7 @@ interface AutoTitlingProps {
   appSettings: AppSettings;
   activeChat?: SavedChatSession;
   updateAndPersistSessions: SessionsUpdater;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
   generatingTitleSessionIds: Set<string>;
   setGeneratingTitleSessionIds: Dispatch<SetStateAction<Set<string>>>;
   sessionKeyMapRef?: MutableRefObject<Map<string, string>>;
@@ -31,7 +32,7 @@ const hashAttemptValue = (value: string | null | undefined): string => {
 const buildAutoTitleAttemptKey = (
   session: SavedChatSession,
   appSettings: AppSettings,
-  language: 'en' | 'zh',
+  language: SupportedLanguage,
 ): string => {
   const messages = getVisibleChatMessages(session.messages);
   const firstMessage = messages[0];

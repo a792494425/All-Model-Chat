@@ -1,4 +1,5 @@
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { useAppSettings } from '@/hooks/core/useAppSettings';
 import { useChat } from '@/hooks/chat/useChat';
 import { useAppUi } from '@/hooks/core/useAppUi';
@@ -43,7 +44,7 @@ export interface AppViewModel {
   appSettings: AppSettings;
   setAppSettings: Dispatch<SetStateAction<AppSettings>>;
   currentTheme: Theme;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
   t: AppTranslator;
   chatState: ChatViewModel;
   uiState: AppUiViewModel;
