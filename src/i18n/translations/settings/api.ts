@@ -150,6 +150,9 @@ const apiSettings = {
   thirdPartyTemplateQwen: { en: 'Qwen', zh: '通义千问' },
   thirdPartyTemplateKimi: { en: 'Kimi', zh: 'Kimi' },
   thirdPartyTemplateGlm: { en: 'GLM', zh: '智谱 GLM' },
+  thirdPartyTemplateNvidia: { en: 'Nvidia', zh: '英伟达' },
+  thirdPartyTemplateMinimax: { en: 'MiniMax', zh: 'MiniMax' },
+  thirdPartyTemplateGrok: { en: 'Grok', zh: 'Grok' },
   thirdPartyTemplateCustomOpenai: { en: 'Custom (OpenAI compatible)', zh: '自定义（OpenAI 兼容）' },
   thirdPartyTemplateCustomAnthropic: { en: 'Custom (Anthropic)', zh: '自定义（Anthropic）' },
   apiRuntimeThirdPartyConnectionMissing: {

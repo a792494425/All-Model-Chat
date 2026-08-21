@@ -5,7 +5,9 @@ export interface LiveArtifactFollowupPayload {
   source?: string;
 }
 
-type PromptLanguage = 'en' | 'zh';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
+
+type PromptLanguage = SupportedLanguage;
 
 const MAX_INSTRUCTION_LENGTH = 2000;
 const MAX_OPTIONAL_TEXT_LENGTH = 500;

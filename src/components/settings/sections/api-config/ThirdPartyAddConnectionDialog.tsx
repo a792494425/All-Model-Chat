@@ -12,6 +12,9 @@ const TEMPLATE_LABEL_KEYS: Record<ThirdPartyTemplateId, string> = {
   qwen: 'thirdPartyTemplateQwen',
   kimi: 'thirdPartyTemplateKimi',
   glm: 'thirdPartyTemplateGlm',
+  nvidia: 'thirdPartyTemplateNvidia',
+  minimax: 'thirdPartyTemplateMinimax',
+  grok: 'thirdPartyTemplateGrok',
   'custom-openai': 'thirdPartyTemplateCustomOpenai',
   'custom-anthropic': 'thirdPartyTemplateCustomAnthropic',
 };

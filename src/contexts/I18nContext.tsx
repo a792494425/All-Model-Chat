@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getTranslator } from '@/i18n/coreTranslations';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 
 type Translator = ReturnType<typeof getTranslator>;
 
 interface I18nContextValue {
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
   t: Translator;
 }
 

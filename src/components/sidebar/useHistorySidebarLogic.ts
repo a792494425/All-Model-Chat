@@ -4,6 +4,7 @@ import type { SavedChatSession, ChatGroup } from '@/types';
 import { useWindowContext } from '@/contexts/WindowContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { DESKTOP_BREAKPOINT_PX, FOCUS_HISTORY_SEARCH_EVENT } from '@/constants/layout';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { dbService } from '@/services/db/dbService';
 import { SESSION_DRAG_TYPE, isSessionDrag } from './sidebarDragTypes';
 
@@ -26,7 +27,7 @@ interface UseHistorySidebarLogicProps {
 
 const categorizeSessionsByDate = (
   sessions: SavedChatSession[],
-  language: 'en' | 'zh',
+  language: SupportedLanguage,
   t: HistoryTranslator,
   now: Date = new Date(),
 ) => {

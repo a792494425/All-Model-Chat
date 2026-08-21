@@ -18,14 +18,16 @@ const RANGE_OPTIONS: Array<{ value: UsageTimeRange; labelKey: string }> = [
   { value: 'all', labelKey: 'usageAllTime' },
 ];
 
-const getUnavailablePriceLabel = (count: number, language: 'en' | 'zh') =>
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
+
+const getUnavailablePriceLabel = (count: number, language: SupportedLanguage) =>
   language === 'zh' ? `${count.toLocaleString()} 条不可定价` : `${count.toLocaleString()} unavailable`;
 
 const PriceValue: React.FC<{
   amount: number;
   pricedRequests: number;
   unavailableRequests: number;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
 }> = ({ amount, pricedRequests, unavailableRequests, language }) => {
   const hasPricedAmount = pricedRequests > 0;
 

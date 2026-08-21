@@ -2,13 +2,14 @@ import { type ChatMessage, type ChatSettings } from '@/types';
 import type { UsageMetadata } from '@google/genai';
 import { getTranslator } from '@/i18n/translations';
 import { calculateTokenStats } from '@/utils/model/modelUsageStats';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 
 interface FinalizeMessagesOptions {
   messages: ChatMessage[];
   generationStartTime: Date;
   newModelMessageIds: Set<string>;
   currentChatSettings: ChatSettings;
-  language: 'en' | 'zh';
+  language: SupportedLanguage;
   firstContentPartTime: Date | null;
   lastThoughtChunkTimeMs?: number;
   usageMetadata?: UsageMetadata;

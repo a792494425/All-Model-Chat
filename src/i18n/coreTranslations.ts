@@ -5,8 +5,8 @@ import { messagesTranslations } from './translations/messages';
 import { historyTranslations } from './translations/history';
 import { commonTranslations } from './translations/common';
 import { ttsStyleTranslations } from './voiceStyleTranslations';
-
-export type SupportedLanguage = 'en' | 'zh';
+import type { SupportedLanguage } from './languageRegistry';
+export type { SupportedLanguage } from './languageRegistry';
 export type TranslationEntry = Partial<Record<SupportedLanguage, string>>;
 export type TranslationMap = Record<string, TranslationEntry>;
 

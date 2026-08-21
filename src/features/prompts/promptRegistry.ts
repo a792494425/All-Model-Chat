@@ -1,7 +1,9 @@
 import { LOCAL_PYTHON_SYSTEM_PROMPT } from './localPython';
 import type { LiveArtifactsPromptMode } from '@/types';
 
-type PromptLanguage = 'en' | 'zh';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
+
+type PromptLanguage = SupportedLanguage;
 type LiveArtifactsPromptTheme = 'dark' | 'light';
 type LiveArtifactsPromptModule = typeof import('./liveArtifacts');
 
@@ -43,6 +45,7 @@ const LIVE_ARTIFACT_PROMPT_EXPORT_BY_MODE: Record<
   inline: {
     en: 'LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT_EN',
     zh: 'LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT_ZH',
+    ja: 'LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT_EN',
   },
 };
 
@@ -52,7 +55,8 @@ export const loadLiveArtifactsSystemPrompt = async (
   _theme?: LiveArtifactsPromptTheme,
 ) => {
   const prompts = await import('./liveArtifacts');
-  return prompts[LIVE_ARTIFACT_PROMPT_EXPORT_BY_MODE[mode][language]];
+  const key = LIVE_ARTIFACT_PROMPT_EXPORT_BY_MODE[mode][language] ?? LIVE_ARTIFACT_PROMPT_EXPORT_BY_MODE[mode].en;
+  return prompts[key];
 };
 
 export const loadDeepSearchSystemPrompt = async () => (await import('./deepSearch')).DEEP_SEARCH_SYSTEM_PROMPT;

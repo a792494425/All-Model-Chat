@@ -1,4 +1,6 @@
 import type { McpServerAuthType, McpServerConfig, McpServerTransport } from '../../shared/mcpServerConfig';
+import type { AppLanguage as RegistryAppLanguage } from '@/i18n/languageRegistry';
+import { APP_LANGUAGE_IDS as REGISTRY_APP_LANGUAGE_IDS } from '@/i18n/languageRegistry';
 
 export interface ModelOption {
   id: string;
@@ -95,6 +97,9 @@ export const THIRD_PARTY_TEMPLATE_IDS = [
   'qwen',
   'kimi',
   'glm',
+  'nvidia',
+  'minimax',
+  'grok',
   'custom-openai',
   'custom-anthropic',
 ] as const;
@@ -143,8 +148,8 @@ export const TRANSLATION_TARGET_LANGUAGES = [
 export type TranslationTargetLanguage = (typeof TRANSLATION_TARGET_LANGUAGES)[number];
 
 /** All valid app language identifiers — used for both type checking and runtime validation. */
-export const APP_LANGUAGE_IDS = ['en', 'zh', 'system'] as const;
-export type AppLanguage = (typeof APP_LANGUAGE_IDS)[number];
+export const APP_LANGUAGE_IDS = REGISTRY_APP_LANGUAGE_IDS;
+export type AppLanguage = RegistryAppLanguage;
 
 export interface SafetySetting {
   category: HarmCategory;

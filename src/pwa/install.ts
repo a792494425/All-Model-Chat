@@ -1,3 +1,6 @@
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
+import type { AppLanguage } from '@/types/settings';
+
 export type PwaInstallState = 'available' | 'manual' | 'installed';
 
 interface PwaInstallSnapshot {
@@ -5,12 +8,15 @@ interface PwaInstallSnapshot {
   canInstall: boolean;
 }
 
-const resolveLanguage = (language: 'en' | 'zh' | 'system', navigatorLanguage?: string) => {
+const resolveLanguage = (language: AppLanguage, navigatorLanguage?: string): SupportedLanguage => {
   if (language !== 'system') {
-    return language;
+    return language as SupportedLanguage;
   }
 
-  return navigatorLanguage?.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  const lower = navigatorLanguage?.toLowerCase() ?? '';
+  if (lower.startsWith('zh')) return 'zh';
+  if (lower.startsWith('ja')) return 'ja';
+  return 'en';
 };
 
 const isStandaloneMode = (win: Window = window) => {
@@ -48,7 +54,7 @@ export const getPwaInstallState = ({
 };
 
 export const getManualInstallMessage = (
-  language: 'en' | 'zh' | 'system' = 'en',
+  language: AppLanguage = 'en',
   navigatorLanguage = typeof navigator !== 'undefined' ? navigator.language : 'en',
 ) => {
   const resolvedLanguage = resolveLanguage(language, navigatorLanguage);

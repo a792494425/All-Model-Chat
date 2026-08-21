@@ -3,6 +3,7 @@ import { render as testingLibraryRender, type RenderOptions } from '@testing-lib
 import { I18nProvider } from '@/contexts/I18nContext';
 import { WindowProvider } from '@/contexts/WindowContext';
 import { useSettingsStore } from '@/stores/settingsStore';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import {
   createTestRenderer,
   renderHook,
@@ -13,7 +14,7 @@ import {
 } from './renderer';
 
 type TestProviderOptions = {
-  language?: 'en' | 'zh';
+  language?: SupportedLanguage;
   window?: Window;
   document?: Document;
 };
@@ -29,7 +30,8 @@ type ProviderTestRendererOptions = Omit<TestRendererOptions, 'wrapper'> & {
 
 const setTestLanguage = (language: TestProviderOptions['language']) => {
   if (language) {
-    useSettingsStore.setState({ language });
+    // settingsStore will be widened to SupportedLanguage in Task 2; cast interim to satisfy typecheck
+    useSettingsStore.setState({ language } as unknown as { language: 'en' | 'zh' });
   }
 };
 

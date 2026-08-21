@@ -32,6 +32,9 @@ export const THIRD_PARTY_TEMPLATE_LABELS: Record<ThirdPartyTemplateId, string> =
   qwen: 'Qwen',
   kimi: 'Kimi',
   glm: 'GLM',
+  nvidia: 'Nvidia',
+  minimax: 'MiniMax',
+  grok: 'Grok',
   'custom-openai': 'Custom (OpenAI compatible)',
   'custom-anthropic': 'Custom (Anthropic)',
 };
@@ -111,6 +114,36 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
     baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
     modelId: 'glm-5.2',
     models: [{ id: 'glm-5.2', name: 'GLM-5.2', isPinned: true }],
+    protocol: 'openai-compatible',
+  },
+  nvidia: {
+    name: 'Nvidia',
+    baseUrl: 'https://integrate.api.nvidia.com/v1',
+    modelId: 'meta/llama-3.3-70b-instruct',
+    models: [
+      { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B Instruct', isPinned: true },
+      { id: 'meta/llama-3.1-405b-instruct', name: 'Llama 3.1 405B Instruct' },
+    ],
+    protocol: 'openai-compatible',
+  },
+  minimax: {
+    name: 'MiniMax',
+    baseUrl: 'https://api.minimaxi.com/v1',
+    modelId: 'MiniMax-M2.5',
+    models: [
+      { id: 'MiniMax-M2.5', name: 'MiniMax M2.5', isPinned: true },
+      { id: 'MiniMax-M2', name: 'MiniMax M2' },
+    ],
+    protocol: 'openai-compatible',
+  },
+  grok: {
+    name: 'Grok',
+    baseUrl: 'https://api.x.ai/v1',
+    modelId: 'grok-4',
+    models: [
+      { id: 'grok-4', name: 'Grok 4', isPinned: true },
+      { id: 'grok-3', name: 'Grok 3' },
+    ],
     protocol: 'openai-compatible',
   },
   'custom-openai': {
@@ -193,7 +226,10 @@ export const getProxyProviderHeader = (templateId: ThirdPartyTemplateId | string
   if (templateId === 'custom-openai' || templateId === 'custom-anthropic' || templateId === 'custom') {
     return 'custom';
   }
-  if ((LEGACY_THIRD_PARTY_PROVIDER_IDS as readonly string[]).includes(templateId)) {
+  if ((THIRD_PARTY_TEMPLATE_IDS as readonly string[]).includes(templateId)) {
+    return templateId;
+  }
+  if ((LEGACY_THIRD_PARTY_PROVIDER_IDS as readonly string[]).includes(templateId as LegacyThirdPartyProviderId)) {
     return templateId;
   }
   return 'custom';
