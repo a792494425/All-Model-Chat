@@ -1,6 +1,5 @@
 import type { McpServerAuthType, McpServerConfig, McpServerTransport } from '../../shared/mcpServerConfig';
-import type { AppLanguage as RegistryAppLanguage } from '@/i18n/languageRegistry';
-import { APP_LANGUAGE_IDS as REGISTRY_APP_LANGUAGE_IDS } from '@/i18n/languageRegistry';
+import { APP_LANGUAGE_IDS as REGISTRY_APP_LANGUAGE_IDS, type AppLanguage as RegistryAppLanguage } from '@/i18n/languageRegistry';
 
 export interface ModelOption {
   id: string;

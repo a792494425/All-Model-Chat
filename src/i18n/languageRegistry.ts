@@ -1,4 +1,3 @@
-// src/i18n/languageRegistry.ts
 export const SUPPORTED_LANGUAGES = ['en', 'zh', 'ja'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 

@@ -1,5 +1,5 @@
 import type { SupportedLanguage } from '@/i18n/languageRegistry';
-import type { AppLanguage } from '@/types/settings';
+import type { AppLanguage } from '@/types';
 
 export type PwaInstallState = 'available' | 'manual' | 'installed';
 
