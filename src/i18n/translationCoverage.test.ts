@@ -1,3 +1,6 @@
+/**
+ * @vitest-environment node
+ */
 import fs from 'fs';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
@@ -671,6 +674,14 @@ describe('translation coverage for protected UI surfaces', () => {
         expect(source).not.toContain(snippet);
       });
     });
+  });
+
+  it('every key has ja', async () => {
+    await ensureAllFeatureTranslations();
+    const missing = Object.entries(translations)
+      .filter(([, v]) => !(v as { ja?: string }).ja)
+      .map(([k]) => k);
+    expect(missing).toEqual([]);
   });
 
   it('defines translations for every t() key used in source files', async () => {
