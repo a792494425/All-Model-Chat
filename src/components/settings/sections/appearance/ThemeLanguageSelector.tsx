@@ -21,8 +21,6 @@ export const ThemeLanguageSelector: React.FC<{
     { id: 'pearl', labelKey: 'settingsThemeLight' },
   ] as const;
 
-  const useSelect = SUPPORTED_LANGUAGES.length >= 4;
-
   return (
     <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-1`}>
       <div
@@ -52,42 +50,19 @@ export const ThemeLanguageSelector: React.FC<{
         data-settings-item="interface-language"
       >
         <span className="text-sm font-medium text-[var(--theme-text-primary)]">{t('settingsLanguage')}</span>
-        {useSelect ? (
-          <select
-            value={settings.language}
-            onChange={(e) => onUpdate('language', e.target.value as AppSettings['language'])}
-            className="rounded-md border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)] px-3 py-1.5 text-sm"
-            aria-label={t('settingsLanguage')}
-          >
-            <option value="system">{t('settingsLanguageSystem')}</option>
-            {SUPPORTED_LANGUAGES.map((id) => (
-              <option key={id} value={id}>
-                {LANGUAGE_META[id].nativeLabel}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <div className={SETTINGS_SEGMENTED_TRACK_CLASS} role="group" aria-label={t('settingsLanguage')}>
-            {(['system', ...SUPPORTED_LANGUAGES] as const).map((id) => {
-              const label =
-                id === 'system'
-                  ? t('settingsLanguageSystem')
-                  : LANGUAGE_META[id as (typeof SUPPORTED_LANGUAGES)[number]].nativeLabel;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => onUpdate('language', id as AppSettings['language'])}
-                  className={
-                    settings.language === id ? SETTINGS_SEGMENTED_ACTIVE_CLASS : SETTINGS_SEGMENTED_IDLE_CLASS
-                  }
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        )}
+        <select
+          value={settings.language}
+          onChange={(e) => onUpdate('language', e.target.value as AppSettings['language'])}
+          className="rounded-md border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)] px-3 py-1.5 text-sm"
+          aria-label={t('settingsLanguage')}
+        >
+          <option value="system">{t('settingsLanguageSystem')}</option>
+          {SUPPORTED_LANGUAGES.map((id) => (
+            <option key={id} value={id}>
+              {LANGUAGE_META[id].nativeLabel}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );
