@@ -75,6 +75,38 @@ describe('translation coverage for protected UI surfaces', () => {
     expect(t('exportMessageDialogTitle')).toBe('导出消息');
   });
 
+  it('uses real Japanese copy for protected translation keys', async () => {
+    await ensureAllFeatureTranslations();
+    const t = getTranslator('ja');
+
+    expect(t('fillInput')).toBe('挿入');
+    expect(t('cancel')).toBe('キャンセル');
+    expect(t('save')).toBe('保存');
+    expect(t('delete')).toBe('削除');
+    expect(t('newChat')).toBe('新しいチャット');
+    expect(t('search')).toBe('検索');
+    expect(t('copy')).toBe('コピー');
+    expect(t('download')).toBe('ダウンロード');
+    expect(t('loading')).toBe('読み込み中…');
+    expect(t('close')).toBe('閉じる');
+    expect(t('expand')).toBe('展開');
+    expect(t('refresh')).toBe('更新');
+    expect(t('pipEnter')).toBe('ピクチャーインピクチャーに入る');
+    expect(t('pipExit')).toBe('ピクチャーインピクチャーを終了');
+    expect(t('settingsTitle')).toBe('設定');
+    expect(t('settingsTheme')).toBe('テーマ');
+    expect(t('settingsLanguage')).toBe('言語');
+    expect(t('settingsLanguageJa')).toBe('日本語');
+    expect(t('mediaResolutionLow')).toBe('低（高速）');
+    expect(t('pwaUpdateLater')).toBe('後で');
+    expect(t('historyTitle')).toBe('履歴');
+    expect(t('settingsDefaultModel')).toBe('プライマリチャットモデル');
+    expect(t('safetyTitle')).toBe('安全性設定');
+    expect(t('shortcutsNewChat')).toBe('新規チャットを開始');
+    expect(t('back')).toBe('戻る');
+    expect(t('unknown')).toBe('不明');
+  });
+
   it('keeps Chinese UI copy on full-width punctuation where applicable', async () => {
     await ensureAllFeatureTranslations();
     const offenders = Object.entries(translations).flatMap(([key, value]) => {
@@ -88,6 +120,24 @@ describe('translation coverage for protected UI surfaces', () => {
       ].filter(Boolean);
 
       return issues.map((issue) => `${key}: ${issue} -> ${zh}`);
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('keeps Japanese UI copy on full-width punctuation where applicable', async () => {
+    await ensureAllFeatureTranslations();
+    const offenders = Object.entries(translations).flatMap(([key, value]) => {
+      const ja = (value as { ja?: string }).ja;
+      if (!ja) return [];
+
+      const issues = [
+        ja.includes('...') ? 'ASCII ellipsis' : '',
+        /[\u3040-\u30ff\u4e00-\u9fff]:/.test(ja) ? 'ASCII colon after Japanese text' : '',
+        /[()]/.test(ja) && /[\u3040-\u30ff\u4e00-\u9fff]/.test(ja) ? 'ASCII parentheses in Japanese text' : '',
+      ].filter(Boolean);
+
+      return issues.map((issue) => `${key}: ${issue} -> ${ja}`);
     });
 
     expect(offenders).toEqual([]);
@@ -677,6 +727,14 @@ describe('translation coverage for protected UI surfaces', () => {
   });
 
   it('every key has ja', async () => {
+    await ensureAllFeatureTranslations();
+    const missing = Object.entries(translations)
+      .filter(([, v]) => !(v as { ja?: string }).ja)
+      .map(([k]) => k);
+    expect(missing).toEqual([]);
+  });
+
+  it('does not miss ja for any key', async () => {
     await ensureAllFeatureTranslations();
     const missing = Object.entries(translations)
       .filter(([, v]) => !(v as { ja?: string }).ja)
