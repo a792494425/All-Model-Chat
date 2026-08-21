@@ -1,4 +1,5 @@
 import { act } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
@@ -30,7 +31,7 @@ describe('AboutSection', () => {
     vi.unstubAllGlobals();
   });
 
-  const renderAboutSection = async (language: 'en' | 'zh' = 'zh') => {
+  const renderAboutSection = async (language: SupportedLanguage = 'zh') => {
     await act(async () => {
       useSettingsStore.setState({ language });
       renderer.root.render(<AboutSection />);

@@ -1,4 +1,5 @@
 import { act, type ComponentProps } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -61,7 +62,7 @@ describe('ApiConfigSection', () => {
   });
 
   const renderApiConfigSection = async (
-    overrides: Partial<ComponentProps<typeof ApiConfigSection>> & { language?: 'en' | 'zh' } = {},
+    overrides: Partial<ComponentProps<typeof ApiConfigSection>> & { language?: SupportedLanguage } = {},
   ) => {
     const { language = 'en', ...props } = overrides;
 

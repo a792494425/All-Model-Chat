@@ -1,4 +1,5 @@
 import { act, type ComponentProps } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -44,7 +45,7 @@ describe('DataManagementSection', () => {
   });
 
   const renderDataManagementSection = async (
-    overrides: Partial<ComponentProps<typeof DataManagementSection>> & { language?: 'en' | 'zh' } = {},
+    overrides: Partial<ComponentProps<typeof DataManagementSection>> & { language?: SupportedLanguage } = {},
   ) => {
     const { language = 'en', ...props } = overrides;
 

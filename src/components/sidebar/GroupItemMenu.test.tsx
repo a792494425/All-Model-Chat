@@ -1,4 +1,5 @@
 import { act } from 'react';
+import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -9,7 +10,7 @@ describe('GroupItemMenu', () => {
   const renderer = setupTestRenderer();
   setupStoreStateReset();
 
-  const renderMenu = async (language: 'en' | 'zh' = 'en') => {
+  const renderMenu = async (language: SupportedLanguage = 'en') => {
     await act(async () => {
       useSettingsStore.setState({ language });
       renderer.root.render(
