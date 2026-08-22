@@ -268,10 +268,10 @@ export const useSlashCommands = ({
 
   // Close panel when slash trigger is removed via any setInputText path
   // (e.g. clear button, paste, programmatic resets) — not only onChange.
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- sync slash open state to inputText deletion
   useEffect(() => {
     if (inputText === undefined || !slashCommandState.isOpen) return;
     if (!inputText.includes('/')) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync slash open state to inputText deletion
       setSlashCommandState(CLOSED_SLASH_COMMAND_STATE);
       return;
     }
