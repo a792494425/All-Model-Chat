@@ -82,6 +82,37 @@ export const ShortcutsSection: React.FC<ShortcutsSectionProps> = ({
     [handleShortcutChange],
   );
 
+  const handleResetAll = useCallback(() => {
+    if (!currentSettings || !onUpdateSettings) return;
+    onUpdateSettings({ customShortcuts: {} });
+  }, [currentSettings, onUpdateSettings]);
+
+  // Build filtered list — search by label or shortcut display, plus category
+  const allItems = SHORTCUT_REGISTRY;
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return allItems.filter((item) => {
+      if (activeCategory !== 'all' && item.category !== activeCategory) return false;
+      if (!q) return true;
+      const label = t(item.labelKey as never) as string;
+      const customKey = currentSettings?.customShortcuts?.[item.id];
+      const effectiveKey = customKey !== undefined ? customKey : item.defaultKey;
+      const display = effectiveKey ? formatShortcut(effectiveKey).join(' ').toLowerCase() : '';
+      return label.toLowerCase().includes(q) || display.includes(q);
+    });
+  }, [allItems, activeCategory, searchQuery, currentSettings?.customShortcuts, t]);
+
+  const countByCategory = useMemo(() => {
+    const map: Record<string, number> = { all: allItems.length };
+    for (const cat of ['general', 'input', 'global'] as const) {
+      map[cat] = allItems.filter((i) => i.category === cat).length;
+    }
+    return map;
+  }, [allItems]);
+
+  // Keep TabCycleModelsCard visible only when its shortcut is visible
+  const showTabCycleCard = filteredItems.some((i) => i.id === 'input.cycleModels');
+
   const handleToggleVisible = useCallback(
     (enabled: boolean) => {
       if (!currentSettings || !onUpdateSettings) return;
@@ -97,40 +128,9 @@ export const ShortcutsSection: React.FC<ShortcutsSectionProps> = ({
     [currentSettings, onUpdateSettings],
   );
 
-  const handleResetAll = useCallback(() => {
-    if (!currentSettings || !onUpdateSettings) return;
-    onUpdateSettings({ customShortcuts: {} });
-  }, [currentSettings, onUpdateSettings]);
-
   if (!currentSettings || !onUpdateSettings) {
     return <div className="p-4 text-center text-[var(--theme-text-secondary)]">{t('shortcutsUnavailable')}</div>;
   }
-
-  // Build filtered list — Cherry: search by label or shortcut display, plus category
-  const allItems = SHORTCUT_REGISTRY;
-  const filteredItems = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return allItems.filter((item) => {
-      if (activeCategory !== 'all' && item.category !== activeCategory) return false;
-      if (!q) return true;
-      const label = t(item.labelKey as never) as string;
-      const customKey = currentSettings.customShortcuts?.[item.id];
-      const effectiveKey = customKey !== undefined ? customKey : item.defaultKey;
-      const display = effectiveKey ? formatShortcut(effectiveKey).join(' ').toLowerCase() : '';
-      return label.toLowerCase().includes(q) || display.includes(q);
-    });
-  }, [allItems, activeCategory, searchQuery, currentSettings.customShortcuts, t]);
-
-  const countByCategory = useMemo(() => {
-    const map: Record<string, number> = { all: allItems.length };
-    for (const cat of ['general', 'input', 'global'] as const) {
-      map[cat] = allItems.filter((i) => i.category === cat).length;
-    }
-    return map;
-  }, [allItems]);
-
-  // Keep TabCycleModelsCard visible only when its shortcut is visible
-  const showTabCycleCard = filteredItems.some((i) => i.id === 'input.cycleModels');
 
   return (
     <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
