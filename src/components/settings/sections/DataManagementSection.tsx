@@ -1,15 +1,6 @@
 import React, { useRef, type RefObject } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import {
-  Settings,
-  MessageSquare,
-  AlertTriangle,
-  Upload,
-  Download,
-  Trash2,
-  Database,
-  RefreshCw,
-} from 'lucide-react';
+import { Settings, MessageSquare, AlertTriangle, Upload, Download, Trash2, Database, RefreshCw } from 'lucide-react';
 import { IconScenarios } from '@/components/icons';
 import type { LogViewerProps } from '@/components/log-viewer/LogViewer';
 import type { PwaInstallState } from '@/pwa/install';

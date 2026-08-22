@@ -16,6 +16,17 @@ vi.mock('@/services/db/dbService', async () => {
   const { createDbServiceMockModule } = await import('./doubles/moduleMocks');
   return createDbServiceMockModule();
 });
+vi.mock('react-pdf', () => ({
+  pdfjs: { GlobalWorkerOptions: { workerSrc: '' }, version: 'mock' },
+  Document: ({ children }: { children: unknown }) => children,
+  Page: () => null,
+  Outline: () => null,
+  Thumbnail: () => null,
+  useDocumentContext: () => ({}),
+  useOutlineContext: () => ({}),
+  usePageContext: () => ({}),
+  PasswordResponses: {},
+}));
 
 // installBrowserTestEnvironment centralizes IS_REACT_ACT_ENVIRONMENT and browser API shims.
 installBrowserTestEnvironment();

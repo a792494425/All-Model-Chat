@@ -9,6 +9,7 @@ Target: 先以日语（`ja`）为试点，验证可扩展支架；通过后再�
 ## 1. Goal
 
 在保留现有 `TranslationMap` / `getTranslator` / 懒加载体系的前提下，将语言从硬编码 `en|zh` 升级为注册表驱动，使新增一门语言只需：
+
 1. 在注册表加一行元数据
 2. 在各 `translations/*.ts` 补对应 `ja: '...'` 字段（可由脚本生成占位）
 3. 无需改动类型、判定逻辑、选择器、测试门禁
@@ -40,18 +41,19 @@ Target: 先以日语（`ja`）为试点，验证可扩展支架；通过后再�
 
 ```ts
 export const SUPPORTED_LANGUAGES = ['en', 'zh', 'ja'] as const; // 试点后扩展到 7
-export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
+export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 export const APP_LANGUAGE_IDS = [...SUPPORTED_LANGUAGES, 'system'] as const;
-export type AppLanguage = typeof APP_LANGUAGE_IDS[number];
+export type AppLanguage = (typeof APP_LANGUAGE_IDS)[number];
 
 export const LANGUAGE_META: Record<SupportedLanguage, { label: string; nativeLabel: string; flag: string }> = {
-  en: { label: 'English',  nativeLabel: 'English', flag: '🇺🇸' },
-  zh: { label: 'Chinese',  nativeLabel: '中文',    flag: '🇨🇳' },
+  en: { label: 'English', nativeLabel: 'English', flag: '🇺🇸' },
+  zh: { label: 'Chinese', nativeLabel: '中文', flag: '🇨🇳' },
   ja: { label: 'Japanese', nativeLabel: '日本語', flag: '🇯🇵' },
 };
 
 export const BROWSER_LANG_PREFIX_MAP: Record<string, SupportedLanguage> = {
-  zh: 'zh', ja: 'ja',
+  zh: 'zh',
+  ja: 'ja',
   // 后续 ko/es/fr/de 在此追加
 };
 ```
@@ -87,7 +89,7 @@ export type TranslationEntry = Partial<Record<SupportedLanguage, string>>;
 ```ts
 export const appTranslations = {
   appSwitchingModel: { en: 'Switching model...', zh: '切换模型中…', ja: 'モデルを切り替え中…' },
-}
+};
 ```
 
 `ttsStyleTranslations` 等 26 个语音风格词亦同。
@@ -100,11 +102,9 @@ export const appTranslations = {
 function resolveLanguage(language: string): SupportedLanguage {
   if (language === 'system' || !language) {
     const prefix = navigator.language.toLowerCase().split('-')[0];
-    return (BROWSER_LANG_PREFIX_MAP[prefix] ?? 'en');
+    return BROWSER_LANG_PREFIX_MAP[prefix] ?? 'en';
   }
-  return (SUPPORTED_LANGUAGES as readonly string[]).includes(language)
-    ? language as SupportedLanguage
-    : 'en';
+  return (SUPPORTED_LANGUAGES as readonly string[]).includes(language) ? (language as SupportedLanguage) : 'en';
 }
 ```
 
@@ -159,13 +159,13 @@ system 模式：
 
 ## 9. Risks & Mitigations
 
-| 风险 | 缓解 |
-|------|------|
-| `SupportedLanguage` 字面量散落，漏改导致 `ja` 回退到 `en` | 注册表单一来源 + `grep -r "'en' \\| 'zh'"` 在 PR 中全量替换 + `check-i18n-coverage.mjs` |
-| segmented 放不下 4+ 语言 | 预埋下拉分支，`SUPPORTED_LANGUAGES.length >=4` 自动切换 |
-| 机翻占位符丢失（如 `{count}` 被译为 `｛カウント｝`） | 脚本校验占位符集合一致性，测试中 `interpolate` 覆盖 |
-| 日语全角/半角混用被测试拦截 | 测试与实现同改，明确 `ja` 也执行全角校验 |
-| 旧用户 `IndexedDB` 存 `language:'zh'` 升级后类型变 | `resolveLanguage` 对非法值回退 `en`，`z.enum` 兼容 |
+| 风险                                                      | 缓解                                                    |
+| --------------------------------------------------------- | ------------------------------------------------------- |
+| `SupportedLanguage` 字面量散落，漏改导致 `ja` 回退到 `en` | 注册表单一来源 + `grep -r "'en' \\                      | 'zh'"`在 PR 中全量替换 +`check-i18n-coverage.mjs` |
+| segmented 放不下 4+ 语言                                  | 预埋下拉分支，`SUPPORTED_LANGUAGES.length >=4` 自动切换 |
+| 机翻占位符丢失（如 `{count}` 被译为 `｛カウント｝`）      | 脚本校验占位符集合一致性，测试中 `interpolate` 覆盖     |
+| 日语全角/半角混用被测试拦截                               | 测试与实现同改，明确 `ja` 也执行全角校验                |
+| 旧用户 `IndexedDB` 存 `language:'zh'` 升级后类型变        | `resolveLanguage` 对非法值回退 `en`，`z.enum` 兼容      |
 
 ## 10. Implementation Order
 

@@ -21,6 +21,7 @@ Upstream display string comes from `getShortcutDisplay(actionId, settings)` → 
 Style: **Minimal secondary text** (Linear/Notion style), always visible but faint, not capsule/badge, not hover-only. Platform-adaptive symbols, always-visible faint color.
 
 Alternatives considered:
+
 - **Kbd pill/badge** (`bg-tertiary` + `border` per key) — most legible, but heavier; rejected for sidebar density.
 - **Hover-only reveal** — cleanest, but discoverability low for new users; rejected.
 

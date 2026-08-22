@@ -23,40 +23,41 @@
 
 ## File Structure
 
-| 文件 | 职责 |
-|------|------|
-| **Create** `src/i18n/languageRegistry.ts` | 语言注册表：`SUPPORTED_LANGUAGES`、`SupportedLanguage`、`APP_LANGUAGE_IDS`、`AppLanguage`、`LANGUAGE_META`、`BROWSER_LANG_PREFIX_MAP`，单一事实来源 |
-| **Modify** `src/i18n/coreTranslations.ts` | 删除本地 `SupportedLanguage`/`TranslationEntry` 定义，改为从 `languageRegistry` 导入；`shellFeatureTranslations` 追加 `ja` 字段 |
-| **Modify** `src/types/settings.ts` | 删除本地 `APP_LANGUAGE_IDS`/`AppLanguage` 定义，改为 `import` + `re-export` |
-| **Modify** `src/contexts/I18nContext.tsx` | `language: SupportedLanguage`，`getTranslator` 类型跟随注册表 |
-| **Modify** `src/stores/settingsStore.ts` | `resolveLanguage` 支持 `ja` 前缀；`language` 类型改为 `SupportedLanguage` |
-| **Modify** `src/schemas/appSettingsSchema.ts` | `z.enum(APP_LANGUAGE_IDS)` 跟随注册表（无需手写枚举） |
-| **Modify** `src/components/settings/sections/appearance/ThemeLanguageSelector.tsx` | 注册表驱动：`SUPPORTED_LANGUAGES.map` 生成选项；`>=4` 时渲染 `<select>`，否则 `segmented` |
-| **Modify** `src/i18n/translations/settings/appearance.ts` | 追加 `settingsLanguageJa`、`settingsLanguageSystem` 的 `ja` 字段等 |
-| **Modify** `src/i18n/translations/app.ts` | 每个 `TranslationEntry` 追加 `ja` |
-| **Modify** `src/i18n/translations/chatInput.ts` | 同上（~449 行，最大文件） |
-| **Modify** `src/i18n/translations/common.ts` | 同上 |
-| **Modify** `src/i18n/translations/header.ts` | 同上 |
-| **Modify** `src/i18n/translations/history.ts` | 同上 |
-| **Modify** `src/i18n/translations/logViewer.ts` | 同上 |
-| **Modify** `src/i18n/translations/messages.ts` | 同上（~312 行，第二大文件） |
-| **Modify** `src/i18n/translations/scenarios.ts` | 同上 |
-| **Modify** `src/i18n/translations/settings/*.ts` (9 文件) | 同上 |
-| **Modify** `src/i18n/voiceStyleTranslations.ts` | 26 个 `tts_style_*` 追加 `ja` |
-| **Create** `scripts/check-i18n-coverage.mjs` | 遍历翻译文件，检查缺 `SupportedLanguage` 的 key，`exit(1)` 供 CI |
-| **Create** `scripts/add-language.mjs` | `node add-language.mjs ko` 为所有翻译文件插入 `ko: ''` 占位 |
-| **Modify** `package.json` | 新增 `i18n:check: "node scripts/check-i18n-coverage.mjs"` |
-| **Modify** `src/i18n/translationCoverage.test.ts` | 扩展 `ja` 真实文案抽样、缺词、全角标点三类断言 |
-| **Modify** `src/stores/settingsStore.test.ts` | 新增 `ja` 判定单测 |
-| **Modify** `src/contexts/I18nContext.test.tsx` | 类型泛化 |
-| **Modify** `src/test/doubles/i18n.ts` 等 | 类型泛化（`'en'|'zh'` → `SupportedLanguage`） |
-| **Modify** `CONTRIBUTING.md` | 追加 `Adding a new language` 章节 |
+| 文件                                                                               | 职责                                                                                                                                                |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Create** `src/i18n/languageRegistry.ts`                                          | 语言注册表：`SUPPORTED_LANGUAGES`、`SupportedLanguage`、`APP_LANGUAGE_IDS`、`AppLanguage`、`LANGUAGE_META`、`BROWSER_LANG_PREFIX_MAP`，单一事实来源 |
+| **Modify** `src/i18n/coreTranslations.ts`                                          | 删除本地 `SupportedLanguage`/`TranslationEntry` 定义，改为从 `languageRegistry` 导入；`shellFeatureTranslations` 追加 `ja` 字段                     |
+| **Modify** `src/types/settings.ts`                                                 | 删除本地 `APP_LANGUAGE_IDS`/`AppLanguage` 定义，改为 `import` + `re-export`                                                                         |
+| **Modify** `src/contexts/I18nContext.tsx`                                          | `language: SupportedLanguage`，`getTranslator` 类型跟随注册表                                                                                       |
+| **Modify** `src/stores/settingsStore.ts`                                           | `resolveLanguage` 支持 `ja` 前缀；`language` 类型改为 `SupportedLanguage`                                                                           |
+| **Modify** `src/schemas/appSettingsSchema.ts`                                      | `z.enum(APP_LANGUAGE_IDS)` 跟随注册表（无需手写枚举）                                                                                               |
+| **Modify** `src/components/settings/sections/appearance/ThemeLanguageSelector.tsx` | 注册表驱动：`SUPPORTED_LANGUAGES.map` 生成选项；`>=4` 时渲染 `<select>`，否则 `segmented`                                                           |
+| **Modify** `src/i18n/translations/settings/appearance.ts`                          | 追加 `settingsLanguageJa`、`settingsLanguageSystem` 的 `ja` 字段等                                                                                  |
+| **Modify** `src/i18n/translations/app.ts`                                          | 每个 `TranslationEntry` 追加 `ja`                                                                                                                   |
+| **Modify** `src/i18n/translations/chatInput.ts`                                    | 同上（~449 行，最大文件）                                                                                                                           |
+| **Modify** `src/i18n/translations/common.ts`                                       | 同上                                                                                                                                                |
+| **Modify** `src/i18n/translations/header.ts`                                       | 同上                                                                                                                                                |
+| **Modify** `src/i18n/translations/history.ts`                                      | 同上                                                                                                                                                |
+| **Modify** `src/i18n/translations/logViewer.ts`                                    | 同上                                                                                                                                                |
+| **Modify** `src/i18n/translations/messages.ts`                                     | 同上（~312 行，第二大文件）                                                                                                                         |
+| **Modify** `src/i18n/translations/scenarios.ts`                                    | 同上                                                                                                                                                |
+| **Modify** `src/i18n/translations/settings/*.ts` (9 文件)                          | 同上                                                                                                                                                |
+| **Modify** `src/i18n/voiceStyleTranslations.ts`                                    | 26 个 `tts_style_*` 追加 `ja`                                                                                                                       |
+| **Create** `scripts/check-i18n-coverage.mjs`                                       | 遍历翻译文件，检查缺 `SupportedLanguage` 的 key，`exit(1)` 供 CI                                                                                    |
+| **Create** `scripts/add-language.mjs`                                              | `node add-language.mjs ko` 为所有翻译文件插入 `ko: ''` 占位                                                                                         |
+| **Modify** `package.json`                                                          | 新增 `i18n:check: "node scripts/check-i18n-coverage.mjs"`                                                                                           |
+| **Modify** `src/i18n/translationCoverage.test.ts`                                  | 扩展 `ja` 真实文案抽样、缺词、全角标点三类断言                                                                                                      |
+| **Modify** `src/stores/settingsStore.test.ts`                                      | 新增 `ja` 判定单测                                                                                                                                  |
+| **Modify** `src/contexts/I18nContext.test.tsx`                                     | 类型泛化                                                                                                                                            |
+| **Modify** `src/test/doubles/i18n.ts` 等                                           | 类型泛化（`'en'                                                                                                                                     | 'zh'`→`SupportedLanguage`） |
+| **Modify** `CONTRIBUTING.md`                                                       | 追加 `Adding a new language` 章节                                                                                                                   |
 
 ---
 
 ### Task 1: 语言注册表与类型收敛
 
 **Files:**
+
 - Create: `src/i18n/languageRegistry.ts`
 - Modify: `src/i18n/coreTranslations.ts`
 - Modify: `src/types/settings.ts`
@@ -65,6 +66,7 @@
 - Test: `src/i18n/languageRegistry.test.ts` (new)
 
 **Interfaces:**
+
 - Consumes: 无（首任务）
 - Produces: `SUPPORTED_LANGUAGES`, `SupportedLanguage`, `APP_LANGUAGE_IDS`, `AppLanguage`, `LANGUAGE_META`, `BROWSER_LANG_PREFIX_MAP` 供 Task 2/3/4 使用
 
@@ -181,12 +183,14 @@ git commit -m "feat(i18n): add language registry (en/zh/ja) as single source of 
 ### Task 2: 语言判定与 Schema
 
 **Files:**
+
 - Modify: `src/stores/settingsStore.ts`
 - Modify: `src/schemas/appSettingsSchema.ts`
 - Modify: `src/constants/settingsDefaults.ts` (如有硬编码校验)
 - Test: `src/stores/settingsStore.test.ts`
 
 **Interfaces:**
+
 - Consumes: `SUPPORTED_LANGUAGES`, `BROWSER_LANG_PREFIX_MAP`, `AppLanguage` from Task 1
 - Produces: `resolveLanguage` 支持 `ja`，`system` 自动识别 `ja-JP`，供 Task 3/5 使用
 
@@ -239,9 +243,7 @@ function resolveLanguage(language: string): SupportedLanguage {
     const prefix = navigator.language.toLowerCase().split('-')[0];
     return BROWSER_LANG_PREFIX_MAP[prefix] ?? 'en';
   }
-  return (SUPPORTED_LANGUAGES as readonly string[]).includes(settingLang)
-    ? (settingLang as SupportedLanguage)
-    : 'en';
+  return (SUPPORTED_LANGUAGES as readonly string[]).includes(settingLang) ? (settingLang as SupportedLanguage) : 'en';
 }
 ```
 
@@ -273,11 +275,13 @@ git commit -m "feat(i18n): resolve ja-JP system language and support ja in setti
 ### Task 3: 选择器 UI（注册表驱动 + 下拉预埋）
 
 **Files:**
+
 - Modify: `src/components/settings/sections/appearance/ThemeLanguageSelector.tsx`
 - Modify: `src/i18n/translations/settings/appearance.ts`
 - Test: `src/components/settings/sections/AppearanceSection.test.tsx` (或新建 `ThemeLanguageSelector.test.tsx`)
 
 **Interfaces:**
+
 - Consumes: `SUPPORTED_LANGUAGES`, `LANGUAGE_META`, `SupportedLanguage` from Task 1; `resolveLanguage` from Task 2
 - Produces: 设置页可切换 `ja`，`system` 选项显示日语，后续 4 语自动下拉
 
@@ -335,9 +339,17 @@ import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import type { AppSettings } from '@/types';
 import { SUPPORTED_LANGUAGES, LANGUAGE_META } from '@/i18n/languageRegistry';
-import { SETTINGS_SEGMENTED_ACTIVE_CLASS, SETTINGS_SEGMENTED_IDLE_CLASS, SETTINGS_SEGMENTED_TRACK_CLASS, SETTINGS_SECTION_CARD_CLASS } from '@/constants/designTokens';
+import {
+  SETTINGS_SEGMENTED_ACTIVE_CLASS,
+  SETTINGS_SEGMENTED_IDLE_CLASS,
+  SETTINGS_SEGMENTED_TRACK_CLASS,
+  SETTINGS_SECTION_CARD_CLASS,
+} from '@/constants/designTokens';
 
-export const ThemeLanguageSelector: React.FC<{ settings: AppSettings; onUpdate: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void }> = ({ settings, onUpdate }) => {
+export const ThemeLanguageSelector: React.FC<{
+  settings: AppSettings;
+  onUpdate: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void;
+}> = ({ settings, onUpdate }) => {
   const { t } = useI18n();
   const themeOptions = [
     { id: 'system', labelKey: 'settingsThemeSystem' },
@@ -351,7 +363,10 @@ export const ThemeLanguageSelector: React.FC<{ settings: AppSettings; onUpdate: 
   return (
     <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-1`}>
       {/* theme block unchanged */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-[var(--theme-border-secondary)]/50 py-3" data-settings-item="interface-language">
+      <div
+        className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-[var(--theme-border-secondary)]/50 py-3"
+        data-settings-item="interface-language"
+      >
         <span className="text-sm font-medium text-[var(--theme-text-primary)]">{t('settingsLanguage')}</span>
         {useSelect ? (
           <select
@@ -362,15 +377,25 @@ export const ThemeLanguageSelector: React.FC<{ settings: AppSettings; onUpdate: 
           >
             <option value="system">{t('settingsLanguageSystem')}</option>
             {SUPPORTED_LANGUAGES.map((id) => (
-              <option key={id} value={id}>{LANGUAGE_META[id].nativeLabel}</option>
+              <option key={id} value={id}>
+                {LANGUAGE_META[id].nativeLabel}
+              </option>
             ))}
           </select>
         ) : (
           <div className={SETTINGS_SEGMENTED_TRACK_CLASS} role="group" aria-label={t('settingsLanguage')}>
             {(['system', ...SUPPORTED_LANGUAGES] as const).map((id) => {
-              const label = id === 'system' ? t('settingsLanguageSystem') : LANGUAGE_META[id as typeof SUPPORTED_LANGUAGES[number]].nativeLabel;
+              const label =
+                id === 'system'
+                  ? t('settingsLanguageSystem')
+                  : LANGUAGE_META[id as (typeof SUPPORTED_LANGUAGES)[number]].nativeLabel;
               return (
-                <button key={id} type="button" onClick={() => onUpdate('language', id as AppSettings['language'])} className={settings.language === id ? SETTINGS_SEGMENTED_ACTIVE_CLASS : SETTINGS_SEGMENTED_IDLE_CLASS}>
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => onUpdate('language', id as AppSettings['language'])}
+                  className={settings.language === id ? SETTINGS_SEGMENTED_ACTIVE_CLASS : SETTINGS_SEGMENTED_IDLE_CLASS}
+                >
                   {label}
                 </button>
               );
@@ -402,6 +427,7 @@ git commit -m "feat(i18n): registry-driven language selector with ja and select 
 ### Task 4: 词库机翻 — 为 18 文件追加 `ja`
 
 **Files:**
+
 - Modify: `src/i18n/translations/app.ts` (12 lines)
 - Modify: `src/i18n/translations/chatInput.ts` (449 lines, 最大)
 - Modify: `src/i18n/translations/common.ts` (42 lines)
@@ -424,6 +450,7 @@ git commit -m "feat(i18n): registry-driven language selector with ja and select 
 - Test: `src/i18n/translationCoverage.test.ts` (Task 5 会加断言，此处先保证 `pnpm i18n:check` 不报错)
 
 **Interfaces:**
+
 - Consumes: `SupportedLanguage` from Task 1
 - Produces: 所有 `t(key)` 在 `ja` 下返回日语，供 Task 5 测试验证
 
@@ -433,15 +460,19 @@ git commit -m "feat(i18n): registry-driven language selector with ja and select 
 // 在 translationCoverage.test.ts 临时追加（Task5 会正式化）
 it('every key has ja', async () => {
   await ensureAllFeatureTranslations();
-  const missing = Object.entries(translations).filter(([, v]) => !v.ja).map(([k]) => k);
+  const missing = Object.entries(translations)
+    .filter(([, v]) => !v.ja)
+    .map(([k]) => k);
   expect(missing).toEqual([]);
 });
 ```
+
 Run: `node scripts/run-vitest.mjs run src/i18n/translationCoverage.test.ts -t "every key has ja"` Expected: FAIL（大量缺 `ja`）
 
 - [ ] **Step 2: 批量机翻（以 `en` 为源，保留占位符）**
 
 执行策略（由本任务的执行者完成，非脚本自动）：
+
 1. 对每个 `translations/*.ts` 文件，遍历所有 `TranslationEntry`
 2. 以 `en` 文案为源，生成自然日语，**严格保留** `{count}` / `{title}` / `{message}` / `{filename}` / `{prefix}` / `{index}` / `{reason}` / `{expectedType}` / `{foundType}` 等占位符原样
 3. 全角标点：`...`→`…`、`:`→`：`（有日文时）、`()`→`（）`、`!`/`?` 保持半角或按日语习惯 `！`/`？`（与现有 `zh` 约定保持一致，测试会校验）
@@ -457,6 +488,7 @@ Run: `node scripts/run-vitest.mjs run src/i18n/translationCoverage.test.ts -t "e
 6. 对 `coreTranslations.ts` 的 `shellFeatureTranslations`：`Settings→設定`, `Speech Voice→音声`, `Auto (Default)→自動（デフォルト）` 等
 
 示例（`app.ts`）：
+
 ```ts
 export const appTranslations = {
   appSwitchingModel: { en: 'Switching model...', zh: '切换模型中…', ja: 'モデルを切り替え中…' },
@@ -493,6 +525,7 @@ git commit -m "feat(i18n): add ja translations for all 350 keys"
 ### Task 5: 测试与门禁扩展
 
 **Files:**
+
 - Modify: `src/i18n/translationCoverage.test.ts`
 - Modify: `src/stores/settingsStore.test.ts` (已在 Task2 部分，剩余补充)
 - Modify: `src/contexts/I18nContext.test.tsx`
@@ -500,6 +533,7 @@ git commit -m "feat(i18n): add ja translations for all 350 keys"
 - Test: `src/i18n/languageRegistry.test.ts` (Task1 已创建)
 
 **Interfaces:**
+
 - Consumes: 日语词库 from Task 4，`SUPPORTED_LANGUAGES` from Task 1
 - Produces: CI 门禁通过，后续 `ko/es/fr/de` 缺词可被拦截
 
@@ -589,12 +623,14 @@ git commit -m "test(i18n): extend coverage for ja (real copy, punctuation, missi
 ### Task 6: 脚本与文档（可复制支架）
 
 **Files:**
+
 - Create: `scripts/check-i18n-coverage.mjs`
 - Create: `scripts/add-language.mjs`
 - Modify: `package.json`
 - Modify: `CONTRIBUTING.md`
 
 **Interfaces:**
+
 - Consumes: `SUPPORTED_LANGUAGES` from Task 1，词库 from Task 4
 - Produces: `pnpm i18n:check` 可在 CI 拦截缺词；`node add-language.mjs ko` 可 10 分钟复制新语言
 
@@ -627,7 +663,9 @@ const translationFiles = [
   'src/i18n/translations/scenarios.ts',
   'src/i18n/voiceStyleTranslations.ts',
   'src/i18n/coreTranslations.ts',
-  ...fs.readdirSync(path.join(projectRoot, 'src/i18n/translations/settings')).map(f => `src/i18n/translations/settings/${f}`),
+  ...fs
+    .readdirSync(path.join(projectRoot, 'src/i18n/translations/settings'))
+    .map((f) => `src/i18n/translations/settings/${f}`),
 ];
 
 let hasError = false;
@@ -651,7 +689,7 @@ for (const rel of translationFiles) {
       }
     }
     // 占位符一致性：en 中的 {xxx} 必须在 ja/zh 中也出现
-    const placeholders = [...block.matchAll(/\{(\w+)\}/g)].map(x => x[0]);
+    const placeholders = [...block.matchAll(/\{(\w+)\}/g)].map((x) => x[0]);
     // 简化：仅检查 ja 块的占位符集合
   }
 }
@@ -691,7 +729,7 @@ const files = [
   'src/i18n/translations/scenarios.ts',
   'src/i18n/voiceStyleTranslations.ts',
   'src/i18n/coreTranslations.ts',
-  ...fs.readdirSync('src/i18n/translations/settings').map(f => `src/i18n/translations/settings/${f}`),
+  ...fs.readdirSync('src/i18n/translations/settings').map((f) => `src/i18n/translations/settings/${f}`),
 ];
 
 for (const rel of files) {
@@ -728,7 +766,7 @@ console.log(`\nDone. Now fill ${newLang}: '' with translations and add ${newLang
 
 - [ ] **Step 5: 修改 `CONTRIBUTING.md` 追加章节**
 
-```md
+````md
 ## Adding a new language
 
 1. Add the language to `src/i18n/languageRegistry.ts`:
@@ -736,6 +774,8 @@ console.log(`\nDone. Now fill ${newLang}: '' with translations and add ${newLang
    export const SUPPORTED_LANGUAGES = ['en', 'zh', 'ja', 'ko'] as const;
    // and LANGUAGE_META.ko, BROWSER_LANG_PREFIX_MAP['ko']
    ```
+````
+
 2. Generate placeholders:
    ```bash
    node scripts/add-language.mjs ko
@@ -746,7 +786,8 @@ console.log(`\nDone. Now fill ${newLang}: '' with translations and add ${newLang
    npm run i18n:check
    npm run typecheck && npm run lint && npm test
    ```
-```
+
+````
 
 - [ ] **Step 6: 运行验证**
 
@@ -759,7 +800,7 @@ Run: `npm run typecheck && npm run lint` Expected: PASS
 ```bash
 git add scripts/check-i18n-coverage.mjs scripts/add-language.mjs package.json CONTRIBUTING.md
 git commit -m "feat(i18n): add coverage check and add-language scaffolding"
-```
+````
 
 ---
 

@@ -162,16 +162,7 @@ export interface CommandInfo {
 }
 
 export type AttachmentAction =
-  | 'upload'
-  | 'gallery'
-  | 'camera'
-  | 'recorder'
-  | 'id'
-  | 'url'
-  | 'text'
-  | 'screenshot'
-  | 'folder'
-  | 'zip';
+  'upload' | 'gallery' | 'camera' | 'recorder' | 'id' | 'url' | 'text' | 'screenshot' | 'folder' | 'zip';
 
 export interface SideViewContent {
   type: 'html' | 'mermaid' | 'graphviz' | 'svg';

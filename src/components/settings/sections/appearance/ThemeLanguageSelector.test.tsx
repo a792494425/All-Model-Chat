@@ -25,10 +25,9 @@ describe('ThemeLanguageSelector', () => {
   it('switches to ja on select change', async () => {
     const onUpdate = vi.fn();
     const settings = { language: 'en', themeId: 'pearl' } as AppSettings;
-    const { getByLabelText } = renderWithProviders(
-      <ThemeLanguageSelector settings={settings} onUpdate={onUpdate} />,
-      { language: 'en' },
-    );
+    const { getByLabelText } = renderWithProviders(<ThemeLanguageSelector settings={settings} onUpdate={onUpdate} />, {
+      language: 'en',
+    });
 
     fireEvent.change(getByLabelText('Language'), { target: { value: 'ja' } });
     expect(onUpdate).toHaveBeenCalledWith('language', 'ja');

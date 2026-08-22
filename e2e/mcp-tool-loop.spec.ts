@@ -39,9 +39,7 @@ test('executes a real MCP tool inside the Gemini tool loop', async ({ page }) =>
       contentType: 'application/json',
       headers: JSON_HEADERS,
       body: JSON.stringify({
-        candidates: [
-          { content: { parts: [{ functionCall: { name: fnName, args: { text: 'loop-test' } } }] } },
-        ],
+        candidates: [{ content: { parts: [{ functionCall: { name: fnName, args: { text: 'loop-test' } } }] } }],
         usageMetadata: { promptTokenCount: 4, candidatesTokenCount: 2, totalTokenCount: 6 },
       }),
     });

@@ -69,9 +69,7 @@ const SlashCommandMenuComponent: React.FC<SlashCommandMenuProps> = ({
   })();
   const flatGrouped = groupedCommands.flatMap((g) => g.items);
   const selectedCommand = commands[selectedIndex];
-  const displaySelectedIndex = selectedCommand
-    ? flatGrouped.findIndex((c) => c.name === selectedCommand.name)
-    : -1;
+  const displaySelectedIndex = selectedCommand ? flatGrouped.findIndex((c) => c.name === selectedCommand.name) : -1;
 
   const hasResults = commands.length > 0;
   const collapsed = !hasResults;
@@ -138,7 +136,7 @@ const SlashCommandMenuComponent: React.FC<SlashCommandMenuProps> = ({
               {groupedCommands.map((group) => (
                 <li key={group.key} className="space-y-0.5">
                   {!isModelPanel ? (
-                    <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--theme-text-secondary)]">
+                    <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--theme-text-secondary)]">
                       {t(GROUP_LABEL_KEY[group.key as 'session' | 'tools' | 'system'] as never)}
                     </div>
                   ) : null}
@@ -168,7 +166,9 @@ const SlashCommandMenuComponent: React.FC<SlashCommandMenuProps> = ({
                               </span>
                             </span>
                             <span className="flex min-w-[20%] items-center justify-end gap-1 text-[12px] leading-4 text-[var(--theme-text-tertiary)]">
-                              <span className="overflow-hidden text-ellipsis whitespace-nowrap">{command.description}</span>
+                              <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                                {command.description}
+                              </span>
                               {command.isSelected ? (
                                 <Check size={12} className="shrink-0 text-[var(--theme-text-tertiary)]" />
                               ) : isSelected ? (
@@ -188,7 +188,7 @@ const SlashCommandMenuComponent: React.FC<SlashCommandMenuProps> = ({
             </ul>
           )}
         </div>
-        {/* Cherry QuickPanelFooter 1:1: ESC 关闭  ▲▼ 选择  ⌘+▲▼ 翻页  Tab/↩ 确认 */}
+
         <div
           data-testid="quick-panel-footer"
           className="flex w-full items-center justify-between gap-4 border-t border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)] px-3 pt-2 pb-[5px]"
@@ -206,7 +206,11 @@ const SlashCommandMenuComponent: React.FC<SlashCommandMenuProps> = ({
               <span>{t('quickPanelSelect' as never)}</span>
             </span>
             <span className="inline-flex items-center gap-1">
-              <kbd className={`${SETTINGS_KBD_KEY_CLASS} ${isAssistivePressed ? '!text-[var(--theme-text-primary)]' : ''}`}>{assistiveKey}</kbd>
+              <kbd
+                className={`${SETTINGS_KBD_KEY_CLASS} ${isAssistivePressed ? '!text-[var(--theme-text-primary)]' : ''}`}
+              >
+                {assistiveKey}
+              </kbd>
               <span>+</span>
               <kbd className={SETTINGS_KBD_KEY_CLASS}>▲▼</kbd>
               <span>{t('quickPanelPage' as never)}</span>

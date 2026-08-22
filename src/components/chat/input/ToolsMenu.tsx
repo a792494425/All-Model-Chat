@@ -1,16 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import {
-  Globe,
-  Check,
-  Terminal,
-  Link,
-  X,
-  Telescope,
-  Calculator,
-  AlertTriangle,
-  MapPin,
-} from 'lucide-react';
+import { Globe, Check, Terminal, Link, X, Telescope, Calculator, AlertTriangle, MapPin } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { IconPython, IconThinking, IconViewOptions } from '@/components/icons';
 import { CHAT_INPUT_BUTTON_CLASS } from '@/constants/buttonClasses';

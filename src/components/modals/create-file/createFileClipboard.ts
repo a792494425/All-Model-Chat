@@ -1,9 +1,7 @@
 import { isImageMimeType } from '@/utils/file/fileTypeClassification';
 
 type ClipboardPastePlan =
-  | { kind: 'image'; file: File }
-  | { kind: 'html'; html: string; plain: string }
-  | { kind: 'default' };
+  { kind: 'image'; file: File } | { kind: 'html'; html: string; plain: string } | { kind: 'default' };
 
 const readClipboardText = (clipboardData: DataTransfer, type: 'text/html' | 'text/plain'): string => {
   try {

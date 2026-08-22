@@ -80,7 +80,8 @@ for (const rel of translationFiles) {
   // Placeholder consistency: for each valid en/zh/ja entry, compare placeholder sets
   // This regex handles multi-line entries and quoted strings with escapes.
   // It matches entries where en, zh, ja appear in order.
-  const entryRegex = /\{\s*en:\s*(['"`])((?:\\.|(?!\1).)*)\1\s*,\s*zh:\s*(['"`])((?:\\.|(?!\3).)*)\3\s*,\s*ja:\s*(['"`])((?:\\.|(?!\5).)*)\5\s*,?\s*\}/gs;
+  const entryRegex =
+    /\{\s*en:\s*(['"`])((?:\\.|(?!\1).)*)\1\s*,\s*zh:\s*(['"`])((?:\\.|(?!\3).)*)\3\s*,\s*ja:\s*(['"`])((?:\\.|(?!\5).)*)\5\s*,?\s*\}/gs;
   let m;
   const matchedEntries = [];
   while ((m = entryRegex.exec(content)) !== null) {
@@ -115,23 +116,27 @@ for (const rel of translationFiles) {
     const arraysEqual = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 
     if (!arraysEqual(enPH, zhPH)) {
-      console.error(`Placeholder mismatch (en vs zh) in ${rel}: en ${JSON.stringify(enPH)} vs zh ${JSON.stringify(zhPH)} | block: ${entry[0].slice(0, 120)}...`);
+      console.error(
+        `Placeholder mismatch (en vs zh) in ${rel}: en ${JSON.stringify(enPH)} vs zh ${JSON.stringify(zhPH)} | block: ${entry[0].slice(0, 120)}...`,
+      );
       hasError = true;
       placeholderErrors.push(rel);
     }
     if (!arraysEqual(enPH, jaPH)) {
-      console.error(`Placeholder mismatch (en vs ja) in ${rel}: en ${JSON.stringify(enPH)} vs ja ${JSON.stringify(jaPH)} | block: ${entry[0].slice(0, 120)}...`);
+      console.error(
+        `Placeholder mismatch (en vs ja) in ${rel}: en ${JSON.stringify(enPH)} vs ja ${JSON.stringify(jaPH)} | block: ${entry[0].slice(0, 120)}...`,
+      );
       hasError = true;
       placeholderErrors.push(rel);
     }
   }
-
 }
 
 if (hasError) {
   console.error('\ni18n coverage check failed');
   if (totalMissing > 0) console.error(`Missing translations: ~${totalMissing} keys`);
-  if (placeholderErrors.length > 0) console.error(`Placeholder mismatches in: ${[...new Set(placeholderErrors)].join(', ')}`);
+  if (placeholderErrors.length > 0)
+    console.error(`Placeholder mismatches in: ${[...new Set(placeholderErrors)].join(', ')}`);
   process.exit(1);
 } else {
   console.log(`✓ i18n coverage: ${totalKeys}/${totalKeys} keys have ${SUPPORTED_LANGUAGES.join('/')}`);

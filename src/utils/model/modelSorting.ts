@@ -62,6 +62,8 @@ export const sortModels = (models: ModelOption[]): ModelOption[] => {
     'gemini-3.1-pro-preview': 0,
     'gemini-3.7-flash': 1,
     'gemini-3.5-flash-lite': 2,
+    'gemini-3.6-flash': 3,
+    'gemini-3-flash-preview': 4,
   };
 
   const getCategoryWeight = (id: string) => {

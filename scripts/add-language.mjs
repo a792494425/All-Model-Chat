@@ -94,6 +94,8 @@ if (isDryRun) {
   console.log(`\n[dry-run] Done. Would update ${updated} files, skipped ${skipped}, warnings ${warnings}.`);
   console.log(`Run without --dry-run to apply: node scripts/add-language.mjs ${newLang}`);
 } else {
-  console.log(`\nDone. Updated ${updated} files, skipped ${skipped}. Now fill ${newLang}: '' with translations and add ${newLang} to src/i18n/languageRegistry.ts`);
+  console.log(
+    `\nDone. Updated ${updated} files, skipped ${skipped}. Now fill ${newLang}: '' with translations and add ${newLang} to src/i18n/languageRegistry.ts`,
+  );
   console.log(`  - Add to SUPPORTED_LANGUAGES, LANGUAGE_META.${newLang}, BROWSER_LANG_PREFIX_MAP['${newLang}']`);
 }

@@ -16,11 +16,7 @@ import {
 } from '@/types';
 import { createEmptyLiveArtifactsSystemPrompts } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
 import { sanitizeThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
-import {
-  sanitizeMcpAuth,
-  sanitizeStringArray,
-  sanitizeStringRecord,
-} from '../../shared/mcpServerConfig';
+import { sanitizeMcpAuth, sanitizeStringArray, sanitizeStringRecord } from '../../shared/mcpServerConfig';
 import { isRecord } from '../../shared/predicates';
 import { THEME_IDS } from '@/utils/themeMode';
 

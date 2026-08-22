@@ -164,7 +164,9 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
             aria-label={t('historySearchAria')}
           >
             <Search size={18} className="text-[var(--theme-text-primary)]" strokeWidth={2.2} />
-            <span className="min-w-0 flex-1 truncate font-medium text-[var(--theme-text-primary)]">{t('historySearchButton')}</span>
+            <span className="min-w-0 flex-1 truncate font-medium text-[var(--theme-text-primary)]">
+              {t('historySearchButton')}
+            </span>
             <ShortcutHint shortcut={searchChatsShortcut} />
           </button>
         )}
@@ -172,7 +174,9 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
       <div>
         <button onClick={onAddNewGroup} className={SIDEBAR_ACTION_ROW_CLASS} aria-label={t('newGroupAria')}>
           <IconNewGroup size={18} className="text-[var(--theme-text-primary)]" strokeWidth={2.2} />
-          <span className="min-w-0 flex-1 truncate font-medium text-[var(--theme-text-primary)]">{t('newGroupButton')}</span>
+          <span className="min-w-0 flex-1 truncate font-medium text-[var(--theme-text-primary)]">
+            {t('newGroupButton')}
+          </span>
         </button>
       </div>
     </div>

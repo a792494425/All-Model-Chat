@@ -4,25 +4,27 @@
 
 ## 一、结构完整性检查（程序化验证）
 
-| 检查项 | 结果 |
-|---|---|
-| 键覆盖（每键 7 语言齐全） | ✅ 1146/1146，无缺失 |
-| 占位符一致性（全部 7 语言对照 en） | ✅ 0 处不匹配 |
-| 占位符格式与 interpolate() 兼容性 | ✅ 全部为 {word} 格式 |
-| npm run i18n:check | ✅ 通过 |
-| 翻译相关测试（coverage/registry/interpolate 共 22 个） | ✅ 全部通过 |
-| 反向覆盖（代码 t() 引用的 919 个键） | ✅ 全部有定义 |
-| 重复键 | ⚠️ 2 个（thirdPartyConnectionUnavailable、thirdPartyApiKeyMissing），值完全一致，无害 |
-| 中文半角标点混用 | ✅ 0 处 |
-| 西语疑问句缺失 ¿ | ✅ 1 处（见下） |
-| 法语 ?!:; 前空格 | ✅ 规范统一 |
+| 检查项                                                 | 结果                                                                                  |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| 键覆盖（每键 7 语言齐全）                              | ✅ 1146/1146，无缺失                                                                  |
+| 占位符一致性（全部 7 语言对照 en）                     | ✅ 0 处不匹配                                                                         |
+| 占位符格式与 interpolate() 兼容性                      | ✅ 全部为 {word} 格式                                                                 |
+| npm run i18n:check                                     | ✅ 通过                                                                               |
+| 翻译相关测试（coverage/registry/interpolate 共 22 个） | ✅ 全部通过                                                                           |
+| 反向覆盖（代码 t() 引用的 919 个键）                   | ✅ 全部有定义                                                                         |
+| 重复键                                                 | ⚠️ 2 个（thirdPartyConnectionUnavailable、thirdPartyApiKeyMissing），值完全一致，无害 |
+| 中文半角标点混用                                       | ✅ 0 处                                                                               |
+| 西语疑问句缺失 ¿                                       | ✅ 1 处（见下）                                                                       |
+| 法语 ?!:; 前空格                                       | ✅ 规范统一                                                                           |
 
 ## 二、源串层面的观察
 
 ### ~~字面量 "nn"/"n" 丢失换行~~（已撤回——误报）
+
 初判认为 `settingsClearCacheConfirm` 与 `liveArtifactInteractionRetryPrompt` 含字面量字母 n。经原始字节核验，源码中是**正确的 `\n` / `\n\n` 转义序列**（单引号字符串内），TypeScript 会正常解析为换行。此前的"bug"是审查解析器剥掉反斜杠造成的假象。**无需修改。**
 
 ### 英文源串导致的翻译问题（根因在 en）
+
 - **"Composer"**（shortcutsChatInputTitle）：ja コンポーザー / ko 작성기 / es Redactor / fr Compositeur 均不自然（fr 甚至意为"作曲家"）。建议源串改为 "Message input"，各语言改为 输入区/入力欄/메시지 입력창/Redacción/Zone de saisie。
 - **settingsSearchEscHint**（en 仅 "to clear"）：UI 渲染为 `<Esc> + 提示词`，日语成 "Esc クリアするには"、韩语成 "Esc 지우려면"，SOV 语序错误。建议 ja「Esc でクリア」ko「Esc로 지우기」（或改组件结构）。
 
@@ -180,6 +182,7 @@ translateFailed、pdfLoadFailed（已被 …WithMessage 版本取代）、histor
 ## 六、总体结论
 
 翻译整体质量高：无漏翻、占位符零错误、标点规范严格、品牌名处理得当。真正需要修的是：
+
 1. ~~1 个全语言渲染 bug~~（已撤回，见第二节——`\n` 转义误报）
 2. 高严重度误译（zh 采样率、de Files API 提示、de Temperature 未翻译、Composer 家族、ja/ko Esc 语序、es/fr 语法错误）→ **已修复**，见下节
 3. 各语言内部术语统一（尤其 de 的 du/Sie、fr 的 tokens/jetons、zh 的聊天/对话）→ 待办
@@ -190,17 +193,17 @@ translateFailed、pdfLoadFailed（已被 …WithMessage 版本取代）、histor
 
 ### 已修复（P1，2024-08 审查后第一批）
 
-| 文件 | 键 | 语言 | 修改 |
-|---|---|---|---|
-| translations/chatInput.ts | videoSettingsFps | zh | 采样率（FPS）→ **帧率（FPS）** |
-| translations/settings/general.ts | settingsSearchEscHint | ja | クリアするには → **でクリア**（配合 `<Esc>` 前缀语序） |
-| translations/settings/general.ts | settingsSearchEscHint | ko | 지우려면 → **눌러서 지우기** |
-| translations/settings/shortcuts.ts | shortcutsChatInputTitle | ja/ko/es/fr | コンポーザー→**入力欄**；작성기→**메시지 입력창**；Redactor→**Redacción**；Compositeur→**Zone de saisie** |
-| translations/settings/model.ts | settingsTemperature | de | Temperature → **Temperatur** |
-| translations/settings/model.ts | settingsFilesApiTooltip | de | "Ein bevorzugt Files API. Aus sendet…" → **„Bei „Ein“ wird Files API bevorzugt. Bei „Aus“ werden Inhalte … gesendet"** |
-| translations/settings/model.ts | settingsFilesApiTooltip | es | envia → **envía** |
-| translations/settings/model.ts | settingsGenerateQuadImagesTooltip | es | esta habilitado→**esté habilitado**；produciran→**producirán** |
-| translations/settings/model.ts | settingsGenerateQuadImagesTooltip | fr | Lorsqu'**elle est activée** → Lorsqu'**ils sont activés**（与 les prompts 性数一致） |
+| 文件                               | 键                                | 语言        | 修改                                                                                                                   |
+| ---------------------------------- | --------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| translations/chatInput.ts          | videoSettingsFps                  | zh          | 采样率（FPS）→ **帧率（FPS）**                                                                                         |
+| translations/settings/general.ts   | settingsSearchEscHint             | ja          | クリアするには → **でクリア**（配合 `<Esc>` 前缀语序）                                                                 |
+| translations/settings/general.ts   | settingsSearchEscHint             | ko          | 지우려면 → **눌러서 지우기**                                                                                           |
+| translations/settings/shortcuts.ts | shortcutsChatInputTitle           | ja/ko/es/fr | コンポーザー→**入力欄**；작성기→**메시지 입력창**；Redactor→**Redacción**；Compositeur→**Zone de saisie**              |
+| translations/settings/model.ts     | settingsTemperature               | de          | Temperature → **Temperatur**                                                                                           |
+| translations/settings/model.ts     | settingsFilesApiTooltip           | de          | "Ein bevorzugt Files API. Aus sendet…" → **„Bei „Ein“ wird Files API bevorzugt. Bei „Aus“ werden Inhalte … gesendet"** |
+| translations/settings/model.ts     | settingsFilesApiTooltip           | es          | envia → **envía**                                                                                                      |
+| translations/settings/model.ts     | settingsGenerateQuadImagesTooltip | es          | esta habilitado→**esté habilitado**；produciran→**producirán**                                                         |
+| translations/settings/model.ts     | settingsGenerateQuadImagesTooltip | fr          | Lorsqu'**elle est activée** → Lorsqu'**ils sont activés**（与 les prompts 性数一致）                                   |
 
 验证：`npm run i18n:check` ✅ 1146/1146 · i18n 测试 22/22 ✅ · `tsc --noEmit` ✅ · eslint ✅（prettier 警告为 i18n 目录既有状态，非本次引入）
 
@@ -208,14 +211,14 @@ translateFailed、pdfLoadFailed（已被 …WithMessage 版本取代）、histor
 
 通过确定性 codemod 应用（每处替换要求原文精确唯一匹配，共 19 个文件、约 266 处字符串）：
 
-| 语言 | 应用数 | 主要内容 |
-|---|---|---|
-| zh | 50 | 聊天/对话/会话按 chat/conversation/session 规则统一；你→您；移除/删除、清空/清除、轮/回合归一；TTS 命名统一；suggestionHtmlTitle → Live Artifacts |
-| de | 68 | **du/Sie 统一为 du**（39 键重写）；Verlauf/Historie、Schnellmodus/Denkmodus、System-Audio 等家族归一；Stimmrekorder→Sprachrekorder；liveStatusReconnectingAutomatically 改为过程描述 |
-| fr | 38 | tokens/jetons 统一为 tokens；Rendre→Effectuer le rendu；Basculer→Activer/Désactiver 家族归一；PiP 写法统一；téléverser/importer 归一；chatBehaviorTempTooltip 手动修复（l'aléatoire → le caractère aléatoire） |
-| es | 54 | clave de API 小写统一（12 键 Title-Case 修正）；video/vídeo 统一；predeterminado 归一；Borrar/Limpiar 归一；Coste→Costo（拉美中立）；缺 ¿ 补齐 |
-| ja | 31 | pwaUpdateRefreshPrompt 重写（再読み込み vs 更新 分离）；settingsFontSize→本文の文字サイズ；TTS 音色去重（情報豊かな/マイペースな/穏やかな）；PiP 拼写统一；未設定 统一 |
-| ko | 25 | 사고→추론 统一；전사→변환 统一；타사/서드파티 归一；PiP 三种写法统一；fetch/import 冲突解决（불러오기）；음성 및 보이스→음성 및 TTS |
+| 语言 | 应用数 | 主要内容                                                                                                                                                                                                       |
+| ---- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| zh   | 50     | 聊天/对话/会话按 chat/conversation/session 规则统一；你→您；移除/删除、清空/清除、轮/回合归一；TTS 命名统一；suggestionHtmlTitle → Live Artifacts                                                              |
+| de   | 68     | **du/Sie 统一为 du**（39 键重写）；Verlauf/Historie、Schnellmodus/Denkmodus、System-Audio 等家族归一；Stimmrekorder→Sprachrekorder；liveStatusReconnectingAutomatically 改为过程描述                           |
+| fr   | 38     | tokens/jetons 统一为 tokens；Rendre→Effectuer le rendu；Basculer→Activer/Désactiver 家族归一；PiP 写法统一；téléverser/importer 归一；chatBehaviorTempTooltip 手动修复（l'aléatoire → le caractère aléatoire） |
+| es   | 54     | clave de API 小写统一（12 键 Title-Case 修正）；video/vídeo 统一；predeterminado 归一；Borrar/Limpiar 归一；Coste→Costo（拉美中立）；缺 ¿ 补齐                                                                 |
+| ja   | 31     | pwaUpdateRefreshPrompt 重写（再読み込み vs 更新 分离）；settingsFontSize→本文の文字サイズ；TTS 音色去重（情報豊かな/マイペースな/穏やかな）；PiP 拼写统一；未設定 统一                                         |
+| ko   | 25     | 사고→추론 统一；전사→변환 统一；타사/서드파티 归一；PiP 三种写法统一；fetch/import 冲突解决（불러오기）；음성 및 보이스→음성 및 TTS                                                                            |
 
 跳过 31 处：15 处被 translationCoverage.test.ts 固定值锁定（不可改）、11 处已在 P1 修复、1 处死键、4 处需后续人工评估。
 

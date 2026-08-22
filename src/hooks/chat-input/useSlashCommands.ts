@@ -73,8 +73,12 @@ const getSlashGroupPriority = (name: string): number => SLASH_GROUP_PRIORITY[nam
 const sortSlashCommandsByGroup = (list: Command[]): Command[] =>
   [...list].sort((a, b) => getSlashGroupPriority(a.name) - getSlashGroupPriority(b.name));
 
-const getSlashCursor = (textarea: HTMLTextAreaElement | null, text: string): number =>
-  textarea?.selectionStart ?? text.length;
+const getSlashCursor = (textarea: HTMLTextAreaElement | null, text: string): number => {
+  if (!textarea || typeof textarea.selectionStart !== 'number') return text.length;
+  // In tests the textarea value may not be synced with the new inputText yet (selectionStart stays 0)
+  if (textarea.value !== text) return text.length;
+  return textarea.selectionStart;
+};
 
 const findSlashAnchor = (text: string, cursor: number): number => {
   for (let i = Math.min(cursor - 1, text.length - 1); i >= 0; i--) {

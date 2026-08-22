@@ -45,9 +45,7 @@ function resolveLanguage(language: string): SupportedLanguage {
     const prefix = navigator.language.toLowerCase().split('-')[0];
     return BROWSER_LANG_PREFIX_MAP[prefix] ?? 'en';
   }
-  return (SUPPORTED_LANGUAGES as readonly string[]).includes(settingLang)
-    ? (settingLang as SupportedLanguage)
-    : 'en';
+  return (SUPPORTED_LANGUAGES as readonly string[]).includes(settingLang) ? (settingLang as SupportedLanguage) : 'en';
 }
 
 function computeTheme(themeId: string): Theme {

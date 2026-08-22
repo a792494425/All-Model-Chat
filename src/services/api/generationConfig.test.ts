@@ -48,9 +48,7 @@ type LegacyGenerationConfigTestOptions = {
 
 const buildGenerationConfig = (
   optionsOrModelId:
-    | Parameters<typeof buildGenerationConfigFromSettings>[0]
-    | LegacyGenerationConfigTestOptions
-    | string,
+    Parameters<typeof buildGenerationConfigFromSettings>[0] | LegacyGenerationConfigTestOptions | string,
   systemInstruction = '',
   config: LegacyGenerationConfigTestOptions['config'] = {},
   showThoughts = false,

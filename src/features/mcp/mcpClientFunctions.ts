@@ -32,10 +32,7 @@ interface McpDiscoveryCacheEntry {
 // so injected test doubles never share entries with the production fetcher.
 const discoveryCache = new WeakMap<McpToolsLister, McpDiscoveryCacheEntry>();
 
-const readCachedTools = (
-  lister: McpToolsLister,
-  configKey: string,
-): McpToolsResponse | null => {
+const readCachedTools = (lister: McpToolsLister, configKey: string): McpToolsResponse | null => {
   const entry = discoveryCache.get(lister);
   if (!entry || entry.configKey !== configKey || Date.now() >= entry.expiresAt) {
     return null;

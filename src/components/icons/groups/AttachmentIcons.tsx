@@ -1,6 +1,12 @@
 import React from 'react';
 import { Paperclip, Crop } from 'lucide-react';
-import { type IconProps, StrokeIcon, defaultSize, defaultStroke, defaultColor } from '@/components/icons/iconPrimitives';
+import {
+  type IconProps,
+  StrokeIcon,
+  defaultSize,
+  defaultStroke,
+  defaultColor,
+} from '@/components/icons/iconPrimitives';
 
 export const IconUpload: React.FC<IconProps> = ({
   size = defaultSize,

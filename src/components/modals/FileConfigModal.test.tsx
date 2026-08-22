@@ -30,8 +30,7 @@ describe('FileConfigModal', () => {
 
   const getButtonByText = (text: string) => {
     return Array.from(document.querySelectorAll('button')).find((button) => button.textContent?.includes(text)) as
-      | HTMLButtonElement
-      | undefined;
+      HTMLButtonElement | undefined;
   };
 
   const setInputValue = (input: HTMLInputElement, value: string) => {

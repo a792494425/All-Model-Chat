@@ -1,6 +1,12 @@
 import React from 'react';
 import { Command } from 'lucide-react';
-import { type IconProps, StrokeIcon, defaultSize, defaultStroke, defaultColor } from '@/components/icons/iconPrimitives';
+import {
+  type IconProps,
+  StrokeIcon,
+  defaultSize,
+  defaultStroke,
+  defaultColor,
+} from '@/components/icons/iconPrimitives';
 
 // Data Management Icon (Database Stack)
 export const IconData: React.FC<IconProps> = (props) => (

@@ -89,11 +89,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
         role="tab"
         aria-selected={isActive}
       >
-        <Icon
-          size={18}
-          strokeWidth={isActive ? 2.2 : 2}
-          className="text-[var(--theme-text-primary)]"
-        />
+        <Icon size={18} strokeWidth={isActive ? 2.2 : 2} className="text-[var(--theme-text-primary)]" />
         <span>{t(tab.labelKey)}</span>
       </button>
     );

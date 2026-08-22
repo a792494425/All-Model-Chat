@@ -101,11 +101,7 @@ export const IconScenarios: React.FC<IconProps> = ({
  * https://github.com/CherryHQ/cherry-studio/blob/main/LICENSE
  * 本图标按 AGPL-3.0 授权，AMC 其余代码仍为 MIT。
  */
-export const IconMcp: React.FC<IconProps> = ({
-  size = defaultSize,
-  className,
-  color = defaultColor,
-}) => (
+export const IconMcp: React.FC<IconProps> = ({ size = defaultSize, className, color = defaultColor }) => (
   <svg
     width={size}
     height={size}
@@ -126,11 +122,7 @@ export const IconMcp: React.FC<IconProps> = ({
  * Source: deepseek-harness/packages/client/ui-primitives/src/icons/index.tsx#IconPersonalizationOutline16
  * Original: ic_ds_personalization_outline_16 (figma extract)
  */
-export const IconViewOptions: React.FC<IconProps> = ({
-  size = defaultSize,
-  className,
-  color = defaultColor,
-}) => (
+export const IconViewOptions: React.FC<IconProps> = ({ size = defaultSize, className, color = defaultColor }) => (
   <svg
     width={size}
     height={size}

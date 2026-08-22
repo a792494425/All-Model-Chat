@@ -11,11 +11,7 @@ import { type IconProps, defaultSize, defaultColor } from '@/components/icons/ic
  *
  * 字形为灯泡带 8 道射线的思考图标，外轮廓 + 内高光，1024 网格，1:1 还原
  */
-export const IconThinking: React.FC<IconProps> = ({
-  size = defaultSize,
-  className,
-  color = defaultColor,
-}) => (
+export const IconThinking: React.FC<IconProps> = ({ size = defaultSize, className, color = defaultColor }) => (
   <svg
     width={size}
     height={size}

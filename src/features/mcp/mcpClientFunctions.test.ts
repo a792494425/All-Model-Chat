@@ -264,9 +264,7 @@ describe('createMcpClientFunctions discovery cache', () => {
       {
         serverId: 'cache-remote',
         serverName: 'Cache Remote',
-        tools: [
-          { name: 'echo', description: 'Echo', inputSchema: { type: 'object' } },
-        ],
+        tools: [{ name: 'echo', description: 'Echo', inputSchema: { type: 'object' } }],
       },
     ],
     errors: [],
