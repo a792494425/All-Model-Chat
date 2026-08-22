@@ -2,7 +2,13 @@ import type { ModelOption } from '@/types';
 import { ROBOTICS_MODEL } from './modelConfiguration';
 
 type ModelRegistryGroup =
-  'defaultPinned' | 'tts' | 'image' | 'liveArtifacts' | 'connectionTest' | 'transcription' | 'liveTranslate';
+  | 'defaultPinned'
+  | 'tts'
+  | 'image'
+  | 'liveArtifacts'
+  | 'connectionTest'
+  | 'transcription'
+  | 'liveTranslate';
 
 interface RegisteredModel {
   id: string;

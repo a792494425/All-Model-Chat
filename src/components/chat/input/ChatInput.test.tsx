@@ -693,7 +693,8 @@ describe('ChatInput', () => {
     expect(setSelectedFiles).toHaveBeenCalledTimes(1);
 
     const removeConvertedFile = setSelectedFiles.mock.calls[0]?.[0] as
-      ((files: Array<{ id: string }>) => Array<{ id: string }>) | undefined;
+      | ((files: Array<{ id: string }>) => Array<{ id: string }>)
+      | undefined;
 
     expect(removeConvertedFile).toBeTypeOf('function');
     expect(removeConvertedFile?.([{ id: 'text-file' }, { id: 'image-file' }])).toEqual([{ id: 'image-file' }]);

@@ -169,7 +169,8 @@ describe('MessageList image preview', () => {
     }));
 
     const props = messagePropsSpy.mock.calls[0]?.[0] as
-      { onLiveArtifactFollowUp?: (payload: unknown) => void } | undefined;
+      | { onLiveArtifactFollowUp?: (payload: unknown) => void }
+      | undefined;
     expect(props?.onLiveArtifactFollowUp).toBeTypeOf('function');
 
     act(() => {

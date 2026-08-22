@@ -24,7 +24,7 @@
 ## File Structure
 
 | 文件                                                                               | 职责                                                                                                                                                |
-| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
 | **Create** `src/i18n/languageRegistry.ts`                                          | 语言注册表：`SUPPORTED_LANGUAGES`、`SupportedLanguage`、`APP_LANGUAGE_IDS`、`AppLanguage`、`LANGUAGE_META`、`BROWSER_LANG_PREFIX_MAP`，单一事实来源 |
 | **Modify** `src/i18n/coreTranslations.ts`                                          | 删除本地 `SupportedLanguage`/`TranslationEntry` 定义，改为从 `languageRegistry` 导入；`shellFeatureTranslations` 追加 `ja` 字段                     |
 | **Modify** `src/types/settings.ts`                                                 | 删除本地 `APP_LANGUAGE_IDS`/`AppLanguage` 定义，改为 `import` + `re-export`                                                                         |

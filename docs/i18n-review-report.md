@@ -43,7 +43,7 @@
 - **`scenariosEditorAddMessageAs`** [🟡 中] 现在："添加消息身份" → 建议："以此身份添加消息"
   - UNNATURAL: "添加消息身份" is a confusing label for the en "Add Message As" role picker (User/Model); reads as if adding an identity.
 - **`suggestionHtmlTitle`** [🟡 中] 现在："可视化整理" → 建议："Live Artifacts"
-  - MISTRANSLATION/INCONSISTENCY: en title is the feature name "Live Artifacts", kept untranslated everywhere else (helpCmdArtifacts, liveArtifactsPromptActive/Inactive*, settingsTabLiveArtifacts, settingsLiveArtifactsSectionTitle, suggestionHtmlDesc/Short). Translating only this card title as 可视化整理 breaks the link to the feature.
+  - MISTRANSLATION/INCONSISTENCY: en title is the feature name "Live Artifacts", kept untranslated everywhere else (helpCmdArtifacts, liveArtifactsPromptActive/Inactive\*, settingsTabLiveArtifacts, settingsLiveArtifactsSectionTitle, suggestionHtmlDesc/Short). Translating only this card title as 可视化整理 breaks the link to the feature.
 - **`ttsError`** [🟡 中] 现在："语音生成失败" → 建议："TTS 失败"
   - INCONSISTENCY family TTS: kept as "TTS" in ttsReadAloud (朗读（TTS）) and ttsDirectorNotesTitle (TTS 导演备注), but translated 语音生成 here and in messageSenderTtsErrorPrefix. Pick one form.
 - **`messageSenderTtsErrorPrefix`** [🟡 中] 现在："语音生成错误" → 建议："TTS 错误"

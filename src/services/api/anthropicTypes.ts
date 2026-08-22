@@ -13,7 +13,8 @@ export interface AnthropicChatConfig {
 }
 
 export type AnthropicContentBlock =
-  { type: 'text'; text: string } | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } };
+  | { type: 'text'; text: string }
+  | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } };
 
 export interface AnthropicMessage {
   role: 'user' | 'assistant';

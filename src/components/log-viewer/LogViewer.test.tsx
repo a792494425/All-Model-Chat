@@ -36,12 +36,14 @@ import { LogViewer } from './LogViewer';
 
 const findButton = (label: string) =>
   Array.from(document.body.querySelectorAll('button')).find((button) => button.textContent?.includes(label)) as
-    HTMLButtonElement | undefined;
+    | HTMLButtonElement
+    | undefined;
 
 describe('LogViewer', () => {
   const renderer = setupTestRenderer({ providers: { language: 'en' } });
   let emitLiveLogs:
-    ((logs: Array<{ timestamp: Date; level: string; category: string; message: string }>) => void) | null;
+    | ((logs: Array<{ timestamp: Date; level: string; category: string; message: string }>) => void)
+    | null;
 
   beforeEach(() => {
     emitLiveLogs = null;
