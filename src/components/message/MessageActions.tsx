@@ -5,7 +5,7 @@ import {
   AlertTriangle,
   Edit3,
   Trash2,
-  RotateCw,
+  RefreshCw,
   Pencil,
   CirclePlay,
   MoreHorizontal,
@@ -182,7 +182,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
             aria-label={message.isLoading ? t('retryAndStopButtonTitle') : t('retryButtonTitle')}
             className={actionButtonClasses}
           >
-            <RotateCw size={actionIconSize} strokeWidth={2} />
+            <RefreshCw size={actionIconSize} strokeWidth={2} />
           </button>
         )}
 

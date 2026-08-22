@@ -76,7 +76,9 @@ describe('useSlashCommands', () => {
       icon,
     }));
 
-    expect(result.current.allCommandsForHelp).toEqual(executableCommands);
+    // Cherry-style grouping sorts by group priority, so compare as sets (sorted by name) rather than strict order
+    const sortByName = <T extends { name: string }>(arr: T[]) => [...arr].sort((a, b) => a.name.localeCompare(b.name));
+    expect(sortByName(result.current.allCommandsForHelp)).toEqual(sortByName(executableCommands));
     unmount();
   });
 

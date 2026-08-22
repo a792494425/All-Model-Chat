@@ -1,5 +1,5 @@
 {
-  "entry": ["server/src/index.ts", "src/pwa/sw.ts"],
+  "entry": ["server/src/index.ts"],
   "ignore": [
     "docker/web-server.js",
     "public/runtime-config.js",

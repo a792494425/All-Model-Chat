@@ -167,7 +167,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 space-y-1">
           <h3 className="text-base font-semibold text-[var(--theme-text-primary)]">{t('settingsMcpTitle')}</h3>
-          <p className="text-sm leading-relaxed text-[var(--theme-text-tertiary)]">{t('settingsMcpDescription')}</p>
+          <p className="text-sm leading-relaxed text-[var(--theme-text-secondary)]">{t('settingsMcpDescription')}</p>
         </div>
         <button
           type="button"
@@ -180,7 +180,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
       </div>
 
       {servers.length === 0 ? (
-        <div className={`${SETTINGS_SECTION_CARD_CLASS} border-dashed text-sm text-[var(--theme-text-tertiary)]`}>
+        <div className={`${SETTINGS_SECTION_CARD_CLASS} border-dashed text-sm text-[var(--theme-text-secondary)]`}>
           {t('settingsMcpEmpty')}
         </div>
       ) : (

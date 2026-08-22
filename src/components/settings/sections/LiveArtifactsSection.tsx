@@ -81,7 +81,7 @@ export const LiveArtifactsSection: React.FC<LiveArtifactsSectionProps> = ({ curr
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)] flex items-center gap-2">
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)] flex items-center gap-2">
         <Wand2 size={14} strokeWidth={1.5} />
         {t('settingsLiveArtifactsSectionTitle')}
       </h4>
@@ -98,7 +98,7 @@ export const LiveArtifactsSection: React.FC<LiveArtifactsSectionProps> = ({ curr
             <span>{t('settingsLiveArtifactsSystemPromptLabel')}</span>
             <ChevronDown
               size={16}
-              className={`flex-shrink-0 text-[var(--theme-text-tertiary)] transition-transform duration-200 ${
+              className={`flex-shrink-0 text-[var(--theme-text-secondary)] transition-transform duration-200 ${
                 isPromptExpanded ? 'rotate-180' : ''
               }`}
               strokeWidth={1.75}
@@ -117,7 +117,7 @@ export const LiveArtifactsSection: React.FC<LiveArtifactsSectionProps> = ({ curr
                 aria-label={t('settingsLiveArtifactsSystemPromptLabel')}
               />
               <div className="mt-2 flex items-start justify-between gap-3">
-                <p className="min-w-0 text-xs leading-relaxed text-[var(--theme-text-tertiary)]">
+                <p className="min-w-0 text-xs leading-relaxed text-[var(--theme-text-secondary)]">
                   {t('settingsLiveArtifactsSystemPromptHelp')}
                 </p>
                 <button

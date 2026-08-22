@@ -24,7 +24,7 @@ export const commonTranslations = {
   search: { en: 'Search', zh: '搜索', ja: '検索', ko: '검색', es: 'Buscar', fr: 'Rechercher', de: 'Suchen' },
   modelPickerNoResults: { en: 'No matching models', zh: '没有匹配的模型', ja: '一致するモデルがありません', ko: '일치하는 모델 없음', es: 'Ningún modelo coincide', fr: 'Aucun modèle correspondant', de: 'Keine passenden Modelle' },
   modelPickerProviderGemini: { en: 'Gemini', zh: 'Gemini', ja: 'Gemini', ko: 'Gemini', es: 'Gemini', fr: 'Gemini', de: 'Gemini' },
-  modelPickerProviderThirdParty: { en: 'Third-Party', zh: '第三方', ja: 'サードパーティ', ko: '서드파티', es: 'Terceros', fr: 'Tiers', de: 'Drittanbieter' },
+  modelPickerProviderThirdParty: { en: 'Third-Party', zh: '第三方', ja: 'サードパーティ', ko: '타사', es: 'Terceros', fr: 'Tiers', de: 'Drittanbieter' },
   thirdPartyConnectionUnavailable: { en: 'Unavailable', zh: '不可用', ja: '利用不可', ko: '사용 불가', es: 'No disponible', fr: 'Indisponible', de: 'Nicht verfügbar' },
   thirdPartyConnectionUnavailableHint: { en: 'Pick another model', zh: '请选择其他模型', ja: '別のモデルを選択してください', ko: '다른 모델을 선택하세요', es: 'Elige otro modelo', fr: 'Choisissez un autre modèle', de: 'Anderes Modell wählen' },
   thirdPartyApiKeyMissing: { en: 'No key', zh: '未配置密钥', ja: 'キー未設定', ko: '키 없음', es: 'Sin clave', fr: 'Aucune clé', de: 'Kein Schlüssel' },
@@ -35,7 +35,7 @@ export const commonTranslations = {
   pipPlaceholderDescription: {
     en: 'The chat is running in a separate window. Close it to bring the conversation back here.',
     zh: '关闭该窗口可回到这里继续对话。',
-    ja: 'チャットは別ウィンドウで実行中です。ウィンドウを閉じると、会話はこちらに戻ります。', ko: '채팅이 별도 창에서 실행 중입니다. 창을 닫으면 대화가 여기로 돌아옵니다.', es: 'El chat se está ejecutando en una ventana separada. Ciérrala para traer la conversación de vuelta aquí.', fr: 'La discussion est en cours dans une fenêtre séparée. Fermez-la pour ramener la conversation ici.', de: 'Der Chat läuft in einem separaten Fenster. Schließe es, um das Gespräch hierher zurückzuholen.',
+    ja: 'チャットは別ウィンドウで実行中です。ウィンドウを閉じると、会話はこちらに戻ります。', ko: '채팅이 별도 창에서 실행 중입니다. 창을 닫으면 대화가 여기로 돌아옵니다.', es: 'El chat se está ejecutando en una ventana separada. Ciérrala para recuperar aquí la conversación.', fr: 'La discussion est en cours dans une fenêtre séparée. Fermez-la pour ramener la conversation ici.', de: 'Der Chat läuft in einem separaten Fenster. Schließe es, um das Gespräch hierher zurückzuholen.',
   },
   pipPlaceholderClose: { en: 'Close PiP Window', zh: '关闭画中画窗口', ja: 'PiPウィンドウを閉じる', ko: 'PIP 창 닫기', es: 'Cerrar ventana PiP', fr: 'Fermer la fenêtre PiP', de: 'PiP-Fenster schließen' },
   exportToCSV: { en: 'Export to CSV', zh: '导出为 CSV', ja: 'CSVにエクスポート', ko: 'CSV로 내보내기', es: 'Exportar a CSV', fr: 'Exporter en CSV', de: 'Als CSV exportieren' },

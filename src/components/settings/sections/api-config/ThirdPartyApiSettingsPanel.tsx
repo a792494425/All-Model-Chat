@@ -62,7 +62,7 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
     if (status === 'disabled') {
       return {
         label: t('thirdPartyConnectionDisabled'),
-        className: 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-tertiary)]',
+        className: 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)]',
       };
     }
     if (status === 'missing-key') {
@@ -88,7 +88,7 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
       <div className="flex items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-semibold text-[var(--theme-text-primary)]">{t('settingsApiModeThirdParty')}</h3>
-          <p className="text-xs text-[var(--theme-text-tertiary)] mt-0.5">{t('settingsOpenAICompatibleToggleHelp')}</p>
+          <p className="text-xs text-[var(--theme-text-secondary)] mt-0.5">{t('settingsOpenAICompatibleToggleHelp')}</p>
         </div>
         {connections.length > 0 && (
           <button
@@ -154,9 +154,9 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
                     className="flex items-center gap-1.5 flex-1 min-w-0 cursor-pointer"
                   >
                     {isExpanded ? (
-                      <ChevronDown size={14} className="text-[var(--theme-text-tertiary)]" strokeWidth={2} />
+                      <ChevronDown size={14} className="text-[var(--theme-text-secondary)]" strokeWidth={2} />
                     ) : (
-                      <ChevronRight size={14} className="text-[var(--theme-text-tertiary)]" strokeWidth={2} />
+                      <ChevronRight size={14} className="text-[var(--theme-text-secondary)]" strokeWidth={2} />
                     )}
                     <img
                       src={getThirdPartyTemplateLogo(displayTemplateId)}
@@ -170,7 +170,7 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
                     <span className="text-sm font-medium text-[var(--theme-text-primary)] truncate">
                       {connection.name}
                     </span>
-                    <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--theme-bg-secondary)] text-[var(--theme-text-tertiary)]">
+                    <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)]">
                       {connection.protocol === 'anthropic'
                         ? t('thirdPartyProtocolAnthropic')
                         : t('thirdPartyProtocolOpenAI')}

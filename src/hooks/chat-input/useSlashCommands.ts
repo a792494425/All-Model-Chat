@@ -1,4 +1,4 @@
-import { type Dispatch, type RefObject, type SetStateAction, useState, useMemo, useCallback } from 'react';
+import { type Dispatch, type RefObject, type SetStateAction, useState, useMemo, useCallback, useEffect } from 'react';
 import { type translations } from '@/i18n/translations';
 import { type AttachmentAction, type ModelOption, type ThinkingLevel } from '@/types';
 import type { SlashCommand as Command } from '@/types/slashCommands';
@@ -35,6 +35,7 @@ interface UseSlashCommandsProps {
   currentModelId: string;
   onSetThinkingLevel: (level: ThinkingLevel) => void;
   thinkingLevel?: ThinkingLevel;
+  inputText?: string;
 }
 
 const CLOSED_SLASH_COMMAND_STATE: SlashCommandState = {
@@ -52,6 +53,36 @@ const TOOL_COMMAND_ACTIONS: Record<string, ToggleableChatToolId> = {
   maps: 'googleMaps',
   code: 'codeExecution',
   url: 'urlContext',
+};
+
+// Cherry-style grouping priority for Web UI display order
+const SLASH_GROUP_PRIORITY: Record<string, number> = {
+  model: 0,
+  clear: 0,
+  new: 0,
+  pin: 0,
+  retry: 0,
+  deep: 1,
+  online: 1,
+  maps: 1,
+  code: 1,
+  url: 1,
+  file: 1,
+};
+const getSlashGroupPriority = (name: string): number => SLASH_GROUP_PRIORITY[name] ?? 2;
+const sortSlashCommandsByGroup = (list: Command[]): Command[] =>
+  [...list].sort((a, b) => getSlashGroupPriority(a.name) - getSlashGroupPriority(b.name));
+
+const getSlashCursor = (textarea: HTMLTextAreaElement | null, text: string): number =>
+  textarea?.selectionStart ?? text.length;
+
+const findSlashAnchor = (text: string, cursor: number): number => {
+  for (let i = Math.min(cursor - 1, text.length - 1); i >= 0; i--) {
+    if (text[i] !== '/') continue;
+    const prevChar = i === 0 ? '' : text[i - 1];
+    if (i === 0 || /\s/.test(prevChar)) return i;
+  }
+  return -1;
 };
 
 const buildModelCommands = (
@@ -92,6 +123,7 @@ export const useSlashCommands = ({
   currentModelId,
   onSetThinkingLevel,
   thinkingLevel,
+  inputText,
 }: UseSlashCommandsProps) => {
   const [slashCommandState, setSlashCommandState] = useState<SlashCommandState>(CLOSED_SLASH_COMMAND_STATE);
 
@@ -109,7 +141,7 @@ export const useSlashCommands = ({
       { name: 'pin', description: t('helpCmdPin'), icon: 'pin' },
       { name: 'retry', description: t('helpCmdRetry'), icon: 'retry' },
       ...toolCommands,
-      { name: 'file', description: t('helpCmdFile'), icon: 'file' },
+      { name: 'file', description: t('helpCmdFile'), icon: 'paperclip' },
       { name: 'clear', description: t('helpCmdClear'), icon: 'clear' },
       { name: 'new', description: t('helpCmdNew'), icon: 'new' },
       { name: 'settings', description: t('helpCmdSettings'), icon: 'settings' },
@@ -171,18 +203,21 @@ export const useSlashCommands = ({
             return { name, description, icon, action: onToggleLiveArtifactsPrompt };
           case 'pip':
             return { name, description, icon, action: onTogglePip };
-          case 'fast':
+          case 'fast': {
+            const capabilities = getCachedModelCapabilities(currentModelId);
+            const targetLevel =
+              capabilities.isGemini3FlashModel || capabilities.isGeminiRoboticsModel ? 'MINIMAL' : 'LOW';
+            const isActive = thinkingLevel === targetLevel;
             return {
               name,
               description,
               icon,
+              isSelected: isActive,
               action: () => {
-                const capabilities = getCachedModelCapabilities(currentModelId);
-                const targetLevel =
-                  capabilities.isGemini3FlashModel || capabilities.isGeminiRoboticsModel ? 'MINIMAL' : 'LOW';
-                onSetThinkingLevel(thinkingLevel === targetLevel ? 'HIGH' : targetLevel);
+                onSetThinkingLevel(isActive ? 'HIGH' : targetLevel);
               },
             };
+          }
           default:
             return {
               name,
@@ -227,6 +262,21 @@ export const useSlashCommands = ({
     setSlashCommandState(CLOSED_SLASH_COMMAND_STATE);
   }, []);
 
+  // Close panel when slash trigger is removed via any setInputText path
+  // (e.g. clear button, paste, programmatic resets) — not only onChange.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- sync slash open state to inputText deletion
+  useEffect(() => {
+    if (inputText === undefined || !slashCommandState.isOpen) return;
+    if (!inputText.includes('/')) {
+      setSlashCommandState(CLOSED_SLASH_COMMAND_STATE);
+      return;
+    }
+    const cursor = getSlashCursor(textareaRef.current, inputText);
+    if (findSlashAnchor(inputText, cursor) === -1) {
+      setSlashCommandState(CLOSED_SLASH_COMMAND_STATE);
+    }
+  }, [inputText, slashCommandState.isOpen, textareaRef]);
+
   const openModelCommandList = useCallback(() => {
     const modelCommands = buildModelCommands(availableModels, onSelectModel, setInputText, onMessageSent);
 
@@ -268,37 +318,81 @@ export const useSlashCommands = ({
     (value: string) => {
       setInputText(value);
 
-      if (!value.startsWith('/')) {
+      // Cherry QuickPanel input-query rules (simplified for single-line textarea)
+      const cursor = getSlashCursor(textareaRef.current, value);
+      const nextChar = value.slice(cursor, cursor + 1);
+      const isCursorAtEnd = nextChar.length === 0 || /\s/.test(nextChar);
+      const anchor = findSlashAnchor(value, cursor);
+
+      if (anchor === -1) {
         resetSlashCommandState();
         return;
       }
 
-      const [commandPart, ...args] = value.split(' ');
-      const commandName = commandPart.substring(1).toLowerCase();
+      const searchText = value.slice(anchor, cursor);
+      if (!searchText.startsWith('/')) {
+        resetSlashCommandState();
+        return;
+      }
 
-      if (commandName === 'model') {
-        const keyword = args.join(' ').toLowerCase();
+      // Restarted: second '/' after trigger
+      if (searchText.slice(1).includes('/')) {
+        resetSlashCommandState();
+        return;
+      }
+
+      if (!isCursorAtEnd) {
+        resetSlashCommandState();
+        return;
+      }
+
+      const lowerSearch = searchText.toLowerCase();
+      const isModelQuery = lowerSearch === '/model' || lowerSearch.startsWith('/model ');
+
+      if (!isModelQuery && /\s/.test(searchText.slice(1))) {
+        resetSlashCommandState();
+        return;
+      }
+
+      if (isModelQuery) {
+        const keyword = searchText.slice(6).trim().toLowerCase();
+        // Allow keyword with spaces; only filter, never close on no results
         const filteredModels = availableModels.filter((model) => model.name.toLowerCase().includes(keyword));
         const modelCommands = buildModelCommands(filteredModels, onSelectModel, setInputText, onMessageSent);
-
         setSlashCommandState({
-          isOpen: modelCommands.length > 0 || !keyword.trim(),
+          isOpen: true,
           query: 'model',
           filteredCommands: modelCommands,
           selectedIndex: 0,
         });
-      } else {
-        const query = commandPart.substring(1).toLowerCase();
-        const filtered = commands.filter((cmd) => cmd.name.toLowerCase().startsWith(query));
-        setSlashCommandState({
-          isOpen: filtered.length > 0 && !value.includes(' '),
-          query,
-          filteredCommands: filtered,
-          selectedIndex: 0,
-        });
+        return;
       }
+
+      const query = searchText.slice(1).toLowerCase();
+      // Cherry defaultFilterFn: fuzzy + pinyin (pinyin omitted, fuzzy kept)
+      const fuzzyPattern = query
+        .split('')
+        .map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join('.*');
+      const fuzzyRegex = query ? new RegExp(fuzzyPattern, 'i') : null;
+      const filtered = sortSlashCommandsByGroup(
+        commands.filter((cmd) => {
+          const name = cmd.name.toLowerCase();
+          const desc = cmd.description.toLowerCase();
+          if (name.startsWith(query) || name.includes(query) || desc.includes(query)) return true;
+          if (fuzzyRegex && (fuzzyRegex.test(cmd.name) || fuzzyRegex.test(cmd.description))) return true;
+          return false;
+        }),
+      );
+      // Cherry collapsed: keep panel open with "No results" instead of closing
+      setSlashCommandState({
+        isOpen: true,
+        query,
+        filteredCommands: filtered,
+        selectedIndex: 0,
+      });
     },
-    [availableModels, commands, onMessageSent, onSelectModel, resetSlashCommandState, setInputText],
+    [availableModels, commands, onMessageSent, onSelectModel, resetSlashCommandState, setInputText, textareaRef],
   );
 
   const handleSlashCommandExecution = useCallback(

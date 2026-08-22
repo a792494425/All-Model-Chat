@@ -189,11 +189,11 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
                     <p className="text-sm font-medium text-[var(--theme-text-primary)]">
                       {t('settingsLiveAutomaticTitle')}
                     </p>
-                    <p className="text-xs leading-relaxed text-[var(--theme-text-tertiary)]">
+                    <p className="text-xs leading-relaxed text-[var(--theme-text-secondary)]">
                       {t('settingsLiveAutomaticHelp')}
                     </p>
                     {useApiProxy && (
-                      <p className="text-xs leading-relaxed text-[var(--theme-text-tertiary)]">
+                      <p className="text-xs leading-relaxed text-[var(--theme-text-secondary)]">
                         {t('settingsLiveProxyCompatibilityHelp')}
                       </p>
                     )}

@@ -180,7 +180,7 @@ export const SafetySection: React.FC<SafetySectionProps> = ({
         })}
       </div>
 
-      <div className="flex items-center justify-center gap-2 text-xs text-[var(--theme-text-tertiary)] pt-4">
+      <div className="flex items-center justify-center gap-2 text-xs text-[var(--theme-text-secondary)] pt-4">
         <Info size={14} />
         <span>{t('safetyChangesApply')}</span>
       </div>

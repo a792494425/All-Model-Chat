@@ -1,12 +1,12 @@
 export const headerTranslations = {
-  historySidebarClose: { en: 'Close history sidebar', zh: '关闭历史记录侧边栏', ja: '履歴サイドバーを閉じる', ko: '기록 사이드바 닫기', es: 'Cerrar barra lateral del historial', fr: 'Fermer la barre latérale de l\'historique', de: 'Historie-Seitenleiste schließen' },
-  historySidebarOpen: { en: 'Open history sidebar', zh: '打开历史记录侧边栏', ja: '履歴サイドバーを開く', ko: '기록 사이드바 열기', es: 'Abrir barra lateral del historial', fr: 'Ouvrir la barre latérale de l\'historique', de: 'Historie-Seitenleiste öffnen' },
+  historySidebarClose: { en: 'Close history sidebar', zh: '关闭历史记录侧边栏', ja: '履歴サイドバーを閉じる', ko: '기록 사이드바 닫기', es: 'Cerrar barra lateral del historial', fr: 'Fermer la barre latérale de l\'historique', de: 'Verlauf-Seitenleiste schließen' },
+  historySidebarOpen: { en: 'Open history sidebar', zh: '打开历史记录侧边栏', ja: '履歴サイドバーを開く', ko: '기록 사이드바 열기', es: 'Abrir barra lateral del historial', fr: 'Ouvrir la barre latérale de l\'historique', de: 'Verlauf-Seitenleiste öffnen' },
   historySidebarCloseShort: { en: 'Close History', zh: '关闭历史', ja: '履歴を閉じる', ko: '기록 닫기', es: 'Cerrar historial', fr: 'Fermer l\'historique', de: 'Verlauf schließen' },
   historySidebarOpenShort: { en: 'Open History', zh: '打开历史', ja: '履歴を開く', ko: '기록 열기', es: 'Abrir historial', fr: 'Ouvrir l\'historique', de: 'Verlauf öffnen' },
   liveArtifactsPromptActiveAria: {
     en: 'Live Artifacts prompt is active. Click to remove.',
     zh: 'Live Artifacts 提示已激活。点击移除。',
-    ja: 'Live Artifactsプロンプトが有効です。クリックして削除します。', ko: 'Live Artifacts 프롬프트가 활성화되어 있습니다. 클릭하여 제거하세요.', es: 'El prompt de Live Artifacts está activo. Haz clic para quitarlo.', fr: 'Le prompt Live Artifacts est actif. Cliquez pour le retirer.', de: 'Der Live Artifacts-Prompt ist aktiv. Klicken zum Entfernen.',
+    ja: 'Live Artifactsプロンプトが有効です。クリックして削除します', ko: 'Live Artifacts 프롬프트가 활성화되어 있습니다. 클릭하여 제거하세요.', es: 'El prompt de Live Artifacts está activo. Haz clic para quitarlo.', fr: 'Le prompt Live Artifacts est actif. Cliquez pour le retirer.', de: 'Der Live Artifacts-Prompt ist aktiv. Klicken zum Entfernen.',
   },
   liveArtifactsPromptInactiveAria: {
     en: 'Load Live Artifacts prompt',
@@ -16,7 +16,7 @@ export const headerTranslations = {
   liveArtifactsPromptActiveTitle: {
     en: 'Live Artifacts prompt is active. Click to remove.',
     zh: 'Live Artifacts 提示已激活。点击移除。',
-    ja: 'Live Artifactsプロンプトが有効です。クリックして削除します。', ko: 'Live Artifacts 프롬프트가 활성화되어 있습니다. 클릭하여 제거하세요.', es: 'El prompt de Live Artifacts está activo. Haz clic para quitarlo.', fr: 'Le prompt Live Artifacts est actif. Cliquez pour le retirer.', de: 'Der Live Artifacts-Prompt ist aktiv. Klicken zum Entfernen.',
+    ja: 'Live Artifactsプロンプトが有効です。クリックして削除します', ko: 'Live Artifacts 프롬프트가 활성화되어 있습니다. 클릭하여 제거하세요.', es: 'El prompt de Live Artifacts está activo. Haz clic para quitarlo.', fr: 'Le prompt Live Artifacts est actif. Cliquez pour le retirer.', de: 'Der Live Artifacts-Prompt ist aktiv. Klicken zum Entfernen.',
   },
   liveArtifactsPromptInactiveTitle: {
     en: 'Load Live Artifacts Prompt',
@@ -25,18 +25,18 @@ export const headerTranslations = {
   },
   scenariosManageAria: { en: 'Preset Scenarios', zh: '预设场景', ja: 'プリセットシナリオ', ko: '프리셋 시나리오', es: 'Escenarios predefinidos', fr: 'Scénarios prédéfinis', de: 'Voreingestellte Szenarien' },
   scenariosManageTitle: { en: 'Preset Scenarios', zh: '预设场景', ja: 'プリセットシナリオ', ko: '프리셋 시나리오', es: 'Escenarios predefinidos', fr: 'Scénarios prédéfinis', de: 'Voreingestellte Szenarien' },
-  headerNewChatAria: { en: 'Start a new chat session', zh: '开始新聊天会话', ja: '新しいチャットを開始', ko: '새 채팅 세션 시작', es: 'Iniciar una nueva sesión de chat', fr: 'Démarrer une nouvelle discussion', de: 'Neue Chat-Sitzung starten' },
+  headerNewChatAria: { en: 'Start a new chat session', zh: '开始新的聊天会话', ja: '新しいチャットを開始', ko: '새 채팅 세션 시작', es: 'Iniciar una nueva sesión de chat', fr: 'Démarrer une nouvelle discussion', de: 'Neue Chat-Sitzung starten' },
   headerStream: { en: 'Streaming Responses', zh: '流式输出', ja: 'ストリーミング応答', ko: '스트리밍 응답', es: 'Respuestas en streaming', fr: 'Réponses en streaming', de: 'Streaming-Antworten' },
   headerModelSelectorTooltipCurrent: { en: 'Current Model', zh: '当前模型', ja: '現在のモデル', ko: '현재 모델', es: 'Modelo actual', fr: 'Modèle actuel', de: 'Aktuelles Modell' },
   headerModelSelectorTooltipAction: {
     en: `Click to change, or press 'Tab' to cycle`,
-    zh: `点击更改，或按 'Tab' 键循环切换`,
-    ja: `クリックして変更、または'Tab'キーで切り替え`, ko: `클릭하여 변경하거나 'Tab' 키를 눌러 순환`, es: `Haz clic para cambiar o pulsa 'Tab' para alternar`, fr: `Cliquez pour changer ou appuyez sur 'Tab' pour faire défiler`, de: `Klicken zum Ändern oder 'Tab' drücken zum Wechseln`,
+    zh: `点击更改，或按“Tab”键循环切换`,
+    ja: `クリックして変更、または「Tab」キーで切り替え`, ko: `클릭하여 변경하거나 'Tab' 키를 눌러 순환`, es: `Haz clic para cambiar o pulsa 'Tab' para alternar`, fr: `Cliquez pour changer ou appuyez sur Tab pour parcourir les modèles`, de: `Klicken zum Ändern oder ‚Tab‘ drücken zum Wechseln`,
   },
   headerModelAriaLabelCurrent: { en: 'Current AI Model', zh: '当前 AI 模型', ja: '現在のAIモデル', ko: '현재 AI 모델', es: 'Modelo de IA actual', fr: 'Modèle IA actuel', de: 'Aktuelles KI-Modell' },
   headerModelAriaLabelAction: { en: `Click to change model`, zh: `点击更改模型`, ja: `クリックしてモデルを変更`, ko: `클릭하여 모델 변경`, es: `Haz clic para cambiar de modelo`, fr: `Cliquez pour changer de modèle`, de: `Klicken zum Modellwechsel` },
-  headerReasoningToggleAria: { en: 'Toggle reasoning mode', zh: '切换推理模式', ja: '推論モードを切り替え', ko: '추론 모드 전환', es: 'Alternar modo de razonamiento', fr: 'Basculer le mode raisonnement', de: 'Reasoning-Modus umschalten' },
-  headerThinkingToggleAria: { en: 'Toggle thinking level', zh: '切换思考等级', ja: '思考レベルを切り替え', ko: '사고 수준 전환', es: 'Alternar nivel de razonamiento', fr: 'Basculer le niveau de réflexion', de: 'Thinking-Stufe umschalten' },
+  headerReasoningToggleAria: { en: 'Toggle reasoning mode', zh: '切换推理模式', ja: '推論モードを切り替え', ko: '추론 모드 전환', es: 'Alternar modo de razonamiento', fr: 'Activer/désactiver le mode raisonnement', de: 'Reasoning-Modus umschalten' },
+  headerThinkingToggleAria: { en: 'Toggle thinking level', zh: '切换思考等级', ja: '思考レベルを切り替え', ko: '추론 수준 전환', es: 'Alternar nivel de pensamiento', fr: 'Basculer le niveau de réflexion', de: 'Thinking-Stufe umschalten' },
   headerReasoningHighTitle: { en: 'Reasoning: High', zh: '推理：高', ja: '推論：高', ko: '추론: 높음', es: 'Razonamiento: Alto', fr: 'Raisonnement : Élevé', de: 'Reasoning: Hoch' },
   headerReasoningMinimalFastTitle: { en: 'Reasoning: Minimal (Fast Mode)', zh: '推理：最低（快速模式）', ja: '推論：最小（高速モード）', ko: '추론: 최소 (빠른 모드)', es: 'Razonamiento: Mínimo (Modo rápido)', fr: 'Raisonnement : Minimal (Mode rapide)', de: 'Reasoning: Minimal (Schnellmodus)' },
   headerThinkingMinimalFastTitle: { en: 'Thinking: Minimal (Fast Mode)', zh: '思考：最低（快速模式）', ja: '思考：最小（高速モード）', ko: '사고: 최소 (빠른 모드)', es: 'Pensamiento: Mínimo (Modo rápido)', fr: 'Réflexion : Minimale (Mode rapide)', de: 'Thinking: Minimal (Schnellmodus)' },

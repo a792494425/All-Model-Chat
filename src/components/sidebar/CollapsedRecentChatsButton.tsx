@@ -250,7 +250,7 @@ export const CollapsedRecentChatsButton: React.FC<CollapsedRecentChatsButtonProp
             role="dialog"
             aria-label={t('historyRecentChats')}
           >
-            <div className="px-4 py-3 text-sm font-medium text-[var(--theme-text-secondary)]">
+            <div className="px-4 py-3 text-sm font-semibold text-[var(--theme-text-primary)]">
               {t('historyRecentChats')}
             </div>
             <div className="max-h-[min(420px,calc(100vh-120px))] overflow-y-auto py-1 custom-scrollbar">
@@ -278,7 +278,7 @@ export const CollapsedRecentChatsButton: React.FC<CollapsedRecentChatsButtonProp
                   );
                 })
               ) : (
-                <p className="px-4 py-3 text-sm text-[var(--theme-text-tertiary)]">{t('historyEmpty')}</p>
+                <p className="px-4 py-3 text-sm font-medium text-[var(--theme-text-primary)]">{t('historyEmpty')}</p>
               )}
             </div>
           </div>,

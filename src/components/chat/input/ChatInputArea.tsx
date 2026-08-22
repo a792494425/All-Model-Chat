@@ -127,6 +127,7 @@ export const ChatInputArea: React.FC = () => {
             commands={slashCommandState.slashCommandState.filteredCommands}
             onSelect={slashCommandState.handleCommandSelect}
             selectedIndex={slashCommandState.slashCommandState.selectedIndex}
+            query={slashCommandState.slashCommandState.query}
             className={
               isFullscreen ? 'absolute bottom-[60px] left-0 right-0 mb-2 w-full max-w-6xl mx-auto z-20' : undefined
             }

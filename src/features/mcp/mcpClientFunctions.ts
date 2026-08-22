@@ -17,6 +17,32 @@ interface CreateMcpClientFunctionsOptions {
   ) => Promise<unknown>;
 }
 
+type McpToolsLister = NonNullable<CreateMcpClientFunctionsOptions['listTools']>;
+
+const MCP_DISCOVERY_CACHE_TTL_MS = 30_000;
+
+interface McpDiscoveryCacheEntry {
+  configKey: string;
+  expiresAt: number;
+  response: McpToolsResponse;
+}
+
+// Discovery runs on every chat turn; without a short-lived cache each user
+// message pays a full /api/mcp/tools round trip. Keyed weakly by the lister
+// so injected test doubles never share entries with the production fetcher.
+const discoveryCache = new WeakMap<McpToolsLister, McpDiscoveryCacheEntry>();
+
+const readCachedTools = (
+  lister: McpToolsLister,
+  configKey: string,
+): McpToolsResponse | null => {
+  const entry = discoveryCache.get(lister);
+  if (!entry || entry.configKey !== configKey || Date.now() >= entry.expiresAt) {
+    return null;
+  }
+  return entry.response;
+};
+
 const toSchemaType = (value: unknown): Type | undefined => {
   switch (value) {
     case 'object':
@@ -219,7 +245,17 @@ export const createMcpClientFunctions = async ({
   try {
     const runtimeServerEntries = makeRuntimeServerEntries(enabledServers);
     const runtimeServers = runtimeServerEntries.map(({ runtimeServer }) => runtimeServer);
-    const toolResponse = await listTools(runtimeServers, abortSignal);
+    const lister: McpToolsLister = listTools;
+    const configKey = JSON.stringify(runtimeServers);
+    const cachedResponse = readCachedTools(lister, configKey);
+    const toolResponse = cachedResponse ?? (await listTools(runtimeServers, abortSignal));
+    if (!cachedResponse) {
+      discoveryCache.set(lister, {
+        configKey,
+        expiresAt: Date.now() + MCP_DISCOVERY_CACHE_TTL_MS,
+        response: toolResponse,
+      });
+    }
 
     if (toolResponse.errors.length > 0) {
       logService.warn(`MCP tool discovery reported errors: ${formatDiscoveryErrors(toolResponse.errors)}`, {

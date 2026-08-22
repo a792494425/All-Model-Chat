@@ -153,8 +153,8 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
           <div className="flex items-center gap-2 min-w-0">
             <ChevronDown
               size={16}
-              className="text-[var(--theme-text-tertiary)] transition-transform group-open/details:rotate-180 flex-shrink-0"
-              strokeWidth={2}
+              className="text-[var(--theme-text-primary)] transition-transform group-open/details:rotate-180 flex-shrink-0"
+              strokeWidth={2.2}
             />
             {editingItem?.type === 'group' && editingItem.id === group.id ? (
               <input
@@ -174,9 +174,9 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
           </div>
           <button
             onClick={(e) => toggleMenu(e, group.id)}
-            className="p-1 rounded-full text-[var(--theme-text-tertiary)] opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto transition-opacity"
+            className="p-1 rounded-full text-[var(--theme-text-primary)] opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto transition-opacity"
           >
-            <MoreHorizontal size={16} strokeWidth={2} />
+            <MoreHorizontal size={16} strokeWidth={2.2} />
           </button>
         </summary>
         {activeMenu === group.id && (

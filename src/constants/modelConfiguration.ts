@@ -35,8 +35,8 @@ const REMOVED_MODEL_ID_MIGRATIONS: Readonly<Record<string, string>> = {
   'gemini-3.1-flash-lite': 'gemini-3.5-flash-lite',
   'models/gemini-3.1-flash-lite': 'gemini-3.5-flash-lite',
   // Exact IDs only — must not match gemini-3.5-flash-lite.
-  'gemini-3.5-flash': 'gemini-3.6-flash',
-  'models/gemini-3.5-flash': 'gemini-3.6-flash',
+  'gemini-3.5-flash': 'gemini-3.7-flash',
+  'models/gemini-3.5-flash': 'gemini-3.7-flash',
 };
 
 export const migrateRemovedModelId = (modelId: string | null | undefined): string | undefined => {

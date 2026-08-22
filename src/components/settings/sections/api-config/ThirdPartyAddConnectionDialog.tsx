@@ -48,7 +48,7 @@ export const ThirdPartyAddConnectionDialog: React.FC<ThirdPartyAddConnectionDial
         <button
           type="button"
           onClick={onClose}
-          className="text-xs font-medium text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)]"
+          className="text-xs font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-secondary)]"
         >
           {t('cancel')}
         </button>
@@ -76,7 +76,7 @@ export const ThirdPartyAddConnectionDialog: React.FC<ThirdPartyAddConnectionDial
                 <span className="block truncate">
                   {t(TEMPLATE_LABEL_KEYS[templateId]) || THIRD_PARTY_TEMPLATE_LABELS[templateId]}
                 </span>
-                <span className="mt-0.5 block truncate font-mono text-[11px] text-[var(--theme-text-tertiary)]">
+                <span className="mt-0.5 block truncate font-mono text-[11px] text-[var(--theme-text-secondary)]">
                   {defaultUrl || t('thirdPartyTemplateSetUrlAfterAdd')}
                 </span>
               </span>

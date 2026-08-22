@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createMcpClientBridge } from './mcpClient';
+import { createMcpClientBridge, mcpConfigFingerprint } from './mcpClient';
 
 interface MockClientInstance {
   connect: ReturnType<typeof vi.fn>;
@@ -98,6 +98,34 @@ describe('createMcpClientBridge', () => {
     bridges.push(bridge);
     return bridge;
   };
+
+  it('fingerprints server configs without retaining secrets in plaintext', () => {
+    const baseHttp = {
+      id: 'remote',
+      name: 'Remote',
+      enabled: true,
+      transport: 'http' as const,
+      url: 'https://mcp.example.com/mcp',
+    };
+    const withToken = { ...baseHttp, auth: { type: 'bearer' as const, token: 'secret-token-value' } };
+
+    const fingerprintA = mcpConfigFingerprint(withToken);
+    const fingerprintB = mcpConfigFingerprint({ ...baseHttp, auth: { type: 'bearer', token: 'other-token' } });
+
+    expect(fingerprintA).not.toContain('secret-token-value');
+    expect(fingerprintA).not.toBe(fingerprintB);
+    expect(mcpConfigFingerprint(withToken)).toBe(fingerprintA);
+
+    const stdioSecret = {
+      id: 'local',
+      name: 'Local',
+      enabled: true,
+      transport: 'stdio' as const,
+      command: 'npx',
+      env: { API_TOKEN: 'env-secret-value' },
+    };
+    expect(mcpConfigFingerprint(stdioSecret)).not.toContain('env-secret-value');
+  });
 
   it('lists all MCP tools across paginated SDK responses and reuses the pooled session', async () => {
     const bridge = createBridge();

@@ -49,7 +49,7 @@ export const ThinkingLevelSelector: React.FC<ThinkingLevelSelectorProps> = ({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)] flex items-center gap-1.5">
+        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)] flex items-center gap-1.5">
           <Gauge size={12} /> {t('settingsReasoningLevelTitle')}
         </span>
       </div>

@@ -3,6 +3,7 @@ import { getDefaultEnvironment, StdioClientTransport } from '@modelcontextprotoc
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { assertMcpHttpUrlAllowed, createSafeMcpFetch, type FetchLike } from './mcpHttpSecurity.js';
@@ -62,17 +63,28 @@ function createHttpHeaders(server: McpServerConfig): Record<string, string> | un
   return Object.keys(headers).length > 0 ? headers : undefined;
 }
 
+/**
+ * Stable identity of a server's connection config, hashed so bearer tokens,
+ * headers, and env values are never retained in memory as plaintext map keys.
+ */
+export const mcpConfigFingerprint = (server: McpServerConfig): string =>
+  createHash('sha256')
+    .update(
+      JSON.stringify({
+        id: server.id,
+        transport: server.transport,
+        command: server.command ?? null,
+        args: server.args ?? null,
+        env: server.env ?? null,
+        url: server.url ?? null,
+        headers: server.headers ?? null,
+        auth: server.auth ?? null,
+      }),
+    )
+    .digest('hex');
+
 function poolKey(server: McpServerConfig): string {
-  return JSON.stringify({
-    id: server.id,
-    transport: server.transport,
-    command: server.command ?? null,
-    args: server.args ?? null,
-    env: server.env ?? null,
-    url: server.url ?? null,
-    headers: server.headers ?? null,
-    auth: server.auth ?? null,
-  });
+  return mcpConfigFingerprint(server);
 }
 
 function createStdioTransport(server: McpServerConfig): Transport {
@@ -328,16 +340,22 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
     const gate = new Promise<void>((resolve) => {
       release = resolve;
     });
-    keyLocks.set(
-      key,
-      previous.finally(() => gate),
-    );
+    const chained = previous.finally(() => gate);
+    keyLocks.set(key, chained);
 
     try {
       await previous.catch(() => undefined);
       return await runExclusive();
     } finally {
       release();
+      // Drop the lock entry once the chain drains so the map does not grow
+      // unbounded across unique server configs. A successor that queued
+      // behind us replaces the entry first and keeps it alive.
+      void chained.then(() => {
+        if (keyLocks.get(key) === chained) {
+          keyLocks.delete(key);
+        }
+      });
     }
   };
 

@@ -253,6 +253,7 @@ export interface AppSettings extends ChatSettings {
   isPasteAsTextFileEnabled?: boolean;
   showInputPasteButton?: boolean;
   showInputClearButton?: boolean;
+  showVoiceInputButton?: boolean;
   isCopySelectionFormattingEnabled?: boolean;
   isSystemAudioRecordingEnabled?: boolean;
   mcpServers: McpServerConfig[];

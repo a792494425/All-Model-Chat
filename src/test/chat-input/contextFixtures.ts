@@ -14,6 +14,7 @@ export const createChatInputActionsContextValue = (
   currentModelId: DEFAULT_CHAT_SETTINGS.modelId,
   toolStates: createChatToolToggleStates(),
   onAttachmentAction: vi.fn(),
+  onNewChat: vi.fn(),
   disabled: false,
   onRecordButtonClick: vi.fn(),
   isRecording: false,
@@ -43,6 +44,7 @@ export const createChatInputActionsContextValue = (
   showInputTranslationButton: DEFAULT_APP_SETTINGS.showInputTranslationButton ?? false,
   showInputPasteButton: DEFAULT_APP_SETTINGS.showInputPasteButton ?? true,
   showInputClearButton: DEFAULT_APP_SETTINGS.showInputClearButton ?? true,
+  showVoiceInputButton: DEFAULT_APP_SETTINGS.showVoiceInputButton ?? false,
   ...overrides,
 });
 

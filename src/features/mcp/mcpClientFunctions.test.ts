@@ -249,3 +249,64 @@ describe('createMcpClientFunctions', () => {
     });
   });
 });
+
+describe('createMcpClientFunctions discovery cache', () => {
+  const httpServer: McpServerConfig = {
+    id: 'cache-remote',
+    name: 'Cache Remote',
+    enabled: true,
+    transport: 'http',
+    url: 'https://mcp.example.com/mcp',
+  };
+
+  const toolResponse = {
+    servers: [
+      {
+        serverId: 'cache-remote',
+        serverName: 'Cache Remote',
+        tools: [
+          { name: 'echo', description: 'Echo', inputSchema: { type: 'object' } },
+        ],
+      },
+    ],
+    errors: [],
+  };
+
+  it('reuses a fresh discovery response across consecutive turns', async () => {
+    const listTools = vi.fn(async () => toolResponse);
+
+    const first = await createMcpClientFunctions({ servers: [httpServer], listTools, callTool: vi.fn() });
+    const second = await createMcpClientFunctions({ servers: [httpServer], listTools, callTool: vi.fn() });
+
+    expect(listTools).toHaveBeenCalledTimes(1);
+    expect(Object.keys(second)).toEqual(Object.keys(first));
+  });
+
+  it('refetches when the server configuration changes', async () => {
+    const listTools = vi.fn(async () => toolResponse);
+
+    await createMcpClientFunctions({ servers: [httpServer], listTools, callTool: vi.fn() });
+    await createMcpClientFunctions({
+      servers: [{ ...httpServer, url: 'https://other.example.com/mcp' }],
+      listTools,
+      callTool: vi.fn(),
+    });
+
+    expect(listTools).toHaveBeenCalledTimes(2);
+  });
+
+  it('refetches after the discovery cache expires', async () => {
+    vi.useFakeTimers();
+    try {
+      const listTools = vi.fn(async () => toolResponse);
+
+      await createMcpClientFunctions({ servers: [httpServer], listTools, callTool: vi.fn() });
+      vi.advanceTimersByTime(31_000);
+      await createMcpClientFunctions({ servers: [httpServer], listTools, callTool: vi.fn() });
+
+      expect(listTools).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

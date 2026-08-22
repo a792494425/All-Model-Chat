@@ -35,7 +35,7 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     <div className="space-y-2">
       <label
         htmlFor={inputId}
-        className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]"
+        className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]"
       >
         {label || t('settingsApiKey')}
       </label>
@@ -62,7 +62,7 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
           </div>
         )}
       </div>
-      <p className="text-xs text-[var(--theme-text-tertiary)] flex gap-1.5">
+      <p className="text-xs text-[var(--theme-text-secondary)] flex gap-1.5">
         <Info size={14} className="flex-shrink-0 mt-0.5" strokeWidth={1.5} />
         <span>{helpText || t('settingsApiKeyHelpText')}</span>
       </p>

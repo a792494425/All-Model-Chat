@@ -3,7 +3,6 @@ import { useI18n } from '@/contexts/I18nContext';
 import {
   Settings,
   MessageSquare,
-  Bot,
   AlertTriangle,
   Upload,
   Download,
@@ -11,6 +10,7 @@ import {
   Database,
   RefreshCw,
 } from 'lucide-react';
+import { IconScenarios } from '@/components/icons';
 import type { LogViewerProps } from '@/components/log-viewer/LogViewer';
 import type { PwaInstallState } from '@/pwa/install';
 import { useAppDataSize } from '@/hooks/data-management/useAppDataSize';
@@ -50,10 +50,10 @@ const ActionRow: React.FC<{
 }> = ({ label, children, description, icon, className }) => (
   <div className={`flex items-center justify-between gap-3 py-3 ${className || ''}`}>
     <div className="flex min-w-0 items-center gap-3">
-      {icon && <div className="flex-shrink-0 text-[var(--theme-text-tertiary)]">{icon}</div>}
+      {icon && <div className="flex-shrink-0 text-[var(--theme-text-secondary)]">{icon}</div>}
       <div className="flex min-w-0 flex-col">
         <span className="text-sm font-medium text-[var(--theme-text-primary)]">{label}</span>
-        {description && <p className="text-xs mt-0.5 text-[var(--theme-text-tertiary)]">{description}</p>}
+        {description && <p className="text-xs mt-0.5 text-[var(--theme-text-secondary)]">{description}</p>}
       </div>
     </div>
     <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-2">{children}</div>
@@ -135,7 +135,7 @@ export const DataManagementSection: React.FC<DataManagementSectionProps> = ({
     {
       key: 'scenarios',
       label: t('settingsDataScenarios'),
-      icon: <Bot size={16} strokeWidth={1.5} />,
+      icon: <IconScenarios size={16} strokeWidth={1.5} />,
       importRef: scenariosImportRef,
       onImport: onImportScenarios,
       onExport: onExportScenarios,

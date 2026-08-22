@@ -1,5 +1,6 @@
 import type { UploadedFile } from '@/types';
 import type { ModelCapabilities } from '@/utils/model/modelCapabilities';
+import type { ChatInputLocalFileState } from '@/components/chat/input/chatInputContextTypes';
 import { hasSendableChatInputContent } from './chatInputContent';
 import { getChatInputMode, type ChatInputMachineState } from './chatInputStateMachine';
 import { areFilesStillProcessing } from './pendingSubmission';
@@ -15,13 +16,6 @@ interface ChatInputModalState {
   showRecorder: boolean;
   showTtsContextEditor: boolean;
   isHelpModalOpen: boolean;
-}
-
-interface ChatInputLocalFileState {
-  configuringFile: unknown;
-  previewFile: unknown;
-  showTokenModal: boolean;
-  isConverting: boolean;
 }
 
 type ChatInputCapabilities = Pick<ModelCapabilities, 'isNativeAudioModel' | 'permissions'>;

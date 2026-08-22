@@ -1,6 +1,9 @@
 import React, { useMemo } from 'react';
 import { AttachmentMenu } from './AttachmentMenu';
 import { ToolsMenu } from './ToolsMenu';
+import { IconNewChat } from '@/components/icons';
+import { CHAT_INPUT_BUTTON_CLASS } from '@/constants/buttonClasses';
+import { useI18n } from '@/contexts/I18nContext';
 import { WebSearchToggle } from './actions/WebSearchToggle';
 import { LiveControls } from './actions/LiveControls';
 import { RecordControls } from './actions/RecordControls';
@@ -13,6 +16,7 @@ import { COMPOSER_CLUSTER_GAP_CLASS, COMPOSER_CLUSTER_SEPARATION_CLASS } from '@
 import { useChatInputActionsContext, useChatInputComposerStatusContext } from './ChatInputContext';
 
 const ChatInputActionsComponent: React.FC = () => {
+  const { t } = useI18n();
   const {
     disabled,
     isWaitingForUpload,
@@ -25,6 +29,8 @@ const ChatInputActionsComponent: React.FC = () => {
     toolStates,
     isLoading,
     isEditing,
+    showVoiceInputButton,
+    onNewChat,
   } = useChatInputActionsContext();
   const { canQueueMessage } = useChatInputComposerStatusContext();
   const focusedToolStates = useMemo(
@@ -92,6 +98,7 @@ const ChatInputActionsComponent: React.FC = () => {
         hasComposerMoreActions,
         isNativeAudioModel,
         isLiveConnected,
+        showVoiceInputButton,
         !!onToggleFullscreen,
         auxiliaryActionSignature,
         isLoading,
@@ -109,6 +116,7 @@ const ChatInputActionsComponent: React.FC = () => {
       isWaitingForUpload,
       onToggleFullscreen,
       auxiliaryActionSignature,
+      showVoiceInputButton,
     ],
   );
   const { rootRef, leftActionsRef, rightActionsRef, shouldCollapseAuxiliaryActions } = useAuxiliaryActionCollapse({
@@ -128,6 +136,18 @@ const ChatInputActionsComponent: React.FC = () => {
         data-testid="chat-input-actions-left"
         className={`flex min-w-0 items-center ${COMPOSER_CLUSTER_GAP_CLASS} overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
       >
+        <button
+          type="button"
+          onClick={onNewChat}
+          disabled={disabled}
+          className={`${CHAT_INPUT_BUTTON_CLASS} bg-transparent hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]`}
+          aria-label={t('newChat')}
+          title={t('newChat')}
+          data-testid="chat-input-new-chat-button"
+        >
+          <IconNewChat size={20} />
+        </button>
+
         <AttachmentMenu />
 
         {isNativeAudioModel && (
@@ -151,7 +171,7 @@ const ChatInputActionsComponent: React.FC = () => {
         data-testid="chat-input-actions-right"
         className={`flex min-w-0 flex-shrink-0 items-center ${COMPOSER_CLUSTER_GAP_CLASS}`}
       >
-        {!isLiveConnected && !isNativeAudioModel && <RecordControls />}
+        {showVoiceInputButton && !isLiveConnected && !isNativeAudioModel && <RecordControls />}
 
         {!showAuxiliaryActionsInMenu && auxiliaryActions.length > 0 && (
           <div className={`flex items-center ${COMPOSER_CLUSTER_GAP_CLASS}`}>
@@ -170,7 +190,7 @@ const ChatInputActionsComponent: React.FC = () => {
 
         {isNativeAudioModel && <LiveControls />}
 
-        <div className="ml-1 sm:ml-1.5 flex items-center">
+        <div className="ml-0.5 flex items-center">
           <SendControls />
         </div>
       </div>

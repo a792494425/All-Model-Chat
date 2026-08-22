@@ -1,14 +1,13 @@
 import React from 'react';
-import { type IconProps, StrokeIcon, defaultSize, defaultColor } from '@/components/icons/iconPrimitives';
+import { Paperclip, Crop } from 'lucide-react';
+import { type IconProps, StrokeIcon, defaultSize, defaultStroke, defaultColor } from '@/components/icons/iconPrimitives';
 
-export const IconUpload: React.FC<IconProps> = (props) => (
-  <StrokeIcon {...props}>
-    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-    <path d="M12 12v6" />
-    <path d="m15 15-3-3-3 3" />
-  </StrokeIcon>
-);
+export const IconUpload: React.FC<IconProps> = ({
+  size = defaultSize,
+  strokeWidth = defaultStroke,
+  className,
+  color = defaultColor,
+}) => <Paperclip size={size} strokeWidth={strokeWidth} className={className} color={color} />;
 
 export const IconGallery: React.FC<IconProps> = (props) => (
   <StrokeIcon {...props}>
@@ -25,15 +24,13 @@ export const IconCamera: React.FC<IconProps> = (props) => (
   </StrokeIcon>
 );
 
-export const IconScreenshot: React.FC<IconProps> = (props) => (
-  <StrokeIcon {...props}>
-    <path d="M3 7V5a2 2 0 0 1 2-2h2" />
-    <path d="M17 3h2a2 2 0 0 1 2 2v2" />
-    <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
-    <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
-    <rect x="7" y="7" width="10" height="10" rx="1" />
-  </StrokeIcon>
-);
+// 借鉴 Cherry Studio SettingsPage.tsx: icon={<Crop />} (截图)
+export const IconScreenshot: React.FC<IconProps> = ({
+  size = defaultSize,
+  strokeWidth = defaultStroke,
+  className,
+  color = defaultColor,
+}) => <Crop size={size} strokeWidth={strokeWidth} className={className} color={color} />;
 
 export const IconMicrophone: React.FC<IconProps> = (props) => (
   <StrokeIcon {...props}>

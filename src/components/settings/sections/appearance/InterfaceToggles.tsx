@@ -81,6 +81,13 @@ export const InterfaceToggles: React.FC<InterfaceTogglesProps> = ({ settings, on
           onChange={(enabled) => onUpdate('showInputClearButton', enabled)}
           tooltip={t('settingsShowInputClearButtonTooltip')}
         />
+        <SearchableToggle
+          itemId="interface-show-voice"
+          label={t('settingsShowVoiceInputButtonLabel')}
+          checked={settings.showVoiceInputButton ?? false}
+          onChange={(enabled) => onUpdate('showVoiceInputButton', enabled)}
+          tooltip={t('settingsShowVoiceInputButtonTooltip')}
+        />
       </ToggleGroup>
 
       <ToggleGroup title={t('settingsChatBehavior')} groupId="interface-chat-behavior">

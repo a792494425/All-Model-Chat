@@ -104,7 +104,7 @@ const SessionListGroup = ({
 }) => {
   return (
     <div>
-      <div className="px-3 pt-4 pb-1 text-xs font-semibold tracking-wide text-[var(--theme-text-secondary)]">
+      <div className="px-3 pt-4 pb-1 text-xs font-semibold tracking-wide text-[var(--theme-text-primary)]">
         {title}
       </div>
       <LimitedSessionList sessions={sessions} sessionItemProps={sessionItemProps} />
@@ -339,7 +339,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
           onDragEnd={stopEdgeScroll}
         >
           {sessions.length === 0 && !searchQuery ? (
-            <p className="p-4 text-xs sm:text-sm text-center text-[var(--theme-text-tertiary)] cursor-auto">
+            <p className="p-4 text-xs sm:text-sm text-center font-medium text-[var(--theme-text-primary)] cursor-auto">
               {t('historyEmpty')}
             </p>
           ) : (
@@ -398,12 +398,12 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
         <div className="p-3">
           <button
             onClick={onOpenSettingsModal}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] rounded-xl transition-all duration-150 group active:scale-[0.98]"
+            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[var(--theme-text-primary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] rounded-xl transition-all duration-150 group active:scale-[0.98]"
           >
             <Settings
               size={20}
-              strokeWidth={2}
-              className="text-[var(--theme-icon-settings)] group-hover:text-[var(--theme-text-primary)] transition-colors"
+              strokeWidth={2.2}
+              className="text-[var(--theme-text-primary)] transition-colors"
             />
             <span>{t('settingsTitle')}</span>
           </button>

@@ -22,7 +22,7 @@ export const ThinkingBudgetSlider: React.FC<ThinkingBudgetSliderProps> = ({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)] flex items-center gap-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)] flex items-center gap-1.5">
           <Calculator size={12} /> {t('settingsThinkingBudget')}
         </label>
         <span className={SETTINGS_VALUE_BADGE_CLASS}>{parseInt(value || '0').toLocaleString()} tokens</span>
@@ -49,7 +49,7 @@ export const ThinkingBudgetSlider: React.FC<ThinkingBudgetSliderProps> = ({
           />
         </div>
       </div>
-      <p className="text-xs text-[var(--theme-text-tertiary)] text-center">
+      <p className="text-xs text-[var(--theme-text-secondary)] text-center">
         {t('settingsReasoningBudgetHelp')} ({minBudget}-{maxBudget}).
       </p>
     </div>

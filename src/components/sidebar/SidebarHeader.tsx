@@ -43,10 +43,10 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
       </a>
       <button
         onClick={onToggle}
-        className={`p-2 -translate-y-1 text-[var(--theme-icon-history)] hover:bg-[var(--theme-bg-tertiary)] rounded-md ${FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS}`}
+        className={`p-2 -translate-y-1 text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] rounded-md ${FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS}`}
         aria-label={sidebarToggleLabel}
       >
-        <IconSidebarToggle size={20} strokeWidth={2} />
+        <IconSidebarToggle size={20} strokeWidth={2.2} />
       </button>
     </div>
   );

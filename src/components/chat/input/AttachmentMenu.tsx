@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, FolderUp } from 'lucide-react';
+import { Plus, FolderOpen } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import type { AttachmentAction } from '@/types';
 import {
@@ -42,7 +42,7 @@ export const AttachmentMenu: React.FC = () => {
       ? [{ labelKey: 'attachMenuAddByUrl', icon: <IconYoutube size={menuIconSize} />, action: 'url' } as const]
       : []),
     { labelKey: 'attachMenuAddById', icon: <IconLink size={menuIconSize} />, action: 'id' },
-    { labelKey: 'attachMenuImportFolder', icon: <FolderUp size={menuIconSize} />, action: 'folder' },
+    { labelKey: 'attachMenuImportFolder', icon: <FolderOpen size={menuIconSize} />, action: 'folder' },
     { labelKey: 'attachMenuImportZip', icon: <IconZip size={menuIconSize} />, action: 'zip' },
     { labelKey: 'attachMenuRecordAudio', icon: <IconMicrophone size={menuIconSize} />, action: 'recorder' },
     { labelKey: 'attachMenuScreenshot', icon: <IconScreenshot size={menuIconSize} />, action: 'screenshot' },
@@ -69,7 +69,7 @@ export const AttachmentMenu: React.FC = () => {
         type="button"
         onClick={toggleMenu}
         disabled={isAttachmentDisabled}
-        className={`${CHAT_INPUT_BUTTON_CLASS} text-[var(--theme-icon-attach)] ${isOpen ? 'bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] rotate-45' : 'bg-transparent hover:bg-[var(--theme-bg-tertiary)] rotate-0'}`}
+        className={`${CHAT_INPUT_BUTTON_CLASS} text-[var(--theme-icon-attach)] bg-transparent hover:bg-[var(--theme-bg-tertiary)]`}
         aria-label={t('attachMenuAria')}
         title={t('attachMenuTitle')}
         aria-haspopup="true"
@@ -83,7 +83,7 @@ export const AttachmentMenu: React.FC = () => {
         createPortal(
           <div
             ref={menuRef}
-            className="w-60 bg-[var(--theme-bg-primary)] border border-[var(--theme-border-secondary)] rounded-xl shadow-premium py-1.5 custom-scrollbar"
+            className="w-60 bg-[var(--theme-bg-primary)] border border-[var(--theme-border-secondary)] rounded-xl py-1.5 custom-scrollbar"
             style={menuPosition}
             role="menu"
           >

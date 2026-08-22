@@ -207,7 +207,7 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
       <div className="space-y-2">
         <label
           htmlFor={nameInputId}
-          className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]"
+          className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]"
         >
           {t('thirdPartyConnectionName')}
         </label>
@@ -233,7 +233,7 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
       <div className="space-y-2">
         <label
           htmlFor={baseUrlInputId}
-          className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]"
+          className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]"
         >
           {t('thirdPartyApiBaseUrl')}
         </label>
@@ -262,13 +262,13 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
             }
             return null;
           })()}
-        <p className="text-xs text-[var(--theme-text-tertiary)]">{t('settingsOpenAICompatibleRequestUrlPreview')}</p>
+        <p className="text-xs text-[var(--theme-text-secondary)]">{t('settingsOpenAICompatibleRequestUrlPreview')}</p>
         <div className="space-y-1">
-          <p className="text-[11px] uppercase tracking-wide text-[var(--theme-text-tertiary)]">
+          <p className="text-[11px] uppercase tracking-wide text-[var(--theme-text-secondary)]">
             {t('settingsOpenAICompatibleBrowserRequestUrl')}
           </p>
           <p className="text-xs font-mono break-all text-[var(--theme-text-secondary)]">{browserRequestUrl}</p>
-          <p className="text-[11px] uppercase tracking-wide text-[var(--theme-text-tertiary)]">
+          <p className="text-[11px] uppercase tracking-wide text-[var(--theme-text-secondary)]">
             {t('settingsOpenAICompatibleUpstreamUrl')}
           </p>
           <p className="text-xs font-mono break-all text-[var(--theme-text-secondary)]">{upstreamRequestUrl ?? '—'}</p>
@@ -301,7 +301,7 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
           type="button"
           data-testid="third-party-extra-headers-toggle"
           onClick={() => setShowAdvanced((open) => !open)}
-          className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)]"
+          className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-secondary)]"
         >
           {showAdvanced ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           {t('thirdPartyAdvancedHeaders')}

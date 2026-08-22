@@ -17,7 +17,6 @@ import {
 import { createEmptyLiveArtifactsSystemPrompts } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
 import { sanitizeThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
 import {
-  isValidMcpHttpUrl,
   sanitizeMcpAuth,
   sanitizeStringArray,
   sanitizeStringRecord,
@@ -158,11 +157,10 @@ const sanitizeMcpServers = (value: unknown, fallback: McpServerConfig[]): McpSer
     };
 
     if (transport === 'stdio') {
+      // An empty command stays as an in-progress card: dropping the entry on
+      // every keystroke would destroy the server the user is still editing.
+      // The API server reports the missing command when the server is used.
       const command = typeof item.command === 'string' ? item.command.trim() : '';
-      if (!command) {
-        return [];
-      }
-
       server.command = command;
       const args = sanitizeStringArray(item.args);
       const env = sanitizeStringRecord(item.env);
@@ -171,12 +169,9 @@ const sanitizeMcpServers = (value: unknown, fallback: McpServerConfig[]): McpSer
     }
 
     if (transport === 'http' || transport === 'sse') {
-      const url = typeof item.url === 'string' ? item.url.trim() : '';
-      if (!url || !isValidMcpHttpUrl(url)) {
-        return [];
-      }
-
-      server.url = url;
+      // Keep any typed URL for the same in-progress reason; validity is
+      // enforced when the server is actually contacted.
+      server.url = typeof item.url === 'string' ? item.url.trim() : '';
       const headers = sanitizeStringRecord(item.headers);
       const auth = sanitizeMcpAuth(item.auth);
       if (headers) server.headers = headers;

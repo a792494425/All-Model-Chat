@@ -148,7 +148,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
   return (
     <section className="min-w-0 space-y-4">
       <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
           <ClipboardList size={14} />
           {t('settingsOpenAICompatibleBatchPasteTitle')}
         </div>
@@ -169,7 +169,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
 
       <div className="space-y-2 rounded-lg border border-[var(--theme-border-secondary)] p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
             {t('settingsOpenAICompatibleFetchedPreviewTitle')}
           </div>
           {onFetchModelsForImportPreview && (
@@ -192,7 +192,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
             <div className="relative">
               <Search
                 size={14}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-tertiary)]"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-secondary)]"
               />
               <input
                 type="text"
@@ -205,7 +205,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
                 <button
                   type="button"
                   onClick={() => setSearchFilter('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)]"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]"
                 >
                   <X size={12} />
                 </button>
@@ -213,7 +213,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs text-[var(--theme-text-tertiary)]">
+              <span className="text-xs text-[var(--theme-text-secondary)]">
                 {interpolate(t('settingsOpenAICompatibleFetchedPreviewCount'), {
                   count: String(fetchedPreviewModels.length),
                   selected: String(selectedImportableFetchedModelIds.length),
@@ -232,7 +232,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
                   type="button"
                   onClick={handleClearFetchedSelection}
                   disabled={selectedFetchedModelIds.size === 0}
-                  className="text-xs font-medium text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                  className="text-xs font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {t('settingsOpenAICompatibleClearFetchedSelection')}
                 </button>
@@ -261,7 +261,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-mono text-[var(--theme-text-primary)]">{model.id}</span>
                       {alreadyAdded && (
-                        <span className="mt-0.5 block text-xs text-[var(--theme-text-tertiary)]">
+                        <span className="mt-0.5 block text-xs text-[var(--theme-text-secondary)]">
                           {t('settingsOpenAICompatibleAlreadyAdded')}
                         </span>
                       )}
@@ -282,7 +282,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
             </div>
           </>
         ) : (
-          <div className="rounded-md bg-[var(--theme-bg-input)]/45 px-3 py-6 text-center text-xs italic text-[var(--theme-text-tertiary)]">
+          <div className="rounded-md bg-[var(--theme-bg-input)]/45 px-3 py-6 text-center text-xs italic text-[var(--theme-text-secondary)]">
             {t('settingsOpenAICompatibleFetchedPreviewEmpty')}
           </div>
         )}

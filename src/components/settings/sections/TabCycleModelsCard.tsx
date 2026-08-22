@@ -64,15 +64,15 @@ export const TabCycleModelsCard: React.FC<TabCycleModelsCardProps> = ({ availabl
             <span className="block text-sm font-semibold text-[var(--theme-text-primary)]">
               {t('shortcutsCycleModelsScopeTitle')}
             </span>
-            <span className="mt-1 block text-xs leading-relaxed text-[var(--theme-text-tertiary)]">
+            <span className="mt-1 block text-xs leading-relaxed text-[var(--theme-text-secondary)]">
               {t('shortcutsCycleModelsScopeHint')}
             </span>
-            <span className="mt-1 block text-xs text-[var(--theme-text-tertiary)]">{cycleSummary}</span>
+            <span className="mt-1 block text-xs text-[var(--theme-text-secondary)]">{cycleSummary}</span>
           </span>
         </span>
         <ChevronDown
           size={16}
-          className={`flex-shrink-0 text-[var(--theme-text-tertiary)] transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          className={`flex-shrink-0 text-[var(--theme-text-secondary)] transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
           strokeWidth={1.75}
         />
       </button>
@@ -80,7 +80,7 @@ export const TabCycleModelsCard: React.FC<TabCycleModelsCardProps> = ({ availabl
       {isExpanded && (
         <div className="mt-4 border-t border-[var(--theme-border-secondary)]/60 pt-4">
           {orderedCycleModels.length === 0 ? (
-            <div className="text-xs italic text-[var(--theme-text-tertiary)]">
+            <div className="text-xs italic text-[var(--theme-text-secondary)]">
               {t('shortcutsCycleModelsScopeEmpty')}
             </div>
           ) : (
@@ -112,7 +112,7 @@ export const TabCycleModelsCard: React.FC<TabCycleModelsCardProps> = ({ availabl
                       >
                         {model.name}
                       </span>
-                      <span className="block truncate font-mono text-xs text-[var(--theme-text-tertiary)]">
+                      <span className="block truncate font-mono text-xs text-[var(--theme-text-secondary)]">
                         {model.id}
                       </span>
                     </span>

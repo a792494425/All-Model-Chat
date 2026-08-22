@@ -47,13 +47,13 @@ export const LanguageVoiceSection: React.FC<LanguageVoiceSectionProps> = (props)
       />
 
       <div className="pt-6 border-t border-[var(--theme-border-secondary)] space-y-4">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)] flex items-center gap-2">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)] flex items-center gap-2">
           <Languages size={14} strokeWidth={1.5} />
           {t('settingsTranslationSectionTitle')}
         </h4>
         <div className="space-y-4">
           <div className="space-y-1">
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+            <h5 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
               {t('settingsInputTranslationSectionTitle')}
             </h5>
             <Select
@@ -99,7 +99,7 @@ export const LanguageVoiceSection: React.FC<LanguageVoiceSectionProps> = (props)
           </div>
 
           <div className="space-y-1 border-t border-[var(--theme-border-secondary)] pt-4">
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+            <h5 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
               {t('settingsThoughtTranslationSectionTitle')}
             </h5>
             <Select

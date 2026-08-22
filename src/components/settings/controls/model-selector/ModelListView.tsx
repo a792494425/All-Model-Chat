@@ -39,14 +39,14 @@ export const ModelListView: React.FC<ModelListViewProps> = ({
         {sections.map((section) => (
           <div key={section.key} className="space-y-1" data-provider-section={section.providerKey}>
             {section.providerKey && (
-              <div className="px-2 pt-1 pb-1 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--theme-text-tertiary)]">
+              <div className="px-2 pt-1 pb-1 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--theme-text-secondary)]">
                 {section.label ?? t(getModelProviderSectionLabelKey(section.providerKey))}
                 {section.unavailable ? ` · ${t('thirdPartyConnectionUnavailable')}` : ''}
                 {section.missingApiKey ? ` · ${t('thirdPartyApiKeyMissing')}` : ''}
               </div>
             )}
             {section.unavailable && (
-              <p className="px-2 pb-1 text-xs text-[var(--theme-text-tertiary)]">
+              <p className="px-2 pb-1 text-xs text-[var(--theme-text-secondary)]">
                 {t('thirdPartyConnectionUnavailableHint')}
               </p>
             )}
@@ -99,7 +99,7 @@ export const ModelListView: React.FC<ModelListViewProps> = ({
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-[var(--theme-text-tertiary)] font-mono truncate opacity-70">
+                    <div className="text-xs text-[var(--theme-text-secondary)] font-mono truncate opacity-70">
                       {entry.id}
                     </div>
                   </div>
@@ -118,12 +118,12 @@ export const ModelListView: React.FC<ModelListViewProps> = ({
           </div>
         ))}
         {availableModels.length === 0 && (
-          <div className="p-4 text-center text-xs text-[var(--theme-text-tertiary)] italic">
+          <div className="p-4 text-center text-xs text-[var(--theme-text-secondary)] italic">
             {t('chatBehaviorModelNoModels')}
           </div>
         )}
         {availableModels.length > 0 && sections.length === 0 && (
-          <div className="p-4 text-center text-xs text-[var(--theme-text-tertiary)] italic">
+          <div className="p-4 text-center text-xs text-[var(--theme-text-secondary)] italic">
             {t('modelPickerNoResults')}
           </div>
         )}

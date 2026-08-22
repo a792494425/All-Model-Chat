@@ -27,11 +27,31 @@ const isSensitiveMcpHeader = (name: string): boolean => {
   );
 };
 
+const isSensitiveMcpEnvKey = (key: string): boolean => {
+  const normalized = key.trim().toLowerCase();
+  return (
+    normalized.includes('token') ||
+    normalized.includes('secret') ||
+    normalized.includes('password') ||
+    normalized.includes('credential') ||
+    normalized.includes('api_key') ||
+    normalized.includes('apikey') ||
+    normalized.endsWith('_key') ||
+    normalized.endsWith('key')
+  );
+};
+
 const redactMcpSecretsForExport = (settings: AppSettings): AppSettings => ({
   ...settings,
   mcpServers: (settings.mcpServers ?? []).map((server) => ({
     ...server,
-    ...(server.env ? { env: {} } : {}),
+    // Keep non-secret env vars (paths, flags, log levels) so an exported
+    // settings file remains a working stdio server config after re-import.
+    ...(server.env
+      ? {
+          env: Object.fromEntries(Object.entries(server.env).filter(([key]) => !isSensitiveMcpEnvKey(key))),
+        }
+      : {}),
     ...(server.headers
       ? {
           headers: Object.fromEntries(

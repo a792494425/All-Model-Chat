@@ -87,7 +87,20 @@ const parseMcpServer = (value: unknown, options: McpRouteOptions): McpServerPars
   const enabled = value.enabled === true;
   const transport = value.transport;
   if (!id || !name || (transport !== 'stdio' && transport !== 'http' && transport !== 'sse')) {
-    return { ok: false };
+    // Attribute the failure to the (partial) server so the UI can show why a
+    // configured server produced no tools instead of silently dropping it.
+    return {
+      ok: false,
+      error: {
+        serverId: id || '(missing id)',
+        serverName: name || '(missing name)',
+        error: !id
+          ? 'MCP server configuration is missing a server ID.'
+          : !name
+            ? 'MCP server configuration is missing a name.'
+            : 'MCP server transport must be stdio, http, or sse.',
+      },
+    };
   }
 
   const server: McpServerConfig = {
@@ -104,7 +117,14 @@ const parseMcpServer = (value: unknown, options: McpRouteOptions): McpServerPars
   if (transport === 'stdio') {
     const command = typeof value.command === 'string' ? value.command.trim() : '';
     if (!command) {
-      return { ok: false };
+      return {
+        ok: false,
+        error: {
+          serverId: id,
+          serverName: name,
+          error: 'MCP stdio server requires a command.',
+        },
+      };
     }
 
     server.command = command;
@@ -118,7 +138,14 @@ const parseMcpServer = (value: unknown, options: McpRouteOptions): McpServerPars
   // http | sse
   const url = typeof value.url === 'string' ? value.url.trim() : '';
   if (!url) {
-    return { ok: false };
+    return {
+      ok: false,
+      error: {
+        serverId: id,
+        serverName: name,
+        error: 'MCP http/sse server requires a URL.',
+      },
+    };
   }
 
   if (!isValidMcpHttpUrl(url)) {
@@ -176,29 +203,41 @@ const handleListTools = async (
     !result.ok && result.error ? [result.error] : [],
   );
 
-  for (const server of enabledServers) {
-    if (server.transport === 'stdio' && !options.enableStdio) {
-      errors.push({
-        serverId: server.id,
-        serverName: server.name,
-        error: 'MCP stdio transport is disabled on this API server.',
-      });
-      continue;
-    }
+  // List concurrently: one slow or hung server must not delay the others.
+  const results = await Promise.all(
+    enabledServers.map(async (server) => {
+      if (server.transport === 'stdio' && !options.enableStdio) {
+        return {
+          error: {
+            serverId: server.id,
+            serverName: server.name,
+            error: 'MCP stdio transport is disabled on this API server.',
+          },
+        };
+      }
 
-    try {
-      servers.push({
-        serverId: server.id,
-        serverName: server.name,
-        tools: await mcpClient.listTools(server),
-      });
-    } catch (error) {
-      errors.push({
-        serverId: server.id,
-        serverName: server.name,
-        error: getErrorMessage(error),
-      });
-    }
+      try {
+        return {
+          server: {
+            serverId: server.id,
+            serverName: server.name,
+            tools: await mcpClient.listTools(server),
+          },
+        };
+      } catch (error) {
+        return {
+          error: {
+            serverId: server.id,
+            serverName: server.name,
+            error: getErrorMessage(error),
+          },
+        };
+      }
+    }),
+  );
+  for (const result of results) {
+    if (result.server) servers.push(result.server);
+    else errors.push(result.error);
   }
 
   sendJson(request, response, 200, { servers, errors }, allowedOrigins);
@@ -232,8 +271,13 @@ const handleCallTool = async (
   }
 
   const { server } = parsedServer;
-  if (!server.enabled || !toolName) {
-    sendJson(request, response, 400, { error: 'MCP server and tool name are required.' }, allowedOrigins);
+  if (!server.enabled) {
+    sendJson(request, response, 400, { error: 'MCP server is disabled.' }, allowedOrigins);
+    return;
+  }
+
+  if (!toolName) {
+    sendJson(request, response, 400, { error: 'MCP tool name is required.' }, allowedOrigins);
     return;
   }
 
@@ -281,17 +325,6 @@ const parseServersFromListBody = async (
   return { ok: true, enabledServers, errors };
 };
 
-const addStdioDisabledError = (
-  errors: Array<{ serverId: string; serverName: string; error: string }>,
-  server: McpServerConfig,
-) => {
-  errors.push({
-    serverId: server.id,
-    serverName: server.name,
-    error: 'MCP stdio transport is disabled on this API server.',
-  });
-};
-
 const handleListResources = async (
   request: IncomingMessage,
   response: ServerResponse,
@@ -310,31 +343,47 @@ const handleListResources = async (
   }> = [];
   const errors = [...parsed.errors];
 
-  for (const server of parsed.enabledServers) {
-    if (server.transport === 'stdio' && !options.enableStdio) {
-      addStdioDisabledError(errors, server);
-      continue;
-    }
-
-    try {
-      if (!mcpClient.listResourcesAndTemplates) {
-        throw new Error('MCP resources are not supported by this API server.');
+  // List concurrently so one slow server does not delay the rest.
+  const results = await Promise.all(
+    parsed.enabledServers.map(async (server) => {
+      if (server.transport === 'stdio' && !options.enableStdio) {
+        return {
+          error: {
+            serverId: server.id,
+            serverName: server.name,
+            error: 'MCP stdio transport is disabled on this API server.',
+          },
+        };
       }
 
-      const { resources, resourceTemplates } = await mcpClient.listResourcesAndTemplates(server);
-      servers.push({
-        serverId: server.id,
-        serverName: server.name,
-        resources,
-        resourceTemplates,
-      });
-    } catch (error) {
-      errors.push({
-        serverId: server.id,
-        serverName: server.name,
-        error: getErrorMessage(error),
-      });
-    }
+      try {
+        if (!mcpClient.listResourcesAndTemplates) {
+          throw new Error('MCP resources are not supported by this API server.');
+        }
+
+        const { resources, resourceTemplates } = await mcpClient.listResourcesAndTemplates(server);
+        return {
+          server: {
+            serverId: server.id,
+            serverName: server.name,
+            resources,
+            resourceTemplates,
+          },
+        };
+      } catch (error) {
+        return {
+          error: {
+            serverId: server.id,
+            serverName: server.name,
+            error: getErrorMessage(error),
+          },
+        };
+      }
+    }),
+  );
+  for (const result of results) {
+    if (result.server) servers.push(result.server);
+    else errors.push(result.error);
   }
 
   sendJson(request, response, 200, { servers, errors }, allowedOrigins);
@@ -355,8 +404,24 @@ const handleReadResource = async (
 
   const parsedServer = parseMcpServer(body.server, options);
   const uri = typeof body.uri === 'string' ? body.uri.trim() : '';
-  if (!parsedServer.ok || !parsedServer.server.enabled || !uri) {
-    sendJson(request, response, 400, { error: 'MCP server and resource URI are required.' }, allowedOrigins);
+  if (!parsedServer.ok) {
+    sendJson(
+      request,
+      response,
+      400,
+      { error: parsedServer.error?.error ?? 'MCP server and resource URI are required.' },
+      allowedOrigins,
+    );
+    return;
+  }
+
+  if (!parsedServer.server.enabled) {
+    sendJson(request, response, 400, { error: 'MCP server is disabled.' }, allowedOrigins);
+    return;
+  }
+
+  if (!uri) {
+    sendJson(request, response, 400, { error: 'MCP resource URI is required.' }, allowedOrigins);
     return;
   }
 
@@ -401,29 +466,45 @@ const handleListPrompts = async (
   }> = [];
   const errors = [...parsed.errors];
 
-  for (const server of parsed.enabledServers) {
-    if (server.transport === 'stdio' && !options.enableStdio) {
-      addStdioDisabledError(errors, server);
-      continue;
-    }
-
-    try {
-      if (!mcpClient.listPrompts) {
-        throw new Error('MCP prompts are not supported by this API server.');
+  // List concurrently so one slow server does not delay the rest.
+  const results = await Promise.all(
+    parsed.enabledServers.map(async (server) => {
+      if (server.transport === 'stdio' && !options.enableStdio) {
+        return {
+          error: {
+            serverId: server.id,
+            serverName: server.name,
+            error: 'MCP stdio transport is disabled on this API server.',
+          },
+        };
       }
 
-      servers.push({
-        serverId: server.id,
-        serverName: server.name,
-        prompts: await mcpClient.listPrompts(server),
-      });
-    } catch (error) {
-      errors.push({
-        serverId: server.id,
-        serverName: server.name,
-        error: getErrorMessage(error),
-      });
-    }
+      try {
+        if (!mcpClient.listPrompts) {
+          throw new Error('MCP prompts are not supported by this API server.');
+        }
+
+        return {
+          server: {
+            serverId: server.id,
+            serverName: server.name,
+            prompts: await mcpClient.listPrompts(server),
+          },
+        };
+      } catch (error) {
+        return {
+          error: {
+            serverId: server.id,
+            serverName: server.name,
+            error: getErrorMessage(error),
+          },
+        };
+      }
+    }),
+  );
+  for (const result of results) {
+    if (result.server) servers.push(result.server);
+    else errors.push(result.error);
   }
 
   sendJson(request, response, 200, { servers, errors }, allowedOrigins);
@@ -445,8 +526,24 @@ const handleGetPrompt = async (
   const parsedServer = parseMcpServer(body.server, options);
   const promptName = typeof body.promptName === 'string' ? body.promptName.trim() : '';
   const args = sanitizeStringRecord(body.args) ?? {};
-  if (!parsedServer.ok || !parsedServer.server.enabled || !promptName) {
-    sendJson(request, response, 400, { error: 'MCP server and prompt name are required.' }, allowedOrigins);
+  if (!parsedServer.ok) {
+    sendJson(
+      request,
+      response,
+      400,
+      { error: parsedServer.error?.error ?? 'MCP server and prompt name are required.' },
+      allowedOrigins,
+    );
+    return;
+  }
+
+  if (!parsedServer.server.enabled) {
+    sendJson(request, response, 400, { error: 'MCP server is disabled.' }, allowedOrigins);
+    return;
+  }
+
+  if (!promptName) {
+    sendJson(request, response, 400, { error: 'MCP prompt name is required.' }, allowedOrigins);
     return;
   }
 

@@ -42,7 +42,8 @@ describe('SlashCommandMenu', () => {
     const html = renderer.container.innerHTML;
     const frame = renderer.container.querySelector('[data-slash-command-frame="true"]');
 
-    expect(html).not.toContain('tracking-widest');
+    // Group headers now use tracking-widest (Cherry-style grouping), but quiet row invariants remain
+    expect(html).toContain('tracking-widest');
     expect(html).not.toContain('w-1 h-6');
     expect(html).not.toContain('w-8 h-8');
     expect(frame?.className.toString()).not.toContain('shadow-2xl');

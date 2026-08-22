@@ -29,7 +29,7 @@ type SendMessageFunc = (overrideOptions?: {
   isContinueMode?: boolean;
 }) => Promise<void>;
 
-interface MessageActionsProps {
+interface UseMessageActionsOptions {
   messages: ChatMessage[];
   isLoading: boolean;
   activeSessionId: string | null;
@@ -63,7 +63,7 @@ export const useMessageActions = ({
   userScrolledUpRef,
   handleSendMessage,
   setSessionLoading,
-}: MessageActionsProps) => {
+}: UseMessageActionsOptions) => {
   /**
    * @returns `stopped` when a local job was aborted; `no_local_job` when loading is remote/orphan
    * (and a cross-tab abort was requested); `not_loading` when nothing to stop.

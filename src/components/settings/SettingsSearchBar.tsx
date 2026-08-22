@@ -39,7 +39,7 @@ export const SettingsSearchBar: React.FC<SettingsSearchBarProps> = ({
       <Search
         size={iconSize}
         strokeWidth={1.5}
-        className={`pointer-events-none absolute ${iconLeftClass} top-1/2 z-[1] -translate-y-1/2 text-[var(--theme-text-tertiary)] transition-colors group-hover:text-[var(--theme-text-secondary)] group-focus-within:text-[var(--theme-text-primary)]`}
+        className={`pointer-events-none absolute ${iconLeftClass} top-1/2 z-[1] -translate-y-1/2 text-[var(--theme-text-secondary)] transition-colors group-hover:text-[var(--theme-text-secondary)] group-focus-within:text-[var(--theme-text-primary)]`}
         aria-hidden
       />
       <input
@@ -89,7 +89,7 @@ export const SettingsSearchBar: React.FC<SettingsSearchBarProps> = ({
         <button
           type="button"
           onClick={() => onChange('')}
-          className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-1 text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-primary)]/60 hover:text-[var(--theme-text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)]"
+          className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-1 text-[var(--theme-text-secondary)] transition-colors hover:bg-[var(--theme-bg-primary)]/60 hover:text-[var(--theme-text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)]"
           aria-label={t('settingsSearchClearAria')}
         >
           <X size={14} strokeWidth={2} />

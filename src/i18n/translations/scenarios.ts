@@ -1,6 +1,6 @@
 export const scenariosTranslations = {
   // PreloadedMessagesModal.tsx
-  scenariosTitle: { en: 'Preset Scenarios', zh: '预设场景', ja: 'プリセットシナリオ', es: 'Escenarios predefinidos', ko: '프리셋 시나리오', fr: 'Scénarios prédéfinis', de: 'Vordefinierte Szenarien' },
+  scenariosTitle: { en: 'Preset Scenarios', zh: '预设场景', ja: 'プリセットシナリオ', es: 'Escenarios predefinidos', ko: '프리셋 시나리오', fr: 'Scénarios prédéfinis', de: 'Voreingestellte Szenarien' },
   scenariosTitleCreate: { en: 'Create New Scenario', zh: '创建新场景', ja: '新規シナリオを作成', es: 'Crear nuevo escenario', ko: '새 시나리오 만들기', fr: 'Créer un nouveau scénario', de: 'Neues Szenario erstellen' },
   scenariosCloseAria: { en: 'Close scenarios manager', zh: '关闭场景管理器', ja: 'シナリオ管理を閉じる', es: 'Cerrar gestor de escenarios', ko: '시나리오 관리자 닫기', fr: 'Fermer le gestionnaire de scénarios', de: 'Szenario-Manager schließen' },
   scenariosFeedbackSaved: { en: 'Scenario saved', zh: '场景已保存', ja: 'シナリオを保存しました', es: 'Escenario guardado', ko: '시나리오가 저장되었습니다', fr: 'Scénario enregistré', de: 'Szenario gespeichert' },
@@ -30,14 +30,12 @@ export const scenariosTranslations = {
     zh: '在下方添加消息以编排对话流程。',
     ja: '下でメッセージを追加して、会話の流れを作成してください。', es: 'Añade mensajes abajo para definir el flujo de la conversación.', ko: '아래에 메시지를 추가하여 대화 흐름을 구성하세요.', fr: 'Ajoutez des messages ci-dessous pour définir le déroulement de la conversation.', de: 'Füge unten Nachrichten hinzu, um den Gesprächsverlauf zu gestalten.',
   },
-  scenariosEditorAddMessageAs: { en: 'Add Message As', zh: '添加消息身份', ja: '役割を選んで追加', es: 'Añadir mensaje como', ko: '다음으로 메시지 추가', fr: 'Ajouter un message en tant que', de: 'Nachricht hinzufügen als' },
+  scenariosEditorAddMessageAs: { en: 'Add Message As', zh: '以此身份添加消息', ja: '役割を選んで追加', es: 'Añadir mensaje como', ko: '다음으로 메시지 추가', fr: 'Ajouter un message en tant que', de: 'Nachricht hinzufügen als' },
   scenariosEditorCancelButton: { en: 'Cancel', zh: '取消', ja: 'キャンセル', es: 'Cancelar', ko: '취소', fr: 'Annuler', de: 'Abbrechen' },
   scenariosEditorUpdateButton: { en: 'Update Message', zh: '更新消息', ja: 'メッセージを更新', es: 'Actualizar mensaje', ko: '메시지 업데이트', fr: 'Mettre à jour le message', de: 'Nachricht aktualisieren' },
-  scenariosEditTitle: { en: 'Edit message', zh: '编辑消息', ja: 'メッセージを編集', es: 'Editar mensaje', ko: '메시지 편집', fr: 'Modifier le message', de: 'Nachricht bearbeiten' },
   scenariosEditScenarioTitle: { en: 'Edit scenario', zh: '编辑场景', ja: 'シナリオを編集', es: 'Editar escenario', ko: '시나리오 편집', fr: 'Modifier le scénario', de: 'Szenario bearbeiten' },
-  scenariosDeleteTitle: { en: 'Delete message', zh: '删除消息', ja: 'メッセージを削除', es: 'Eliminar mensaje', ko: '메시지 삭제', fr: 'Supprimer le message', de: 'Nachricht löschen' },
   scenariosDeleteScenarioTitle: { en: 'Delete scenario', zh: '删除场景', ja: 'シナリオを削除', es: 'Eliminar escenario', ko: '시나리오 삭제', fr: 'Supprimer le scénario', de: 'Szenario löschen' },
-  scenariosDuplicateTitle: { en: 'Duplicate scenario', zh: '创建副本', ja: 'シナリオを複製', es: 'Duplicar escenario', ko: '시나리오 복제', fr: 'Dupliquer le scénario', de: 'Szenario duplizieren' },
+  scenariosDuplicateTitle: { en: 'Duplicate scenario', zh: '复制场景', ja: 'シナリオを複製', es: 'Duplicar escenario', ko: '시나리오 복제', fr: 'Dupliquer le scénario', de: 'Szenario duplizieren' },
   scenariosExportSingleTitle: { en: 'Export scenario', zh: '导出场景', ja: 'シナリオをエクスポート', es: 'Exportar escenario', ko: '시나리오 내보내기', fr: 'Exporter le scénario', de: 'Szenario exportieren' },
   scenariosViewTitle: { en: 'View scenario', zh: '查看场景', ja: 'シナリオを表示', es: 'Ver escenario', ko: '시나리오 보기', fr: 'Voir le scénario', de: 'Szenario ansehen' },
   scenariosSystemPresetReadonlyBadge: { en: 'System Preset (Read Only)', zh: '系统预设（只读）', ja: 'システムプリセット（読み取り専用）', es: 'Preajuste del sistema (solo lectura)', ko: '시스템 프리셋 (읽기 전용)', fr: 'Préréglage système (lecture seule)', de: 'System-Voreinstellung (schreibgeschützt)' },
@@ -48,7 +46,7 @@ export const scenariosTranslations = {
   scenariosEditorSaveScenario: { en: 'Save Scenario', zh: '保存场景', ja: 'シナリオを保存', es: 'Guardar escenario', ko: '시나리오 저장', fr: 'Enregistrer le scénario', de: 'Szenario speichern' },
   scenariosEditorSaveScenarioTitle: { en: 'Save this scenario', zh: '保存该场景', ja: 'このシナリオを保存', es: 'Guardar este escenario', ko: '이 시나리오 저장', fr: 'Enregistrer ce scénario', de: 'Dieses Szenario speichern' },
   scenariosMessageCount: { en: '{count} msgs', zh: '{count} 条消息', ja: '{count}件のメッセージ', es: '{count} mensajes', ko: '{count}개 메시지', fr: '{count} messages', de: '{count} Nachrichten' },
-  scenariosSystemPromptLabel: { en: 'System Prompt', zh: '系统提示', ja: 'システムプロンプト', es: 'Prompt del sistema', ko: '시스템 프롬프트', fr: 'Invite système', de: 'System-Prompt' },
+  scenariosSystemPromptLabel: { en: 'System Prompt', zh: '系统提示', ja: 'システムプロンプト', es: 'Prompt del sistema', ko: '시스템 프롬프트', fr: 'Prompt système', de: 'System-Prompt' },
   scenariosSystemPromptPlaceholder: {
     en: 'Define the persona or rules for the model...',
     zh: '定义模型的角色或规则…',
@@ -77,7 +75,7 @@ export const scenariosTranslations = {
   scenariosCategoryAria: { en: 'Filter by category', zh: '按分类筛选', ja: 'カテゴリで絞り込む', es: 'Filtrar por categoría', ko: '카테고리로 필터링', fr: 'Filtrer par catégorie', de: 'Nach Kategorie filtern' },
 
   // Card actions
-  scenariosUseButtonTitle: { en: 'Load this scenario into chat', zh: '加载该场景到聊天', ja: 'このシナリオをチャットに読み込む', es: 'Cargar este escenario en el chat', ko: '이 시나리오를 채팅에 불러오기', fr: 'Charger ce scénario dans la discussion', de: 'Dieses Szenario in den Chat laden' },
+  scenariosUseButtonTitle: { en: 'Load this scenario into chat', zh: '将此场景加载到聊天', ja: 'このシナリオをチャットに読み込む', es: 'Cargar este escenario en el chat', ko: '이 시나리오를 채팅에 불러오기', fr: 'Charger ce scénario dans la discussion', de: 'Dieses Szenario in den Chat laden' },
   scenariosActionsAria: { en: 'Scenario actions', zh: '场景操作', ja: 'シナリオ操作', es: 'Acciones del escenario', ko: '시나리오 작업', fr: 'Actions du scénario', de: 'Szenario-Aktionen' },
   scenariosPreviewFallback: { en: 'No description', zh: '暂无描述', ja: '説明なし', es: 'Sin descripción', ko: '설명 없음', fr: 'Aucune description', de: 'Keine Beschreibung' },
 
@@ -95,8 +93,8 @@ export const scenariosTranslations = {
   scenariosConfirmCloseTitle: { en: 'Discard unsaved changes?', zh: '放弃未保存的更改？', ja: '未保存の変更を破棄しますか？', es: '¿Descartar cambios sin guardar?', ko: '저장되지 않은 변경사항을 버리시겠습니까?', fr: 'Ignorer les modifications non enregistrées ?', de: 'Ungespeicherte Änderungen verwerfen?' },
   scenariosConfirmCloseMessage: {
     en: 'You have unsaved changes. Closing will discard them.',
-    zh: '你有未保存的更改，关闭后将丢失。',
-    ja: '未保存の変更があります。閉じると変更は破棄されます。', es: 'Tienes cambios sin guardar. Si cierras, se perderán.', ko: '저장되지 않은 변경사항이 있습니다. 닫으면 변경사항이 사라집니다.', fr: 'Vous avez des modifications non enregistrées. Les fermer les supprimera.', de: 'Du hast ungespeicherte Änderungen. Beim Schließen gehen sie verloren.',
+    zh: '您有未保存的更改，关闭后将丢失。',
+    ja: '未保存の変更があります。閉じると変更は破棄されます。', es: 'Tienes cambios sin guardar. Si cierras, se perderán.', ko: '저장되지 않은 변경사항이 있습니다. 닫으면 변경사항이 사라집니다.', fr: 'Vous avez des modifications non enregistrées. Si vous fermez maintenant, elles seront perdues.', de: 'Du hast ungespeicherte Änderungen. Beim Schließen gehen sie verloren.',
   },
   scenariosConfirmCloseConfirm: { en: 'Discard and close', zh: '放弃并关闭', ja: '破棄して閉じる', es: 'Descartar y cerrar', ko: '버리고 닫기', fr: 'Ignorer et fermer', de: 'Verwerfen und schließen' },
   scenariosConfirmDeleteTitle: { en: 'Delete scenario?', zh: '删除该场景？', ja: 'シナリオを削除しますか？', es: '¿Eliminar escenario?', ko: '시나리오를 삭제하시겠습니까?', fr: 'Supprimer le scénario ?', de: 'Szenario löschen?' },

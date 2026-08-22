@@ -202,7 +202,7 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
             )}
             <span className="font-medium truncate" title={displayTitle}>
               {generatingTitleSessionIds.has(session.id) ? (
-                <div className="flex items-center gap-2 text-xs text-[var(--theme-text-tertiary)]">
+                <div className="flex items-center gap-2 text-xs text-[var(--theme-text-secondary)]">
                   <LoadingDots />
                   <span>{t('generatingTitle')}</span>
                 </div>
@@ -230,9 +230,9 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
             {!generatingTitleSessionIds.has(session.id) && (
               <button
                 onClick={(e) => toggleMenu(e, session.id)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-[var(--theme-bg-secondary)] p-1 text-[var(--theme-text-tertiary)] opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)]"
+                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-[var(--theme-bg-secondary)] p-1 text-[var(--theme-text-primary)] opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)]"
               >
-                <MoreHorizontal size={16} strokeWidth={2} />
+                <MoreHorizontal size={16} strokeWidth={2.2} />
               </button>
             )}
           </>

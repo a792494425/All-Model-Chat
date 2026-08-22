@@ -106,6 +106,7 @@ const BASE_DEFAULT_APP_SETTINGS: Omit<AppSettings, 'thirdPartyApi'> = {
   isPasteAsTextFileEnabled: true,
   showInputPasteButton: true,
   showInputClearButton: true,
+  showVoiceInputButton: false,
   isCopySelectionFormattingEnabled: true,
   isSystemAudioRecordingEnabled: false,
   mcpServers: [],

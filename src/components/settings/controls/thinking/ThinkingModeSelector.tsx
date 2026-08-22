@@ -26,7 +26,7 @@ export const ThinkingModeSelector: React.FC<ThinkingModeSelectorProps> = ({
         className={`flex items-center justify-center gap-2 py-2 text-xs sm:text-sm font-medium rounded-md transition-all duration-200 focus:outline-none ${
           mode === 'auto'
             ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-sm ring-1 ring-[var(--theme-border-secondary)]'
-            : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-primary)]/50'
+            : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-primary)]/50'
         }`}
       >
         <SparklesIcon active={mode === 'auto'} />
@@ -38,7 +38,7 @@ export const ThinkingModeSelector: React.FC<ThinkingModeSelectorProps> = ({
         className={`flex items-center justify-center gap-2 py-2 text-xs sm:text-sm font-medium rounded-md transition-all duration-200 focus:outline-none ${
           mode === 'custom'
             ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-sm ring-1 ring-[var(--theme-border-secondary)]'
-            : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-primary)]/50'
+            : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-primary)]/50'
         }`}
       >
         <Settings2
@@ -55,7 +55,7 @@ export const ThinkingModeSelector: React.FC<ThinkingModeSelectorProps> = ({
           className={`flex items-center justify-center gap-2 py-2 text-xs sm:text-sm font-medium rounded-md transition-all duration-200 focus:outline-none ${
             mode === 'off'
               ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-sm ring-1 ring-[var(--theme-border-secondary)]'
-              : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-primary)]/50'
+              : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-primary)]/50'
           }`}
         >
           <Ban

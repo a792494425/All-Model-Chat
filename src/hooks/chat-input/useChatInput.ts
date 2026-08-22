@@ -104,6 +104,7 @@ export const useChatInput = () => {
     currentModelId: currentChatSettings.modelId,
     onSetThinkingLevel: (level) => setCurrentChatSettings((prev) => ({ ...prev, thinkingLevel: level })),
     thinkingLevel: currentChatSettings.thinkingLevel,
+    inputText: inputState.inputText,
   });
 
   const { canSend, canQueueMessageBase, isAnyModalOpen } = getChatInputAvailability({

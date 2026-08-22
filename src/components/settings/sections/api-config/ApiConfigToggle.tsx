@@ -46,7 +46,7 @@ export const ApiConfigToggle: React.FC<ApiConfigToggleProps> = ({
             </span>
           )}
         </span>
-        <span className="text-xs text-[var(--theme-text-tertiary)] mt-0.5">
+        <span className="text-xs text-[var(--theme-text-secondary)] mt-0.5">
           {useCustomApiConfig
             ? hasEnvKey
               ? t('apiConfigOverridingEnvKey')

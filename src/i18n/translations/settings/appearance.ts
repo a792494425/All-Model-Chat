@@ -4,13 +4,13 @@ const appearanceSettings = {
   settingsThemeDark: { en: 'Dark', zh: '暗色', ja: 'ダーク', ko: '다크', es: 'Oscuro', fr: 'Sombre', de: 'Dunkel' },
   settingsThemeGray: { en: 'Gray', zh: '灰色', ja: 'グレー', ko: '그레이', es: 'Gris', fr: 'Gris', de: 'Grau' },
   settingsThemeLight: { en: 'Light', zh: '浅色', ja: 'ライト', ko: '라이트', es: 'Claro', fr: 'Clair', de: 'Hell' },
-  settingsFontSize: { en: 'Reading Size', zh: '阅读字号', ja: '読書サイズ', ko: '읽기 크기', es: 'Tamaño de lectura', fr: 'Taille de lecture', de: 'Lesegröße' },
+  settingsFontSize: { en: 'Reading Size', zh: '阅读字号', ja: '本文の文字サイズ', ko: '본문 글자 크기', es: 'Tamaño de lectura', fr: 'Taille de lecture', de: 'Lesegröße' },
   settingsFontSizeTooltip: {
     en: 'Controls message body text size in chat. Sidebar, headers, and other chrome stay at the interface scale.',
     zh: '控制聊天消息正文的字号。侧边栏、顶栏等界面元素保持界面字号，不受此设置影响。',
-    ja: 'チャット内のメッセージ本文の文字サイズを調整します。サイドバーやヘッダーなどのインターフェース部分はインターフェースの拡大率を維持します。', ko: '채팅에서 메시지 본문 텍스트 크기를 조절합니다. 사이드바, 헤더 및 기타 인터페이스 요소는 인터페이스 배율 그대로 유지됩니다.', es: 'Controla el tamaño del texto del cuerpo del mensaje en el chat. La barra lateral, los encabezados y otros elementos de la interfaz mantienen la escala de la interfaz.', fr: 'Contrôle la taille du texte du corps des messages dans le chat. La barre latérale, les en-têtes et les autres éléments d\'interface conservent l\'échelle de l\'interface.', de: 'Steuert die Textgröße des Nachrichtentexts im Chat. Seitenleiste, Kopfzeilen und andere Oberflächenelemente bleiben bei der Oberflächenskalierung.',
+    ja: 'チャット内のメッセージ本文の文字サイズを調整します。サイドバーやヘッダーなどその他のUI部分は、インターフェース全体の拡大率のままです。', ko: '채팅에서 메시지 본문 텍스트 크기를 조절합니다. 사이드바, 헤더 및 기타 인터페이스 요소는 인터페이스 배율 그대로 유지됩니다.', es: 'Controla el tamaño del texto del cuerpo del mensaje en el chat. La barra lateral, los encabezados y otros elementos de la interfaz mantienen la escala de la interfaz.', fr: 'Contrôle la taille du texte du corps des messages dans le chat. La barre latérale, les en-têtes et les autres éléments d\'interface conservent l\'échelle de l\'interface.', de: 'Steuert die Textgröße des Nachrichtentexts im Chat. Seitenleiste, Kopfzeilen und andere Oberflächenelemente bleiben bei der Oberflächenskalierung.',
   },
-  settingsLiveArtifactsFontSize: { en: 'Live Artifacts Base Size', zh: 'Live Artifacts 基础字号', ja: 'Live Artifacts 基本サイズ', ko: 'Live Artifacts 기본 크기', es: 'Tamaño base de Live Artifacts', fr: 'Taille de base de Live Artifacts', de: 'Live Artifacts Basisgröße' },
+  settingsLiveArtifactsFontSize: { en: 'Live Artifacts Base Size', zh: 'Live Artifacts 基础字号', ja: 'Live Artifacts基本サイズ', ko: 'Live Artifacts 기본 크기', es: 'Tamaño base de Live Artifacts', fr: 'Taille de base de Live Artifacts', de: 'Basisgröße für Live Artifacts' },
   settingsLiveArtifactsFontSizeTooltip: {
     en: 'Sets the default font size for inline Live Artifacts in chat. Artifact content with its own font-size may still override it.',
     zh: '设置聊天内嵌 Live Artifacts 的默认字号。产物内容自带的 font-size 仍可能覆盖它。',
@@ -32,17 +32,17 @@ const appearanceSettings = {
   settingsNotificationsFeedback: { en: 'Notifications & Feedback', zh: '通知与反馈', ja: '通知とフィードバック', ko: '알림 및 피드백', es: 'Notificaciones y comentarios', fr: 'Notifications et retours', de: 'Benachrichtigungen & Feedback' },
   // Interface Toggles
   settingsExpandCodeBlocksByDefaultLabel: { en: 'Expand Code Blocks Automatically', zh: '自动展开代码块', ja: 'コードブロックを自動的に展開', ko: '코드 블록 자동 확장', es: 'Expandir bloques de código automáticamente', fr: 'Développer automatiquement les blocs de code', de: 'Codeblöcke automatisch erweitern' },
-  settingsEnableMermaidRenderingLabel: { en: 'Render Mermaid Diagrams', zh: '渲染 Mermaid 图表', ja: 'Mermaid 図表をレンダリング', ko: 'Mermaid 다이어그램 렌더링', es: 'Renderizar diagramas Mermaid', fr: 'Rendre les diagrammes Mermaid', de: 'Mermaid-Diagramme rendern' },
+  settingsEnableMermaidRenderingLabel: { en: 'Render Mermaid Diagrams', zh: '渲染 Mermaid 图表', ja: 'Mermaid 図表をレンダリング', ko: 'Mermaid 다이어그램 렌더링', es: 'Renderizar diagramas Mermaid', fr: 'Effectuer le rendu des diagrammes Mermaid', de: 'Mermaid-Diagramme rendern' },
   settingsEnableMermaidRenderingTooltip: {
     en: "Render code blocks marked as 'mermaid' into diagrams.",
-    zh: "将标记为 'mermaid' 的代码块渲染成图表。",
-    ja: "'mermaid' とマークされたコードブロックを図表としてレンダリングします。", ko: '\'mermaid\'로 표시된 코드 블록을 다이어그램으로 렌더링합니다.', es: 'Renderiza los bloques de código marcados como \'mermaid\' como diagramas.', fr: 'Rend les blocs de code marqués comme \'mermaid\' en diagrammes.', de: 'Rendert Codeblöcke, die als \'mermaid\' markiert sind, als Diagramme.',
+    zh: "将标记为“mermaid”的代码块渲染成图表。",
+    ja: "'mermaid' とマークされたコードブロックを図表としてレンダリングします。", ko: '\'mermaid\'로 표시된 코드 블록을 다이어그램으로 렌더링합니다.', es: 'Renderiza los bloques de código marcados como \'mermaid\' como diagramas.', fr: 'Rend les blocs de code marqués comme « mermaid » sous forme de diagrammes.', de: 'Rendert Codeblöcke, die als \'mermaid\' markiert sind, als Diagramme.',
   },
-  settingsEnableGraphvizRenderingLabel: { en: 'Render Graphviz Diagrams', zh: '渲染 Graphviz 图表', ja: 'Graphviz 図表をレンダリング', ko: 'Graphviz 다이어그램 렌더링', es: 'Renderizar diagramas Graphviz', fr: 'Rendre les diagrammes Graphviz', de: 'Graphviz-Diagramme rendern' },
+  settingsEnableGraphvizRenderingLabel: { en: 'Render Graphviz Diagrams', zh: '渲染 Graphviz 图表', ja: 'Graphviz 図表をレンダリング', ko: 'Graphviz 다이어그램 렌더링', es: 'Renderizar diagramas Graphviz', fr: 'Effectuer le rendu des diagrammes Graphviz', de: 'Graphviz-Diagramme rendern' },
   settingsEnableGraphvizRenderingTooltip: {
     en: "Render code blocks marked as 'graphviz' or 'dot' into diagrams.",
-    zh: "将标记为 'graphviz' 或 'dot' 的代码块渲染成图表。",
-    ja: "'graphviz' または 'dot' とマークされたコードブロックを図表としてレンダリングします。", ko: '\'graphviz\' 또는 \'dot\'으로 표시된 코드 블록을 다이어그램으로 렌더링합니다.', es: 'Renderiza los bloques de código marcados como \'graphviz\' o \'dot\' como diagramas.', fr: 'Rend les blocs de code marqués comme \'graphviz\' ou \'dot\' en diagrammes.', de: 'Rendert Codeblöcke, die als \'graphviz\' oder \'dot\' markiert sind, als Diagramme.',
+    zh: "将标记为“graphviz”或“dot”的代码块渲染成图表。",
+    ja: "'graphviz' または 'dot' とマークされたコードブロックを図表としてレンダリングします。", ko: '\'graphviz\' 또는 \'dot\'으로 표시된 코드 블록을 다이어그램으로 렌더링합니다.', es: 'Renderiza los bloques de código marcados como \'graphviz\' o \'dot\' como diagramas.', fr: 'Rend les blocs de code marqués comme « graphviz » ou « dot » sous forme de diagrammes.', de: 'Rendert Codeblöcke, die als \'graphviz\' oder \'dot\' markiert sind, als Diagramme.',
   },
   settingsAutoFullscreenHtmlLabel: { en: 'Auto-open Preview', zh: '自动打开预览', ja: 'プレビューを自動で開く', ko: '미리보기 자동 열기', es: 'Abrir vista previa automáticamente', fr: 'Ouvrir automatiquement l\'aperçu', de: 'Vorschau automatisch öffnen' },
   settingsAutoFullscreenHtmlTooltip: {
@@ -54,9 +54,9 @@ const appearanceSettings = {
   settingsUnwrapMislabeledHtmlTooltip: {
     en: 'When a code block labeled text/css/markdown contains a complete HTML document or Live Artifacts markup, render it as a live preview instead of plain source. Turn off to always show these blocks as code.',
     zh: '当 text/css/markdown 等代码块中包含完整 HTML 文档或 Live Artifacts 标记时，自动渲染为实时预览而非源码。关闭后此类代码块始终按源码显示。',
-    ja: 'text/css/markdown などとラベル付けされたコードブロックに完全な HTML ドキュメントや Live Artifacts のマークアップが含まれている場合、ソースコードではなくライブプレビューとしてレンダリングします。オフにすると、これらのブロックは常にコードとして表示されます。', ko: 'text/css/markdown으로 표시된 코드 블록에 완전한 HTML 문서나 Live Artifacts 마크업이 포함된 경우, 일반 소스 대신 라이브 미리보기로 렌더링합니다. 끄면 이러한 블록이 항상 코드로 표시됩니다.', es: 'Cuando un bloque de código etiquetado como text/css/markdown contiene un documento HTML completo o marcado de Live Artifacts, renderízalo como vista previa en vivo en lugar de código fuente. Desactívalo para mostrar siempre estos bloques como código.', fr: 'Lorsqu\'un bloc de code étiqueté text/css/markdown contient un document HTML complet ou un balisage Live Artifacts, le rendre comme aperçu en direct au lieu du code source brut. Désactivez pour toujours afficher ces blocs comme code.', de: 'Wenn ein als text/css/markdown gekennzeichneter Codeblock ein vollständiges HTML-Dokument oder Live Artifacts-Markup enthält, rendern Sie ihn als Live-Vorschau statt als reinen Quelltext. Deaktivieren Sie diese Option, um diese Blöcke immer als Code anzuzeigen.',
+    ja: 'text/css/markdown などとラベル付けされたコードブロックに完全な HTML ドキュメントや Live Artifacts のマークアップが含まれている場合、ソースコードではなくライブプレビューとしてレンダリングします。オフにすると、これらのブロックは常にコードとして表示されます。', ko: 'text/css/markdown으로 표시된 코드 블록에 완전한 HTML 문서나 Live Artifacts 마크업이 포함된 경우, 일반 소스 대신 라이브 미리보기로 렌더링합니다. 끄면 이러한 블록이 항상 코드로 표시됩니다.', es: 'Cuando un bloque de código etiquetado como text/css/markdown contiene un documento HTML completo o marcado de Live Artifacts, renderízalo como vista previa en vivo en lugar de código fuente. Desactívalo para mostrar siempre estos bloques como código.', fr: 'Lorsqu\'un bloc de code étiqueté text/css/markdown contient un document HTML complet ou un balisage Live Artifacts, le rendre comme aperçu en direct au lieu du code source brut. Désactivez pour toujours afficher ces blocs comme code.', de: 'Wenn ein als text/css/markdown gekennzeichneter Codeblock ein vollständiges HTML-Dokument oder Live Artifacts-Markup enthält, wird er als Live-Vorschau statt als reiner Quelltext gerendert. Deaktiviere diese Option, um diese Blöcke immer als Code anzuzeigen.',
   },
-  isAutoTitleEnabled: { en: 'Auto-name New Chats', zh: '自动命名新对话', ja: '新しいチャットを自動命名', ko: '새 채팅 자동 이름 지정', es: 'Nombrar chats nuevos automáticamente', fr: 'Nommer automatiquement les nouveaux chats', de: 'Neue Chats automatisch benennen' },
+  isAutoTitleEnabled: { en: 'Auto-name New Chats', zh: '自动命名新聊天', ja: '新しいチャットを自動命名', ko: '새 채팅 자동 이름 지정', es: 'Nombrar chats nuevos automáticamente', fr: 'Nommer automatiquement les nouveaux chats', de: 'Neue Chats automatisch benennen' },
   isAutoTitleEnabledTooltip: {
     en: 'Automatically generate a title for a new chat after the first exchange using a fast model.',
     zh: '在新对话首次往返后，使用快速模型自动生成标题。',
@@ -76,7 +76,7 @@ const appearanceSettings = {
   settingsNotificationsBlocked: {
     en: 'Notifications are blocked by your browser. Please enable them in your browser settings to use this feature.',
     zh: '浏览器已阻止通知。请在浏览器设置中启用通知后再使用此功能。',
-    ja: 'ブラウザで通知がブロックされています。この機能を使用するには、ブラウザの設定で通知を有効にしてください。', ko: '브라우저에서 알림이 차단되었습니다. 이 기능을 사용하려면 브라우저 설정에서 알림을 활성화하세요.', es: 'Las notificaciones están bloqueadas por tu navegador. Actívalas en la configuración del navegador para usar esta función.', fr: 'Les notifications sont bloquées par votre navigateur. Veuillez les activer dans les paramètres de votre navigateur pour utiliser cette fonctionnalité.', de: 'Benachrichtigungen werden von Ihrem Browser blockiert. Bitte aktivieren Sie sie in Ihren Browser-Einstellungen, um diese Funktion zu nutzen.',
+    ja: 'ブラウザで通知がブロックされています。この機能を使用するには、ブラウザの設定で通知を有効にしてください。', ko: '브라우저에서 알림이 차단되었습니다. 이 기능을 사용하려면 브라우저 설정에서 알림을 활성화하세요.', es: 'Las notificaciones están bloqueadas por tu navegador. Actívalas en la configuración del navegador para usar esta función.', fr: 'Les notifications sont bloquées par votre navigateur. Veuillez les activer dans les paramètres de votre navigateur pour utiliser cette fonctionnalité.', de: 'Benachrichtigungen werden von deinem Browser blockiert. Bitte aktiviere sie in deinen Browser-Einstellungen, um diese Funktion zu nutzen.',
   },
   settingsEnableCompletionSoundLabel: { en: 'Completion Sound', zh: '完成提示音', ja: '完了通知音', ko: '완료음', es: 'Sonido de finalización', fr: 'Son de fin', de: 'Abschluss-Ton' },
   settingsEnableCompletionSoundTooltip: {
@@ -107,7 +107,7 @@ const appearanceSettings = {
   settingsPasteAsTextFileTooltip: {
     en: 'Automatically convert large pasted text (>5000 characters) into an attached .txt file.',
     zh: '粘贴大量文本（>5000 字符）时，自动将其转换为 .txt 附件。',
-    ja: '大量のテキスト（5000 文字超）を貼り付けた際に、自動的に添付 .txt ファイルに変換します。', ko: '큰 붙여넣은 텍스트(5000자 초과)를 자동으로 첨부된 .txt 파일로 변환합니다.', es: 'Convierte automáticamente el texto pegado grande (>5000 caracteres) en un archivo .txt adjunto.', fr: 'Convertit automatiquement le long texte collé (>5000 caractères) en fichier .txt joint.', de: 'Wandelt großen eingefügten Text (>5000 Zeichen) automatisch in eine angehängte .txt-Datei um.',
+    ja: '大量のテキスト（5000文字超）を貼り付けた際に、自動的に .txt ファイルとして添付します。', ko: '큰 붙여넣은 텍스트(5000자 초과)를 자동으로 첨부된 .txt 파일로 변환합니다.', es: 'Convierte automáticamente el texto pegado grande (>5000 caracteres) en un archivo .txt adjunto.', fr: 'Convertit automatiquement le long texte collé (>5000 caractères) en fichier .txt joint.', de: 'Wandelt großen eingefügten Text (>5000 Zeichen) automatisch in eine angehängte .txt-Datei um.',
   },
   settingsShowInputTranslationButtonLabel: { en: 'Show Translate Button', zh: '显示翻译按钮', ja: '翻訳ボタンを表示', ko: '번역 버튼 표시', es: 'Mostrar botón de traducir', fr: 'Afficher le bouton de traduction', de: 'Übersetzen-Schaltfläche anzeigen' },
   settingsShowInputTranslationButtonTooltip: {
@@ -127,6 +127,12 @@ const appearanceSettings = {
     zh: '控制消息发送按钮旁是否显示清空输入框按钮。',
     ja: 'メッセージ送信ボタンの横に入力クリアボタンを表示するかどうかを制御します。', ko: '메시지 전송 버튼 옆에 입력 지우기 버튼이 표시되는지 여부를 제어합니다.', es: 'Controla si el botón de borrar entrada aparece junto al botón de enviar mensaje.', fr: 'Contrôle si le bouton Effacer la saisie apparaît à côté du bouton d\'envoi de message.', de: 'Steuert, ob die Eingabe-löschen-Schaltfläche neben der Nachrichten-Senden-Schaltfläche angezeigt wird.',
   },
+  settingsShowVoiceInputButtonLabel: { en: 'Show Voice Input Button', zh: '显示语音输入按钮', ja: '音声入力ボタンを表示', ko: '음성 입력 버튼 표시', es: 'Mostrar botón de entrada de voz', fr: 'Afficher le bouton de saisie vocale', de: 'Spracheingabe-Schaltfläche anzeigen' },
+  settingsShowVoiceInputButtonTooltip: {
+    en: 'Controls whether the microphone button for voice input appears beside the message send button. Hidden by default.',
+    zh: '控制消息发送按钮旁是否显示语音输入的麦克风按钮。默认隐藏。',
+    ja: 'メッセージ送信ボタンの横に音声入力のマイクボタンを表示するかどうかを制御します。デフォルトは非表示です。', ko: '메시지 전송 버튼 옆에 음성 입력 마이크 버튼이 표시되는지 여부를 제어합니다. 기본값은 숨김입니다.', es: 'Controla si el botón del micrófono para la entrada de voz aparece junto al botón de enviar mensaje. Oculto por defecto.', fr: 'Contrôle si le bouton du microphone pour la saisie vocale apparaît à côté du bouton d\'envoi de message. Masqué par défaut.', de: 'Steuert, ob die Mikrofon-Schaltfläche für die Spracheingabe neben der Nachrichten-Senden-Schaltfläche angezeigt wird. Standardmäßig ausgeblendet.',
+  },
   settingsCopySelectionFormattingLabel: {
     en: 'Preserve Formatting When Copying Selection',
     zh: '复制选区时保留格式',
@@ -135,7 +141,7 @@ const appearanceSettings = {
   settingsCopySelectionFormattingTooltip: {
     en: 'When enabled, copied message selections keep Markdown formatting. Turn it off to copy plain selected text only.',
     zh: '启用后，复制消息选区会保留 Markdown 格式。关闭后只复制纯文本。',
-    ja: '有効にすると、コピーしたメッセージの選択範囲で Markdown の書式が保持されます。オフにすると、選択したプレーンテキストのみがコピーされます。', ko: '활성화하면 복사된 메시지 선택 영역이 Markdown 서식을 유지합니다. 끄면 선택한 일반 텍스트만 복사됩니다.', es: 'Cuando está activado, las selecciones de mensajes copiadas conservan el formato Markdown. Desactívalo para copiar solo el texto seleccionado sin formato.', fr: 'Lorsque cette option est activée, les sélections de messages copiées conservent la mise en forme Markdown. Désactivez-la pour copier uniquement le texte sélectionné brut.', de: 'Wenn aktiviert, behalten kopierte Nachrichtenauswahlen die Markdown-Formatierung. Deaktivieren Sie die Option, um nur den ausgewählten Klartext zu kopieren.',
+    ja: '有効にすると、コピーしたメッセージの選択範囲で Markdown の書式が保持されます。オフにすると、選択したプレーンテキストのみがコピーされます。', ko: '활성화하면 복사된 메시지 선택 영역이 Markdown 서식을 유지합니다. 끄면 선택한 일반 텍스트만 복사됩니다.', es: 'Cuando está activado, las selecciones de mensajes copiadas conservan el formato Markdown. Desactívalo para copiar solo el texto seleccionado sin formato.', fr: 'Lorsque cette option est activée, les sélections de messages copiées conservent la mise en forme Markdown. Désactivez-la pour copier uniquement le texte sélectionné brut.', de: 'Wenn aktiviert, behalten kopierte Nachrichtenauswahlen die Markdown-Formatierung. Deaktiviere die Option, um nur den ausgewählten Klartext zu kopieren.',
   },
   settingsSystemAudioRecordingLabel: { en: 'Include System Audio in Recordings', zh: '录音时包含系统音频', ja: '録音にシステム音声を含める', ko: '녹음에 시스템 오디오 포함', es: 'Incluir audio del sistema en grabaciones', fr: 'Inclure l\'audio système dans les enregistrements', de: 'System-Audio in Aufnahmen einschließen' },
   settingsRawModeLabel: { en: 'Raw Reasoning', zh: '原始推理', ja: '生の推論', ko: '원시 추론', es: 'Razonamiento sin procesar', fr: 'Raisonnement brut', de: 'Rohes Reasoning' },

@@ -65,6 +65,7 @@ export const ChatInputProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const onStopLiveVideo = useLatestCallback(() => liveApi.stopVideo());
   const onToggleToolAndFocus = useLatestCallback(handlers.handleToggleToolAndFocus);
   const onCountTokens = useLatestCallback(() => localFileState.setShowTokenModal(true));
+  const onNewChat = useLatestCallback(() => logic.chatInput.onNewChat());
   const onAddFileByIdSubmit = useLatestCallback(handlers.handleAddFileByIdSubmit);
   const onCancelAddById = useLatestCallback(() => {
     logic.modalsState.setShowAddByIdInput(false);
@@ -166,6 +167,7 @@ export const ChatInputProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       currentModelId: logic.chatInput.currentChatSettings.modelId,
       toolStates: logic.chatInput.toolStates,
       onAttachmentAction,
+      onNewChat,
       disabled: actionDisabled,
       onRecordButtonClick,
       onCancelRecording,
@@ -195,6 +197,7 @@ export const ChatInputProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       showInputTranslationButton: logic.chatInput.appSettings.showInputTranslationButton ?? false,
       showInputPasteButton: logic.chatInput.appSettings.showInputPasteButton ?? true,
       showInputClearButton: logic.chatInput.appSettings.showInputClearButton ?? true,
+      showVoiceInputButton: logic.chatInput.appSettings.showVoiceInputButton ?? false,
     }),
     [
       actionDisabled,
@@ -210,11 +213,13 @@ export const ChatInputProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       logic.chatInput.appSettings.showInputClearButton,
       logic.chatInput.appSettings.showInputPasteButton,
       logic.chatInput.appSettings.showInputTranslationButton,
+      logic.chatInput.appSettings.showVoiceInputButton,
       logic.chatInput.currentChatSettings.modelId,
       logic.chatInput.isEditing,
       logic.chatInput.isLoading,
       logic.chatInput.toolStates,
       onAttachmentAction,
+      onNewChat,
       onCancelRecording,
       onCountTokens,
       onDisconnectLiveSession,
@@ -266,10 +271,9 @@ export const ChatInputProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       initialTextareaHeight: INITIAL_TEXTAREA_HEIGHT_PX,
       handleStartLiveCamera,
       handleStartLiveScreenShare,
-      queuedCount,
       queuedSubmissionsView,
     }),
-    [handleStartLiveCamera, handleStartLiveScreenShare, inputDisabled, logic, queuedCount, queuedSubmissionsView],
+    [handleStartLiveCamera, handleStartLiveScreenShare, inputDisabled, logic, queuedSubmissionsView],
   );
 
   return (

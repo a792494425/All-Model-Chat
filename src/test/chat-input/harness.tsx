@@ -111,6 +111,7 @@ const mockChatInputUiSettings = vi.hoisted(() => ({
   showInputTranslationButton: undefined as boolean | undefined,
   showInputPasteButton: undefined as boolean | undefined,
   showInputClearButton: undefined as boolean | undefined,
+  showVoiceInputButton: undefined as boolean | undefined,
 }));
 
 const mockApiUtils = vi.hoisted(() => ({
@@ -345,6 +346,7 @@ const ChatInputTestProvider = ({ value, children }: { value: ChatAreaProviderVal
   mockChatInputUiSettings.showInputTranslationButton = value.input.appSettings.showInputTranslationButton ?? false;
   mockChatInputUiSettings.showInputPasteButton = value.input.appSettings.showInputPasteButton ?? true;
   mockChatInputUiSettings.showInputClearButton = value.input.appSettings.showInputClearButton ?? true;
+  mockChatInputUiSettings.showVoiceInputButton = value.input.appSettings.showVoiceInputButton ?? false;
   mockChatStoreState.setSelectedFiles = value.input.setSelectedFiles as typeof mockChatStoreState.setSelectedFiles;
   mockChatStoreState.setAppFileError = value.input.setAppFileError as typeof mockChatStoreState.setAppFileError;
   mockChatStoreState.setEditingMessageId = value.input

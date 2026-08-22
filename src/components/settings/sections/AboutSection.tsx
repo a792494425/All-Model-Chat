@@ -132,7 +132,7 @@ export const AboutSection: React.FC = () => {
           {getStatusText()}
           {isUpdateAvailable && latestVersion ? ` (${latestVersion})` : null}
         </span>
-        <ExternalLink size={12} className="text-[var(--theme-text-tertiary)]" />
+        <ExternalLink size={12} className="text-[var(--theme-text-secondary)]" />
       </a>
 
       <p className="mt-3 max-w-md text-sm leading-6 text-[var(--theme-text-secondary)]">{t('aboutDescription')}</p>
@@ -155,7 +155,7 @@ export const AboutSection: React.FC = () => {
           rel="noopener noreferrer"
           className={`${SETTINGS_OUTLINE_BUTTON_CLASS} w-full sm:w-auto`}
         >
-          <Star size={16} className="text-[var(--theme-text-tertiary)]" />
+          <Star size={16} className="text-[var(--theme-text-secondary)]" />
           <span className="tabular-nums">{starCountLabel}</span>
           <span>{t('aboutStarsLabel')}</span>
         </a>

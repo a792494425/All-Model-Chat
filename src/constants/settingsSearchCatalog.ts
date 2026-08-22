@@ -52,6 +52,13 @@ const interfaceEntries: SettingsSearchEntry[] = [
     groupKey: 'settingsInputToolbar',
   },
   {
+    id: 'interface-show-voice',
+    tab: 'interface',
+    labelKey: 'settingsShowVoiceInputButtonLabel',
+    descriptionKey: 'settingsShowVoiceInputButtonTooltip',
+    groupKey: 'settingsInputToolbar',
+  },
+  {
     id: 'interface-chat-behavior',
     tab: 'interface',
     labelKey: 'settingsChatBehavior',

@@ -1,7 +1,7 @@
 const dataSettings = {
-  settingsDataImportsExports: { en: 'Import & Export', zh: '导入与导出', ja: 'インポートとエクスポート', ko: '가져오기 및 내보내기', es: 'Importar y Exportar', fr: 'Importer et Exporter', de: 'Importieren und Exportieren' },
+  settingsDataImportsExports: { en: 'Import & Export', zh: '导入与导出', ja: 'インポートとエクスポート', ko: '가져오기 및 내보내기', es: 'Importar y Exportar', fr: 'Importer et Exporter', de: 'Import & Export' },
   settingsDataSettings: { en: 'App Settings', zh: '应用设置', ja: 'アプリ設定', ko: '앱 설정', es: 'Ajustes de la aplicación', fr: 'Paramètres de l\'application', de: 'App-Einstellungen' },
-  settingsDataHistory: { en: 'Chats', zh: '对话', ja: 'チャット', ko: '채팅', es: 'Chats', fr: 'Discussions', de: 'Chats' },
+  settingsDataHistory: { en: 'Chats', zh: '聊天', ja: 'チャット', ko: '채팅', es: 'Chats', fr: 'Discussions', de: 'Chats' },
   settingsDataScenarios: { en: 'Scenarios', zh: '场景', ja: 'シナリオ', ko: '시나리오', es: 'Escenarios', fr: 'Scénarios', de: 'Szenarien' },
   settingsSystemTools: { en: 'Diagnostics & App', zh: '诊断与应用', ja: '診断とアプリ', ko: '진단 및 앱', es: 'Diagnóstico y aplicación', fr: 'Diagnostics et application', de: 'Diagnose & App' },
   settingsDangerZone: { en: 'Destructive Actions', zh: '高风险操作', ja: '破壊的な操作', ko: '위험한 작업', es: 'Acciones destructivas', fr: 'Actions destructives', de: 'Destruktive Aktionen' },
@@ -9,12 +9,12 @@ const dataSettings = {
   settingsResetConfirm: {
     en: 'Are you sure you want to reset all settings to their default values? This does not affect chat history, API keys, third-party API providers, or MCP servers. Your current changes will be lost.',
     zh: '您确定要将所有设置重置为默认值吗？这不会影响您的聊天记录、API 密钥、第三方 API 提供商配置和 MCP 服务器。您当前的更改将丢失。',
-    ja: 'すべての設定をデフォルト値にリセットしてもよろしいですか？チャット履歴、APIキー、サードパーティAPIプロバイダー、MCPサーバーには影響しません。現在の変更は失われます。', ko: '모든 설정을 기본값으로 초기화하시겠습니까? 채팅 기록, API 키, 타사 API 제공자 또는 MCP 서버에는 영향을 주지 않습니다. 현재 변경 사항은 손실됩니다.', es: '¿Seguro que quieres restablecer todos los ajustes a sus valores predeterminados? Esto no afecta al historial de chats, claves API, proveedores de API de terceros ni servidores MCP. Se perderán los cambios actuales.', fr: 'Voulez-vous vraiment réinitialiser tous les paramètres à leurs valeurs par défaut ? Cela n\'affecte pas l\'historique des discussions, les clés API, les fournisseurs d\'API tiers ni les serveurs MCP. Vos modifications actuelles seront perdues.', de: 'Möchten Sie wirklich alle Einstellungen auf die Standardwerte zurücksetzen? Dies betrifft nicht den Chatverlauf, API-Schlüssel, Drittanbieter-API-Anbieter oder MCP-Server. Ihre aktuellen Änderungen gehen verloren.' },
-  settingsClearHistory: { en: 'Delete Chats and Groups', zh: '删除对话与分组', ja: 'チャットとグループを削除', ko: '채팅 및 그룹 삭제', es: 'Eliminar chats y grupos', fr: 'Supprimer les discussions et les groupes', de: 'Chats und Gruppen löschen' },
+    ja: 'すべての設定をデフォルト値にリセットしてもよろしいですか？チャット履歴、APIキー、サードパーティAPIプロバイダー、MCPサーバーには影響しません。現在の変更は失われます。', ko: '모든 설정을 기본값으로 초기화하시겠습니까? 채팅 기록, API 키, 타사 API 제공자 또는 MCP 서버에는 영향을 주지 않습니다. 현재 변경 사항은 손실됩니다.', es: '¿Seguro que quieres restablecer todos los ajustes a sus valores predeterminados? Esto no afecta al historial de chats, claves de API, proveedores de API de terceros ni servidores MCP. Se perderán los cambios actuales.', fr: 'Voulez-vous vraiment réinitialiser tous les paramètres à leurs valeurs par défaut ? Cela n\'affecte pas l\'historique des discussions, les clés API, les fournisseurs d\'API tiers ni les serveurs MCP. Vos modifications actuelles seront perdues.', de: 'Möchtest du wirklich alle Einstellungen auf die Standardwerte zurücksetzen? Dies betrifft nicht den Chatverlauf, API-Schlüssel, Drittanbieter-API-Anbieter oder MCP-Server. Deine aktuellen Änderungen gehen verloren.' },
+  settingsClearHistory: { en: 'Delete Chats and Groups', zh: '删除聊天与分组', ja: 'チャットとグループを削除', ko: '채팅 및 그룹 삭제', es: 'Eliminar chats y grupos', fr: 'Supprimer les discussions et les groupes', de: 'Chats und Gruppen löschen' },
   settingsClearHistoryConfirm: {
     en: 'Are you sure you want to delete all chat history and groups? This action cannot be undone.',
     zh: '您确定要删除所有聊天记录和分组吗？此操作无法撤销。',
-    ja: 'すべてのチャット履歴とグループを削除してもよろしいですか？この操作は元に戻せません。', ko: '모든 채팅 기록과 그룹을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.', es: '¿Seguro que quieres eliminar todo el historial de chats y grupos? Esta acción no se puede deshacer.', fr: 'Voulez-vous vraiment supprimer tout l\'historique des discussions et les groupes ? Cette action est irréversible.', de: 'Möchten Sie wirklich den gesamten Chatverlauf und alle Gruppen löschen? Diese Aktion kann nicht rückgängig gemacht werden.' },
+    ja: 'すべてのチャット履歴とグループを削除してもよろしいですか？この操作は元に戻せません。', ko: '모든 채팅 기록과 그룹을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.', es: '¿Seguro que quieres eliminar todo el historial de chats y grupos? Esta acción no se puede deshacer.', fr: 'Voulez-vous vraiment supprimer tout l\'historique des discussions et les groupes ? Cette action est irréversible.', de: 'Möchtest du wirklich den gesamten Chatverlauf und alle Gruppen löschen? Diese Aktion kann nicht rückgängig gemacht werden.' },
   settingsClearCache: { en: 'Delete All App Data', zh: '删除全部应用数据', ja: 'すべてのアプリデータを削除', ko: '모든 앱 데이터 삭제', es: 'Eliminar todos los datos de la aplicación', fr: 'Supprimer toutes les données de l\'application', de: 'Alle App-Daten löschen' },
   settingsClearCacheConfirm: {
     en: 'Are you sure you want to clear all application data?\n\nThis will remove:\n- Saved settings\n- Chat history\n- Preloaded scenarios\n\nThis action cannot be undone.',
@@ -34,7 +34,7 @@ const dataSettings = {
   settingsImportHistoryConfirm: {
     en: 'The imported chat history will be merged with your current data. Duplicate sessions (by ID) will be skipped to preserve your existing chats. Do you want to proceed?',
     zh: '导入的聊天记录将与当前数据合并。为保留现有数据，重复的会话（基于 ID）将被跳过。是否继续？',
-    ja: 'インポートされたチャット履歴は現在のデータと統合されます。既存のチャットを保持するため、重複するセッション（ID基準）はスキップされます。続行しますか？', ko: '가져온 채팅 기록이 현재 데이터와 병합됩니다. 기존 채팅을 보존하기 위해 중복 세션(ID 기준)은 건너뜁니다. 계속하시겠습니까?', es: 'El historial de chats importado se fusionará con tus datos actuales. Las sesiones duplicadas (por ID) se omitirán para conservar tus chats existentes. ¿Quieres continuar?', fr: 'L\'historique des discussions importé sera fusionné avec vos données actuelles. Les sessions en double (par ID) seront ignorées pour préserver vos discussions existantes. Voulez-vous continuer ?', de: 'Der importierte Chatverlauf wird mit Ihren aktuellen Daten zusammengeführt. Doppelte Sitzungen (nach ID) werden übersprungen, um Ihre vorhandenen Chats zu erhalten. Möchten Sie fortfahren?' },
+    ja: 'インポートされたチャット履歴は現在のデータと統合されます。既存のチャットを保持するため、重複するセッション（ID基準）はスキップされます。続行しますか？', ko: '가져온 채팅 기록이 현재 데이터와 병합됩니다. 기존 채팅을 보존하기 위해 중복 세션(ID 기준)은 건너뜁니다. 계속하시겠습니까?', es: 'El historial de chats importado se fusionará con tus datos actuales. Las sesiones duplicadas (por ID) se omitirán para conservar tus chats existentes. ¿Quieres continuar?', fr: 'L\'historique des discussions importé sera fusionné avec vos données actuelles. Les sessions en double (par ID) seront ignorées pour préserver vos discussions existantes. Voulez-vous continuer ?', de: 'Der importierte Chatverlauf wird mit deinen aktuellen Daten zusammengeführt. Doppelte Sitzungen (nach ID) werden übersprungen, um deine vorhandenen Chats zu erhalten. Möchtest du fortfahren?' },
   settingsImportHistorySuccess: { en: 'History merged successfully!', zh: '历史记录合并成功！', ja: '履歴の統合が完了しました！', ko: '기록이 성공적으로 병합되었습니다!', es: '¡Historial fusionado con éxito!', fr: 'Historique fusionné avec succès !', de: 'Verlauf erfolgreich zusammengeführt!' },
   settingsImportSuccess: { en: 'Settings imported successfully!', zh: '设置导入成功！', ja: '設定のインポートが完了しました！', ko: '설정을 성공적으로 가져왔습니다!', es: '¡Ajustes importados con éxito!', fr: 'Paramètres importés avec succès !', de: 'Einstellungen erfolgreich importiert!' },
   settingsImportError: {
@@ -56,17 +56,17 @@ const dataSettings = {
     ja: 'シナリオデータが見つからないか、配列ではありません。', ko: '시나리오 데이터가 없거나 배열이 아닙니다.', es: 'Faltan datos de escenarios o no son una matriz.', fr: 'Les données de scénarios sont manquantes ou ne sont pas un tableau.', de: 'Szenariodaten fehlen oder sind kein Array.' },
   settingsViewLogs: { en: 'View Logs', zh: '查看日志', ja: 'ログを表示', ko: '로그 보기', es: 'Ver registros', fr: 'Voir les journaux', de: 'Protokolle ansehen' },
   settingsViewLogsAndUsage: { en: 'Open Logs & Usage', zh: '打开日志与用量', ja: 'ログと使用状況を開く', ko: '로그 및 사용량 열기', es: 'Abrir registros y uso', fr: 'Ouvrir les journaux et l\'utilisation', de: 'Protokolle & Nutzung öffnen' },
-  settingsEnableLogging: { en: 'Enable Logging', zh: '启用日志记录', ja: 'ログ記録を有効化', ko: '로깅 활성화', es: 'Habilitar registro', fr: 'Activer la journalisation', de: 'Protokollierung aktivieren' },
+  settingsEnableLogging: { en: 'Enable Logging', zh: '启用日志记录', ja: 'ログ記録を有効化', ko: '로깅 활성화', es: 'Activar registro', fr: 'Activer la journalisation', de: 'Protokollierung aktivieren' },
   settingsEnableLoggingDescription: {
     en: 'Persist system logs to local storage for troubleshooting. Off by default.',
     zh: '将系统日志持久化到本地存储，用于排查问题。默认关闭。',
-    ja: 'トラブルシューティングのため、システムログをローカルストレージに保存します。デフォルトではオフです。', ko: '문제 해결을 위해 시스템 로그를 로컬 저장소에 유지합니다. 기본값은 꺼짐입니다.', es: 'Guarda los registros del sistema en el almacenamiento local para la solución de problemas. Desactivado por defecto.', fr: 'Conservez les journaux système dans le stockage local pour le dépannage. Désactivé par défaut.', de: 'Systemprotokolle zur Fehlerbehebung im lokalen Speicher behalten. Standardmäßig deaktiviert.' },
+    ja: 'トラブルシューティングのため、システムログをローカルストレージに保存します。デフォルトではオフです。', ko: '문제 해결을 위해 시스템 로그를 로컬 저장소에 유지합니다. 기본값은 꺼짐입니다.', es: 'Guarda los registros del sistema en el almacenamiento local para solucionar problemas. Desactivado de forma predeterminada.', fr: 'Conserve les journaux système dans le stockage local à des fins de dépannage. Désactivé par défaut.', de: 'Systemprotokolle zur Fehlerbehebung im lokalen Speicher behalten. Standardmäßig deaktiviert.' },
   logViewerLoggingDisabledHint: {
     en: 'Logging is off. Enable it in Settings → Data & App to record new logs.',
     zh: '日志记录当前已关闭。前往 设置 → 数据与应用 开启后才会记录新日志。',
-    ja: 'ログ記録はオフです。設定 → データとアプリで有効にすると、新しいログが記録されます。', ko: '로깅이 꺼져 있습니다. 설정 → 데이터 및 앱에서 활성화하면 새 로그가 기록됩니다.', es: 'El registro está desactivado. Actívalo en Ajustes → Datos y aplicación para registrar nuevos logs.', fr: 'La journalisation est désactivée. Activez-la dans Paramètres → Données et application pour enregistrer de nouveaux journaux.', de: 'Protokollierung ist deaktiviert. Aktiviere sie unter Einstellungen → Daten & App, um neue Protokolle aufzuzeichnen.' },
+    ja: 'ログ記録はオフです。設定 → データとアプリで有効にすると、新しいログが記録されます。', ko: '로깅이 꺼져 있습니다. 설정 → 데이터 및 앱에서 활성화하면 새 로그가 기록됩니다.', es: 'El registro está desactivado. Actívalo en Ajustes → Datos y aplicación para guardar nuevos registros.', fr: 'La journalisation est désactivée. Activez-la dans Paramètres → Données et application pour enregistrer de nouveaux journaux.', de: 'Protokollierung ist deaktiviert. Aktiviere sie unter Einstellungen → Daten & App, um neue Protokolle aufzuzeichnen.' },
   settingsLocalAppData: { en: 'Current Local App Data', zh: '当前本地应用数据', ja: '現在のローカルアプリデータ', ko: '현재 로컬 앱 데이터', es: 'Datos locales actuales de la aplicación', fr: 'Données locales actuelles de l\'application', de: 'Aktuelle lokale App-Daten' },
-  settingsLocalAppDataLoading: { en: 'Calculating local storage usage…', zh: '正在计算本地存储占用…', ja: 'ローカルストレージの使用量を計算中…', ko: '로컬 저장소 사용량 계산 중…', es: 'Calculando el uso del almacenamiento local…', fr: 'Calcul du stockage local en cours…', de: 'Lokale Speichernutzung wird berechnet…' },
+  settingsLocalAppDataLoading: { en: 'Calculating local storage usage…', zh: '正在计算本地存储占用…', ja: 'ローカルストレージの使用量を計算中…', ko: '로컬 저장소 사용량 계산 중...', es: 'Calculando el uso del almacenamiento local...', fr: 'Calcul du stockage local en cours...', de: 'Lokale Speichernutzung wird berechnet...' },
   settingsLocalAppDataError: {
     en: 'Unable to estimate local storage usage right now.',
     zh: '暂时无法估算本地存储占用。',
@@ -75,6 +75,6 @@ const dataSettings = {
   settingsClearLogsConfirm: {
     en: 'Are you sure you want to clear all system logs?',
     zh: '您确定要清空所有系统日志吗？',
-    ja: 'すべてのシステムログをクリアしてもよろしいですか？', ko: '모든 시스템 로그를 지우시겠습니까?', es: '¿Seguro que quieres borrar todos los registros del sistema?', fr: 'Voulez-vous vraiment effacer tous les journaux système ?', de: 'Möchten Sie wirklich alle Systemprotokolle löschen?' },
+    ja: 'すべてのシステムログをクリアしてもよろしいですか？', ko: '모든 시스템 로그를 지우시겠습니까?', es: '¿Seguro que quieres borrar todos los registros del sistema?', fr: 'Voulez-vous vraiment effacer tous les journaux système ?', de: 'Möchtest du wirklich alle Systemprotokolle löschen?' },
 };
 export default dataSettings;

@@ -101,14 +101,14 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({
                   <span className="block text-sm font-semibold text-[var(--theme-text-primary)]">
                     {t('safetyTitle')}
                   </span>
-                  <span className="mt-1 block text-xs leading-relaxed text-[var(--theme-text-tertiary)]">
+                  <span className="mt-1 block text-xs leading-relaxed text-[var(--theme-text-secondary)]">
                     {t('safetyDescription')}
                   </span>
                 </span>
               </span>
               <ChevronDown
                 size={16}
-                className={`flex-shrink-0 text-[var(--theme-text-tertiary)] transition-transform duration-200 ${
+                className={`flex-shrink-0 text-[var(--theme-text-secondary)] transition-transform duration-200 ${
                   isSafetyExpanded ? 'rotate-180' : ''
                 }`}
                 strokeWidth={1.75}

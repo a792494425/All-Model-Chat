@@ -1,6 +1,7 @@
 import { useState, useEffect, type FC } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { Info, Lightbulb } from 'lucide-react';
+import { Info } from 'lucide-react';
+import { IconThinking } from '@/components/icons';
 import { REQUIRED_THINKING_MODEL_IDS, THINKING_BUDGET_RANGES } from '@/constants/modelConfiguration';
 import { normalizeModelId } from '@/utils/model/modelId';
 import { Tooltip } from '@/components/shared/Tooltip';
@@ -142,10 +143,10 @@ export const ThinkingControl: FC<ThinkingControlProps> = ({
         <div className="rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)]/30 p-4">
           <div className="flex justify-between items-center">
             <label className="text-sm font-semibold text-[var(--theme-text-primary)] flex items-center gap-2">
-              <Lightbulb size={16} className="text-[var(--theme-text-link)]" strokeWidth={1.5} />
+              <IconThinking size={16} className="text-[var(--theme-text-link)]" />
               {t('settingsThinkingMode')}
               <Tooltip text={t('settingsGemmaReasoningTooltip')}>
-                <Info size={14} className="text-[var(--theme-text-tertiary)] cursor-help" strokeWidth={1.5} />
+                <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
               </Tooltip>
             </label>
           </div>
@@ -182,10 +183,10 @@ export const ThinkingControl: FC<ThinkingControlProps> = ({
       <div className="rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)]/30 p-4">
         <div className="flex items-center">
           <label className="text-sm font-semibold text-[var(--theme-text-primary)] flex items-center gap-2">
-            <Lightbulb size={16} className="text-[var(--theme-text-link)]" strokeWidth={1.5} />
+            <IconThinking size={16} className="text-[var(--theme-text-link)]" />
             {t('settingsThinkingMode')}
             <Tooltip text={t('settingsThinkingModeTooltip')}>
-              <Info size={14} className="text-[var(--theme-text-tertiary)] cursor-help" strokeWidth={1.5} />
+              <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
             </Tooltip>
           </label>
         </div>
@@ -221,7 +222,7 @@ export const ThinkingControl: FC<ThinkingControlProps> = ({
 
             {!isImageThinkingLevelOnly && !isGemini3 && mode === 'off' && (
               <div className="flex items-center justify-center py-1">
-                <p className="text-xs text-[var(--theme-text-tertiary)] italic flex items-center gap-2">
+                <p className="text-xs text-[var(--theme-text-secondary)] italic flex items-center gap-2">
                   {t('settingsReasoningDisabledNote')}
                 </p>
               </div>
@@ -233,7 +234,7 @@ export const ThinkingControl: FC<ThinkingControlProps> = ({
                   <span className="text-sm text-[var(--theme-text-primary)] flex items-center gap-2">
                     {t('settingsShowThoughts')}
                     <Tooltip text={t('settingsShowThoughtsTooltip')}>
-                      <Info size={14} className="text-[var(--theme-text-tertiary)] cursor-help" strokeWidth={1.5} />
+                      <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
                     </Tooltip>
                   </span>
                   <input

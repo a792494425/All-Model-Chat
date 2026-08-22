@@ -19,7 +19,7 @@ const mcpSettings = {
   settingsMcpTransportHttp: {
     en: 'HTTP (Streamable, SSE fallback)',
     zh: 'HTTP（Streamable，失败回退 SSE）',
-    ja: 'HTTP（Streamable、SSEフォールバック）', es: 'HTTP (Streamable, SSE fallback)', ko: 'HTTP (Streamable, SSE fallback)', fr: 'HTTP (Streamable, SSE fallback)', de: 'HTTP (Streamable, SSE fallback)' },
+    ja: 'HTTP（Streamable、SSEフォールバック）', es: 'HTTP (Streamable, SSE fallback)', ko: 'HTTP (Streamable, SSE fallback)', fr: 'HTTP (Streamable, SSE fallback)', de: 'HTTP (Streamable, SSE-Fallback)' },
   settingsMcpTransportSse: { en: 'SSE (legacy)', zh: 'SSE（旧版）', ja: 'SSE（レガシー）', es: 'SSE (legacy)', ko: 'SSE (legacy)', fr: 'SSE (legacy)', de: 'SSE (legacy)' },
   settingsMcpCommand: { en: 'Command', zh: '命令', ja: 'コマンド', es: 'Comando', ko: '명령어', fr: 'Commande', de: 'Befehl' },
   settingsMcpUrl: { en: 'URL', zh: 'URL', ja: 'URL', es: 'URL', ko: 'URL', fr: 'URL', de: 'URL' },

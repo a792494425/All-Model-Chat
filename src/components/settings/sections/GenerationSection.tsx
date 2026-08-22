@@ -107,7 +107,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
               className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${
                 isSystemPromptSet
                   ? 'bg-[var(--theme-bg-success)] text-[var(--theme-text-success)]'
-                  : 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-tertiary)]'
+                  : 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)]'
               }`}
             >
               {isSystemPromptSet ? t('settingsSystemPromptEnabled') : t('settingsSystemPromptUnset')}
@@ -176,7 +176,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
             >
               {t('settingsTemperature')}
               <Tooltip text={t('chatBehaviorTempTooltip')}>
-                <Info size={14} className="ml-2 text-[var(--theme-text-tertiary)] cursor-help" strokeWidth={1.5} />
+                <Info size={14} className="ml-2 text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
               </Tooltip>
             </label>
             <span className={SETTINGS_VALUE_BADGE_CLASS}>{Number(temperature).toFixed(2)}</span>
@@ -201,7 +201,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
             >
               {t('settingsTopP')}
               <Tooltip text={t('chatBehaviorTopPTooltip')}>
-                <Info size={14} className="ml-2 text-[var(--theme-text-tertiary)] cursor-help" strokeWidth={1.5} />
+                <Info size={14} className="ml-2 text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
               </Tooltip>
             </label>
             <span className={SETTINGS_VALUE_BADGE_CLASS}>{Number(topP).toFixed(2)}</span>
@@ -233,7 +233,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                     <Tooltip text={t('settingsTopKTooltip')}>
                       <Info
                         size={14}
-                        className="ml-2 text-[var(--theme-text-tertiary)] cursor-help"
+                        className="ml-2 text-[var(--theme-text-secondary)] cursor-help"
                         strokeWidth={1.5}
                       />
                     </Tooltip>
@@ -261,7 +261,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                   layout="horizontal"
                   labelContent={
                     <span className="flex items-center text-sm font-medium text-[var(--theme-text-primary)]">
-                      <ImageIcon size={14} className="mr-2 text-[var(--theme-text-secondary)]" />
+                      <ImageIcon size={14} className="mr-2 text-[var(--theme-text-primary)]" />
                       {t('settingsMediaResolution')}
                       <Tooltip
                         text={
@@ -270,7 +270,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                       >
                         <Info
                           size={14}
-                          className="ml-2 text-[var(--theme-text-tertiary)] cursor-help"
+                          className="ml-2 text-[var(--theme-text-secondary)] cursor-help"
                           strokeWidth={1.5}
                         />
                       </Tooltip>
@@ -335,7 +335,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
             layout="horizontal"
             labelContent={
               <span className="flex items-center text-sm font-medium text-[var(--theme-text-primary)]">
-                <AudioLines size={14} className="mr-2 text-[var(--theme-text-secondary)]" />
+                <AudioLines size={14} className="mr-2 text-[var(--theme-text-primary)]" />
                 {t('settingsTtsVoice')}
               </span>
             }

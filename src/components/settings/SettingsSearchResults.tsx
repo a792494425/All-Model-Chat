@@ -37,7 +37,7 @@ export const SettingsSearchResults: React.FC<SettingsSearchResultsProps> = ({
 
   if (results.length === 0) {
     return (
-      <div className={`${SETTINGS_SECTION_CARD_CLASS} text-sm text-[var(--theme-text-tertiary)]`}>
+      <div className={`${SETTINGS_SECTION_CARD_CLASS} text-sm text-[var(--theme-text-secondary)]`}>
         {t('settingsSearchNoResults')}
       </div>
     );
@@ -60,7 +60,7 @@ export const SettingsSearchResults: React.FC<SettingsSearchResultsProps> = ({
       >
         <div className="min-w-0 flex-1">
           {(showTabInBreadcrumb || result.groupLabel) && (
-            <span className="mb-0.5 flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-[var(--theme-text-tertiary)]">
+            <span className="mb-0.5 flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-[var(--theme-text-secondary)]">
               {showTabInBreadcrumb && <span>{result.tabLabel}</span>}
               {showTabInBreadcrumb && result.groupLabel && <ChevronRight size={10} strokeWidth={1.75} aria-hidden />}
               {result.groupLabel && <span>{result.groupLabel}</span>}
@@ -70,7 +70,7 @@ export const SettingsSearchResults: React.FC<SettingsSearchResultsProps> = ({
             <HighlightedText text={result.label} query={query} />
           </span>
           {result.description && (
-            <span className="mt-0.5 line-clamp-2 block text-xs leading-relaxed text-[var(--theme-text-tertiary)]">
+            <span className="mt-0.5 line-clamp-2 block text-xs leading-relaxed text-[var(--theme-text-secondary)]">
               <HighlightedText text={result.description} query={query} />
             </span>
           )}
@@ -78,7 +78,7 @@ export const SettingsSearchResults: React.FC<SettingsSearchResultsProps> = ({
         <ChevronRight
           size={16}
           strokeWidth={1.75}
-          className="mt-0.5 flex-shrink-0 text-[var(--theme-text-tertiary)]"
+          className="mt-0.5 flex-shrink-0 text-[var(--theme-text-secondary)]"
           aria-hidden
         />
       </li>
@@ -95,7 +95,7 @@ export const SettingsSearchResults: React.FC<SettingsSearchResultsProps> = ({
             <section key={group.tab} aria-labelledby={headingId}>
               <h3
                 id={headingId}
-                className="px-1 pb-1 text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]"
+                className="px-1 pb-1 text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]"
               >
                 {t(SETTINGS_TAB_LABEL_KEYS[group.tab])} ({group.results.length})
               </h3>

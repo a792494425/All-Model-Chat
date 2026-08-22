@@ -95,7 +95,7 @@ export const OpenAICompatibleModelListEditor: React.FC<OpenAICompatibleModelList
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <label className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+        <label className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
           {t('settingsOpenAICompatibleModelId')}
         </label>
         <div className="flex flex-wrap items-center gap-2">
@@ -143,7 +143,7 @@ export const OpenAICompatibleModelListEditor: React.FC<OpenAICompatibleModelList
                 <div className="min-w-0 space-y-1">
                   <label
                     htmlFor={`${row.rowId}-id`}
-                    className="block text-xs font-medium uppercase tracking-wider text-[var(--theme-text-tertiary)]"
+                    className="block text-xs font-medium uppercase tracking-wider text-[var(--theme-text-secondary)]"
                   >
                     {t('settingsOpenAICompatibleModelIdShort')}
                   </label>
@@ -162,7 +162,7 @@ export const OpenAICompatibleModelListEditor: React.FC<OpenAICompatibleModelList
                 <div className="min-w-0 space-y-1">
                   <label
                     htmlFor={`${row.rowId}-name`}
-                    className="block text-xs font-medium uppercase tracking-wider text-[var(--theme-text-tertiary)]"
+                    className="block text-xs font-medium uppercase tracking-wider text-[var(--theme-text-secondary)]"
                   >
                     {t('settingsOpenAICompatibleModelName')}
                   </label>
@@ -191,13 +191,13 @@ export const OpenAICompatibleModelListEditor: React.FC<OpenAICompatibleModelList
             ))}
           </div>
         ) : (
-          <div className="px-3 py-4 text-center text-xs italic text-[var(--theme-text-tertiary)]">
+          <div className="px-3 py-4 text-center text-xs italic text-[var(--theme-text-secondary)]">
             {t('settingsNoModelsInList')}
           </div>
         )}
       </div>
 
-      <p className="text-xs leading-relaxed text-[var(--theme-text-tertiary)]">
+      <p className="text-xs leading-relaxed text-[var(--theme-text-secondary)]">
         {t('settingsOpenAICompatibleModelIdHelp')}
       </p>
 

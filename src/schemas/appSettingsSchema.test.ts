@@ -155,7 +155,7 @@ describe('appSettingsSchema', () => {
     ]);
   });
 
-  it('drops invalid MCP server entries from imported settings', () => {
+  it('drops identity-invalid MCP entries but keeps incomplete in-progress configs', () => {
     const settings = sanitizeImportedAppSettings({
       mcpServers: [
         {
@@ -190,6 +190,13 @@ describe('appSettingsSchema', () => {
           transport: 'http',
           url: 'file:///tmp/mcp',
         },
+        {
+          id: 'no-command',
+          name: 'No Command Yet',
+          enabled: true,
+          transport: 'stdio',
+          command: '',
+        },
       ],
     });
 
@@ -204,6 +211,20 @@ describe('appSettingsSchema', () => {
         env: {
           KEEP: 'yes',
         },
+      },
+      {
+        id: 'file-url',
+        name: 'File URL',
+        enabled: true,
+        transport: 'http',
+        url: 'file:///tmp/mcp',
+      },
+      {
+        id: 'no-command',
+        name: 'No Command Yet',
+        enabled: true,
+        transport: 'stdio',
+        command: '',
       },
     ]);
   });

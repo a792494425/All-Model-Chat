@@ -1,3 +1,8 @@
+import {
+  FOCUS_VISIBLE_RING_BASE_CLASS,
+  FOCUS_VISIBLE_RING_INSET_CLASS,
+} from './focusClasses';
+
 /**
  * Shared visual scale for AMC UI surfaces.
  * Prefer these over ad-hoc radius / chip classes so composer, sidebar, and chips stay aligned.
@@ -23,7 +28,7 @@ export const COMPOSER_SHELL_RADIUS_CLASS = RADIUS_CLASS.pill;
 /** Shared geometry + focus treatment for suggestion chips. Mobile keeps a
  *  taller body (py-2.5) than desktop so touch targets stay comfortable. */
 const SUGGESTION_CHIP_BASE_CLASS =
-  'flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-medium whitespace-nowrap transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)]';
+  `flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-medium whitespace-nowrap transition-colors ${FOCUS_VISIBLE_RING_INSET_CLASS}`;
 
 /** Default / hover suggestion chip (soft, no elevation). */
 export const SUGGESTION_CHIP_CLASS = `${SUGGESTION_CHIP_BASE_CLASS} border-[var(--theme-border-secondary)]/70 bg-[var(--theme-bg-tertiary)]/35 text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] hover:border-[var(--theme-border-focus)]`;
@@ -32,10 +37,10 @@ export const SUGGESTION_CHIP_CLASS = `${SUGGESTION_CHIP_BASE_CLASS} border-[var(
 export const SUGGESTION_CHIP_ACTIVE_CLASS = `${SUGGESTION_CHIP_BASE_CLASS} border-[var(--theme-bg-accent)] bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] hover:bg-[var(--theme-bg-accent-hover)] hover:border-[var(--theme-bg-accent-hover)] shadow-sm`;
 
 /** Intra-cluster gap for composer icon groups. */
-export const COMPOSER_CLUSTER_GAP_CLASS = 'gap-0.5 sm:gap-1';
+export const COMPOSER_CLUSTER_GAP_CLASS = 'gap-0';
 
 /** Gap between left/right composer clusters. */
-export const COMPOSER_CLUSTER_SEPARATION_CLASS = 'gap-3';
+export const COMPOSER_CLUSTER_SEPARATION_CLASS = 'gap-1';
 
 /** Shared height for chat-input toolbar controls (image settings, etc.). */
 const TOOLBAR_CONTROL_HEIGHT_CLASS = 'h-9';
@@ -48,7 +53,7 @@ export const TOOLBAR_IMAGE_CLUSTER_CLASS =
 export const TOOLBAR_SEGMENTED_TRACK_CLASS = `${TOOLBAR_CONTROL_HEIGHT_CLASS} inline-flex items-center gap-0.5 rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] p-0.5`;
 
 const TOOLBAR_SEGMENT_BASE =
-  'h-full inline-flex items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-medium whitespace-nowrap transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)]';
+  `h-full inline-flex items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-medium whitespace-nowrap transition-colors ${FOCUS_VISIBLE_RING_INSET_CLASS}`;
 /** Idle segment inside a segmented track. */
 export const TOOLBAR_SEGMENT_IDLE_CLASS = `${TOOLBAR_SEGMENT_BASE} text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-bg-tertiary)]/70 hover:text-[var(--theme-text-primary)]`;
 
@@ -56,9 +61,9 @@ export const TOOLBAR_SEGMENT_IDLE_CLASS = `${TOOLBAR_SEGMENT_BASE} text-[var(--t
 export const TOOLBAR_SEGMENT_ACTIVE_CLASS = `${TOOLBAR_SEGMENT_BASE} bg-[var(--theme-bg-accent)]/12 text-[var(--theme-text-primary)] shadow-sm`;
 
 /** Standalone toggle chip (e.g. quad images) aligned with segmented track height. */
-export const TOOLBAR_TOGGLE_IDLE_CLASS = `${TOOLBAR_CONTROL_HEIGHT_CLASS} inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent px-2.5 text-xs font-medium text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)]/70 hover:text-[var(--theme-text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)]`;
+export const TOOLBAR_TOGGLE_IDLE_CLASS = `${TOOLBAR_CONTROL_HEIGHT_CLASS} inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent px-2.5 text-xs font-medium text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)]/70 hover:text-[var(--theme-text-primary)] ${FOCUS_VISIBLE_RING_BASE_CLASS}`;
 
-export const TOOLBAR_TOGGLE_ACTIVE_CLASS = `${TOOLBAR_CONTROL_HEIGHT_CLASS} inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--theme-border-focus)]/40 bg-[var(--theme-bg-accent)]/12 px-2.5 text-xs font-medium text-[var(--theme-text-primary)] shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)]`;
+export const TOOLBAR_TOGGLE_ACTIVE_CLASS = `${TOOLBAR_CONTROL_HEIGHT_CLASS} inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--theme-border-focus)]/40 bg-[var(--theme-bg-accent)]/12 px-2.5 text-xs font-medium text-[var(--theme-text-primary)] shadow-sm transition-colors ${FOCUS_VISIBLE_RING_BASE_CLASS}`;
 
 // --- Settings surface ---
 
@@ -83,10 +88,10 @@ export const SETTINGS_SEGMENTED_TRACK_CLASS =
   'inline-flex items-center gap-0.5 rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-tertiary)]/50 p-1';
 
 export const SETTINGS_SEGMENTED_ACTIVE_CLASS =
-  'px-3 py-1.5 text-xs font-medium rounded-md bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)]';
+  `px-3 py-1.5 text-xs font-medium rounded-md bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] shadow-sm transition-colors ${FOCUS_VISIBLE_RING_BASE_CLASS}`;
 
 export const SETTINGS_SEGMENTED_IDLE_CLASS =
-  'px-3 py-1.5 text-xs font-medium rounded-md text-[var(--theme-text-secondary)] transition-colors hover:text-[var(--theme-text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)] disabled:cursor-not-allowed disabled:opacity-50';
+  `px-3 py-1.5 text-xs font-medium rounded-md text-[var(--theme-text-secondary)] transition-colors hover:text-[var(--theme-text-primary)] ${FOCUS_VISIBLE_RING_BASE_CLASS} disabled:cursor-not-allowed disabled:opacity-50`;
 
 /** Active settings nav tab — aligned with chat session selection. */
 export const SETTINGS_NAV_ACTIVE_CLASS = 'bg-[var(--theme-bg-accent)]/10 text-[var(--theme-text-primary)] font-medium';
@@ -95,5 +100,4 @@ export const SETTINGS_NAV_IDLE_CLASS =
   'text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)]/50 hover:text-[var(--theme-text-primary)]';
 
 /** Quiet type=search field used in Help and Preset Scenarios. */
-export const SETTINGS_SEARCH_INPUT_CLASS =
-  'h-10 w-full rounded-lg border border-transparent bg-[var(--theme-bg-tertiary)]/45 pl-9 pr-3 text-sm text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)]/70 focus:bg-[var(--theme-bg-tertiary)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--theme-border-focus)]/35';
+export const SETTINGS_SEARCH_INPUT_CLASS = `h-10 w-full rounded-lg border border-transparent bg-[var(--theme-bg-tertiary)]/45 pl-9 pr-3 text-sm text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)]/70 focus:bg-[var(--theme-bg-tertiary)] ${FOCUS_VISIBLE_RING_INSET_CLASS} focus:ring-2 focus:ring-inset focus:ring-[var(--theme-border-focus)]/35`;

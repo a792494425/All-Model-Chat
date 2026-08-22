@@ -93,36 +93,57 @@ export const useChatInputKeyboard = ({
       }
 
       if (slashCommandState.slashCommandState.isOpen) {
-        if (event.key === 'ArrowDown') {
+        // P0-4: Esc always closes panel first, regardless of isLoading/isEditing
+        if (event.key === 'Escape') {
           event.preventDefault();
-          slashCommandState.setSlashCommandState((prev: SlashCommandState) => {
-            const length = prev.filteredCommands?.length || 0;
-            if (length === 0) {
-              return prev;
-            }
+          event.stopPropagation();
+          slashCommandState.setSlashCommandState((prev: SlashCommandState) => ({ ...prev, isOpen: false }));
+          return;
+        }
 
-            return { ...prev, selectedIndex: (prev.selectedIndex + 1) % length };
+        const PAGE_SIZE = 8;
+        const isAssistive = event.metaKey || event.ctrlKey;
+        const filteredLength = slashCommandState.slashCommandState.filteredCommands.length;
+
+        // Cherry collapsed: Enter/Tab while no results is swallowed, not sent
+        if ((event.key === 'Enter' || event.key === 'Tab') && filteredLength === 0) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+
+        if (event.key === 'ArrowDown' || event.key === 'PageDown') {
+          const offset = event.key === 'PageDown' ? PAGE_SIZE : isAssistive ? PAGE_SIZE : 1;
+          const wrap = event.key !== 'PageDown';
+          event.preventDefault();
+          if (filteredLength === 0) return;
+          slashCommandState.setSlashCommandState((prev: SlashCommandState) => {
+            const len = prev.filteredCommands?.length || 0;
+            if (len === 0) return prev;
+            if (wrap) return { ...prev, selectedIndex: (prev.selectedIndex + offset) % len };
+            return { ...prev, selectedIndex: Math.min(prev.selectedIndex + offset, len - 1) };
           });
           return;
         }
 
-        if (event.key === 'ArrowUp') {
+        if (event.key === 'ArrowUp' || event.key === 'PageUp') {
+          const offset = event.key === 'PageUp' ? PAGE_SIZE : isAssistive ? PAGE_SIZE : 1;
+          const wrap = event.key !== 'PageUp';
           event.preventDefault();
+          if (filteredLength === 0) return;
           slashCommandState.setSlashCommandState((prev: SlashCommandState) => {
-            const length = prev.filteredCommands?.length || 0;
-            if (length === 0) {
-              return prev;
-            }
-
-            return {
-              ...prev,
-              selectedIndex: (prev.selectedIndex - 1 + length) % length,
-            };
+            const len = prev.filteredCommands?.length || 0;
+            if (len === 0) return prev;
+            if (wrap) return { ...prev, selectedIndex: (prev.selectedIndex - offset + len) % len };
+            return { ...prev, selectedIndex: Math.max(prev.selectedIndex - offset, 0) };
           });
           return;
         }
 
         if (event.key === 'Enter' || event.key === 'Tab') {
+          if (event.key === 'Tab' && (event.shiftKey || event.ctrlKey || event.metaKey || event.altKey)) {
+            return;
+          }
           event.preventDefault();
           const command =
             slashCommandState.slashCommandState.filteredCommands[slashCommandState.slashCommandState.selectedIndex];

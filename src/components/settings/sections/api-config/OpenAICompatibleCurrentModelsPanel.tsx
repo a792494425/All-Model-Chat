@@ -37,17 +37,17 @@ export const OpenAICompatibleCurrentModelsPanel: React.FC<OpenAICompatibleCurren
   return (
     <section className="min-w-0 space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <div className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+        <div className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
           {t('settingsOpenAICompatibleCurrentModels')}
         </div>
-        <span className="rounded-full bg-[var(--theme-bg-tertiary)] px-2 py-0.5 text-xs font-medium text-[var(--theme-text-tertiary)]">
+        <span className="rounded-full bg-[var(--theme-bg-tertiary)] px-2 py-0.5 text-xs font-medium text-[var(--theme-text-secondary)]">
           {rows.length}
         </span>
       </div>
       <label className="relative block">
         <Search
           size={14}
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-tertiary)]"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-secondary)]"
         />
         <input
           type="search"
@@ -101,7 +101,7 @@ export const OpenAICompatibleCurrentModelsPanel: React.FC<OpenAICompatibleCurren
             ))}
           </div>
         ) : (
-          <div className="px-3 py-8 text-center text-xs italic text-[var(--theme-text-tertiary)]">
+          <div className="px-3 py-8 text-center text-xs italic text-[var(--theme-text-secondary)]">
             {t('modelPickerNoResults')}
           </div>
         )}

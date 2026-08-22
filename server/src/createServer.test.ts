@@ -36,6 +36,12 @@ describe('createServer', () => {
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
+    expect(body.capabilities).toEqual({
+      liveWsProxy: expect.any(Boolean),
+      thirdPartyProxy: expect.any(Boolean),
+      mcpStdio: false,
+      mcpPrivateHttp: false,
+    });
     expect(typeof body.timestamp).toBe('string');
   });
 

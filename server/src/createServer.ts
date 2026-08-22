@@ -116,6 +116,8 @@ export function createServer(config: CreateServerConfig, dependencies: CreateSer
             capabilities: {
               liveWsProxy: resolvedConfig.enableLiveWsProxy,
               thirdPartyProxy: Object.keys(resolvedConfig.thirdPartyRoutes).length > 0,
+              mcpStdio: resolvedConfig.enableMcpStdio,
+              mcpPrivateHttp: resolvedConfig.enableMcpPrivateHttp,
             },
           },
           resolvedConfig.allowedOrigins,

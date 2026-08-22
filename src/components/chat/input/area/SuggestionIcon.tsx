@@ -5,9 +5,11 @@ import {
   AudioWaveform,
   Captions,
   Lightbulb,
+  FileQuestion,
   FileText,
   Sparkles,
   AppWindow,
+  Palette,
   Scan,
 } from 'lucide-react';
 
@@ -16,6 +18,8 @@ export const SuggestionIcon = ({ iconName, className }: { iconName?: string; cla
   switch (iconName) {
     case 'AppWindow':
       return <AppWindow className={className} size={size} />;
+    case 'Palette':
+      return <Palette className={className} size={size} />;
     case 'Languages':
       return <Languages className={className} size={size} />;
     case 'MousePointer2':
@@ -30,6 +34,8 @@ export const SuggestionIcon = ({ iconName, className }: { iconName?: string; cla
       return <Captions className={className} size={size} />;
     case 'Lightbulb':
       return <Lightbulb className={className} size={size} />;
+    case 'FileQuestion':
+      return <FileQuestion className={className} size={size} />;
     case 'FileText':
       return <FileText className={className} size={size} />;
     default:

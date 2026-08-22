@@ -1,18 +1,18 @@
 import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { KeyRound, LayoutPanelLeft, Network, SlidersHorizontal, X } from 'lucide-react';
+import { KeyRound, LayoutPanelLeft, Cloud, SlidersHorizontal, X } from 'lucide-react';
 import { type SettingsTab, type SettingsTabDescriptor, useSettingsUiStore } from '@/stores/settingsUiStore';
-import { IconAbout, IconData, IconKeyboard } from '@/components/icons';
+import { IconAbout, IconData, IconKeyboard, IconMcp } from '@/components/icons';
 import { Toggle } from '@/components/shared/Toggle';
 import { SETTINGS_KBD_KEY_CLASS, SETTINGS_NAV_ACTIVE_CLASS, SETTINGS_NAV_IDLE_CLASS } from '@/constants/designTokens';
 import { SettingsSearchBar } from './SettingsSearchBar';
 import { interpolate } from '@/i18n/interpolate';
 
 const SETTINGS_TAB_ICONS: Record<SettingsTab, React.ElementType> = {
-  models: SlidersHorizontal,
+  models: Cloud,
   interface: LayoutPanelLeft,
   api: KeyRound,
-  mcp: Network,
+  mcp: IconMcp,
   data: IconData,
   shortcuts: IconKeyboard,
   about: IconAbout,
@@ -91,8 +91,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
       >
         <Icon
           size={18}
-          strokeWidth={isActive ? 2 : 1.5}
-          className={isActive ? 'text-[var(--theme-text-primary)]' : 'text-[var(--theme-text-tertiary)]'}
+          strokeWidth={isActive ? 2.2 : 2}
+          className="text-[var(--theme-text-primary)]"
         />
         <span>{t(tab.labelKey)}</span>
       </button>
@@ -106,7 +106,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="p-2 rounded-md hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)]"
+          className="p-2 rounded-md hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)]"
           aria-label={t('close')}
         >
           <X size={20} strokeWidth={2} />
@@ -132,7 +132,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
         <div
           data-settings-search-status
           role="status"
-          className="hidden md:flex flex-1 flex-col gap-1.5 px-4 py-3 text-xs text-[var(--theme-text-tertiary)] md:py-2"
+          className="hidden md:flex flex-1 flex-col gap-1.5 px-4 py-3 text-xs text-[var(--theme-text-secondary)] md:py-2"
         >
           <span className="font-medium text-[var(--theme-text-secondary)]">
             {interpolate(t('settingsSearchResultsCount'), { count: resultsCount })}
@@ -171,7 +171,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
             className={`flex items-center gap-2 rounded-md px-1 py-0.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)] ${
               isAdvancedModeEnabled
                 ? 'text-[var(--theme-text-primary)]'
-                : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)]'
+                : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
             }`}
             aria-pressed={isAdvancedModeEnabled}
           >

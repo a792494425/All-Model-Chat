@@ -1,7 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import {
-  SlidersHorizontal,
   Globe,
   Check,
   Terminal,
@@ -11,10 +10,9 @@ import {
   Calculator,
   AlertTriangle,
   MapPin,
-  Brain,
 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
-import { IconPython } from '@/components/icons';
+import { IconPython, IconThinking, IconViewOptions } from '@/components/icons';
 import { CHAT_INPUT_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { usePortaledMenu } from '@/hooks/ui/usePortaledMenu';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
@@ -92,7 +90,7 @@ const renderToolIcon = (icon: ChatToolIconKey, size: number) => {
     case 'calculator':
       return <Calculator size={size} strokeWidth={2} />;
     case 'brain':
-      return <Brain size={size} strokeWidth={2} />;
+      return <IconThinking size={size} />;
   }
 };
 
@@ -159,7 +157,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ currentModelId, toolStates
             aria-haspopup="true"
             aria-expanded={isOpen}
           >
-            <SlidersHorizontal size={menuIconSize} strokeWidth={2} />
+            <IconViewOptions size={menuIconSize} />
           </button>
           {isOpen &&
             targetWindow &&

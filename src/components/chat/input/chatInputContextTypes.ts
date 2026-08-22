@@ -262,7 +262,6 @@ export interface ChatInputContextValue {
   targetDocument: Document;
   canSend: boolean;
   canQueueMessage: boolean;
-  queuedCount: number;
   queuedSubmissions: QueuedChatInputSubmission[];
   chatInputMode: ChatInputMode;
   isAnyModalOpen: boolean;
@@ -312,6 +311,7 @@ export interface ChatInputActionsContextValue {
   currentModelId: string;
   toolStates: ChatToolToggleStates;
   onAttachmentAction: (action: AttachmentAction) => void;
+  onNewChat: () => void;
   disabled: boolean;
   onRecordButtonClick: () => void;
   onCancelRecording: () => void;
@@ -341,6 +341,7 @@ export interface ChatInputActionsContextValue {
   showInputTranslationButton: boolean;
   showInputPasteButton: boolean;
   showInputClearButton: boolean;
+  showVoiceInputButton: boolean;
 }
 
 export interface ChatInputComposerStatusContextValue {

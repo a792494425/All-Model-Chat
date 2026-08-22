@@ -671,4 +671,154 @@ describe('MCP routes', () => {
       },
     });
   });
+
+  it('reports per-server errors for structurally invalid MCP configs instead of silently dropping them', async () => {
+    const listTools = vi.fn(async () => [{ name: 'echo', description: 'Echo', inputSchema: {} }]);
+    const app = createServer(
+      {
+        geminiApiBase: 'https://example.test',
+        geminiApiKey: 'server-key',
+        enableMcpStdio: true,
+      },
+      {
+        mcpClient: {
+          listTools,
+          callTool: vi.fn(),
+        },
+      },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/mcp/tools`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        servers: [
+          { id: 'no-command', name: 'No Command', enabled: true, transport: 'stdio' },
+          { id: 'no-name', enabled: true, transport: 'stdio', command: 'npx' },
+          { id: 'bad-transport', name: 'Bad Transport', enabled: true, transport: 'grpc' },
+          { id: 'no-url', name: 'No URL', enabled: true, transport: 'http' },
+          {
+            id: 'valid',
+            name: 'Valid',
+            enabled: true,
+            transport: 'stdio',
+            command: 'node',
+            args: ['server.js'],
+          },
+        ],
+      }),
+    });
+    const body = (await response.json()) as Record<string, unknown>;
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      servers: [
+        {
+          serverId: 'valid',
+          serverName: 'Valid',
+          tools: [{ name: 'echo', description: 'Echo', inputSchema: {} }],
+        },
+      ],
+      errors: [
+        { serverId: 'no-command', serverName: 'No Command', error: 'MCP stdio server requires a command.' },
+        { serverId: 'no-name', serverName: '(missing name)', error: 'MCP server configuration is missing a name.' },
+        {
+          serverId: 'bad-transport',
+          serverName: 'Bad Transport',
+          error: 'MCP server transport must be stdio, http, or sse.',
+        },
+        { serverId: 'no-url', serverName: 'No URL', error: 'MCP http/sse server requires a URL.' },
+      ],
+    });
+    expect(listTools).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns a distinct error when calling a tool on a disabled MCP server', async () => {
+    const callTool = vi.fn();
+    const app = createServer(
+      {
+        geminiApiBase: 'https://example.test',
+        geminiApiKey: 'server-key',
+      },
+      {
+        mcpClient: {
+          listTools: vi.fn(),
+          callTool,
+        },
+      },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/mcp/call`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        server: {
+          id: 'remote',
+          name: 'Remote',
+          enabled: false,
+          transport: 'http',
+          url: 'https://mcp.example.com/mcp',
+        },
+        toolName: 'echo',
+        args: { text: 'hi' },
+      }),
+    });
+    const body = (await response.json()) as Record<string, unknown>;
+
+    expect(response.status).toBe(400);
+    expect(body).toEqual({ error: 'MCP server is disabled.' });
+    expect(callTool).not.toHaveBeenCalled();
+  });
+
+  it('lists tools across servers concurrently so one slow server does not block the rest', async () => {
+    let fastServerStarted = false;
+    const listTools = vi.fn(async (server: { id: string }) => {
+      if (server.id === 'slow') {
+        // Resolve only once the other server's listing has begun.
+        await new Promise((resolve) => {
+          const check = () => (fastServerStarted ? resolve(undefined) : setTimeout(check, 5));
+          check();
+        });
+        return [{ name: 'slow_tool', description: 'Slow', inputSchema: {} }];
+      }
+      fastServerStarted = true;
+      return [{ name: 'fast_tool', description: 'Fast', inputSchema: {} }];
+    });
+    const app = createServer(
+      {
+        geminiApiBase: 'https://example.test',
+        geminiApiKey: 'server-key',
+      },
+      {
+        mcpClient: {
+          listTools,
+          callTool: vi.fn(),
+        },
+      },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/mcp/tools`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        servers: [
+          { id: 'slow', name: 'Slow', enabled: true, transport: 'http', url: 'https://slow.example.com/mcp' },
+          { id: 'fast', name: 'Fast', enabled: true, transport: 'http', url: 'https://fast.example.com/mcp' },
+        ],
+      }),
+    });
+    const body = (await response.json()) as Record<string, unknown>;
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      servers: [
+        { serverId: 'slow', serverName: 'Slow', tools: [{ name: 'slow_tool', description: 'Slow', inputSchema: {} }] },
+        { serverId: 'fast', serverName: 'Fast', tools: [{ name: 'fast_tool', description: 'Fast', inputSchema: {} }] },
+      ],
+      errors: [],
+    });
+  });
 });
