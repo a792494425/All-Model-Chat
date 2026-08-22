@@ -106,6 +106,7 @@ const MessageListComponent: React.FC = () => {
     handleScrollerRef,
     setAtBottom,
     onRangeChanged,
+    handleTotalListHeightChanged,
     scrollToPrevTurn,
     scrollToNextTurn,
     scrollToTop,
@@ -132,7 +133,10 @@ const MessageListComponent: React.FC = () => {
   );
   const renderMessageItem = React.useCallback(
     (index: number, message: (typeof visibleMessages)[number]) => (
-      <div className="px-1.5 sm:px-2 md:px-3 max-w-7xl mx-auto w-full">
+      // flow-root contains the message's top margins inside the item wrapper;
+      // collapsed-through margins otherwise create gaps Virtuoso never
+      // measures, shifting every scroll target (incl. the true bottom) short.
+      <div className="flow-root px-1.5 sm:px-2 md:px-3 max-w-7xl mx-auto w-full">
         <Message
           key={message.id}
           message={message}
@@ -195,6 +199,7 @@ const MessageListComponent: React.FC = () => {
             followOutput={followOutput}
             computeItemKey={(_, message) => message.id}
             rangeChanged={onRangeChanged}
+            totalListHeightChanged={handleTotalListHeightChanged}
             increaseViewportBy={{ top: 1200, bottom: 800 }}
             className="custom-scrollbar chat-message-list-scroller"
             onScroll={handleScroll}
