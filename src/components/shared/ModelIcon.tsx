@@ -298,7 +298,7 @@ const MODEL_ID_KEYWORD_RULES: Array<{ keywords: string[]; logoKey: string }> = [
   { keywords: ['openrouter'], logoKey: 'openrouter' },
 ];
 
-export const inferThirdPartyLogoKeyFromModelId = (modelId?: string): string | null => {
+const inferThirdPartyLogoKeyFromModelId = (modelId?: string): string | null => {
   if (!modelId) {
     return null;
   }
