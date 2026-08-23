@@ -11,7 +11,6 @@ import { Tooltip } from '@/components/shared/Tooltip';
 import { Select } from '@/components/shared/Select';
 import { ToggleItem } from '@/components/shared/ToggleItem';
 import { TextEditorModal } from '@/components/modals/TextEditorModal';
-import { ThinkingControl } from '@/components/settings/controls/thinking/ThinkingControl';
 import { AVAILABLE_TTS_VOICES } from '@/constants/voiceOptions';
 
 const RANGE_SLIDER_CLASS =
@@ -35,9 +34,6 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
     systemInstruction,
     temperature,
     topP,
-    thinkingBudget,
-    thinkingLevel,
-    showThoughts,
     mediaResolution,
     ttsVoice,
   } = currentSettings;
@@ -80,22 +76,6 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      {!isThirdPartyMode && (
-        <div data-settings-item="models-thinking">
-          <div data-settings-item="models-show-thoughts">
-            <ThinkingControl
-              modelId={modelId}
-              thinkingBudget={thinkingBudget}
-              setThinkingBudget={(value) => onUpdateSetting('thinkingBudget', value)}
-              thinkingLevel={thinkingLevel}
-              setThinkingLevel={(value) => onUpdateSetting('thinkingLevel', value)}
-              showThoughts={showThoughts}
-              setShowThoughts={(value) => onUpdateSetting('showThoughts', value)}
-            />
-          </div>
-        </div>
-      )}
-
       <div className="pt-2" data-settings-item="models-system-prompt">
         <div className="flex justify-between items-center mb-2">
           <label

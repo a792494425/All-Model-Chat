@@ -31,10 +31,6 @@ describe('Header', () => {
           isPipActive={false}
           onTogglePip={vi.fn()}
           themeId="pearl"
-          thinkingLevel="HIGH"
-          onSetThinkingLevel={vi.fn()}
-          showThoughts={true}
-          onToggleGemmaReasoning={vi.fn()}
           newChatShortcut=""
           pipShortcut=""
         />,
@@ -67,10 +63,6 @@ describe('Header', () => {
           isPipActive={false}
           onTogglePip={vi.fn()}
           themeId="pearl"
-          thinkingLevel="HIGH"
-          onSetThinkingLevel={vi.fn()}
-          showThoughts={true}
-          onToggleGemmaReasoning={vi.fn()}
           newChatShortcut=""
           pipShortcut=""
         />,
@@ -107,10 +99,6 @@ describe('Header', () => {
           isPipActive={false}
           onTogglePip={vi.fn()}
           themeId="pearl"
-          thinkingLevel="HIGH"
-          onSetThinkingLevel={vi.fn()}
-          showThoughts={true}
-          onToggleGemmaReasoning={vi.fn()}
           newChatShortcut=""
           pipShortcut=""
         />,

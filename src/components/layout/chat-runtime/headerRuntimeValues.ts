@@ -29,13 +29,11 @@ export const useChatHeaderRuntimeValues = ({
 }: HeaderRuntimeValuesOptions) => {
   const {
     appSettings,
-    setAppSettings,
     chatState,
     pipState,
     handleLoadLiveArtifactsPromptAndSave,
     isLiveArtifactsPromptActive,
     isLiveArtifactsPromptBusy,
-    handleSetThinkingLevel,
     getCurrentModelDisplayName,
   } = app;
 
@@ -54,23 +52,7 @@ export const useChatHeaderRuntimeValues = ({
     startNewChat,
     activeSessionId,
     handleSelectModelInHeader,
-    setCurrentChatSettings,
   } = chatState;
-
-  const gemmaReasoningEnabled = currentChatSettings.showThoughts;
-  const onToggleGemmaReasoning = useCallback(() => {
-    const nextGemmaReasoningEnabled = !gemmaReasoningEnabled;
-
-    setAppSettings((prev) => ({
-      ...prev,
-      showThoughts: nextGemmaReasoningEnabled,
-    }));
-
-    setCurrentChatSettings((prev) => ({
-      ...prev,
-      showThoughts: nextGemmaReasoningEnabled,
-    }));
-  }, [gemmaReasoningEnabled, setAppSettings, setCurrentChatSettings]);
 
   const currentModelName = getCurrentModelDisplayName();
   const currentApiRoute = resolveChatApiRoute(appSettings, currentChatSettings);
@@ -109,8 +91,6 @@ export const useChatHeaderRuntimeValues = ({
       onToggleHistorySidebar,
       onLoadLiveArtifactsPrompt: handleLoadLiveArtifactsPromptAndSave,
       onSelectModel: handleHeaderSelectModel,
-      onSetThinkingLevel: handleSetThinkingLevel,
-      onToggleGemmaReasoning,
       onTogglePip: pipState.togglePip,
     }),
     [
@@ -122,7 +102,6 @@ export const useChatHeaderRuntimeValues = ({
       handleAppDrop,
       handleHeaderSelectModel,
       handleLoadLiveArtifactsPromptAndSave,
-      handleSetThinkingLevel,
       headerAvailableModels,
       headerSelectedModelId,
       isAppDraggingOver,
@@ -130,7 +109,6 @@ export const useChatHeaderRuntimeValues = ({
       isLiveArtifactsPromptBusy,
       modelsLoadingError,
       onOpenScenariosModal,
-      onToggleGemmaReasoning,
       onToggleHistorySidebar,
       pipState.isPipActive,
       pipState.isPipSupported,

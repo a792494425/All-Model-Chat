@@ -15,7 +15,7 @@ import { useChatHeaderRuntime } from './chat-runtime/ChatRuntimeContext';
 export const ChatArea: React.FC = () => {
   const appSettings = useSettingsStore((state) => state.appSettings);
   const themeId = useSettingsStore((state) => state.currentTheme.id);
-  const { currentChatSettings, isLoading } = useChatState(appSettings);
+  const { isLoading } = useChatState(appSettings);
   const isSwitchingModel = useChatStore((state) => state.isSwitchingModel);
   const isHistorySidebarOpen = useUIStore((state) => state.isHistorySidebarOpen);
   const {
@@ -38,8 +38,6 @@ export const ChatArea: React.FC = () => {
     onToggleHistorySidebar,
     onLoadLiveArtifactsPrompt,
     onSelectModel,
-    onSetThinkingLevel,
-    onToggleGemmaReasoning,
     onTogglePip,
   } = useChatHeaderRuntime();
   const { chatInputContainerRef } = useChatArea();
@@ -76,10 +74,6 @@ export const ChatArea: React.FC = () => {
         isPipActive={isPipActive}
         onTogglePip={onTogglePip}
         themeId={themeId}
-        thinkingLevel={currentChatSettings.thinkingLevel}
-        onSetThinkingLevel={onSetThinkingLevel}
-        showThoughts={currentChatSettings.showThoughts}
-        onToggleGemmaReasoning={onToggleGemmaReasoning}
         newChatShortcut={newChatShortcut}
         pipShortcut={pipShortcut}
       />

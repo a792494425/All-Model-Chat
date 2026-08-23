@@ -166,8 +166,7 @@ export const buildOpenAICompatibleRequestBody = (
   }
 
   // GLM-5 series supports a thinking parameter for chain-of-thought reasoning.
-  // The header Zap button toggles thinkingLevel between LOW (fast/disabled) and HIGH.
-  // Map HIGH/MEDIUM to enabled, LOW/MINIMAL to disabled.
+  // Map HIGH/MEDIUM to enabled, LOW/MINIMAL to disabled (controlled via ThinkingSpeedControl slider).
   if (isGlmModel(modelId)) {
     const thinkingEnabled = config.thinkingLevel === 'HIGH' || config.thinkingLevel === 'MEDIUM';
     body.thinking = { type: thinkingEnabled ? 'enabled' : 'disabled' };

@@ -10,9 +10,7 @@ describe('HeaderModelSelector', () => {
     vi.clearAllMocks();
   });
 
-  it('shows the fast toggle for Gemma and uses it to toggle reasoning', async () => {
-    const onToggleGemmaReasoning = vi.fn();
-
+  it('does not render the header lightning toggle - thinking is controlled via input toolbar', async () => {
     await act(async () => {
       renderer.root.render(
         <HeaderModelSelector
@@ -22,45 +20,12 @@ describe('HeaderModelSelector', () => {
           onSelectModel={vi.fn()}
           isSwitchingModel={false}
           isLoading={false}
-          thinkingLevel="HIGH"
-          onSetThinkingLevel={vi.fn()}
-          showThoughts={true}
-          onToggleGemmaReasoning={onToggleGemmaReasoning}
         />,
       );
     });
 
-    const toggleButton = renderer.container.querySelector('button[aria-label="Toggle reasoning mode"]');
-    expect(toggleButton).not.toBeNull();
-    expect(toggleButton?.getAttribute('title')).toBe('Reasoning: High');
-
-    await act(async () => {
-      toggleButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(onToggleGemmaReasoning).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows Gemma fast mode as minimal reasoning instead of reasoning off', async () => {
-    await act(async () => {
-      renderer.root.render(
-        <HeaderModelSelector
-          currentModelName="Gemma 4 31B IT"
-          availableModels={[{ id: 'gemma-4-31b-it', name: 'Gemma 4 31B IT' }]}
-          selectedModelId="gemma-4-31b-it"
-          onSelectModel={vi.fn()}
-          isSwitchingModel={false}
-          isLoading={false}
-          thinkingLevel="HIGH"
-          onSetThinkingLevel={vi.fn()}
-          showThoughts={false}
-          onToggleGemmaReasoning={vi.fn()}
-        />,
-      );
-    });
-
-    const toggleButton = renderer.container.querySelector('button[aria-label="Toggle reasoning mode"]');
-    expect(toggleButton?.getAttribute('title')).toBe('Reasoning: Minimal (Fast Mode)');
+    expect(renderer.container.querySelector('button[aria-label="Toggle reasoning mode"]')).toBeNull();
+    expect(renderer.container.querySelector('button[aria-label="Toggle thinking level"]')).toBeNull();
   });
 
   it('does not render an icon inside the collapsed selector trigger', async () => {
@@ -73,10 +38,6 @@ describe('HeaderModelSelector', () => {
           onSelectModel={vi.fn()}
           isSwitchingModel={false}
           isLoading={false}
-          thinkingLevel="HIGH"
-          onSetThinkingLevel={vi.fn()}
-          showThoughts={false}
-          onToggleGemmaReasoning={vi.fn()}
         />,
       );
     });
@@ -95,10 +56,6 @@ describe('HeaderModelSelector', () => {
           onSelectModel={vi.fn()}
           isSwitchingModel={false}
           isLoading={false}
-          thinkingLevel="HIGH"
-          onSetThinkingLevel={vi.fn()}
-          showThoughts={false}
-          onToggleGemmaReasoning={vi.fn()}
         />,
       );
     });
@@ -123,22 +80,16 @@ describe('HeaderModelSelector', () => {
           onSelectModel={vi.fn()}
           isSwitchingModel={false}
           isLoading={false}
-          thinkingLevel="HIGH"
-          onSetThinkingLevel={vi.fn()}
-          showThoughts={true}
-          onToggleGemmaReasoning={vi.fn()}
         />,
       );
     });
 
     const triggerButton = renderer.container.querySelector('button[aria-haspopup="listbox"]');
-    const thinkingButton = renderer.container.querySelector('button[aria-label="Toggle thinking level"]');
 
     expect(triggerButton?.className).toContain('min-h-9');
     expect(triggerButton?.className).not.toContain('scale');
-    expect(thinkingButton?.className).toContain('h-9');
-    expect(thinkingButton?.className).toContain('w-9');
-    expect(thinkingButton?.className).not.toContain('scale');
+    // lightning toggle no longer exists
+    expect(renderer.container.querySelector('button[aria-label="Toggle thinking level"]')).toBeNull();
   });
 
   it('renders the collapsed model name with stronger emphasis', async () => {
@@ -151,10 +102,6 @@ describe('HeaderModelSelector', () => {
           onSelectModel={vi.fn()}
           isSwitchingModel={false}
           isLoading={false}
-          thinkingLevel="HIGH"
-          onSetThinkingLevel={vi.fn()}
-          showThoughts={true}
-          onToggleGemmaReasoning={vi.fn()}
         />,
       );
     });
@@ -165,9 +112,7 @@ describe('HeaderModelSelector', () => {
     expect(label?.className).toContain('font-semibold');
   });
 
-  it('shows the fast toggle for Gemini Robotics-ER 2 and uses minimal thinking as fast mode', async () => {
-    const onSetThinkingLevel = vi.fn();
-
+  it('does not show the thinking fast toggle for any model - relies on input toolbar control', async () => {
     await act(async () => {
       renderer.root.render(
         <HeaderModelSelector
@@ -177,23 +122,12 @@ describe('HeaderModelSelector', () => {
           onSelectModel={vi.fn()}
           isSwitchingModel={false}
           isLoading={false}
-          thinkingLevel="HIGH"
-          onSetThinkingLevel={onSetThinkingLevel}
-          showThoughts={true}
-          onToggleGemmaReasoning={vi.fn()}
         />,
       );
     });
 
-    const toggleButton = renderer.container.querySelector('button[aria-label="Toggle thinking level"]');
-    expect(toggleButton).not.toBeNull();
-    expect(toggleButton?.getAttribute('title')).toBe('Thinking: High (Pro Mode)');
-
-    await act(async () => {
-      toggleButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(onSetThinkingLevel).toHaveBeenCalledWith('MINIMAL');
+    expect(renderer.container.querySelector('button[aria-label="Toggle thinking level"]')).toBeNull();
+    expect(renderer.container.querySelector('button[aria-label="Toggle reasoning mode"]')).toBeNull();
   });
 
   it('does not show the thinking fast toggle for Gemini 3.1 Flash TTS Preview', async () => {
@@ -206,10 +140,6 @@ describe('HeaderModelSelector', () => {
           onSelectModel={vi.fn()}
           isSwitchingModel={false}
           isLoading={false}
-          thinkingLevel="HIGH"
-          onSetThinkingLevel={vi.fn()}
-          showThoughts={false}
-          onToggleGemmaReasoning={vi.fn()}
         />,
       );
     });

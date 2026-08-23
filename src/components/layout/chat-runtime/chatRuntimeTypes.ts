@@ -9,7 +9,6 @@ import type {
   MediaResolution,
   ModelOption,
   SideViewContent,
-  ThinkingLevel,
   ChatProviderId,
   UploadedFile,
   VideoMetadata,
@@ -36,8 +35,6 @@ export interface ChatHeaderRuntimeValue {
   onToggleHistorySidebar: () => void;
   onLoadLiveArtifactsPrompt: () => void;
   onSelectModel: (modelId: string, providerId?: ChatProviderId) => void;
-  onSetThinkingLevel: (level: ThinkingLevel) => void;
-  onToggleGemmaReasoning: () => void;
   onTogglePip: () => void;
 }
 

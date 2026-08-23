@@ -10,6 +10,7 @@ import { RecordControls } from './actions/RecordControls';
 import { ComposerAuxiliaryButtons } from './actions/ComposerAuxiliaryButtons';
 import { SendControls } from './actions/SendControls';
 import { ComposerMoreMenu } from './actions/ComposerMoreMenu';
+import { ThinkingSpeedControl } from './actions/ThinkingSpeedControl';
 import { useComposerAuxiliaryActions } from './actions/useComposerAuxiliaryActions';
 import { useAuxiliaryActionCollapse } from './actions/useAuxiliaryActionCollapse';
 import { COMPOSER_CLUSTER_GAP_CLASS, COMPOSER_CLUSTER_SEPARATION_CLASS } from '@/constants/designTokens';
@@ -186,6 +187,8 @@ const ChatInputActionsComponent: React.FC = () => {
         )}
 
         {isNativeAudioModel && <LiveControls />}
+
+        {!isNativeAudioModel && <ThinkingSpeedControl />}
 
         <div className="ml-0.5 flex items-center">
           <SendControls />

@@ -1,10 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type {
-  CSSProperties,
-  KeyboardEvent as ReactKeyboardEvent,
-  MouseEvent as ReactMouseEvent,
-  TransitionEvent as ReactTransitionEvent,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type TransitionEvent as ReactTransitionEvent } from 'react';
 import { useResizeDrag } from '@/hooks/useResizeDrag';
 
 const CHAT_INPUT_EXPANDED_MAX_HEIGHT = 'max(220px, 50vh)';
