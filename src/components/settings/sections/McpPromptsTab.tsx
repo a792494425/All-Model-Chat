@@ -1,8 +1,9 @@
 import React from 'react';
+import type { McpPromptDefinition } from '@/services/api/mcpApi';
 
 export const McpPromptsTab: React.FC<{
-  prompts: { name: string; description?: string; arguments?: { name: string }[] }[];
-  t: (k: string) => string;
+  prompts: McpPromptDefinition[];
+  t: (key: string) => string;
 }> = ({ prompts, t }) => {
   if (!prompts.length)
     return (

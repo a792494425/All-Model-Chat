@@ -59,4 +59,5 @@ export interface McpClientBridge {
   dispose?(): Promise<void>;
   getLogs?(serverId: string): McpLogEntry[];
   appendLog?(serverId: string, level: McpLogLevel, message: string): void;
+  hasLogs?(serverId: string): boolean;
 }

@@ -79,16 +79,22 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search);
   const [sortOrder, setSortOrder] = useState<string[]>(() => servers.map((s) => s.id));
+  const serverIdsKey = servers.map((s) => s.id).join(',');
   useEffect(() => {
     setSortOrder((prev) => {
       const ids = servers.map((s) => s.id);
       const next = ids.filter((id) => !prev.includes(id)).concat(prev.filter((id) => ids.includes(id)));
       return ids.length === prev.length && ids.every((id, i) => id === prev[i]) ? prev : next;
     });
-  }, [servers.map((s) => s.id).join(',')]);
+  }, [serverIdsKey]);
   const matchKeywords = (q: string, s: McpServerConfig) => {
     if (!q.trim()) return true;
-    const hay = `${s.name} ${s.id} ${s.transport} ${s.url ?? ''} ${s.command ?? ''}`.toLowerCase();
+    const sExtra = s as McpServerConfig & { description?: unknown; provider?: unknown; tags?: unknown };
+    const extra = [sExtra.description, sExtra.provider, sExtra.tags]
+      .flat()
+      .filter((v): v is string => typeof v === 'string')
+      .join(' ');
+    const hay = `${s.name} ${s.id} ${s.transport} ${s.url ?? ''} ${s.command ?? ''} ${extra}`.toLowerCase();
     return q
       .toLowerCase()
       .split(/\s+/)
@@ -398,6 +404,20 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
         <div className={`${SETTINGS_SECTION_CARD_CLASS} border-dashed text-sm text-[var(--theme-text-secondary)]`}>
           {t('settingsMcpEmpty')}
         </div>
+      ) : filteredAndSorted.length === 0 ? (
+        <div className={`${SETTINGS_SECTION_CARD_CLASS} border-dashed text-sm text-[var(--theme-text-secondary)]`}>
+          <div>{t('settingsMcpEmptyFiltered') === 'settingsMcpEmptyFiltered' ? 'No servers match your filters.' : t('settingsMcpEmptyFiltered')}</div>
+          <button
+            type="button"
+            onClick={() => {
+              setFilter('all');
+              setSearch('');
+            }}
+            className={`${SETTINGS_OUTLINE_BUTTON_CLASS} mt-2`}
+          >
+            {t('settingsMcpClearFilters') === 'settingsMcpClearFilters' ? 'Clear filters' : t('settingsMcpClearFilters')}
+          </button>
+        </div>
       ) : (
         <div className="space-y-4">
           {filteredAndSorted.map((server) => {
@@ -665,40 +685,6 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                     )}
                   </div>
                 )}
-                {capabilityState?.status === 'success' && capabilities && (() => {
-                  const disabled = new Set(server.disabledTools ?? []);
-                  const toggleTool = (toolName: string, enabled: boolean) => {
-                    const next = enabled
-                      ? (server.disabledTools ?? []).filter((n) => n !== toolName)
-                      : [...(server.disabledTools ?? []), toolName];
-                    updateServer(index, { disabledTools: next.length ? next : undefined });
-                  };
-                  return (
-                    <div className="mt-3 overflow-hidden rounded-lg border border-[var(--theme-border-secondary)]">
-                      <details open>
-                        <summary className="cursor-pointer list-none px-3 py-2 text-xs font-medium select-none">
-                          {t('settingsMcpCapabilityTools')} ({capabilities.tools.length})
-                        </summary>
-                        {capabilities.tools.map((tool) => (
-                          <div
-                            key={tool.name}
-                            className="flex items-center justify-between border-t border-[var(--theme-border-secondary)] px-3 py-2"
-                          >
-                            <div className="min-w-0">
-                              <div className="truncate text-sm text-[var(--theme-text-primary)]">{tool.name}</div>
-                              <div className="truncate text-xs text-[var(--theme-text-secondary)]">{tool.description}</div>
-                            </div>
-                            <Toggle
-                              checked={!disabled.has(tool.name)}
-                              onChange={(v) => toggleTool(tool.name, v)}
-                              ariaLabel={`${disabled.has(tool.name) ? 'Enable' : 'Disable'} ${tool.name}`}
-                            />
-                          </div>
-                        ))}
-                      </details>
-                    </div>
-                  );
-                })()}
                 {capabilityState?.status === 'success' && capabilities && (
                   <>
                     <div className="mt-3 flex gap-1 border-b border-[var(--theme-border-secondary)]">
@@ -734,15 +720,42 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                       >
                         {t('settingsMcpTabLogs')}
                       </button>
-                      <button
-                        role="tab"
-                        aria-selected={activeTabs[stateKey] === 'settings'}
-                        onClick={() => setActiveTabs((prev) => ({ ...prev, [stateKey]: 'settings' }))}
-                        className={`px-3 py-1.5 text-xs font-medium ${activeTabs[stateKey] === 'settings' ? 'border-b-2 border-[var(--theme-text-accent)] text-[var(--theme-text-primary)]' : 'text-[var(--theme-text-secondary)]'}`}
-                      >
-                        {t('settingsMcpTabSettings')}
-                      </button>
                     </div>
+                    {(activeTabs[stateKey] ?? 'tools') === 'tools' && (
+                      <div className="mt-3 overflow-hidden rounded-lg border border-[var(--theme-border-secondary)]">
+                        {capabilities.tools.length === 0 ? (
+                          <div className="px-3 py-6 text-center text-xs text-[var(--theme-text-secondary)]">
+                            {t('settingsMcpEmptyTools') === 'settingsMcpEmptyTools' ? 'No tools available.' : t('settingsMcpEmptyTools')}
+                          </div>
+                        ) : (
+                          capabilities.tools.map((tool) => {
+                            const disabled = new Set(server.disabledTools ?? []);
+                            const toggleTool = (toolName: string, enabled: boolean) => {
+                              const next = enabled
+                                ? (server.disabledTools ?? []).filter((n) => n !== toolName)
+                                : [...(server.disabledTools ?? []), toolName];
+                              updateServer(index, { disabledTools: next.length ? next : undefined });
+                            };
+                            return (
+                              <div
+                                key={tool.name}
+                                className="flex items-center justify-between border-t border-[var(--theme-border-secondary)] px-3 py-2 first:border-t-0"
+                              >
+                                <div className="min-w-0">
+                                  <div className="truncate text-sm text-[var(--theme-text-primary)]">{tool.name}</div>
+                                  <div className="truncate text-xs text-[var(--theme-text-secondary)]">{tool.description}</div>
+                                </div>
+                                <Toggle
+                                  checked={!disabled.has(tool.name)}
+                                  onChange={(v) => toggleTool(tool.name, v)}
+                                  ariaLabel={`${disabled.has(tool.name) ? 'Enable' : 'Disable'} ${tool.name}`}
+                                />
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
                     {activeTabs[stateKey] === 'prompts' && (
                       <McpPromptsTab prompts={capabilities.prompts ?? []} t={t} />
                     )}

@@ -286,18 +286,23 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
     const closing = [...sessions.values()];
     sessions.clear();
     keyLocks.clear();
+    logBuffers.clear();
+    knownServerIds.clear();
     await Promise.all(closing.map((session) => closeTransportQuietly(session.client, session.transport)));
   };
 
   const logBuffers = new Map<string, McpLogEntry[]>();
+  const knownServerIds = new Set<string>();
   const getErrorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
   const appendLog = (serverId: string, level: McpLogLevel, message: string): void => {
+    knownServerIds.add(serverId);
     const arr = logBuffers.get(serverId) ?? [];
     arr.push({ level, message, timestamp: Date.now() });
     if (arr.length > 200) arr.splice(0, arr.length - 200);
     logBuffers.set(serverId, arr);
   };
   const getLogs = (serverId: string): McpLogEntry[] => [...(logBuffers.get(serverId) ?? [])];
+  const hasLogs = (serverId: string): boolean => knownServerIds.has(serverId) || logBuffers.has(serverId);
 
   const withConnectedClient = async <T>(server: McpServerConfig, run: (client: Client) => Promise<T>): Promise<T> => {
     const key = poolKey(server);
@@ -333,6 +338,25 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
         };
         sessions.set(key, session);
         ensureEvictionTimer();
+        // Capture stdio stderr output for log buffer (I7)
+        if (server.transport === 'stdio') {
+          const t = connected.transport as unknown as {
+            stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void };
+            process?: { stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void } };
+            subprocess?: { stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void } };
+          };
+          const maybeStderr = t.stderr ?? t.process?.stderr ?? t.subprocess?.stderr;
+          if (maybeStderr?.on) {
+            maybeStderr.on('data', (chunk: Buffer | string) => {
+              const text = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
+              for (const line of text.split('\n')) {
+                const trimmed = line.trim();
+                if (trimmed) appendLog(server.id, 'stderr', trimmed);
+              }
+            });
+          }
+        }
+        knownServerIds.add(server.id);
       }
 
       try {
@@ -376,7 +400,7 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
   return {
     listTools: async (server) => {
       try {
-        return await withConnectedClient(server, async (client) => {
+        const tools = await withConnectedClient(server, async (client) => {
           const tools: McpTool[] = [];
           let cursor: string | undefined;
 
@@ -388,6 +412,9 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
 
           return tools;
         });
+        knownServerIds.add(server.id);
+        appendLog(server.id, 'info', `Listed ${tools.length} tools`);
+        return tools;
       } catch (error) {
         appendLog(server.id, 'error', getErrorMessage(error));
         throw error;
@@ -396,7 +423,7 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
 
     callTool: async (server, toolName, args) => {
       try {
-        return await withConnectedClient(server, (client) =>
+        const result = await withConnectedClient(server, (client) =>
           client.callTool(
             {
               name: toolName,
@@ -406,6 +433,9 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
             { timeout: MCP_REQUEST_TIMEOUT_MS },
           ),
         );
+        knownServerIds.add(server.id);
+        appendLog(server.id, 'info', `Called tool ${toolName} successfully`);
+        return result;
       } catch (error) {
         appendLog(server.id, 'error', getErrorMessage(error));
         throw error;
@@ -527,5 +557,6 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
     dispose,
     appendLog,
     getLogs,
+    hasLogs,
   };
 };

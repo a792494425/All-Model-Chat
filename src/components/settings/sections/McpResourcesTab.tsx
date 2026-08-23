@@ -1,10 +1,13 @@
 import React from 'react';
+import type { McpResourceDefinition, McpResourceTemplateDefinition } from '@/services/api/mcpApi';
 
-export const McpResourcesTab: React.FC<{ resources: any[]; templates: any[]; t: any }> = ({
-  resources,
-  templates,
-  t,
-}) => {
+interface McpResourcesTabProps {
+  resources: McpResourceDefinition[];
+  templates: McpResourceTemplateDefinition[];
+  t: (key: string) => string;
+}
+
+export const McpResourcesTab: React.FC<McpResourcesTabProps> = ({ resources, templates, t }) => {
   const all = [...resources, ...templates];
   if (!all.length)
     return (
@@ -12,14 +15,19 @@ export const McpResourcesTab: React.FC<{ resources: any[]; templates: any[]; t: 
     );
   return (
     <div className="divide-y">
-      {all.map((r) => (
-        <div key={r.uri || r.uriTemplate || r.name} className="px-3 py-2">
-          <div className="text-sm font-mono truncate">{r.uri || r.uriTemplate || r.name}</div>
-          <div className="text-xs">
-            {r.name} {r.mimeType}
+      {all.map((r, index) => {
+        const key = (r as { uri?: string; uriTemplate?: string; name: string }).uri
+          ?? (r as { uriTemplate?: string }).uriTemplate
+          ?? `${r.name}-${index}`;
+        return (
+          <div key={key} className="px-3 py-2">
+            <div className="text-sm font-mono truncate">{(r as { uri?: string; uriTemplate?: string }).uri ?? (r as { uriTemplate?: string }).uriTemplate ?? r.name}</div>
+            <div className="text-xs">
+              {r.name} {r.mimeType}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

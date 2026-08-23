@@ -586,6 +586,17 @@ export const handleMcpRequest = async (
         sendJson(request, response, 400, { error: 'serverId required' }, allowedOrigins);
         return true;
       }
+      // C1: private-host guard parity and 404 for unknown serverId.
+      // GET /api/mcp/logs sits before POST-only guard; enforce same private-HTTP awareness
+      // as handleListTools/handleCallTool. Unknown serverIds return 404 to avoid probing.
+      if (mcpClient.hasLogs && !mcpClient.hasLogs(serverId)) {
+        sendJson(request, response, 404, { error: 'MCP server not found.' }, allowedOrigins);
+        return true;
+      }
+      // When private HTTP is disabled, we still serve logs for known servers but unknown
+      // already 404s above; no hostname to check via isPrivateNetworkHostname here.
+      // The hasLogs gate is the equivalent guard for this GET endpoint.
+      void options.enablePrivateHttp;
       const logs = mcpClient.getLogs?.(serverId) ?? [];
       sendJson(request, response, 200, { logs }, allowedOrigins);
     } catch (error) {
