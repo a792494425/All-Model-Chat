@@ -85,6 +85,12 @@ export interface McpServerCapabilities {
   version?: string;
 }
 
+export interface McpLogEntry {
+  level: string;
+  message: string;
+  timestamp: number;
+}
+
 const readErrorMessage = (response: Response): Promise<string> => readResponseErrorMessage(response, 'MCP request');
 
 export const fetchMcpTools = async (
@@ -201,6 +207,17 @@ export const getMcpPrompt = async (
 
   const body = (await response.json()) as { result?: unknown };
   return body.result;
+};
+
+export const fetchMcpLogs = async (
+  server: McpServerConfig,
+  signal?: AbortSignal,
+): Promise<{ logs: McpLogEntry[] }> => {
+  const response = await fetch(`/api/mcp/logs?serverId=${encodeURIComponent(server.id)}`, { signal });
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response));
+  }
+  return (await response.json()) as { logs: McpLogEntry[] };
 };
 
 export const fetchMcpServerCapabilities = async (

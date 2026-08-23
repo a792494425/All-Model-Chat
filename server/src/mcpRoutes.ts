@@ -16,6 +16,7 @@ const MCP_RESOURCES_PATH = '/api/mcp/resources';
 const MCP_RESOURCE_PATH = '/api/mcp/resource';
 const MCP_PROMPTS_PATH = '/api/mcp/prompts';
 const MCP_PROMPT_PATH = '/api/mcp/prompt';
+const MCP_LOGS_PATH = '/api/mcp/logs';
 
 const MAX_MCP_REQUEST_BYTES = 1024 * 1024;
 
@@ -573,6 +574,27 @@ export const handleMcpRequest = async (
   mcpClient: McpClientBridge,
   options: McpRouteOptions = { enableStdio: false, enablePrivateHttp: false },
 ): Promise<boolean> => {
+  if (path === MCP_LOGS_PATH) {
+    if (request.method !== 'GET') {
+      sendJson(request, response, 405, { error: 'Method not allowed' }, allowedOrigins);
+      return true;
+    }
+    try {
+      const url = new URL(request.url || '/', 'http://localhost');
+      const serverId = url.searchParams.get('serverId')?.trim();
+      if (!serverId) {
+        sendJson(request, response, 400, { error: 'serverId required' }, allowedOrigins);
+        return true;
+      }
+      const logs = mcpClient.getLogs?.(serverId) ?? [];
+      sendJson(request, response, 200, { logs }, allowedOrigins);
+    } catch (error) {
+      console.error('[mcp] logs request failed:', error);
+      sendJson(request, response, 500, { error: 'MCP request failed.' }, allowedOrigins);
+    }
+    return true;
+  }
+
   if (
     path !== MCP_TOOLS_PATH &&
     path !== MCP_CALL_PATH &&

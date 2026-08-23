@@ -772,6 +772,55 @@ describe('MCP routes', () => {
     expect(callTool).not.toHaveBeenCalled();
   });
 
+  it('GET /api/mcp/logs returns 200 ring', async () => {
+    const getLogs = vi.fn(() => [{ level: 'info', message: 'hi', timestamp: Date.now() }]);
+    const app = createServer(
+      {
+        geminiApiBase: 'https://example.test',
+        geminiApiKey: 'server-key',
+      },
+      {
+        mcpClient: {
+          listTools: vi.fn(),
+          callTool: vi.fn(),
+          getLogs,
+        } as any,
+      },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/mcp/logs?serverId=s1`);
+    const body = (await response.json()) as Record<string, unknown>;
+
+    expect(response.status).toBe(200);
+    expect(getLogs).toHaveBeenCalledWith('s1');
+    expect(body.logs).toEqual(expect.arrayContaining([expect.objectContaining({ message: 'hi' })]));
+    expect((body.logs as unknown[]).length).toBe(1);
+  });
+
+  it('GET /api/mcp/logs returns 400 when serverId is missing', async () => {
+    const app = createServer(
+      {
+        geminiApiBase: 'https://example.test',
+        geminiApiKey: 'server-key',
+      },
+      {
+        mcpClient: {
+          listTools: vi.fn(),
+          callTool: vi.fn(),
+          getLogs: vi.fn(() => []),
+        } as any,
+      },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/mcp/logs`);
+    const body = (await response.json()) as Record<string, unknown>;
+
+    expect(response.status).toBe(400);
+    expect(body).toEqual({ error: 'serverId required' });
+  });
+
   it('lists tools across servers concurrently so one slow server does not block the rest', async () => {
     let fastServerStarted = false;
     const listTools = vi.fn(async (server: { id: string }) => {

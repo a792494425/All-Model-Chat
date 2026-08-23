@@ -406,4 +406,58 @@ describe('createMcpClientBridge', () => {
     expect(sdkMocks.streamableHttpTransportConstructor).not.toHaveBeenCalled();
     expect(sdkMocks.sseTransportConstructor).toHaveBeenCalledOnce();
   });
+
+  describe('ServerLogBuffer', () => {
+    it('retains last 200 and evicts oldest', () => {
+      const bridge = createBridge({ allowPrivateHttp: true } as any);
+      for (let i = 0; i < 210; i++) (bridge as any).appendLog('s1', 'info', `msg-${i}`);
+      const logs = (bridge as any).getLogs('s1');
+      expect(logs.length).toBe(200);
+      expect(logs[0].message).toBe('msg-10');
+      expect(logs[199].message).toBe('msg-209');
+    });
+
+    it('returns empty array for unknown server and isolates per serverId', () => {
+      const bridge = createBridge({ allowPrivateHttp: true } as any);
+      expect((bridge as any).getLogs('unknown')).toEqual([]);
+      (bridge as any).appendLog('sA', 'info', 'hello-A');
+      (bridge as any).appendLog('sB', 'error', 'hello-B');
+      expect((bridge as any).getLogs('sA')).toHaveLength(1);
+      expect((bridge as any).getLogs('sB')[0].message).toBe('hello-B');
+    });
+
+    it('appends error log when listTools fails', async () => {
+      const bridge = createBridge();
+      const server = {
+        id: 'remote',
+        name: 'Remote',
+        enabled: true,
+        transport: 'http' as const,
+        url: 'https://mcp.example.com/mcp',
+      };
+      sdkMocks.clientConstructor.mockImplementationOnce(function MockFailClient() {
+        const instance: MockClientInstance = {
+          connect: vi.fn(async () => undefined),
+          close: vi.fn(async () => undefined),
+          listTools: vi.fn(async () => {
+            throw new Error('boom');
+          }),
+          callTool: vi.fn(),
+          listResources: vi.fn(),
+          listResourceTemplates: vi.fn(),
+          readResource: vi.fn(),
+          listPrompts: vi.fn(),
+          getPrompt: vi.fn(),
+        };
+        sdkMocks.clientInstances.push(instance);
+        return instance;
+      });
+
+      await expect(bridge.listTools(server)).rejects.toThrow('boom');
+      const logs = (bridge as any).getLogs('remote');
+      expect(logs).toHaveLength(1);
+      expect(logs[0].level).toBe('error');
+      expect(logs[0].message).toBe('boom');
+    });
+  });
 });

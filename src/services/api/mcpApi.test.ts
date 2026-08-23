@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { McpServerConfig } from '@/types';
 import {
+  fetchMcpLogs,
   fetchMcpPrompts,
   fetchMcpResources,
   fetchMcpServerCapabilities,
@@ -76,6 +77,26 @@ describe('mcpApi', () => {
       promptName: 'summarize',
       args: { topic: 'MCP' },
     });
+  });
+
+  it('fetches logs', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ logs: [{ level: 'info', message: 'hi', timestamp: 1 }] }), { status: 200 }),
+    );
+
+    const res = await fetchMcpLogs(server as any);
+
+    expect(res.logs[0].message).toBe('hi');
+    expect(fetchMock).toHaveBeenCalledWith('/api/mcp/logs?serverId=remote', expect.objectContaining({ signal: undefined }));
+  });
+
+  it('forwards abort signal to fetchMcpLogs', async () => {
+    const controller = new AbortController();
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ logs: [] }), { status: 200 }),
+    );
+    await fetchMcpLogs(server as any, controller.signal);
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/api/mcp/logs'), expect.objectContaining({ signal: controller.signal }));
   });
 
   it('combines tools, resources, resource templates, and prompts for one server capability check', async () => {

@@ -35,6 +35,14 @@ export interface McpPrompt {
   arguments?: McpPromptArgument[];
 }
 
+export type McpLogLevel = 'debug' | 'info' | 'warn' | 'error' | 'stderr';
+
+export interface McpLogEntry {
+  level: McpLogLevel;
+  message: string;
+  timestamp: number;
+}
+
 export interface McpClientBridge {
   listTools(server: McpServerConfig): Promise<McpTool[]>;
   callTool(server: McpServerConfig, toolName: string, args: Record<string, unknown>): Promise<unknown>;
@@ -49,4 +57,6 @@ export interface McpClientBridge {
   getPrompt?(server: McpServerConfig, promptName: string, args: Record<string, string>): Promise<unknown>;
   /** Close pooled sessions (stdio children / HTTP connections). */
   dispose?(): Promise<void>;
+  getLogs?(serverId: string): McpLogEntry[];
+  appendLog?(serverId: string, level: McpLogLevel, message: string): void;
 }

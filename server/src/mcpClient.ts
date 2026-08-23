@@ -9,12 +9,16 @@ import path from 'node:path';
 import { assertMcpHttpUrlAllowed, createSafeMcpFetch, type FetchLike } from './mcpHttpSecurity.js';
 import type {
   McpClientBridge,
+  McpLogEntry,
+  McpLogLevel,
   McpPrompt,
   McpResource,
   McpResourceTemplate,
   McpServerConfig,
   McpTool,
 } from './mcpTypes.js';
+
+export type { McpLogEntry, McpLogLevel } from './mcpTypes.js';
 
 const MCP_REQUEST_TIMEOUT_MS = 60_000;
 const SESSION_IDLE_MS = 5 * 60_000;
@@ -285,6 +289,16 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
     await Promise.all(closing.map((session) => closeTransportQuietly(session.client, session.transport)));
   };
 
+  const logBuffers = new Map<string, McpLogEntry[]>();
+  const getErrorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+  const appendLog = (serverId: string, level: McpLogLevel, message: string): void => {
+    const arr = logBuffers.get(serverId) ?? [];
+    arr.push({ level, message, timestamp: Date.now() });
+    if (arr.length > 200) arr.splice(0, arr.length - 200);
+    logBuffers.set(serverId, arr);
+  };
+  const getLogs = (serverId: string): McpLogEntry[] => [...(logBuffers.get(serverId) ?? [])];
+
   const withConnectedClient = async <T>(server: McpServerConfig, run: (client: Client) => Promise<T>): Promise<T> => {
     const key = poolKey(server);
 
@@ -360,31 +374,43 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
   };
 
   return {
-    listTools: async (server) =>
-      withConnectedClient(server, async (client) => {
-        const tools: McpTool[] = [];
-        let cursor: string | undefined;
+    listTools: async (server) => {
+      try {
+        return await withConnectedClient(server, async (client) => {
+          const tools: McpTool[] = [];
+          let cursor: string | undefined;
 
-        do {
-          const result = await client.listTools(cursor ? { cursor } : undefined, { timeout: MCP_REQUEST_TIMEOUT_MS });
-          tools.push(...result.tools.map(mapTool));
-          cursor = result.nextCursor;
-        } while (cursor);
+          do {
+            const result = await client.listTools(cursor ? { cursor } : undefined, { timeout: MCP_REQUEST_TIMEOUT_MS });
+            tools.push(...result.tools.map(mapTool));
+            cursor = result.nextCursor;
+          } while (cursor);
 
-        return tools;
-      }),
+          return tools;
+        });
+      } catch (error) {
+        appendLog(server.id, 'error', getErrorMessage(error));
+        throw error;
+      }
+    },
 
-    callTool: async (server, toolName, args) =>
-      withConnectedClient(server, (client) =>
-        client.callTool(
-          {
-            name: toolName,
-            arguments: args,
-          },
-          undefined,
-          { timeout: MCP_REQUEST_TIMEOUT_MS },
-        ),
-      ),
+    callTool: async (server, toolName, args) => {
+      try {
+        return await withConnectedClient(server, (client) =>
+          client.callTool(
+            {
+              name: toolName,
+              arguments: args,
+            },
+            undefined,
+            { timeout: MCP_REQUEST_TIMEOUT_MS },
+          ),
+        );
+      } catch (error) {
+        appendLog(server.id, 'error', getErrorMessage(error));
+        throw error;
+      }
+    },
 
     listResources: async (server) =>
       withConnectedClient(server, async (client) => {
@@ -499,5 +525,7 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
       ),
 
     dispose,
+    appendLog,
+    getLogs,
   };
 };
