@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Save, Edit2, ArrowUp, CornerDownLeft, Ban } from 'lucide-react';
+import React from 'react';
+import { ArrowUp, CornerDownLeft, X } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { IconStop } from '@/components/icons';
 import { CHAT_INPUT_BUTTON_CLASS } from '@/constants/buttonClasses';
@@ -10,135 +10,49 @@ import {
 } from '@/components/chat/input/ChatInputContext';
 import { interpolate } from '@/i18n/interpolate';
 
-interface Ripple {
-  x: number;
-  y: number;
-  id: number;
-  size: number;
-}
-
-const RIPPLE_RESET_DELAY_MS = 600;
 const SEND_BUTTON_ICON_SIZE = 18;
-const QUEUE_BUTTON_ICON_SIZE = SEND_BUTTON_ICON_SIZE - 1;
+const QUEUE_BUTTON_ICON_SIZE = 17;
 const STOP_ICON_SIZE = 10;
-const SEND_BUTTON_SIZE_CLASS = '!h-10 !w-10';
+const SEND_BUTTON_SIZE_CLASS = '!h-[34px] !w-[34px]';
 
 export const SendControls: React.FC = () => {
   const { isLoading, isWaitingForUpload } = useChatInputActionsContext();
-  const { canSend, canQueueMessage, queuedCount, onFastSendMessage, onQueueMessage, onCancelPendingUploadSend } =
+  const { canSend, canQueueMessage, queuedCount, onQueueMessage, onCancelPendingUploadSend } =
     useChatInputComposerStatusContext();
   const isEditing = !!useChatStore((state) => state.editingMessageId);
-  const editMode = useChatStore((state) => state.editMode);
   const onStopGenerating = useChatStore((state) => state.stopGenerating);
   const onCancelEdit = useChatStore((state) => state.cancelEdit);
   const { t } = useI18n();
-  const [ripples, setRipples] = useState<Ripple[]>([]);
-  const rippleIdRef = useRef(0);
 
-  useEffect(() => {
-    if (ripples.length > 0) {
-      const timeout = setTimeout(() => setRipples([]), RIPPLE_RESET_DELAY_MS);
-      return () => clearTimeout(timeout);
-    }
-    return undefined;
-  }, [ripples]);
-
-  const createRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const button = e.currentTarget;
-    const rect = button.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const rippleX = e.clientX - rect.left - size / 2;
-    const rippleY = e.clientY - rect.top - size / 2;
-    setRipples((prev) => [...prev, { x: rippleX, y: rippleY, id: rippleIdRef.current++, size }]);
-  };
-
-  const isStop = isLoading;
-  const isUpload = !isLoading && isWaitingForUpload;
-  const isEdit = !isLoading && isEditing;
-  const isSend = !isLoading && !isEditing && !isWaitingForUpload;
-
-  const isDisabled = !isLoading && !isUpload && !canSend;
-
-  // Ready = solid accent; empty = ghost outline so the primary action still reads as a control.
-  let bgClass =
-    'bg-[var(--theme-bg-accent)] hover:bg-[var(--theme-bg-accent-hover)] text-[var(--theme-text-accent)] shadow-sm';
-
-  if (isDisabled && !isUpload) {
-    bgClass =
-      'bg-transparent border border-[var(--theme-border-secondary)] text-[var(--theme-text-tertiary)] cursor-not-allowed shadow-none';
-  } else if (isStop) {
-    bgClass =
-      'bg-[var(--theme-bg-danger)] hover:bg-[var(--theme-bg-danger-hover)] text-[var(--theme-icon-stop)] shadow-sm';
-  } else if (isEdit) {
-    bgClass =
-      'bg-[var(--theme-bg-warning-strong)] hover:bg-[var(--theme-bg-warning-strong-hover)] text-white shadow-sm';
-  } else if (isUpload) {
-    bgClass =
-      'bg-[var(--theme-bg-danger)] hover:bg-[var(--theme-bg-danger-hover)] text-[var(--theme-icon-stop)] shadow-sm';
-  }
-
-  const shapeClass = isStop ? '!rounded-[10px]' : '!rounded-full';
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!isDisabled) {
-      createRipple(e);
-    }
-
-    if (isStop) {
-      e.preventDefault();
-      e.stopPropagation();
-      onStopGenerating();
-    } else if (isUpload) {
-      e.preventDefault();
-      e.stopPropagation();
-      onCancelPendingUploadSend();
-    } else if (isDisabled) {
-      e.preventDefault();
-    }
-  };
-
-  const handleContextMenu = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (isSend && !isDisabled) {
-      e.preventDefault();
-      createRipple(e);
-      onFastSendMessage();
-    }
-  };
+  const isStop = isLoading || isWaitingForUpload;
+  const isDisabled = !isStop && !canSend;
 
   let label = t('sendMessageAria');
   let title = t('sendMessageTitle');
 
   if (isStop) {
-    label = t('stopGeneratingAria');
-    title = t('stopGeneratingTitle');
-  } else if (isEdit) {
+    label = isWaitingForUpload ? t('cancelPendingUploadSendAria') : t('stopGeneratingAria');
+    title = isWaitingForUpload ? t('cancelPendingUploadSendTitle') : t('stopGeneratingTitle');
+  } else if (isEditing) {
     label = t('updateMessageAria');
     title = t('updateMessageTitle');
-  } else if (isUpload) {
-    label = t('cancelPendingUploadSendAria');
-    title = t('cancelPendingUploadSendTitle');
-  } else if (isSend && !isDisabled) {
-    title = t('sendMessageTitle') + t('sendMessageFastSuffix');
   }
 
-  const renderIcon = (
-    active: boolean,
-    Icon: React.ElementType,
-    props: React.SVGProps<SVGSVGElement> & { size?: number } = {},
-  ) => (
-    <div
-      className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${active ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'}`}
-      aria-hidden={!active}
-    >
-      <Icon {...props} />
-    </div>
-  );
+  const handlePrimaryClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (isStop) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (isWaitingForUpload) {
+        onCancelPendingUploadSend();
+      } else {
+        onStopGenerating();
+      }
+    }
+  };
 
   return (
     <div className="flex items-center">
-      <div
-        className={`transition-all duration-300 ease-[cubic-bezier(0.19,1,0.22,1)] overflow-hidden flex items-center ${canQueueMessage ? 'max-w-[64px] opacity-100 mr-2' : 'max-w-0 opacity-0 mr-0'}`}
-      >
+      {canQueueMessage && (
         <button
           type="button"
           onClick={(e) => {
@@ -150,7 +64,6 @@ export const SendControls: React.FC = () => {
           aria-label={t('queueMessageAria')}
           title={queuedCount >= 20 ? t('queuedSubmissionLimitReached') : t('queueMessageTitle')}
           disabled={!canQueueMessage}
-          tabIndex={canQueueMessage ? 0 : -1}
         >
           <CornerDownLeft size={QUEUE_BUTTON_ICON_SIZE} strokeWidth={2} />
           {queuedCount > 0 && (
@@ -163,11 +76,9 @@ export const SendControls: React.FC = () => {
             </span>
           )}
         </button>
-      </div>
+      )}
 
-      <div
-        className={`transition-all duration-300 ease-[cubic-bezier(0.19,1,0.22,1)] overflow-hidden flex items-center ${isEditing ? 'max-w-[50px] opacity-100 mr-2' : 'max-w-0 opacity-0 mr-0'}`}
-      >
+      {isEditing && (
         <button
           type="button"
           onClick={(e) => {
@@ -178,39 +89,20 @@ export const SendControls: React.FC = () => {
           className={`${CHAT_INPUT_BUTTON_CLASS} bg-transparent hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-icon-settings)]`}
           aria-label={t('cancelEditAria')}
           title={t('cancelEditTitle')}
-          disabled={!isEditing}
-          tabIndex={isEditing ? 0 : -1}
         >
           <X size={SEND_BUTTON_ICON_SIZE} strokeWidth={2} />
         </button>
-      </div>
+      )}
 
       <button
-        type={isStop || isUpload ? 'button' : 'submit'}
-        onClick={handleClick}
-        onContextMenu={handleContextMenu}
+        type={isStop ? 'button' : 'submit'}
+        onClick={handlePrimaryClick}
         disabled={!isStop && isDisabled}
-        className={`${CHAT_INPUT_BUTTON_CLASS} ${SEND_BUTTON_SIZE_CLASS} ${bgClass} ${shapeClass} relative overflow-hidden transition-colors duration-150`}
+        className={`${CHAT_INPUT_BUTTON_CLASS} ${SEND_BUTTON_SIZE_CLASS} !rounded-full bg-[var(--theme-bg-accent)] hover:bg-[var(--theme-bg-accent-hover)] text-white disabled:opacity-40 relative overflow-hidden transition-colors duration-150`}
         aria-label={label}
         title={title}
       >
-        {ripples.map((ripple) => (
-          <span
-            key={ripple.id}
-            className="absolute rounded-full bg-white/30 animate-ripple pointer-events-none"
-            style={{
-              left: ripple.x,
-              top: ripple.y,
-              width: ripple.size,
-              height: ripple.size,
-            }}
-          />
-        ))}
-
-        {renderIcon(isStop, IconStop, { size: STOP_ICON_SIZE })}
-        {renderIcon(isUpload, Ban, { size: QUEUE_BUTTON_ICON_SIZE, strokeWidth: 2 })}
-        {renderIcon(isEdit, editMode === 'update' ? Save : Edit2, { size: SEND_BUTTON_ICON_SIZE, strokeWidth: 2 })}
-        {renderIcon(isSend, ArrowUp, { size: SEND_BUTTON_ICON_SIZE, strokeWidth: 2 })}
+        {isStop ? <IconStop size={STOP_ICON_SIZE} /> : <ArrowUp size={SEND_BUTTON_ICON_SIZE} strokeWidth={2} />}
       </button>
     </div>
   );

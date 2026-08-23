@@ -35,9 +35,7 @@ const normalizePersistedDrafts = (drafts: unknown): Record<string, ChatDraft> =>
     const candidate = value as Partial<ChatDraft>;
     const normalized: ChatDraft = {
       inputText: typeof candidate.inputText === 'string' ? candidate.inputText : '',
-      quotes: Array.isArray(candidate.quotes)
-        ? candidate.quotes.filter((q): q is string => typeof q === 'string')
-        : [],
+      quotes: Array.isArray(candidate.quotes) ? candidate.quotes.filter((q): q is string => typeof q === 'string') : [],
       ttsContext: typeof candidate.ttsContext === 'string' ? candidate.ttsContext : '',
     };
     if (normalized.inputText.trim() || normalized.quotes.length > 0 || normalized.ttsContext.trim()) {
@@ -47,10 +45,7 @@ const normalizePersistedDrafts = (drafts: unknown): Record<string, ChatDraft> =>
   return out;
 };
 
-export const migrateChatDraftPersistedState = (
-  persisted: unknown,
-  _version: number,
-): ChatDraftPersistedState => {
+export const migrateChatDraftPersistedState = (persisted: unknown, _version: number): ChatDraftPersistedState => {
   const raw = (persisted ?? {}) as { state?: unknown; version?: unknown };
   const drafts = (raw.state as { drafts?: unknown } | undefined)?.drafts;
   return {
@@ -59,16 +54,13 @@ export const migrateChatDraftPersistedState = (
   };
 };
 
-const { storage: chatDraftSyncedStorage } = createSyncedPersist<ChatDraftPersistedState>(
-  CHAT_DRAFT_STORE_STORAGE_KEY,
-  {
-    debounceMs: 300,
-    enableCrossTabSync: false,
-    schema: chatDraftPersistedSchema,
-    version: 1,
-    migrate: migrateChatDraftPersistedState,
-  },
-);
+const { storage: chatDraftSyncedStorage } = createSyncedPersist<ChatDraftPersistedState>(CHAT_DRAFT_STORE_STORAGE_KEY, {
+  debounceMs: 300,
+  enableCrossTabSync: false,
+  schema: chatDraftPersistedSchema,
+  version: 1,
+  migrate: migrateChatDraftPersistedState,
+});
 
 export interface ChatDraft {
   inputText: string;

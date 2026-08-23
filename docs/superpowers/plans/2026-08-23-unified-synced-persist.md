@@ -36,6 +36,7 @@ src/stores/
 ```
 
 **Responsibilities:**
+
 - `syncedPersist.ts`: 唯一可信的持久化工厂，负责 `storage.getItem/setItem/removeItem` 的 debounce、isEqual、zod parse、单例 BroadcastChannel、originId、flushAll
 - `persistentStorage.ts`: 降为底层 `StateStorage` 实现与 `read/remove` helpers，被 `syncedPersist.ts` 复用，不再被业务 store 直接 import
 - `syncedPersist.test.ts`: 覆盖工厂的去重、校验、回环屏蔽、冲刷、 debounce 时序
@@ -45,10 +46,12 @@ src/stores/
 ### Task 1: 创建 syncedPersist 工厂骨架与类型
 
 **Files:**
+
 - Create: `src/stores/syncedPersist.ts`
 - Test: `src/stores/syncedPersist.test.ts`
 
 **Interfaces:**
+
 - Consumes: `persistentStorage.ts#createPersistedStateStorage`, `chatSyncChannel.ts#getChatSyncChannel`, `zod`
 - Produces: `createSyncedPersist<T>(key: string, opts: SyncedPersistOptions<T>): { storage: StateStorage, sync: (store: PersistedStoreApi<T>) => () => void }`
 
@@ -117,10 +120,12 @@ git commit -m "feat(persist): add syncedPersist factory skeleton"
 ### Task 2: 实现 isEqual 去重 + Zod 校验 + 单例 BroadcastChannel
 
 **Files:**
+
 - Modify: `src/stores/syncedPersist.ts:1-40`
 - Test: `src/stores/syncedPersist.test.ts`
 
 **Interfaces:**
+
 - Consumes: `zod`, `BroadcastChannel`, `originId`
 - Produces: 去重与校验逻辑供 Task 3 的 store 接入使用
 
@@ -151,7 +156,7 @@ Expected: FAIL
 
 ```typescript
 // src/stores/syncedPersist.ts
-import { isEqual } from 'lodash-es' // or fast-deep-equal, or JSON.stringify compare for low dep
+import { isEqual } from 'lodash-es'; // or fast-deep-equal, or JSON.stringify compare for low dep
 // 复用 persistentStorage.ts 的 PERSISTED_STATE_ORIGIN_ID 与 broadcastSyncMessage
 // 在 storage.getItem 时：try { raw = area.getItem(key); parsed = JSON.parse(raw); if(schema) schema.parse(parsed); return raw; } catch { return null; }
 // 在 storage.setItem 时：if (isEqual(JSON.parse(existing), JSON.parse(value))) return;
@@ -179,10 +184,12 @@ git commit -m "feat(persist): add isEqual dedup and zod validation to syncedPers
 ### Task 3: 实现 originId 回环屏蔽与 pagehide 冲刷
 
 **Files:**
+
 - Modify: `src/stores/syncedPersist.ts`
 - Test: `src/stores/syncedPersist.test.ts`
 
 **Interfaces:**
+
 - Consumes: `BroadcastChannel`, `pagehide/beforeunload`
 - Produces: `sync(store)` 返回 unsubscribe，自动 rehydrate 非本 origin 的更新
 
@@ -215,7 +222,12 @@ export const createSyncedPersist = <T>(storageKey: string, opts: SyncedPersistOp
   const channel = getSingletonChannel();
   const storage = createPersistedStateStorage({
     debounceMs: opts.debounceMs,
-    notifyUpdate: (key) => channel.postMessage({ type: 'PERSISTED_STATE_UPDATED', storageKey: key, originId: PERSISTED_STATE_ORIGIN_ID } as any),
+    notifyUpdate: (key) =>
+      channel.postMessage({
+        type: 'PERSISTED_STATE_UPDATED',
+        storageKey: key,
+        originId: PERSISTED_STATE_ORIGIN_ID,
+      } as any),
   });
   const sync = (store) => {
     const handler = (e: MessageEvent) => {
@@ -249,6 +261,7 @@ git commit -m "feat(persist): add cross-tab sync with originId and flushAll"
 > **Amendment 2026-08-23 (review 1c72b3ca):** `chatStore.ts` / `settingsStore.ts` 为 **IndexedDB stores**（经 `dbService`，无 `zustand/persist`），exempt from `createSyncedPersist`；仅 `localStorage` persist stores 接入工厂。`all_model_chat_*_v1` 为 legacy grandfathered keys（存量数据兼容），新 key 需 `amc-*` 前缀（约束由 `syncedPersist` 工厂与 `amc-*` 测试用例保证）；如需重命名 legacy key，需经 `migrate` 完成。`SyncedPersistOptions` 新增 `enableCrossTabSync?: boolean`（default `true`；`false` 时 `notifyUpdate: () => {}` 且 `sync()` 为 no-op，见 I2/I4）。
 
 **Files:**
+
 - Exempt (IndexedDB, 不迁移): `src/stores/chatStore.ts` — `dbService` + `broadcastSyncMessage`, 无 `persist`; `src/stores/settingsStore.ts` — `dbService` + 手动 `BroadcastChannel(CHAT_SYNC_CHANNEL_NAME)`
 - Modify: `src/stores/chatDraftStore.ts` — `enableCrossTabSync: false` + `schema/version/migrate` (zod)
 - Modify: `src/stores/uiStore.ts` — `enableCrossTabSync: false`
@@ -258,18 +271,20 @@ git commit -m "feat(persist): add cross-tab sync with originId and flushAll"
 - Test: `src/stores/chatStore.test.ts`, `src/stores/settingsStore.test.ts`（现有测试应仍绿）, `src/stores/syncedPersist.test.ts`（覆盖 `enableCrossTabSync:false` 隔离 + `schema/version/migrate`）
 
 **Interfaces:**
+
 - Consumes: `syncedPersist.ts#createSyncedPersist`
 - Produces: 存量 `localStorage` persist store 的 `persist.storage` 与 `onRehydrateStorage` 行为不变；IndexedDB stores 行为不变
 
 **`SyncedPersistOptions<T>` (amended, I2):**
+
 ```typescript
 export interface SyncedPersistOptions<T> {
   debounceMs?: number;
-  schema?: z.ZodType<T>;          // C2: zod 校验，注入示例见 chatDraftStore
-  version?: number;               // C2: 与 migrate 配合
+  schema?: z.ZodType<T>; // C2: zod 校验，注入示例见 chatDraftStore
+  version?: number; // C2: 与 migrate 配合
   migrate?: (persisted: unknown, version: number) => T;
-  storageArea?: StorageArea;      // test injection
-  enableCrossTabSync?: boolean;   // I2/I4: default true; false → tab-private, 不跨 Tab rehydrate
+  storageArea?: StorageArea; // test injection
+  enableCrossTabSync?: boolean; // I2/I4: default true; false → tab-private, 不跨 Tab rehydrate
 }
 ```
 
@@ -281,7 +296,11 @@ import { getChatSyncChannel } from './chatSyncChannel';
 
 it('modelPreferences rehydrates on remote update', async () => {
   const ch = getChatSyncChannel();
-  ch.postMessage({ type: 'PERSISTED_STATE_UPDATED', storageKey: 'all_model_chat_model_preferences_v1', originId: 'other' });
+  ch.postMessage({
+    type: 'PERSISTED_STATE_UPDATED',
+    storageKey: 'all_model_chat_model_preferences_v1',
+    originId: 'other',
+  });
   // expect store.persist.rehydrate called
 });
 
@@ -306,16 +325,21 @@ Expected: PASS before change (43 + 31 tests)
 import { z } from 'zod';
 import { createSyncedPersist } from './syncedPersist';
 
-export const chatDraftPersistedSchema = z.object({
-  state: z.object({
-    drafts: z.record(z.string(), z.object({
-      inputText: z.string(),
-      quotes: z.array(z.string()),
-      ttsContext: z.string(),
-    })),
-  }),
-  version: z.number().optional(),
-}).passthrough();
+export const chatDraftPersistedSchema = z
+  .object({
+    state: z.object({
+      drafts: z.record(
+        z.string(),
+        z.object({
+          inputText: z.string(),
+          quotes: z.array(z.string()),
+          ttsContext: z.string(),
+        }),
+      ),
+    }),
+    version: z.number().optional(),
+  })
+  .passthrough();
 
 export const migrateChatDraftPersistedState = (persisted: unknown, _version: number) => {
   const maybe = persisted as { state?: { drafts?: unknown } };
@@ -337,7 +361,9 @@ const { storage: uiSyncedStorage } = createSyncedPersist(UI_PREFERENCES_STORAGE_
 
 // src/stores/modelPreferencesStore.ts — cross-tab sync, fix typing (I3)
 import { createSyncedPersist, type PersistedStoreApi } from './syncedPersist';
-const { storage: modelPreferencesSyncedStorage, sync: syncModelPreferences } = createSyncedPersist(MODEL_PREFERENCES_STORE_STORAGE_KEY);
+const { storage: modelPreferencesSyncedStorage, sync: syncModelPreferences } = createSyncedPersist(
+  MODEL_PREFERENCES_STORE_STORAGE_KEY,
+);
 syncModelPreferences(useModelPreferencesStore as PersistedStoreApi<ModelPreferencesState & ModelPreferencesActions>);
 // 删除：import { createPersistedStateStorage, registerPersistedStoreSync } from './persistentStorage';
 // 删除：import { getChatSyncChannel } from './chatSyncChannel';
@@ -364,6 +390,7 @@ git commit -m "refactor(persist): migrate stores to syncedPersist factory"
 ### Task 5: 删除冗余同步模块与文档
 
 **Files:**
+
 - Delete or Deprecate: `src/stores/chatStoreSync.ts`, `src/stores/lastActiveSessionSync.ts` (改为 re-export 工厂或删除)
 - Modify: `src/stores/persistentStorage.test.ts`（保留底层测试，新增工厂测试已覆盖）
 - Create: `docs/superpowers/plans/2026-08-23-unified-synced-persist.md`（本文件已存在，无需重复）

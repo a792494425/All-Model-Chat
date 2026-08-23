@@ -12,8 +12,9 @@ import { createSyncedPersist, type PersistedStoreApi } from './syncedPersist';
 import { safeJsonParse } from '@/utils/safeJsonParse';
 
 const MODEL_PREFERENCES_STORE_STORAGE_KEY = 'all_model_chat_model_preferences_v1';
-const { storage: modelPreferencesSyncedStorage, sync: syncModelPreferences } =
-  createSyncedPersist(MODEL_PREFERENCES_STORE_STORAGE_KEY);
+const { storage: modelPreferencesSyncedStorage, sync: syncModelPreferences } = createSyncedPersist(
+  MODEL_PREFERENCES_STORE_STORAGE_KEY,
+);
 
 const LEGACY_CUSTOM_MODELS_KEY = 'custom_model_list_v1';
 const LEGACY_MODEL_SETTINGS_CACHE_KEY = 'model_settings_cache';

@@ -26,19 +26,27 @@ describe('createSyncedPersist', () => {
     // Isolate singleton channel and flush registry per test
     try {
       _resetSyncChannelForTests();
-    } catch {}
+    } catch {
+      // ignore
+    }
     try {
       _resetFlushRegistryForTests();
-    } catch {}
+    } catch {
+      // ignore
+    }
   });
   afterEach(() => {
     vi.useRealTimers();
     try {
       _resetSyncChannelForTests();
-    } catch {}
+    } catch {
+      // ignore
+    }
     try {
       _resetFlushRegistryForTests();
-    } catch {}
+    } catch {
+      // ignore
+    }
   });
 
   it('exposes storage and sync', () => {
@@ -190,16 +198,22 @@ describe('createSyncedPersist', () => {
     const captured = lastCall?.[1] as unknown as (e: MessageEvent) => void;
     expect(captured).toBeDefined();
     // remote origin should trigger rehydrate
-    captured({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'k', originId: 'other' } } as unknown as MessageEvent);
+    captured({
+      data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'k', originId: 'other' },
+    } as unknown as MessageEvent);
     await Promise.resolve();
     expect(store.persist.rehydrate).toHaveBeenCalledTimes(1);
     store.persist.rehydrate.mockClear();
     // self origin should NOT trigger
-    captured({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'k', originId: PERSISTED_STATE_ORIGIN_ID } } as unknown as MessageEvent);
+    captured({
+      data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'k', originId: PERSISTED_STATE_ORIGIN_ID },
+    } as unknown as MessageEvent);
     await Promise.resolve();
     expect(store.persist.rehydrate).not.toHaveBeenCalled();
     // different storageKey should not trigger
-    captured({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'other-key', originId: 'other' } } as unknown as MessageEvent);
+    captured({
+      data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'other-key', originId: 'other' },
+    } as unknown as MessageEvent);
     expect(store.persist.rehydrate).not.toHaveBeenCalled();
     // wrong type should not trigger
     captured({ data: { type: 'SESSIONS_UPDATED', storageKey: 'k', originId: 'other' } } as unknown as MessageEvent);
@@ -224,11 +238,15 @@ describe('createSyncedPersist', () => {
     const handlerB = addSpy.mock.calls[addSpy.mock.calls.length - 1][1] as unknown as (e: MessageEvent) => void;
     expect(handlerA).toBeDefined();
     expect(handlerB).toBeDefined();
-    handlerA({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'amc-a', originId: 'other' } } as unknown as MessageEvent);
+    handlerA({
+      data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'amc-a', originId: 'other' },
+    } as unknown as MessageEvent);
     expect(storeA.persist.rehydrate).toHaveBeenCalledTimes(1);
     expect(storeB.persist.rehydrate).not.toHaveBeenCalled();
     storeA.persist.rehydrate.mockClear();
-    handlerB({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'amc-b', originId: 'other' } } as unknown as MessageEvent);
+    handlerB({
+      data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'amc-b', originId: 'other' },
+    } as unknown as MessageEvent);
     expect(storeB.persist.rehydrate).toHaveBeenCalledTimes(1);
     const rmSpy = vi.spyOn(channel, 'removeEventListener');
     unsubA();
@@ -248,7 +266,11 @@ describe('createSyncedPersist', () => {
     expect(captured).toBeDefined();
     expect(() => captured({ data: null } as unknown as MessageEvent)).not.toThrow();
     expect(() => captured({ data: { type: 'PERSISTED_STATE_UPDATED' } } as unknown as MessageEvent)).not.toThrow();
-    expect(() => captured({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: null, originId: null } } as unknown as MessageEvent)).not.toThrow();
+    expect(() =>
+      captured({
+        data: { type: 'PERSISTED_STATE_UPDATED', storageKey: null, originId: null },
+      } as unknown as MessageEvent),
+    ).not.toThrow();
     expect(store.persist.rehydrate).not.toHaveBeenCalled();
     unsub();
     addSpy.mockRestore();
@@ -340,7 +362,10 @@ describe('createSyncedPersist', () => {
   it('chatDraftStore schema/version/migrate demo: validates wrapper and migrates malformed drafts (C2)', async () => {
     const { chatDraftPersistedSchema, migrateChatDraftPersistedState } = await import('./chatDraftStore');
     // valid wrapper passes
-    const validRaw = JSON.stringify({ state: { drafts: { s1: { inputText: 'hi', quotes: [], ttsContext: '' } } }, version: 1 });
+    const validRaw = JSON.stringify({
+      state: { drafts: { s1: { inputText: 'hi', quotes: [], ttsContext: '' } } },
+      version: 1,
+    });
     const makeAreaForKey = (key: string, initial: string | null) => {
       const store = new Map<string, string>();
       if (initial !== null) store.set(key, initial);

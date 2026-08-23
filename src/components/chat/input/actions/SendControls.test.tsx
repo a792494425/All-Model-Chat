@@ -33,8 +33,8 @@ describe('SendControls', () => {
     const submitButton = renderer.container.querySelector('button[type="submit"]');
 
     expect(submitButton).not.toBeNull();
-    expect(submitButton?.className).toContain('!h-10');
-    expect(submitButton?.className).toContain('!w-10');
+    expect(submitButton?.className).toContain('!h-[34px]');
+    expect(submitButton?.className).toContain('!w-[34px]');
     expect(submitButton?.className).toContain('transition-colors');
     expect(submitButton?.className).not.toContain('duration-500');
   });

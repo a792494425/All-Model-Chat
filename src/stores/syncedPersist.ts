@@ -194,18 +194,21 @@ export const createSyncedPersist = <T>(
         }
         // Schedule cache eviction after debounce window (or immediately if no debounce)
         if ((opts.debounceMs ?? 0) > 0) {
-          setTimeout(() => {
-            // Only clear if cache still equals this value's parsed form
-            try {
-              const cur = pendingParsedCache.get(key);
-              const thisParsed = JSON.parse(value);
-              if (cur !== undefined && isEqual(cur, thisParsed)) {
+          setTimeout(
+            () => {
+              // Only clear if cache still equals this value's parsed form
+              try {
+                const cur = pendingParsedCache.get(key);
+                const thisParsed = JSON.parse(value);
+                if (cur !== undefined && isEqual(cur, thisParsed)) {
+                  pendingParsedCache.delete(key);
+                }
+              } catch {
                 pendingParsedCache.delete(key);
               }
-            } catch {
-              pendingParsedCache.delete(key);
-            }
-          }, (opts.debounceMs ?? 0) + 20);
+            },
+            (opts.debounceMs ?? 0) + 20,
+          );
         } else {
           // Immediate write will clear via base flush; remove after tick
           pendingParsedCache.delete(key);
