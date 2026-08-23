@@ -3,7 +3,10 @@ import { Maximize2, Minimize2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { useChatInputActionsContext } from './ChatInputContext';
 
-export const ChatInputExpandCorner: React.FC<{ hasCustomHeight?: boolean }> = ({ hasCustomHeight }) => {
+export const ChatInputExpandCorner: React.FC<{ hasCustomHeight?: boolean; onToggle?: () => void }> = ({
+  hasCustomHeight,
+  onToggle,
+}) => {
   const { isFullscreen, onToggleFullscreen, disabled, isNativeAudioModel } = useChatInputActionsContext();
   const { t } = useI18n();
 
@@ -12,6 +15,7 @@ export const ChatInputExpandCorner: React.FC<{ hasCustomHeight?: boolean }> = ({
   const isExpanded = hasCustomHeight ?? isFullscreen;
   const ExpandIcon = isExpanded ? Minimize2 : Maximize2;
   const label = isExpanded ? t('fullscreenTooltipCollapse') : t('fullscreenTooltipExpand');
+  const handleClick = onToggle ?? onToggleFullscreen;
 
   return (
     <div data-composer-expand-corner="" className="group/expand-corner absolute top-px right-px z-10 size-8">
@@ -22,7 +26,7 @@ export const ChatInputExpandCorner: React.FC<{ hasCustomHeight?: boolean }> = ({
       />
       <button
         type="button"
-        onClick={onToggleFullscreen}
+        onClick={handleClick}
         disabled={disabled}
         aria-pressed={isExpanded}
         aria-label={label}

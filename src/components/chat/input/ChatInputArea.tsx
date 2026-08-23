@@ -65,6 +65,7 @@ export const ChatInputArea: React.FC = () => {
     startResize,
     handleResizeKeyDown,
     handleTransitionEnd,
+    toggleExpanded,
     hasCustomHeight,
     maxHeight,
     resizeHandleValue,
@@ -177,7 +178,7 @@ export const ChatInputArea: React.FC = () => {
             >
               <div className="absolute top-0 right-0 left-0 h-0.5 rounded-full bg-primary/20 opacity-0 transition-opacity group-hover/composer-resize-handle:opacity-100 group-focus/composer-resize-handle:opacity-100 group-data-[resizing=true]/composer-resize-handle:bg-primary/35 group-data-[resizing=true]/composer-resize-handle:opacity-100" />
             </div>
-            <ChatInputExpandCorner hasCustomHeight={hasCustomHeight} />
+            <ChatInputExpandCorner hasCustomHeight={hasCustomHeight} onToggle={toggleExpanded} />
             <ChatFilePreviewList
               selectedFiles={chatInput.selectedFiles}
               onRemove={handlers.removeSelectedFile}
