@@ -11,6 +11,7 @@ import { fetchMcpServerCapabilities, type McpServerCapabilities } from '@/servic
 import { interpolate } from '@/i18n/interpolate';
 import { useMcpStatusStore } from '@/stores/mcpStatusStore';
 import { deriveStatus } from '@/features/mcp/mcpStatus';
+import { McpLogsTab } from './McpLogsTab';
 import { McpPromptsTab } from './McpPromptsTab';
 import { McpResourcesTab } from './McpResourcesTab';
 
@@ -752,9 +753,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                         t={t}
                       />
                     )}
-                    {activeTabs[stateKey] === 'logs' && (
-                      <div className="p-4 text-sm text-[var(--theme-text-secondary)]">{t('settingsMcpTabLogs')}</div>
-                    )}
+                    {activeTabs[stateKey] === 'logs' && <McpLogsTab server={server} t={t} />}
                   </>
                 )}
                 {capabilityState?.status === 'error' && (

@@ -8,9 +8,11 @@ import { McpSection } from './McpSection';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const fetchMcpServerCapabilitiesMock = vi.hoisted(() => vi.fn());
+const fetchMcpLogsMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/services/api/mcpApi', () => ({
   fetchMcpServerCapabilities: fetchMcpServerCapabilitiesMock,
+  fetchMcpLogs: fetchMcpLogsMock,
 }));
 
 describe('McpSection', () => {
@@ -534,5 +536,39 @@ describe('McpSection', () => {
     );
     const reorderedIds = (onUpdate.mock.calls[0][1] as any[]).map((s: any) => s.id);
     expect(reorderedIds).toEqual(['s2', 's1']);
+  });
+
+  it('renders logs tab and refreshes', async () => {
+    fetchMcpServerCapabilitiesMock.mockResolvedValue({
+      tools: [],
+      resources: [],
+      resourceTemplates: [],
+      prompts: [],
+      errors: [],
+    } as any);
+    const fetchLogsMock = vi.fn().mockResolvedValue({ logs: [{ level: 'info', message: 'hello', timestamp: Date.now() }] });
+    fetchMcpLogsMock.mockImplementation(fetchLogsMock);
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [{ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x' } as any],
+    };
+    await renderMcpSection({ settings });
+    const testButton = Array.from(renderer.container.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Test');
+    expect(testButton).not.toBeUndefined();
+    await act(async () => {
+      fireEvent.click(testButton!);
+    });
+    // after Test success, capabilities tabs appear; click Logs tab
+    const logsTab = await within(renderer.container).findByRole('tab', { name: 'Logs' });
+    await act(async () => {
+      fireEvent.click(logsTab);
+    });
+    expect(await within(renderer.container).findByText('hello')).toBeInTheDocument();
+    expect(fetchLogsMock).toHaveBeenCalledTimes(1);
+    const refreshBtn = within(renderer.container).getByRole('button', { name: /Refresh/i });
+    await act(async () => {
+      fireEvent.click(refreshBtn);
+    });
+    expect(fetchLogsMock).toHaveBeenCalledTimes(2);
   });
 });
