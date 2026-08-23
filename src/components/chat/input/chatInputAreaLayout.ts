@@ -2,7 +2,6 @@ import { CHAT_INPUT_MAX_WIDTH_CLASS } from '@/constants/layout';
 import { COMPOSER_SHELL_RADIUS_CLASS } from '@/constants/designTokens';
 
 interface ChatInputAreaLayoutParams {
-  isFullscreen: boolean;
   isPipActive?: boolean;
   isAnimatingSend: boolean;
   isRecording: boolean;
@@ -10,7 +9,6 @@ interface ChatInputAreaLayoutParams {
 }
 
 export const getChatInputAreaLayout = ({
-  isFullscreen: _isFullscreen,
   isPipActive,
   isAnimatingSend,
   isRecording,

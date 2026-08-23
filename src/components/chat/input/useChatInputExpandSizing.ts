@@ -181,36 +181,6 @@ export function useChatInputExpandSizing({ isExpanded, onExpandedChange, focusEd
     pendingExpandedRef.current = null;
   }, []);
 
-  const restoreDefaultHeight = useCallback(() => {
-    const frame = frameRef.current;
-    clearAnimationFrame();
-    pendingExpandedRef.current = null;
-    if (!frame) {
-      setManualHeight(null);
-      onExpandedChange(false);
-      focusEditor();
-      return;
-    }
-    const startHeight = frame.offsetHeight || getCurrentHeight();
-    const targetHeight = getCollapsedHeightPx(frame, minHeight);
-    setAnimatedHeight(`${startHeight}px`);
-    animationFrameRef.current = window.requestAnimationFrame(() => {
-      setManualHeight(null);
-      onExpandedChange(false);
-      setAnimatedHeight(`${targetHeight}px`);
-      animationFrameRef.current = null;
-    });
-    clearAnimatedHeightAfterTransition();
-    focusEditor();
-  }, [
-    clearAnimatedHeightAfterTransition,
-    clearAnimationFrame,
-    focusEditor,
-    getCurrentHeight,
-    minHeight,
-    onExpandedChange,
-  ]);
-
   const resolvedFrameHeight =
     animatedHeight ??
     (isExpanded ? CHAT_INPUT_EXPANDED_MAX_HEIGHT : manualHeight !== null ? `${manualHeight}px` : undefined);
@@ -233,10 +203,7 @@ export function useChatInputExpandSizing({ isExpanded, onExpandedChange, focusEd
     handleResizeKeyDown,
     handleTransitionEnd,
     toggleExpanded,
-    restoreDefaultHeight,
     hasCustomHeight,
-    hasManualHeight,
-    manualHeight,
     maxHeight,
     minHeight,
     resizeHandleValue: isExpanded ? maxHeight : (manualHeight ?? minHeight),

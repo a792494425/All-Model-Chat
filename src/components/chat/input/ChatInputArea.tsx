@@ -50,7 +50,6 @@ export const ChatInputArea: React.FC = () => {
     queuedSubmissionContainerClass,
     actionsContainerClass,
   } = getChatInputAreaLayout({
-    isFullscreen,
     isPipActive,
     isAnimatingSend,
     isRecording: !!isRecording,
