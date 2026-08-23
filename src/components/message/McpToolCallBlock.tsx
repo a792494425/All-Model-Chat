@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Check, Copy, Loader2 } from 'lucide-react';
+import { AlertTriangle, Check, Copy, Loader2, ShieldCheck } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 
 export const MAX_ARG_VALUE_LENGTH = 4000;
 export const MAX_ARG_OBJECT_KEYS = 24;
 export const MAX_ARG_ARRAY_ITEMS = 24;
 
-export const McpToolCallBlock: React.FC<{ call: any; responsePart: any; status: 'invoking' | 'success' | 'error' }> = ({
-  call,
-  responsePart,
-  status,
-}) => {
+export const McpToolCallBlock: React.FC<{
+  call: any;
+  responsePart: any;
+  status: 'invoking' | 'success' | 'error';
+  autoApproved?: boolean;
+}> = ({ call, responsePart, status, autoApproved }) => {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -21,6 +22,7 @@ export const McpToolCallBlock: React.FC<{ call: any; responsePart: any; status: 
       <button onClick={() => setExpanded((v) => !v)} className="flex w-full items-center justify-between px-3 py-2 text-sm">
         <span className="font-mono text-xs truncate">{call.name}</span>
         <span className="flex items-center gap-2">
+          {autoApproved && <ShieldCheck data-testid="mcp-shield" className="h-3.5 w-3.5 text-emerald-600" />}
           {status === 'invoking' ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : status === 'success' ? (
