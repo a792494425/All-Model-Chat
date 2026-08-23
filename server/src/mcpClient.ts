@@ -447,13 +447,20 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
         const resources: McpResource[] = [];
         let cursor: string | undefined;
 
-        do {
-          const result = await client.listResources(cursor ? { cursor } : undefined, {
-            timeout: MCP_REQUEST_TIMEOUT_MS,
-          });
-          resources.push(...result.resources.map(mapResource));
-          cursor = result.nextCursor;
-        } while (cursor);
+        try {
+          do {
+            const result = await client.listResources(cursor ? { cursor } : undefined, {
+              timeout: MCP_REQUEST_TIMEOUT_MS,
+            });
+            resources.push(...result.resources.map(mapResource));
+            cursor = result.nextCursor;
+          } while (cursor);
+        } catch (error) {
+          if (isUnsupportedMethodError(error)) {
+            return [];
+          }
+          throw error;
+        }
 
         return resources;
       }),
@@ -532,13 +539,20 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
         const prompts: McpPrompt[] = [];
         let cursor: string | undefined;
 
-        do {
-          const result = await client.listPrompts(cursor ? { cursor } : undefined, {
-            timeout: MCP_REQUEST_TIMEOUT_MS,
-          });
-          prompts.push(...result.prompts.map(mapPrompt));
-          cursor = result.nextCursor;
-        } while (cursor);
+        try {
+          do {
+            const result = await client.listPrompts(cursor ? { cursor } : undefined, {
+              timeout: MCP_REQUEST_TIMEOUT_MS,
+            });
+            prompts.push(...result.prompts.map(mapPrompt));
+            cursor = result.nextCursor;
+          } while (cursor);
+        } catch (error) {
+          if (isUnsupportedMethodError(error)) {
+            return [];
+          }
+          throw error;
+        }
 
         return prompts;
       }),
