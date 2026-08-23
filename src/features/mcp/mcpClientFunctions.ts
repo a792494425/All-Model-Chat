@@ -244,7 +244,14 @@ export const createMcpClientFunctions = async ({
     const runtimeServers = runtimeServerEntries.map(({ runtimeServer }) => runtimeServer);
     const lister: McpToolsLister = listTools;
     const configKey = JSON.stringify(
-      runtimeServers.map((s) => ({ id: s.id, url: s.url, command: s.command, disabledTools: s.disabledTools })),
+      runtimeServers.map((s) => ({
+        id: s.id,
+        url: s.url,
+        command: s.command,
+        disabledTools: s.disabledTools,
+        disabledAutoApproveTools: s.disabledAutoApproveTools,
+        isTrusted: s.isTrusted,
+      })),
     );
     const cachedResponse = readCachedTools(lister, configKey);
     const toolResponse = cachedResponse ?? (await listTools(runtimeServers, abortSignal));
