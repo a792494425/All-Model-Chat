@@ -10,7 +10,7 @@ import { useResizeDrag } from '@/hooks/useResizeDrag';
 export const CHAT_INPUT_EXPANDED_MAX_HEIGHT = 'max(220px, 50vh)';
 export const CHAT_INPUT_COLLAPSED_MAX_HEIGHT = 'max(220px, 40vh)';
 
-const HEIGHT_TRANSITION_MS = 350;
+const HEIGHT_TRANSITION_MS = 260;
 const RESIZE_KEYBOARD_STEP = 16;
 
 type Options = {
@@ -221,9 +221,7 @@ export function useChatInputExpandSizing({ isExpanded, onExpandedChange, focusEd
       height: resolvedFrameHeight,
       minHeight,
       overflow: 'hidden',
-      transitionProperty: 'height',
-      transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
-      transitionDuration: isResizing ? '0ms' : `${HEIGHT_TRANSITION_MS}ms`,
+      transition: isResizing ? 'none' : `height ${HEIGHT_TRANSITION_MS}ms cubic-bezier(0, 0, 0.2, 1)`,
     }),
     [isResizing, minHeight, resolvedFrameHeight],
   );
