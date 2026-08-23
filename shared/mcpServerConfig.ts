@@ -20,6 +20,8 @@ export interface McpServerConfig {
   headers?: Record<string, string>;
   auth?: McpServerAuthConfig;
   disabledTools?: string[];
+  disabledAutoApproveTools?: string[];
+  isTrusted?: boolean;
 }
 
 export const sanitizeStringArray = (value: unknown): string[] | undefined => {
@@ -107,6 +109,11 @@ export const sanitizeMcpServerConfig = (value: unknown): McpServerConfig | undef
 
   const disabledTools = sanitizeStringArray((value as Record<string, unknown>).disabledTools);
   if (disabledTools) (server as McpServerConfig).disabledTools = disabledTools;
+
+  const disabledAutoApproveTools = sanitizeStringArray((value as Record<string, unknown>).disabledAutoApproveTools);
+  if (disabledAutoApproveTools) (server as McpServerConfig).disabledAutoApproveTools = disabledAutoApproveTools;
+  if (typeof (value as Record<string, unknown>).isTrusted === 'boolean')
+    (server as McpServerConfig).isTrusted = (value as Record<string, unknown>).isTrusted as boolean;
 
   return server;
 };

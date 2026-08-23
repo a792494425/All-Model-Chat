@@ -177,6 +177,11 @@ const sanitizeMcpServers = (value: unknown, fallback: McpServerConfig[]): McpSer
     const disabledTools = sanitizeStringArray((item as Record<string, unknown>).disabledTools);
     if (disabledTools) server.disabledTools = disabledTools;
 
+    const disabledAutoApproveTools = sanitizeStringArray((item as Record<string, unknown>).disabledAutoApproveTools);
+    if (disabledAutoApproveTools) server.disabledAutoApproveTools = disabledAutoApproveTools;
+    if (typeof (item as Record<string, unknown>).isTrusted === 'boolean')
+      server.isTrusted = (item as Record<string, unknown>).isTrusted as boolean;
+
     return [server];
   });
 
