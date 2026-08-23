@@ -19,7 +19,6 @@ export const CHAT_USER_MESSAGE_INSET_CLASS = 'ml-12 sm:ml-16 md:ml-20';
  * statically detect them; values are intentionally ordered so higher layers stack
  * above lower ones.
  */
-export const Z_INDEX_FULLSCREEN_CHAT_INPUT = 'z-[2000]';
 export const Z_INDEX_MODAL_BACKDROP = 'z-[2100]';
 export const Z_INDEX_TABLE_FULLSCREEN = 'z-[2200]';
 export const Z_INDEX_SIDE_PANEL_MOBILE = 'z-[3000]';

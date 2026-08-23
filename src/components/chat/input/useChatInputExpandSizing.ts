@@ -7,8 +7,7 @@ import type {
 } from 'react';
 import { useResizeDrag } from '@/hooks/useResizeDrag';
 
-export const CHAT_INPUT_EXPANDED_MAX_HEIGHT = 'max(220px, 50vh)';
-export const CHAT_INPUT_COLLAPSED_MAX_HEIGHT = 'max(220px, 40vh)';
+const CHAT_INPUT_EXPANDED_MAX_HEIGHT = 'max(220px, 50vh)';
 
 const HEIGHT_TRANSITION_MS = 260;
 const RESIZE_KEYBOARD_STEP = 16;
