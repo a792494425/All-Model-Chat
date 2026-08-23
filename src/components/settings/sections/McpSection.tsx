@@ -123,6 +123,104 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
     setCardKeys((keys) => [...keys, createCardKey()]);
   };
 
+  const [importJson, setImportJson] = useState('');
+  const [importError, setImportError] = useState<string | null>(null);
+  const [showImport, setShowImport] = useState(false);
+
+  const normalizeImportedServer = (raw: Record<string, unknown>, fallbackName?: string): McpServerConfig | null => {
+    const url = typeof raw.url === 'string' ? raw.url.trim() : typeof raw.baseUrl === 'string' ? raw.baseUrl.trim() : '';
+    const command = typeof raw.command === 'string' ? raw.command.trim() : '';
+    if (!url && !command) return null;
+    const isStdio = !!command || raw.transport === 'stdio' || raw.type === 'stdio';
+    const transport: McpServerTransport = isStdio ? 'stdio' : raw.transport === 'sse' || raw.type === 'sse' ? 'sse' : 'http';
+    const idRaw = typeof raw.id === 'string' ? raw.id.trim() : typeof raw.name === 'string' ? raw.name.trim() : '';
+    const id = idRaw || `mcp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const name = (typeof raw.name === 'string' && raw.name.trim()) || fallbackName || id;
+    if (transport === 'stdio') {
+      return {
+        id,
+        name,
+        enabled: raw.enabled !== false,
+        transport,
+        command: command || (typeof raw.command === 'string' ? raw.command : 'npx'),
+        args: Array.isArray(raw.args) ? (raw.args.filter((x) => typeof x === 'string') as string[]) : [],
+        env: raw.env && typeof raw.env === 'object' ? (raw.env as Record<string, string>) : {},
+      };
+    }
+    return {
+      id,
+      name,
+      enabled: raw.enabled !== false,
+      transport,
+      url: url || (typeof raw.url === 'string' ? raw.url : ''),
+      headers: raw.headers && typeof raw.headers === 'object' ? (raw.headers as Record<string, string>) : {},
+      auth: raw.auth && typeof (raw.auth as Record<string, unknown>).type === 'string' ? (raw.auth as McpServerConfig['auth']) : { type: 'none' },
+    };
+  };
+
+  const parseImportJson = (text: string): McpServerConfig[] => {
+    const parsed = JSON.parse(text) as unknown;
+    if (!parsed || typeof parsed !== 'object') throw new Error('JSON 顶层必须是对象');
+    const obj = parsed as Record<string, unknown>;
+    if (Array.isArray(parsed)) return (parsed as Record<string, unknown>[]).map((r) => normalizeImportedServer(r)).filter(Boolean) as McpServerConfig[];
+    if (Array.isArray(obj.servers)) return (obj.servers as Record<string, unknown>[]).map((r) => normalizeImportedServer(r)).filter(Boolean) as McpServerConfig[];
+    if (Array.isArray(obj.mcpServers)) return (obj.mcpServers as Record<string, unknown>[]).map((r) => normalizeImportedServer(r)).filter(Boolean) as McpServerConfig[];
+    if (obj.mcpServers && typeof obj.mcpServers === 'object' && !Array.isArray(obj.mcpServers)) {
+      return Object.entries(obj.mcpServers as Record<string, unknown>).map(([key, val]) =>
+        normalizeImportedServer((val as Record<string, unknown>) ?? {}, key),
+      ).filter(Boolean) as McpServerConfig[];
+    }
+    if (obj.url || obj.command || obj.transport || obj.type) {
+      const one = normalizeImportedServer(obj);
+      return one ? [one] : [];
+    }
+    throw new Error('无法识别的 JSON 格式，支持 {mcpServers:{name:{url}}} / {mcpServers:[...]} / {servers:[...]} / 单个 {url}');
+  };
+
+  const handleImportJson = () => {
+    try {
+      const imported = parseImportJson(importJson);
+      if (imported.length === 0) throw new Error('未解析到任何服务器');
+      const existingIds = new Set(servers.map((s) => s.id));
+      const deduped = imported.map((s) => {
+        let nextId = s.id;
+        let n = 2;
+        while (existingIds.has(nextId)) {
+          nextId = `${s.id}__${n}`;
+          n += 1;
+        }
+        existingIds.add(nextId);
+        return nextId === s.id ? s : { ...s, id: nextId };
+      });
+      updateServers([...servers, ...deduped]);
+      setCardKeys((keys) => [...keys, ...deduped.map(() => createCardKey())]);
+      setImportJson('');
+      setImportError(null);
+      setShowImport(false);
+    } catch (e) {
+      setImportError(getErrorMessage(e));
+    }
+  };
+
+  const handleImportBrowserBridge = () => {
+    const preset: McpServerConfig = {
+      id: 'browser-control-bridge',
+      name: 'Browser Control Bridge',
+      enabled: true,
+      transport: 'http',
+      url: 'http://host.docker.internal:38976/mcp',
+      headers: {},
+      auth: { type: 'none' },
+    };
+    if (servers.some((s) => s.id === preset.id || s.url === preset.url)) {
+      setImportError('已存在相同 id 或 URL 的服务器');
+      return;
+    }
+    updateServers([...servers, preset]);
+    setCardKeys((keys) => [...keys, createCardKey()]);
+    setImportError(null);
+  };
+
   const handleTransportChange = (serverIndex: number, server: McpServerConfig, transport: McpServerTransport) => {
     if (transport === 'stdio') {
       updateServer(serverIndex, {
@@ -186,6 +284,42 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
           <Plus size={14} strokeWidth={1.7} />
           {t('settingsMcpAddServer')}
         </button>
+      </div>
+
+      <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`}>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={handleImportBrowserBridge} className={`${SETTINGS_OUTLINE_BUTTON_CLASS} bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] hover:opacity-90`}>
+            一键导入 Browser Bridge
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowImport((v) => !v)}
+            className={`${SETTINGS_OUTLINE_BUTTON_CLASS} ${showImport ? 'bg-[var(--theme-bg-tertiary)]' : ''}`}
+          >
+            从 JSON 导入 {showImport ? '▴' : '▾'}
+          </button>
+          <span className="text-xs text-[var(--theme-text-tertiary)]">支持 Cherry/Claude 的 mcpServers 格式，粘贴即导入</span>
+        </div>
+        {showImport && (
+          <div className="space-y-2">
+            <textarea
+              value={importJson}
+              onChange={(e) => setImportJson(e.target.value)}
+              placeholder={`{\n  "mcpServers": {\n    "browser-control-bridge": { "url": "http://host.docker.internal:38976/mcp" }\n  }\n}\n或 { "servers": [{ "name":"My MCP", "url":"https://..." }] }`}
+              className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} min-h-[140px] resize-y font-mono text-xs`}
+              spellCheck={false}
+            />
+            {importError && <div className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-600">{importError}</div>}
+            <div className="flex gap-2">
+              <button type="button" onClick={handleImportJson} className={SETTINGS_OUTLINE_BUTTON_CLASS}>
+                导入
+              </button>
+              <button type="button" onClick={() => { setShowImport(false); setImportError(null); }} className={`${SETTINGS_OUTLINE_BUTTON_CLASS} opacity-60`}>
+                取消
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {servers.length === 0 ? (
