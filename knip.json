@@ -9,5 +9,13 @@
     "src/utils/export/templates.ts",
     "e2e/fixtures/mcp-test-server.mjs"
   ],
-  "ignoreDependencies": ["pdfjs-dist", "pyodide", "lamejs", "hono", "@iconify-json/material-icon-theme"]
+  "ignoreDependencies": ["pdfjs-dist", "pyodide", "lamejs", "hono", "@iconify-json/material-icon-theme"],
+  "ignoreExportsUsedInFile": {
+    "interface": true,
+    "type": true
+  },
+  "ignoreIssues": {
+    "src/stores/persistentStorage.ts": ["exports"],
+    "src/stores/syncedPersist.ts": ["exports", "types"]
+  }
 }
