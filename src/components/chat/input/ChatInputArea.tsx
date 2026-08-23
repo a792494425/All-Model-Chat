@@ -14,6 +14,7 @@ import { CHAT_INPUT_MAX_WIDTH_CLASS, FOCUS_BLOCKING_SELECTOR } from '@/constants
 import { useI18n } from '@/contexts/I18nContext';
 import { useChatInputContext } from './ChatInputContext';
 import { ChatInputExpandCorner } from './ChatInputExpandCorner';
+import { useChatInputExpandSizing } from './useChatInputExpandSizing';
 
 export const ChatInputArea: React.FC = () => {
   const { t } = useI18n();
@@ -38,6 +39,7 @@ export const ChatInputArea: React.FC = () => {
   const isMobile = inputState.isMobile;
   const isConverting = localFileState.isConverting;
   const isRecording = voiceState.isRecording;
+  const isExpanded = isFullscreen;
 
   const {
     isUIBlocked,
@@ -53,6 +55,26 @@ export const ChatInputArea: React.FC = () => {
     isAnimatingSend,
     isRecording: !!isRecording,
     inputDisabled,
+  });
+
+  const minHeight = Math.max(56, initialTextareaHeight + 32);
+  const {
+    frameRef,
+    frameStyle,
+    isResizing,
+    startResize,
+    handleResizeKeyDown,
+    handleTransitionEnd,
+    hasCustomHeight,
+    maxHeight,
+    resizeHandleValue,
+  } = useChatInputExpandSizing({
+    isExpanded,
+    onExpandedChange: (next) => {
+      if (next !== isExpanded) inputState.handleToggleFullscreen();
+    },
+    focusEditor: () => inputState.textareaRef.current?.focus(),
+    minHeight,
   });
   const handleInputShellClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const target = event.target;
@@ -87,7 +109,7 @@ export const ChatInputArea: React.FC = () => {
         />
       )}
       <div className={`mx-auto w-full ${CHAT_INPUT_MAX_WIDTH_CLASS} px-2 sm:px-3`}>
-        {chatInput.showEmptyStateSuggestions && capabilities.permissions.canGenerateSuggestions && !isFullscreen && (
+        {chatInput.showEmptyStateSuggestions && capabilities.permissions.canGenerateSuggestions && !isExpanded && (
           <ChatSuggestions
             show={chatInput.showEmptyStateSuggestions}
             onSuggestionClick={chatInput.onSuggestionClick}
@@ -129,17 +151,33 @@ export const ChatInputArea: React.FC = () => {
             onSelect={slashCommandState.handleCommandSelect}
             selectedIndex={slashCommandState.slashCommandState.selectedIndex}
             query={slashCommandState.slashCommandState.query}
-            className={
-              isFullscreen ? 'absolute bottom-[60px] left-0 right-0 mb-2 w-full max-w-6xl mx-auto z-20' : undefined
-            }
           />
           {queuedSubmissionsView && (
             <div className={queuedSubmissionContainerClass}>
               <QueuedSubmissionList view={queuedSubmissionsView} />
             </div>
           )}
-          <div className={inputContainerClass} onClick={handleInputShellClick}>
-            <ChatInputExpandCorner />
+          <div
+            className={`${inputContainerClass} ${hasCustomHeight ? 'expanded' : ''}`}
+            onClick={handleInputShellClick}
+          >
+            <div
+              data-composer-resize-handle=""
+              data-resizing={isResizing || undefined}
+              role="separator"
+              aria-orientation="horizontal"
+              aria-valuemin={minHeight}
+              aria-valuemax={maxHeight}
+              aria-valuenow={resizeHandleValue}
+              aria-label={t('chatInputResizeHandleAria')}
+              tabIndex={0}
+              onMouseDown={startResize}
+              onKeyDown={handleResizeKeyDown}
+              className="group/composer-resize-handle absolute top-0 right-4 left-4 z-30 h-2 cursor-row-resize [-webkit-app-region:no-drag] focus-visible:bg-primary/40 focus-visible:outline-none"
+            >
+              <div className="absolute top-0 right-0 left-0 h-0.5 rounded-full bg-primary/20 opacity-0 transition-opacity group-hover/composer-resize-handle:opacity-100 group-focus/composer-resize-handle:opacity-100 group-data-[resizing=true]/composer-resize-handle:bg-primary/35 group-data-[resizing=true]/composer-resize-handle:opacity-100" />
+            </div>
+            <ChatInputExpandCorner hasCustomHeight={hasCustomHeight} />
             <ChatFilePreviewList
               selectedFiles={chatInput.selectedFiles}
               onRemove={handlers.removeSelectedFile}
@@ -156,21 +194,30 @@ export const ChatInputArea: React.FC = () => {
               themeId={chatInput.themeId}
             />
 
-            <ChatTextArea
-              textareaRef={inputState.textareaRef}
-              value={inputState.inputText}
-              onChange={handlers.handleInputChange}
-              onKeyDown={handlers.handleKeyDown}
-              onPaste={handlers.handlePaste}
-              onCompositionStart={handlers.onCompositionStart}
-              onCompositionEnd={handlers.onCompositionEnd}
-              placeholder={t('chatInputPlaceholder')}
-              disabled={inputDisabled}
-              isFullscreen={isFullscreen}
-              isMobile={isMobile}
-              initialTextareaHeight={initialTextareaHeight}
-              isConverting={isConverting}
-            />
+            <div
+              ref={frameRef}
+              data-composer-editor-frame=""
+              className="min-w-0 overflow-hidden transition-[height] ease-out"
+              onTransitionEnd={handleTransitionEnd}
+              style={frameStyle}
+            >
+              <ChatTextArea
+                textareaRef={inputState.textareaRef}
+                value={inputState.inputText}
+                onChange={handlers.handleInputChange}
+                onKeyDown={handlers.handleKeyDown}
+                onPaste={handlers.handlePaste}
+                onCompositionStart={handlers.onCompositionStart}
+                onCompositionEnd={handlers.onCompositionEnd}
+                placeholder={t('chatInputPlaceholder')}
+                disabled={inputDisabled}
+                isFullscreen={isFullscreen}
+                hasCustomHeight={hasCustomHeight}
+                isMobile={isMobile}
+                initialTextareaHeight={initialTextareaHeight}
+                isConverting={isConverting}
+              />
+            </div>
 
             <div className={actionsContainerClass}>
               <ChatInputActions />

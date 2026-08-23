@@ -14,6 +14,7 @@ interface ChatTextAreaProps {
   placeholder: string;
   disabled: boolean;
   isFullscreen: boolean;
+  hasCustomHeight?: boolean;
   isMobile: boolean;
   initialTextareaHeight: number;
   isConverting: boolean;
@@ -31,10 +32,12 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
   placeholder,
   disabled,
   isFullscreen,
+  hasCustomHeight,
   isMobile,
   initialTextareaHeight,
   isConverting,
 }) => {
+  const isExpandedMode = hasCustomHeight ?? isFullscreen;
   const { t } = useI18n();
   const shadowRef = useRef<HTMLTextAreaElement>(null);
   const isComposingRef = useRef(false);
@@ -65,7 +68,7 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
     shadow.style.height = '0px';
     shadow.value = target.value;
 
-    if (isFullscreen) {
+    if (isExpandedMode) {
       target.style.height = '100%';
       target.style.overflowY = 'auto';
     } else {
@@ -82,7 +85,7 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
         target.style.overflowY = 'hidden';
       }
     }
-  }, [value, isFullscreen, isMobile, initialTextareaHeight, textareaRef]);
+  }, [value, isExpandedMode, isFullscreen, isMobile, initialTextareaHeight, textareaRef]);
 
   const handleCompositionStart = () => {
     isComposingRef.current = true;
@@ -123,8 +126,8 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
         placeholder={placeholder}
         className="w-full bg-transparent border-0 resize-none px-1 pr-9 pt-0.5 pb-0 text-base placeholder:text-[var(--theme-text-tertiary)] focus:ring-0 focus:outline-none custom-scrollbar flex-grow min-h-[26px]"
         style={{
-          height: isFullscreen ? '100%' : `${isMobile ? 26 : initialTextareaHeight + 2}px`,
-          overflowY: isFullscreen ? 'auto' : 'hidden',
+          height: isExpandedMode ? '100%' : `${isMobile ? 26 : initialTextareaHeight + 2}px`,
+          overflowY: isExpandedMode ? 'auto' : 'hidden',
         }}
         aria-label={t('chatInputTextareaAria')}
         data-chat-input-textarea="true"

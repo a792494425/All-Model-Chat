@@ -926,6 +926,15 @@ export const chatInputTranslations = {
     es: 'Reducir entrada',
     ko: '입력란 축소',
   },
+  chatInputResizeHandleAria: {
+    en: 'Resize input height',
+    zh: '调整输入框高度',
+    ja: '入力欄の高さを調整',
+    de: 'Eingabehöhe anpassen',
+    fr: 'Redimensionner la zone de saisie',
+    es: 'Redimensionar altura de entrada',
+    ko: '입력란 높이 조절',
+  },
   liveStatusRefreshing: {
     en: 'Refreshing live session...',
     zh: '正在刷新实时会话…',

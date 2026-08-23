@@ -16,6 +16,8 @@
   },
   "ignoreIssues": {
     "src/stores/persistentStorage.ts": ["exports"],
-    "src/stores/syncedPersist.ts": ["exports", "types"]
+    "src/stores/syncedPersist.ts": ["exports", "types"],
+    "src/components/chat/input/useChatInputExpandSizing.ts": ["exports"],
+    "src/constants/layout.ts": ["exports"]
   }
 }
