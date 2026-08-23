@@ -11,6 +11,8 @@ import { fetchMcpServerCapabilities, type McpServerCapabilities } from '@/servic
 import { interpolate } from '@/i18n/interpolate';
 import { useMcpStatusStore } from '@/stores/mcpStatusStore';
 import { deriveStatus } from '@/features/mcp/mcpStatus';
+import { McpPromptsTab } from './McpPromptsTab';
+import { McpResourcesTab } from './McpResourcesTab';
 
 interface McpSectionProps {
   settings: AppSettings;
@@ -112,6 +114,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
     onUpdate('mcpServers', reordered);
   };
   const [capabilityStates, setCapabilityStates] = useState<Record<string, CapabilityTestState>>({});
+  const [activeTabs, setActiveTabs] = useState<Record<string, string>>({});
 
   // Card identities must stay stable across edits: the server id is
   // user-editable on every keystroke and indexes shift when a server is
@@ -695,6 +698,65 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                     </div>
                   );
                 })()}
+                {capabilityState?.status === 'success' && capabilities && (
+                  <>
+                    <div className="mt-3 flex gap-1 border-b border-[var(--theme-border-secondary)]">
+                      <button
+                        role="tab"
+                        aria-selected={(activeTabs[stateKey] ?? 'tools') === 'tools'}
+                        onClick={() => setActiveTabs((prev) => ({ ...prev, [stateKey]: 'tools' }))}
+                        className={`px-3 py-1.5 text-xs font-medium ${(activeTabs[stateKey] ?? 'tools') === 'tools' ? 'border-b-2 border-[var(--theme-text-accent)] text-[var(--theme-text-primary)]' : 'text-[var(--theme-text-secondary)]'}`}
+                      >
+                        {t('settingsMcpTabTools')}
+                      </button>
+                      <button
+                        role="tab"
+                        aria-selected={activeTabs[stateKey] === 'prompts'}
+                        onClick={() => setActiveTabs((prev) => ({ ...prev, [stateKey]: 'prompts' }))}
+                        className={`px-3 py-1.5 text-xs font-medium ${activeTabs[stateKey] === 'prompts' ? 'border-b-2 border-[var(--theme-text-accent)] text-[var(--theme-text-primary)]' : 'text-[var(--theme-text-secondary)]'}`}
+                      >
+                        {t('settingsMcpTabPrompts')}
+                      </button>
+                      <button
+                        role="tab"
+                        aria-selected={activeTabs[stateKey] === 'resources'}
+                        onClick={() => setActiveTabs((prev) => ({ ...prev, [stateKey]: 'resources' }))}
+                        className={`px-3 py-1.5 text-xs font-medium ${activeTabs[stateKey] === 'resources' ? 'border-b-2 border-[var(--theme-text-accent)] text-[var(--theme-text-primary)]' : 'text-[var(--theme-text-secondary)]'}`}
+                      >
+                        {t('settingsMcpTabResources')}
+                      </button>
+                      <button
+                        role="tab"
+                        aria-selected={activeTabs[stateKey] === 'logs'}
+                        onClick={() => setActiveTabs((prev) => ({ ...prev, [stateKey]: 'logs' }))}
+                        className={`px-3 py-1.5 text-xs font-medium ${activeTabs[stateKey] === 'logs' ? 'border-b-2 border-[var(--theme-text-accent)] text-[var(--theme-text-primary)]' : 'text-[var(--theme-text-secondary)]'}`}
+                      >
+                        {t('settingsMcpTabLogs')}
+                      </button>
+                      <button
+                        role="tab"
+                        aria-selected={activeTabs[stateKey] === 'settings'}
+                        onClick={() => setActiveTabs((prev) => ({ ...prev, [stateKey]: 'settings' }))}
+                        className={`px-3 py-1.5 text-xs font-medium ${activeTabs[stateKey] === 'settings' ? 'border-b-2 border-[var(--theme-text-accent)] text-[var(--theme-text-primary)]' : 'text-[var(--theme-text-secondary)]'}`}
+                      >
+                        {t('settingsMcpTabSettings')}
+                      </button>
+                    </div>
+                    {activeTabs[stateKey] === 'prompts' && (
+                      <McpPromptsTab prompts={capabilities.prompts ?? []} t={t} />
+                    )}
+                    {activeTabs[stateKey] === 'resources' && (
+                      <McpResourcesTab
+                        resources={capabilities.resources ?? []}
+                        templates={capabilities.resourceTemplates ?? []}
+                        t={t}
+                      />
+                    )}
+                    {activeTabs[stateKey] === 'logs' && (
+                      <div className="p-4 text-sm text-[var(--theme-text-secondary)]">{t('settingsMcpTabLogs')}</div>
+                    )}
+                  </>
+                )}
                 {capabilityState?.status === 'error' && (
                   <div className="mt-4 rounded-md border border-[var(--theme-text-danger)]/30 bg-[var(--theme-bg-danger)]/10 p-3 text-xs text-[var(--theme-text-danger)]">
                     {capabilityState.error}
