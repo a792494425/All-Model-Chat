@@ -260,8 +260,13 @@ export const createSyncedPersist = <T>(
     };
 
     channel.addEventListener('message', handleMessage);
-    return () => channel.removeEventListener('message', handleMessage);
-    // TODO(Task 3): extend sync with originId pagehide flush verification and multi-store filter
+    return () => {
+      try {
+        channel.removeEventListener('message', handleMessage);
+      } catch {
+        // silent
+      }
+    };
   };
 
   return { storage, sync };

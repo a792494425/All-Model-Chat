@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod';
-import { createSyncedPersist, SYNCED_PERSIST_CHANNEL_NAME } from './syncedPersist';
+import { createSyncedPersist, SYNCED_PERSIST_CHANNEL_NAME, PERSISTED_STATE_ORIGIN_ID } from './syncedPersist';
+import { getChatSyncChannel, _resetSyncChannelForTests } from './chatSyncChannel';
+import { _resetFlushRegistryForTests } from './persistentStorage';
 
 // Helper to create a mock storage area
 function makeArea(initial: string | null = null) {
@@ -19,8 +21,25 @@ function makeArea(initial: string | null = null) {
 }
 
 describe('createSyncedPersist', () => {
-  beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
+  beforeEach(() => {
+    vi.useFakeTimers();
+    // Isolate singleton channel and flush registry per test
+    try {
+      _resetSyncChannelForTests();
+    } catch {}
+    try {
+      _resetFlushRegistryForTests();
+    } catch {}
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    try {
+      _resetSyncChannelForTests();
+    } catch {}
+    try {
+      _resetFlushRegistryForTests();
+    } catch {}
+  });
 
   it('exposes storage and sync', () => {
     const { storage, sync } = createSyncedPersist('test-key', { debounceMs: 0 });
@@ -155,5 +174,120 @@ describe('createSyncedPersist', () => {
     const { storage } = createSyncedPersist('amc-chat', { debounceMs: 0 });
     // Just verify factory accepts amc- prefixed key without error and storage works
     expect(storage).toBeDefined();
+  });
+
+  // ---- Task 3: originId loopback shielding + storageKey filter + pagehide flush ----
+
+  it('rehydrates on remote PERSISTED_STATE_UPDATED but not on self (brief Task 3)', async () => {
+    const channel = getChatSyncChannel();
+    const store = { persist: { rehydrate: vi.fn() } } as any;
+    const { sync } = createSyncedPersist('k', {});
+    const addSpy = vi.spyOn(channel, 'addEventListener');
+    const rmSpy = vi.spyOn(channel, 'removeEventListener');
+    const unsub = sync(store);
+    // last call should be our handler
+    const lastCall = addSpy.mock.calls[addSpy.mock.calls.length - 1];
+    const captured = lastCall?.[1] as unknown as (e: MessageEvent) => void;
+    expect(captured).toBeDefined();
+    // remote origin should trigger rehydrate
+    captured({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'k', originId: 'other' } } as unknown as MessageEvent);
+    await Promise.resolve();
+    expect(store.persist.rehydrate).toHaveBeenCalledTimes(1);
+    store.persist.rehydrate.mockClear();
+    // self origin should NOT trigger
+    captured({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'k', originId: PERSISTED_STATE_ORIGIN_ID } } as unknown as MessageEvent);
+    await Promise.resolve();
+    expect(store.persist.rehydrate).not.toHaveBeenCalled();
+    // different storageKey should not trigger
+    captured({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'other-key', originId: 'other' } } as unknown as MessageEvent);
+    expect(store.persist.rehydrate).not.toHaveBeenCalled();
+    // wrong type should not trigger
+    captured({ data: { type: 'SESSIONS_UPDATED', storageKey: 'k', originId: 'other' } } as unknown as MessageEvent);
+    expect(store.persist.rehydrate).not.toHaveBeenCalled();
+    expect(() => unsub()).not.toThrow();
+    expect(rmSpy).toHaveBeenCalledWith('message', expect.any(Function));
+    addSpy.mockRestore();
+    rmSpy.mockRestore();
+  });
+
+  it('sync unsubscribe removes listener and second sync isolated by storageKey', async () => {
+    const channel = getChatSyncChannel();
+    const storeA = { persist: { rehydrate: vi.fn() } } as any;
+    const storeB = { persist: { rehydrate: vi.fn() } } as any;
+    const { sync: syncA } = createSyncedPersist('amc-a', {});
+    const { sync: syncB } = createSyncedPersist('amc-b', {});
+    const addSpy = vi.spyOn(channel, 'addEventListener');
+    const unsubA = syncA(storeA);
+    const callsAfterA = addSpy.mock.calls.length;
+    const handlerA = addSpy.mock.calls[callsAfterA - 1][1] as unknown as (e: MessageEvent) => void;
+    const unsubB = syncB(storeB);
+    const handlerB = addSpy.mock.calls[addSpy.mock.calls.length - 1][1] as unknown as (e: MessageEvent) => void;
+    expect(handlerA).toBeDefined();
+    expect(handlerB).toBeDefined();
+    handlerA({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'amc-a', originId: 'other' } } as unknown as MessageEvent);
+    expect(storeA.persist.rehydrate).toHaveBeenCalledTimes(1);
+    expect(storeB.persist.rehydrate).not.toHaveBeenCalled();
+    storeA.persist.rehydrate.mockClear();
+    handlerB({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: 'amc-b', originId: 'other' } } as unknown as MessageEvent);
+    expect(storeB.persist.rehydrate).toHaveBeenCalledTimes(1);
+    const rmSpy = vi.spyOn(channel, 'removeEventListener');
+    unsubA();
+    expect(rmSpy).toHaveBeenCalled();
+    unsubB();
+    addSpy.mockRestore();
+    rmSpy.mockRestore();
+  });
+
+  it('sync handles try/catch silently for malformed messages', () => {
+    const channel = getChatSyncChannel();
+    const store = { persist: { rehydrate: vi.fn() } } as any;
+    const { sync } = createSyncedPersist('amc-try', {});
+    const addSpy = vi.spyOn(channel, 'addEventListener');
+    const unsub = sync(store);
+    const captured = addSpy.mock.calls[addSpy.mock.calls.length - 1][1] as unknown as (e: MessageEvent) => void;
+    expect(captured).toBeDefined();
+    expect(() => captured({ data: null } as unknown as MessageEvent)).not.toThrow();
+    expect(() => captured({ data: { type: 'PERSISTED_STATE_UPDATED' } } as unknown as MessageEvent)).not.toThrow();
+    expect(() => captured({ data: { type: 'PERSISTED_STATE_UPDATED', storageKey: null, originId: null } } as unknown as MessageEvent)).not.toThrow();
+    expect(store.persist.rehydrate).not.toHaveBeenCalled();
+    unsub();
+    addSpy.mockRestore();
+  });
+
+  it('flushes debounced pending writes on pagehide and beforeunload (centralized)', async () => {
+    _resetFlushRegistryForTests();
+    const area = {
+      getItem: vi.fn(() => null),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    };
+    const notifyUpdate = vi.fn();
+    // Use persistentStorage directly to verify centralized flush registry
+    const { createPersistedStateStorage } = await import('./persistentStorage');
+    const storage = createPersistedStateStorage({ debounceMs: 200, notifyUpdate, storageArea: area });
+    storage.setItem('amc-flush-test', '{"x":1}');
+    expect(area.setItem).not.toHaveBeenCalled();
+    window.dispatchEvent(new Event('pagehide'));
+    expect(area.setItem).toHaveBeenCalledWith('amc-flush-test', '{"x":1}');
+    expect(notifyUpdate).toHaveBeenCalledWith('amc-flush-test');
+    area.setItem.mockClear();
+    notifyUpdate.mockClear();
+    const storage2 = createPersistedStateStorage({ debounceMs: 200, notifyUpdate, storageArea: area });
+    storage2.setItem('amc-flush-test-2', '{"y":2}');
+    window.dispatchEvent(new Event('beforeunload'));
+    expect(area.setItem).toHaveBeenCalledWith('amc-flush-test-2', '{"y":2}');
+    _resetFlushRegistryForTests();
+  });
+
+  it('sync + storage share same originId channel (singleton) for pagehide flush', () => {
+    const area = makeArea(null);
+    const { storage, sync } = createSyncedPersist('amc-shared-flush', { debounceMs: 50, storageArea: area } as never);
+    const store = { persist: { rehydrate: vi.fn() } } as any;
+    const unsub = sync(store);
+    storage.setItem('amc-shared-flush', '{"a":1}');
+    expect(area.setItem).not.toHaveBeenCalled();
+    window.dispatchEvent(new Event('pagehide'));
+    expect(area.setItem).toHaveBeenCalledWith('amc-shared-flush', '{"a":1}');
+    unsub();
   });
 });
