@@ -22,10 +22,8 @@ export const deriveStatus = (
     return { state: 'error' as McpServerState, lastError: error, lastCheckedAt: now };
   }
   if (cap) {
-    const version =
-      cap && typeof (cap as unknown as Record<string, unknown>).version === 'string'
-        ? ((cap as unknown as Record<string, unknown>).version as string)
-        : undefined;
+    const rawVersion = (cap as any).version;
+    const version = typeof rawVersion === 'string' ? rawVersion : undefined;
     return {
       state: 'connected' as McpServerState,
       lastCheckedAt: now,

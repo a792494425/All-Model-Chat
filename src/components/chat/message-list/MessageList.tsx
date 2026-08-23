@@ -11,7 +11,8 @@ import { useExpandedUserMessages } from './hooks/useExpandedUserMessages';
 import { MessageListFooter } from './MessageListFooter';
 import { MessageListModals } from './MessageListModals';
 import { isGemini3Model } from '@/utils/model/modelCapabilities';
-import { getVisibleChatMessages } from '@/utils/chat/visibility';
+import { getMcpToolPairs, getVisibleChatMessages } from '@/utils/chat/visibility';
+import { McpToolCallGroup } from '@/components/message/McpToolCallGroup';
 import { isMarkdownFile } from '@/utils/file/fileTypeClassification';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useChatStore } from '@/stores/chatStore';
@@ -72,6 +73,8 @@ const MessageListComponent: React.FC = () => {
     [language, onSendMessage],
   );
   const visibleMessages = useMemo(() => getVisibleChatMessages(messages), [messages]);
+  const mcpPairs = useMemo(() => getMcpToolPairs(messages), [messages]);
+  const mcpPairMap = useMemo(() => new Map(mcpPairs.map((pair) => [pair.parentId, pair])), [mcpPairs]);
   const userMessageCollapse = useExpandedUserMessages(activeSessionId);
 
   // Warm the lazily-loaded renderer/diagram chunks at mount so a message's
@@ -132,35 +135,39 @@ const MessageListComponent: React.FC = () => {
     [VirtuosoFooter],
   );
   const renderMessageItem = React.useCallback(
-    (index: number, message: (typeof visibleMessages)[number]) => (
-      // flow-root contains the message's top margins inside the item wrapper;
-      // collapsed-through margins otherwise create gaps Virtuoso never
-      // measures, shifting every scroll target (incl. the true bottom) short.
-      <div className="flow-root px-1.5 sm:px-2 md:px-3 max-w-7xl mx-auto w-full">
-        <Message
-          key={message.id}
-          message={message}
-          sessionTitle={sessionTitle}
-          prevMessage={index > 0 ? visibleMessages[index - 1] : undefined}
-          messageIndex={index}
-          onEditMessage={onEditMessage}
-          onDeleteMessage={onDeleteMessage}
-          onRetryMessage={onRetryMessage}
-          onImageClick={handleFileClick}
-          onOpenHtmlPreview={handleOpenHtmlPreview}
-          onLiveArtifactFollowUp={handleLiveArtifactFollowUp}
-          showThoughts={currentChatSettings.showThoughts}
-          onContinueGeneration={onContinueGeneration}
-          onForkMessage={onForkMessage}
-          onSuggestionClick={onFollowUpSuggestionClick}
-          onSuggestionFill={onFollowUpSuggestionFill}
-          onOpenSidePanel={onOpenSidePanel}
-          onConfigureFile={message.role === 'user' ? handleConfigureFile : undefined}
-          isGemini3={isGemini3}
-          userMessageCollapse={userMessageCollapse}
-        />
-      </div>
-    ),
+    (index: number, message: (typeof visibleMessages)[number]) => {
+      const pair = mcpPairMap.get(message.id);
+      return (
+        // flow-root contains the message's top margins inside the item wrapper;
+        // collapsed-through margins otherwise create gaps Virtuoso never
+        // measures, shifting every scroll target (incl. the true bottom) short.
+        <div className="flow-root px-1.5 sm:px-2 md:px-3 max-w-7xl mx-auto w-full">
+          <Message
+            key={message.id}
+            message={message}
+            sessionTitle={sessionTitle}
+            prevMessage={index > 0 ? visibleMessages[index - 1] : undefined}
+            messageIndex={index}
+            onEditMessage={onEditMessage}
+            onDeleteMessage={onDeleteMessage}
+            onRetryMessage={onRetryMessage}
+            onImageClick={handleFileClick}
+            onOpenHtmlPreview={handleOpenHtmlPreview}
+            onLiveArtifactFollowUp={handleLiveArtifactFollowUp}
+            showThoughts={currentChatSettings.showThoughts}
+            onContinueGeneration={onContinueGeneration}
+            onForkMessage={onForkMessage}
+            onSuggestionClick={onFollowUpSuggestionClick}
+            onSuggestionFill={onFollowUpSuggestionFill}
+            onOpenSidePanel={onOpenSidePanel}
+            onConfigureFile={message.role === 'user' ? handleConfigureFile : undefined}
+            isGemini3={isGemini3}
+            userMessageCollapse={userMessageCollapse}
+          />
+          {pair ? <McpToolCallGroup calls={pair.calls} responses={pair.responses} /> : null}
+        </div>
+      );
+    },
     [
       currentChatSettings.showThoughts,
       handleConfigureFile,
@@ -168,6 +175,7 @@ const MessageListComponent: React.FC = () => {
       handleLiveArtifactFollowUp,
       handleOpenHtmlPreview,
       isGemini3,
+      mcpPairMap,
       onContinueGeneration,
       onDeleteMessage,
       onEditMessage,

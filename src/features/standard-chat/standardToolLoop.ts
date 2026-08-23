@@ -218,48 +218,61 @@ export const runStandardToolLoop = async ({
       };
     }
 
-    const functionResponseParts: Part[] = [];
-
-    for (const call of functionCalls) {
-      const clientFunction = call.name ? clientFunctions[call.name] : undefined;
-
-      if (!clientFunction) {
-        functionResponseParts.push({
-          functionResponse: {
-            id: call.id,
-            name: call.name || 'unknown',
-            response: {
-              error: `Function ${call.name || 'unknown'} not implemented client-side.`,
-            },
-          },
-        });
-        continue;
-      }
-
-      try {
-        const result = await clientFunction.handler(call.args, abortSignal ? { abortSignal } : undefined);
-        if (result.generatedFiles?.length) {
-          generatedFiles.push(...result.generatedFiles);
+    const functionResponseParts: Part[] = new Array(functionCalls.length);
+    const results = await Promise.all(
+      functionCalls.map(async (call, idx) => {
+        const clientFunction = call.name ? clientFunctions[call.name] : undefined;
+        if (!clientFunction) {
+          return {
+            idx,
+            part: {
+              functionResponse: {
+                id: call.id,
+                name: call.name || 'unknown',
+                response: {
+                  error: `Function ${call.name || 'unknown'} not implemented client-side.`,
+                },
+              },
+            } as Part,
+            generatedFiles: [] as UploadedFile[],
+          };
         }
-        functionResponseParts.push({
-          functionResponse: {
-            id: call.id,
-            name: call.name,
-            response: toStructuredToolResponse(result.response),
-          },
-        });
-      } catch (error) {
-        functionResponseParts.push({
-          functionResponse: {
-            id: call.id,
-            name: call.name,
-            response: {
-              error: getErrorMessage(error),
-            },
-          },
-        });
-      }
-    }
+        try {
+          const result = await clientFunction.handler(call.args as unknown, abortSignal ? { abortSignal } : undefined);
+          return {
+            idx,
+            part: {
+              functionResponse: {
+                id: call.id,
+                name: call.name,
+                response: toStructuredToolResponse(result.response),
+              },
+            } as Part,
+            generatedFiles: result.generatedFiles ?? [],
+          };
+        } catch (error) {
+          return {
+            idx,
+            part: {
+              functionResponse: {
+                id: call.id,
+                name: call.name,
+                response: {
+                  error: getErrorMessage(error),
+                },
+              },
+            } as Part,
+            generatedFiles: [] as UploadedFile[],
+          };
+        }
+      }),
+    );
+    results
+      .sort((a, b) => a.idx - b.idx)
+      .forEach((r) => {
+        functionResponseParts[r.idx] = r.part as Part;
+        if (r.generatedFiles?.length) generatedFiles.push(...r.generatedFiles);
+      });
 
     toolMessages.push({
       modelContent: turn.modelContent,

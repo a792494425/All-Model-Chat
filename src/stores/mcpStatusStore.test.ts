@@ -1,5 +1,5 @@
 import { beforeEach, expect, it } from 'vitest';
-import { useMcpStatusStore } from '@/stores/mcpStatusStore';
+import { useMcpStatusStore } from './mcpStatusStore';
 
 beforeEach(() => {
   useMcpStatusStore.setState({ states: {} });
