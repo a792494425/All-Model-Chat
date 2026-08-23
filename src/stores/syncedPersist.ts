@@ -2,14 +2,36 @@ import type { StateStorage } from 'zustand/middleware';
 import type { StoreApi } from 'zustand';
 import type { z } from 'zod';
 import type { SyncMessage } from '@/types/sync';
+import {
+  createPersistedStateStorage,
+  PERSISTED_STATE_ORIGIN_ID,
+  getDefaultStorageArea,
+  getChatSyncChannel,
+  broadcastSyncMessage,
+  CHAT_SYNC_CHANNEL_NAME,
+} from './persistentStorage';
+import { _resetSyncChannelForTests } from './chatSyncChannel';
 
-// Re-exported for tests and Task 3 consumption
-export const SYNCED_PERSIST_CHANNEL_NAME = 'amc-synced-persist:v1';
+// Re-export single origin/channel for consumers; keep legacy name alias for compatibility
+export { PERSISTED_STATE_ORIGIN_ID };
+export const SYNCED_PERSIST_CHANNEL_NAME = CHAT_SYNC_CHANNEL_NAME;
 
-export const PERSISTED_STATE_ORIGIN_ID =
-  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : Math.random().toString(36).slice(2);
+// Singleton channel reuse - single channel via chatSyncChannel
+export const getSingletonChannel = getChatSyncChannel;
+
+void broadcastSyncMessage;
+
+export const _resetSingletonChannelForTests = (): void => {
+  try {
+    _resetSyncChannelForTests();
+  } catch {
+    try {
+      getChatSyncChannel().close();
+    } catch {
+      // ignore
+    }
+  }
+};
 
 type StorageArea = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
@@ -29,8 +51,6 @@ export interface SyncedPersistOptions<T> {
 }
 
 // --- isEqual (deep) -------------------------------------------------------
-// Minimal deep-equal without extra deps; handles JSON-serializable values
-// Keep amc-* prefix not relevant here, but maintain isEqual dedup constraint.
 function isEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (a === null || b === null) return a === b;
@@ -52,7 +72,6 @@ function isEqual(a: unknown, b: unknown): boolean {
     const keysA = Object.keys(objA);
     const keysB = Object.keys(objB);
     if (keysA.length !== keysB.length) return false;
-    // Order-independent check
     for (const key of keysA) {
       if (!(key in objB)) return false;
       if (!isEqual(objA[key], objB[key])) return false;
@@ -63,33 +82,6 @@ function isEqual(a: unknown, b: unknown): boolean {
   return false;
 }
 
-// --- Singleton BroadcastChannel -------------------------------------------
-let singletonChannel: BroadcastChannel | null = null;
-
-export const getSingletonChannel = (): BroadcastChannel => {
-  if (singletonChannel) return singletonChannel;
-  // Fallback in environments without BroadcastChannel is handled by callers;
-  // jsdom and modern browsers always have it.
-  singletonChannel = new BroadcastChannel(SYNCED_PERSIST_CHANNEL_NAME);
-  return singletonChannel;
-};
-
-// Test-only reset helper (not part of public API contract but useful for isolation)
-export const _resetSingletonChannelForTests = (): void => {
-  try {
-    singletonChannel?.close();
-  } catch {
-    // Ignore close failures in restricted contexts
-  }
-  singletonChannel = null;
-};
-
-const getDefaultStorageArea = (): StorageArea | null => {
-  if (typeof localStorage === 'undefined') return null;
-  return localStorage;
-};
-
-// Deep-equality check for persisted string values
 function isPersistedValueEqual(existingRaw: string | null, nextRaw: string): boolean {
   if (existingRaw === nextRaw) return true;
   if (existingRaw == null) return false;
@@ -98,7 +90,6 @@ function isPersistedValueEqual(existingRaw: string | null, nextRaw: string): boo
     const nextParsed = JSON.parse(nextRaw);
     return isEqual(existingParsed, nextParsed);
   } catch {
-    // If either is not JSON, fall back to string equality (already checked)
     return false;
   }
 }
@@ -107,103 +98,28 @@ export const createSyncedPersist = <T>(
   storageKey: string,
   opts: SyncedPersistOptions<T> = {},
 ): { storage: StateStorage; sync: (store: PersistedStoreApi<T>) => () => void } => {
-  // storageKey is intentionally captured for sync filtering and isEqual dedup scope
-  void opts.version;
-  void opts.migrate;
+  // Wrap createPersistedStateStorage to reuse debounce/flush/notify logic centrally (no duplication)
+  const baseStorage = createPersistedStateStorage({
+    debounceMs: opts.debounceMs,
+    storageArea: opts.storageArea,
+    // Use shared origin via persistentStorage's default notify (which uses PERSISTED_STATE_ORIGIN_ID)
+  });
 
-  const debounceMs = opts.debounceMs ?? 0;
   const resolveStorageArea = (): StorageArea | null => opts.storageArea ?? getDefaultStorageArea();
 
-  const pendingWrites = new Map<string, string>();
-  const pendingTimers = new Map<string, ReturnType<typeof setTimeout>>();
-
-  const clearPendingWrite = (key: string): void => {
-    const timer = pendingTimers.get(key);
-    if (timer) {
-      clearTimeout(timer);
-      pendingTimers.delete(key);
-    }
-    pendingWrites.delete(key);
-  };
-
-  const getChannel = (): BroadcastChannel | null => {
-    try {
-      if (typeof BroadcastChannel === 'undefined') return null;
-      return getSingletonChannel();
-    } catch {
-      return null;
-    }
-  };
-
-  const notifyUpdate = (key: string): void => {
-    try {
-      getChannel()?.postMessage({
-        type: 'PERSISTED_STATE_UPDATED',
-        storageKey: key,
-        originId: PERSISTED_STATE_ORIGIN_ID,
-      } satisfies SyncMessage);
-    } catch {
-      // Ignore sync failures in unsupported or restricted environments (try/catch silent)
-    }
-  };
-
-  const flushWrite = (key: string): void => {
-    const value = pendingWrites.get(key);
-    const resolvedStorageArea = resolveStorageArea();
-    if (value === undefined || !resolvedStorageArea) {
-      clearPendingWrite(key);
-      return;
-    }
-
-    pendingTimers.delete(key);
-    pendingWrites.delete(key);
-
-    try {
-      const existing = (() => {
-        try {
-          return resolvedStorageArea.getItem(key);
-        } catch {
-          return null;
-        }
-      })();
-      if (isPersistedValueEqual(existing, value)) return;
-      resolvedStorageArea.setItem(key, value);
-      notifyUpdate(key);
-    } catch {
-      // Ignore storage failures in restricted browser contexts (try/catch silent)
-    }
-  };
-
-  const flushAllPendingWrites = (): void => {
-    for (const key of Array.from(pendingWrites.keys())) {
-      flushWrite(key);
-    }
-  };
-
-  if (debounceMs > 0 && typeof window !== 'undefined') {
-    const onUnload = (): void => flushAllPendingWrites();
-    window.addEventListener('pagehide', onUnload);
-    window.addEventListener('beforeunload', onUnload);
-  }
+  // Track pending parsed values for debounced dedup (isEqual against pending)
+  const pendingParsedCache = new Map<string, unknown>();
 
   const storage: StateStorage = {
     getItem: (key) => {
       try {
-        const area = resolveStorageArea();
-        const raw = (() => {
-          try {
-            return area?.getItem(key) ?? null;
-          } catch {
-            return null;
-          }
-        })();
+        const raw = baseStorage.getItem(key);
         if (raw == null) return null;
 
         let parsed: unknown;
         try {
           parsed = JSON.parse(raw);
         } catch {
-          // Malformed JSON → silent fallback to null (try/catch silent)
           return null;
         }
 
@@ -211,16 +127,21 @@ export const createSyncedPersist = <T>(
           try {
             opts.schema.parse(parsed);
           } catch {
-            // Try migrate when version/migrate are provided (addresses Task 1 review: schema/version/migrate ignored)
             if (opts.migrate && typeof opts.version === 'number') {
               try {
                 const migrated = opts.migrate(parsed, opts.version);
                 opts.schema.parse(migrated);
-                // Migrate succeeded → treat as valid; return original raw to keep persist contract
-                // (caller persist will handle version stamp externally via Zustand)
-                return raw;
+                const migratedRaw = JSON.stringify(migrated);
+                // Optionally persist migrated value for future reads
+                try {
+                  // Use baseStorage to ensure debounce/notify handling; fallback to direct area
+                  baseStorage.setItem(key, migratedRaw);
+                } catch {
+                  // silent
+                }
+                return migratedRaw;
               } catch {
-                // Migrate also failed → fallback
+                // migrate also failed
               }
             }
             return null;
@@ -237,31 +158,8 @@ export const createSyncedPersist = <T>(
       const resolvedStorageArea = resolveStorageArea();
       if (!resolvedStorageArea) return;
 
-      if (debounceMs <= 0) {
-        clearPendingWrite(key);
-        try {
-          const existing = (() => {
-            try {
-              return resolvedStorageArea.getItem(key);
-            } catch {
-              return null;
-            }
-          })();
-          if (isPersistedValueEqual(existing, value)) return;
-          resolvedStorageArea.setItem(key, value);
-          notifyUpdate(key);
-        } catch {
-          // Ignore storage failures in restricted browser contexts
-        }
-        return;
-      }
-
-      // Debounced path: isEqual check against last pending OR existing storage
-      const pending = pendingWrites.get(key);
-      if (pending !== undefined && isPersistedValueEqual(pending, value)) return;
-
+      // isEqual dedup against existing stored value
       try {
-        // Quick check against current storage before enqueuing (avoid queuing duplicate)
         const existing = (() => {
           try {
             return resolvedStorageArea.getItem(key);
@@ -269,41 +167,80 @@ export const createSyncedPersist = <T>(
             return null;
           }
         })();
-        // If no pending and existing equals next, skip entirely
-        if (pending === undefined && isPersistedValueEqual(existing, value)) return;
+        // Fallback to baseStorage when area is mocked not to reflect base's internal pending
+        if (isPersistedValueEqual(existing, value)) return;
+
+        // Dedup against pending parsed cache (covers debounced consecutive writes with same deep value)
+        const pendingParsed = pendingParsedCache.get(key);
+        if (pendingParsed !== undefined) {
+          try {
+            const nextParsed = JSON.parse(value);
+            if (isEqual(pendingParsed, nextParsed)) return;
+          } catch {
+            // if not JSON, fallback to string compare already handled
+          }
+        }
+
+        // Update pending cache
+        try {
+          pendingParsedCache.set(key, JSON.parse(value));
+        } catch {
+          pendingParsedCache.set(key, value as unknown);
+        }
+        // Schedule cache eviction after debounce window (or immediately if no debounce)
+        if ((opts.debounceMs ?? 0) > 0) {
+          setTimeout(() => {
+            // Only clear if cache still equals this value's parsed form
+            try {
+              const cur = pendingParsedCache.get(key);
+              const thisParsed = JSON.parse(value);
+              if (cur !== undefined && isEqual(cur, thisParsed)) {
+                pendingParsedCache.delete(key);
+              }
+            } catch {
+              pendingParsedCache.delete(key);
+            }
+          }, (opts.debounceMs ?? 0) + 20);
+        } else {
+          // Immediate write will clear via base flush; remove after tick
+          pendingParsedCache.delete(key);
+        }
+      } catch {
+        // silent, proceed to write
+      }
+
+      try {
+        baseStorage.setItem(key, value);
       } catch {
         // silent
       }
-
-      clearPendingWrite(key);
-      pendingWrites.set(key, value);
-      pendingTimers.set(
-        key,
-        setTimeout(() => {
-          flushWrite(key);
-        }, debounceMs),
-      );
+      // For immediate mode, ensure cache cleared
+      if ((opts.debounceMs ?? 0) <= 0) {
+        pendingParsedCache.delete(key);
+      }
     },
 
     removeItem: (key) => {
-      clearPendingWrite(key);
+      pendingParsedCache.delete(key);
       try {
-        resolveStorageArea()?.removeItem(key);
-        notifyUpdate(key);
+        baseStorage.removeItem(key);
       } catch {
-        // Ignore storage failures in restricted browser contexts
+        // silent
       }
     },
   };
 
   const sync = (store: PersistedStoreApi<T>): (() => void) => {
-    // storageKey is forwarded to sync handler (addresses review: storageKey voided not forwarded)
     if (typeof BroadcastChannel === 'undefined') {
-      // No channel → no sync, return noop (also covers test environments without BC)
       return () => {};
     }
 
-    const channel = getChannel();
+    let channel: BroadcastChannel | null = null;
+    try {
+      channel = getChatSyncChannel();
+    } catch {
+      return () => {};
+    }
     if (!channel) return () => {};
 
     const handleMessage = (event: MessageEvent<SyncMessage>): void => {
@@ -318,7 +255,7 @@ export const createSyncedPersist = <T>(
         }
         void store.persist.rehydrate();
       } catch {
-        // Silent (try/catch silent constraint)
+        // Silent
       }
     };
 

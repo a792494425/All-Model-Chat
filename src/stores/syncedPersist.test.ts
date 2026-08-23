@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod';
-import { createSyncedPersist } from './syncedPersist';
+import { createSyncedPersist, SYNCED_PERSIST_CHANNEL_NAME } from './syncedPersist';
 
 // Helper to create a mock storage area
 function makeArea(initial: string | null = null) {
@@ -72,29 +72,46 @@ describe('createSyncedPersist', () => {
     expect(storage.getItem('k')).toBe('{"a":1}');
   });
 
-  it('applies migrate when schema fails and migrate returns valid', () => {
-    const schema = z.object({ a: z.number(), b: z.number().default(0) });
-    const area = makeArea('{"a":1}'); // missing b but schema has default, still valid; use migrate case
-    // More explicit: persisted is old shape { version: 0, val: "bad" } -> migrate to { a: 1 }
-    const migrate = vi.fn((persisted: unknown) => ({ a: 1 }));
+  it('applies migrate when schema fails and migrate returns valid – returns migrated JSON string', () => {
     const badSchema = z.object({ a: z.number() });
-    const area2 = makeArea('{"a":"bad"}');
+    const migrate = vi.fn((persisted: unknown) => ({ a: 1 }));
+    const area = makeArea('{"a":"bad"}');
     const { storage } = createSyncedPersist('k', {
       schema: badSchema,
       version: 1,
       migrate,
-      storageArea: area2,
+      storageArea: area,
     } as never);
-    // migrate should be called when parse fails
     const result = storage.getItem('k');
-    // After migrate, if result can be validated, should not return null
-    // Our implementation tries migrate then re-validates via schema
-    // With migrate returning {a:1}, it should pass and return raw? or null depending impl
-    // Accept either migrated validation pass (non-null) or null fallback – verify migrate was invoked
+    expect(migrate).toHaveBeenCalledWith({ a: 'bad' }, 1);
+    expect(result).toBe(JSON.stringify({ a: 1 }));
+    // Optionally persists migrated value (baseStorage.setItem may be called)
+    // For debounceMs=0, immediate persist may have updated area
+  });
+
+  it('returns null when migrate returns invalid value (negative case)', () => {
+    const badSchema = z.object({ a: z.number() });
+    const migrate = vi.fn(() => ({ a: 'still-bad' }));
+    const area = makeArea('{"a":"bad"}');
+    const { storage } = createSyncedPersist('k', {
+      schema: badSchema,
+      version: 1,
+      migrate,
+      storageArea: area,
+    } as never);
+    const result = storage.getItem('k');
     expect(migrate).toHaveBeenCalled();
-    // If migrated data is valid, storage should not discard; we expect migrated success path returns raw or migrated value
-    // For now we assert migrate was called – main contract is version/migrate is forwarded not ignored
-    void result;
+    expect(result).toBeNull();
+  });
+
+  it('returns null when schema fails and no migrate provided', () => {
+    const badSchema = z.object({ a: z.number() });
+    const area = makeArea('{"a":"bad"}');
+    const { storage } = createSyncedPersist('k', {
+      schema: badSchema,
+      storageArea: area,
+    } as never);
+    expect(storage.getItem('k')).toBeNull();
   });
 
   it('forwards storageKey correctly and does not void it', () => {
@@ -110,7 +127,7 @@ describe('createSyncedPersist', () => {
     const ch1 = getSingletonChannel();
     const ch2 = getSingletonChannel();
     expect(ch1).toBe(ch2);
-    expect(ch1.name).toBe('amc-synced-persist:v1');
+    expect(ch1.name).toBe(SYNCED_PERSIST_CHANNEL_NAME);
   });
 
   it('isEqual dedup also works with debounceMs > 0 (no immediate write, flush deduped)', () => {

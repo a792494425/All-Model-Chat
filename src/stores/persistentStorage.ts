@@ -1,6 +1,6 @@
 import type { StoreApi } from 'zustand';
 import type { StateStorage } from 'zustand/middleware';
-import { broadcastSyncMessage, getChatSyncChannel } from './chatSyncChannel';
+import { broadcastSyncMessage, getChatSyncChannel, CHAT_SYNC_CHANNEL_NAME } from './chatSyncChannel';
 import type { SyncMessage } from '@/types/sync';
 
 type StorageArea = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -17,12 +17,12 @@ type PersistedStoreApi<T> = StoreApi<T> & {
   };
 };
 
-const PERSISTED_STATE_ORIGIN_ID =
+export const PERSISTED_STATE_ORIGIN_ID =
   typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2);
 
-const getDefaultStorageArea = (): StorageArea | null => {
+export const getDefaultStorageArea = (): StorageArea | null => {
   if (typeof localStorage === 'undefined') {
     return null;
   }
@@ -52,6 +52,35 @@ const notifyPersistedStateUpdate = (storageKey: string) => {
     storageKey,
     originId: PERSISTED_STATE_ORIGIN_ID,
   });
+};
+
+// Re-export for syncedPersist reuse (single origin + single channel)
+export { broadcastSyncMessage, getChatSyncChannel, CHAT_SYNC_CHANNEL_NAME };
+
+// --- Centralized flush registry (fixes leak per factory) -----------------
+const globalFlushRegistry = new Set<() => void>();
+let globalFlushListenersAttached = false;
+
+function ensureGlobalFlushListeners(): void {
+  if (globalFlushListenersAttached || typeof window === 'undefined') return;
+  globalFlushListenersAttached = true;
+  const flushAll = () => {
+    for (const fn of Array.from(globalFlushRegistry)) {
+      try {
+        fn();
+      } catch {
+        // Ignore flush failures
+      }
+    }
+  };
+  window.addEventListener('pagehide', flushAll);
+  window.addEventListener('beforeunload', flushAll);
+}
+
+// Test-only helper to reset global registry
+export const _resetFlushRegistryForTests = (): void => {
+  globalFlushRegistry.clear();
+  globalFlushListenersAttached = false;
 };
 
 export const createPersistedStateStorage = ({
@@ -100,14 +129,9 @@ export const createPersistedStateStorage = ({
     }
   };
 
-  // Flush debounced writes on unload so a tab close / navigation doesn't lose the
-  // last queued setting or draft. Both events cover the same intent across browsers;
-  // registering once per storage instance is enough, and a duplicate flush is a no-op.
-  if (debounceMs > 0 && typeof window !== 'undefined') {
-    const onUnload = () => flushAllPendingWrites();
-    window.addEventListener('pagehide', onUnload);
-    window.addEventListener('beforeunload', onUnload);
-  }
+  // Register flush for centralized pagehide/beforeunload handling (single listeners)
+  globalFlushRegistry.add(flushAllPendingWrites);
+  ensureGlobalFlushListeners();
 
   return {
     getItem: (key) => {
