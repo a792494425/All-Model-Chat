@@ -1,5 +1,5 @@
 import { act, type ComponentProps, useCallback, useState } from 'react';
-import { fireEvent, within } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
 import { renderWithProviders, setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import { useMcpStatusStore } from '@/stores/mcpStatusStore';
@@ -480,5 +480,59 @@ describe('McpSection', () => {
       'mcpServers',
       expect.arrayContaining([expect.objectContaining({ disabledTools: ['tool_a'] })]),
     );
+  });
+
+  it('filters by transport http', async () => {
+    const settings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [
+        { id: 's1', name: 'HTTP', enabled: true, transport: 'http', url: 'https://x' } as any,
+        { id: 's2', name: 'STDIO', enabled: true, transport: 'stdio', command: 'npx' } as any,
+      ],
+    };
+    await renderMcpSection({ settings });
+    fireEvent.change(screen.getByLabelText(/MCP filter/), { target: { value: 'http' } });
+    await act(async () => {});
+    expect(renderer.container.textContent).toContain('HTTP');
+    expect(renderer.container.textContent).not.toContain('STDIO');
+  });
+
+  it('searches by name deferred', async () => {
+    const settings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [
+        { id: 's1', name: 'HTTP', enabled: true, transport: 'http', url: 'https://x' } as any,
+        { id: 's2', name: 'STDIO', enabled: true, transport: 'stdio', command: 'npx' } as any,
+      ],
+    };
+    await renderMcpSection({ settings });
+    const input = screen.getByPlaceholderText('Search servers') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'http' } });
+    await act(async () => {});
+    expect(renderer.container.textContent).toContain('HTTP');
+    expect(renderer.container.textContent).not.toContain('STDIO');
+  });
+
+  it('sorts up/down', async () => {
+    const onUpdate = vi.fn();
+    const settings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [
+        { id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x' } as any,
+        { id: 's2', name: 'S2', enabled: true, transport: 'http', url: 'https://y' } as any,
+      ],
+    };
+    await renderMcpSection({ settings, onUpdate });
+    const upButton = screen.getByLabelText('Move s2 up');
+    fireEvent.click(upButton);
+    expect(onUpdate).toHaveBeenCalledWith(
+      'mcpServers',
+      expect.arrayContaining([
+        expect.objectContaining({ id: 's2' }),
+        expect.objectContaining({ id: 's1' }),
+      ]),
+    );
+    const reorderedIds = (onUpdate.mock.calls[0][1] as any[]).map((s: any) => s.id);
+    expect(reorderedIds).toEqual(['s2', 's1']);
   });
 });

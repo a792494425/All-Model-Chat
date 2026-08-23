@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useDeferredValue, useEffect, useRef, useState } from 'react';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { Plus, RefreshCw, Trash2 } from 'lucide-react';
 import type { AppSettings, McpServerAuthType, McpServerConfig, McpServerTransport } from '@/types';
@@ -72,6 +72,45 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
   const states = useMcpStatusStore((s) => s.states);
   const setStatus = useMcpStatusStore((s) => s.setStatus);
   const servers = settings.mcpServers ?? [];
+  const [filter, setFilter] = useState<'all' | 'enabled' | 'disabled' | 'http' | 'sse' | 'stdio'>('all');
+  const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search);
+  const [sortOrder, setSortOrder] = useState<string[]>(() => servers.map((s) => s.id));
+  useEffect(() => {
+    setSortOrder((prev) => {
+      const ids = servers.map((s) => s.id);
+      const next = ids.filter((id) => !prev.includes(id)).concat(prev.filter((id) => ids.includes(id)));
+      return ids.length === prev.length && ids.every((id, i) => id === prev[i]) ? prev : next;
+    });
+  }, [servers.map((s) => s.id).join(',')]);
+  const matchKeywords = (q: string, s: McpServerConfig) => {
+    if (!q.trim()) return true;
+    const hay = `${s.name} ${s.id} ${s.transport} ${s.url ?? ''} ${s.command ?? ''}`.toLowerCase();
+    return q
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+      .every((tok) => hay.includes(tok));
+  };
+  const filtered = servers.filter((s) => {
+    if (filter === 'enabled' && !s.enabled) return false;
+    if (filter === 'disabled' && s.enabled) return false;
+    if (filter === 'http' && s.transport !== 'http') return false;
+    if (filter === 'sse' && s.transport !== 'sse') return false;
+    if (filter === 'stdio' && s.transport !== 'stdio') return false;
+    return matchKeywords(deferredSearch, s);
+  });
+  const filteredAndSorted = [...filtered].sort((a, b) => sortOrder.indexOf(a.id) - sortOrder.indexOf(b.id));
+  const moveServer = (id: string, dir: -1 | 1) => {
+    const idx = sortOrder.indexOf(id);
+    const next = [...sortOrder];
+    const j = idx + dir;
+    if (j < 0 || j >= next.length) return;
+    [next[idx], next[j]] = [next[j], next[idx]];
+    setSortOrder(next);
+    const reordered = next.map((nid) => servers.find((s) => s.id === nid)!).filter(Boolean);
+    onUpdate('mcpServers', reordered);
+  };
   const [capabilityStates, setCapabilityStates] = useState<Record<string, CapabilityTestState>>({});
 
   // Card identities must stay stable across edits: the server id is
@@ -329,14 +368,39 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
         )}
       </div>
 
+      <div className="flex gap-2">
+        <select
+          aria-label="MCP filter"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value as any)}
+          className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} w-auto`}
+        >
+          <option value="all">{t('settingsMcpFilterAll')}</option>
+          <option value="enabled">{t('settingsMcpFilterEnabled')}</option>
+          <option value="disabled">{t('settingsMcpFilterDisabled')}</option>
+          <option value="http">{t('settingsMcpFilterHttp')}</option>
+          <option value="sse">{t('settingsMcpFilterSse')}</option>
+          <option value="stdio">{t('settingsMcpFilterStdio')}</option>
+        </select>
+        <input
+          placeholder={t('settingsMcpSearchPlaceholder')}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS}`}
+        />
+      </div>
+
       {servers.length === 0 ? (
         <div className={`${SETTINGS_SECTION_CARD_CLASS} border-dashed text-sm text-[var(--theme-text-secondary)]`}>
           {t('settingsMcpEmpty')}
         </div>
       ) : (
         <div className="space-y-4">
-          {servers.map((server, index) => {
-            const stateKey = cardKeys[index] ?? `mcp-card-fallback-${index}`;
+          {filteredAndSorted.map((server) => {
+            const origIndex = servers.indexOf(server);
+            const fallbackIndex = origIndex !== -1 ? origIndex : 0;
+            const stateKey = origIndex !== -1 ? (cardKeys[origIndex] ?? `mcp-card-fallback-${origIndex}`) : `mcp-card-fallback-${server.id}`;
+            const index = origIndex !== -1 ? origIndex : fallbackIndex;
             const capabilityState = capabilityStates[stateKey];
             const capabilities = capabilityState?.status === 'success' ? capabilityState.capabilities : undefined;
             const capabilityErrors = capabilities?.errors ?? [];
@@ -412,6 +476,22 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                       onChange={(enabled) => updateServer(index, { enabled })}
                       ariaLabel={server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}
                     />
+                    <button
+                      type="button"
+                      aria-label={`Move ${server.id} up`}
+                      onClick={() => moveServer(server.id, -1)}
+                      className={SETTINGS_OUTLINE_BUTTON_CLASS}
+                    >
+                      {t('settingsMcpMoveUp')}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Move ${server.id} down`}
+                      onClick={() => moveServer(server.id, 1)}
+                      className={SETTINGS_OUTLINE_BUTTON_CLASS}
+                    >
+                      {t('settingsMcpMoveDown')}
+                    </button>
                     <button
                       type="button"
                       onClick={() => testServerCapabilities(server, stateKey)}
