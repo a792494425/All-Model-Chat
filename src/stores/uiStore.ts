@@ -1,10 +1,14 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { DESKTOP_BREAKPOINT_PX } from '@/constants/layout';
-import { createPersistedStateStorage, readPersistentStorageItem } from './persistentStorage';
+import { readPersistentStorageItem } from './persistentStorage';
+import { createSyncedPersist } from './syncedPersist';
 import { resolveUpdaterOrValue, type UpdaterOrValue } from './stateUpdaters';
 
 const UI_PREFERENCES_STORAGE_KEY = 'all_model_chat_ui_preferences_v1';
+const { storage: uiSyncedStorage } = createSyncedPersist(UI_PREFERENCES_STORAGE_KEY, {
+  enableCrossTabSync: false,
+});
 const LEGACY_HISTORY_SIDEBAR_STORAGE_KEY = 'all_model_chat_history_sidebar_v1';
 
 type HistorySidebarPreferences = {
@@ -142,7 +146,7 @@ export const useUIStore = create<UIState & UIActions>()(
     {
       name: UI_PREFERENCES_STORAGE_KEY,
       // Sidebar open/closed is tab chrome — keep per-tab, no cross-tab rehydrate.
-      storage: createJSONStorage(() => createPersistedStateStorage({ notifyUpdate: () => {} })),
+      storage: createJSONStorage(() => uiSyncedStorage),
       partialize: (state) => ({
         desktopHistorySidebarOpen: state.desktopHistorySidebarOpen,
         mobileHistorySidebarOpen: state.mobileHistorySidebarOpen,

@@ -7,14 +7,13 @@ import {
   normalizeModelApiModeTag,
   THINKING_LEVELS,
 } from '@/types';
-import {
-  createPersistedStateStorage,
-  readPersistentStorageItem,
-  registerPersistedStoreSync,
-} from './persistentStorage';
+import { readPersistentStorageItem } from './persistentStorage';
+import { createSyncedPersist, type PersistedStoreApi } from './syncedPersist';
 import { safeJsonParse } from '@/utils/safeJsonParse';
 
 const MODEL_PREFERENCES_STORE_STORAGE_KEY = 'all_model_chat_model_preferences_v1';
+const { storage: modelPreferencesSyncedStorage, sync: syncModelPreferences } =
+  createSyncedPersist(MODEL_PREFERENCES_STORE_STORAGE_KEY);
 
 const LEGACY_CUSTOM_MODELS_KEY = 'custom_model_list_v1';
 const LEGACY_MODEL_SETTINGS_CACHE_KEY = 'model_settings_cache';
@@ -150,7 +149,7 @@ export const useModelPreferencesStore = create<ModelPreferencesState & ModelPref
     }),
     {
       name: MODEL_PREFERENCES_STORE_STORAGE_KEY,
-      storage: createJSONStorage(() => createPersistedStateStorage()),
+      storage: createJSONStorage(() => modelPreferencesSyncedStorage),
       partialize: (state) => ({
         customModels: state.customModels,
         modelSettingsCache: state.modelSettingsCache,
@@ -159,4 +158,4 @@ export const useModelPreferencesStore = create<ModelPreferencesState & ModelPref
   ),
 );
 
-registerPersistedStoreSync(useModelPreferencesStore, MODEL_PREFERENCES_STORE_STORAGE_KEY);
+syncModelPreferences(useModelPreferencesStore as PersistedStoreApi);
