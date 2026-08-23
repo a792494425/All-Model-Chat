@@ -10,8 +10,8 @@ import {
 } from '@/components/chat/input/ChatInputContext';
 import { interpolate } from '@/i18n/interpolate';
 
-const SEND_BUTTON_ICON_SIZE = 18;
-const QUEUE_BUTTON_ICON_SIZE = 17;
+const SEND_BUTTON_ICON_SIZE = 16;
+const QUEUE_BUTTON_ICON_SIZE = 16;
 const STOP_ICON_SIZE = 10;
 const SEND_BUTTON_SIZE_CLASS = '!h-[34px] !w-[34px]';
 
