@@ -35,7 +35,9 @@ describe('SendControls', () => {
     expect(submitButton).not.toBeNull();
     expect(submitButton?.className).toContain('!h-[34px]');
     expect(submitButton?.className).toContain('!w-[34px]');
-    expect(submitButton?.className).toContain('transition-colors');
+    expect(submitButton?.className).toContain('bg-[#3964FE]');
+    expect(submitButton?.className).toContain('grid');
+    expect((submitButton as HTMLElement)?.style.transform).toContain('translateY(-2px)');
     expect(submitButton?.className).not.toContain('duration-500');
   });
 
