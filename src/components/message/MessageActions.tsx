@@ -9,7 +9,6 @@ import {
   Pencil,
   CirclePlay,
   MoreHorizontal,
-  GitBranch,
 } from 'lucide-react';
 import { type ChatMessage } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
@@ -17,6 +16,7 @@ import { ExportMessageButton } from './buttons/ExportMessageButton';
 import { MessageCopyButton } from './buttons/MessageCopyButton';
 import { useIsMobile, useResponsiveValue } from '@/hooks/useDevice';
 import { useWindowContext } from '@/contexts/WindowContext';
+import { IconBranch } from '@/components/icons';
 
 const AvatarWrapper: React.FC<{
   children: React.ReactNode;
@@ -234,7 +234,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
                     aria-label={t('forkMessageTitle')}
                     className={menuItemClasses}
                   >
-                    <GitBranch size={14} strokeWidth={2} />
+                    <IconBranch size={14} />
                     <span>{t('forkMessageTitle')}</span>
                   </button>
                 )}
