@@ -8,7 +8,7 @@ import {
   THINKING_LEVELS,
 } from '@/types';
 import { readPersistentStorageItem } from './persistentStorage';
-import { createSyncedPersist } from './syncedPersist';
+import { createSyncedPersist, type PersistedStoreApi } from './syncedPersist';
 import { safeJsonParse } from '@/utils/safeJsonParse';
 
 const MODEL_PREFERENCES_STORE_STORAGE_KEY = 'all_model_chat_model_preferences_v1';
@@ -158,4 +158,4 @@ export const useModelPreferencesStore = create<ModelPreferencesState & ModelPref
   ),
 );
 
-syncModelPreferences(useModelPreferencesStore as any);
+syncModelPreferences(useModelPreferencesStore as PersistedStoreApi);

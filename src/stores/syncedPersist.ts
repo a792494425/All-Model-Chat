@@ -35,11 +35,11 @@ export const _resetSingletonChannelForTests = (): void => {
 
 type StorageArea = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
-type PersistedStoreApi<T> = StoreApi<T> & {
+export type PersistedStoreApi<T = unknown> = {
   persist: {
     rehydrate: () => Promise<void> | void;
   };
-};
+} & Partial<StoreApi<T>>;
 
 export interface SyncedPersistOptions<T> {
   debounceMs?: number;
@@ -99,7 +99,7 @@ function isPersistedValueEqual(existingRaw: string | null, nextRaw: string): boo
 export const createSyncedPersist = <T>(
   storageKey: string,
   opts: SyncedPersistOptions<T> = {},
-): { storage: StateStorage; sync: (store: PersistedStoreApi<T>) => () => void } => {
+): { storage: StateStorage; sync: (store: PersistedStoreApi) => () => void } => {
   // Wrap createPersistedStateStorage to reuse debounce/flush/notify logic centrally (no duplication)
   const enableCrossTabSync = opts.enableCrossTabSync !== false;
   const baseStorage = createPersistedStateStorage({
@@ -117,7 +117,8 @@ export const createSyncedPersist = <T>(
   const storage: StateStorage = {
     getItem: (key) => {
       try {
-        const raw = baseStorage.getItem(key);
+        const rawResult = baseStorage.getItem(key) as unknown;
+        const raw = rawResult instanceof Promise ? null : (rawResult as string | null);
         if (raw == null) return null;
 
         let parsed: unknown;
@@ -234,7 +235,7 @@ export const createSyncedPersist = <T>(
     },
   };
 
-  const sync = (store: PersistedStoreApi<T>): (() => void) => {
+  const sync = (store: PersistedStoreApi): (() => void) => {
     if (!enableCrossTabSync) return () => {};
     if (typeof BroadcastChannel === 'undefined') {
       return () => {};

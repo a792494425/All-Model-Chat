@@ -244,64 +244,119 @@ git commit -m "feat(persist): add cross-tab sync with originId and flushAll"
 
 ---
 
-### Task 4: 迁移存量 store 接入工厂（1 行改动 per store）
+### Task 4: 迁移存量 store 接入工厂（1 行改动 per store）— 已修正实际迁移范围
+
+> **Amendment 2026-08-23 (review 1c72b3ca):** `chatStore.ts` / `settingsStore.ts` 为 **IndexedDB stores**（经 `dbService`，无 `zustand/persist`），exempt from `createSyncedPersist`；仅 `localStorage` persist stores 接入工厂。`all_model_chat_*_v1` 为 legacy grandfathered keys（存量数据兼容），新 key 需 `amc-*` 前缀（约束由 `syncedPersist` 工厂与 `amc-*` 测试用例保证）；如需重命名 legacy key，需经 `migrate` 完成。`SyncedPersistOptions` 新增 `enableCrossTabSync?: boolean`（default `true`；`false` 时 `notifyUpdate: () => {}` 且 `sync()` 为 no-op，见 I2/I4）。
 
 **Files:**
-- Modify: `src/stores/chatStore.ts:1-20, persist 配置处`
-- Modify: `src/stores/settingsStore.ts`
-- Modify: `src/stores/chatDraftStore.ts`
-- Test: `src/stores/chatStore.test.ts`, `src/stores/settingsStore.test.ts`（现有测试应仍绿）
+- Exempt (IndexedDB, 不迁移): `src/stores/chatStore.ts` — `dbService` + `broadcastSyncMessage`, 无 `persist`; `src/stores/settingsStore.ts` — `dbService` + 手动 `BroadcastChannel(CHAT_SYNC_CHANNEL_NAME)`
+- Modify: `src/stores/chatDraftStore.ts` — `enableCrossTabSync: false` + `schema/version/migrate` (zod)
+- Modify: `src/stores/uiStore.ts` — `enableCrossTabSync: false`
+- Modify: `src/stores/settingsUiStore.ts` — `enableCrossTabSync: false`
+- Modify: `src/stores/modelPreferencesStore.ts` — 跨 Tab 同步 (`sync()`)
+- Modify: `src/stores/syncedPersist.ts` — 新增 `enableCrossTabSync` 选项
+- Test: `src/stores/chatStore.test.ts`, `src/stores/settingsStore.test.ts`（现有测试应仍绿）, `src/stores/syncedPersist.test.ts`（覆盖 `enableCrossTabSync:false` 隔离 + `schema/version/migrate`）
 
 **Interfaces:**
 - Consumes: `syncedPersist.ts#createSyncedPersist`
-- Produces: 存量 store 的 `persist.storage` 与 `onRehydrateStorage` 行为不变
+- Produces: 存量 `localStorage` persist store 的 `persist.storage` 与 `onRehydrateStorage` 行为不变；IndexedDB stores 行为不变
+
+**`SyncedPersistOptions<T>` (amended, I2):**
+```typescript
+export interface SyncedPersistOptions<T> {
+  debounceMs?: number;
+  schema?: z.ZodType<T>;          // C2: zod 校验，注入示例见 chatDraftStore
+  version?: number;               // C2: 与 migrate 配合
+  migrate?: (persisted: unknown, version: number) => T;
+  storageArea?: StorageArea;      // test injection
+  enableCrossTabSync?: boolean;   // I2/I4: default true; false → tab-private, 不跨 Tab rehydrate
+}
+```
 
 - [ ] **Step 1: Write failing integration test (optional, or reuse existing)**
 
 ```typescript
-// 验证 chatStore 在另一 Tab 写入后能 rehydrate
-import { useChatStore } from './chatStore';
+// 验证 modelPreferencesStore 在另一 Tab 写入后能 rehydrate；tab-private stores 不应 rehydrate
 import { getChatSyncChannel } from './chatSyncChannel';
 
-it('chatStore rehydrates on remote update', async () => {
+it('modelPreferences rehydrates on remote update', async () => {
   const ch = getChatSyncChannel();
-  ch.postMessage({ type: 'PERSISTED_STATE_UPDATED', storageKey: 'amc-chat', originId: 'other' });
-  // expect store to have rehydrated (spy on persist.rehydrate)
+  ch.postMessage({ type: 'PERSISTED_STATE_UPDATED', storageKey: 'all_model_chat_model_preferences_v1', originId: 'other' });
+  // expect store.persist.rehydrate called
+});
+
+it('enableCrossTabSync:false isolates tab-private stores', () => {
+  const { sync } = createSyncedPersist('all_model_chat_drafts_v1', { enableCrossTabSync: false });
+  const store = { persist: { rehydrate: vi.fn() } } as unknown as PersistedStoreApi<unknown>;
+  const unsub = sync(store);
+  expect(unsub).toBeTypeOf('function');
+  // remote message must NOT trigger rehydrate
 });
 ```
 
 - [ ] **Step 2: Run existing store tests to ensure baseline green**
 
 Run: `NODE_ENV=test npx vitest run src/stores/chatStore.test.ts src/stores/settingsStore.test.ts -v`
-Expected: PASS before change
+Expected: PASS before change (43 + 31 tests)
 
 - [ ] **Step 3: Migrate stores**
 
 ```typescript
-// src/stores/chatStore.ts
+// src/stores/chatDraftStore.ts — 注入 schema/version/migrate (C2)
+import { z } from 'zod';
 import { createSyncedPersist } from './syncedPersist';
-import { chatStoreSchema } from '@/schemas/chatStoreSchema'; // 新增或复用
 
-const { storage, sync } = createSyncedPersist('amc-chat', { debounceMs: 300, schema: chatStoreSchema, version: 2 });
+export const chatDraftPersistedSchema = z.object({
+  state: z.object({
+    drafts: z.record(z.string(), z.object({
+      inputText: z.string(),
+      quotes: z.array(z.string()),
+      ttsContext: z.string(),
+    })),
+  }),
+  version: z.number().optional(),
+}).passthrough();
 
-// 在 create(persist(...)) 中：
-// storage: storage,
-// onRehydrateStorage: () => (state) => { sync(state as any); }
+export const migrateChatDraftPersistedState = (persisted: unknown, _version: number) => {
+  const maybe = persisted as { state?: { drafts?: unknown } };
+  // normalize drafts via existing normalizeDraft helper, prune empty
+  return { state: { drafts: normalizePersistedDrafts(maybe?.state?.drafts) }, version: 1 };
+};
 
+const { storage: chatDraftSyncedStorage } = createSyncedPersist(CHAT_DRAFT_STORE_STORAGE_KEY, {
+  debounceMs: 300,
+  enableCrossTabSync: false, // tab-private: 不跨 Tab rehydrate
+  schema: chatDraftPersistedSchema,
+  version: 1,
+  migrate: migrateChatDraftPersistedState,
+});
+// storage: createJSONStorage(() => chatDraftSyncedStorage)
+
+// src/stores/uiStore.ts / settingsUiStore.ts — enableCrossTabSync:false
+const { storage: uiSyncedStorage } = createSyncedPersist(UI_PREFERENCES_STORAGE_KEY, { enableCrossTabSync: false });
+
+// src/stores/modelPreferencesStore.ts — cross-tab sync, fix typing (I3)
+import { createSyncedPersist, type PersistedStoreApi } from './syncedPersist';
+const { storage: modelPreferencesSyncedStorage, sync: syncModelPreferences } = createSyncedPersist(MODEL_PREFERENCES_STORE_STORAGE_KEY);
+syncModelPreferences(useModelPreferencesStore as PersistedStoreApi<ModelPreferencesState & ModelPreferencesActions>);
 // 删除：import { createPersistedStateStorage, registerPersistedStoreSync } from './persistentStorage';
 // 删除：import { getChatSyncChannel } from './chatSyncChannel';
+
+// Legacy key grandfathered (I1): all_model_chat_*_v1 保持不变以兼容已持久化数据；
+// 新 key 需 amc-* 前缀；重命名需经 migrate。
 ```
 
 - [ ] **Step 4: Run tests to verify still pass**
 
 Run: `NODE_ENV=test npx vitest run src/stores/ -v`
-Expected: PASS (原有 40+ tests 全绿，新增 8 工厂 tests)
+Expected: PASS (原有 167+ tests 全绿，工厂 20+ tests 含 enableCrossTabSync:false 与 schema/migrate)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/stores/chatStore.ts src/stores/settingsStore.ts src/stores/chatDraftStore.ts src/stores/syncedPersist.ts
+git add src/stores/chatDraftStore.ts src/stores/uiStore.ts src/stores/settingsUiStore.ts src/stores/modelPreferencesStore.ts src/stores/syncedPersist.ts docs/superpowers/plans/2026-08-23-unified-synced-persist.md
 git commit -m "refactor(persist): migrate stores to syncedPersist factory"
+# legacy IndexedDB stores (chatStore/settingsStore) exempt — documented in plan
 ```
 
 ---

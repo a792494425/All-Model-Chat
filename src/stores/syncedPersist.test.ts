@@ -93,7 +93,7 @@ describe('createSyncedPersist', () => {
 
   it('applies migrate when schema fails and migrate returns valid – returns migrated JSON string', () => {
     const badSchema = z.object({ a: z.number() });
-    const migrate = vi.fn((persisted: unknown) => ({ a: 1 }));
+    const migrate = vi.fn((_persisted: unknown) => ({ a: 1 }));
     const area = makeArea('{"a":"bad"}');
     const { storage } = createSyncedPersist('k', {
       schema: badSchema,
@@ -289,5 +289,123 @@ describe('createSyncedPersist', () => {
     window.dispatchEvent(new Event('pagehide'));
     expect(area.setItem).toHaveBeenCalledWith('amc-shared-flush', '{"a":1}');
     unsub();
+  });
+
+  // I2/I4: enableCrossTabSync:false isolates tab-private stores (uiStore/settingsUiStore/chatDraftStore)
+  it('enableCrossTabSync:false disables sync and isolates remote rehydrate (I2/I4)', () => {
+    const channel = getChatSyncChannel();
+    const addSpy = vi.spyOn(channel, 'addEventListener');
+    const rmSpy = vi.spyOn(channel, 'removeEventListener');
+    const store = { persist: { rehydrate: vi.fn() } } as unknown as import('./syncedPersist').PersistedStoreApi;
+    const { sync } = createSyncedPersist('amc-isolated-ui', {
+      enableCrossTabSync: false,
+      debounceMs: 0,
+    });
+    const unsub = sync(store);
+    expect(addSpy).not.toHaveBeenCalled(); // no listener registered
+    // storage should still work but not broadcast
+    const area = makeArea(null);
+    const { storage: isolatedStorage } = createSyncedPersist('amc-isolated-2', {
+      enableCrossTabSync: false,
+      storageArea: area,
+      debounceMs: 0,
+    } as never);
+    isolatedStorage.setItem('amc-isolated-2', '{"x":1}');
+    expect(area.setItem).toHaveBeenCalledWith('amc-isolated-2', '{"x":1}');
+    // remote message must NOT trigger rehydrate (no handler registered)
+    expect(store.persist.rehydrate).not.toHaveBeenCalled();
+    expect(() => unsub()).not.toThrow();
+    expect(rmSpy).not.toHaveBeenCalled(); // no listener to remove
+    addSpy.mockRestore();
+    rmSpy.mockRestore();
+  });
+
+  it('enableCrossTabSync:false still persists locally but never rehydrates from remote (uiStore/settingsUiStore pattern)', async () => {
+    const channel = getChatSyncChannel();
+    const store = { persist: { rehydrate: vi.fn() } } as any;
+    // Capture handler that would have been registered if sync were enabled
+    const addSpy = vi.spyOn(channel, 'addEventListener');
+    const { sync } = createSyncedPersist('all_model_chat_ui_preferences_v1', { enableCrossTabSync: false });
+    const unsub = sync(store);
+    // No listener should have been added after sync with false
+    const callsBefore = addSpy.mock.calls.length;
+    expect(callsBefore).toBe(0);
+    await Promise.resolve();
+    expect(store.persist.rehydrate).not.toHaveBeenCalled();
+    unsub();
+    addSpy.mockRestore();
+  });
+
+  // C2: schema/version/migrate injected into chatDraftStore (zod) — demo with chatDraft-like schema
+  it('chatDraftStore schema/version/migrate demo: validates wrapper and migrates malformed drafts (C2)', async () => {
+    const { chatDraftPersistedSchema, migrateChatDraftPersistedState } = await import('./chatDraftStore');
+    // valid wrapper passes
+    const validRaw = JSON.stringify({ state: { drafts: { s1: { inputText: 'hi', quotes: [], ttsContext: '' } } }, version: 1 });
+    const makeAreaForKey = (key: string, initial: string | null) => {
+      const store = new Map<string, string>();
+      if (initial !== null) store.set(key, initial);
+      return {
+        getItem: vi.fn((k: string) => store.get(k) ?? null),
+        setItem: vi.fn((k: string, v: string) => {
+          store.set(k, v);
+        }),
+        removeItem: vi.fn((k: string) => {
+          store.delete(k);
+        }),
+        _store: store,
+      };
+    };
+    const areaValid = makeAreaForKey('all_model_chat_drafts_v1', validRaw);
+    const { storage: storageValid } = createSyncedPersist('all_model_chat_drafts_v1', {
+      schema: chatDraftPersistedSchema,
+      version: 1,
+      migrate: migrateChatDraftPersistedState,
+      storageArea: areaValid as never,
+      debounceMs: 0,
+    });
+    expect(storageValid.getItem('all_model_chat_drafts_v1')).toBe(validRaw);
+
+    // malformed drafts: quotes as string, ttsContext missing — schema fails, migrate normalizes
+    const malformedRaw = JSON.stringify({
+      state: {
+        drafts: {
+          s1: { inputText: 'hi', quotes: 'bad' as unknown, ttsContext: 123 as unknown },
+          s2: { inputText: 'kept', quotes: 'bad' as unknown, ttsContext: '' },
+        },
+      },
+      version: 0,
+    });
+    const areaBad = makeAreaForKey('all_model_chat_drafts_v1', malformedRaw);
+    const migrateSpy = vi.fn(migrateChatDraftPersistedState);
+    const { storage: storageBad } = createSyncedPersist('all_model_chat_drafts_v1', {
+      schema: chatDraftPersistedSchema,
+      version: 1,
+      migrate: migrateSpy,
+      storageArea: areaBad as never,
+      debounceMs: 0,
+    });
+    const result = storageBad.getItem('all_model_chat_drafts_v1') as string | null;
+    expect(migrateSpy).toHaveBeenCalledWith(expect.objectContaining({ state: expect.any(Object) }), 1);
+    expect(result).not.toBeNull();
+    const parsed = JSON.parse(result!);
+    expect(parsed.state.drafts.s1).toEqual({ inputText: 'hi', quotes: [], ttsContext: '' });
+    expect(parsed.state.drafts.s2).toEqual({ inputText: 'kept', quotes: [], ttsContext: '' });
+    expect(parsed.version).toBe(1);
+  });
+
+  it('modelPreferencesStore uses typed PersistedStoreApi without as any (I3)', async () => {
+    // Verify that modelPreferencesStore can call sync without cast and that sync returns unsubscribe
+    const { useModelPreferencesStore } = await import('./modelPreferencesStore');
+    const channel = getChatSyncChannel();
+    const addSpy = vi.spyOn(channel, 'addEventListener');
+    // This import would have failed to compile if typing required `as any`
+    const store = useModelPreferencesStore as unknown as import('./syncedPersist').PersistedStoreApi;
+    expect(store.persist.rehydrate).toBeDefined();
+    // Ensure file no longer contains `as any`
+    const fs = await import('node:fs');
+    const content = fs.readFileSync('src/stores/modelPreferencesStore.ts', 'utf8');
+    expect(content).not.toContain('as any');
+    expect(content).toContain('as PersistedStoreApi');
+    addSpy.mockRestore();
   });
 });
