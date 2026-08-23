@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Copy, ShieldCheck, AlertTriangle, Check, Loader2 } from 'lucide-react';
+import { AlertTriangle, Check, Copy, Loader2 } from 'lucide-react';
+import { useI18n } from '@/contexts/I18nContext';
 
 export const MAX_ARG_VALUE_LENGTH = 4000;
 export const MAX_ARG_OBJECT_KEYS = 24;
@@ -10,6 +11,7 @@ export const McpToolCallBlock: React.FC<{ call: any; responsePart: any; status: 
   responsePart,
   status,
 }) => {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(true);
   const [copied, setCopied] = useState(false);
   const argsStr = JSON.stringify(call.args, null, 2);
@@ -31,7 +33,7 @@ export const McpToolCallBlock: React.FC<{ call: any; responsePart: any; status: 
       {expanded && (
         <div className="border-t px-3 py-2 text-xs">
           <pre className="overflow-auto max-h-[300px] whitespace-pre-wrap">{truncated}</pre>
-          {argsStr.length > MAX_ARG_VALUE_LENGTH && <div className="text-[11px] text-muted">Truncated</div>}
+          {argsStr.length > MAX_ARG_VALUE_LENGTH && <div className="text-[11px] text-muted">{t('mcpToolTruncated')}</div>}
           <pre className="mt-2 overflow-auto max-h-[300px]">
             {JSON.stringify(responsePart?.functionResponse?.response ?? {}, null, 2).slice(0, 4000)}
           </pre>
@@ -46,12 +48,10 @@ export const McpToolCallBlock: React.FC<{ call: any; responsePart: any; status: 
             className="mt-2 flex items-center gap-1 text-[11px]"
           >
             <Copy className="h-3 w-3" />
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? t('mcpToolCopied') : t('mcpToolCopy')}
           </button>
         </div>
       )}
     </div>
   );
 };
-
-void ShieldCheck;
