@@ -221,6 +221,8 @@ export function useChatInputExpandSizing({ isExpanded, onExpandedChange, focusEd
       height: resolvedFrameHeight,
       minHeight,
       overflow: 'hidden',
+      transitionProperty: 'height',
+      transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
       transitionDuration: isResizing ? '0ms' : `${HEIGHT_TRANSITION_MS}ms`,
     }),
     [isResizing, minHeight, resolvedFrameHeight],
