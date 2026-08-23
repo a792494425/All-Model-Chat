@@ -30,3 +30,11 @@ export const useMcpStatusStore = create<Store>((set, get) => ({
     })),
   getStatus: (id) => get().states[id],
 }));
+
+/**
+ * Selector-based reactive access for a single server's status.
+ * Prefer this over `useMcpStatusStore().getStatus(id)` (subscribes to
+ * entire store) or `useMcpStatusStore.getState().getStatus(id)` (not reactive).
+ */
+export const useMcpStatus = (id: string): McpStatus | undefined =>
+  useMcpStatusStore((s) => s.states[id]);

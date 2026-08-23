@@ -69,7 +69,8 @@ const parseRecord = (value: string): Record<string, string> => {
 
 export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) => {
   const { t } = useI18n();
-  const { setStatus, getStatus } = useMcpStatusStore();
+  const states = useMcpStatusStore((s) => s.states);
+  const setStatus = useMcpStatusStore((s) => s.setStatus);
   const servers = settings.mcpServers ?? [];
   const [capabilityStates, setCapabilityStates] = useState<Record<string, CapabilityTestState>>({});
 
@@ -199,7 +200,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
             const capabilities = capabilityState?.status === 'success' ? capabilityState.capabilities : undefined;
             const capabilityErrors = capabilities?.errors ?? [];
             const resourceCount = (capabilities?.resources.length ?? 0) + (capabilities?.resourceTemplates.length ?? 0);
-            const storeStatus = getStatus(server.id);
+            const storeStatus = states[server.id];
             const status = (storeStatus ?? {
               state: server.enabled ? 'connecting' : 'disabled',
               lastError: undefined,
@@ -220,7 +221,13 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                   ? 'bg-red-500/10 text-red-700'
                   : 'bg-zinc-100 text-zinc-600';
             const pillLabel =
-              status.state === 'connected' ? 'Connected' : status.state === 'error' ? 'Error' : status.state;
+              status.state === 'connected'
+                ? t('settingsMcpStatusConnected')
+                : status.state === 'error'
+                  ? t('settingsMcpStatusError')
+                  : status.state === 'connecting'
+                    ? t('settingsMcpStatusConnecting')
+                    : t('settingsMcpStatusDisabled');
             const typeLabel = server.transport === 'stdio' ? 'STDIO' : server.transport === 'sse' ? 'SSE' : 'HTTP';
             const typeBadgeClass =
               server.transport === 'stdio'

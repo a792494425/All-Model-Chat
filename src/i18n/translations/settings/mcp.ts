@@ -245,6 +245,42 @@ const mcpSettings = {
     fr: 'Activé',
     de: 'Aktiviert',
   },
+  settingsMcpStatusConnected: {
+    en: 'Connected',
+    zh: '已连接',
+    ja: '接続済み',
+    es: 'Conectado',
+    ko: '연결됨',
+    fr: 'Connecté',
+    de: 'Verbunden',
+  },
+  settingsMcpStatusConnecting: {
+    en: 'Connecting',
+    zh: '连接中',
+    ja: '接続中',
+    ko: '연결 중',
+    es: 'Conectando',
+    fr: 'Connexion',
+    de: 'Verbindet',
+  },
+  settingsMcpStatusError: {
+    en: 'Error',
+    zh: '错误',
+    ja: 'エラー',
+    ko: '오류',
+    es: 'Error',
+    fr: 'Erreur',
+    de: 'Fehler',
+  },
+  settingsMcpStatusDisabled: {
+    en: 'Disabled',
+    zh: '已禁用',
+    ja: '無効',
+    ko: '비활성화됨',
+    es: 'Deshabilitado',
+    fr: 'Désactivé',
+    de: 'Deaktiviert',
+  },
 };
 
 export default mcpSettings;

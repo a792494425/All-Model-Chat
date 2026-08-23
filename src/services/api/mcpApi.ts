@@ -82,6 +82,7 @@ export interface McpServerCapabilities {
     serverName: string;
     error: string;
   }>;
+  version?: string;
 }
 
 const readErrorMessage = (response: Response): Promise<string> => readResponseErrorMessage(response, 'MCP request');

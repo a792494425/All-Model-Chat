@@ -4,6 +4,7 @@ import { chatInputTranslations } from './translations/chatInput';
 import { messagesTranslations } from './translations/messages';
 import { historyTranslations } from './translations/history';
 import { commonTranslations } from './translations/common';
+import { chatTranslations } from './translations/chat';
 import { ttsStyleTranslations } from './voiceStyleTranslations';
 import type { SupportedLanguage } from './languageRegistry';
 export type { SupportedLanguage } from './languageRegistry';
@@ -121,6 +122,7 @@ export const translations: TranslationMap = {
   ...messagesTranslations,
   ...historyTranslations,
   ...commonTranslations,
+  ...chatTranslations,
   ...shellFeatureTranslations,
 };
 
