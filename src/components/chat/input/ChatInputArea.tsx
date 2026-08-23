@@ -57,7 +57,7 @@ export const ChatInputArea: React.FC = () => {
     inputDisabled,
   });
 
-  const minHeight = Math.max(56, initialTextareaHeight + 32);
+  const minHeight = isMobile ? 26 : initialTextareaHeight + 2;
   const {
     frameRef,
     frameStyle,
