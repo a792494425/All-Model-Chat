@@ -2,6 +2,7 @@ import { act, type ComponentProps, useCallback, useState } from 'react';
 import { fireEvent, within } from '@testing-library/react';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
 import { renderWithProviders, setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
+import { useMcpStatusStore } from '@/stores/mcpStatusStore';
 import type { AppSettings } from '@/types';
 import { McpSection } from './McpSection';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -17,6 +18,7 @@ describe('McpSection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useMcpStatusStore.setState({ states: {} });
   });
 
   const renderMcpSection = async (overrides: Partial<ComponentProps<typeof McpSection>> = {}) => {
@@ -351,6 +353,69 @@ describe('McpSection', () => {
 
     expect(renderer.container.textContent).toContain('Second Server');
     expect(renderer.container.textContent).toContain('Tools 1');
+  });
+
+  it('shows connected dot after successful Test', async () => {
+    fetchMcpServerCapabilitiesMock.mockResolvedValue({
+      tools: [{ name: 'a' }],
+      resources: [],
+      resourceTemplates: [],
+      prompts: [],
+      errors: [],
+    } as any);
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [{ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x' } as any],
+    };
+    await renderMcpSection({ settings });
+
+    const testButton = Array.from(renderer.container.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Test',
+    );
+    expect(testButton).not.toBeUndefined();
+    await act(async () => {
+      fireEvent.click(testButton!);
+    });
+    const dot = await within(renderer.container).findByTestId('mcp-status-dot-s1');
+    expect(dot).toHaveAttribute('data-state', 'connected');
+  });
+
+  it('shows error dot and tooltip after failed Test', async () => {
+    fetchMcpServerCapabilitiesMock.mockRejectedValue(new Error('boom'));
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [{ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x' } as any],
+    };
+    await renderMcpSection({ settings });
+    const testButton = Array.from(renderer.container.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Test',
+    );
+    await act(async () => {
+      fireEvent.click(testButton!);
+    });
+    const dot = await within(renderer.container).findByTestId('mcp-status-dot-s1');
+    expect(dot).toHaveAttribute('data-state', 'error');
+    expect(dot.getAttribute('title')).toContain('boom');
+  });
+
+  it('shows disabled dot when server is disabled and no status', async () => {
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [{ id: 's1', name: 'S1', enabled: false, transport: 'stdio', command: 'npx' } as any],
+    };
+    await renderMcpSection({ settings });
+    const dot = within(renderer.container).getByTestId('mcp-status-dot-s1');
+    expect(dot).toHaveAttribute('data-state', 'disabled');
+  });
+
+  it('shows connecting dot when enabled and no status yet', async () => {
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [{ id: 's1', name: 'S1', enabled: true, transport: 'stdio', command: 'npx' } as any],
+    };
+    await renderMcpSection({ settings });
+    const dot = within(renderer.container).getByTestId('mcp-status-dot-s1');
+    expect(dot).toHaveAttribute('data-state', 'connecting');
   });
 
   it('contains long server names in the card header', async () => {

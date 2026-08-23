@@ -9,6 +9,8 @@ import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/con
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { fetchMcpServerCapabilities, type McpServerCapabilities } from '@/services/api/mcpApi';
 import { interpolate } from '@/i18n/interpolate';
+import { useMcpStatusStore } from '@/stores/mcpStatusStore';
+import { deriveStatus } from '@/features/mcp/mcpStatus';
 
 interface McpSectionProps {
   settings: AppSettings;
@@ -67,6 +69,7 @@ const parseRecord = (value: string): Record<string, string> => {
 
 export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) => {
   const { t } = useI18n();
+  const { setStatus, getStatus } = useMcpStatusStore();
   const servers = settings.mcpServers ?? [];
   const [capabilityStates, setCapabilityStates] = useState<Record<string, CapabilityTestState>>({});
 
@@ -150,13 +153,18 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
 
     try {
       const capabilities = await fetchMcpServerCapabilities({ ...server, enabled: true });
+      const derived = deriveStatus(capabilities, null, true);
+      setStatus(server.id, { state: derived.state, lastError: undefined, version: derived.version });
       setCapabilityStates((prev) => ({ ...prev, [cardKey]: { status: 'success', capabilities } }));
     } catch (error) {
+      const message = getErrorMessage(error);
+      const derived = deriveStatus(null, message, server.enabled);
+      setStatus(server.id, { state: derived.state, lastError: derived.lastError });
       setCapabilityStates((prev) => ({
         ...prev,
         [cardKey]: {
           status: 'error',
-          error: getErrorMessage(error),
+          error: message,
         },
       }));
     }
@@ -191,6 +199,35 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
             const capabilities = capabilityState?.status === 'success' ? capabilityState.capabilities : undefined;
             const capabilityErrors = capabilities?.errors ?? [];
             const resourceCount = (capabilities?.resources.length ?? 0) + (capabilities?.resourceTemplates.length ?? 0);
+            const storeStatus = getStatus(server.id);
+            const status = (storeStatus ?? {
+              state: server.enabled ? 'connecting' : 'disabled',
+              lastError: undefined,
+              lastCheckedAt: 0,
+            }) as typeof storeStatus & { state: 'connected' | 'connecting' | 'error' | 'disabled'; lastError?: string; version?: string };
+            const dotClass =
+              status.state === 'connected'
+                ? 'bg-emerald-500'
+                : status.state === 'error'
+                  ? 'bg-red-500'
+                  : status.state === 'connecting'
+                    ? 'bg-amber-500'
+                    : 'bg-zinc-400';
+            const pillClass =
+              status.state === 'connected'
+                ? 'bg-emerald-500/10 text-emerald-700'
+                : status.state === 'error'
+                  ? 'bg-red-500/10 text-red-700'
+                  : 'bg-zinc-100 text-zinc-600';
+            const pillLabel =
+              status.state === 'connected' ? 'Connected' : status.state === 'error' ? 'Error' : status.state;
+            const typeLabel = server.transport === 'stdio' ? 'STDIO' : server.transport === 'sse' ? 'SSE' : 'HTTP';
+            const typeBadgeClass =
+              server.transport === 'stdio'
+                ? 'bg-zinc-100 text-zinc-700'
+                : server.transport === 'sse'
+                  ? 'bg-amber-500/10 text-amber-700'
+                  : 'bg-sky-500/10 text-sky-700';
 
             return (
               <section
@@ -203,9 +240,20 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                   className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex min-w-0 items-center gap-2">
+                    <span
+                      data-testid={`mcp-status-dot-${server.id}`}
+                      data-state={status.state}
+                      className={`inline-block h-2 w-2 rounded-full ${dotClass}`}
+                      title={status.lastError ?? ''}
+                    />
                     <span className="min-w-0 truncate text-sm font-medium text-[var(--theme-text-primary)]">
                       {server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}
                     </span>
+                    <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${typeBadgeClass}`}>{typeLabel}</span>
+                    <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-medium ${pillClass}`}>{pillLabel}</span>
+                    {status.version ? (
+                      <span className="text-[11px] text-[var(--theme-text-tertiary)]">v{status.version}</span>
+                    ) : null}
                   </div>
                   <div
                     data-mcp-server-card-actions
