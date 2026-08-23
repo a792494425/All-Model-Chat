@@ -571,4 +571,113 @@ describe('McpSection', () => {
     });
     expect(fetchLogsMock).toHaveBeenCalledTimes(2);
   });
+
+  it('renders auto-approve toggle and disables when tool disabled', async () => {
+    fetchMcpServerCapabilitiesMock.mockResolvedValue({
+      tools: [
+        { name: 'tool_a', description: 'A' },
+        { name: 'tool_b', description: 'B' },
+      ],
+      resources: [],
+      resourceTemplates: [],
+      prompts: [],
+    } as any);
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [{ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x', isTrusted: true } as any],
+    };
+    await renderStatefulMcpSection(settings);
+
+    const testButton = Array.from(renderer.container.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Test');
+    expect(testButton).not.toBeUndefined();
+    await act(async () => {
+      fireEvent.click(testButton!);
+    });
+
+    expect(await within(renderer.container).findByText('tool_a')).toBeInTheDocument();
+    const autoApproveButton = within(renderer.container).getByLabelText('Auto-approve tool_a');
+    expect(autoApproveButton).toBeInTheDocument();
+    expect(autoApproveButton).not.toBeDisabled();
+
+    const disableToggle = within(renderer.container).getByLabelText('Disable tool_a');
+    await act(async () => {
+      fireEvent.click(disableToggle);
+    });
+
+    expect(within(renderer.container).getByLabelText('Auto-approve tool_a')).toBeDisabled();
+  });
+
+  it('asks trust confirm when enabling non-trusted server', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const onUpdate = vi.fn();
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [{ id: 's1', name: 'S1', enabled: false, transport: 'http', url: 'https://x', isTrusted: false } as any],
+    };
+    await renderMcpSection({ settings, onUpdate });
+
+    const enableToggle = renderer.container.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    expect(enableToggle).not.toBeNull();
+    expect(enableToggle?.checked).toBe(false);
+
+    await act(async () => {
+      fireEvent.click(enableToggle!);
+    });
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(onUpdate).toHaveBeenCalledWith('mcpServers', expect.arrayContaining([expect.objectContaining({ isTrusted: true, enabled: true })]));
+    confirmSpy.mockRestore();
+  });
+
+  it('does not enable non-trusted server when trust confirm cancelled', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const onUpdate = vi.fn();
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [{ id: 's1', name: 'S1', enabled: false, transport: 'http', url: 'https://x', isTrusted: false } as any],
+    };
+    await renderMcpSection({ settings, onUpdate });
+
+    const enableToggle = renderer.container.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    await act(async () => {
+      fireEvent.click(enableToggle!);
+    });
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(onUpdate).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+
+  it('filters tools via intra-tab search', async () => {
+    fetchMcpServerCapabilitiesMock.mockResolvedValue({
+      tools: [
+        { name: 'tool_a', description: 'Alpha' },
+        { name: 'tool_b', description: 'Beta' },
+      ],
+      resources: [],
+      resourceTemplates: [],
+      prompts: [],
+    } as any);
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [{ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x', isTrusted: true } as any],
+    };
+    await renderMcpSection({ settings });
+
+    const testButton = Array.from(renderer.container.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Test');
+    await act(async () => {
+      fireEvent.click(testButton!);
+    });
+
+    expect(await within(renderer.container).findByText('tool_a')).toBeInTheDocument();
+    expect(within(renderer.container).getByText('tool_b')).toBeInTheDocument();
+
+    const toolSearch = within(renderer.container).getByPlaceholderText('Search tools');
+    await act(async () => {
+      fireEvent.change(toolSearch, { target: { value: 'tool_a' } });
+    });
+
+    expect(within(renderer.container).getByText('tool_a')).toBeInTheDocument();
+    expect(within(renderer.container).queryByText('tool_b')).not.toBeInTheDocument();
+  });
 });

@@ -1,6 +1,6 @@
 import React, { useCallback, useDeferredValue, useEffect, useRef, useState } from 'react';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { Plus, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
 import type { AppSettings, McpServerAuthType, McpServerConfig, McpServerTransport } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { Toggle } from '@/components/shared/Toggle';
@@ -122,6 +122,8 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
   };
   const [capabilityStates, setCapabilityStates] = useState<Record<string, CapabilityTestState>>({});
   const [activeTabs, setActiveTabs] = useState<Record<string, string>>({});
+  const [toolQueries, setToolQueries] = useState<Record<string, string>>({});
+  const deferredToolQueries = useDeferredValue(toolQueries);
 
   // Card identities must stay stable across edits: the server id is
   // user-editable on every keystroke and indexes shift when a server is
@@ -497,7 +499,19 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                   >
                     <Toggle
                       checked={server.enabled}
-                      onChange={(enabled) => updateServer(index, { enabled })}
+                      onChange={(enabled) => {
+                        if (enabled && server.isTrusted === false) {
+                          const ok = window.confirm(t('settingsMcpTrustConfirm'));
+                          if (!ok) return;
+                          updateServer(index, { enabled: true, isTrusted: true });
+                          return;
+                        }
+                        if (enabled && server.isTrusted === undefined) {
+                          updateServer(index, { enabled: true, isTrusted: true });
+                          return;
+                        }
+                        updateServer(index, { enabled });
+                      }}
                       ariaLabel={server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}
                     />
                     <button
@@ -721,41 +735,87 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                         {t('settingsMcpTabLogs')}
                       </button>
                     </div>
-                    {(activeTabs[stateKey] ?? 'tools') === 'tools' && (
-                      <div className="mt-3 overflow-hidden rounded-lg border border-[var(--theme-border-secondary)]">
-                        {capabilities.tools.length === 0 ? (
-                          <div className="px-3 py-6 text-center text-xs text-[var(--theme-text-secondary)]">
-                            {t('settingsMcpEmptyTools') === 'settingsMcpEmptyTools' ? 'No tools available.' : t('settingsMcpEmptyTools')}
-                          </div>
-                        ) : (
-                          capabilities.tools.map((tool) => {
-                            const disabled = new Set(server.disabledTools ?? []);
-                            const toggleTool = (toolName: string, enabled: boolean) => {
-                              const next = enabled
-                                ? (server.disabledTools ?? []).filter((n) => n !== toolName)
-                                : [...(server.disabledTools ?? []), toolName];
-                              updateServer(index, { disabledTools: next.length ? next : undefined });
-                            };
-                            return (
-                              <div
-                                key={tool.name}
-                                className="flex items-center justify-between border-t border-[var(--theme-border-secondary)] px-3 py-2 first:border-t-0"
-                              >
-                                <div className="min-w-0">
-                                  <div className="truncate text-sm text-[var(--theme-text-primary)]">{tool.name}</div>
-                                  <div className="truncate text-xs text-[var(--theme-text-secondary)]">{tool.description}</div>
+                    {(activeTabs[stateKey] ?? 'tools') === 'tools' &&
+                      (() => {
+                        const toolQuery = toolQueries[stateKey] ?? '';
+                        const deferredToolQuery = deferredToolQueries[stateKey] ?? '';
+                        const filteredTools = capabilities.tools.filter((tool) => {
+                          if (!deferredToolQuery.trim()) return true;
+                          const hay = `${tool.name} ${tool.description ?? ''}`.toLowerCase();
+                          return hay.includes(deferredToolQuery.toLowerCase());
+                        });
+                        return (
+                          <div className="mt-3 space-y-2">
+                            <input
+                              placeholder={t('settingsMcpToolSearchPlaceholder')}
+                              value={toolQuery}
+                              onChange={(e) => setToolQueries((prev) => ({ ...prev, [stateKey]: e.target.value }))}
+                              className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS}`}
+                            />
+                            <div className="overflow-hidden rounded-lg border border-[var(--theme-border-secondary)]">
+                              {filteredTools.length === 0 ? (
+                                <div className="px-3 py-6 text-center text-xs text-[var(--theme-text-secondary)]">
+                                  {capabilities.tools.length === 0
+                                    ? t('settingsMcpEmptyTools') === 'settingsMcpEmptyTools'
+                                      ? 'No tools available.'
+                                      : t('settingsMcpEmptyTools')
+                                    : t('settingsMcpEmptyFiltered') === 'settingsMcpEmptyFiltered'
+                                      ? 'No tools match.'
+                                      : t('settingsMcpEmptyFiltered')}
                                 </div>
-                                <Toggle
-                                  checked={!disabled.has(tool.name)}
-                                  onChange={(v) => toggleTool(tool.name, v)}
-                                  ariaLabel={`${disabled.has(tool.name) ? 'Enable' : 'Disable'} ${tool.name}`}
-                                />
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    )}
+                              ) : (
+                                filteredTools.map((tool) => {
+                                  const disabled = new Set(server.disabledTools ?? []);
+                                  const autoDisabled = new Set(server.disabledAutoApproveTools ?? []);
+                                  const isEnabled = !disabled.has(tool.name);
+                                  const isAutoApproved = !autoDisabled.has(tool.name);
+                                  const toggleTool = (toolName: string, enabled: boolean) => {
+                                    const next = enabled
+                                      ? (server.disabledTools ?? []).filter((n) => n !== toolName)
+                                      : [...(server.disabledTools ?? []), toolName];
+                                    updateServer(index, { disabledTools: next.length ? next : undefined });
+                                  };
+                                  const toggleAutoApprove = (toolName: string, autoApprove: boolean) => {
+                                    const next = autoApprove
+                                      ? (server.disabledAutoApproveTools ?? []).filter((n) => n !== toolName)
+                                      : [...(server.disabledAutoApproveTools ?? []), toolName];
+                                    updateServer(index, {
+                                      disabledAutoApproveTools: next.length ? next : undefined,
+                                    });
+                                  };
+                                  return (
+                                    <div
+                                      key={tool.name}
+                                      className="grid grid-cols-[1fr_80px_80px] items-center gap-2 border-t border-[var(--theme-border-secondary)] px-3 py-2 first:border-t-0"
+                                    >
+                                      <div className="min-w-0">
+                                        <div className="truncate text-sm text-[var(--theme-text-primary)]">{tool.name}</div>
+                                        <div className="truncate text-xs text-[var(--theme-text-secondary)]">{tool.description}</div>
+                                      </div>
+                                      <Toggle
+                                        checked={isEnabled}
+                                        onChange={(v) => toggleTool(tool.name, v)}
+                                        ariaLabel={`${isEnabled ? 'Disable' : 'Enable'} ${tool.name}`}
+                                      />
+                                      <button
+                                        type="button"
+                                        aria-label={`Auto-approve ${tool.name}`}
+                                        aria-pressed={isAutoApproved}
+                                        disabled={!isEnabled}
+                                        onClick={() => toggleAutoApprove(tool.name, !isAutoApproved)}
+                                        title={isAutoApproved ? t('settingsMcpAutoApproveEnabled') : t('settingsMcpAutoApproveDisabled')}
+                                        className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${!isEnabled ? 'opacity-40' : isAutoApproved ? 'text-emerald-600 hover:bg-emerald-500/10' : 'text-zinc-400 hover:bg-zinc-100'}`}
+                                      >
+                                        <ShieldCheck size={16} strokeWidth={1.7} />
+                                      </button>
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     {activeTabs[stateKey] === 'prompts' && (
                       <McpPromptsTab prompts={capabilities.prompts ?? []} t={t} />
                     )}
