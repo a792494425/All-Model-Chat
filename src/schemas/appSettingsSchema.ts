@@ -174,6 +174,9 @@ const sanitizeMcpServers = (value: unknown, fallback: McpServerConfig[]): McpSer
       if (auth) server.auth = auth;
     }
 
+    const disabledTools = sanitizeStringArray((item as Record<string, unknown>).disabledTools);
+    if (disabledTools) server.disabledTools = disabledTools;
+
     return [server];
   });
 
