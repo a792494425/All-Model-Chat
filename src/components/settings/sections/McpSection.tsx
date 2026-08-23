@@ -159,7 +159,14 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
   };
 
   const parseImportJson = (text: string): McpServerConfig[] => {
-    const parsed = JSON.parse(text) as unknown;
+    const stripped = text
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .split('\n')
+      .map((line) => line.replace(/^\s*\/\/.*$/, ''))
+      .join('\n')
+      .trim();
+    if (!stripped) throw new Error('请先粘贴 JSON');
+    const parsed = JSON.parse(stripped) as unknown;
     if (!parsed || typeof parsed !== 'object') throw new Error('JSON 顶层必须是对象');
     const obj = parsed as Record<string, unknown>;
     if (Array.isArray(parsed)) return (parsed as Record<string, unknown>[]).map((r) => normalizeImportedServer(r)).filter(Boolean) as McpServerConfig[];
@@ -305,7 +312,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
             <textarea
               value={importJson}
               onChange={(e) => setImportJson(e.target.value)}
-              placeholder={`{\n  "mcpServers": {\n    "browser-control-bridge": { "url": "http://host.docker.internal:38976/mcp" }\n  }\n}\n或 { "servers": [{ "name":"My MCP", "url":"https://..." }] }`}
+              placeholder={`{\n  "mcpServers": {\n    "browser-control-bridge": { "url": "http://host.docker.internal:38976/mcp" }\n  }\n}`}
               className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} min-h-[140px] resize-y font-mono text-xs`}
               spellCheck={false}
             />
