@@ -13,10 +13,7 @@ export const ChatInputExpandCorner: React.FC = () => {
   const label = isFullscreen ? t('fullscreenTooltipCollapse') : t('fullscreenTooltipExpand');
 
   return (
-    <div
-      data-composer-expand-corner=""
-      className="group/expand-corner absolute top-px right-px z-10 size-8"
-    >
+    <div data-composer-expand-corner="" className="group/expand-corner absolute top-px right-px z-10 size-8">
       <span
         aria-hidden="true"
         data-composer-expand-corner-line=""

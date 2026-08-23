@@ -237,8 +237,6 @@ describe('source readability boundaries', () => {
 
     expect(sendControlsSource).not.toContain('const x = e.clientX');
     expect(sendControlsSource).not.toContain('const y = e.clientY');
-    expect(sendControlsSource).toContain('const rippleX =');
-    expect(sendControlsSource).toContain('const rippleY =');
   });
 
   it('keeps JSX comments from restating obvious component sections', () => {

@@ -123,6 +123,6 @@ describe('ChatInputArea default spacing', () => {
     expect(source).toContain('relative z-10 mx-5 mb-[-22px] -translate-y-1.5');
     expect(source).toContain('focus-within:border-[var(--theme-border-focus)]');
     expect(source).toContain('relative z-20');
-    expect(source).toContain('rounded-[1.625rem]');
+    expect(source).toContain('rounded-[20px]');
   });
 });

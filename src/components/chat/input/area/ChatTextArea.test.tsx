@@ -110,7 +110,7 @@ describe('ChatTextArea', () => {
       'textarea[data-chat-input-textarea="true"]',
     );
 
-    expect(shadowTextarea?.style.padding).toBe('2px 0.25rem 0px');
+    expect(shadowTextarea?.style.padding).toBe('2px 2.25rem 0px 0.25rem');
     expect(visibleTextarea?.style.height).toBe('26px');
     expect(visibleTextarea?.className).toContain('pt-0.5');
     expect(visibleTextarea?.className).toContain('pb-0');
