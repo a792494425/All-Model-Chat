@@ -433,6 +433,40 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                     )}
                   </div>
                 )}
+                {capabilityState?.status === 'success' && capabilities && (() => {
+                  const disabled = new Set(server.disabledTools ?? []);
+                  const toggleTool = (toolName: string, enabled: boolean) => {
+                    const next = enabled
+                      ? (server.disabledTools ?? []).filter((n) => n !== toolName)
+                      : [...(server.disabledTools ?? []), toolName];
+                    updateServer(index, { disabledTools: next.length ? next : undefined });
+                  };
+                  return (
+                    <div className="mt-3 overflow-hidden rounded-lg border border-[var(--theme-border-secondary)]">
+                      <details open>
+                        <summary className="cursor-pointer list-none px-3 py-2 text-xs font-medium select-none">
+                          {t('settingsMcpCapabilityTools')} ({capabilities.tools.length})
+                        </summary>
+                        {capabilities.tools.map((tool) => (
+                          <div
+                            key={tool.name}
+                            className="flex items-center justify-between border-t border-[var(--theme-border-secondary)] px-3 py-2"
+                          >
+                            <div className="min-w-0">
+                              <div className="truncate text-sm text-[var(--theme-text-primary)]">{tool.name}</div>
+                              <div className="truncate text-xs text-[var(--theme-text-secondary)]">{tool.description}</div>
+                            </div>
+                            <Toggle
+                              checked={!disabled.has(tool.name)}
+                              onChange={(v) => toggleTool(tool.name, v)}
+                              ariaLabel={`${disabled.has(tool.name) ? 'Enable' : 'Disable'} ${tool.name}`}
+                            />
+                          </div>
+                        ))}
+                      </details>
+                    </div>
+                  );
+                })()}
                 {capabilityState?.status === 'error' && (
                   <div className="mt-4 rounded-md border border-[var(--theme-text-danger)]/30 bg-[var(--theme-bg-danger)]/10 p-3 text-xs text-[var(--theme-text-danger)]">
                     {capabilityState.error}

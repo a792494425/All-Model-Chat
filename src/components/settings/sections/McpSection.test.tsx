@@ -446,4 +446,39 @@ describe('McpSection', () => {
     expect(header?.className).toContain('sm:flex-row');
     expect(actions?.className).toContain('shrink-0');
   });
+
+  it('renders tool table with enable toggle and updates disabledTools', async () => {
+    const onUpdate = vi.fn();
+    fetchMcpServerCapabilitiesMock.mockResolvedValue({
+      tools: [
+        { name: 'tool_a', description: 'A' },
+        { name: 'tool_b', description: 'B' },
+      ],
+      resources: [],
+      resourceTemplates: [],
+      prompts: [],
+    } as any);
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [{ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x' } as any],
+    };
+    await renderMcpSection({ settings, onUpdate });
+
+    const testButton = Array.from(renderer.container.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Test',
+    );
+    expect(testButton).not.toBeUndefined();
+    await act(async () => {
+      fireEvent.click(testButton!);
+    });
+
+    expect(await within(renderer.container).findByText('tool_a')).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(within(renderer.container).getByLabelText('Disable tool_a'));
+    });
+    expect(onUpdate).toHaveBeenCalledWith(
+      'mcpServers',
+      expect.arrayContaining([expect.objectContaining({ disabledTools: ['tool_a'] })]),
+    );
+  });
 });

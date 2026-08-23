@@ -227,6 +227,24 @@ const mcpSettings = {
     fr: 'Prompts',
     de: 'Prompts',
   },
+  settingsMcpToolsTableTitle: {
+    en: 'Tools',
+    zh: '工具',
+    ja: 'ツール',
+    es: 'Herramientas',
+    ko: '도구',
+    fr: 'Outils',
+    de: 'Tools',
+  },
+  settingsMcpToolEnabled: {
+    en: 'Enabled',
+    zh: '已启用',
+    ja: '有効',
+    es: 'Habilitado',
+    ko: '활성화됨',
+    fr: 'Activé',
+    de: 'Aktiviert',
+  },
 };
 
 export default mcpSettings;
