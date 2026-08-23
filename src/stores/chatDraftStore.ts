@@ -1,14 +1,15 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import {
-  createPersistedStateStorage,
-  readPersistentStorageItem,
-  removePersistentStorageItem,
-} from './persistentStorage';
+import { readPersistentStorageItem, removePersistentStorageItem } from './persistentStorage';
+import { createSyncedPersist } from './syncedPersist';
 import { safeJsonParse } from '@/utils/safeJsonParse';
 import { resolveUpdaterOrValue, type UpdaterOrValue } from './stateUpdaters';
 
 const CHAT_DRAFT_STORE_STORAGE_KEY = 'all_model_chat_drafts_v1';
+const { storage: chatDraftSyncedStorage } = createSyncedPersist(CHAT_DRAFT_STORE_STORAGE_KEY, {
+  debounceMs: 300,
+  enableCrossTabSync: false,
+});
 
 export interface ChatDraft {
   inputText: string;
@@ -170,7 +171,7 @@ export const useChatDraftStore = create<ChatDraftState & ChatDraftActions>()(
       name: CHAT_DRAFT_STORE_STORAGE_KEY,
       // Tab-private: persist for refresh recovery, but do not cross-tab rehydrate
       // (would clobber in-progress input in other tabs).
-      storage: createJSONStorage(() => createPersistedStateStorage({ debounceMs: 300, notifyUpdate: () => {} })),
+      storage: createJSONStorage(() => chatDraftSyncedStorage),
       partialize: (state) => ({
         drafts: pruneEmptyDrafts(state.drafts),
       }),

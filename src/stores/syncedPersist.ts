@@ -48,6 +48,8 @@ export interface SyncedPersistOptions<T> {
   migrate?: (persisted: unknown, version: number) => T;
   // Exposed for test injection; production stores use default localStorage
   storageArea?: StorageArea;
+  // Tab-private stores (drafts, UI chrome) set to false to avoid cross-tab rehydrate
+  enableCrossTabSync?: boolean;
 }
 
 // --- isEqual (deep) -------------------------------------------------------
@@ -99,10 +101,12 @@ export const createSyncedPersist = <T>(
   opts: SyncedPersistOptions<T> = {},
 ): { storage: StateStorage; sync: (store: PersistedStoreApi<T>) => () => void } => {
   // Wrap createPersistedStateStorage to reuse debounce/flush/notify logic centrally (no duplication)
+  const enableCrossTabSync = opts.enableCrossTabSync !== false;
   const baseStorage = createPersistedStateStorage({
     debounceMs: opts.debounceMs,
     storageArea: opts.storageArea,
-    // Use shared origin via persistentStorage's default notify (which uses PERSISTED_STATE_ORIGIN_ID)
+    // Tab-private stores disable broadcast to avoid cross-tab rehydrate
+    ...(enableCrossTabSync ? {} : { notifyUpdate: () => {} }),
   });
 
   const resolveStorageArea = (): StorageArea | null => opts.storageArea ?? getDefaultStorageArea();
@@ -231,6 +235,7 @@ export const createSyncedPersist = <T>(
   };
 
   const sync = (store: PersistedStoreApi<T>): (() => void) => {
+    if (!enableCrossTabSync) return () => {};
     if (typeof BroadcastChannel === 'undefined') {
       return () => {};
     }
