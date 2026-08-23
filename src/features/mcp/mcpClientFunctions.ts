@@ -243,7 +243,9 @@ export const createMcpClientFunctions = async ({
     const runtimeServerEntries = makeRuntimeServerEntries(enabledServers);
     const runtimeServers = runtimeServerEntries.map(({ runtimeServer }) => runtimeServer);
     const lister: McpToolsLister = listTools;
-    const configKey = JSON.stringify(runtimeServers);
+    const configKey = JSON.stringify(
+      runtimeServers.map((s) => ({ id: s.id, url: s.url, command: s.command, disabledTools: s.disabledTools })),
+    );
     const cachedResponse = readCachedTools(lister, configKey);
     const toolResponse = cachedResponse ?? (await listTools(runtimeServers, abortSignal));
     if (!cachedResponse) {
@@ -260,12 +262,20 @@ export const createMcpClientFunctions = async ({
       });
     }
 
+    const serverDisabledMap = new Map(
+      runtimeServers.map((s) => [s.id, new Set(s.disabledTools ?? [])]),
+    );
+    const filteredServers = toolResponse.servers.map((s) => ({
+      ...s,
+      tools: s.tools.filter((t) => !serverDisabledMap.get(s.serverId)?.has(t.name)),
+    }));
+
     const serverByRuntimeId = new Map(
       runtimeServerEntries.map(({ originalServer, runtimeServer }) => [runtimeServer.id, originalServer]),
     );
     const functions: StandardClientFunctions = {};
 
-    for (const serverTools of toolResponse.servers) {
+    for (const serverTools of filteredServers) {
       const server = serverByRuntimeId.get(serverTools.serverId);
       if (!server) {
         continue;

@@ -190,6 +190,29 @@ describe('createMcpClientFunctions', () => {
     expect(functions[toMcpFunctionName('filesystem', 'read_file')]).toBeDefined();
   });
 
+  it('filters disabledTools before creating declarations', async () => {
+    const servers = [
+      { id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x', disabledTools: ['secret_tool'] } as any,
+    ];
+    const listTools = async () =>
+      ({
+        servers: [
+          {
+            serverId: 's1',
+            serverName: 'S1',
+            tools: [
+              { name: 'secret_tool', description: '', inputSchema: { type: 'object' } } as any,
+              { name: 'ok_tool', description: '', inputSchema: { type: 'object' } } as any,
+            ],
+          },
+        ],
+        errors: [],
+      }) as any;
+    const fns = await createMcpClientFunctions({ servers, listTools } as any);
+    expect(Object.keys(fns).some((k) => k.includes('secret_tool'))).toBe(false);
+    expect(Object.keys(fns).some((k) => k.includes('ok_tool'))).toBe(true);
+  });
+
   it('maps nullable JSON Schema types and anyOf object branches into Gemini schemas', async () => {
     const listTools = vi.fn(async () => ({
       servers: [
