@@ -298,7 +298,6 @@ describe('ChatInputActions', () => {
     expect(auxiliaryButtonsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         actions: expect.arrayContaining([
-          expect.objectContaining({ id: 'fullscreen', action: lastActionsValue.onToggleFullscreen }),
           expect.objectContaining({ id: 'translate' }),
           expect.objectContaining({ id: 'clear' }),
           expect.objectContaining({ id: 'paste' }),

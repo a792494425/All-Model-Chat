@@ -99,13 +99,13 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
       {/* Shadow Textarea for Height Calculation */}
       <textarea
         ref={shadowRef}
-        className="absolute top-0 left-0 w-full -z-50 opacity-0 pointer-events-none resize-none px-1 pt-0.5 pb-0 text-base custom-scrollbar"
+        className="absolute top-0 left-0 w-full -z-50 opacity-0 pointer-events-none resize-none px-1 pr-9 pt-0.5 pb-0 text-base custom-scrollbar"
         style={{
           height: '0',
           overflow: 'hidden',
           fontFamily: 'inherit',
           lineHeight: 'inherit',
-          padding: '2px 0.25rem 0', // Matches px-1 pt-0.5 pb-0
+          padding: '2px 2.25rem 0 0.25rem', // Matches px-1 pr-9 pt-0.5 pb-0 (right 36px to avoid expand corner)
         }}
         aria-hidden="true"
         tabIndex={-1}
@@ -121,7 +121,7 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
         onCompositionStart={handleCompositionStart}
         onCompositionEnd={handleCompositionEnd}
         placeholder={placeholder}
-        className="w-full bg-transparent border-0 resize-none px-1 pt-0.5 pb-0 text-base placeholder:text-[var(--theme-text-tertiary)] focus:ring-0 focus:outline-none custom-scrollbar flex-grow min-h-[26px]"
+        className="w-full bg-transparent border-0 resize-none px-1 pr-9 pt-0.5 pb-0 text-base placeholder:text-[var(--theme-text-tertiary)] focus:ring-0 focus:outline-none custom-scrollbar flex-grow min-h-[26px]"
         style={{
           height: isFullscreen ? '100%' : `${isMobile ? 26 : initialTextareaHeight + 2}px`,
           overflowY: isFullscreen ? 'auto' : 'hidden',

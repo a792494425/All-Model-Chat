@@ -14,8 +14,8 @@ const RADIUS_CLASS = {
   lg: 'rounded-xl',
   /** 16px — message bubbles, large cards */
   xl: 'rounded-2xl',
-  /** 26px — chat composer shell */
-  pill: 'rounded-[1.625rem]',
+  /** 20px — chat composer shell (CherryStudio) */
+  pill: 'rounded-[20px]',
   full: 'rounded-full',
 } as const;
 

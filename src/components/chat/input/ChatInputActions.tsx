@@ -20,7 +20,6 @@ const ChatInputActionsComponent: React.FC = () => {
   const {
     disabled,
     isWaitingForUpload,
-    onToggleFullscreen,
     isLiveConnected,
     isNativeAudioModel,
     onToggleToolAndFocus,
@@ -99,7 +98,6 @@ const ChatInputActionsComponent: React.FC = () => {
         isNativeAudioModel,
         isLiveConnected,
         showVoiceInputButton,
-        !!onToggleFullscreen,
         auxiliaryActionSignature,
         isLoading,
         isEditing,
@@ -114,7 +112,6 @@ const ChatInputActionsComponent: React.FC = () => {
       isLoading,
       isNativeAudioModel,
       isWaitingForUpload,
-      onToggleFullscreen,
       auxiliaryActionSignature,
       showVoiceInputButton,
     ],

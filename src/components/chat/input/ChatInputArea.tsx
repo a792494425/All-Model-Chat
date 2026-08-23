@@ -13,6 +13,7 @@ import { getChatInputAreaLayout } from './chatInputAreaLayout';
 import { CHAT_INPUT_MAX_WIDTH_CLASS, FOCUS_BLOCKING_SELECTOR } from '@/constants/layout';
 import { useI18n } from '@/contexts/I18nContext';
 import { useChatInputContext } from './ChatInputContext';
+import { ChatInputExpandCorner } from './ChatInputExpandCorner';
 
 export const ChatInputArea: React.FC = () => {
   const { t } = useI18n();
@@ -138,6 +139,7 @@ export const ChatInputArea: React.FC = () => {
             </div>
           )}
           <div className={inputContainerClass} onClick={handleInputShellClick}>
+            <ChatInputExpandCorner />
             <ChatFilePreviewList
               selectedFiles={chatInput.selectedFiles}
               onRemove={handlers.removeSelectedFile}
