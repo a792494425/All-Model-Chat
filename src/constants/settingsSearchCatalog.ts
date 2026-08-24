@@ -184,6 +184,13 @@ const interfaceEntries: SettingsSearchEntry[] = [
     descriptionKey: 'settingsAudioCompressionTooltip',
     groupKey: 'settingsNotificationsFeedback',
   },
+  {
+    id: 'selectionAskModel',
+    tab: 'interface',
+    labelKey: 'selectionAskModel',
+    descriptionKey: 'selectionAskModelDesc',
+    groupKey: 'settingsTabInterface',
+  },
 ];
 
 const modelsEntries: SettingsSearchEntry[] = [
@@ -203,20 +210,6 @@ const modelsEntries: SettingsSearchEntry[] = [
     id: 'models-temperature',
     tab: 'models',
     labelKey: 'settingsTemperature',
-    groupKey: 'settingsTabModels',
-  },
-  {
-    id: 'models-thinking',
-    tab: 'models',
-    labelKey: 'settingsThinkingMode',
-    descriptionKey: 'settingsThinkingModeTooltip',
-    groupKey: 'settingsTabModels',
-  },
-  {
-    id: 'models-show-thoughts',
-    tab: 'models',
-    labelKey: 'settingsShowThoughts',
-    descriptionKey: 'settingsShowThoughtsTooltip',
     groupKey: 'settingsTabModels',
   },
   {

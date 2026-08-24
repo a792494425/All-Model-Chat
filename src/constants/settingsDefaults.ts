@@ -114,6 +114,8 @@ const BASE_DEFAULT_APP_SETTINGS: Omit<AppSettings, 'thirdPartyApi'> = {
   tabModelCycleIds: undefined,
   liveTranslateTargetLanguageCode: 'en',
   liveTranslateEchoTargetLanguage: false,
+  selectionAskModelId: undefined,
+  selectionAskProviderId: undefined,
 };
 
 export function getDefaultAppSettings(): AppSettings {

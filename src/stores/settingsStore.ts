@@ -5,7 +5,7 @@ import { type Theme } from '@/types/theme';
 import { DEFAULT_FILES_API_CONFIG, getDefaultAppSettings } from '@/constants/settingsDefaults';
 import { AVAILABLE_THEMES, DEFAULT_THEME_ID } from '@/constants/themeRegistry';
 import { logService } from '@/services/logService';
-import { BROWSER_LANG_PREFIX_MAP, SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/i18n/languageRegistry';
+import { resolveAppLanguage, type SupportedLanguage } from '@/i18n/languageRegistry';
 import { migrateRemovedModelId } from '@/constants/modelConfiguration';
 import { resolveSupportedModelId } from '@/utils/model/modelSorting';
 import { dbService } from '@/services/db/dbService';
@@ -40,12 +40,7 @@ function resolveThemeId(themeId: string): ConcreteThemeId {
 }
 
 function resolveLanguage(language: string): SupportedLanguage {
-  const settingLang = language || 'system';
-  if (settingLang === 'system') {
-    const prefix = navigator.language.toLowerCase().split('-')[0];
-    return BROWSER_LANG_PREFIX_MAP[prefix] ?? 'en';
-  }
-  return (SUPPORTED_LANGUAGES as readonly string[]).includes(settingLang) ? (settingLang as SupportedLanguage) : 'en';
+  return resolveAppLanguage(language);
 }
 
 function computeTheme(themeId: string): Theme {
@@ -72,6 +67,18 @@ function sanitizeAppSettings(settings: AppSettings): AppSettings {
       settings.thoughtTranslationModelId,
       defaultSettings.thoughtTranslationModelId ?? defaultSettings.modelId,
     ),
+    selectionAskModelId: (() => {
+      const raw = (settings as unknown as Record<string, unknown>).selectionAskModelId;
+      if (typeof raw !== 'string' || !raw.trim()) return undefined;
+      return migrateRemovedModelId(raw) ?? raw;
+    })(),
+    selectionAskProviderId: (() => {
+      const rawModel = (settings as unknown as Record<string, unknown>).selectionAskModelId;
+      const hasModel = typeof rawModel === 'string' && rawModel.trim().length > 0;
+      if (!hasModel) return undefined;
+      const raw = (settings as unknown as Record<string, unknown>).selectionAskProviderId;
+      return normalizeProviderId(raw);
+    })(),
     tabModelCycleIds: (() => {
       const cycleIds = settings.tabModelCycleIds ?? defaultSettings.tabModelCycleIds;
       if (!cycleIds?.length) {

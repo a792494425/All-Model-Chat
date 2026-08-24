@@ -264,5 +264,7 @@ export interface AppSettings extends ChatSettings {
   tabModelCycleIds?: string[];
   liveTranslateTargetLanguageCode: string; // 目标语言 BCP-47 代码（源语言由模型自动检测）
   liveTranslateEchoTargetLanguage: boolean; // 输入已是目标语言时是否回放原声
+  selectionAskModelId?: string;
+  selectionAskProviderId?: ChatProviderId;
   thirdPartyApi: ThirdPartyApiSettings;
 }
