@@ -8,6 +8,7 @@ import { LiveArtifactsSection } from './LiveArtifactsSection';
 import { GenerationSection } from './GenerationSection';
 import { LanguageVoiceSection } from './LanguageVoiceSection';
 import { SafetySection } from './SafetySection';
+import { SelectionAskModelSection } from './SelectionAskModelSection';
 import type { SettingsUpdateHandler } from '@/components/settings/settingsTypes';
 
 interface ModelsSectionProps {
@@ -67,6 +68,12 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({
         modelId={modelId}
         currentSettings={currentSettings}
         onUpdateSetting={updateSetting}
+      />
+
+      <SelectionAskModelSection
+        settings={currentSettings}
+        onUpdate={updateSetting as unknown as <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => void}
+        availableModels={availableModels}
       />
 
       {!isThirdPartyMode && (

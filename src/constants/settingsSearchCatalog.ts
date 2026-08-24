@@ -184,13 +184,6 @@ const interfaceEntries: SettingsSearchEntry[] = [
     descriptionKey: 'settingsAudioCompressionTooltip',
     groupKey: 'settingsNotificationsFeedback',
   },
-  {
-    id: 'selectionAskModel',
-    tab: 'interface',
-    labelKey: 'selectionAskModel',
-    descriptionKey: 'selectionAskModelDesc',
-    groupKey: 'settingsTabInterface',
-  },
 ];
 
 const modelsEntries: SettingsSearchEntry[] = [
@@ -243,6 +236,13 @@ const modelsEntries: SettingsSearchEntry[] = [
     id: 'models-live-artifacts',
     tab: 'models',
     labelKey: 'settingsTabLiveArtifacts',
+    groupKey: 'settingsTabModels',
+  },
+  {
+    id: 'selectionAskModel',
+    tab: 'models',
+    labelKey: 'selectionAskModel',
+    descriptionKey: 'selectionAskModelDesc',
     groupKey: 'settingsTabModels',
   },
 ];

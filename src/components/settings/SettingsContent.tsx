@@ -133,7 +133,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({
 
       {activeTab === 'interface' && (
         <div className={animClass}>
-          <AppearanceSection settings={currentSettings} onUpdate={updateSetting} availableModels={effectiveAvailableModels} />
+          <AppearanceSection settings={currentSettings} onUpdate={updateSetting} />
         </div>
       )}
 
