@@ -143,11 +143,13 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
           className="flex flex-1 gap-1 overflow-x-auto px-4 pb-2 pt-1 md:flex-col md:gap-1.5 md:overflow-x-hidden md:overflow-y-auto md:px-3 md:pb-3 md:pt-1 custom-scrollbar"
           role="tablist"
         >
-          {groupedTabs.map((group) => (
+          {groupedTabs.map((group, groupIndex) => (
             <div
               key={group.id}
               data-settings-group={group.id}
-              className="flex flex-shrink-0 md:w-full md:flex-col gap-1 md:gap-1.5"
+              className={`flex flex-shrink-0 md:w-full md:flex-col gap-1 md:gap-1.5 ${
+                groupIndex > 0 ? 'md:mt-2 md:pt-2 md:border-t md:border-[var(--theme-border-secondary)]/60' : ''
+              }`}
             >
               {group.tabs.map(renderTabButton)}
             </div>

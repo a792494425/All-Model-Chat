@@ -51,7 +51,7 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({
     });
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="max-w-3xl mx-auto space-y-5">
       <div data-settings-item="models-primary">
         <ModelSelector
           availableModels={availableModels}

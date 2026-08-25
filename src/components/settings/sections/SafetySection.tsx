@@ -3,6 +3,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { type SafetySetting, HarmCategory, HarmBlockThreshold } from '@/types';
 import { Shield, Info } from 'lucide-react';
 import { DEFAULT_SAFETY_SETTINGS } from '@/constants/safetySettings';
+import { SETTINGS_RANGE_SLIDER_CLASS } from '@/constants/designTokens';
 
 interface SafetySectionProps {
   safetySettings: SafetySetting[] | undefined;
@@ -116,7 +117,7 @@ export const SafetySection: React.FC<SafetySectionProps> = ({
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="space-y-6">
       {showIntro && (
         <div className="flex items-start gap-3 p-4 bg-[var(--theme-bg-secondary)] border border-[var(--theme-border-secondary)] rounded-xl">
           <Shield size={24} className="text-[var(--theme-text-link)] flex-shrink-0 mt-0.5" />
@@ -144,7 +145,7 @@ export const SafetySection: React.FC<SafetySectionProps> = ({
                 <label className="text-sm font-medium text-[var(--theme-text-primary)]">
                   {t(CATEGORY_TRANSLATION_KEYS[category])}
                 </label>
-                <span className="text-xs font-medium uppercase tracking-wider text-[var(--theme-text-primary)]">
+                <span className="text-xs font-medium text-[var(--theme-text-primary)]">
                   {t(THRESHOLD_LABEL_KEYS[effectiveThreshold])}
                 </span>
               </div>
@@ -159,22 +160,8 @@ export const SafetySection: React.FC<SafetySectionProps> = ({
                 onPointerDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
                 style={{ touchAction: 'none' }}
-                className="w-full h-2 bg-[var(--theme-bg-tertiary)] rounded-lg appearance-none cursor-pointer accent-[var(--theme-bg-accent)] hover:accent-[var(--theme-bg-accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)]"
+                className={SETTINGS_RANGE_SLIDER_CLASS}
               />
-
-              <div className="flex justify-between px-1">
-                {THRESHOLD_STEPS.map((step, stepIndex) => (
-                  <div key={step} className="flex flex-col items-center w-8">
-                    <div
-                      className={`w-1 h-2 rounded-full mb-1 ${
-                        stepIndex === sliderValue
-                          ? 'bg-[var(--theme-text-primary)] h-3'
-                          : 'bg-[var(--theme-border-secondary)]'
-                      }`}
-                    />
-                  </div>
-                ))}
-              </div>
             </div>
           );
         })}

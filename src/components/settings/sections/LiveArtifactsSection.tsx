@@ -3,6 +3,7 @@ import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasse
 import { useI18n } from '@/contexts/I18nContext';
 import { ChevronDown, RotateCcw, Wand2 } from 'lucide-react';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
+import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
 import { loadLiveArtifactsSystemPrompt } from '@/features/prompts/promptRegistry';
 import {
   getLiveArtifactsSystemPromptValue,
@@ -80,13 +81,13 @@ export const LiveArtifactsSection: React.FC<LiveArtifactsSectionProps> = ({ curr
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)] flex items-center gap-2">
+    <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-2`}>
+      <h4 className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
         <Wand2 size={14} strokeWidth={1.5} />
         {t('settingsLiveArtifactsSectionTitle')}
       </h4>
       <div className="space-y-1">
-        <div className="py-3">
+        <div className="py-1.5">
           <button
             id="live-artifacts-prompt-toggle"
             type="button"

@@ -115,7 +115,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({
   return (
     <div className="max-w-3xl mx-auto w-full">
       {activeTab === 'models' && (
-        <div className={`${animClass} max-w-4xl mx-auto`}>
+        <div className={animClass}>
           <ModelsSection
             modelId={effectiveModelId}
             setModelId={handleEffectiveModelChange}

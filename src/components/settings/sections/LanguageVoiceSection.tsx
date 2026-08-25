@@ -6,6 +6,7 @@ import {
   TRANSLATION_TARGET_LANGUAGE_OPTIONS,
 } from '@/constants/translationOptions';
 import { DEFAULT_THOUGHT_TRANSLATION_MODEL_ID } from '@/constants/modelConfiguration';
+import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
 import { type AppSettings, type ModelOption, type TranslationTargetLanguage } from '@/types';
 import { Select } from '@/components/shared/Select';
 import { VoiceControl } from '@/components/settings/controls/VoiceControl';
@@ -39,21 +40,23 @@ export const LanguageVoiceSection: React.FC<LanguageVoiceSectionProps> = (props)
   const thoughtTranslationModelOptions = ensureSelectedModelOption(availableModels, thoughtTranslationModelId);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <VoiceControl
-        transcriptionModelId={currentSettings.transcriptionModelId}
-        setTranscriptionModelId={(value) => onUpdateSetting('transcriptionModelId', value)}
-        titleKey="settingsTranscriptionSectionTitle"
-      />
+    <div className="space-y-5">
+      <div className={SETTINGS_SECTION_CARD_CLASS}>
+        <VoiceControl
+          transcriptionModelId={currentSettings.transcriptionModelId}
+          setTranscriptionModelId={(value) => onUpdateSetting('transcriptionModelId', value)}
+          titleKey="settingsTranscriptionSectionTitle"
+        />
+      </div>
 
-      <div className="pt-6 border-t border-[var(--theme-border-secondary)] space-y-4">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)] flex items-center gap-2">
+      <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-4`}>
+        <h4 className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
           <Languages size={14} strokeWidth={1.5} />
           {t('settingsTranslationSectionTitle')}
         </h4>
         <div className="space-y-4">
           <div className="space-y-1">
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
+            <h5 className={SETTINGS_SECTION_LABEL_CLASS}>
               {t('settingsInputTranslationSectionTitle')}
             </h5>
             <Select
@@ -99,7 +102,7 @@ export const LanguageVoiceSection: React.FC<LanguageVoiceSectionProps> = (props)
           </div>
 
           <div className="space-y-1 border-t border-[var(--theme-border-secondary)] pt-4">
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
+            <h5 className={SETTINGS_SECTION_LABEL_CLASS}>
               {t('settingsThoughtTranslationSectionTitle')}
             </h5>
             <Select

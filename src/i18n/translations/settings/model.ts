@@ -1,7 +1,7 @@
-import { ttsStyleTranslations } from '@/i18n/voiceStyleTranslations';
-
 // settingsTtsVoice, settingsMediaResolution, and mediaResolution* labels live in
 // coreTranslations shellFeatureTranslations (chat toolbar chrome before this pack loads).
+// ttsStyleTranslations are registered once in coreTranslations — do not re-spread here
+// or every key registers twice.
 const modelSettings = {
   settingsDefaultModel: {
     en: 'Primary Chat Model',
@@ -32,6 +32,15 @@ const modelSettings = {
   },
   settingsTopP: { en: 'Top P', zh: 'Top P', ja: 'Top P', de: 'Top P', es: 'Top P', ko: 'Top P', fr: 'Top P' },
   settingsTopK: { en: 'Top K', zh: 'Top K', ja: 'Top K', de: 'Top K', es: 'Top K', ko: 'Top K', fr: 'Top K' },
+  settingsAdvancedParamsTitle: {
+    en: 'Advanced Parameters',
+    zh: '高级参数',
+    ja: '詳細パラメータ',
+    de: 'Erweiterte Parameter',
+    es: 'Parámetros avanzados',
+    ko: '고급 매개변수',
+    fr: 'Paramètres avancés',
+  },
   settingsShowThoughts: {
     en: 'Show Model Reasoning',
     zh: '显示模型推理',
@@ -728,6 +737,5 @@ const modelSettings = {
     ko: 'Gemini API의 Gemma 4는 여기서 thinkingConfig.thinkingLevel을 사용하며, 지원되는 두 수준은 MINIMAL과 HIGH입니다.',
     fr: "Gemma 4 sur l'API Gemini utilise thinkingConfig.thinkingLevel avec deux niveaux pris en charge ici : MINIMAL et HIGH.",
   },
-  ...ttsStyleTranslations,
 };
 export default modelSettings;
