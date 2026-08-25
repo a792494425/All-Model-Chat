@@ -16,6 +16,7 @@ import { StandardActionsView } from './text-selection/StandardActionsView';
 interface TextSelectionToolbarProps {
   onQuote: (text: string) => void;
   onInsert?: (text: string) => void;
+  onAsk?: (text: string, rect: DOMRect | null) => void;
   onTTS?: (text: string) => Promise<QuickTtsResult>;
   containerRef: RefObject<HTMLElement> | HTMLElement | null;
 }
@@ -23,6 +24,7 @@ interface TextSelectionToolbarProps {
 export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
   onQuote,
   onInsert,
+  onAsk,
   onTTS,
   containerRef,
 }) => {
@@ -55,7 +57,7 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
   const audioState = useSelectionAudio();
   const ttsInFlightRef = useRef(false);
 
-  const { position, setPosition, selectedText, selectedSpeechText, selectedCopyText, clearSelection } =
+  const { position, setPosition, selectedText, selectedSpeechText, selectedCopyText, selectionRect, clearSelection } =
     useSelectionPosition({
       containerRef,
       isAudioActive: audioState.isPlaying || audioState.isLoading,
@@ -104,6 +106,12 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
     e.stopPropagation();
     window.open(`https://www.google.com/search?q=${encodeURIComponent(selectedText)}`, '_blank', 'noopener,noreferrer');
     clearSelection();
+  };
+
+  const handleAskClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onAsk) onAsk(selectedText, selectionRect);
   };
 
   const handleTTSClick = async (e: React.SyntheticEvent) => {
@@ -163,6 +171,7 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
           onInsert={onInsert ? handleInsertClick : undefined}
           onCopy={handleCopyClick}
           onSearch={handleSearchClick}
+          onAsk={onAsk ? handleAskClick : undefined}
           onTTS={onTTS ? handleTTSClick : undefined}
           isCopied={isCopied}
           ttsError={audioState.errorMessage}

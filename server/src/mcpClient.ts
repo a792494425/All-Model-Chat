@@ -7,6 +7,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { assertMcpHttpUrlAllowed, createSafeMcpFetch, type FetchLike } from './mcpHttpSecurity.js';
+import { redactSensitiveText } from './mcpRedact.js';
+import { sanitizeMcpTimeout } from '../../shared/mcpServerConfig.js';
 import type {
   McpClientBridge,
   McpLogEntry,
@@ -18,11 +20,24 @@ import type {
   McpTool,
 } from './mcpTypes.js';
 
-export type { McpLogEntry, McpLogLevel } from './mcpTypes.js';
-
 const MCP_REQUEST_TIMEOUT_MS = 60_000;
 const SESSION_IDLE_MS = 5 * 60_000;
 const MAX_POOLED_SESSIONS = 16;
+/** Reused sessions idle longer than this get a liveness ping before reuse. */
+const SESSION_PING_AFTER_MS = 30_000;
+const SESSION_PING_TIMEOUT_MS = 5_000;
+/** Total ceiling for long-running tool calls that keep receiving progress. */
+const LONG_RUNNING_MAX_TOTAL_TIMEOUT_MS = 10 * 60_000;
+
+/** Tool calls honor a per-server timeout (seconds); defaults to the global 60s. */
+const callToolTimeoutMs = (server: McpServerConfig): number => {
+  const configured = sanitizeMcpTimeout(server.timeout);
+  return (configured ?? MCP_REQUEST_TIMEOUT_MS / 1000) * 1000;
+};
+
+/** A larger per-server timeout also raises the connect handshake ceiling. */
+const connectTimeoutMs = (server: McpServerConfig): number =>
+  Math.max(MCP_REQUEST_TIMEOUT_MS, (sanitizeMcpTimeout(server.timeout) ?? 0) * 1000);
 
 // ponytail: synced from package.json so clientInfo stays current; clientInfo is
 // informational only, so degrade to 0.0.0 instead of crashing on a missing file
@@ -40,6 +55,8 @@ interface McpClientBridgeOptions {
   fetchImpl?: FetchLike;
   /** Override idle eviction for tests. */
   sessionIdleMs?: number;
+  /** Override the idle threshold before a reused session gets a liveness ping (tests). */
+  sessionPingAfterMs?: number;
 }
 
 type HttpTransportKind = 'streamable' | 'sse';
@@ -125,13 +142,13 @@ function createHttpTransport(server: McpServerConfig, kind: HttpTransportKind, s
   });
 }
 
-async function connectClient(transport: Transport): Promise<Client> {
+async function connectClient(transport: Transport, timeoutMs: number = MCP_REQUEST_TIMEOUT_MS): Promise<Client> {
   const client = new Client({
     name: 'amc-webui',
     version: APP_VERSION,
   });
   try {
-    await client.connect(transport, { timeout: MCP_REQUEST_TIMEOUT_MS });
+    await client.connect(transport, { timeout: timeoutMs });
     return client;
   } catch (error) {
     await closeTransportQuietly(client, transport);
@@ -164,7 +181,7 @@ async function createConnectedSession(
   if (server.transport === 'stdio') {
     const transport = createStdioTransport(server);
     try {
-      const client = await connectClient(transport);
+      const client = await connectClient(transport, connectTimeoutMs(server));
       return { client, transport };
     } catch (error) {
       await closeTransportQuietly(undefined, transport);
@@ -185,7 +202,7 @@ async function createConnectedSession(
   for (const kind of attempts) {
     try {
       const transport = createHttpTransport(server, kind, safeFetch);
-      const client = await connectClient(transport);
+      const client = await connectClient(transport, connectTimeoutMs(server));
       return { client, transport };
     } catch (error) {
       lastError = error;
@@ -250,6 +267,7 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
   const allowPrivateHttp = options.allowPrivateHttp ?? false;
   const safeFetch = createSafeMcpFetch(allowPrivateHttp, options.fetchImpl ?? fetch);
   const sessionIdleMs = options.sessionIdleMs ?? SESSION_IDLE_MS;
+  const sessionPingAfterMs = options.sessionPingAfterMs ?? SESSION_PING_AFTER_MS;
   const sessions = new Map<string, PooledSession>();
   /** Per-key mutex chain so concurrent ops on the same server serialize. */
   const keyLocks = new Map<string, Promise<unknown>>();
@@ -294,10 +312,10 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
   const logBuffers = new Map<string, McpLogEntry[]>();
   const knownServerIds = new Set<string>();
   const getErrorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
-  const appendLog = (serverId: string, level: McpLogLevel, message: string): void => {
+  const appendLog = (serverId: string, level: McpLogLevel, rawMessage: string): void => {
     knownServerIds.add(serverId);
     const arr = logBuffers.get(serverId) ?? [];
-    arr.push({ level, message, timestamp: Date.now() });
+    arr.push({ level, message: redactSensitiveText(rawMessage), timestamp: Date.now() });
     if (arr.length > 200) arr.splice(0, arr.length - 200);
     logBuffers.set(serverId, arr);
   };
@@ -309,6 +327,21 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
 
     const runExclusive = async (): Promise<T> => {
       let session = sessions.get(key);
+      if (session && sessionPingAfterMs >= 0 && Date.now() - session.lastUsed >= sessionPingAfterMs) {
+        // Liveness check before trusting a pooled session that sat idle; a
+        // stale stdio child or dead HTTP endpoint would otherwise fail the
+        // real operation with a confusing error (Cherry Studio #18144).
+        try {
+          const ping = (session.client as { ping?: (opts?: { timeout?: number }) => Promise<unknown> }).ping;
+          if (typeof ping === 'function') {
+            await ping.call(session.client, { timeout: SESSION_PING_TIMEOUT_MS });
+          }
+        } catch {
+          sessions.delete(key);
+          await closeTransportQuietly(session.client, session.transport);
+          session = undefined;
+        }
+      }
       if (!session) {
         // Evict oldest if at capacity.
         if (sessions.size >= MAX_POOLED_SESSIONS) {
@@ -423,6 +456,7 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
 
     callTool: async (server, toolName, args) => {
       try {
+        const longRunning = server.longRunning === true;
         const result = await withConnectedClient(server, (client) =>
           client.callTool(
             {
@@ -430,7 +464,11 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
               arguments: args,
             },
             undefined,
-            { timeout: MCP_REQUEST_TIMEOUT_MS },
+            {
+              timeout: callToolTimeoutMs(server),
+              resetTimeoutOnProgress: longRunning,
+              ...(longRunning ? { maxTotalTimeout: LONG_RUNNING_MAX_TOTAL_TIMEOUT_MS } : {}),
+            },
           ),
         );
         knownServerIds.add(server.id);

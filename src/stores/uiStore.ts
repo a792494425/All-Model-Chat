@@ -51,6 +51,8 @@ const buildInitialHistorySidebarState = () => {
   };
 };
 
+export type HistoryDisplayMode = 'group' | 'time';
+
 interface UIState {
   isSettingsModalOpen: boolean;
   isPreloadedMessagesModalOpen: boolean;
@@ -59,6 +61,7 @@ interface UIState {
   mobileHistorySidebarOpen: boolean;
   isLogViewerOpen: boolean;
   chatInputHeight: number;
+  historyDisplayMode: HistoryDisplayMode;
 }
 
 interface UIActions {
@@ -70,9 +73,10 @@ interface UIActions {
   setIsLogViewerOpen: (value: UpdaterOrValue<boolean>) => void;
   toggleHistorySidebar: () => void;
   setChatInputHeight: (height: number) => void;
+  setHistoryDisplayMode: (mode: HistoryDisplayMode) => void;
 }
 
-type PersistedUiPreferences = Pick<UIState, 'desktopHistorySidebarOpen' | 'mobileHistorySidebarOpen'>;
+type PersistedUiPreferences = Pick<UIState, 'desktopHistorySidebarOpen' | 'mobileHistorySidebarOpen' | 'historyDisplayMode'>;
 
 const mergePersistedUiPreferences = (
   persistedState: unknown,
@@ -87,11 +91,16 @@ const mergePersistedUiPreferences = (
     typeof persistedPreferences.mobileHistorySidebarOpen === 'boolean'
       ? persistedPreferences.mobileHistorySidebarOpen
       : currentState.mobileHistorySidebarOpen;
+  const historyDisplayMode =
+    persistedPreferences.historyDisplayMode === 'time' || persistedPreferences.historyDisplayMode === 'group'
+      ? persistedPreferences.historyDisplayMode
+      : currentState.historyDisplayMode;
 
   return {
     ...currentState,
     desktopHistorySidebarOpen,
     mobileHistorySidebarOpen,
+    historyDisplayMode,
     isHistorySidebarOpen: isDesktopViewport() ? desktopHistorySidebarOpen : mobileHistorySidebarOpen,
   };
 };
@@ -102,6 +111,7 @@ export const useUIStore = create<UIState & UIActions>()(
       isSettingsModalOpen: false,
       isPreloadedMessagesModalOpen: false,
       ...buildInitialHistorySidebarState(),
+      historyDisplayMode: 'group' as HistoryDisplayMode,
       isLogViewerOpen: false,
       chatInputHeight: 160,
 
@@ -142,6 +152,7 @@ export const useUIStore = create<UIState & UIActions>()(
         })),
       toggleHistorySidebar: () => get().setIsHistorySidebarOpen((isOpen) => !isOpen),
       setChatInputHeight: (height) => set({ chatInputHeight: height }),
+      setHistoryDisplayMode: (mode) => set({ historyDisplayMode: mode }),
     }),
     {
       name: UI_PREFERENCES_STORAGE_KEY,
@@ -150,6 +161,7 @@ export const useUIStore = create<UIState & UIActions>()(
       partialize: (state) => ({
         desktopHistorySidebarOpen: state.desktopHistorySidebarOpen,
         mobileHistorySidebarOpen: state.mobileHistorySidebarOpen,
+        historyDisplayMode: state.historyDisplayMode,
       }),
       merge: mergePersistedUiPreferences,
     },

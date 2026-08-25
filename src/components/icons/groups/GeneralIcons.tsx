@@ -168,19 +168,8 @@ export const IconGoogle: React.FC<IconProps> = ({ size = defaultSize, className 
  * Source: DeepSeek Harness Web GUI 消息操作（dsh-client-ui-primitives 的 IconBranchOutline16）。
  * 填充式字形：不使用 strokeWidth。
  */
-export const IconBranch: React.FC<IconProps> = ({
-  size = defaultSize,
-  className,
-  color = defaultColor,
-}) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 16 16"
-    fill="none"
-    className={className}
-    aria-hidden="true"
-  >
+export const IconBranch: React.FC<IconProps> = ({ size = defaultSize, className, color = defaultColor }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className} aria-hidden="true">
     <path
       fill={color}
       fillRule="evenodd"

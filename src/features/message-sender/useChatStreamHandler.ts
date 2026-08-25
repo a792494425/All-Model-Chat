@@ -25,6 +25,7 @@ import { finishActiveGenerationJob } from './activeGenerationJobs';
 import { clearOwnedPendingStreamJob } from '@/features/stream-jobs/amcStreamJobs';
 import { buildCompletionNotificationBody, emitCompletionFeedback } from './completionFeedback';
 import { getTranslator } from '@/i18n/translations';
+import { resolveAppLanguage } from '@/i18n/languageRegistry';
 import { useChatStore } from '@/stores/chatStore';
 import type { StreamHandlerOptions } from './messageSenderTypes';
 
@@ -186,12 +187,7 @@ export const useChatStreamHandler = ({
         urlContextMetadata?: unknown,
         generatedFiles?: UploadedFile[],
       ) => {
-        const lang =
-          appSettings.language === 'system'
-            ? navigator.language.toLowerCase().startsWith('zh')
-              ? 'zh'
-              : 'en'
-            : appSettings.language;
+        const lang = resolveAppLanguage(appSettings.language);
 
         streamState = reduceMessageStreamEvent(streamState, {
           type: 'complete',

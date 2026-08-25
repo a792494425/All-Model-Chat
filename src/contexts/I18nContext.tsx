@@ -38,6 +38,8 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useI18n = () => {
   const value = useContext(I18nContext);
+  // 保持 hooks 调用顺序稳定：fallback 订阅必须无条件执行，
+  // 否则 Provider 挂载/卸载时会出现 hook 顺序不一致。
   const fallbackLanguage = useSettingsStore((state) => state.language);
   const fallbackT = useMemo(() => getTranslator(fallbackLanguage), [fallbackLanguage]);
 

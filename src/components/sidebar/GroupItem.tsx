@@ -3,8 +3,12 @@ import { ChevronDown, MoreHorizontal } from 'lucide-react';
 import { type ChatGroup, type SavedChatSession } from '@/types';
 import type { SessionItem } from './SessionItem';
 import { GroupItemMenu } from './GroupItemMenu';
+import { InlineRenameInput } from './InlineRenameInput';
 import { LimitedSessionList } from './LimitedSessionList';
-import { isSessionDrag } from './sidebarDragTypes';
+import { GROUP_DRAG_TYPE, isGroupDrag, isSessionDrag } from './sidebarDragTypes';
+import { useI18n } from '@/contexts/I18nContext';
+import { interpolate } from '@/i18n/interpolate';
+import { GripVertical } from 'lucide-react';
 
 export type SessionItemPassedProps = Omit<React.ComponentProps<typeof SessionItem>, 'session'>;
 
@@ -16,30 +20,52 @@ interface GroupItemProps extends SessionItemPassedProps {
   sessions: SavedChatSession[];
   editingItem: { type: 'session' | 'group'; id: string; title: string } | null;
   dragOverId: string | null;
+  groupDropIndicator?: { id: string; position: 'before' | 'after' } | null;
+  sessionDropIndicator?: { id: string; position: 'before' | 'after' } | null;
+  isDragging?: boolean;
+  dndListeners?: Record<string, unknown>;
+  isSortableDragging?: boolean;
+  onSessionDragOver?: (event: React.DragEvent, sessionId: string) => void;
+  onSessionDropIndicatorClear?: () => void;
   onToggleGroupExpansion: (groupId: string) => void;
   handleGroupStartEdit: (item: ChatGroup) => void;
   handleDrop: (e: React.DragEvent, groupId: string | null) => void;
   handleDragOver: (e: React.DragEvent) => void;
+  handleGroupDragOver?: (event: React.DragEvent, groupId: string) => void;
   setDragOverId: (id: string | null) => void;
   setEditingItem: (item: { type: 'session' | 'group'; id: string; title: string } | null) => void;
   onDeleteGroup: (groupId: string) => void;
+  onClearGroup?: (groupId: string) => void;
   onNewChatInGroup: (groupId: string) => void;
+  onReorderGroups?: (activeId: string, overId: string) => void;
+  draggingGroupId?: string | null;
+  onGroupDragStart?: (groupId: string) => void;
+  onGroupDragEnd?: () => void;
 }
 
 export const GroupItem: React.FC<GroupItemProps> = (props) => {
+  const { t } = useI18n();
   const {
     group,
     sessions,
     editingItem,
     dragOverId,
+    groupDropIndicator,
+    isDragging,
     onToggleGroupExpansion,
     handleGroupStartEdit,
     handleDrop,
     handleDragOver,
+    handleGroupDragOver,
     setDragOverId,
     setEditingItem,
     onDeleteGroup,
+    onClearGroup,
     onNewChatInGroup,
+    onReorderGroups,
+    draggingGroupId,
+    onGroupDragStart,
+    onGroupDragEnd,
     editInputRef,
     handleRenameConfirm,
     handleRenameKeyDown,
@@ -100,40 +126,99 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
     setActiveMenu,
     setDragOverId,
     draggingSessionId: sessionItemProps.draggingSessionId,
+    draggingGroupId: draggingGroupId,
+    dropIndicator: (props as unknown as { sessionDropIndicator?: { id: string; position: 'before' | 'after' } | null }).sessionDropIndicator ?? (sessionItemProps as unknown as { dropIndicator?: { id: string; position: 'before' | 'after' } | null }).dropIndicator,
     onSessionDragStart: sessionItemProps.onSessionDragStart,
     onSessionDragEnd: sessionItemProps.onSessionDragEnd,
+    onSessionDragOver: (props as unknown as { onSessionDragOver?: (event: React.DragEvent, sessionId: string) => void }).onSessionDragOver ?? (sessionItemProps as unknown as { onSessionDragOver?: (event: React.DragEvent, sessionId: string) => void }).onSessionDragOver,
+    onSessionDropIndicatorClear: (props as unknown as { onSessionDropIndicatorClear?: () => void }).onSessionDropIndicatorClear ?? (sessionItemProps as unknown as { onSessionDropIndicatorClear?: () => void }).onSessionDropIndicatorClear,
   };
 
   const isMenuOpenInGroup = activeMenu === group.id || sessions?.some((session) => session.id === activeMenu);
+  const isDraggingThisGroup = draggingGroupId === group.id || (props as unknown as { isSortableDragging?: boolean }).isSortableDragging;
+  const showGroupBefore = groupDropIndicator?.id === group.id && groupDropIndicator.position === 'before';
+  const showGroupAfter = groupDropIndicator?.id === group.id && groupDropIndicator.position === 'after';
+  const dndListeners = (props as unknown as { dndListeners?: Record<string, unknown> }).dndListeners;
 
+  const handleGroupDragStartInternal = (event: React.DragEvent) => {
+    event.dataTransfer.setData(GROUP_DRAG_TYPE, group.id);
+    event.dataTransfer.effectAllowed = 'move';
+    onGroupDragStart?.(group.id);
+    event.stopPropagation();
+  };
+
+  const handleGroupDragOverInternal = (event: React.DragEvent) => {
+    if (isGroupDrag(event) && onReorderGroups) {
+      if (handleGroupDragOver) {
+        handleGroupDragOver(event, group.id);
+      } else {
+        event.preventDefault();
+        event.stopPropagation();
+        event.dataTransfer.dropEffect = 'move';
+        setDragOverId(`group-${group.id}`);
+      }
+      return;
+    }
+    if (!isSessionDrag(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'move';
+    handleDragOver(event);
+  };
+
+  const handleGroupDropInternal = (event: React.DragEvent) => {
+    cancelAutoExpand();
+    if (isGroupDrag(event) && onReorderGroups) {
+      event.preventDefault();
+      event.stopPropagation();
+      const activeId = event.dataTransfer.getData(GROUP_DRAG_TYPE);
+      if (activeId && activeId !== group.id) onReorderGroups(activeId, group.id);
+      setDragOverId(null);
+      onGroupDragEnd?.();
+      return;
+    }
+    handleDrop(event, group.id);
+  };
+
+  const handleGroupDragEnterInternal = (event: React.DragEvent) => {
+    if (isGroupDrag(event)) {
+      if (handleGroupDragOver) handleGroupDragOver(event, group.id);
+      else {
+        event.preventDefault();
+        event.stopPropagation();
+        setDragOverId(`group-${group.id}`);
+      }
+      return;
+    }
+    if (!isSessionDrag(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    startAutoExpand(event);
+    setDragOverId(group.id);
+  };
+
+  const isSortableGroup = !!dndListeners;
   return (
     <div
-      onDragOver={(e) => {
-        if (!isSessionDrag(e)) return;
-        e.preventDefault();
-        e.stopPropagation();
-        e.dataTransfer.dropEffect = 'move';
-        handleDragOver(e);
-      }}
-      onDrop={(e) => {
+      draggable={!isSortableGroup && !!onReorderGroups}
+      onDragStart={!isSortableGroup ? handleGroupDragStartInternal : undefined}
+      onDragEnd={() => {
         cancelAutoExpand();
-        handleDrop(e, group.id);
+        onGroupDragEnd?.();
+        setDragOverId(null);
       }}
-      onDragEnter={(e) => {
-        if (!isSessionDrag(e)) return;
-        e.preventDefault();
-        e.stopPropagation();
-        startAutoExpand(e);
-        setDragOverId(group.id);
-      }}
+      onDragOver={handleGroupDragOverInternal}
+      onDrop={handleGroupDropInternal}
+      onDragEnter={handleGroupDragEnterInternal}
       onDragLeave={(e) => {
         cancelAutoExpand();
         if (e.currentTarget.contains(e.relatedTarget as Node)) return;
         setDragOverId(null);
       }}
-      onDragEnd={cancelAutoExpand}
-      className={`rounded-lg transition-all duration-200 mb-1 ${dragOverId === group.id ? 'bg-[var(--theme-bg-accent)] bg-opacity-20 ring-2 ring-[var(--theme-bg-accent)] ring-inset ring-opacity-50' : ''} ${isMenuOpenInGroup ? 'relative z-20' : 'relative z-0'}`}
+      className={`relative rounded-lg transition-all duration-200 mb-1 ${dragOverId === group.id ? 'bg-[var(--theme-bg-accent)] bg-opacity-20 ring-2 ring-[var(--theme-bg-accent)] ring-inset ring-opacity-50' : ''} ${dragOverId === `group-${group.id}` ? 'ring-2 ring-[var(--theme-bg-accent)] ring-offset-1' : ''} ${isMenuOpenInGroup ? 'z-20' : 'z-0'} ${isDraggingThisGroup ? 'opacity-30 scale-[0.97]' : ''}`}
     >
+      {showGroupBefore && <div className="absolute -top-1 left-2 right-2 h-0.5 rounded-full bg-[var(--theme-bg-accent)] pointer-events-none z-10" />}
+      {showGroupAfter && <div className="absolute -bottom-1 left-2 right-2 h-0.5 rounded-full bg-[var(--theme-bg-accent)] pointer-events-none z-10" />}
       <details open={group.isExpanded ?? true} className="group/details">
         <summary
           className="list-none flex items-center justify-between px-1 py-2 rounded-lg cursor-pointer hover:bg-[var(--theme-bg-tertiary)] group"
@@ -151,25 +236,40 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
           }}
         >
           <div className="flex items-center gap-2 min-w-0">
+            {onReorderGroups && (
+              <span
+                {...(dndListeners as React.HTMLAttributes<HTMLSpanElement>)}
+                className="cursor-grab active:cursor-grabbing p-0.5 -ml-0.5 text-[var(--theme-text-tertiary)] opacity-0 group-hover:opacity-60 hover:opacity-100 transition-opacity shrink-0 touch-none"
+                title={t('historyGroupReorderHint')}
+                aria-hidden="true"
+              >
+                <GripVertical size={12} />
+              </span>
+            )}
             <ChevronDown
               size={16}
               className="text-[var(--theme-text-primary)] transition-transform group-open/details:rotate-180 flex-shrink-0"
               strokeWidth={2.2}
             />
             {editingItem?.type === 'group' && editingItem.id === group.id ? (
-              <input
-                ref={editInputRef}
-                type="text"
-                value={editingItem.title}
-                onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
-                onFocus={(e) => e.currentTarget.select()}
+              <InlineRenameInput
+                editInputRef={editInputRef}
+                title={editingItem.title}
+                onTitleChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
                 onBlur={handleRenameConfirm}
                 onKeyDown={handleRenameKeyDown}
                 onClick={(e) => e.stopPropagation()}
                 className="bg-transparent border border-[var(--theme-border-focus)] rounded-md px-1 py-0 text-sm w-full font-semibold"
               />
             ) : (
-              <span className="font-semibold text-sm truncate text-[var(--theme-text-primary)]">{group.title}</span>
+              <>
+                <span className="font-semibold text-sm truncate text-[var(--theme-text-primary)]">{group.title}</span>
+                {sessions.length > 0 && (
+                  <span className="text-xs text-[var(--theme-text-tertiary)] tabular-nums shrink-0">
+                    {interpolate(t('historyGroupCount'), { count: sessions.length })}
+                  </span>
+                )}
+              </>
             )}
           </div>
           <button
@@ -190,13 +290,22 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
               handleGroupStartEdit(group);
               setActiveMenu(null);
             }}
+            onClear={
+              onClearGroup
+                ? () => {
+                    onClearGroup(group.id);
+                    setActiveMenu(null);
+                  }
+                : undefined
+            }
+            hasSessions={sessions.length > 0}
             onDelete={() => {
               onDeleteGroup(group.id);
               setActiveMenu(null);
             }}
           />
         )}
-        <LimitedSessionList sessions={sessions ?? []} sessionItemProps={childSessionItemProps} className="pl-1 pb-1" />
+        <LimitedSessionList sessions={sessions ?? []} sessionItemProps={childSessionItemProps} className="pl-1 pb-1" isDragging={!!isDragging || !!sessionItemProps.draggingSessionId || !!draggingGroupId} />
       </details>
     </div>
   );

@@ -44,11 +44,6 @@ export type AnthropicStreamEvent = {
   usage?: AnthropicUsage;
 };
 
-export type AnthropicModelsResponsePayload = {
-  data?: Array<{ id?: unknown }>;
-  error?: { message?: string };
-};
-
 export const asAnthropicChatConfig = (config: unknown): AnthropicChatConfig =>
   typeof config === 'object' && config !== null ? (config as AnthropicChatConfig) : {};
 

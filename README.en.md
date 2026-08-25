@@ -80,7 +80,7 @@ The project currently focuses on one main application shape: a **Vite + React SP
 
 ### Deep Thinking
 
-- Visualizes reasoning output for Gemini 3.0 / 3.1 / 2.5 family models.
+- Visualizes reasoning output for Gemini 3.x family models.
 - Supports token budgets and reasoning levels: Minimal, Low, Medium, and High.
 - Streams model reasoning in real time when supported.
 
@@ -127,7 +127,7 @@ The project currently focuses on one main application shape: a **Vite + React SP
 
 ### Internationalized UI
 
-- Chinese, English, and system language modes.
+- Seven UI languages: English, Chinese, Japanese, Korean, Spanish, French, and German, plus a follow-system mode.
 - Translated UI across chat, settings, sidebars, shortcuts, and related workflows.
 
 ### PWA
@@ -425,7 +425,7 @@ AMC-WebUI/
 │   ├── services/               # API, IndexedDB, logging, object URL, and infrastructure services
 │   ├── stores/                 # Zustand stores for chat, settings, and UI state
 │   ├── utils/                  # Domain-subdirectory helpers (model / file / live-artifacts / export / chat)
-│   ├── i18n/                   # Translation aggregation, coverage tests, and bilingual copy
+│   ├── i18n/                   # Translation aggregation, coverage tests, and multilingual copy
 │   ├── pwa/                    # Service worker, PWA registration, and install state
 │   ├── runtime/                # Runtime config loading and public config mapping
 │   ├── schemas/                # Zod configuration schemas
@@ -461,13 +461,13 @@ AMC-WebUI/
 
 OpenAI Compatible mode uses a separate model list that you can manage manually or fetch from a compatible endpoint. The table below lists the built-in Gemini Native defaults.
 
-| Type             | Models                                                                                                                     |
-| :--------------- | :------------------------------------------------------------------------------------------------------------------------- |
-| Gemini 3.x       | `gemini-3.7-flash`, `gemini-3.6-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-live-preview`, `gemini-3.1-pro-preview` |
-| Robotics         | `gemini-robotics-er-2-preview`                                                                                             |
-| Gemma 4          | `gemma-4-31b-it`, `gemma-4-26b-a4b-it`                                                                                     |
-| Image generation | `gemini-3-pro-image-preview`, `gemini-3.1-flash-image-preview`, `gemini-3.1-flash-lite-image`                              |
-| TTS              | `gemini-3.1-flash-tts-preview` with 30 voices                                                                              |
+| Type             | Models                                                                                                                                      |
+| :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------ |
+| Gemini 3.x       | `gemini-3.7-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-live-preview`, `gemini-3.5-live-translate-preview`, `gemini-3.1-pro-preview` |
+| Robotics         | `gemini-robotics-er-2-preview`                                                                                                              |
+| Gemma 4          | `gemma-4-31b-it`, `gemma-4-26b-a4b-it`                                                                                                      |
+| Image generation | `gemini-3-pro-image-preview`, `gemini-3.1-flash-image-preview`, `gemini-3.1-flash-lite-image`                                               |
+| TTS              | `gemini-3.1-flash-tts-preview` with 30 voices                                                                                               |
 
 ---
 

@@ -23,34 +23,34 @@
 
 ## File Structure
 
-| 文件                                                                               | 职责                                                                                                                                                |
+| 文件 | 职责 |
 | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| **Create** `src/i18n/languageRegistry.ts`                                          | 语言注册表：`SUPPORTED_LANGUAGES`、`SupportedLanguage`、`APP_LANGUAGE_IDS`、`AppLanguage`、`LANGUAGE_META`、`BROWSER_LANG_PREFIX_MAP`，单一事实来源 |
-| **Modify** `src/i18n/coreTranslations.ts`                                          | 删除本地 `SupportedLanguage`/`TranslationEntry` 定义，改为从 `languageRegistry` 导入；`shellFeatureTranslations` 追加 `ja` 字段                     |
-| **Modify** `src/types/settings.ts`                                                 | 删除本地 `APP_LANGUAGE_IDS`/`AppLanguage` 定义，改为 `import` + `re-export`                                                                         |
-| **Modify** `src/contexts/I18nContext.tsx`                                          | `language: SupportedLanguage`，`getTranslator` 类型跟随注册表                                                                                       |
-| **Modify** `src/stores/settingsStore.ts`                                           | `resolveLanguage` 支持 `ja` 前缀；`language` 类型改为 `SupportedLanguage`                                                                           |
-| **Modify** `src/schemas/appSettingsSchema.ts`                                      | `z.enum(APP_LANGUAGE_IDS)` 跟随注册表（无需手写枚举）                                                                                               |
-| **Modify** `src/components/settings/sections/appearance/ThemeLanguageSelector.tsx` | 注册表驱动：`SUPPORTED_LANGUAGES.map` 生成选项；`>=4` 时渲染 `<select>`，否则 `segmented`                                                           |
-| **Modify** `src/i18n/translations/settings/appearance.ts`                          | 追加 `settingsLanguageJa`、`settingsLanguageSystem` 的 `ja` 字段等                                                                                  |
-| **Modify** `src/i18n/translations/app.ts`                                          | 每个 `TranslationEntry` 追加 `ja`                                                                                                                   |
-| **Modify** `src/i18n/translations/chatInput.ts`                                    | 同上（~449 行，最大文件）                                                                                                                           |
-| **Modify** `src/i18n/translations/common.ts`                                       | 同上                                                                                                                                                |
-| **Modify** `src/i18n/translations/header.ts`                                       | 同上                                                                                                                                                |
-| **Modify** `src/i18n/translations/history.ts`                                      | 同上                                                                                                                                                |
-| **Modify** `src/i18n/translations/logViewer.ts`                                    | 同上                                                                                                                                                |
-| **Modify** `src/i18n/translations/messages.ts`                                     | 同上（~312 行，第二大文件）                                                                                                                         |
-| **Modify** `src/i18n/translations/scenarios.ts`                                    | 同上                                                                                                                                                |
-| **Modify** `src/i18n/translations/settings/*.ts` (9 文件)                          | 同上                                                                                                                                                |
-| **Modify** `src/i18n/voiceStyleTranslations.ts`                                    | 26 个 `tts_style_*` 追加 `ja`                                                                                                                       |
-| **Create** `scripts/check-i18n-coverage.mjs`                                       | 遍历翻译文件，检查缺 `SupportedLanguage` 的 key，`exit(1)` 供 CI                                                                                    |
-| **Create** `scripts/add-language.mjs`                                              | `node add-language.mjs ko` 为所有翻译文件插入 `ko: ''` 占位                                                                                         |
-| **Modify** `package.json`                                                          | 新增 `i18n:check: "node scripts/check-i18n-coverage.mjs"`                                                                                           |
-| **Modify** `src/i18n/translationCoverage.test.ts`                                  | 扩展 `ja` 真实文案抽样、缺词、全角标点三类断言                                                                                                      |
-| **Modify** `src/stores/settingsStore.test.ts`                                      | 新增 `ja` 判定单测                                                                                                                                  |
-| **Modify** `src/contexts/I18nContext.test.tsx`                                     | 类型泛化                                                                                                                                            |
-| **Modify** `src/test/doubles/i18n.ts` 等                                           | 类型泛化（`'en'                                                                                                                                     | 'zh'`→`SupportedLanguage`） |
-| **Modify** `CONTRIBUTING.md`                                                       | 追加 `Adding a new language` 章节                                                                                                                   |
+| **Create** `src/i18n/languageRegistry.ts` | 语言注册表：`SUPPORTED_LANGUAGES`、`SupportedLanguage`、`APP_LANGUAGE_IDS`、`AppLanguage`、`LANGUAGE_META`、`BROWSER_LANG_PREFIX_MAP`，单一事实来源 |
+| **Modify** `src/i18n/coreTranslations.ts` | 删除本地 `SupportedLanguage`/`TranslationEntry` 定义，改为从 `languageRegistry` 导入；`shellFeatureTranslations` 追加 `ja` 字段 |
+| **Modify** `src/types/settings.ts` | 删除本地 `APP_LANGUAGE_IDS`/`AppLanguage` 定义，改为 `import` + `re-export` |
+| **Modify** `src/contexts/I18nContext.tsx` | `language: SupportedLanguage`，`getTranslator` 类型跟随注册表 |
+| **Modify** `src/stores/settingsStore.ts` | `resolveLanguage` 支持 `ja` 前缀；`language` 类型改为 `SupportedLanguage` |
+| **Modify** `src/schemas/appSettingsSchema.ts` | `z.enum(APP_LANGUAGE_IDS)` 跟随注册表（无需手写枚举） |
+| **Modify** `src/components/settings/sections/appearance/ThemeLanguageSelector.tsx` | 注册表驱动：`SUPPORTED_LANGUAGES.map` 生成选项；`>=4` 时渲染 `<select>`，否则 `segmented` |
+| **Modify** `src/i18n/translations/settings/appearance.ts` | 追加 `settingsLanguageJa`、`settingsLanguageSystem` 的 `ja` 字段等 |
+| **Modify** `src/i18n/translations/app.ts` | 每个 `TranslationEntry` 追加 `ja` |
+| **Modify** `src/i18n/translations/chatInput.ts` | 同上（~449 行，最大文件） |
+| **Modify** `src/i18n/translations/common.ts` | 同上 |
+| **Modify** `src/i18n/translations/header.ts` | 同上 |
+| **Modify** `src/i18n/translations/history.ts` | 同上 |
+| **Modify** `src/i18n/translations/logViewer.ts` | 同上 |
+| **Modify** `src/i18n/translations/messages.ts` | 同上（~312 行，第二大文件） |
+| **Modify** `src/i18n/translations/scenarios.ts` | 同上 |
+| **Modify** `src/i18n/translations/settings/*.ts` (9 文件) | 同上 |
+| **Modify** `src/i18n/voiceStyleTranslations.ts` | 26 个 `tts_style_*` 追加 `ja` |
+| **Create** `scripts/check-i18n-coverage.mjs` | 遍历翻译文件，检查缺 `SupportedLanguage` 的 key，`exit(1)` 供 CI |
+| **Create** `scripts/add-language.mjs` | `node add-language.mjs ko` 为所有翻译文件插入 `ko: ''` 占位 |
+| **Modify** `package.json` | 新增 `i18n:check: "node scripts/check-i18n-coverage.mjs"` |
+| **Modify** `src/i18n/translationCoverage.test.ts` | 扩展 `ja` 真实文案抽样、缺词、全角标点三类断言 |
+| **Modify** `src/stores/settingsStore.test.ts` | 新增 `ja` 判定单测 |
+| **Modify** `src/contexts/I18nContext.test.tsx` | 类型泛化 |
+| **Modify** `src/test/doubles/i18n.ts` 等 | 类型泛化（`'en'                                                                                                                                     | 'zh'`→`SupportedLanguage`） |
+| **Modify** `CONTRIBUTING.md` | 追加 `Adding a new language` 章节 |
 
 ---
 

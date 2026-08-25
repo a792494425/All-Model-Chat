@@ -106,7 +106,9 @@ const SlashCommandMenuComponent: React.FC<SlashCommandMenuProps> = ({
     return null;
   }
 
-  const defaultClasses = 'absolute bottom-full left-0 right-0 mb-2 w-full max-w-3xl mx-auto px-2 sm:px-4 z-30';
+  // Anchored to the composer <form> (relative) — spanning it edge-to-edge keeps
+  // the panel visually flush with the input shell instead of inset by padding.
+  const defaultClasses = 'absolute bottom-full left-0 right-0 mb-2 z-30';
   const finalClassName = className || defaultClasses;
   const isMac =
     typeof navigator !== 'undefined' &&

@@ -22,6 +22,9 @@ export const SendControls: React.FC = () => {
 
   const isStop = isLoading || isWaitingForUpload;
   const isDisabled = !isStop && !canSend;
+  const backgroundClass = isStop
+    ? 'bg-[var(--theme-bg-danger)] hover:bg-[var(--theme-bg-danger-hover)]'
+    : 'bg-[#3964FE] hover:bg-[#3358e0] dark:bg-[#679EFE] dark:hover:bg-[#5a8de0]';
 
   let label = t('sendMessageAria');
   let title = t('sendMessageTitle');
@@ -94,7 +97,7 @@ export const SendControls: React.FC = () => {
         type={isStop ? 'button' : 'submit'}
         onClick={handlePrimaryClick}
         disabled={!isStop && isDisabled}
-        className={`${CHAT_INPUT_BUTTON_CLASS} ${SEND_BUTTON_SIZE_CLASS} !rounded-full bg-[#3964FE] hover:bg-[#3358e0] dark:bg-[#679EFE] dark:hover:bg-[#5a8de0] text-white disabled:opacity-40 grid place-items-center`}
+        className={`${CHAT_INPUT_BUTTON_CLASS} ${SEND_BUTTON_SIZE_CLASS} !rounded-full ${backgroundClass} text-white disabled:opacity-40 grid place-items-center`}
         style={{ transform: 'translateY(-2px)', transition: 'background-color 100ms ease' }}
         aria-label={label}
         title={title}

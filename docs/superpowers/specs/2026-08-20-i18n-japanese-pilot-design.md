@@ -159,13 +159,13 @@ system 模式：
 
 ## 9. Risks & Mitigations
 
-| 风险                                                      | 缓解                                                    |
+| 风险 | 缓解 |
 | --------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------- |
 | `SupportedLanguage` 字面量散落，漏改导致 `ja` 回退到 `en` | 注册表单一来源 + `grep -r "'en' \\                      | 'zh'"`在 PR 中全量替换 +`check-i18n-coverage.mjs` |
-| segmented 放不下 4+ 语言                                  | 预埋下拉分支，`SUPPORTED_LANGUAGES.length >=4` 自动切换 |
-| 机翻占位符丢失（如 `{count}` 被译为 `｛カウント｝`）      | 脚本校验占位符集合一致性，测试中 `interpolate` 覆盖     |
-| 日语全角/半角混用被测试拦截                               | 测试与实现同改，明确 `ja` 也执行全角校验                |
-| 旧用户 `IndexedDB` 存 `language:'zh'` 升级后类型变        | `resolveLanguage` 对非法值回退 `en`，`z.enum` 兼容      |
+| segmented 放不下 4+ 语言 | 预埋下拉分支，`SUPPORTED_LANGUAGES.length >=4` 自动切换 |
+| 机翻占位符丢失（如 `{count}` 被译为 `｛カウント｝`） | 脚本校验占位符集合一致性，测试中 `interpolate` 覆盖 |
+| 日语全角/半角混用被测试拦截 | 测试与实现同改，明确 `ja` 也执行全角校验 |
+| 旧用户 `IndexedDB` 存 `language:'zh'` 升级后类型变 | `resolveLanguage` 对非法值回退 `en`，`z.enum` 兼容 |
 
 ## 10. Implementation Order
 

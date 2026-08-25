@@ -13,15 +13,11 @@ import {
   HTML_PREVIEW_MESSAGE_CHANNEL,
   HTML_PREVIEW_STREAM_RENDER_EVENT,
 } from '@/utils/html-preview/previewDocument';
-import { resolveHtmlPreviewBridgeEvent } from '@/utils/html-preview/previewParentBridge';
 import { HTML_PREVIEW_SANDBOX } from '@/utils/html-preview/previewPrivilege';
+import { useHtmlPreviewBridge } from '@/hooks/ui/useHtmlPreviewBridge';
 import { useHtmlPreviewGraphvizRelay } from '@/hooks/ui/useHtmlPreviewGraphvizRelay';
 import { type LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
-import {
-  createRelayedLiveArtifactSelectionDetail,
-  dispatchLiveArtifactSelection,
-  LIVE_ARTIFACT_CLEAR_SELECTION_EVENT,
-} from '@/utils/text-selection/liveArtifactSelection';
+import { LIVE_ARTIFACT_CLEAR_SELECTION_EVENT } from '@/utils/text-selection/liveArtifactSelection';
 
 interface ArtifactFrameProps {
   html: string;
@@ -262,60 +258,25 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
     };
   }, [isLoading]);
 
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      const resolved = resolveHtmlPreviewBridgeEvent({
-        event,
-        iframeWindow: iframeRef.current?.contentWindow,
-        privilege: 'sanitized',
-        parentOrigin: targetWindow.location.origin,
+  const flushStreamingHtmlOnBridgeReady = useCallback(() => {
+    // Prefer refs so remount/load races always flush the latest streaming html.
+    flushStreamingHtmlNow(true);
+  }, [flushStreamingHtmlNow]);
+
+  const copyToParentClipboard = useCallback(
+    (text: string) => {
+      // The sandboxed iframe lacks allow-same-origin, so navigator.clipboard
+      // is unavailable there; the parent page writes to the clipboard instead.
+      targetWindow.navigator.clipboard?.writeText(text).catch((error: unknown) => {
+        logService.warn('Failed to copy Live Artifact text:', error);
       });
-      if (!resolved) {
-        return;
-      }
+    },
+    [targetWindow],
+  );
 
-      if (resolved.kind === 'ready') {
-        flushStreamingHtmlNow(true);
-        return;
-      }
-
-      if (resolved.kind === 'selection') {
-        dispatchLiveArtifactSelection(
-          targetWindow,
-          createRelayedLiveArtifactSelectionDetail(iframeRef.current, resolved.payload),
-        );
-        return;
-      }
-
-      if (resolved.kind === 'followup') {
-        onFollowUp?.(resolved.payload);
-        return;
-      }
-
-      if (resolved.kind === 'invalid-followup') {
-        logService.warn('Ignored invalid Live Artifact follow-up payload.');
-        return;
-      }
-
-      if (resolved.kind === 'copy') {
-        // The sandboxed iframe lacks allow-same-origin, so navigator.clipboard
-        // is unavailable there; the parent page writes to the clipboard instead.
-        targetWindow.navigator.clipboard?.writeText(resolved.text).catch((error: unknown) => {
-          logService.warn('Failed to copy Live Artifact text:', error);
-        });
-        return;
-      }
-
-      if (resolved.kind === 'diagnostic') {
-        logService.warn('Live Artifact preview diagnostic:', resolved.payload);
-        return;
-      }
-
-      if (resolved.kind !== 'resize') {
-        return;
-      }
-
-      const nextHeight = normalizeFrameHeight(resolved.height);
+  const handleBridgeResize = useCallback(
+    (height: number) => {
+      const nextHeight = normalizeFrameHeight(height);
       cacheFrameHeight(heightCacheKey, nextHeight);
       // While streaming, only the streaming key is written so the content
       // (final-html) cache is not polluted with intermediate frame heights.
@@ -332,19 +293,21 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
           ? currentState
           : { heightCacheKey, height: nextHeight },
       );
-    };
+    },
+    [contentHeightCacheKey, heightCacheKey, isLoading, streamingHeightCacheKey],
+  );
 
-    targetWindow.addEventListener('message', handleMessage);
-    return () => targetWindow.removeEventListener('message', handleMessage);
-  }, [
-    contentHeightCacheKey,
-    flushStreamingHtmlNow,
-    heightCacheKey,
-    isLoading,
-    onFollowUp,
-    streamingHeightCacheKey,
+  useHtmlPreviewBridge({
+    iframeRef,
     targetWindow,
-  ]);
+    privilege: 'sanitized',
+    handlers: {
+      onReady: flushStreamingHtmlOnBridgeReady,
+      onResize: handleBridgeResize,
+      onCopy: copyToParentClipboard,
+      onFollowUp,
+    },
+  });
 
   useEffect(() => {
     const handleClearSelection = () => {

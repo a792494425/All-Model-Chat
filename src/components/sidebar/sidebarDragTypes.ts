@@ -5,11 +5,10 @@
  * and the guard checking this constant in lockstep.
  */
 export const SESSION_DRAG_TYPE = 'sessionid';
+export const GROUP_DRAG_TYPE = 'groupid';
 
-/**
- * True when the drag being hovered/entered carries a session id — i.e. a real
- * sidebar session drag, not a file drag (which must be allowed to bubble to the
- * App root's upload handling) or some other arbitrary drag.
- */
 export const isSessionDrag = (event: { dataTransfer: DataTransfer }): boolean =>
   event.dataTransfer.types.includes(SESSION_DRAG_TYPE);
+
+export const isGroupDrag = (event: { dataTransfer: DataTransfer }): boolean =>
+  event.dataTransfer.types.includes(GROUP_DRAG_TYPE);

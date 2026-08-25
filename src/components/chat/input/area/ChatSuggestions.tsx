@@ -14,6 +14,18 @@ const SUGGESTION_SCROLL_ARROW_CLASSES =
 const SUGGESTION_SCROLL_ARROW_HIDDEN_CLASSES =
   'opacity-0 pointer-events-none focus-visible:opacity-100 focus-visible:pointer-events-auto';
 
+/**
+ * Directional edge fade — only the side that actually hides chips fades, so a
+ * clipped chip reads as "scrollable" instead of "broken". Correct at both
+ * scroll extremes, unlike the old static always-both-sides mask.
+ */
+const suggestionFadeClass = (fadeLeft: boolean, fadeRight: boolean): string => {
+  if (fadeLeft && fadeRight) return 'fade-mask-x-both';
+  if (fadeLeft) return 'fade-mask-x-l';
+  if (fadeRight) return 'fade-mask-x-r';
+  return '';
+};
+
 /** Trailing state dot — separates toggle chips (BBox / Guide) from one-shot actions. */
 const SuggestionToggleDot = () => (
   <span aria-hidden="true" className="h-1 w-1 flex-shrink-0 rounded-full bg-current opacity-50" />
@@ -44,7 +56,6 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
-  const [isRowScrollable, setIsRowScrollable] = useState(false);
   const [isSuggestionsHovered, setIsSuggestionsHovered] = useState(false);
 
   const checkScroll = useCallback(() => {
@@ -52,7 +63,6 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
       const { scrollLeft, scrollWidth, clientWidth } = suggestionsRef.current;
       setShowLeftArrow(scrollLeft > 5); // Small threshold
       setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5);
-      setIsRowScrollable(scrollWidth - clientWidth > 5);
     }
   }, []);
 
@@ -76,14 +86,14 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
 
   return (
     <div
-      className="relative group/suggestions mb-3 sm:mb-4"
+      className="relative group/suggestions mb-1.5 sm:mb-2"
       onMouseEnter={() => setIsSuggestionsHovered(true)}
       onMouseLeave={() => setIsSuggestionsHovered(false)}
     >
       <div
         ref={suggestionsRef}
         onScroll={checkScroll}
-        className={`flex gap-2 overflow-x-auto pb-1 px-1 no-scrollbar scroll-smooth ${isRowScrollable ? 'fade-mask-x' : ''}`}
+        className={`flex gap-2 overflow-x-auto pb-1 px-1 no-scrollbar scroll-smooth ${suggestionFadeClass(showLeftArrow, showRightArrow)}`}
       >
         {SUGGESTIONS_KEYS.map((suggestion, index) => (
           <React.Fragment key={index}>

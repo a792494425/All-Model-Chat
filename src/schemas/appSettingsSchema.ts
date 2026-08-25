@@ -16,7 +16,12 @@ import {
 } from '@/types';
 import { createEmptyLiveArtifactsSystemPrompts } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
 import { sanitizeThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
-import { sanitizeMcpAuth, sanitizeStringArray, sanitizeStringRecord } from '../../shared/mcpServerConfig';
+import {
+  sanitizeMcpAuth,
+  sanitizeMcpTimeout,
+  sanitizeStringArray,
+  sanitizeStringRecord,
+} from '../../shared/mcpServerConfig';
 import { isRecord } from '../../shared/predicates';
 import { THEME_IDS } from '@/utils/themeMode';
 
@@ -181,6 +186,11 @@ const sanitizeMcpServers = (value: unknown, fallback: McpServerConfig[]): McpSer
     if (disabledAutoApproveTools) server.disabledAutoApproveTools = disabledAutoApproveTools;
     if (typeof (item as Record<string, unknown>).isTrusted === 'boolean')
       server.isTrusted = (item as Record<string, unknown>).isTrusted as boolean;
+
+    const timeout = sanitizeMcpTimeout((item as Record<string, unknown>).timeout);
+    if (timeout !== undefined) server.timeout = timeout;
+    const longRunning = (item as Record<string, unknown>).longRunning;
+    if (typeof longRunning === 'boolean') server.longRunning = longRunning;
 
     return [server];
   });

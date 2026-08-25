@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   extractAutoPreviewableBlock,
   getAutoPreviewType,
@@ -321,27 +321,6 @@ ${document}<!-- end -->
     expect(normalizePreviewableMarkdownContent(schemaExample)).toBe(
       `\`\`\`amc-live-artifact-interaction\n${schemaExample}\n\`\`\``,
     );
-  });
-
-  it('skips interaction JSON parsing when content cannot be an interaction object', async () => {
-    vi.resetModules();
-    const parseLiveArtifactInteractionSpec = vi.fn(() => {
-      throw new Error('Unexpected interaction parse');
-    });
-    vi.doMock('./liveArtifactInteraction', () => ({ parseLiveArtifactInteractionSpec }));
-
-    try {
-      const { normalizePreviewableMarkdownContent: isolatedNormalizePreviewableMarkdownContent } =
-        await import('./previewableMarkdown');
-
-      expect(isolatedNormalizePreviewableMarkdownContent('plain markdown without json')).toBe(
-        'plain markdown without json',
-      );
-      expect(parseLiveArtifactInteractionSpec).not.toHaveBeenCalled();
-    } finally {
-      vi.doUnmock('./liveArtifactInteraction');
-      vi.resetModules();
-    }
   });
 });
 

@@ -3,6 +3,7 @@ import type { ChatHistoryItem, ThinkingLevel } from '@/types';
 import { isAudioMimeType, isImageMimeType } from '@/utils/file/fileTypeClassification';
 import { isGlmModel, isKimiK3Model, isOpenAIGpt5FamilyModel } from '@/utils/model/modelCapabilities';
 import type { OpenAICompatibleChatConfig, OpenAIMessage, OpenAIMessageContent } from './openaiCompatibleTypes';
+import { appendSamplingParameters } from './requestFactory';
 
 const OPENAI_COMPATIBLE_FILE_DATA_ERROR = 'OpenAI-compatible mode cannot send Gemini Files API file references.';
 
@@ -157,13 +158,7 @@ export const buildOpenAICompatibleRequestBody = (
     stream,
   };
 
-  if (typeof config.temperature === 'number') {
-    body.temperature = config.temperature;
-  }
-
-  if (typeof config.topP === 'number') {
-    body.top_p = config.topP;
-  }
+  appendSamplingParameters(body, config);
 
   // GLM-5 series supports a thinking parameter for chain-of-thought reasoning.
   // Map HIGH/MEDIUM to enabled, LOW/MINIMAL to disabled (controlled via ThinkingSpeedControl slider).

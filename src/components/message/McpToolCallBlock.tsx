@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { AlertTriangle, Check, Copy, Loader2, ShieldCheck } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
+import { extractMcpResultSegments } from '@/features/mcp/mcpResultSummary';
 
-export const MAX_ARG_VALUE_LENGTH = 4000;
-export const MAX_ARG_OBJECT_KEYS = 24;
-export const MAX_ARG_ARRAY_ITEMS = 24;
+const MAX_ARG_VALUE_LENGTH = 4000;
 
 export const McpToolCallBlock: React.FC<{
   call: any;
@@ -17,9 +16,13 @@ export const McpToolCallBlock: React.FC<{
   const [copied, setCopied] = useState(false);
   const argsStr = JSON.stringify(call.args, null, 2);
   const truncated = argsStr.length > MAX_ARG_VALUE_LENGTH ? argsStr.slice(0, MAX_ARG_VALUE_LENGTH) + '…' : argsStr;
+  const responseSegments = extractMcpResultSegments(responsePart?.functionResponse?.response);
   return (
     <div className="rounded-lg border bg-[var(--theme-bg-secondary)] my-2">
-      <button onClick={() => setExpanded((v) => !v)} className="flex w-full items-center justify-between px-3 py-2 text-sm">
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center justify-between px-3 py-2 text-sm"
+      >
         <span className="font-mono text-xs truncate">{call.name}</span>
         <span className="flex items-center gap-2">
           {autoApproved && <ShieldCheck data-testid="mcp-shield" className="h-3.5 w-3.5 text-emerald-600" />}
@@ -35,10 +38,25 @@ export const McpToolCallBlock: React.FC<{
       {expanded && (
         <div className="border-t px-3 py-2 text-xs">
           <pre className="overflow-auto max-h-[300px] whitespace-pre-wrap">{truncated}</pre>
-          {argsStr.length > MAX_ARG_VALUE_LENGTH && <div className="text-[11px] text-muted">{t('mcpToolTruncated')}</div>}
-          <pre className="mt-2 overflow-auto max-h-[300px]">
-            {JSON.stringify(responsePart?.functionResponse?.response ?? {}, null, 2).slice(0, 4000)}
-          </pre>
+          {argsStr.length > MAX_ARG_VALUE_LENGTH && (
+            <div className="text-[11px] text-muted">{t('mcpToolTruncated')}</div>
+          )}
+          <div className="mt-2 overflow-auto max-h-[300px]">
+            {responseSegments.map((segment, index) =>
+              segment.kind === 'image' ? (
+                <img
+                  key={index}
+                  src={segment.src}
+                  alt="tool-result-image"
+                  className="max-w-full rounded border my-1"
+                />
+              ) : (
+                <pre key={index} className="whitespace-pre-wrap">
+                  {segment.text}
+                </pre>
+              ),
+            )}
+          </div>
           <button
             onClick={async () => {
               await navigator.clipboard.writeText(

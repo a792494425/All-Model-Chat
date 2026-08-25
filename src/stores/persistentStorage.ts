@@ -1,7 +1,5 @@
-import type { StoreApi } from 'zustand';
 import type { StateStorage } from 'zustand/middleware';
 import { broadcastSyncMessage, getChatSyncChannel, CHAT_SYNC_CHANNEL_NAME } from './chatSyncChannel';
-import type { SyncMessage } from '@/types/sync';
 
 type StorageArea = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
@@ -10,12 +8,6 @@ interface CreatePersistedStateStorageOptions {
   notifyUpdate?: (storageKey: string) => void;
   storageArea?: StorageArea;
 }
-
-type PersistedStoreApi<T> = StoreApi<T> & {
-  persist: {
-    rehydrate: () => Promise<void> | void;
-  };
-};
 
 export const PERSISTED_STATE_ORIGIN_ID =
   typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -180,27 +172,4 @@ export const createPersistedStateStorage = ({
       }
     },
   };
-};
-
-export const registerPersistedStoreSync = <T>(store: PersistedStoreApi<T>, storageKey: string) => {
-  if (typeof BroadcastChannel === 'undefined') {
-    return () => {};
-  }
-
-  const channel = getChatSyncChannel();
-  const handleMessage = (event: MessageEvent<SyncMessage>) => {
-    const message = event.data;
-    if (
-      message.type !== 'PERSISTED_STATE_UPDATED' ||
-      message.storageKey !== storageKey ||
-      message.originId === PERSISTED_STATE_ORIGIN_ID
-    ) {
-      return;
-    }
-
-    void store.persist.rehydrate();
-  };
-
-  channel.addEventListener('message', handleMessage);
-  return () => channel.removeEventListener('message', handleMessage);
 };

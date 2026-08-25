@@ -7,6 +7,9 @@ import { DiagramWrapper } from './parts/DiagramWrapper';
 import { useI18n } from '@/contexts/I18nContext';
 import { getVizInstance, renderDotToSvgCached } from '@/features/graphviz/vizRuntime';
 import { interpolate } from '@/i18n/interpolate';
+import { svgToUploadedFile } from '@/utils/export/svgToUploadedFile';
+import { useDebouncedDiagramRender } from '@/hooks/diagram/useDebouncedDiagramRender';
+import { useDiagramExport } from '@/hooks/diagram/useDiagramExport';
 
 const GRAPHVIZ_EXPORT_SCALE = 5;
 
@@ -45,7 +48,6 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
   const [error, setError] = useState('');
   const [isRendering, setIsRendering] = useState(true);
 
-  const [isDownloading, setIsDownloading] = useState(false);
   const [diagramFile, setDiagramFile] = useState<UploadedFile | null>(null);
   const [showSource, setShowSource] = useState(false);
 
@@ -56,19 +58,6 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
   useEffect(() => {
     getVizInstance().catch((error) => {
       logService.error('Failed to initialize Viz', error);
-    });
-  }, []);
-
-  const setDiagramFileFromSvg = useCallback((svgString: string) => {
-    const id = `graphviz-svg-${Math.random().toString(36).substring(2, 9)}`;
-    const svgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`;
-    setDiagramFile({
-      id,
-      name: 'graphviz-diagram.svg',
-      type: 'image/svg+xml',
-      size: svgString.length,
-      dataUrl: svgDataUrl,
-      uploadState: 'active',
     });
   }, []);
 
@@ -90,7 +79,12 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
 
     if (result.ok) {
       setSvgContent(result.svg);
-      setDiagramFileFromSvg(result.svg);
+      setDiagramFile(
+        svgToUploadedFile(result.svg, {
+          id: `graphviz-svg-${Math.random().toString(36).substring(2, 9)}`,
+          name: 'graphviz-diagram.svg',
+        }),
+      );
       setError('');
       setIsRendering(false);
       return;
@@ -109,39 +103,27 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
       setSvgContent('');
       setIsRendering(false);
     }
-  }, [code, effectiveLayout, isMessageLoading, setDiagramFileFromSvg, t, themeId]);
+  }, [code, effectiveLayout, isMessageLoading, t, themeId]);
 
-  useEffect(() => {
-    let isMounted = true;
-    const timeoutId = setTimeout(() => {
-      if (!isMounted) return;
-      renderGraph().catch((error) => {
-        logService.error('Failed to render Graphviz diagram', error);
-      });
-    }, renderDelayMs);
+  const renderGraphWithLogging = useCallback(() => {
+    renderGraph().catch((error) => {
+      logService.error('Failed to render Graphviz diagram', error);
+    });
+  }, [renderGraph]);
 
-    return () => {
-      isMounted = false;
-      clearTimeout(timeoutId);
-    };
-  }, [renderGraph, renderDelayMs]);
+  useDebouncedDiagramRender(renderGraphWithLogging, renderDelayMs);
 
   const handleToggleLayout = () => {
     setManualLayout(effectiveLayout === 'LR' ? 'TB' : 'LR');
   };
 
-  const handleDownloadJpg = async () => {
-    if (!svgContent || isDownloading) return;
-    setIsDownloading(true);
-    try {
-      const { exportSvgAsImage } = await import('@/utils/export/image');
-      await exportSvgAsImage(svgContent, `graphviz-diagram-${Date.now()}.jpg`, GRAPHVIZ_EXPORT_SCALE, 'image/jpeg');
-    } catch (error) {
-      setError(error instanceof Error ? error.message : t('diagramExportFailed'));
-    } finally {
-      setIsDownloading(false);
-    }
-  };
+  const { isDownloading, handleDownloadJpg } = useDiagramExport({
+    svg: svgContent,
+    filenamePrefix: 'graphviz',
+    scale: GRAPHVIZ_EXPORT_SCALE,
+    onError: setError,
+    fallbackErrorMessage: t('diagramExportFailed'),
+  });
 
   const layoutToggleBtn = (
     <button

@@ -2,6 +2,7 @@ import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import type { AppSettings } from '@/types';
 import { SUPPORTED_LANGUAGES, LANGUAGE_META } from '@/i18n/languageRegistry';
+import { Select } from '@/components/shared/Select';
 import {
   SETTINGS_SEGMENTED_ACTIVE_CLASS,
   SETTINGS_SEGMENTED_IDLE_CLASS,
@@ -50,11 +51,13 @@ export const ThemeLanguageSelector: React.FC<{
         data-settings-item="interface-language"
       >
         <span className="text-sm font-medium text-[var(--theme-text-primary)]">{t('settingsLanguage')}</span>
-        <select
+        <Select
+          id="interface-language-select"
+          label={t('settingsLanguage')}
+          hideLabel
           value={settings.language}
           onChange={(e) => onUpdate('language', e.target.value as AppSettings['language'])}
-          className="rounded-md border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)] px-3 py-1.5 text-sm"
-          aria-label={t('settingsLanguage')}
+          wrapperClassName="w-44"
         >
           <option value="system">{t('settingsLanguageSystem')}</option>
           {SUPPORTED_LANGUAGES.map((id) => (
@@ -62,7 +65,7 @@ export const ThemeLanguageSelector: React.FC<{
               {LANGUAGE_META[id].nativeLabel}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
     </div>
   );

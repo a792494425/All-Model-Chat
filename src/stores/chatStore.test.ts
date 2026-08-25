@@ -47,6 +47,7 @@ import { dbService } from '@/services/db/dbService';
 import { type SavedChatSession, type ChatGroup } from '@/types';
 import { createChatSettings, createSavedChatSessionMetadata, createUploadedFile } from '@/test/data/factories';
 import { updateMessageInSession as updateMessageInSessionUtil } from '@/utils/chat/sessionMutations';
+import { startActiveGenerationJob } from '@/features/message-sender/activeGenerationJobs';
 
 const makeSession = (overrides: Partial<SavedChatSession> = {}): SavedChatSession =>
   createSavedChatSessionMetadata({
@@ -632,6 +633,96 @@ describe('chatStore', () => {
         modelId: 'new-model',
       }));
       expect(dbService.saveSession).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── stopGenerating ──
+
+  describe('stopGenerating', () => {
+    const seedLoadingSession = (messages: SavedChatSession['messages']) => {
+      useChatStore.getState().setSavedSessions([makeSession({ id: 's1', messages })]);
+      useChatStore.getState().setActiveSessionId('s1');
+      useChatStore.getState().setActiveMessages(messages);
+      useChatStore.getState().setSessionLoading('s1', true);
+    };
+
+    const loadingModelMessage = () => ({
+      id: 'gen-1',
+      role: 'model' as const,
+      content: '',
+      isLoading: true,
+      timestamp: new Date(),
+    });
+
+    beforeEach(() => {
+      useChatStore.getState()._activeJobs.current.clear();
+    });
+
+    it('returns not_loading when the session is not marked as loading', () => {
+      useChatStore.getState().setActiveSessionId('s1');
+
+      expect(useChatStore.getState().stopGenerating()).toBe('not_loading');
+    });
+
+    it('aborts the local job, flags the message as stopped by the user, and clears loading', () => {
+      const controller = new AbortController();
+      seedLoadingSession([loadingModelMessage()]);
+      startActiveGenerationJob(useChatStore.getState()._activeJobs, 's1', 'gen-1', controller);
+
+      const result = useChatStore.getState().stopGenerating();
+
+      expect(result).toBe('stopped');
+      expect(controller.signal.aborted).toBe(true);
+      expect(useChatStore.getState().activeMessages[0]).toEqual(
+        expect.objectContaining({ isLoading: false, stoppedByUser: true }),
+      );
+      expect(useChatStore.getState().loadingSessionIds.has('s1')).toBe(false);
+      expect(useChatStore.getState()._activeJobs.current.has('gen-1')).toBe(false);
+    });
+
+    it('requests a cross-tab abort without local cleanup when the loading message has no local job', () => {
+      seedLoadingSession([loadingModelMessage()]);
+
+      const result = useChatStore.getState().stopGenerating();
+
+      expect(result).toBe('no_local_job');
+      // Loading stays flagged so the owner tab performs its own cleanup.
+      expect(useChatStore.getState().loadingSessionIds.has('s1')).toBe(true);
+    });
+
+    it('reports stopped without aborting or clearing loading when only a session-scoped job remains', () => {
+      const controller = new AbortController();
+      seedLoadingSession([]);
+      // Job belongs to THIS session but no message is streaming anymore
+      // (e.g. remote-owned stream): report stopped and leave everything as-is.
+      startActiveGenerationJob(useChatStore.getState()._activeJobs, 's1', 'orphan-gen', controller);
+
+      const result = useChatStore.getState().stopGenerating();
+
+      expect(result).toBe('stopped');
+      expect(controller.signal.aborted).toBe(false);
+      expect(useChatStore.getState().loadingSessionIds.has('s1')).toBe(true);
+      expect(useChatStore.getState()._activeJobs.current.has('orphan-gen')).toBe(true);
+    });
+  });
+
+  // ── cancelEdit ──
+
+  describe('cancelEdit', () => {
+    it('clears the editing state, selected files, and errors back to defaults', () => {
+      useChatStore.getState().setEditingMessageId('m1');
+      useChatStore.getState().setEditMode('update');
+      useChatStore.getState().setSelectedFiles([createUploadedFile({ id: 'f1' })]);
+      useChatStore.getState().setAppFileError('boom');
+
+      useChatStore.getState().cancelEdit();
+
+      const state = useChatStore.getState();
+      expect(state.editingMessageId).toBeNull();
+      expect(state.editMode).toBe('resend');
+      expect(state.selectedFiles).toEqual([]);
+      expect(state.appFileError).toBeNull();
+      expect(state.commandedInput).toEqual({ text: '', id: expect.any(Number) });
     });
   });
 });

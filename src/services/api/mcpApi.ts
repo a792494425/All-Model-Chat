@@ -32,6 +32,22 @@ export interface McpPromptDefinition {
   }>;
 }
 
+export interface McpResourceReadResult {
+  contents: Array<{
+    uri: string;
+    mimeType?: string;
+    text?: string;
+    blob?: string;
+  }>;
+}
+
+export interface McpPromptGetResult {
+  messages: Array<{
+    role?: string;
+    content?: { type?: string; text?: string };
+  }>;
+}
+
 export interface McpToolsResponse {
   servers: Array<{
     serverId: string;
@@ -147,8 +163,46 @@ export const fetchMcpPrompts = async (
   return (await response.json()) as McpPromptsResponse;
 };
 
-export const callMcpTool = async (
+export const fetchMcpResource = async (
   server: McpServerConfig,
+  uri: string,
+  abortSignal?: AbortSignal,
+): Promise<{ result?: McpResourceReadResult }> => {
+  const response = await fetch('/api/mcp/resource', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ server, uri }),
+    signal: abortSignal,
+  });
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response));
+  }
+
+  return (await response.json()) as { result?: McpResourceReadResult };
+};
+
+export const fetchMcpPrompt = async (
+  server: McpServerConfig,
+  promptName: string,
+  args: Record<string, string>,
+  abortSignal?: AbortSignal,
+): Promise<{ result?: McpPromptGetResult }> => {
+  const response = await fetch('/api/mcp/prompt', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ server, promptName, args }),
+    signal: abortSignal,
+  });
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response));
+  }
+
+  return (await response.json()) as { result?: McpPromptGetResult };
+};
+
+export const callMcpTool = async (  server: McpServerConfig,
   toolName: string,
   args: Record<string, unknown>,
   abortSignal?: AbortSignal,
@@ -168,51 +222,7 @@ export const callMcpTool = async (
   return body.result;
 };
 
-export const readMcpResource = async (
-  server: McpServerConfig,
-  uri: string,
-  abortSignal?: AbortSignal,
-): Promise<unknown> => {
-  const response = await fetch('/api/mcp/resource', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ server, uri }),
-    signal: abortSignal,
-  });
-
-  if (!response.ok) {
-    throw new Error(await readErrorMessage(response));
-  }
-
-  const body = (await response.json()) as { result?: unknown };
-  return body.result;
-};
-
-export const getMcpPrompt = async (
-  server: McpServerConfig,
-  promptName: string,
-  args: Record<string, string> = {},
-  abortSignal?: AbortSignal,
-): Promise<unknown> => {
-  const response = await fetch('/api/mcp/prompt', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ server, promptName, args }),
-    signal: abortSignal,
-  });
-
-  if (!response.ok) {
-    throw new Error(await readErrorMessage(response));
-  }
-
-  const body = (await response.json()) as { result?: unknown };
-  return body.result;
-};
-
-export const fetchMcpLogs = async (
-  server: McpServerConfig,
-  signal?: AbortSignal,
-): Promise<{ logs: McpLogEntry[] }> => {
+export const fetchMcpLogs = async (server: McpServerConfig, signal?: AbortSignal): Promise<{ logs: McpLogEntry[] }> => {
   const response = await fetch(`/api/mcp/logs?serverId=${encodeURIComponent(server.id)}`, { signal });
   if (!response.ok) {
     throw new Error(await readErrorMessage(response));

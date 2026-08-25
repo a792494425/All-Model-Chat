@@ -1,6 +1,6 @@
 import React, { type RefObject } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { MessageSquarePlus, SquarePen, Trash2 } from 'lucide-react';
+import { MessageSquarePlus, SquarePen, Trash2, Eraser } from 'lucide-react';
 import {
   MENU_ITEM_BUTTON_CLASS,
   MENU_ITEM_DEFAULT_STATE_CLASS,
@@ -13,9 +13,18 @@ interface GroupItemMenuProps {
   onNewChat: () => void;
   onStartEdit: () => void;
   onDelete: () => void;
+  onClear?: () => void;
+  hasSessions?: boolean;
 }
 
-export const GroupItemMenu: React.FC<GroupItemMenuProps> = ({ menuRef, onNewChat, onStartEdit, onDelete }) => {
+export const GroupItemMenu: React.FC<GroupItemMenuProps> = ({
+  menuRef,
+  onNewChat,
+  onStartEdit,
+  onDelete,
+  onClear,
+  hasSessions = true,
+}) => {
   const { t } = useI18n();
   return (
     <div ref={menuRef} className="relative z-10">
@@ -26,6 +35,15 @@ export const GroupItemMenu: React.FC<GroupItemMenuProps> = ({ menuRef, onNewChat
         <button onClick={onStartEdit} className={`${MENU_ITEM_BUTTON_CLASS} ${MENU_ITEM_DEFAULT_STATE_CLASS}`}>
           <SquarePen size={14} /> <span>{t('edit')}</span>
         </button>
+        {onClear && (
+          <button
+            onClick={onClear}
+            disabled={!hasSessions}
+            className={`${MENU_ITEM_BUTTON_CLASS} ${hasSessions ? MENU_ITEM_DEFAULT_STATE_CLASS : 'text-[var(--theme-text-tertiary)] opacity-50 cursor-not-allowed'}`}
+          >
+            <Eraser size={14} /> <span>{t('historyClearGroup')}</span>
+          </button>
+        )}
         <button onClick={onDelete} className={`${MENU_ITEM_BUTTON_CLASS} ${MENU_ITEM_DANGER_STATE_CLASS}`}>
           <Trash2 size={14} /> <span>{t('delete')}</span>
         </button>

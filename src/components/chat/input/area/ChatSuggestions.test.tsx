@@ -89,7 +89,9 @@ describe('ChatSuggestions rendering', () => {
       window.dispatchEvent(new Event('resize'));
     });
 
-    expect(row?.className).toContain('fade-mask-x');
+    // Only the trailing edge hides chips at scroll position 0 — leading edge stays crisp.
+    expect(row?.className).toContain('fade-mask-x-r');
+    expect(row?.className).not.toContain('fade-mask-x-l');
   });
 
   it('marks toggle chips (BBox / Guide) with a trailing state dot', async () => {

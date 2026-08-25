@@ -5,6 +5,7 @@ import { createMcpClientBridge, mcpConfigFingerprint } from './mcpClient';
 interface MockClientInstance {
   connect: ReturnType<typeof vi.fn>;
   close: ReturnType<typeof vi.fn>;
+  ping?: ReturnType<typeof vi.fn>;
   listTools: ReturnType<typeof vi.fn>;
   callTool: ReturnType<typeof vi.fn>;
   listResources: ReturnType<typeof vi.fn>;
@@ -20,7 +21,8 @@ const sdkMocks = vi.hoisted(() => {
     const instance: MockClientInstance = {
       connect: vi.fn(async () => undefined),
       close: vi.fn(async () => undefined),
-      listTools: vi.fn(),
+      ping: vi.fn(async () => undefined),
+      listTools: vi.fn(async () => ({ tools: [] })),
       callTool: vi.fn(),
       listResources: vi.fn(),
       listResourceTemplates: vi.fn(),
@@ -458,6 +460,75 @@ describe('createMcpClientBridge', () => {
       expect(logs).toHaveLength(1);
       expect(logs[0].level).toBe('error');
       expect(logs[0].message).toBe('boom');
+    });
+  });
+
+  describe('per-server tool call timeouts', () => {
+    const httpServer = { id: 'r', name: 'R', enabled: true, transport: 'http' as const, url: 'https://m.example.com' };
+
+    it('passes default 60s timeout for servers without config', async () => {
+      const bridge = createBridge();
+      await bridge.callTool(httpServer, 't', {});
+      const client = sdkMocks.clientInstances[0];
+      expect(client.callTool).toHaveBeenCalledWith(
+        { name: 't', arguments: {} },
+        undefined,
+        { timeout: 60_000, resetTimeoutOnProgress: false, maxTotalTimeout: undefined },
+      );
+    });
+
+    it('honors configured timeout seconds and longRunning progress resets', async () => {
+      const bridge = createBridge();
+      await bridge.callTool({ ...httpServer, timeout: 120, longRunning: true }, 't', {});
+      const client = sdkMocks.clientInstances[0];
+      expect(client.callTool).toHaveBeenCalledWith(
+        { name: 't', arguments: {} },
+        undefined,
+        { timeout: 120_000, resetTimeoutOnProgress: true, maxTotalTimeout: 600_000 },
+      );
+    });
+
+    it('raises the connect timeout floor when a larger per-server timeout is set', async () => {
+      const bridge = createBridge();
+      await bridge.listTools({ ...httpServer, timeout: 300 });
+      const client = sdkMocks.clientInstances[0];
+      expect(client.connect).toHaveBeenCalledWith(expect.anything(), { timeout: 300_000 });
+    });
+  });
+
+  describe('log redaction', () => {
+    it('masks secrets captured in error logs', async () => {
+      const server = {
+        id: 'leaky',
+        name: 'Leaky',
+        enabled: true,
+        transport: 'http' as const,
+        url: 'https://l.example.com',
+      };
+      sdkMocks.clientConstructor.mockImplementationOnce(function MockLeakClient() {
+        const instance: MockClientInstance = {
+          connect: vi.fn(async () => undefined),
+          close: vi.fn(async () => undefined),
+          ping: vi.fn(async () => undefined),
+          listTools: vi.fn(async () => {
+            throw new Error('401 unauthorized for Bearer supersecret-token-value');
+          }),
+          callTool: vi.fn(),
+          listResources: vi.fn(),
+          listResourceTemplates: vi.fn(),
+          readResource: vi.fn(),
+          listPrompts: vi.fn(),
+          getPrompt: vi.fn(),
+        };
+        sdkMocks.clientInstances.push(instance);
+        return instance;
+      });
+      const bridge = createBridge();
+
+      await expect(bridge.listTools(server)).rejects.toThrow();
+      const logs = (bridge as any).getLogs('leaky') as Array<{ message: string }>;
+      expect(logs[0].message).not.toContain('supersecret-token-value');
+      expect(logs[0].message).toContain('Bearer ***');
     });
   });
 });

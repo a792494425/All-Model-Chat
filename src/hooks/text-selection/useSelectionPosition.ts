@@ -441,12 +441,39 @@ export const useSelectionPosition = ({
     clearSelectionState();
   };
 
+  const selectionRect = (() => {
+    const bounds = selectionBoundsRef.current;
+    if (!bounds) return null;
+    try {
+      const DomRectCtor = (targetWindow as Window & typeof globalThis).DOMRect;
+      if (typeof DomRectCtor === 'function') {
+        return new DomRectCtor(bounds.left, bounds.top, bounds.width, bounds.height);
+      }
+    } catch {
+      // fall through to plain object
+    }
+    return {
+      top: bounds.top,
+      left: bounds.left,
+      width: bounds.width,
+      height: bounds.height,
+      bottom: bounds.bottom,
+      right: bounds.left + bounds.width,
+      x: bounds.left,
+      y: bounds.top,
+      toJSON() {
+        return bounds;
+      },
+    } as unknown as DOMRect;
+  })();
+
   return {
     position: clampedPosition,
     setPosition,
     selectedText,
     selectedSpeechText,
     selectedCopyText,
+    selectionRect,
     clearSelection,
   };
 };

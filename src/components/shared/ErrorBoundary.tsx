@@ -1,6 +1,7 @@
 import { logService } from '@/services/logService';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { getTranslator } from '@/i18n/translations';
+import { resolveBrowserLanguage } from '@/i18n/languageRegistry';
 import { isStaleBuildError, recoverFromStaleBuild } from '@/utils/staleBuildRecovery';
 
 interface ErrorBoundaryProps {
@@ -40,8 +41,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render() {
     if (this.state.hasError) {
-      const language =
-        typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      const language = resolveBrowserLanguage();
       const translator = getTranslator(language);
 
       return (

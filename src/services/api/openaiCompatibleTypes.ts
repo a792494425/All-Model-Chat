@@ -52,15 +52,6 @@ export type OpenAIResponsePayload = {
   };
 };
 
-export type OpenAIModelsResponsePayload = {
-  data?: Array<{
-    id?: unknown;
-  }>;
-  error?: {
-    message?: string;
-  };
-};
-
 export const asOpenAICompatibleConfig = (config: unknown): OpenAICompatibleChatConfig =>
   typeof config === 'object' && config !== null ? (config as OpenAICompatibleChatConfig) : {};
 

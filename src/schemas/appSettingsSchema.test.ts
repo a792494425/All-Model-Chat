@@ -155,8 +155,37 @@ describe('appSettingsSchema', () => {
     ]);
   });
 
-  it('drops identity-invalid MCP entries but keeps incomplete in-progress configs', () => {
+  it('preserves MCP timeout and longRunning fields', () => {
     const settings = sanitizeImportedAppSettings({
+      mcpServers: [
+        {
+          id: 'long-task',
+          name: 'Long Task',
+          enabled: true,
+          transport: 'http',
+          url: 'https://mcp.example.com/mcp',
+          timeout: 300,
+          longRunning: true,
+        },
+        {
+          id: 'bad-timeout',
+          name: 'Bad Timeout',
+          enabled: true,
+          transport: 'http',
+          url: 'https://mcp.example.com/mcp',
+          timeout: '120',
+          longRunning: 'yes',
+        },
+      ],
+    });
+
+    expect(settings.mcpServers[0].timeout).toBe(300);
+    expect(settings.mcpServers[0].longRunning).toBe(true);
+    expect(settings.mcpServers[1].timeout).toBeUndefined();
+    expect(settings.mcpServers[1].longRunning).toBeUndefined();
+  });
+
+  it('drops identity-invalid MCP entries but keeps incomplete in-progress configs', () => {    const settings = sanitizeImportedAppSettings({
       mcpServers: [
         {
           id: 'valid',

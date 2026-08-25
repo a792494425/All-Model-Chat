@@ -134,5 +134,7 @@ export const getTranslator =
   (lang: SupportedLanguage) =>
   (key: keyof typeof translations | string, fallback?: string): string => {
     const translationSet = translations as TranslationMap;
-    return translationSet[key]?.[lang] ?? fallback ?? translationSet[key]?.en ?? key;
+    // 优先级：当前语言 > 英语兜底 > 调用方传入的 fallback > 键名本身。
+    // 旧实现把 fallback 放在 en 之前，会掩盖缺译（en 存在时仍返回 fallback）。
+    return translationSet[key]?.[lang] ?? translationSet[key]?.en ?? fallback ?? key;
   };

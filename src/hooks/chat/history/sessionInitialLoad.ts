@@ -156,7 +156,22 @@ export const loadInitialSessionData = async ({
     const sortedList = sortSessionsByPinnedAndTimestamp(metadataList.map(sanitizeSessionModel));
 
     setSavedSessions((prev) => mergeLoadedSessionMetadata(prev, sortedList));
-    setSavedGroups(groups.map((group) => ({ ...group, isExpanded: group.isExpanded ?? true })));
+    // Backfill orderKey for legacy groups that lack it (old DB rows).
+    const groupsWithOrder = groups.map((group, index) => ({
+      ...group,
+      isExpanded: group.isExpanded ?? true,
+      orderKey: group.orderKey ?? String(index).padStart(6, '0'),
+    }));
+    // Normalize to ensure consistent ordering on first load after upgrade.
+    groupsWithOrder.sort((leftGroup, rightGroup) => {
+      if (leftGroup.orderKey && rightGroup.orderKey) return leftGroup.orderKey.localeCompare(rightGroup.orderKey);
+      return rightGroup.timestamp - leftGroup.timestamp;
+    });
+    const normalizedGroups = groupsWithOrder.map((group, index) => ({
+      ...group,
+      orderKey: String(index).padStart(6, '0'),
+    }));
+    setSavedGroups(normalizedGroups);
 
     if (!initialActiveId) {
       const fromSessionId = readFromSessionParam();

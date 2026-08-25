@@ -31,6 +31,3 @@ export const deriveStatus = (
   }
   return { state: 'connecting' as McpServerState, lastCheckedAt: now };
 };
-
-// Alias required by brief interface description
-export const deriveStatusFromCapabilities = deriveStatus;

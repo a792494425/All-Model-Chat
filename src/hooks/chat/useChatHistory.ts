@@ -96,9 +96,11 @@ export const useChatHistory = ({
   const {
     handleAddNewGroup,
     handleDeleteGroup,
+    handleClearGroup,
     handleRenameGroup,
     handleMoveSessionToGroup,
     handleToggleGroupExpansion,
+    handleReorderGroups,
   } = useGroupActions({
     updateAndPersistGroups,
     updateAndPersistSessions,
@@ -137,9 +139,11 @@ export const useChatHistory = ({
     handleDuplicateSession,
     handleAddNewGroup,
     handleDeleteGroup,
+    handleClearGroup,
     handleRenameGroup,
     handleMoveSessionToGroup,
     handleToggleGroupExpansion,
+    handleReorderGroups,
     clearAllHistory,
     clearCacheAndReload,
   };

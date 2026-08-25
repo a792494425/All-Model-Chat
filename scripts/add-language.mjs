@@ -5,6 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { discoverTranslationFiles } from './lib/i18nFiles.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -20,32 +21,7 @@ if (!newLang || !/^[a-z]{2}(-[A-Z]{2})?$/.test(newLang)) {
   process.exit(1);
 }
 
-const baseFiles = [
-  'src/i18n/translations/app.ts',
-  'src/i18n/translations/chatInput.ts',
-  'src/i18n/translations/common.ts',
-  'src/i18n/translations/header.ts',
-  'src/i18n/translations/history.ts',
-  'src/i18n/translations/logViewer.ts',
-  'src/i18n/translations/messages.ts',
-  'src/i18n/translations/scenarios.ts',
-  'src/i18n/voiceStyleTranslations.ts',
-  'src/i18n/coreTranslations.ts',
-];
-
-const settingsDir = path.join(projectRoot, 'src/i18n/translations/settings');
-let settingsFiles = [];
-try {
-  settingsFiles = fs
-    .readdirSync(settingsDir)
-    .filter((f) => f.endsWith('.ts'))
-    .map((f) => `src/i18n/translations/settings/${f}`)
-    .sort();
-} catch {
-  // ignore
-}
-
-const files = [...baseFiles, ...settingsFiles];
+const files = discoverTranslationFiles(projectRoot);
 
 let updated = 0;
 let skipped = 0;

@@ -6,11 +6,13 @@ import { useI18n } from '@/contexts/I18nContext';
 import { DESKTOP_BREAKPOINT_PX, FOCUS_HISTORY_SEARCH_EVENT } from '@/constants/layout';
 import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { dbService } from '@/services/db/dbService';
-import { SESSION_DRAG_TYPE, isSessionDrag } from './sidebarDragTypes';
+import { SESSION_DRAG_TYPE, isGroupDrag, isSessionDrag } from './sidebarDragTypes';
 
 type HistoryTranslator = (key: string) => string;
 
 const TITLE_UPDATE_FEEDBACK_MS = 1500;
+
+export type HistoryDisplayMode = 'group' | 'time';
 
 interface UseHistorySidebarLogicProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ interface UseHistorySidebarLogicProps {
   sessions: SavedChatSession[];
   groups: ChatGroup[];
   generatingTitleSessionIds: Set<string>;
+  displayMode?: HistoryDisplayMode;
   onRenameSession: (sessionId: string, newTitle: string) => void;
   onRenameGroup: (groupId: string, newTitle: string) => void;
   onMoveSessionToGroup: (sessionId: string, groupId: string | null) => void;
@@ -107,6 +110,7 @@ export const useHistorySidebarLogic = ({
   sessions,
   groups,
   generatingTitleSessionIds,
+  displayMode = 'group',
   onRenameSession,
   onRenameGroup,
   onMoveSessionToGroup,
@@ -119,6 +123,15 @@ export const useHistorySidebarLogic = ({
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [draggingSessionId, setDraggingSessionId] = useState<string | null>(null);
+  const [draggingGroupId, setDraggingGroupId] = useState<string | null>(null);
+  const [sessionDropIndicator, setSessionDropIndicator] = useState<{
+    id: string;
+    position: 'before' | 'after';
+  } | null>(null);
+  const [groupDropIndicator, setGroupDropIndicator] = useState<{
+    id: string;
+    position: 'before' | 'after';
+  } | null>(null);
   const [newlyTitledSessionIds, setNewlyTitledSessionIds] = useState<ReadonlySet<string>>(new Set());
   const [searchResults, setSearchResults] = useState<{ query: string; ids: Set<string> } | null>(null);
 
@@ -250,16 +263,33 @@ export const useHistorySidebarLogic = ({
     return map;
   }, [filteredSessions, groups]);
 
-  const sortedGroups = useMemo(
-    () => [...groups].sort((leftGroup, rightGroup) => rightGroup.timestamp - leftGroup.timestamp),
-    [groups],
-  );
+  const sortedGroups = useMemo(() => {
+    const hasOrderKey = groups.some((group) => group.orderKey);
+    if (hasOrderKey) {
+      return [...groups].sort((leftGroup, rightGroup) => {
+        if (leftGroup.orderKey && rightGroup.orderKey) return leftGroup.orderKey.localeCompare(rightGroup.orderKey);
+        if (leftGroup.orderKey) return -1;
+        if (rightGroup.orderKey) return 1;
+        return rightGroup.timestamp - leftGroup.timestamp;
+      });
+    }
+    return [...groups].sort((leftGroup, rightGroup) => rightGroup.timestamp - leftGroup.timestamp);
+  }, [groups]);
 
   const categorizedUngroupedSessions = useMemo(() => {
+    if (displayMode === 'time') {
+      const allUnpinned = filteredSessions.filter((session) => !session.isPinned);
+      return categorizeSessionsByDate(allUnpinned, language, t);
+    }
     const ungroupedSessions = sessionsByGroupId.get(null) || [];
     const unpinned = ungroupedSessions.filter((session) => !session.isPinned);
     return categorizeSessionsByDate(unpinned, language, t);
-  }, [sessionsByGroupId, t, language]);
+  }, [sessionsByGroupId, filteredSessions, displayMode, t, language]);
+
+  const categorizedTimeModePinned = useMemo(() => {
+    if (displayMode !== 'time') return [];
+    return filteredSessions.filter((session) => session.isPinned);
+  }, [filteredSessions, displayMode]);
 
   const handleStartEdit = (type: 'session' | 'group', item: SavedChatSession | ChatGroup) => {
     const title = 'title' in item ? item.title : '';
@@ -312,16 +342,56 @@ export const useHistorySidebarLogic = ({
 
   const handleSessionDragStart = (sessionId: string) => {
     setDraggingSessionId(sessionId);
+    setDraggingGroupId(null);
   };
 
   const handleSessionDragEnd = () => {
     setDraggingSessionId(null);
     setDragOverId(null);
+    setSessionDropIndicator(null);
+  };
+
+  const handleGroupDragStart = (groupId: string) => {
+    setDraggingGroupId(groupId);
+    setDraggingSessionId(null);
+  };
+
+  const handleGroupDragEnd = () => {
+    setDraggingGroupId(null);
+    setDragOverId(null);
+    setGroupDropIndicator(null);
+  };
+
+  const handleSessionDragOver = (event: React.DragEvent, sessionId: string) => {
+    if (!isSessionDrag(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'move';
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const position = event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+    setSessionDropIndicator({ id: sessionId, position });
+    setDragOverId(null);
+  };
+
+  const handleSessionDropIndicatorClear = () => {
+    setSessionDropIndicator(null);
+  };
+
+  const handleGroupDragOver = (event: React.DragEvent, groupId: string) => {
+    if (!isGroupDrag(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'move';
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const position = event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+    setGroupDropIndicator({ id: groupId, position });
   };
 
   const handleMainDragLeave = (event: React.DragEvent) => {
     if (event.currentTarget.contains(event.relatedTarget as Node)) return;
     setDragOverId(null);
+    setSessionDropIndicator(null);
+    setGroupDropIndicator(null);
   };
 
   const handleMiniSearchClick = () => {
@@ -342,6 +412,8 @@ export const useHistorySidebarLogic = ({
     }
   };
 
+  const isDragging = !!draggingSessionId || !!draggingGroupId;
+
   return {
     searchQuery,
     setSearchQuery,
@@ -355,6 +427,11 @@ export const useHistorySidebarLogic = ({
     setDragOverId,
     draggingSessionId,
     setDraggingSessionId,
+    draggingGroupId,
+    setDraggingGroupId,
+    sessionDropIndicator,
+    groupDropIndicator,
+    isDragging,
     newlyTitledSessionIds,
     menuRef,
     editInputRef,
@@ -363,6 +440,7 @@ export const useHistorySidebarLogic = ({
     sessionsByGroupId,
     sortedGroups,
     categorizedUngroupedSessions,
+    categorizedTimeModePinned,
     handleStartEdit,
     handleRenameConfirm,
     handleRenameCancel,
@@ -373,6 +451,11 @@ export const useHistorySidebarLogic = ({
     handleMainDragLeave,
     handleSessionDragStart,
     handleSessionDragEnd,
+    handleGroupDragStart,
+    handleGroupDragEnd,
+    handleSessionDragOver,
+    handleSessionDropIndicatorClear,
+    handleGroupDragOver,
     handleMiniSearchClick,
     handleEmptySpaceClick,
     handleSessionSelect,

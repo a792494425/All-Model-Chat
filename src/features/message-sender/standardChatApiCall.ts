@@ -19,6 +19,8 @@ import {
 } from '@/services/api/openaiCompatibleApi';
 import { sendAnthropicMessageNonStream, sendAnthropicMessageStream } from '@/services/api/anthropicApi';
 import { createMcpClientFunctions } from '@/features/mcp/mcpClientFunctions';
+import { requestToolApproval } from '@/stores/mcpApprovalStore';
+import { selectServersForTurn, useMcpRuntimeStore } from '@/stores/mcpRuntimeStore';
 import { createStandardClientFunctions } from '@/features/standard-chat/standardClientFunctions';
 import { runStandardToolLoop } from '@/features/standard-chat/standardToolLoop';
 import { collectLocalPythonInputFiles } from '@/features/local-python/executionFiles';
@@ -313,7 +315,8 @@ export const performStandardChatApiCall = async ({
       return pyodideService.runPython(code, options);
     },
   });
-  const enabledMcpServers = (appSettings.mcpServers ?? []).filter((server) => server.enabled);
+  const runtimeSelection = useMcpRuntimeStore.getState();
+  const enabledMcpServers = selectServersForTurn(appSettings.mcpServers ?? [], runtimeSelection);
   const isMcpEnabledForTurn =
     finalRole === 'user' && !isRawMode && !isImageGenerationModel(apiModelId) && enabledMcpServers.length > 0;
   // Discovery is resilient: failures log and yield {} so chat continues without MCP tools.
@@ -321,6 +324,7 @@ export const performStandardChatApiCall = async ({
     ? await createMcpClientFunctions({
         servers: enabledMcpServers,
         abortSignal: newAbortController.signal,
+        requestApproval: (request) => requestToolApproval(request, newAbortController.signal),
       })
     : {};
   const combinedClientFunctions = {

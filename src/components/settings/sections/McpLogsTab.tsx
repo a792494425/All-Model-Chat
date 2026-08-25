@@ -14,19 +14,22 @@ export const McpLogsTab: React.FC<McpLogsTabProps> = ({ server, t }) => {
   const serverIdRef = useRef(server.id);
   serverIdRef.current = server.id;
 
-  const load = useCallback(async (signal?: AbortSignal) => {
-    if (signal?.aborted) return;
-    setLoading(true);
-    try {
-      const result = await fetchMcpLogs({ ...server, id: serverIdRef.current }, signal);
-      if (!signal?.aborted) setLogs(result.logs);
-    } catch (error) {
-      if ((error as Error)?.name === 'AbortError') return;
-      // keep previous logs on error
-    } finally {
-      if (!signal?.aborted) setLoading(false);
-    }
-  }, [server.id]);
+  const load = useCallback(
+    async (signal?: AbortSignal) => {
+      if (signal?.aborted) return;
+      setLoading(true);
+      try {
+        const result = await fetchMcpLogs({ ...server, id: serverIdRef.current }, signal);
+        if (!signal?.aborted) setLogs(result.logs);
+      } catch (error) {
+        if ((error as Error)?.name === 'AbortError') return;
+        // keep previous logs on error
+      } finally {
+        if (!signal?.aborted) setLoading(false);
+      }
+    },
+    [server.id],
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -63,11 +66,20 @@ export const McpLogsTab: React.FC<McpLogsTabProps> = ({ server, t }) => {
   return (
     <div className="space-y-2">
       <div className="flex gap-2">
-        <button type="button" onClick={() => void load()} disabled={loading} className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs">
+        <button
+          type="button"
+          onClick={() => void load()}
+          disabled={loading}
+          className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs"
+        >
           <RefreshCw size={12} className={loading ? 'animate-spin' : undefined} />
           {t('settingsMcpLogsRefresh') === 'settingsMcpLogsRefresh' ? 'Refresh' : t('settingsMcpLogsRefresh')}
         </button>
-        <button type="button" onClick={handleCopy} className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs">
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs"
+        >
           <Copy size={12} />
           {t('settingsMcpLogsCopy') === 'settingsMcpLogsCopy' ? 'Copy' : t('settingsMcpLogsCopy')}
         </button>

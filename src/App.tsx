@@ -8,6 +8,8 @@ import { PiPPlaceholder } from './components/layout/PiPPlaceholder';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { PwaUpdateBanner } from './components/pwa/PwaUpdateBanner';
 import { ToastViewport } from './components/shared/toast/ToastViewport';
+import { McpToolApprovalDialog } from './components/message/McpToolApprovalDialog';
+import { McpShareInstallGate } from './components/mcp/McpShareInstallGate';
 
 const App: React.FC = () => {
   return (
@@ -84,6 +86,8 @@ const AppContent: React.FC = () => {
         />
       ) : null}
       <ToastViewport />
+      <McpToolApprovalDialog />
+      <McpShareInstallGate />
     </div>
   );
 };

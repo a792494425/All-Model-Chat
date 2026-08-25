@@ -112,6 +112,7 @@ export interface ChatGroup {
   timestamp: number;
   isPinned?: boolean;
   isExpanded?: boolean;
+  orderKey?: string;
 }
 
 export interface SavedChatSession {

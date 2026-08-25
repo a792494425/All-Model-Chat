@@ -4,6 +4,15 @@ import { callMcpTool, fetchMcpTools, type McpToolDefinition, type McpToolsRespon
 import { logService } from '@/services/logService';
 import { toMcpFunctionName } from './mcpToolNames';
 import { isRecord } from '../../../shared/predicates';
+import { summarizeMcpResultForModel } from './mcpResultSummary';
+import {
+  isSessionApproved,
+  rememberSessionApproval,
+  requiresApproval,
+  sessionApprovalKey,
+  type McpApprovalDecision,
+  type McpApprovalRequest,
+} from './toolApproval';
 
 interface CreateMcpClientFunctionsOptions {
   servers: McpServerConfig[];
@@ -15,6 +24,8 @@ interface CreateMcpClientFunctionsOptions {
     args: Record<string, unknown>,
     abortSignal?: AbortSignal,
   ) => Promise<unknown>;
+  /** Resolves user decisions for tools flagged as "ask before running". */
+  requestApproval?: (request: McpApprovalRequest) => Promise<McpApprovalDecision>;
 }
 
 type McpToolsLister = NonNullable<CreateMcpClientFunctionsOptions['listTools']>;
@@ -233,6 +244,7 @@ export const createMcpClientFunctions = async ({
   abortSignal,
   listTools = fetchMcpTools,
   callTool = callMcpTool,
+  requestApproval,
 }: CreateMcpClientFunctionsOptions): Promise<StandardClientFunctions> => {
   const enabledServers = servers.filter((server) => server.enabled);
   if (enabledServers.length === 0) {
@@ -269,9 +281,7 @@ export const createMcpClientFunctions = async ({
       });
     }
 
-    const serverDisabledMap = new Map(
-      runtimeServers.map((s) => [s.id, new Set(s.disabledTools ?? [])]),
-    );
+    const serverDisabledMap = new Map(runtimeServers.map((s) => [s.id, new Set(s.disabledTools ?? [])]));
     const filteredServers = toolResponse.servers.map((s) => ({
       ...s,
       tools: s.tools.filter((t) => !serverDisabledMap.get(s.serverId)?.has(t.name)),
@@ -296,14 +306,30 @@ export const createMcpClientFunctions = async ({
             description: buildDescription(serverTools.serverName, tool),
             parameters: toGeminiSchema(tool.inputSchema),
           },
-          handler: async (args, options) => ({
-            response: await callTool(
-              server,
-              tool.name,
-              isRecord(args) ? args : {},
-              options?.abortSignal ?? abortSignal,
-            ),
-          }),
+          handler: async (args, options) => {
+            if (requestApproval && requiresApproval(server, tool.name)) {
+              const approvalKey = sessionApprovalKey(server.id, tool.name);
+              if (!isSessionApproved(approvalKey)) {
+                const decision = await requestApproval({
+                  serverId: server.id,
+                  serverName: serverTools.serverName,
+                  toolName: tool.name,
+                  args: isRecord(args) ? args : {},
+                });
+                if (decision === 'deny') {
+                  throw new Error(`User denied tool execution: ${tool.name}`);
+                }
+                if (decision === 'allow-session') {
+                  rememberSessionApproval(approvalKey);
+                }
+              }
+            }
+            return {
+              response: summarizeMcpResultForModel(
+                await callTool(server, tool.name, isRecord(args) ? args : {}, options?.abortSignal ?? abortSignal),
+              ),
+            };
+          },
         };
       }
     }

@@ -3,9 +3,8 @@ import { WebSocket, WebSocketServer } from 'ws';
 import type { ApiServerConfig } from './config.js';
 
 // Sentinel the browser sends when Live should use the server-managed key
-// (mirrors src/utils/apiKeySelection.SERVER_MANAGED_API_KEY — duplicated here
-// because the server bundle does not import from src/).
-const SERVER_MANAGED_API_KEY_SENTINEL = '__SERVER_MANAGED_API_KEY__';
+// (single-sourced in shared/, mirrored by src/utils/apiKeySelection).
+import { SERVER_MANAGED_API_KEY as SERVER_MANAGED_API_KEY_SENTINEL } from '../../shared/serverManagedApiKey.js';
 
 const LIVE_WS_PATH_PREFIX = '/api/live';
 // Full upstream base (scheme + host). Production always bridges to the public

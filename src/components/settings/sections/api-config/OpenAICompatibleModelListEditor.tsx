@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Loader2, Minus, Plus, RefreshCw, Settings2 } from 'lucide-react';
+import { Loader2, Plus, RefreshCw, Settings2 } from 'lucide-react';
 import type { ModelOption } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
-import { SETTINGS_INLINE_ACTION_BUTTON_CLASS, SMALL_ICON_DANGER_BUTTON_CLASS } from '@/constants/buttonClasses';
+import { SETTINGS_INLINE_ACTION_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { OpenAICompatibleModelFetchResult } from './OpenAICompatibleModelFetchResult';
+import { OpenAICompatibleModelRowFields } from './OpenAICompatibleModelRowFields';
 import { OpenAICompatibleModelManagerModal } from './OpenAICompatibleModelManagerModal';
 import {
   buildOpenAICompatibleModelOptions,
@@ -77,8 +78,7 @@ export const OpenAICompatibleModelListEditor: React.FC<OpenAICompatibleModelList
       onSelectedModelChange(modelIds[0]);
     }
   };
-  const { handleUpdateModel, handleUpdateModelName, handleTrimModel, handleTrimModelName, handleRemoveModel } =
-    useOpenAICompatibleModelRowHandlers(rows, commitRows);
+  const modelRowHandlers = useOpenAICompatibleModelRowHandlers(rows, commitRows);
 
   const handleAddModel = () => {
     setEditorState({
@@ -136,58 +136,13 @@ export const OpenAICompatibleModelListEditor: React.FC<OpenAICompatibleModelList
         {rows.length > 0 ? (
           <div className="space-y-1">
             {rows.map((row, index) => (
-              <div
+              <OpenAICompatibleModelRowFields
                 key={row.rowId}
-                className="grid grid-cols-1 items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-[var(--theme-bg-tertiary)]/35 sm:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)_auto]"
-              >
-                <div className="min-w-0 space-y-1">
-                  <label
-                    htmlFor={`${row.rowId}-id`}
-                    className="block text-xs font-medium uppercase tracking-wider text-[var(--theme-text-secondary)]"
-                  >
-                    {t('settingsOpenAICompatibleModelIdShort')}
-                  </label>
-                  <input
-                    id={`${row.rowId}-id`}
-                    type="text"
-                    value={row.id}
-                    onChange={(event) => handleUpdateModel(row.rowId, event.target.value)}
-                    onBlur={() => handleTrimModel(row.rowId)}
-                    data-openai-compatible-model-id-input="true"
-                    className="w-full min-w-0 rounded-md border border-transparent bg-transparent px-2 py-1.5 text-sm font-mono text-[var(--theme-text-primary)] transition-colors placeholder:text-[var(--theme-text-tertiary)] focus:border-[var(--theme-border-focus)] focus:bg-[var(--theme-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)]/15"
-                    placeholder="gpt-5.6-sol"
-                    aria-label={`${t('settingsOpenAICompatibleModelIdShort')} ${index + 1}`}
-                  />
-                </div>
-                <div className="min-w-0 space-y-1">
-                  <label
-                    htmlFor={`${row.rowId}-name`}
-                    className="block text-xs font-medium uppercase tracking-wider text-[var(--theme-text-secondary)]"
-                  >
-                    {t('settingsOpenAICompatibleModelName')}
-                  </label>
-                  <input
-                    id={`${row.rowId}-name`}
-                    type="text"
-                    value={row.name}
-                    onChange={(event) => handleUpdateModelName(row.rowId, event.target.value)}
-                    onBlur={() => handleTrimModelName(row.rowId)}
-                    data-openai-compatible-model-name-input="true"
-                    className="w-full min-w-0 rounded-md border border-transparent bg-transparent px-2 py-1.5 text-sm text-[var(--theme-text-primary)] transition-colors placeholder:text-[var(--theme-text-tertiary)] focus:border-[var(--theme-border-focus)] focus:bg-[var(--theme-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)]/15"
-                    placeholder={t('settingsModelNamePlaceholder')}
-                    aria-label={`${t('settingsOpenAICompatibleModelName')} ${index + 1}`}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveModel(row.rowId)}
-                  className={`justify-self-end sm:self-end ${SMALL_ICON_DANGER_BUTTON_CLASS}`}
-                  title={t('settingsRemoveModel')}
-                  aria-label={t('settingsRemoveModel')}
-                >
-                  <Minus size={14} />
-                </button>
-              </div>
+                row={row}
+                variant="editor"
+                rowIndex={index}
+                {...modelRowHandlers}
+              />
             ))}
           </div>
         ) : (

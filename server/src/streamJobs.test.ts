@@ -4,7 +4,7 @@ import http from 'node:http';
 import { Buffer } from 'node:buffer';
 import { createServer } from './createServer';
 import { createHttpServerCleanup, startHttpServer } from '../test/httpServer';
-import { JOB_ID_HEADER, LAST_SEQ_HEADER } from './streamJobs';
+import { JOB_ID_HEADER, LAST_SEQ_HEADER } from './streamJobStore';
 
 const dnsLookup = vi.hoisted(() => vi.fn(async () => [{ address: '1.2.3.4', family: 4 as const }]));
 

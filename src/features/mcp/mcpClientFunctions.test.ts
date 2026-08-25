@@ -192,7 +192,14 @@ describe('createMcpClientFunctions', () => {
 
   it('filters disabledTools before creating declarations', async () => {
     const servers = [
-      { id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x', disabledTools: ['secret_tool'] } as any,
+      {
+        id: 's1',
+        name: 'S1',
+        enabled: true,
+        transport: 'http',
+        url: 'https://x',
+        disabledTools: ['secret_tool'],
+      } as any,
     ];
     const listTools = async () =>
       ({
@@ -329,5 +336,69 @@ describe('createMcpClientFunctions discovery cache', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('createMcpClientFunctions approval gate', () => {
+  const server: McpServerConfig = {
+    id: 'fs',
+    name: 'FS',
+    enabled: true,
+    transport: 'stdio',
+    command: 'npx',
+    disabledAutoApproveTools: ['write_file'],
+  };
+  const listTools = vi.fn(async () => ({
+    servers: [
+      {
+        serverId: 'fs',
+        serverName: 'FS',
+        tools: [
+          { name: 'read_file', inputSchema: { type: 'object' } },
+          { name: 'write_file', inputSchema: { type: 'object' } },
+        ],
+      },
+    ],
+    errors: [],
+  }));
+
+  it('auto-executes tools not requiring approval without consulting the callback', async () => {
+    const callTool = vi.fn(async () => ({ content: [] }));
+    const requestApproval = vi.fn();
+    const fns = await createMcpClientFunctions({ servers: [server], listTools, callTool, requestApproval });
+    await fns[toMcpFunctionName('fs', 'read_file')].handler({}, undefined);
+    expect(callTool).toHaveBeenCalledOnce();
+    expect(requestApproval).not.toHaveBeenCalled();
+  });
+
+  it('denies a gated tool when the user rejects and never calls the tool', async () => {
+    const callTool = vi.fn(async () => ({ content: [] }));
+    const requestApproval = vi.fn(async () => 'deny' as const);
+    const fns = await createMcpClientFunctions({ servers: [server], listTools, callTool, requestApproval });
+    await expect(fns[toMcpFunctionName('fs', 'write_file')].handler({ path: '/x' }, undefined)).rejects.toThrow(
+      /denied/i,
+    );
+    expect(callTool).not.toHaveBeenCalled();
+    expect(requestApproval).toHaveBeenCalledWith(
+      expect.objectContaining({ serverId: 'fs', serverName: 'FS', toolName: 'write_file', args: { path: '/x' } }),
+    );
+  });
+
+  it('remembers allow-session decisions for subsequent calls', async () => {
+    const callTool = vi.fn(async () => ({ content: [] }));
+    const requestApproval = vi.fn(async () => 'allow-session' as const);
+    const fns = await createMcpClientFunctions({ servers: [server], listTools, callTool, requestApproval });
+    const handler = fns[toMcpFunctionName('fs', 'write_file')].handler;
+    await handler({}, undefined);
+    await handler({}, undefined);
+    expect(requestApproval).toHaveBeenCalledTimes(1);
+    expect(callTool).toHaveBeenCalledTimes(2);
+  });
+
+  it('auto-executes gated tools when no approval callback is supplied (headless)', async () => {
+    const callTool = vi.fn(async () => ({ content: [] }));
+    const fns = await createMcpClientFunctions({ servers: [server], listTools, callTool });
+    await fns[toMcpFunctionName('fs', 'write_file')].handler({}, undefined);
+    expect(callTool).toHaveBeenCalledOnce();
   });
 });

@@ -90,7 +90,7 @@ const ChatInputToolbarComponent: React.FC = () => {
     showAddByUrlInput;
 
   return (
-    <div className={`flex flex-col gap-1.5 ${hasVisibleContent ? 'mb-1.5' : ''}`}>
+    <div className={`flex flex-col gap-1 ${hasVisibleContent ? 'mb-1' : ''}`}>
       {(showImageCluster || canShowTtsVoice || canShowLanguageDirection || canShowMediaResolution || isTtsModel) && (
         <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
           {canShowTtsVoice && <TtsVoiceSelector ttsVoice={ttsVoice} setTtsVoice={setTtsVoice} />}

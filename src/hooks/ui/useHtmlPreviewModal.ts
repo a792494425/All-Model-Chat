@@ -10,16 +10,12 @@ import {
   HTML_PREVIEW_CLEAR_SELECTION_EVENT,
   HTML_PREVIEW_MESSAGE_CHANNEL,
 } from '@/utils/html-preview/previewDocument';
-import { resolveHtmlPreviewBridgeEvent } from '@/utils/html-preview/previewParentBridge';
 import { DEFAULT_HTML_PREVIEW_PRIVILEGE, type HtmlPreviewPrivilege } from '@/utils/html-preview/previewPrivilege';
 import { useI18n } from '@/contexts/I18nContext';
 import { toastError } from '@/stores/toastStore';
 import { type LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
-import {
-  createRelayedLiveArtifactSelectionDetail,
-  dispatchLiveArtifactSelection,
-  LIVE_ARTIFACT_CLEAR_SELECTION_EVENT,
-} from '@/utils/text-selection/liveArtifactSelection';
+import { LIVE_ARTIFACT_CLEAR_SELECTION_EVENT } from '@/utils/text-selection/liveArtifactSelection';
+import { useHtmlPreviewBridge } from './useHtmlPreviewBridge';
 import { formatI18nErrorMessage } from '@/i18n/interpolate';
 
 const ZOOM_STEP = 0.1;
@@ -146,67 +142,37 @@ export const useHtmlPreviewModal = ({
     };
   }, [isTrueFullscreen, iframeRef, initialTrueFullscreenRequest, onClose, targetDocument]);
 
-  useEffect(() => {
-    if (!isOpen) {
-      return undefined;
+  const handleBridgeReady = useCallback(() => {
+    setContentHeight(0);
+    setIsPreviewReady(true);
+  }, []);
+
+  const handleBridgeResize = useCallback((height: number) => {
+    const nextHeight = Math.min(Math.ceil(height), MAX_PREVIEW_CONTENT_HEIGHT);
+    setContentHeight((current) => (current === nextHeight ? current : nextHeight));
+  }, []);
+
+  // Escape only closes the overlay when the browser is not already managing
+  // true fullscreen (the browser exits fullscreen itself in that case).
+  const handleBridgeEscape = useCallback(() => {
+    if (!isTrueFullscreen) {
+      onClose();
     }
+  }, [isTrueFullscreen, onClose]);
 
-    const handleMessage = (event: MessageEvent) => {
-      const resolved = resolveHtmlPreviewBridgeEvent({
-        event,
-        iframeWindow: iframeRef.current?.contentWindow,
-        privilege,
-        parentOrigin: targetWindow.location.origin,
-      });
-      if (!resolved) {
-        return;
-      }
-
-      if (resolved.kind === 'ready') {
-        setContentHeight(0);
-        setIsPreviewReady(true);
-        return;
-      }
-
-      if (resolved.kind === 'resize') {
-        const nextHeight = Math.min(Math.ceil(resolved.height), MAX_PREVIEW_CONTENT_HEIGHT);
-        setContentHeight((current) => (current === nextHeight ? current : nextHeight));
-        return;
-      }
-
-      if (resolved.kind === 'escape' && !isTrueFullscreen) {
-        onClose();
-        return;
-      }
-
-      if (resolved.kind === 'selection') {
-        dispatchLiveArtifactSelection(
-          targetWindow,
-          createRelayedLiveArtifactSelectionDetail(iframeRef.current, resolved.payload, scale),
-        );
-        return;
-      }
-
-      if (resolved.kind === 'followup') {
-        onLiveArtifactFollowUp?.(resolved.payload);
-        return;
-      }
-
-      if (resolved.kind === 'invalid-followup') {
-        logService.warn('Ignored invalid Live Artifact follow-up payload.');
-        return;
-      }
-
-      if (resolved.kind === 'diagnostic') {
-        logService.warn('Live Artifact preview diagnostic:', resolved.payload);
-      }
-    };
-
-    targetWindow.addEventListener('message', handleMessage);
-    return () => {
-      targetWindow.removeEventListener('message', handleMessage);
-    };
-  }, [iframeRef, isOpen, isTrueFullscreen, onClose, onLiveArtifactFollowUp, privilege, scale, targetWindow]);
+  useHtmlPreviewBridge({
+    iframeRef,
+    targetWindow,
+    privilege,
+    enabled: isOpen,
+    selectionScale: scale,
+    handlers: {
+      onReady: handleBridgeReady,
+      onResize: handleBridgeResize,
+      onEscape: handleBridgeEscape,
+      onFollowUp: onLiveArtifactFollowUp,
+    },
+  });
 
   useEffect(() => {
     const handleClearSelection = () => {

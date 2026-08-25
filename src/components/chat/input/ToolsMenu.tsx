@@ -1,8 +1,8 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Globe, Check, Terminal, Link, X, Telescope, Calculator, AlertTriangle, MapPin } from 'lucide-react';
+import { Globe, Check, Terminal, Link, X, Telescope, Calculator, AlertTriangle, MapPin, Wrench } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
-import { IconPython, IconThinking, IconViewOptions } from '@/components/icons';
+import { IconPython, IconThinking } from '@/components/icons';
 import { CHAT_INPUT_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { usePortaledMenu } from '@/hooks/ui/usePortaledMenu';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
@@ -147,7 +147,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ currentModelId, toolStates
             aria-haspopup="true"
             aria-expanded={isOpen}
           >
-            <IconViewOptions size={menuIconSize} />
+            <Wrench size={menuIconSize} strokeWidth={2} />
           </button>
           {isOpen &&
             targetWindow &&

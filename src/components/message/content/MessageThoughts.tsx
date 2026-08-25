@@ -77,13 +77,15 @@ export const MessageThoughts: React.FC<MessageThoughtsProps> = ({
   // Hide it as soon as thinking settles (thinkingTimeMs is committed /
   // thinkingActive is false), even if the answer is still streaming — otherwise
   // the last section sits outside the accordion until the whole message ends.
-  // thinkingActive true re-opens it for interleaved re-thinking. Older messages
-  // without those fields keep the strip while loading and no time has settled.
+  // thinkingActive true re-opens it for interleaved re-thinking (syncThinkingResume
+  // clears thinkingTimeMs). Older messages without those fields keep the strip
+  // while loading and no time has settled.
+  const hasSettledThinking = message.thinkingTimeMs !== undefined;
   const showThinkingStrip =
     !isExpanded &&
     thoughtsTail.length > 0 &&
-    (message.thinkingActive === true ||
-      (!!isLoading && message.thinkingActive === undefined && message.thinkingTimeMs === undefined));
+    !hasSettledThinking &&
+    (message.thinkingActive === true || (!!isLoading && message.thinkingActive === undefined));
 
   if (!areThoughtsVisible) return null;
 

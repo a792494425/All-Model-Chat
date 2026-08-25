@@ -5,6 +5,7 @@ import { Message } from '@/components/message/Message';
 import { WelcomeScreen } from './WelcomeScreen';
 import { ScrollNavigation } from './ScrollNavigation';
 import { TextSelectionToolbar } from './TextSelectionToolbar';
+import { SelectionAskPanel } from './text-selection/SelectionAskPanel';
 import { useMessageListUi } from './hooks/useMessageListUi';
 import { useMessageListScroll } from './hooks/useMessageListScroll';
 import { useExpandedUserMessages } from './hooks/useExpandedUserMessages';
@@ -60,6 +61,11 @@ const MessageListComponent: React.FC = () => {
     },
     [setCommandedInput],
   );
+  const [selectionAskState, setSelectionAskState] = React.useState<{ text: string; rect: DOMRect | null } | null>(null);
+  const handleAsk = React.useCallback((text: string, rect: DOMRect | null) => {
+    if (!text.trim()) return;
+    setSelectionAskState({ text, rect });
+  }, []);
   const handleLiveArtifactFollowUp = React.useCallback(
     (payload: LiveArtifactFollowupPayload) => {
       const followupPrompt = formatLiveArtifactFollowupPrompt(payload, language);
@@ -219,9 +225,19 @@ const MessageListComponent: React.FC = () => {
         <TextSelectionToolbar
           onQuote={handleQuote}
           onInsert={handleInsert}
+          onAsk={handleAsk}
           onTTS={onQuickTTS}
           containerRef={scrollerRef}
         />
+        {selectionAskState && (
+          <SelectionAskPanel
+            selectedText={selectionAskState.text}
+            anchorRect={selectionAskState.rect}
+            onClose={() => setSelectionAskState(null)}
+            onInsert={handleInsert}
+            onQuote={handleQuote}
+          />
+        )}
 
         <ScrollNavigation
           showUp={showScrollUp}

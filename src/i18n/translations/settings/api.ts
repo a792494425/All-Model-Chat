@@ -577,15 +577,6 @@ const apiSettings = {
     fr: 'Omettez « /models » — il est ajouté automatiquement.',
     de: "'/models' weglassen — wird automatisch angehängt.",
   },
-  thirdPartyApiKeyMissing: {
-    en: 'No key',
-    zh: '未配置密钥',
-    ja: 'キー未設定',
-    ko: '키 없음',
-    es: 'Sin clave',
-    fr: 'Aucune clé',
-    de: 'Kein Schlüssel',
-  },
   thirdPartyApiUrlMissing: {
     en: 'No URL',
     zh: '未配置地址',
@@ -612,15 +603,6 @@ const apiSettings = {
     es: 'Desactivado',
     fr: 'Désactivé',
     de: 'Deaktiviert',
-  },
-  thirdPartyConnectionUnavailable: {
-    en: 'Unavailable',
-    zh: '不可用',
-    ja: '利用不可',
-    ko: '사용 불가',
-    es: 'No disponible',
-    fr: 'Indisponible',
-    de: 'Nicht verfügbar',
   },
   thirdPartyConnectionsEmpty: {
     en: 'No third-party connections yet. Add a vendor or gateway to use it alongside Gemini.',

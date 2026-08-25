@@ -1,6 +1,6 @@
 import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { Quote, Copy, Check, CornerRightDown, Volume2 } from 'lucide-react';
+import { Quote, Copy, Check, CornerRightDown, Volume2, MessageCircleQuestion } from 'lucide-react';
 import { IconGoogle } from '@/components/icons';
 
 interface StandardActionsViewProps {
@@ -8,6 +8,7 @@ interface StandardActionsViewProps {
   onInsert?: (e: React.MouseEvent) => void;
   onCopy: (e: React.MouseEvent) => void;
   onSearch: (e: React.MouseEvent) => void;
+  onAsk?: (e: React.MouseEvent) => void;
   onTTS?: (e: React.SyntheticEvent) => void;
   isCopied: boolean;
   /** Non-null shows a transient error message attached to the TTS button. */
@@ -19,6 +20,7 @@ export const StandardActionsView: React.FC<StandardActionsViewProps> = ({
   onInsert,
   onCopy,
   onSearch,
+  onAsk,
   onTTS,
   isCopied,
   ttsError,
@@ -28,6 +30,7 @@ export const StandardActionsView: React.FC<StandardActionsViewProps> = ({
   const insertLabel = t('fillInput');
   const copyLabel = isCopied ? t('copied') : t('copy');
   const searchLabel = t('search');
+  const askLabel = t('ask');
   const actionButtonClass =
     'flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-xs font-medium text-[var(--theme-text-primary)] transition-all hover:bg-[var(--theme-bg-tertiary)] sm:px-3';
 
@@ -65,6 +68,16 @@ export const StandardActionsView: React.FC<StandardActionsViewProps> = ({
         <IconGoogle size={14} />
         <span>{searchLabel}</span>
       </button>
+
+      {onAsk && (
+        <>
+          <div className="mx-0.5 h-3.5 w-px shrink-0 bg-[var(--theme-border-secondary)]" />
+          <button onMouseDown={onAsk} className={actionButtonClass} title={askLabel} aria-label={askLabel}>
+            <MessageCircleQuestion size={14} className="text-[var(--theme-text-link)]" />
+            <span>{askLabel}</span>
+          </button>
+        </>
+      )}
 
       {onTTS && (
         <>

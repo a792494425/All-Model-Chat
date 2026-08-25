@@ -154,15 +154,6 @@ export const logViewerTranslations = {
     de: 'API-Schlüssel-Nutzungsstatistiken',
   },
   logViewerActive: { en: 'Active', zh: '当前使用', ja: '使用中', es: 'Activo', ko: '활성', fr: 'Actif', de: 'Aktiv' },
-  logViewerRequests: {
-    en: 'requests',
-    zh: '次请求',
-    ja: 'リクエスト',
-    es: 'solicitudes',
-    ko: '요청',
-    fr: 'requêtes',
-    de: 'Anfragen',
-  },
   logCategoryAll: { en: 'All', zh: '全部', ja: 'すべて', es: 'Todo', ko: '전체', fr: 'Tout', de: 'Alle' },
   logCategorySystem: {
     en: 'System',

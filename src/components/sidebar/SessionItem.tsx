@@ -3,6 +3,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { Pin, MoreHorizontal } from 'lucide-react';
 import { type ChatGroup, type SavedChatSession } from '@/types';
 import { SessionItemMenu } from './SessionItemMenu';
+import { InlineRenameInput } from './InlineRenameInput';
 import { LoadingDots } from '@/components/shared/LoadingDots';
 import { useChatStore } from '@/stores/chatStore';
 import { SESSION_DRAG_TYPE } from './sidebarDragTypes';
@@ -33,8 +34,12 @@ interface SessionItemProps {
   setActiveMenu: (id: string | null) => void;
   setDragOverId: (id: string | null) => void;
   draggingSessionId: string | null;
+  draggingGroupId?: string | null;
+  dropIndicator?: { id: string; position: 'before' | 'after' } | null;
   onSessionDragStart: (sessionId: string) => void;
   onSessionDragEnd: () => void;
+  onSessionDragOver?: (event: React.DragEvent, sessionId: string) => void;
+  onSessionDropIndicatorClear?: () => void;
 }
 
 const RIGHT_CLICK_MENU_FEEDBACK_MS = 200;
@@ -65,9 +70,16 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
     toggleMenu,
     setActiveMenu,
     draggingSessionId,
+    draggingGroupId,
+    dropIndicator,
     onSessionDragStart,
     onSessionDragEnd,
-  } = props;
+    onSessionDragOver,
+    onSessionDropIndicatorClear,
+  } = props as typeof props & {
+    disableNativeDrag?: boolean;
+  };
+  const disableNativeDrag = (props as unknown as { disableNativeDrag?: boolean }).disableNativeDrag;
 
   const [isRightClickAnimating, setIsRightClickAnimating] = useState(false);
   const dragStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
@@ -109,11 +121,9 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
     e.dataTransfer.effectAllowed = 'move';
     onSessionDragStart(session.id);
 
-    // Build a compact, unobtrusive drag image (pin + title) so the ghost does
-    // not show the whole row snapshot. It must be in the DOM at dragstart, and
-    // is removed on the next tick after setDragImage captures it.
+    // Cherry-style overlay: subtle border + stronger shadow so ghost floats above recessed buckets.
     const ghost = document.createElement('div');
-    ghost.className = `fixed top-0 left-0 ${Z_INDEX_TOPMOST_OVERLAY} pointer-events-none flex items-center gap-2 rounded-md bg-[var(--theme-bg-primary)] px-2.5 py-1.5 text-sm font-medium text-[var(--theme-text-primary)] shadow-lg`;
+    ghost.className = `fixed top-0 left-0 ${Z_INDEX_TOPMOST_OVERLAY} pointer-events-none flex items-center gap-2 rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] px-3 py-2 text-sm font-medium text-[var(--theme-text-primary)] shadow-xl`;
     if (session.isPinned) {
       const pinIcon = document.createElement('span');
       pinIcon.innerHTML =
@@ -144,25 +154,33 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
     onSessionDragEnd();
   };
 
+  const showBefore = dropIndicator?.id === session.id && dropIndicator.position === 'before';
+  const showAfter = dropIndicator?.id === session.id && dropIndicator.position === 'after';
+  const isBlockedByGroupDrag = !!draggingGroupId;
+
   return (
     <li
       onContextMenu={handleContextMenu}
+      onDragOver={onSessionDragOver ? (event) => onSessionDragOver(event, session.id) : undefined}
+      onDragLeave={onSessionDropIndicatorClear}
+      onDrop={onSessionDropIndicatorClear}
       className={`group relative rounded-lg my-0.5 transition-all duration-150 ease-out ${
         session.id === activeSessionId || isRightClickAnimating ? 'bg-[var(--theme-bg-accent)]/10' : ''
-      } ${newlyTitledSessionIds.has(session.id) ? 'title-update-animate' : ''} ${isActive ? 'z-20' : ''}`}
+      } ${newlyTitledSessionIds.has(session.id) ? 'title-update-animate' : ''} ${isActive ? 'z-20' : ''} ${isBlockedByGroupDrag ? 'opacity-50 pointer-events-none' : ''}`}
     >
+      {showBefore && (
+        <div className="absolute -top-[1px] left-1 right-1 h-0.5 rounded-full bg-[var(--theme-bg-accent)] pointer-events-none z-10" />
+      )}
       <div
         className={`relative w-full text-left pl-2.5 pr-1 py-2 text-sm transition-colors rounded-lg text-[var(--theme-text-primary)] ${
           session.id === activeSessionId ? 'font-medium' : 'hover:bg-[var(--theme-bg-tertiary)]'
-        } ${isBeingDragged ? 'opacity-40 scale-[0.98]' : ''}`}
+        } ${isBeingDragged ? 'opacity-30 scale-[0.97] shadow-sm' : ''} ${isBlockedByGroupDrag ? 'opacity-40' : ''}`}
       >
         {editingItem?.type === 'session' && editingItem.id === session.id ? (
-          <input
-            ref={editInputRef}
-            type="text"
-            value={editingItem.title}
-            onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
-            onFocus={(e) => e.currentTarget.select()}
+          <InlineRenameInput
+            editInputRef={editInputRef}
+            title={editingItem.title}
+            onTitleChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
             onBlur={handleRenameConfirm}
             onKeyDown={handleRenameKeyDown}
             className="flex-grow bg-transparent border border-[var(--theme-border-focus)] rounded-md px-1 py-0 text-sm w-full"
@@ -170,9 +188,9 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
         ) : (
           <a
             href={`/chat/${session.id}`}
-            draggable
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
+            draggable={!disableNativeDrag}
+            onDragStart={disableNativeDrag ? undefined : handleDragStart}
+            onDragEnd={disableNativeDrag ? undefined : handleDragEnd}
             onClick={(e) => {
               if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
                 e.preventDefault();
@@ -238,6 +256,9 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
           </>
         )}
       </div>
+      {showAfter && (
+        <div className="absolute -bottom-[1px] left-1 right-1 h-0.5 rounded-full bg-[var(--theme-bg-accent)] pointer-events-none z-10" />
+      )}
       {activeMenu === session.id && (
         <SessionItemMenu
           session={session}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, FolderOpen } from 'lucide-react';
+import { Paperclip, FolderOpen } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import type { AttachmentAction } from '@/types';
 import {
@@ -75,7 +75,7 @@ export const AttachmentMenu: React.FC = () => {
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
-        <Plus size={attachIconSize} strokeWidth={2} />
+        <Paperclip size={attachIconSize} strokeWidth={2} />
       </button>
 
       {isOpen &&

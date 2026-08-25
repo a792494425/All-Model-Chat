@@ -353,7 +353,7 @@ const ThinkingSpeedControlUI: React.FC<{
               close
             </button>
           </div>,
-          targetWindow.document.body
+          targetWindow.document.body,
         )}
     </div>
   );

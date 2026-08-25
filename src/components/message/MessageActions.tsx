@@ -1,15 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
-import {
-  User,
-  AlertTriangle,
-  Edit3,
-  Trash2,
-  RefreshCw,
-  Pencil,
-  CirclePlay,
-  MoreHorizontal,
-} from 'lucide-react';
+import { User, AlertTriangle, Edit3, Trash2, RefreshCw, Pencil, CirclePlay, MoreHorizontal } from 'lucide-react';
 import { type ChatMessage } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { ExportMessageButton } from './buttons/ExportMessageButton';

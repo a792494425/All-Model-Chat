@@ -9,6 +9,7 @@ import {
   usesGeminiFilesApiReference,
 } from '@/utils/chat/geminiFilesApi';
 import { formatMessageSenderText } from './i18nFormat';
+import { createFileReferenceUnavailablePatch } from '../../../shared/fileReferencePatch';
 
 type OpenAICompatibleFilesResult =
   | { ok: true; files: UploadedFile[] }
@@ -64,14 +65,9 @@ export const prepareFilesForOpenAICompatibleMode = (files: UploadedFile[]): Open
 
 const omitHistoricalFile = (file: UploadedFile, translate: (key: string) => string): UploadedFile => ({
   ...file,
-  fileUri: undefined,
-  fileApiName: undefined,
-  fileApiExpirationTime: undefined,
-  uploadState: 'failed',
-  isProcessing: false,
-  transferStrategy: 'inline',
-  omittedFromApiHistory: true,
-  error: formatMessageSenderText(translate('messageSenderHistoryFileReferenceUnavailable'), { filename: file.name }),
+  ...createFileReferenceUnavailablePatch(
+    formatMessageSenderText(translate('messageSenderHistoryFileReferenceUnavailable'), { filename: file.name }),
+  ),
 });
 
 const inlineHistoricalFile = (file: UploadedFile): UploadedFile => ({

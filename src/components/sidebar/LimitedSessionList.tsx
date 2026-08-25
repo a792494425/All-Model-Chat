@@ -13,11 +13,13 @@ interface LimitedSessionListProps {
   sessions: SavedChatSession[];
   sessionItemProps: SessionItemPassedProps;
   className?: string;
+  isDragging?: boolean;
 }
 
-export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({ sessions, sessionItemProps, className }) => {
+export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({ sessions, sessionItemProps, className, isDragging }) => {
   const { t } = useI18n();
   const [animatedParent] = useAutoAnimate<HTMLUListElement>({ duration: 200 });
+  void isDragging;
   const [limitState, setLimitState] = useState({
     listSignature: '',
     visibleCount: INITIAL_VISIBLE_SESSION_COUNT,
@@ -62,7 +64,7 @@ export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({ sessions
 
   return (
     <>
-      <ul ref={isLargeList ? undefined : animatedParent} className={className}>
+      <ul ref={isDragging || isLargeList ? undefined : animatedParent} className={className}>
         {visibleSessions.map((session) => (
           <SessionItem key={session.id} session={session} {...sessionItemProps} />
         ))}

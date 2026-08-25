@@ -28,7 +28,7 @@ describe('HeaderModelSelector', () => {
     expect(renderer.container.querySelector('button[aria-label="Toggle thinking level"]')).toBeNull();
   });
 
-  it('does not render an icon inside the collapsed selector trigger', async () => {
+  it('affords clickability with exactly one chevron in the collapsed trigger', async () => {
     await act(async () => {
       renderer.root.render(
         <HeaderModelSelector
@@ -43,10 +43,12 @@ describe('HeaderModelSelector', () => {
     });
 
     const triggerButton = renderer.container.querySelector('button[aria-haspopup="listbox"]');
-    expect(triggerButton?.querySelectorAll('svg')).toHaveLength(0);
+    expect(triggerButton?.querySelectorAll('svg')).toHaveLength(1);
+    // Collapsed chevron points down — no residual rotation class.
+    expect(triggerButton?.querySelector('svg')?.getAttribute('class')).not.toContain('rotate-180');
   });
 
-  it('hides the selector chevron while the model menu is expanded', async () => {
+  it('rotates the selector chevron while the model menu is expanded', async () => {
     await act(async () => {
       renderer.root.render(
         <HeaderModelSelector
@@ -67,7 +69,7 @@ describe('HeaderModelSelector', () => {
     });
 
     expect(triggerButton?.getAttribute('aria-expanded')).toBe('true');
-    expect(triggerButton?.querySelectorAll('svg')).toHaveLength(0);
+    expect(triggerButton?.querySelector('svg')?.getAttribute('class')).toContain('rotate-180');
   });
 
   it('keeps compact header controls stable by avoiding scale transforms', async () => {

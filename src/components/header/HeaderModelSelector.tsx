@@ -1,4 +1,5 @@
 import { useMemo, type FC } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { type ModelOption, type ChatProviderId } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { GoogleSpinner } from '@/components/icons/GoogleSpinner';
@@ -66,6 +67,14 @@ export const HeaderModelSelector: FC<HeaderModelSelectorProps> = ({
             )}
 
             <span className="truncate max-w-[180px] font-semibold sm:max-w-[220px]">{abbreviatedModelName}</span>
+            <ChevronDown
+              size={15}
+              strokeWidth={2}
+              aria-hidden
+              className={`flex-shrink-0 text-[var(--theme-text-tertiary)] transition-transform duration-200 ${
+                isOpen ? 'rotate-180' : ''
+              }`}
+            />
           </button>
         </div>
       )}

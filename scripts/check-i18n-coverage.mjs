@@ -2,39 +2,14 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { discoverTranslationFiles } from './lib/i18nFiles.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 
 const SUPPORTED_LANGUAGES = ['en', 'zh', 'ja', 'ko', 'es', 'fr', 'de'];
 
-// Explicit file list + dynamic settings discovery to stay future-proof
-const baseFiles = [
-  'src/i18n/translations/app.ts',
-  'src/i18n/translations/chatInput.ts',
-  'src/i18n/translations/common.ts',
-  'src/i18n/translations/header.ts',
-  'src/i18n/translations/history.ts',
-  'src/i18n/translations/logViewer.ts',
-  'src/i18n/translations/messages.ts',
-  'src/i18n/translations/scenarios.ts',
-  'src/i18n/voiceStyleTranslations.ts',
-  'src/i18n/coreTranslations.ts',
-];
-
-const settingsDir = path.join(projectRoot, 'src/i18n/translations/settings');
-let settingsFiles = [];
-try {
-  settingsFiles = fs
-    .readdirSync(settingsDir)
-    .filter((f) => f.endsWith('.ts'))
-    .map((f) => `src/i18n/translations/settings/${f}`)
-    .sort();
-} catch {
-  // settings dir missing – rely on baseFiles only
-}
-
-const translationFiles = [...baseFiles, ...settingsFiles];
+const translationFiles = discoverTranslationFiles(projectRoot);
 
 let hasError = false;
 let totalKeys = 0;
@@ -77,32 +52,24 @@ for (const rel of translationFiles) {
     }
   }
 
-  // Placeholder consistency: for each valid en/zh/ja entry, compare placeholder sets
-  // This regex handles multi-line entries and quoted strings with escapes.
-  // It matches entries where en, zh, ja appear in order.
+  // Placeholder consistency: for each entry, compare placeholder sets across ALL 7 languages.
+  // Matches an entry block containing all 7 language keys in order.
   const entryRegex =
-    /\{\s*en:\s*(['"`])((?:\\.|(?!\1).)*)\1\s*,\s*zh:\s*(['"`])((?:\\.|(?!\3).)*)\3\s*,\s*ja:\s*(['"`])((?:\\.|(?!\5).)*)\5\s*,?\s*\}/gs;
+    /\{\s*en:\s*(['"`])((?:\\.|(?!\1).)*)\1\s*,\s*zh:\s*(['"`])((?:\\.|(?!\3).)*)\3\s*,\s*ja:\s*(['"`])((?:\\.|(?!\5).)*)\5\s*,\s*ko:\s*(['"`])((?:\\.|(?!\7).)*)\7\s*,\s*es:\s*(['"`])((?:\\.|(?!\9).)*)\9\s*,\s*fr:\s*(['"`])((?:\\.|(?!\11).)*)\11\s*,\s*de:\s*(['"`])((?:\\.|(?!\13).)*)\13\s*,?\s*\}/gs;
   let m;
   const matchedEntries = [];
   while ((m = entryRegex.exec(content)) !== null) {
     matchedEntries.push(m);
   }
 
-  // If count mismatch, already reported. Also warn if matchedEntries length != enCount (indicates formatting drift)
-  if (matchedEntries.length !== enCount && enCount > 0) {
-    // Try fallback: entries may contain placeholders that break simple parsing – do loose check
-    // Only warn if we suspect structural issue, not fail strictly, to avoid false positives
-    // But if counts match yet matchedEntries differs, log for debugging
-    if (matchedEntries.length < enCount) {
-      // Could be entries with multi-line strings that include commas differently – attempt block extraction alternative
-      // We already counted via simple lang: occurrences, so not fatal; placeholder check will be partial
-    }
-  }
-
   for (const entry of matchedEntries) {
     const enStr = entry[2];
     const zhStr = entry[4];
     const jaStr = entry[6];
+    const koStr = entry[8];
+    const esStr = entry[10];
+    const frStr = entry[12];
+    const deStr = entry[14];
 
     const extractPlaceholders = (str) => {
       const set = [...str.matchAll(/\{(\w+)\}/g)].map((x) => x[0]).sort();
@@ -112,24 +79,28 @@ for (const rel of translationFiles) {
     const enPH = extractPlaceholders(enStr);
     const zhPH = extractPlaceholders(zhStr);
     const jaPH = extractPlaceholders(jaStr);
+    const koPH = extractPlaceholders(koStr);
+    const esPH = extractPlaceholders(esStr);
+    const frPH = extractPlaceholders(frStr);
+    const dePH = extractPlaceholders(deStr);
 
     const arraysEqual = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 
-    if (!arraysEqual(enPH, zhPH)) {
-      console.error(
-        `Placeholder mismatch (en vs zh) in ${rel}: en ${JSON.stringify(enPH)} vs zh ${JSON.stringify(zhPH)} | block: ${entry[0].slice(0, 120)}...`,
-      );
-      hasError = true;
-      placeholderErrors.push(rel);
-    }
-    if (!arraysEqual(enPH, jaPH)) {
-      console.error(
-        `Placeholder mismatch (en vs ja) in ${rel}: en ${JSON.stringify(enPH)} vs ja ${JSON.stringify(jaPH)} | block: ${entry[0].slice(0, 120)}...`,
-      );
-      hasError = true;
-      placeholderErrors.push(rel);
+    const langMap = { zh: zhPH, ja: jaPH, ko: koPH, es: esPH, fr: frPH, de: dePH };
+    for (const [lang, ph] of Object.entries(langMap)) {
+      if (!arraysEqual(enPH, ph)) {
+        console.error(
+          `Placeholder mismatch (en vs ${lang}) in ${rel}: en ${JSON.stringify(enPH)} vs ${lang} ${JSON.stringify(ph)} | block: ${entry[0].slice(0, 120)}...`,
+        );
+        hasError = true;
+        placeholderErrors.push(rel);
+      }
     }
   }
+
+  // Fallback: if an entry doesn't match the 7-lang regex (e.g. multiline formatting
+  // variations), at least warn when entry count differs from en count - already handled
+  // by the per-language count check above.
 }
 
 if (hasError) {

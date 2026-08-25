@@ -1,7 +1,6 @@
 // settingsTitle lives in coreTranslations shellFeatureTranslations (sidebar chrome
 // before the settings pack loads). Do not re-declare it here.
 const generalSettings = {
-  settingsTabChat: { en: 'Chat', zh: '聊天', ja: 'チャット', de: 'Chat', ko: '채팅', es: 'Chat', fr: 'Discussion' },
   settingsTabModels: {
     en: 'Models',
     zh: '模型',
@@ -10,15 +9,6 @@ const generalSettings = {
     ko: '모델',
     es: 'Modelos',
     fr: 'Modèles',
-  },
-  settingsTabGeneration: {
-    en: 'Model Behavior',
-    zh: '模型行为',
-    ja: 'モデルの動作',
-    de: 'Modellverhalten',
-    ko: '모델 동작',
-    es: 'Comportamiento del modelo',
-    fr: 'Comportement du modèle',
   },
   settingsTabLanguageVoice: {
     en: 'Speech & Translation',
@@ -37,15 +27,6 @@ const generalSettings = {
     ko: 'Live Artifacts',
     es: 'Live Artifacts',
     fr: 'Live Artifacts',
-  },
-  settingsTabSafety: {
-    en: 'Safety',
-    zh: '安全',
-    ja: '安全性',
-    de: 'Sicherheit',
-    ko: '안전',
-    es: 'Seguridad',
-    fr: 'Sécurité',
   },
   settingsTabInterface: {
     en: 'Interface & Interaction',

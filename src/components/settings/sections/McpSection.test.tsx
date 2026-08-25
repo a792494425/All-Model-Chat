@@ -46,6 +46,50 @@ describe('McpSection', () => {
     });
   };
 
+  // Server cards collapse by default; editing controls live behind the
+  // expand chevron keyed by the original server index.
+  const expandServerCard = async (index: number) => {
+    const toggle = renderer.container.querySelector(`[data-testid="mcp-card-expand-${index}"]`);
+    expect(toggle).not.toBeNull();
+    await act(async () => {
+      fireEvent.click(toggle!);
+    });
+  };
+
+  it('collapses server cards by default and expands from the header', async () => {
+    const settings: AppSettings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [{ id: 's1', name: 'S1', enabled: false, transport: 'http', url: 'https://x/mcp' } as any],
+    };
+    await renderMcpSection({ settings });
+
+    expect(renderer.container.querySelector('[data-testid="mcp-card-detail-0"]')).toBeNull();
+    // Collapsed summary line surfaces the endpoint without expanding.
+    expect(renderer.container.textContent).toContain('https://x/mcp');
+
+    await expandServerCard(0);
+
+    expect(renderer.container.querySelector('[data-testid="mcp-card-detail-0"]')).not.toBeNull();
+    expect(within(renderer.container).getByLabelText('Name')).not.toBeNull();
+  });
+
+  it('expands a newly added server automatically', async () => {
+    // Fully controlled component: use the stateful wrapper so the added
+    // server feeds back into settings and actually renders a card.
+    await renderStatefulMcpSection(DEFAULT_APP_SETTINGS);
+
+    expect(renderer.container.querySelector('[data-testid="mcp-card-detail-0"]')).toBeNull();
+
+    const addButton = Array.from(renderer.container.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Add Server'),
+    );
+    await act(async () => {
+      fireEvent.click(addButton!);
+    });
+
+    expect(renderer.container.querySelector('[data-testid="mcp-card-detail-0"]')).not.toBeNull();
+  });
+
   it('updates only the edited server when multiple MCP servers share the same id', async () => {
     const onUpdate = vi.fn();
     const settings: AppSettings = {
@@ -70,13 +114,15 @@ describe('McpSection', () => {
 
     await renderMcpSection({ settings, onUpdate });
 
+    await expandServerCard(1);
+
     const nameInputs = Array.from(renderer.container.querySelectorAll<HTMLInputElement>('input')).filter(
       (input) => input.value === 'First Server' || input.value === 'Second Server',
     );
-    expect(nameInputs).toHaveLength(2);
+    expect(nameInputs).toHaveLength(1);
 
     await act(async () => {
-      fireEvent.change(nameInputs[1], { target: { value: 'Renamed Second Server' } });
+      fireEvent.change(nameInputs[0], { target: { value: 'Renamed Second Server' } });
     });
 
     expect(onUpdate).toHaveBeenCalledWith('mcpServers', [
@@ -109,6 +155,8 @@ describe('McpSection', () => {
     };
 
     await renderMcpSection({ settings });
+
+    await expandServerCard(0);
 
     const testButton = Array.from(renderer.container.querySelectorAll('button')).find(
       (button) => button.textContent?.trim() === 'Test',
@@ -182,7 +230,9 @@ describe('McpSection', () => {
 
     await renderMcpSection({ settings });
 
-    const enabledIds = Array.from(renderer.container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')).map(
+    const enabledIds = Array.from(
+      renderer.container.querySelectorAll<HTMLInputElement>('[data-mcp-server-card-actions] input[type="checkbox"]'),
+    ).map(
       (input) => input.id,
     );
 
@@ -216,7 +266,9 @@ describe('McpSection', () => {
 
     await renderMcpSection({ settings });
 
-    const switches = Array.from(renderer.container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
+    const switches = Array.from(
+      renderer.container.querySelectorAll<HTMLInputElement>('[data-mcp-server-card-actions] input[type="checkbox"]'),
+    );
     expect(switches).toHaveLength(2);
     expect(switches[0].getAttribute('aria-label')).toBe('First Server');
     expect(switches[1].getAttribute('aria-label')).toBe('Second Server');
@@ -249,7 +301,9 @@ describe('McpSection', () => {
     expect(onUpdate).toHaveBeenCalledWith('mcpServers', [expect.objectContaining({ id: 'first', enabled: true })]);
   });
 
-  it('keeps focus on the server id input while the id is being edited', async () => {
+  it('copies the read-only server id to the clipboard', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
     const settings: AppSettings = {
       ...DEFAULT_APP_SETTINGS,
       mcpServers: [
@@ -263,19 +317,21 @@ describe('McpSection', () => {
       ],
     };
 
-    await renderStatefulMcpSection(settings);
+    await renderMcpSection({ settings });
+    await expandServerCard(0);
 
-    const idInput = within(renderer.container).getByLabelText('Server ID');
-    idInput.focus();
+    const idInput = within(renderer.container).getByLabelText('Server ID') as HTMLInputElement;
+    expect(idInput).toHaveProperty('readOnly', true);
+    expect(idInput).toHaveValue('alpha');
 
     await act(async () => {
-      fireEvent.change(idInput, { target: { value: 'alpha-2' } });
+      fireEvent.click(within(renderer.container).getByLabelText('Copy server ID'));
     });
 
-    expect(idInput).toHaveFocus();
+    expect(writeText).toHaveBeenCalledWith('alpha');
   });
 
-  it('keeps capability test results when the server id is edited', async () => {
+  it('keeps capability test results when the card is collapsed and re-expanded', async () => {
     fetchMcpServerCapabilitiesMock.mockResolvedValue({
       tools: [{ name: 'read_file' }],
       resources: [],
@@ -297,17 +353,18 @@ describe('McpSection', () => {
 
     await renderStatefulMcpSection(settings);
 
+    await expandServerCard(0);
+
     await act(async () => {
       fireEvent.click(within(renderer.container).getByRole('button', { name: 'Test' }));
     });
 
     expect(renderer.container.textContent).toContain('Tools 1');
 
-    await act(async () => {
-      fireEvent.change(within(renderer.container).getByLabelText('Server ID'), {
-        target: { value: 'beta' },
-      });
-    });
+    await expandServerCard(0);
+    expect(renderer.container.querySelector('[data-testid="mcp-card-detail-0"]')).toBeNull();
+
+    await expandServerCard(0);
 
     expect(renderer.container.textContent).toContain('Tools 1');
   });
@@ -341,11 +398,14 @@ describe('McpSection', () => {
 
     await renderStatefulMcpSection(settings);
 
+    await expandServerCard(1);
+
     const testButtons = within(renderer.container).getAllByRole('button', { name: 'Test' });
-    expect(testButtons).toHaveLength(2);
+    // Only the expanded second card exposes a Test button.
+    expect(testButtons).toHaveLength(1);
 
     await act(async () => {
-      fireEvent.click(testButtons[1]);
+      fireEvent.click(testButtons[0]);
     });
     expect(renderer.container.textContent).toContain('Tools 1');
 
@@ -371,6 +431,8 @@ describe('McpSection', () => {
     };
     await renderMcpSection({ settings });
 
+    await expandServerCard(0);
+
     const testButton = Array.from(renderer.container.querySelectorAll('button')).find(
       (button) => button.textContent?.trim() === 'Test',
     );
@@ -389,6 +451,9 @@ describe('McpSection', () => {
       mcpServers: [{ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x' } as any],
     };
     await renderMcpSection({ settings });
+
+    await expandServerCard(0);
+
     const testButton = Array.from(renderer.container.querySelectorAll('button')).find(
       (button) => button.textContent?.trim() === 'Test',
     );
@@ -466,6 +531,8 @@ describe('McpSection', () => {
     };
     await renderMcpSection({ settings, onUpdate });
 
+    await expandServerCard(0);
+
     const testButton = Array.from(renderer.container.querySelectorAll('button')).find(
       (button) => button.textContent?.trim() === 'Test',
     );
@@ -493,7 +560,14 @@ describe('McpSection', () => {
       ],
     };
     await renderMcpSection({ settings });
-    fireEvent.change(screen.getByLabelText(/MCP filter/), { target: { value: 'http' } });
+    const filterTrigger = renderer.container.querySelector<HTMLButtonElement>('#mcp-filter-select');
+    expect(filterTrigger).not.toBeNull();
+    fireEvent.click(filterTrigger!);
+    const httpOption = Array.from(renderer.container.querySelectorAll('[role="option"]')).find(
+      (option) => option.textContent === 'HTTP',
+    );
+    expect(httpOption).not.toBeUndefined();
+    fireEvent.click(httpOption!);
     await act(async () => {});
     expect(renderer.container.textContent).toContain('HTTP');
     expect(renderer.container.textContent).not.toContain('STDIO');
@@ -525,14 +599,14 @@ describe('McpSection', () => {
       ],
     };
     await renderMcpSection({ settings, onUpdate });
-    const upButton = screen.getByLabelText('Move s2 up');
+
+    await expandServerCard(1);
+
+    const upButton = screen.getByLabelText('Move up - S2');
     fireEvent.click(upButton);
     expect(onUpdate).toHaveBeenCalledWith(
       'mcpServers',
-      expect.arrayContaining([
-        expect.objectContaining({ id: 's2' }),
-        expect.objectContaining({ id: 's1' }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ id: 's2' }), expect.objectContaining({ id: 's1' })]),
     );
     const reorderedIds = (onUpdate.mock.calls[0][1] as any[]).map((s: any) => s.id);
     expect(reorderedIds).toEqual(['s2', 's1']);
@@ -546,14 +620,21 @@ describe('McpSection', () => {
       prompts: [],
       errors: [],
     } as any);
-    const fetchLogsMock = vi.fn().mockResolvedValue({ logs: [{ level: 'info', message: 'hello', timestamp: Date.now() }] });
+    const fetchLogsMock = vi
+      .fn()
+      .mockResolvedValue({ logs: [{ level: 'info', message: 'hello', timestamp: Date.now() }] });
     fetchMcpLogsMock.mockImplementation(fetchLogsMock);
     const settings: AppSettings = {
       ...DEFAULT_APP_SETTINGS,
       mcpServers: [{ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x' } as any],
     };
     await renderMcpSection({ settings });
-    const testButton = Array.from(renderer.container.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Test');
+
+    await expandServerCard(0);
+
+    const testButton = Array.from(renderer.container.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === 'Test',
+    );
     expect(testButton).not.toBeUndefined();
     await act(async () => {
       fireEvent.click(testButton!);
@@ -584,11 +665,17 @@ describe('McpSection', () => {
     } as any);
     const settings: AppSettings = {
       ...DEFAULT_APP_SETTINGS,
-      mcpServers: [{ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x', isTrusted: true } as any],
+      mcpServers: [
+        { id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x', isTrusted: true } as any,
+      ],
     };
     await renderStatefulMcpSection(settings);
 
-    const testButton = Array.from(renderer.container.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Test');
+    await expandServerCard(0);
+
+    const testButton = Array.from(renderer.container.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === 'Test',
+    );
     expect(testButton).not.toBeUndefined();
     await act(async () => {
       fireEvent.click(testButton!);
@@ -608,15 +695,18 @@ describe('McpSection', () => {
   });
 
   it('asks trust confirm when enabling non-trusted server', async () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     const onUpdate = vi.fn();
     const settings: AppSettings = {
       ...DEFAULT_APP_SETTINGS,
-      mcpServers: [{ id: 's1', name: 'S1', enabled: false, transport: 'http', url: 'https://x', isTrusted: false } as any],
+      mcpServers: [
+        { id: 's1', name: 'S1', enabled: false, transport: 'http', url: 'https://x', isTrusted: false } as any,
+      ],
     };
     await renderMcpSection({ settings, onUpdate });
 
-    const enableToggle = renderer.container.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    const enableToggle = renderer.container.querySelector<HTMLInputElement>(
+      '[data-testid="mcp-card-actions-0"] input[type="checkbox"]',
+    );
     expect(enableToggle).not.toBeNull();
     expect(enableToggle?.checked).toBe(false);
 
@@ -624,28 +714,43 @@ describe('McpSection', () => {
       fireEvent.click(enableToggle!);
     });
 
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(onUpdate).toHaveBeenCalledWith('mcpServers', expect.arrayContaining([expect.objectContaining({ isTrusted: true, enabled: true })]));
-    confirmSpy.mockRestore();
+    // Trust dialog appears with a config preview; confirming enables + trusts.
+    expect(screen.getByTestId('mcp-trust-backdrop')).toBeInTheDocument();
+    expect(screen.getByTestId('mcp-trust-confirm')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('mcp-trust-confirm'));
+    });
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      'mcpServers',
+      expect.arrayContaining([expect.objectContaining({ isTrusted: true, enabled: true })]),
+    );
   });
 
   it('does not enable non-trusted server when trust confirm cancelled', async () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
     const onUpdate = vi.fn();
     const settings: AppSettings = {
       ...DEFAULT_APP_SETTINGS,
-      mcpServers: [{ id: 's1', name: 'S1', enabled: false, transport: 'http', url: 'https://x', isTrusted: false } as any],
+      mcpServers: [
+        { id: 's1', name: 'S1', enabled: false, transport: 'http', url: 'https://x', isTrusted: false } as any,
+      ],
     };
     await renderMcpSection({ settings, onUpdate });
 
-    const enableToggle = renderer.container.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    const enableToggle = renderer.container.querySelector<HTMLInputElement>(
+      '[data-testid="mcp-card-actions-0"] input[type="checkbox"]',
+    );
     await act(async () => {
       fireEvent.click(enableToggle!);
     });
 
-    expect(confirmSpy).toHaveBeenCalled();
+    expect(screen.getByTestId('mcp-trust-backdrop')).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('mcp-trust-cancel'));
+    });
+    expect(screen.queryByTestId('mcp-trust-backdrop')).not.toBeInTheDocument();
     expect(onUpdate).not.toHaveBeenCalled();
-    confirmSpy.mockRestore();
   });
 
   it('filters tools via intra-tab search', async () => {
@@ -660,11 +765,17 @@ describe('McpSection', () => {
     } as any);
     const settings: AppSettings = {
       ...DEFAULT_APP_SETTINGS,
-      mcpServers: [{ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x', isTrusted: true } as any],
+      mcpServers: [
+        { id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x', isTrusted: true } as any,
+      ],
     };
     await renderMcpSection({ settings });
 
-    const testButton = Array.from(renderer.container.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Test');
+    await expandServerCard(0);
+
+    const testButton = Array.from(renderer.container.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === 'Test',
+    );
     await act(async () => {
       fireEvent.click(testButton!);
     });

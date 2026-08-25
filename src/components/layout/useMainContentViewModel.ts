@@ -37,6 +37,8 @@ export const useMainContentViewModel = ({ app }: UseMainContentViewModelOptions)
   const setIsPreloadedMessagesModalOpen = useUIStore((state) => state.setIsPreloadedMessagesModalOpen);
   const isLogViewerOpen = useUIStore((state) => state.isLogViewerOpen);
   const setIsLogViewerOpen = useUIStore((state) => state.setIsLogViewerOpen);
+  const historyDisplayMode = useUIStore((state) => state.historyDisplayMode);
+  const setHistoryDisplayMode = useUIStore((state) => state.setHistoryDisplayMode);
 
   const openSettingsModal = useCallback(() => {
     setIsSettingsModalOpen(true);
@@ -98,9 +100,11 @@ export const useMainContentViewModel = ({ app }: UseMainContentViewModelOptions)
       onOpenExportModal: openExportModal,
       onAddNewGroup: chatState.handleAddNewGroup,
       onDeleteGroup: chatState.handleDeleteGroup,
+      onClearGroup: chatState.handleClearGroup,
       onRenameGroup: chatState.handleRenameGroup,
       onMoveSessionToGroup: chatState.handleMoveSessionToGroup,
       onToggleGroupExpansion: chatState.handleToggleGroupExpansion,
+      onReorderGroups: chatState.handleReorderGroups,
       onNewChatInGroup: chatState.handleNewChatInGroup,
       onOpenSettingsModal: openSettingsModal,
       themeId: currentTheme.id,
@@ -108,18 +112,22 @@ export const useMainContentViewModel = ({ app }: UseMainContentViewModelOptions)
       searchChatsShortcut: getShortcutDisplay('general.searchChats', appSettings),
       brandHref: buildNewTabHref(chatState.activeSessionId),
       onBrandClick: handleBrandClick,
+      displayMode: historyDisplayMode,
+      onDisplayModeChange: setHistoryDisplayMode,
     }),
     [
       appSettings,
       chatState.activeSessionId,
       chatState.generatingTitleSessionIds,
       chatState.handleAddNewGroup,
+      chatState.handleClearGroup,
       chatState.handleDeleteChatHistorySession,
       chatState.handleDeleteGroup,
       chatState.handleDuplicateSession,
       chatState.handleMoveSessionToGroup,
       chatState.handleRenameGroup,
       chatState.handleRenameSession,
+      chatState.handleReorderGroups,
       chatState.handleToggleGroupExpansion,
       chatState.handleNewChatInGroup,
       chatState.handleTogglePinCurrentSession,
@@ -128,9 +136,11 @@ export const useMainContentViewModel = ({ app }: UseMainContentViewModelOptions)
       chatState.savedSessions,
       chatState.startNewChat,
       currentTheme.id,
+      historyDisplayMode,
       openExportModal,
       openSettingsModal,
       selectSession,
+      setHistoryDisplayMode,
       setIsHistorySidebarOpenTransient,
       toggleHistorySidebar,
       uiState.isHistorySidebarOpen,

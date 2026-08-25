@@ -3,6 +3,7 @@ import type { ChatHistoryItem, ThinkingLevel } from '@/types';
 import { isImageMimeType } from '@/utils/file/fileTypeClassification';
 import { isAnthropicEffortModel } from '@/utils/model/modelCapabilities';
 import type { AnthropicChatConfig, AnthropicContentBlock, AnthropicMessage } from './anthropicTypes';
+import { appendSamplingParameters } from './requestFactory';
 
 const ANTHROPIC_FILE_DATA_ERROR = 'Anthropic mode cannot send Gemini Files API file references.';
 
@@ -106,12 +107,7 @@ export const buildAnthropicRequestBody = (
   if (systemInstruction) {
     body.system = systemInstruction;
   }
-  if (typeof config.temperature === 'number') {
-    body.temperature = config.temperature;
-  }
-  if (typeof config.topP === 'number') {
-    body['top_p'] = config.topP;
-  }
+  appendSamplingParameters(body, config);
 
   if (isAnthropicEffortModel(modelId)) {
     // Adaptive models: control thoroughness via output_config.effort; never send budget_tokens.

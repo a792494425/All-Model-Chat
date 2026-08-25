@@ -1,4 +1,4 @@
-import { BROWSER_LANG_PREFIX_MAP, type SupportedLanguage } from '@/i18n/languageRegistry';
+import { resolveAppLanguage, type SupportedLanguage } from '@/i18n/languageRegistry';
 import type { AppLanguage } from '@/types';
 
 export type PwaInstallState = 'available' | 'manual' | 'installed';
@@ -8,15 +8,8 @@ interface PwaInstallSnapshot {
   canInstall: boolean;
 }
 
-const resolveLanguage = (language: AppLanguage, navigatorLanguage?: string): SupportedLanguage => {
-  if (language !== 'system') {
-    return language;
-  }
-
-  const lower = navigatorLanguage?.toLowerCase() ?? '';
-  const prefix = lower.split('-')[0];
-  return BROWSER_LANG_PREFIX_MAP[prefix] ?? 'en';
-};
+const resolveLanguage = (language: AppLanguage, navigatorLanguage?: string): SupportedLanguage =>
+  resolveAppLanguage(language, navigatorLanguage);
 
 const isStandaloneMode = (win: Window = window) => {
   const displayModeStandalone = win.matchMedia?.('(display-mode: standalone)').matches ?? false;

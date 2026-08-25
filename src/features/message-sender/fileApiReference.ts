@@ -16,6 +16,7 @@ import {
   usesGeminiFilesApiReference,
 } from '@/utils/chat/geminiFilesApi';
 import { formatMessageSenderText } from './i18nFormat';
+import { createFileReferenceUnavailablePatch } from '../../../shared/fileReferencePatch';
 
 export { formatHistoryFileApiUnavailablePartText, sessionHasGeminiFilesApiReferences };
 
@@ -278,16 +279,9 @@ const degradeHistoryFile = (
 ): { messages: ChatMessage[]; changed: boolean } => {
   const fileName = group.representative.name;
   const note = formatHistoryFileApiUnavailablePartText(fileName);
-  const patch: FilePatch = {
-    fileUri: undefined,
-    fileApiName: undefined,
-    fileApiExpirationTime: undefined,
-    uploadState: 'failed',
-    isProcessing: false,
-    transferStrategy: 'inline',
-    omittedFromApiHistory: true,
-    error: formatMessageSenderText(translate('messageSenderHistoryFileReferenceUnavailable'), { filename: fileName }),
-  };
+  const patch: FilePatch = createFileReferenceUnavailablePatch(
+    formatMessageSenderText(translate('messageSenderHistoryFileReferenceUnavailable'), { filename: fileName }),
+  );
 
   return mapMatchingMessages(messages, group, (message) => ({
     ...message,

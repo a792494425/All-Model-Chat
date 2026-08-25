@@ -154,41 +154,41 @@ export function createServer(config: CreateServerConfig, dependencies: CreateSer
         return;
       }
 
+      // Local helper shared by the unified stream-abort endpoint and the legacy
+      // Gemini alias below: a POST carrying a job id kills that journal job and
+      // is answered 200/404; anything else falls through to the next route.
+      const respondAbort = (prefix: string): boolean => {
+        if (!path.startsWith(`${prefix}/`)) {
+          return false;
+        }
+        const jobId = path.slice(`${prefix}/`.length);
+        if (!(method === 'POST' && jobId)) {
+          return false;
+        }
+        const aborted = abortJob(jobId);
+        sendJson(
+          request,
+          response,
+          aborted ? 200 : 404,
+          aborted ? { ok: true } : { error: 'job not found' },
+          resolvedConfig.allowedOrigins,
+        );
+        return true;
+      };
+
       // Unified stream-abort endpoint: terminates any job in the shared store
       // regardless of provider (Gemini, OpenAI-compatible, or Anthropic). Placed
       // before the provider blocks so it works for every provider's job id.
-      if (path.startsWith(`${UNIFIED_STREAM_ABORT_PREFIX}/`)) {
-        const jobId = path.slice(`${UNIFIED_STREAM_ABORT_PREFIX}/`.length);
-        if (method === 'POST' && jobId) {
-          const aborted = abortJob(jobId);
-          sendJson(
-            request,
-            response,
-            aborted ? 200 : 404,
-            aborted ? { ok: true } : { error: 'job not found' },
-            resolvedConfig.allowedOrigins,
-          );
-          return;
-        }
+      if (respondAbort(UNIFIED_STREAM_ABORT_PREFIX)) {
+        return;
       }
 
       if (path === GEMINI_PROXY_PREFIX || path.startsWith(`${GEMINI_PROXY_PREFIX}/`)) {
         // Legacy stream-abort alias: the browser POSTs here when the user
         // clicks "stop" so the upstream is killed in addition to the local
         // abort. Kept for backward compat; routes to the same shared store.
-        if (path.startsWith(`${STREAM_ABORT_PREFIX}/`)) {
-          const jobId = path.slice(`${STREAM_ABORT_PREFIX}/`.length);
-          if (method === 'POST' && jobId) {
-            const aborted = abortJob(jobId);
-            sendJson(
-              request,
-              response,
-              aborted ? 200 : 404,
-              aborted ? { ok: true } : { error: 'job not found' },
-              resolvedConfig.allowedOrigins,
-            );
-            return;
-          }
+        if (respondAbort(STREAM_ABORT_PREFIX)) {
+          return;
         }
 
         await proxyGeminiRequest(request, response, resolvedConfig, fetchImpl);

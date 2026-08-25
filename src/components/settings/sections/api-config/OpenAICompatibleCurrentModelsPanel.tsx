@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Minus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
-import { SMALL_ICON_DANGER_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { SETTINGS_SEARCH_INPUT_CLASS } from '@/constants/designTokens';
 import {
   type EditableOpenAICompatibleModelRow,
@@ -9,6 +8,7 @@ import {
   openaiCompatibleModelMatchesSearch,
 } from './openaiCompatibleModelListState';
 import { useOpenAICompatibleModelRowHandlers } from './useOpenAICompatibleModelRowHandlers';
+import { OpenAICompatibleModelRowFields } from './OpenAICompatibleModelRowFields';
 
 interface OpenAICompatibleCurrentModelsPanelProps {
   rows: EditableOpenAICompatibleModelRow[];
@@ -31,8 +31,7 @@ export const OpenAICompatibleCurrentModelsPanel: React.FC<OpenAICompatibleCurren
       ),
     [modelSearchText, rows],
   );
-  const { handleUpdateModel, handleUpdateModelName, handleTrimModel, handleTrimModelName, handleRemoveModel } =
-    useOpenAICompatibleModelRowHandlers(rows, onCommitRows);
+  const modelRowHandlers = useOpenAICompatibleModelRowHandlers(rows, onCommitRows);
 
   return (
     <section className="min-w-0 space-y-3">
@@ -64,40 +63,7 @@ export const OpenAICompatibleCurrentModelsPanel: React.FC<OpenAICompatibleCurren
         {filteredRows.length > 0 ? (
           <div className="space-y-1">
             {filteredRows.map((row) => (
-              <div
-                key={row.rowId}
-                className="grid grid-cols-1 items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-[var(--theme-bg-tertiary)]/35 sm:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)_auto]"
-              >
-                <input
-                  type="text"
-                  value={row.id}
-                  onChange={(event) => handleUpdateModel(row.rowId, event.target.value)}
-                  onBlur={() => handleTrimModel(row.rowId)}
-                  data-openai-compatible-manager-model-id-input="true"
-                  className="w-full min-w-0 rounded-md border border-transparent bg-transparent px-2 py-1.5 font-mono text-sm text-[var(--theme-text-primary)] transition-colors placeholder:text-[var(--theme-text-tertiary)] focus:border-[var(--theme-border-focus)] focus:bg-[var(--theme-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)]/15"
-                  placeholder="gpt-5.6-sol"
-                  aria-label={t('settingsOpenAICompatibleModelIdShort')}
-                />
-                <input
-                  type="text"
-                  value={row.name}
-                  onChange={(event) => handleUpdateModelName(row.rowId, event.target.value)}
-                  onBlur={() => handleTrimModelName(row.rowId)}
-                  data-openai-compatible-manager-model-name-input="true"
-                  className="w-full min-w-0 rounded-md border border-transparent bg-transparent px-2 py-1.5 text-sm text-[var(--theme-text-primary)] transition-colors placeholder:text-[var(--theme-text-tertiary)] focus:border-[var(--theme-border-focus)] focus:bg-[var(--theme-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)]/15"
-                  placeholder={t('settingsModelNamePlaceholder')}
-                  aria-label={t('settingsOpenAICompatibleModelName')}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveModel(row.rowId)}
-                  className={`justify-self-end ${SMALL_ICON_DANGER_BUTTON_CLASS}`}
-                  title={t('settingsRemoveModel')}
-                  aria-label={t('settingsRemoveModel')}
-                >
-                  <Minus size={14} />
-                </button>
-              </div>
+              <OpenAICompatibleModelRowFields key={row.rowId} row={row} variant="manager" {...modelRowHandlers} />
             ))}
           </div>
         ) : (

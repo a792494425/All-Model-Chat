@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paperclip, Crop } from 'lucide-react';
+import { HardDriveUpload, Crop } from 'lucide-react';
 import {
   type IconProps,
   StrokeIcon,
@@ -13,7 +13,7 @@ export const IconUpload: React.FC<IconProps> = ({
   strokeWidth = defaultStroke,
   className,
   color = defaultColor,
-}) => <Paperclip size={size} strokeWidth={strokeWidth} className={className} color={color} />;
+}) => <HardDriveUpload size={size} strokeWidth={strokeWidth} className={className} color={color} />;
 
 export const IconGallery: React.FC<IconProps> = (props) => (
   <StrokeIcon {...props}>

@@ -32,8 +32,18 @@ describe('visibility mcp helpers', () => {
 
   it('groups by parentId', () => {
     const msgs = [
-      { id: 'm1', isInternalToolMessage: true, apiParts: [{ functionCall: { name: 'a', args: {} } }], toolParentMessageId: 'p1' } as any,
-      { id: 'm2', isInternalToolMessage: true, apiParts: [{ functionCall: { name: 'b', args: {} } }], toolParentMessageId: 'p2' } as any,
+      {
+        id: 'm1',
+        isInternalToolMessage: true,
+        apiParts: [{ functionCall: { name: 'a', args: {} } }],
+        toolParentMessageId: 'p1',
+      } as any,
+      {
+        id: 'm2',
+        isInternalToolMessage: true,
+        apiParts: [{ functionCall: { name: 'b', args: {} } }],
+        toolParentMessageId: 'p2',
+      } as any,
     ];
     const pairs = getMcpToolPairs(msgs);
     expect(pairs.length).toBe(2);
@@ -41,7 +51,12 @@ describe('visibility mcp helpers', () => {
 
   it('ignores non-internal messages', () => {
     const msgs = [
-      { id: 'm1', isInternalToolMessage: false, apiParts: [{ functionCall: { name: 'a', args: {} } }], toolParentMessageId: 'p1' } as any,
+      {
+        id: 'm1',
+        isInternalToolMessage: false,
+        apiParts: [{ functionCall: { name: 'a', args: {} } }],
+        toolParentMessageId: 'p1',
+      } as any,
       { id: 'm2', role: 'model', content: 'hi' } as any,
     ];
     expect(getMcpToolPairs(msgs).length).toBe(0);

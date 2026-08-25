@@ -7,10 +7,6 @@ import { setupStoreStateReset } from '@/test/stores/reset';
 import { MediaResolution } from '@/types';
 import { GenerationSection } from './GenerationSection';
 
-vi.mock('@/components/settings/controls/thinking/ThinkingControl', () => ({
-  ThinkingControl: () => <div data-testid="thinking-control" />,
-}));
-
 vi.mock('@/components/modals/TextEditorModal', () => ({
   TextEditorModal: () => null,
 }));

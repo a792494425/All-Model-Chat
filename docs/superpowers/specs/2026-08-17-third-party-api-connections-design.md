@@ -53,15 +53,7 @@ Replace `ThirdPartyApiSettings.providers: Record<ThirdPartyProviderId, ThirdPart
 type ThirdPartyApiProtocol = 'openai-compatible' | 'anthropic';
 
 type ThirdPartyTemplateId =
-  | 'openai'
-  | 'deepseek'
-  | 'anthropic'
-  | 'openrouter'
-  | 'qwen'
-  | 'kimi'
-  | 'glm'
-  | 'custom-openai'
-  | 'custom-anthropic';
+  'openai' | 'deepseek' | 'anthropic' | 'openrouter' | 'qwen' | 'kimi' | 'glm' | 'custom-openai' | 'custom-anthropic';
 
 interface ThirdPartyConnection {
   id: string; // stable; see migration

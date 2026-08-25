@@ -871,3 +871,72 @@ describe('MCP routes', () => {
     });
   });
 });
+
+describe('MCP server config hardening', () => {
+  const serverCleanup2 = createHttpServerCleanup();
+
+  afterEach(serverCleanup2.cleanup);
+
+  it('refuses dangerous stdio environment variables with a per-server error', async () => {
+    const callTool = vi.fn();
+    const app = createServer(
+      { geminiApiBase: 'https://example.test', geminiApiKey: 'k', enableMcpStdio: true },
+      { mcpClient: { listTools: vi.fn(), callTool } },
+    );
+    const started = serverCleanup2.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/mcp/tools`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        servers: [
+          {
+            id: 'evil',
+            name: 'Evil',
+            enabled: true,
+            transport: 'stdio',
+            command: 'npx',
+            env: { NODE_OPTIONS: '--require pwn', GOOD: '1' },
+          },
+        ],
+      }),
+    });
+    const body = (await response.json()) as { errors: Array<{ error: string }> };
+
+    expect(response.status).toBe(200);
+    expect(callTool).not.toHaveBeenCalled();
+    expect(body.errors).toHaveLength(1);
+    expect(body.errors[0].error).toMatch(/NODE_OPTIONS/);
+  });
+
+  it('passes configured timeout and longRunning through to the client bridge', async () => {
+    const callTool = vi.fn(async () => ({ content: [{ type: 'text', text: 'ok' }] }));
+    const app = createServer(
+      { geminiApiBase: 'https://example.test', geminiApiKey: 'k' },
+      { mcpClient: { listTools: vi.fn(), callTool } },
+    );
+    const started = serverCleanup2.track(await startHttpServer(app));
+
+    const server = {
+      id: 'slowish',
+      name: 'Slowish',
+      enabled: true,
+      transport: 'http',
+      url: 'https://s.example.com/mcp',
+      timeout: 300,
+      longRunning: true,
+    };
+    const response = await fetch(`${started.baseUrl}/api/mcp/call`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ server, toolName: 'long_task', args: {} }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(callTool).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'slowish', timeout: 300, longRunning: true }),
+      'long_task',
+      {},
+    );
+  });
+});

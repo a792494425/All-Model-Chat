@@ -92,9 +92,11 @@ describe('SettingsModal', () => {
       ['About'],
     ]);
 
-    const groupElements = document.querySelectorAll('[data-settings-group]');
-    for (const group of groupElements) {
-      expect(group.className).not.toContain('border-t');
+    const groupElements = Array.from(document.querySelectorAll('[data-settings-group]'));
+    // First group sits flush; later groups carry a hairline divider above them.
+    expect(groupElements[0]?.className).not.toContain('border-t');
+    for (const group of groupElements.slice(1)) {
+      expect(group.className).toContain('md:border-t');
     }
   });
 

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { AttachmentMenu } from './AttachmentMenu';
 import { ToolsMenu } from './ToolsMenu';
+import { McpPickerMenu } from './toolbar/McpPickerMenu';
 import { IconNewChat } from '@/components/icons';
 import { CHAT_INPUT_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { useI18n } from '@/contexts/I18nContext';
@@ -162,6 +163,8 @@ const ChatInputActionsComponent: React.FC = () => {
           toolUtilityActions={toolUtilityActions}
           disabled={disabled}
         />
+
+        <McpPickerMenu disabled={disabled} />
       </div>
 
       <div

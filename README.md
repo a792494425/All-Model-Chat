@@ -80,7 +80,7 @@
 
 ### 深度推理 (Thinking)
 
-- 支持 Gemini 3.0 / 3.1 / 2.5 系列模型的思维链可视化
+- 支持 Gemini 3.x 系列模型的思维链可视化
 - 可设置 **Token 预算** 或 **推理等级** (Minimal / Low / Medium / High)
 - 实时查看 AI 的逻辑演算过程
 
@@ -127,7 +127,7 @@
 
 ### 多语言界面
 
-- 支持中文 / 英文 / 跟随系统三种语言设置
+- 支持英文 / 中文 / 日文 / 韩文 / 西班牙文 / 法文 / 德文共七种界面语言，并可跟随系统自动切换
 - 覆盖所有 UI 组件（聊天、设置、侧边栏、快捷键等）
 
 ### PWA 支持
@@ -442,7 +442,7 @@ AMC-WebUI/
 │   ├── services/               # API、IndexedDB、日志、对象 URL 等基础设施
 │   ├── stores/                 # Zustand 状态（chat / settings / ui）
 │   ├── utils/                  # 领域子目录工具（model / file / live-artifacts / export / chat 等）
-│   ├── i18n/                   # 翻译聚合、覆盖率测试与中英文文案
+│   ├── i18n/                   # 翻译聚合、覆盖率测试与多语言文案
 │   ├── pwa/                    # Service Worker、PWA 注册与安装状态
 │   ├── runtime/                # 运行时配置读取与公开配置映射
 │   ├── schemas/                # Zod 配置 schema
@@ -478,13 +478,13 @@ AMC-WebUI/
 
 OpenAI 兼容模式使用独立模型列表，可在设置中手动维护或从兼容端点拉取；下表列出应用内置的 Gemini 原生默认模型。
 
-| 类型           | 模型                                                                                                             |
-| :------------- | :--------------------------------------------------------------------------------------------------------------- |
-| **Gemini 3.x** | gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash-lite, gemini-3.1-flash-live-preview, gemini-3.1-pro-preview |
-| **Robotics**   | gemini-robotics-er-2-preview                                                                                     |
-| **Gemma 4**    | gemma-4-31b-it, gemma-4-26b-a4b-it                                                                               |
-| **图片生成**   | gemini-3-pro-image-preview, gemini-3.1-flash-image-preview, gemini-3.1-flash-lite-image                          |
-| **TTS**        | gemini-3.1-flash-tts-preview (30 种语音)                                                                         |
+| 类型           | 模型                                                                                                                              |
+| :------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| **Gemini 3.x** | gemini-3.7-flash, gemini-3.5-flash-lite, gemini-3.1-flash-live-preview, gemini-3.5-live-translate-preview, gemini-3.1-pro-preview |
+| **Robotics**   | gemini-robotics-er-2-preview                                                                                                      |
+| **Gemma 4**    | gemma-4-31b-it, gemma-4-26b-a4b-it                                                                                                |
+| **图片生成**   | gemini-3-pro-image-preview, gemini-3.1-flash-image-preview, gemini-3.1-flash-lite-image                                           |
+| **TTS**        | gemini-3.1-flash-tts-preview (30 种语音)                                                                                          |
 
 ---
 

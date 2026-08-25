@@ -1,19 +1,22 @@
 import React, { useCallback, useDeferredValue, useEffect, useRef, useState } from 'react';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { Plus, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, ChevronUp, Copy, ExternalLink, Plus, RefreshCw, SearchX, Server, ShieldAlert, ShieldCheck, Store, Trash2 } from 'lucide-react';
 import type { AppSettings, McpServerAuthType, McpServerConfig, McpServerTransport } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { Toggle } from '@/components/shared/Toggle';
+import { Select } from '@/components/shared/Select';
 import { SETTINGS_OUTLINE_BUTTON_CLASS, SMALL_ICON_DANGER_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { fetchMcpServerCapabilities, type McpServerCapabilities } from '@/services/api/mcpApi';
+import { McpImportError, dedupeServersById, parseImportJson } from '@/features/mcp/importMcpServers';
 import { interpolate } from '@/i18n/interpolate';
 import { useMcpStatusStore } from '@/stores/mcpStatusStore';
 import { deriveStatus } from '@/features/mcp/mcpStatus';
 import { McpLogsTab } from './McpLogsTab';
 import { McpPromptsTab } from './McpPromptsTab';
 import { McpResourcesTab } from './McpResourcesTab';
+import { McpToolSchemaView } from './mcp/McpToolSchemaView';
 
 interface McpSectionProps {
   settings: AppSettings;
@@ -22,6 +25,25 @@ interface McpSectionProps {
 
 const inputBaseClasses =
   'w-full rounded-lg border p-2.5 text-sm transition-all duration-200 focus:ring-2 focus:ring-offset-0';
+
+/** Small uppercase heading that partitions the expanded server form into scannable groups. */
+const SettingsGroupLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+    {children}
+  </div>
+);
+
+/** Curated external registries (pure links, mirroring Cherry Studio's market grid). */
+const MCP_MARKETPLACES = [
+  { name: 'mcp.so', url: 'https://mcp.so/' },
+  { name: 'smithery.ai', url: 'https://smithery.ai/' },
+  { name: 'glama.ai', url: 'https://glama.ai/mcp/servers' },
+  { name: 'PulseMCP', url: 'https://pulsemcp.com/' },
+  { name: 'ModelScope', url: 'https://www.modelscope.cn/mcp' },
+  { name: 'Higress', url: 'https://mcp.higress.ai/' },
+  { name: 'MCP World', url: 'https://www.mcpworld.com' },
+  { name: 'Official Registry', url: 'https://github.com/modelcontextprotocol/servers' },
+];
 
 type CapabilityTestState =
   | { status: 'loading' }
@@ -77,6 +99,27 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
   const servers = settings.mcpServers ?? [];
   const [filter, setFilter] = useState<'all' | 'enabled' | 'disabled' | 'http' | 'sse' | 'stdio'>('all');
   const [search, setSearch] = useState('');
+  const [schemaToolNames, setSchemaToolNames] = useState<Set<string>>(new Set());
+  const [pendingTrustIndex, setPendingTrustIndex] = useState<number | null>(null);
+  const [showMarketplaces, setShowMarketplaces] = useState(false);
+  // Server cards collapse to a one-line summary by default; editing and the
+  // capability tabs live behind the expand chevron to keep the list scannable.
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(() => new Set());
+  const [copiedCardKey, setCopiedCardKey] = useState<string | null>(null);
+  const toggleCardExpanded = useCallback((key: string) => {
+    setExpandedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }, []);
+  const expandCard = useCallback((key: string) => {
+    setExpandedCards((prev) => (prev.has(key) ? prev : new Set(prev).add(key)));
+  }, []);
   const deferredSearch = useDeferredValue(search);
   const [sortOrder, setSortOrder] = useState<string[]>(() => servers.map((s) => s.id));
   const serverIdsKey = servers.map((s) => s.id).join(',');
@@ -158,6 +201,14 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
     updateServers(servers.filter((_, index) => index !== serverIndex));
     setCardKeys((keys) => keys.filter((_, index) => index !== serverIndex));
     if (removedCardKey !== undefined) {
+      setExpandedCards((prev) => {
+        if (!prev.has(removedCardKey)) {
+          return prev;
+        }
+        const next = new Set(prev);
+        next.delete(removedCardKey);
+        return next;
+      });
       setCapabilityStates((prev) => {
         if (!(removedCardKey in prev)) {
           return prev;
@@ -170,93 +221,54 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
   };
 
   const addServer = () => {
+    const key = createCardKey();
     updateServers([...servers, createMcpServer(t('settingsMcpNewServer'))]);
-    setCardKeys((keys) => [...keys, createCardKey()]);
+    setCardKeys((keys) => [...keys, key]);
+    // New servers expand immediately so the user lands in the edit form.
+    expandCard(key);
   };
 
   const [importJson, setImportJson] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
 
-  const normalizeImportedServer = (raw: Record<string, unknown>, fallbackName?: string): McpServerConfig | null => {
-    const url = typeof raw.url === 'string' ? raw.url.trim() : typeof raw.baseUrl === 'string' ? raw.baseUrl.trim() : '';
-    const command = typeof raw.command === 'string' ? raw.command.trim() : '';
-    if (!url && !command) return null;
-    const isStdio = !!command || raw.transport === 'stdio' || raw.type === 'stdio';
-    const transport: McpServerTransport = isStdio ? 'stdio' : raw.transport === 'sse' || raw.type === 'sse' ? 'sse' : 'http';
-    const idRaw = typeof raw.id === 'string' ? raw.id.trim() : typeof raw.name === 'string' ? raw.name.trim() : '';
-    const id = idRaw || `mcp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    const name = (typeof raw.name === 'string' && raw.name.trim()) || fallbackName || id;
-    if (transport === 'stdio') {
-      return {
-        id,
-        name,
-        enabled: raw.enabled !== false,
-        transport,
-        command: command || (typeof raw.command === 'string' ? raw.command : 'npx'),
-        args: Array.isArray(raw.args) ? (raw.args.filter((x) => typeof x === 'string') as string[]) : [],
-        env: raw.env && typeof raw.env === 'object' ? (raw.env as Record<string, string>) : {},
-      };
-    }
-    return {
-      id,
-      name,
-      enabled: raw.enabled !== false,
-      transport,
-      url: url || (typeof raw.url === 'string' ? raw.url : ''),
-      headers: raw.headers && typeof raw.headers === 'object' ? (raw.headers as Record<string, string>) : {},
-      auth: raw.auth && typeof (raw.auth as Record<string, unknown>).type === 'string' ? (raw.auth as McpServerConfig['auth']) : { type: 'none' },
-    };
+  const importErrorFromCode = (error: unknown): string => {
+    const code = error instanceof McpImportError ? error.code : null;
+    if (code === 'empty') return t('settingsMcpImportEmptyJson');
+    if (code === 'notObject') return t('settingsMcpImportNotObject');
+    return t('settingsMcpImportUnrecognized');
   };
 
-  const parseImportJson = (text: string): McpServerConfig[] => {
-    const stripped = text
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .split('\n')
-      .map((line) => line.replace(/^\s*\/\/.*$/, ''))
-      .join('\n')
-      .trim();
-    if (!stripped) throw new Error('请先粘贴 JSON');
-    const parsed = JSON.parse(stripped) as unknown;
-    if (!parsed || typeof parsed !== 'object') throw new Error('JSON 顶层必须是对象');
-    const obj = parsed as Record<string, unknown>;
-    if (Array.isArray(parsed)) return (parsed as Record<string, unknown>[]).map((r) => normalizeImportedServer(r)).filter(Boolean) as McpServerConfig[];
-    if (Array.isArray(obj.servers)) return (obj.servers as Record<string, unknown>[]).map((r) => normalizeImportedServer(r)).filter(Boolean) as McpServerConfig[];
-    if (Array.isArray(obj.mcpServers)) return (obj.mcpServers as Record<string, unknown>[]).map((r) => normalizeImportedServer(r)).filter(Boolean) as McpServerConfig[];
-    if (obj.mcpServers && typeof obj.mcpServers === 'object' && !Array.isArray(obj.mcpServers)) {
-      return Object.entries(obj.mcpServers as Record<string, unknown>).map(([key, val]) =>
-        normalizeImportedServer((val as Record<string, unknown>) ?? {}, key),
-      ).filter(Boolean) as McpServerConfig[];
+  const parseJsonToServers = (text: string): McpServerConfig[] => {
+    try {
+      return parseImportJson(text);
+    } catch (error) {
+      if (error instanceof McpImportError) throw new Error(importErrorFromCode(error));
+      throw error;
     }
-    if (obj.url || obj.command || obj.transport || obj.type) {
-      const one = normalizeImportedServer(obj);
-      return one ? [one] : [];
-    }
-    throw new Error('无法识别的 JSON 格式，支持 {mcpServers:{name:{url}}} / {mcpServers:[...]} / {servers:[...]} / 单个 {url}');
   };
 
   const handleImportJson = () => {
     try {
-      const imported = parseImportJson(importJson);
-      if (imported.length === 0) throw new Error('未解析到任何服务器');
-      const existingIds = new Set(servers.map((s) => s.id));
-      const deduped = imported.map((s) => {
-        let nextId = s.id;
-        let n = 2;
-        while (existingIds.has(nextId)) {
-          nextId = `${s.id}__${n}`;
-          n += 1;
-        }
-        existingIds.add(nextId);
-        return nextId === s.id ? s : { ...s, id: nextId };
-      });
+      const imported = parseJsonToServers(importJson);
+      if (imported.length === 0) throw new Error(t('settingsMcpImportNoneParsed'));
+      const deduped = dedupeServersById(
+        imported,
+        servers.map((s) => s.id),
+      );
+      const newKeys = deduped.map(() => createCardKey());
       updateServers([...servers, ...deduped]);
-      setCardKeys((keys) => [...keys, ...deduped.map(() => createCardKey())]);
+      setCardKeys((keys) => [...keys, ...newKeys]);
+      if (newKeys[0] !== undefined) {
+        expandCard(newKeys[0]);
+      }
       setImportJson('');
       setImportError(null);
       setShowImport(false);
-    } catch (e) {
-      setImportError(getErrorMessage(e));
+      // Imported servers arrive disabled by default; the trust dialog fires
+      // when the user enables them, which then auto-probes capabilities.
+    } catch (importError) {
+      setImportError(getErrorMessage(importError));
     }
   };
 
@@ -271,11 +283,13 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
       auth: { type: 'none' },
     };
     if (servers.some((s) => s.id === preset.id || s.url === preset.url)) {
-      setImportError('已存在相同 id 或 URL 的服务器');
+      setImportError(t('settingsMcpImportDuplicate'));
       return;
     }
     updateServers([...servers, preset]);
-    setCardKeys((keys) => [...keys, createCardKey()]);
+    const key = createCardKey();
+    setCardKeys((keys) => [...keys, key]);
+    expandCard(key);
     setImportError(null);
   };
 
@@ -346,17 +360,36 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
 
       <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`}>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={handleImportBrowserBridge} className={`${SETTINGS_OUTLINE_BUTTON_CLASS} bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] hover:opacity-90`}>
-            一键导入 Browser Bridge
+          <button
+            type="button"
+            onClick={handleImportBrowserBridge}
+            className={`${SETTINGS_OUTLINE_BUTTON_CLASS} bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] hover:opacity-90`}
+          >
+            {t('settingsMcpImportBrowserBridge')}
           </button>
           <button
             type="button"
             onClick={() => setShowImport((v) => !v)}
+            aria-expanded={showImport}
+            title={t('settingsMcpImportHint')}
             className={`${SETTINGS_OUTLINE_BUTTON_CLASS} ${showImport ? 'bg-[var(--theme-bg-tertiary)]' : ''}`}
           >
-            从 JSON 导入 {showImport ? '▴' : '▾'}
+            {t('settingsMcpImportJson')}
+            {showImport ? (
+              <ChevronUp size={14} strokeWidth={1.7} className="text-[var(--theme-text-tertiary)]" aria-hidden />
+            ) : (
+              <ChevronDown size={14} strokeWidth={1.7} className="text-[var(--theme-text-tertiary)]" aria-hidden />
+            )}
           </button>
-          <span className="text-xs text-[var(--theme-text-tertiary)]">支持 Cherry/Claude 的 mcpServers 格式，粘贴即导入</span>
+          <button
+            type="button"
+            onClick={() => setShowMarketplaces((v) => !v)}
+            className={SETTINGS_OUTLINE_BUTTON_CLASS}
+            aria-expanded={showMarketplaces}
+          >
+            <Store size={13} strokeWidth={1.7} />
+            {t('settingsMcpMarketplaces')}
+          </button>
         </div>
         {showImport && (
           <div className="space-y-2">
@@ -367,25 +400,52 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
               className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} min-h-[140px] resize-y font-mono text-xs`}
               spellCheck={false}
             />
-            {importError && <div className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-600">{importError}</div>}
+            {importError && (
+              <div className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-600">{importError}</div>
+            )}
             <div className="flex gap-2">
               <button type="button" onClick={handleImportJson} className={SETTINGS_OUTLINE_BUTTON_CLASS}>
-                导入
+                {t('settingsMcpImportConfirm')}
               </button>
-              <button type="button" onClick={() => { setShowImport(false); setImportError(null); }} className={`${SETTINGS_OUTLINE_BUTTON_CLASS} opacity-60`}>
-                取消
+              <button
+                type="button"
+                onClick={() => {
+                  setShowImport(false);
+                  setImportError(null);
+                }}
+                className={`${SETTINGS_OUTLINE_BUTTON_CLASS} opacity-60`}
+              >
+                {t('settingsMcpImportCancel')}
               </button>
             </div>
+          </div>
+        )}
+        {showMarketplaces && (
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3" data-testid="mcp-marketplace-grid">
+            {MCP_MARKETPLACES.map((market) => (
+              <a
+                key={market.url}
+                href={market.url}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="flex items-center justify-between gap-2 rounded-lg border border-[var(--theme-border-secondary)] px-2.5 py-1.5 text-xs hover:bg-[var(--theme-bg-tertiary)]"
+              >
+                <span className="truncate">{market.name}</span>
+                <ExternalLink size={12} strokeWidth={1.7} className="shrink-0 text-[var(--theme-text-tertiary)]" />
+              </a>
+            ))}
           </div>
         )}
       </div>
 
       <div className="flex gap-2">
-        <select
-          aria-label="MCP filter"
+        <Select
+          id="mcp-filter-select"
+          label={t('settingsMcpFilterAria')}
+          hideLabel
           value={filter}
-          onChange={(e) => setFilter(e.target.value as any)}
-          className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} w-auto`}
+          onChange={(e) => setFilter(e.target.value as typeof filter)}
+          wrapperClassName="w-36 shrink-0 sm:w-40"
         >
           <option value="all">{t('settingsMcpFilterAll')}</option>
           <option value="enabled">{t('settingsMcpFilterEnabled')}</option>
@@ -393,7 +453,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
           <option value="http">{t('settingsMcpFilterHttp')}</option>
           <option value="sse">{t('settingsMcpFilterSse')}</option>
           <option value="stdio">{t('settingsMcpFilterStdio')}</option>
-        </select>
+        </Select>
         <input
           placeholder={t('settingsMcpSearchPlaceholder')}
           value={search}
@@ -403,21 +463,27 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
       </div>
 
       {servers.length === 0 ? (
-        <div className={`${SETTINGS_SECTION_CARD_CLASS} border-dashed text-sm text-[var(--theme-text-secondary)]`}>
-          {t('settingsMcpEmpty')}
+        <div
+          className={`${SETTINGS_SECTION_CARD_CLASS} flex flex-col items-center justify-center gap-2 border-dashed py-10 text-center text-sm text-[var(--theme-text-secondary)]`}
+        >
+          <Server size={28} strokeWidth={1.5} className="opacity-40" aria-hidden />
+          <span>{t('settingsMcpEmpty')}</span>
         </div>
       ) : filteredAndSorted.length === 0 ? (
-        <div className={`${SETTINGS_SECTION_CARD_CLASS} border-dashed text-sm text-[var(--theme-text-secondary)]`}>
-          <div>{t('settingsMcpEmptyFiltered') === 'settingsMcpEmptyFiltered' ? 'No servers match your filters.' : t('settingsMcpEmptyFiltered')}</div>
+        <div
+          className={`${SETTINGS_SECTION_CARD_CLASS} flex flex-col items-center justify-center gap-2 border-dashed py-10 text-center text-sm text-[var(--theme-text-secondary)]`}
+        >
+          <SearchX size={28} strokeWidth={1.5} className="opacity-40" aria-hidden />
+          <span>{t('settingsMcpEmptyFiltered')}</span>
           <button
             type="button"
             onClick={() => {
               setFilter('all');
               setSearch('');
             }}
-            className={`${SETTINGS_OUTLINE_BUTTON_CLASS} mt-2`}
+            className={`${SETTINGS_OUTLINE_BUTTON_CLASS} mt-1`}
           >
-            {t('settingsMcpClearFilters') === 'settingsMcpClearFilters' ? 'Clear filters' : t('settingsMcpClearFilters')}
+            {t('settingsMcpClearFilters')}
           </button>
         </div>
       ) : (
@@ -425,7 +491,10 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
           {filteredAndSorted.map((server) => {
             const origIndex = servers.indexOf(server);
             const fallbackIndex = origIndex !== -1 ? origIndex : 0;
-            const stateKey = origIndex !== -1 ? (cardKeys[origIndex] ?? `mcp-card-fallback-${origIndex}`) : `mcp-card-fallback-${server.id}`;
+            const stateKey =
+              origIndex !== -1
+                ? (cardKeys[origIndex] ?? `mcp-card-fallback-${origIndex}`)
+                : `mcp-card-fallback-${server.id}`;
             const index = origIndex !== -1 ? origIndex : fallbackIndex;
             const capabilityState = capabilityStates[stateKey];
             const capabilities = capabilityState?.status === 'success' ? capabilityState.capabilities : undefined;
@@ -436,7 +505,11 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
               state: server.enabled ? 'connecting' : 'disabled',
               lastError: undefined,
               lastCheckedAt: 0,
-            }) as typeof storeStatus & { state: 'connected' | 'connecting' | 'error' | 'disabled'; lastError?: string; version?: string };
+            }) as typeof storeStatus & {
+              state: 'connected' | 'connecting' | 'error' | 'disabled';
+              lastError?: string;
+              version?: string;
+            };
             const dotClass =
               status.state === 'connected'
                 ? 'bg-emerald-500'
@@ -447,10 +520,10 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                     : 'bg-zinc-400';
             const pillClass =
               status.state === 'connected'
-                ? 'bg-emerald-500/10 text-emerald-700'
+                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
                 : status.state === 'error'
-                  ? 'bg-red-500/10 text-red-700'
-                  : 'bg-zinc-100 text-zinc-600';
+                  ? 'bg-red-500/10 text-red-700 dark:text-red-400'
+                  : 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)]';
             const pillLabel =
               status.state === 'connected'
                 ? t('settingsMcpStatusConnected')
@@ -462,10 +535,15 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
             const typeLabel = server.transport === 'stdio' ? 'STDIO' : server.transport === 'sse' ? 'SSE' : 'HTTP';
             const typeBadgeClass =
               server.transport === 'stdio'
-                ? 'bg-zinc-100 text-zinc-700'
+                ? 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)]'
                 : server.transport === 'sse'
-                  ? 'bg-amber-500/10 text-amber-700'
-                  : 'bg-sky-500/10 text-sky-700';
+                  ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                  : 'bg-sky-500/10 text-sky-700 dark:text-sky-400';
+            const isExpanded = expandedCards.has(stateKey);
+            const summaryText =
+              server.transport === 'stdio'
+                ? [server.command ?? '', ...(server.args ?? [])].filter(Boolean).join(' ')
+                : (server.url ?? '');
 
             return (
               <section
@@ -475,74 +553,74 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
               >
                 <div
                   data-mcp-server-card-header
-                  className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div className="flex min-w-0 items-center gap-2">
+                  <button
+                    type="button"
+                    data-testid={`mcp-card-expand-${index}`}
+                    aria-expanded={isExpanded}
+                    title={t('settingsMcpToggleExpand')}
+                    onClick={() => toggleCardExpanded(stateKey)}
+                    className="flex min-w-0 flex-1 items-center gap-2 rounded-md text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-text-link)]"
+                  >
+                    {isExpanded ? (
+                      <ChevronDown
+                        size={15}
+                        strokeWidth={1.7}
+                        className="shrink-0 text-[var(--theme-text-tertiary)]"
+                        aria-hidden
+                      />
+                    ) : (
+                      <ChevronRight
+                        size={15}
+                        strokeWidth={1.7}
+                        className="shrink-0 text-[var(--theme-text-tertiary)]"
+                        aria-hidden
+                      />
+                    )}
                     <span
                       data-testid={`mcp-status-dot-${server.id}`}
                       data-state={status.state}
-                      className={`inline-block h-2 w-2 rounded-full ${dotClass}`}
-                      title={status.lastError ?? ''}
+                      className={`inline-block h-2 w-2 shrink-0 rounded-full ${dotClass}`}
+                      title={[pillLabel, status.lastError].filter(Boolean).join(' — ')}
                     />
                     <span className="min-w-0 truncate text-sm font-medium text-[var(--theme-text-primary)]">
                       {server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}
                     </span>
-                    <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${typeBadgeClass}`}>{typeLabel}</span>
-                    <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-medium ${pillClass}`}>{pillLabel}</span>
+                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium ${typeBadgeClass}`}>
+                      {typeLabel}
+                    </span>
+                    {status.state !== 'disabled' && (
+                      <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[11px] font-medium ${pillClass}`}>
+                        {pillLabel}
+                      </span>
+                    )}
                     {status.version ? (
-                      <span className="text-[11px] text-[var(--theme-text-tertiary)]">v{status.version}</span>
+                      <span className="shrink-0 text-[11px] text-[var(--theme-text-tertiary)]">v{status.version}</span>
                     ) : null}
-                  </div>
+                  </button>
                   <div
                     data-mcp-server-card-actions
+                    data-testid={`mcp-card-actions-${index}`}
                     className="flex shrink-0 items-center gap-2 self-start sm:self-auto"
                   >
                     <Toggle
                       checked={server.enabled}
                       onChange={(enabled) => {
                         if (enabled && server.isTrusted === false) {
-                          const ok = window.confirm(t('settingsMcpTrustConfirm'));
-                          if (!ok) return;
-                          updateServer(index, { enabled: true, isTrusted: true });
+                          setPendingTrustIndex(index);
                           return;
                         }
-                        if (enabled && server.isTrusted === undefined) {
-                          updateServer(index, { enabled: true, isTrusted: true });
+                        if (enabled) {
+                          const next = { ...server, enabled: true, ...(server.isTrusted === undefined ? { isTrusted: true } : {}) };
+                          updateServer(index, next);
+                          void testServerCapabilities(next as McpServerConfig, stateKey);
                           return;
                         }
                         updateServer(index, { enabled });
                       }}
                       ariaLabel={server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}
                     />
-                    <button
-                      type="button"
-                      aria-label={`Move ${server.id} up`}
-                      onClick={() => moveServer(server.id, -1)}
-                      className={SETTINGS_OUTLINE_BUTTON_CLASS}
-                    >
-                      {t('settingsMcpMoveUp')}
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={`Move ${server.id} down`}
-                      onClick={() => moveServer(server.id, 1)}
-                      className={SETTINGS_OUTLINE_BUTTON_CLASS}
-                    >
-                      {t('settingsMcpMoveDown')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => testServerCapabilities(server, stateKey)}
-                      disabled={capabilityState?.status === 'loading'}
-                      className={`${SETTINGS_OUTLINE_BUTTON_CLASS} shrink-0 whitespace-nowrap`}
-                    >
-                      <RefreshCw
-                        size={13}
-                        strokeWidth={1.7}
-                        className={capabilityState?.status === 'loading' ? 'animate-spin' : undefined}
-                      />
-                      {capabilityState?.status === 'loading' ? t('settingsMcpTesting') : t('settingsMcpTestServer')}
-                    </button>
                     <button
                       type="button"
                       onClick={() => removeServer(index)}
@@ -554,131 +632,238 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="space-y-2">
-                    <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpServerName')}</span>
-                    <input
-                      value={server.name}
-                      onChange={(event) => updateServer(index, { name: event.target.value })}
-                      className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS}`}
-                    />
-                  </label>
-
-                  <label className="space-y-2">
-                    <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpServerId')}</span>
-                    <input
-                      value={server.id}
-                      onChange={(event) => updateServer(index, { id: event.target.value.trim() })}
-                      className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} font-mono`}
-                    />
-                  </label>
-
-                  <label className="space-y-2" data-settings-item={index === 0 ? 'mcp-transport' : undefined}>
-                    <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpTransport')}</span>
-                    <select
-                      value={server.transport}
-                      onChange={(event) =>
-                        handleTransportChange(index, server, event.target.value as McpServerTransport)
-                      }
-                      className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS}`}
-                    >
-                      <option value="stdio">{t('settingsMcpTransportStdio')}</option>
-                      <option value="http">{t('settingsMcpTransportHttp')}</option>
-                      <option value="sse">{t('settingsMcpTransportSse')}</option>
-                    </select>
-                  </label>
-
-                  {server.transport === 'stdio' ? (
-                    <label className="space-y-2">
-                      <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpCommand')}</span>
-                      <input
-                        value={server.command ?? ''}
-                        onChange={(event) => updateServer(index, { command: event.target.value })}
-                        className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} font-mono`}
-                        placeholder="npx"
-                      />
-                    </label>
-                  ) : (
-                    <label className="space-y-2">
-                      <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpUrl')}</span>
-                      <input
-                        value={server.url ?? ''}
-                        onChange={(event) => updateServer(index, { url: event.target.value })}
-                        className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} font-mono`}
-                        placeholder={server.transport === 'sse' ? 'https://example.com/sse' : 'https://example.com/mcp'}
-                      />
-                    </label>
-                  )}
-                </div>
-
-                {server.transport === 'stdio' ? (
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <label className="space-y-2">
-                      <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpArgs')}</span>
-                      <textarea
-                        value={formatLines(server.args)}
-                        onChange={(event) => updateServer(index, { args: parseLines(event.target.value) })}
-                        className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} min-h-[96px] resize-y font-mono`}
-                        placeholder="-y&#10;@modelcontextprotocol/server-filesystem&#10;/Users/me"
-                        spellCheck={false}
-                      />
-                    </label>
-                    <label className="space-y-2">
-                      <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpEnv')}</span>
-                      <textarea
-                        value={formatRecord(server.env)}
-                        onChange={(event) => updateServer(index, { env: parseRecord(event.target.value) })}
-                        className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} min-h-[96px] resize-y font-mono`}
-                        placeholder="TOKEN=value"
-                        spellCheck={false}
-                      />
-                    </label>
-                  </div>
-                ) : (
-                  <div className="mt-4 space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="space-y-2">
-                        <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpAuth')}</span>
-                        <select
-                          value={server.auth?.type ?? 'none'}
-                          onChange={(event) => handleAuthTypeChange(index, event.target.value as McpServerAuthType)}
-                          className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS}`}
-                        >
-                          <option value="none">{t('settingsMcpAuthNone')}</option>
-                          <option value="bearer">{t('settingsMcpAuthBearer')}</option>
-                          <option value="customHeaders">{t('settingsMcpAuthCustomHeaders')}</option>
-                        </select>
-                      </label>
-                      {server.auth?.type === 'bearer' && (
-                        <label className="space-y-2">
-                          <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpBearerToken')}</span>
-                          <input
-                            type="password"
-                            value={server.auth.token ?? ''}
-                            onChange={(event) =>
-                              updateServer(index, { auth: { type: 'bearer', token: event.target.value } })
-                            }
-                            className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} font-mono`}
-                            placeholder="mcp_token"
-                          />
-                        </label>
-                      )}
-                    </div>
-                    <label className="block space-y-2">
-                      <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpHeaders')}</span>
-                      <textarea
-                        value={formatRecord(server.headers)}
-                        onChange={(event) => updateServer(index, { headers: parseRecord(event.target.value) })}
-                        className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} min-h-[96px] resize-y font-mono`}
-                        placeholder="X-Workspace=docs"
-                        spellCheck={false}
-                      />
-                    </label>
+                {!isExpanded && (
+                  <div className="mt-1.5 flex min-w-0 items-center gap-2 pl-6 text-xs text-[var(--theme-text-tertiary)]">
+                    <span className="min-w-0 truncate font-mono">{summaryText}</span>
+                    {status.state === 'error' && status.lastError ? (
+                      <span className="ml-auto min-w-0 truncate text-[var(--theme-text-danger)]">
+                        {status.lastError}
+                      </span>
+                    ) : null}
                   </div>
                 )}
 
+                {isExpanded && (
+                  <div
+                    className="mt-4 space-y-5"
+                    data-mcp-server-card-detail
+                    data-testid={`mcp-card-detail-${index}`}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        aria-label={`${t('settingsMcpMoveUp')} - ${server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}`}
+                        onClick={() => moveServer(server.id, -1)}
+                        className={SETTINGS_OUTLINE_BUTTON_CLASS}
+                      >
+                        {t('settingsMcpMoveUp')}
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`${t('settingsMcpMoveDown')} - ${server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}`}
+                        onClick={() => moveServer(server.id, 1)}
+                        className={SETTINGS_OUTLINE_BUTTON_CLASS}
+                      >
+                        {t('settingsMcpMoveDown')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => testServerCapabilities(server, stateKey)}
+                        disabled={capabilityState?.status === 'loading'}
+                        className={`${SETTINGS_OUTLINE_BUTTON_CLASS} shrink-0 whitespace-nowrap`}
+                      >
+                        <RefreshCw
+                          size={13}
+                          strokeWidth={1.7}
+                          className={capabilityState?.status === 'loading' ? 'animate-spin' : undefined}
+                        />
+                        {capabilityState?.status === 'loading' ? t('settingsMcpTesting') : t('settingsMcpTestServer')}
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      <SettingsGroupLabel>{t('settingsMcpGroupConnection')}</SettingsGroupLabel>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <label className="space-y-2">
+                          <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpServerName')}</span>
+                          <input
+                            value={server.name}
+                            onChange={(event) => updateServer(index, { name: event.target.value })}
+                            className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS}`}
+                          />
+                        </label>
+
+                        <div className="space-y-2" data-settings-item={index === 0 ? 'mcp-transport' : undefined}>
+                          <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpTransport')}</span>
+                          <Select
+                            label={t('settingsMcpTransport')}
+                            hideLabel
+                            value={server.transport}
+                            onChange={(event) =>
+                              handleTransportChange(index, server, event.target.value as McpServerTransport)
+                            }
+                          >
+                            <option value="stdio">{t('settingsMcpTransportStdio')}</option>
+                            <option value="http">{t('settingsMcpTransportHttp')}</option>
+                            <option value="sse">{t('settingsMcpTransportSse')}</option>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {server.transport === 'stdio' ? (
+                          <label className="space-y-2">
+                            <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpCommand')}</span>
+                            <input
+                              value={server.command ?? ''}
+                              onChange={(event) => updateServer(index, { command: event.target.value })}
+                              className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} font-mono`}
+                              placeholder="npx"
+                            />
+                          </label>
+                        ) : (
+                          <label className="space-y-2 sm:col-span-2">
+                            <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpUrl')}</span>
+                            <input
+                              value={server.url ?? ''}
+                              onChange={(event) => updateServer(index, { url: event.target.value })}
+                              className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} font-mono`}
+                              placeholder={server.transport === 'sse' ? 'https://example.com/sse' : 'https://example.com/mcp'}
+                            />
+                          </label>
+                        )}
+                      </div>
+
+                      {server.transport === 'stdio' && (
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <label className="space-y-2">
+                            <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpArgs')}</span>
+                            <textarea
+                              value={formatLines(server.args)}
+                              onChange={(event) => updateServer(index, { args: parseLines(event.target.value) })}
+                              className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} min-h-[96px] resize-y font-mono`}
+                              placeholder="-y&#10;@modelcontextprotocol/server-filesystem&#10;/Users/me"
+                              spellCheck={false}
+                            />
+                          </label>
+                          <label className="space-y-2">
+                            <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpEnv')}</span>
+                            <textarea
+                              value={formatRecord(server.env)}
+                              onChange={(event) => updateServer(index, { env: parseRecord(event.target.value) })}
+                              className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} min-h-[96px] resize-y font-mono`}
+                              placeholder="TOKEN=value"
+                              spellCheck={false}
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+
+                    {server.transport !== 'stdio' && (
+                      <div className="space-y-3">
+                        <SettingsGroupLabel>{t('settingsMcpGroupAuth')}</SettingsGroupLabel>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="space-y-2">
+                            <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpAuth')}</span>
+                            <Select
+                              label={t('settingsMcpAuth')}
+                              hideLabel
+                              value={server.auth?.type ?? 'none'}
+                              onChange={(event) => handleAuthTypeChange(index, event.target.value as McpServerAuthType)}
+                            >
+                              <option value="none">{t('settingsMcpAuthNone')}</option>
+                              <option value="bearer">{t('settingsMcpAuthBearer')}</option>
+                              <option value="customHeaders">{t('settingsMcpAuthCustomHeaders')}</option>
+                            </Select>
+                          </div>
+                          {server.auth?.type === 'bearer' && (
+                            <label className="space-y-2">
+                              <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpBearerToken')}</span>
+                              <input
+                                type="password"
+                                value={server.auth.token ?? ''}
+                                onChange={(event) =>
+                                  updateServer(index, { auth: { type: 'bearer', token: event.target.value } })
+                                }
+                                className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} font-mono`}
+                                placeholder="mcp_token"
+                              />
+                            </label>
+                          )}
+                        </div>
+                        <label className="block space-y-2">
+                          <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpHeaders')}</span>
+                          <textarea
+                            value={formatRecord(server.headers)}
+                            onChange={(event) => updateServer(index, { headers: parseRecord(event.target.value) })}
+                            className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} min-h-[96px] resize-y font-mono`}
+                            placeholder="X-Workspace=docs"
+                            spellCheck={false}
+                          />
+                        </label>
+                      </div>
+                    )}
+
+                    <div className="space-y-3">
+                      <SettingsGroupLabel>{t('settingsMcpGroupAdvanced')}</SettingsGroupLabel>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpServerId')}</span>
+                          <div className="flex items-center gap-2">
+                            <input
+                              readOnly
+                              value={server.id}
+                              aria-label={t('settingsMcpServerId')}
+                              className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} flex-1 font-mono opacity-70`}
+                            />
+                            <button
+                              type="button"
+                              data-testid={`mcp-copy-id-${index}`}
+                              aria-label={t('settingsMcpCopyId')}
+                              title={copiedCardKey === stateKey ? t('settingsMcpIdCopied') : t('settingsMcpCopyId')}
+                              onClick={() => {
+                                void navigator.clipboard?.writeText(server.id);
+                                setCopiedCardKey(stateKey);
+                              }}
+                              className={SETTINGS_OUTLINE_BUTTON_CLASS}
+                            >
+                              {copiedCardKey === stateKey ? (
+                                <Check size={14} strokeWidth={1.7} />
+                              ) : (
+                                <Copy size={14} strokeWidth={1.7} />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        <label className="space-y-2">
+                          <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpTimeoutLabel')}</span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={3600}
+                            value={server.timeout ?? ''}
+                            onChange={(event) => {
+                              const raw = event.target.value === '' ? undefined : Number(event.target.value);
+                              updateServer(index, { timeout: raw });
+                            }}
+                            placeholder="60"
+                            className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS}`}
+                          />
+                        </label>
+                      </div>
+                      <label className="flex items-center gap-2 pt-1">
+                        <Toggle
+                          checked={server.longRunning === true}
+                          onChange={(v) => updateServer(index, { longRunning: v || undefined })}
+                          ariaLabel={t('settingsMcpLongRunning')}
+                        />
+                        <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsMcpLongRunning')}</span>
+                      </label>
+                    </div>
+
                 {capabilities && (
-                  <div className="mt-4 rounded-md border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] p-3 text-xs text-[var(--theme-text-secondary)]">
+                  <div className="rounded-md border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] p-3 text-xs text-[var(--theme-text-secondary)]">
                     <div className="flex flex-wrap gap-3 font-medium">
                       <span>
                         {t('settingsMcpCapabilityTools')} {capabilities.tools.length}
@@ -701,7 +886,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                 )}
                 {capabilityState?.status === 'success' && capabilities && (
                   <>
-                    <div className="mt-3 flex gap-1 border-b border-[var(--theme-border-secondary)]">
+                    <div className="flex gap-1 border-b border-[var(--theme-border-secondary)]">
                       <button
                         role="tab"
                         aria-selected={(activeTabs[stateKey] ?? 'tools') === 'tools'}
@@ -745,7 +930,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                           return hay.includes(deferredToolQuery.toLowerCase());
                         });
                         return (
-                          <div className="mt-3 space-y-2">
+                          <div className="space-y-2">
                             <input
                               placeholder={t('settingsMcpToolSearchPlaceholder')}
                               value={toolQuery}
@@ -756,12 +941,8 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                               {filteredTools.length === 0 ? (
                                 <div className="px-3 py-6 text-center text-xs text-[var(--theme-text-secondary)]">
                                   {capabilities.tools.length === 0
-                                    ? t('settingsMcpEmptyTools') === 'settingsMcpEmptyTools'
-                                      ? 'No tools available.'
-                                      : t('settingsMcpEmptyTools')
-                                    : t('settingsMcpEmptyFiltered') === 'settingsMcpEmptyFiltered'
-                                      ? 'No tools match.'
-                                      : t('settingsMcpEmptyFiltered')}
+                                    ? t('settingsMcpEmptyTools')
+                                    : t('settingsMcpEmptyFiltered')}
                                 </div>
                               ) : (
                                 filteredTools.map((tool) => {
@@ -786,28 +967,57 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                                   return (
                                     <div
                                       key={tool.name}
-                                      className="grid grid-cols-[1fr_80px_80px] items-center gap-2 border-t border-[var(--theme-border-secondary)] px-3 py-2 first:border-t-0"
+                                      className="border-t border-[var(--theme-border-secondary)] px-3 py-2 first:border-t-0"
                                     >
-                                      <div className="min-w-0">
-                                        <div className="truncate text-sm text-[var(--theme-text-primary)]">{tool.name}</div>
-                                        <div className="truncate text-xs text-[var(--theme-text-secondary)]">{tool.description}</div>
+                                      <div className="grid grid-cols-[1fr_80px_80px] items-center gap-2">
+                                        <div className="min-w-0">
+                                          <button
+                                            type="button"
+                                            data-testid={`mcp-tool-schema-toggle-${tool.name}`}
+                                            onClick={() =>
+                                              setSchemaToolNames((prev) => {
+                                                const next = new Set(prev);
+                                                if (next.has(tool.name)) {
+                                                  next.delete(tool.name);
+                                                } else {
+                                                  next.add(tool.name);
+                                                }
+                                                return next;
+                                              })
+                                            }
+                                            className="w-full truncate text-left text-sm text-[var(--theme-text-primary)] hover:text-[var(--theme-text-link)]"
+                                            title={t('settingsMcpToggleSchema')}
+                                          >
+                                            {tool.name}
+                                          </button>
+                                          <div className="truncate text-xs text-[var(--theme-text-secondary)]">
+                                            {tool.description}
+                                          </div>
+                                        </div>
+                                        <Toggle
+                                          checked={isEnabled}
+                                          onChange={(v) => toggleTool(tool.name, v)}
+                                          ariaLabel={`${isEnabled ? 'Disable' : 'Enable'} ${tool.name}`}
+                                        />
+                                        <button
+                                          type="button"
+                                          aria-label={`Auto-approve ${tool.name}`}
+                                          aria-pressed={isAutoApproved}
+                                          disabled={!isEnabled}
+                                          onClick={() => toggleAutoApprove(tool.name, !isAutoApproved)}
+                                          title={
+                                            isAutoApproved
+                                              ? t('settingsMcpAutoApproveEnabled')
+                                              : t('settingsMcpAutoApproveDisabled')
+                                          }
+                                          className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${!isEnabled ? 'opacity-40' : isAutoApproved ? 'text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400' : 'text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-bg-tertiary)]'}`}
+                                        >
+                                          <ShieldCheck size={16} strokeWidth={1.7} />
+                                        </button>
                                       </div>
-                                      <Toggle
-                                        checked={isEnabled}
-                                        onChange={(v) => toggleTool(tool.name, v)}
-                                        ariaLabel={`${isEnabled ? 'Disable' : 'Enable'} ${tool.name}`}
-                                      />
-                                      <button
-                                        type="button"
-                                        aria-label={`Auto-approve ${tool.name}`}
-                                        aria-pressed={isAutoApproved}
-                                        disabled={!isEnabled}
-                                        onClick={() => toggleAutoApprove(tool.name, !isAutoApproved)}
-                                        title={isAutoApproved ? t('settingsMcpAutoApproveEnabled') : t('settingsMcpAutoApproveDisabled')}
-                                        className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${!isEnabled ? 'opacity-40' : isAutoApproved ? 'text-emerald-600 hover:bg-emerald-500/10' : 'text-zinc-400 hover:bg-zinc-100'}`}
-                                      >
-                                        <ShieldCheck size={16} strokeWidth={1.7} />
-                                      </button>
+                                      {schemaToolNames.has(tool.name) && tool.inputSchema && (
+                                        <McpToolSchemaView inputSchema={tool.inputSchema} />
+                                      )}
                                     </div>
                                   );
                                 })
@@ -817,10 +1027,11 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                         );
                       })()}
                     {activeTabs[stateKey] === 'prompts' && (
-                      <McpPromptsTab prompts={capabilities.prompts ?? []} t={t} />
+                      <McpPromptsTab server={server} prompts={capabilities.prompts ?? []} t={t} />
                     )}
                     {activeTabs[stateKey] === 'resources' && (
                       <McpResourcesTab
+                        server={server}
                         resources={capabilities.resources ?? []}
                         templates={capabilities.resourceTemplates ?? []}
                         t={t}
@@ -830,13 +1041,82 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                   </>
                 )}
                 {capabilityState?.status === 'error' && (
-                  <div className="mt-4 rounded-md border border-[var(--theme-text-danger)]/30 bg-[var(--theme-bg-danger)]/10 p-3 text-xs text-[var(--theme-text-danger)]">
+                  <div className="rounded-md border border-[var(--theme-text-danger)]/30 bg-[var(--theme-bg-danger)]/10 p-3 text-xs text-[var(--theme-text-danger)]">
                     {capabilityState.error}
+                  </div>
+                )}
                   </div>
                 )}
               </section>
             );
           })}
+        </div>
+      )}
+      {pendingTrustIndex !== null && servers[pendingTrustIndex] && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4" data-testid="mcp-trust-backdrop">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('settingsMcpTrustTitle')}
+            className="w-full max-w-md rounded-xl border bg-[var(--theme-bg-primary)] shadow-xl"
+          >
+            <div className="flex items-start gap-3 px-4 pt-4">
+              <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold">{t('settingsMcpTrustTitle')}</h2>
+                <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">{t('settingsMcpTrustBody')}</p>
+              </div>
+            </div>
+            {(() => {
+              const trustServer = servers[pendingTrustIndex];
+              return (
+                <pre className="mx-4 mt-3 max-h-[220px] overflow-auto whitespace-pre-wrap rounded-lg border bg-[var(--theme-bg-secondary)] p-2 text-xs">
+                  {JSON.stringify(
+                    {
+                      id: trustServer.id,
+                      transport: trustServer.transport,
+                      ...(trustServer.command ? { command: trustServer.command } : {}),
+                      ...(trustServer.args?.length ? { args: trustServer.args } : {}),
+                      ...(trustServer.url ? { url: trustServer.url } : {}),
+                      ...(Object.keys(trustServer.env ?? {}).length
+                        ? { envKeys: Object.keys(trustServer.env ?? {}) }
+                        : {}),
+                      ...(Object.keys(trustServer.headers ?? {}).length
+                        ? { headerKeys: Object.keys(trustServer.headers ?? {}) }
+                        : {}),
+                    },
+                    null,
+                    2,
+                  )}
+                </pre>
+              );
+            })()}
+            <div className="flex items-center justify-end gap-2 px-4 py-3">
+              <button
+                type="button"
+                data-testid="mcp-trust-cancel"
+                onClick={() => setPendingTrustIndex(null)}
+                className="rounded-lg border px-3 py-1.5 text-sm hover:bg-[var(--theme-bg-tertiary)]"
+              >
+                {t('settingsMcpCancel')}
+              </button>
+              <button
+                type="button"
+                data-testid="mcp-trust-confirm"
+                onClick={() => {
+                  const index = pendingTrustIndex;
+                  setPendingTrustIndex(null);
+                  if (index === null) return;
+                  const next = { ...servers[index], enabled: true, isTrusted: true };
+                  updateServer(index, next);
+                  void testServerCapabilities(next as McpServerConfig, cardKeys[index]);
+                }}
+                className="rounded-lg bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700"
+              >
+                {t('settingsMcpTrustAction')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -203,7 +203,6 @@ describe('UI clarity regressions', () => {
     const queuedCard = readSourceFile('components/chat/input/QueuedSubmissionCard.tsx');
     const audioPlayer = readSourceFile('components/chat/message-list/text-selection/AudioPlayerView.tsx');
     const safety = readSourceFile('components/settings/sections/SafetySection.tsx');
-    const thinkingMode = readSourceFile('components/settings/controls/thinking/ThinkingModeSelector.tsx');
     const mediaResolution = readSourceFile('components/chat/input/toolbar/MediaResolutionSelector.tsx');
     const codeHeader = readSourceFile('components/message/blocks/parts/CodeHeader.tsx');
     const tableBlock = readSourceFile('components/message/blocks/TableBlock.tsx');
@@ -261,8 +260,6 @@ describe('UI clarity regressions', () => {
     expect(safety).not.toContain('text-red-500');
     expect(safety).not.toContain('text-orange-500');
     expect(safety).not.toContain('text-green-500');
-    expect(thinkingMode).not.toContain('text-amber-500');
-    expect(thinkingMode).not.toContain('text-red-500');
     expect(mediaResolution).not.toContain('text-blue-500');
     expect(mediaResolution).not.toContain('text-amber-500');
     expect(codeHeader).not.toContain('text-emerald-500');
