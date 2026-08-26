@@ -68,16 +68,15 @@ function sanitizeAppSettings(settings: AppSettings): AppSettings {
       defaultSettings.thoughtTranslationModelId ?? defaultSettings.modelId,
     ),
     selectionAskModelId: (() => {
-      const raw = (settings as unknown as Record<string, unknown>).selectionAskModelId;
+      const raw = settings.selectionAskModelId;
       if (typeof raw !== 'string' || !raw.trim()) return undefined;
       return migrateRemovedModelId(raw) ?? raw;
     })(),
     selectionAskProviderId: (() => {
-      const rawModel = (settings as unknown as Record<string, unknown>).selectionAskModelId;
+      const rawModel = settings.selectionAskModelId;
       const hasModel = typeof rawModel === 'string' && rawModel.trim().length > 0;
       if (!hasModel) return undefined;
-      const raw = (settings as unknown as Record<string, unknown>).selectionAskProviderId;
-      return normalizeProviderId(raw);
+      return normalizeProviderId(settings.selectionAskProviderId);
     })(),
     tabModelCycleIds: (() => {
       const cycleIds = settings.tabModelCycleIds ?? defaultSettings.tabModelCycleIds;

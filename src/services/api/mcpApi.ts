@@ -1,5 +1,6 @@
 import type { McpServerConfig } from '@/types';
 import { readResponseErrorMessage } from '@/utils/errorMessage';
+import { rememberDiscoveredTools } from '@/features/mcp/toolDisplayNames';
 
 export interface McpToolDefinition {
   name: string;
@@ -124,7 +125,10 @@ export const fetchMcpTools = async (
     throw new Error(await readErrorMessage(response));
   }
 
-  return (await response.json()) as McpToolsResponse;
+  const payload = (await response.json()) as McpToolsResponse;
+  // Seed the readable-title registry used by chat tool-call blocks.
+  rememberDiscoveredTools(payload);
+  return payload;
 };
 
 export const fetchMcpResources = async (

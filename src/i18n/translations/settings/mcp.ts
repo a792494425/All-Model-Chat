@@ -713,15 +713,6 @@ const mcpSettings = {
     fr: 'Rechercher des outils',
     de: 'Tools suchen',
   },
-  settingsMcpImportBrowserBridge: {
-    en: 'One-click import Browser Bridge',
-    zh: '一键导入 Browser Bridge',
-    ja: 'ワンクリックで Browser Bridge を導入',
-    es: 'Importar Browser Bridge en un clic',
-    ko: '원클릭으로 Browser Bridge 가져오기',
-    fr: 'Importer Browser Bridge en un clic',
-    de: 'Browser Bridge mit einem Klick importieren',
-  },
   settingsMcpImportJson: {
     en: 'Import from JSON',
     zh: '从 JSON 导入',

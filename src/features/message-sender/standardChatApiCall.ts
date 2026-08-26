@@ -21,6 +21,7 @@ import { sendAnthropicMessageNonStream, sendAnthropicMessageStream } from '@/ser
 import { createMcpClientFunctions } from '@/features/mcp/mcpClientFunctions';
 import { requestToolApproval } from '@/stores/mcpApprovalStore';
 import { selectServersForTurn, useMcpRuntimeStore } from '@/stores/mcpRuntimeStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { createStandardClientFunctions } from '@/features/standard-chat/standardClientFunctions';
 import { runStandardToolLoop } from '@/features/standard-chat/standardToolLoop';
 import { collectLocalPythonInputFiles } from '@/features/local-python/executionFiles';
@@ -325,6 +326,8 @@ export const performStandardChatApiCall = async ({
         servers: enabledMcpServers,
         abortSignal: newAbortController.signal,
         requestApproval: (request) => requestToolApproval(request, newAbortController.signal),
+        // Discovery is cached for 30s; re-check disables at call time.
+        resolveLatestServers: () => useSettingsStore.getState().appSettings.mcpServers,
       })
     : {};
   const combinedClientFunctions = {

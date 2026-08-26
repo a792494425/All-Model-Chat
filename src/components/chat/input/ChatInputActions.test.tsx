@@ -61,6 +61,12 @@ vi.mock('./actions/RecordControls', () => ({
   RecordControls: () => null,
 }));
 
+vi.mock('./actions/ThinkingSpeedControl', () => ({
+  // Consumes the main chat-input context at render; the actions row is tested
+  // against scoped context providers only, so stub it like the other leaves.
+  ThinkingSpeedControl: () => null,
+}));
+
 vi.mock('./actions/ComposerAuxiliaryButtons', () => ({
   ComposerAuxiliaryButtons: ({ actions }: { actions: Array<{ id: string; testId?: string; action: () => void }> }) => {
     auxiliaryButtonsMock({ actions });

@@ -28,9 +28,11 @@ describe('McpPickerMenu', () => {
     fireEvent.click(screen.getByTestId('mcp-picker-button'));
   };
 
-  it('lists the master switch and every enabled server', () => {
+  it('lists a context label, the master switch, and every enabled server', () => {
     openMenu();
+    expect(screen.getByText('MCP servers for new messages')).toBeInTheDocument();
     expect(screen.getByTestId('mcp-picker-master')).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByTestId('mcp-picker-all')).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByText('Alpha Server')).toBeInTheDocument();
     expect(screen.getByText('Beta Server')).toBeInTheDocument();
   });
@@ -51,5 +53,51 @@ describe('McpPickerMenu', () => {
     fireEvent.click(screen.getByTestId('mcp-picker-master'));
     await waitFor(() => expect(useMcpRuntimeStore.getState().masterEnabled).toBe(false));
     expect(screen.getByTestId('mcp-picker-server-alpha')).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('shows a muted zero badge and no MCP row prefix when switched off', () => {
+    useMcpRuntimeStore.setState({ masterEnabled: false });
+    openMenu();
+    expect(screen.getByTestId('mcp-picker-count')).toHaveTextContent('0');
+    // Server rows must not carry the redundant "MCP" prefix label.
+    expect(screen.queryByText('MCP')).toBeNull();
+  });
+
+  it('wakes the master switch with only the clicked server from the off state', async () => {
+    useMcpRuntimeStore.setState({ masterEnabled: false, selectedServerIds: null });
+    openMenu();
+    fireEvent.click(screen.getByTestId('mcp-picker-server-beta'));
+
+    await waitFor(() => {
+      const state = useMcpRuntimeStore.getState();
+      expect(state.masterEnabled).toBe(true);
+      expect(state.selectedServerIds).toEqual(['beta']);
+    });
+  });
+
+  it('keeps the all-servers row persistent and stateful across narrowing', async () => {
+    openMenu();
+    const allRow = screen.getByTestId('mcp-picker-all');
+    expect(allRow).toHaveAttribute('aria-checked', 'true');
+
+    fireEvent.click(screen.getByTestId('mcp-picker-server-alpha'));
+    await waitFor(() => expect(useMcpRuntimeStore.getState().selectedServerIds).toEqual(['beta']));
+
+    expect(allRow).toHaveAttribute('aria-checked', 'false');
+    fireEvent.click(allRow);
+    await waitFor(() => expect(useMcpRuntimeStore.getState().selectedServerIds).toBeNull());
+    expect(allRow).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('wakes MCP entirely when all-servers is clicked from the off state', async () => {
+    useMcpRuntimeStore.setState({ masterEnabled: false });
+    openMenu();
+
+    fireEvent.click(screen.getByTestId('mcp-picker-all'));
+    await waitFor(() => {
+      const state = useMcpRuntimeStore.getState();
+      expect(state.masterEnabled).toBe(true);
+      expect(state.selectedServerIds).toBeNull();
+    });
   });
 });

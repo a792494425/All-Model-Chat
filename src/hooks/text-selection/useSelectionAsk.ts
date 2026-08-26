@@ -50,8 +50,8 @@ export function useSelectionAsk() {
       setIsLoading(true);
 
       const appSettings = useSettingsStore.getState().appSettings;
-      const selectionAskModelId = (appSettings as unknown as Record<string, unknown>).selectionAskModelId as string | undefined;
-      const selectionAskProviderId = (appSettings as unknown as Record<string, unknown>).selectionAskProviderId as string | undefined;
+      const selectionAskModelId = appSettings.selectionAskModelId;
+      const selectionAskProviderId = appSettings.selectionAskProviderId;
 
       if (!selectionAskModelId || !selectionAskModelId.trim()) {
         setError(t('selectionAskModelConfigureHint') || '请先在设置 → 界面中配置划词询问模型');
@@ -72,7 +72,7 @@ export function useSelectionAsk() {
         thinkingBudget: appSettings.thinkingBudget,
         systemInstruction: appSettings.systemInstruction,
         ttsVoice: appSettings.ttsVoice,
-      } as unknown as typeof DEFAULT_CHAT_SETTINGS;
+      };
 
       const apiRoute = resolveChatApiRoute(appSettings, selectionAskSettings);
 
@@ -205,9 +205,9 @@ export function useSelectionAsk() {
             undefined,
           );
         }
-      } catch (e) {
+      } catch (streamError) {
         if (!abortController.signal.aborted) {
-          setError(e instanceof Error ? e.message : String(e));
+          setError(streamError instanceof Error ? streamError.message : String(streamError));
           setIsLoading(false);
         }
       }

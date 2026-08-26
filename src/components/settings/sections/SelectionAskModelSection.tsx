@@ -9,7 +9,9 @@ import { FOCUS_VISIBLE_RING_BASE_CLASS } from '@/constants/focusClasses';
 
 export const SelectionAskModelSection: React.FC<{
   settings: AppSettings;
-  onUpdate: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void;
+  /** Narrowed to the two keys this card writes so callers can pass the shared
+      settings update handler without re-asserting the full generic. */
+  onUpdate: <K extends 'selectionAskModelId' | 'selectionAskProviderId'>(key: K, value: AppSettings[K]) => void;
   availableModels: ModelOption[];
 }> = ({ settings, onUpdate, availableModels }) => {
   const { t } = useI18n();

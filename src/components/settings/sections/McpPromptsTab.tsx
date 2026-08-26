@@ -46,9 +46,9 @@ export const McpPromptsTab: React.FC<McpPromptsTabProps> = ({ server, prompts, t
       }
       const body = await fetchMcpPrompt(server, prompt.name, args);
       setRenderedText(promptResultToText(body));
-    } catch (err) {
+    } catch (promptFetchError) {
       setErrorFor(prompt.name);
-      setErrorMessage(err instanceof Error ? err.message : String(err));
+      setErrorMessage(promptFetchError instanceof Error ? promptFetchError.message : String(promptFetchError));
     } finally {
       setLoadingName(null);
     }

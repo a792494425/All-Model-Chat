@@ -1,11 +1,17 @@
 import React, { useCallback, useDeferredValue, useEffect, useRef, useState } from 'react';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { Check, ChevronDown, ChevronRight, ChevronUp, Copy, ExternalLink, Plus, RefreshCw, SearchX, Server, ShieldAlert, ShieldCheck, Store, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, ChevronDown, ChevronRight, ChevronUp, Copy, ExternalLink, Plus, RefreshCw, SearchX, Server, ShieldAlert, ShieldCheck, Store, Trash2 } from 'lucide-react';
 import type { AppSettings, McpServerAuthType, McpServerConfig, McpServerTransport } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { Toggle } from '@/components/shared/Toggle';
 import { Select } from '@/components/shared/Select';
-import { SETTINGS_OUTLINE_BUTTON_CLASS, SMALL_ICON_DANGER_BUTTON_CLASS } from '@/constants/buttonClasses';
+import {
+  SETTINGS_OUTLINE_BUTTON_CLASS,
+  SETTINGS_PRIMARY_ACTION_BUTTON_CLASS,
+  SETTINGS_SECONDARY_ACTION_BUTTON_CLASS,
+  SMALL_ICON_BUTTON_CLASS,
+  SMALL_ICON_DANGER_BUTTON_CLASS,
+} from '@/constants/buttonClasses';
 import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { fetchMcpServerCapabilities, type McpServerCapabilities } from '@/services/api/mcpApi';
@@ -272,27 +278,6 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
     }
   };
 
-  const handleImportBrowserBridge = () => {
-    const preset: McpServerConfig = {
-      id: 'browser-control-bridge',
-      name: 'Browser Control Bridge',
-      enabled: true,
-      transport: 'http',
-      url: 'http://host.docker.internal:38976/mcp',
-      headers: {},
-      auth: { type: 'none' },
-    };
-    if (servers.some((s) => s.id === preset.id || s.url === preset.url)) {
-      setImportError(t('settingsMcpImportDuplicate'));
-      return;
-    }
-    updateServers([...servers, preset]);
-    const key = createCardKey();
-    setCardKeys((keys) => [...keys, key]);
-    expandCard(key);
-    setImportError(null);
-  };
-
   const handleTransportChange = (serverIndex: number, server: McpServerConfig, transport: McpServerTransport) => {
     if (transport === 'stdio') {
       updateServer(serverIndex, {
@@ -351,22 +336,15 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
         <button
           type="button"
           onClick={addServer}
-          className={`${SETTINGS_OUTLINE_BUTTON_CLASS} shrink-0 whitespace-nowrap`}
+          className={`${SETTINGS_PRIMARY_ACTION_BUTTON_CLASS} shrink-0 whitespace-nowrap`}
         >
-          <Plus size={14} strokeWidth={1.7} />
+          <Plus size={14} strokeWidth={2} />
           {t('settingsMcpAddServer')}
         </button>
       </div>
 
       <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`}>
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={handleImportBrowserBridge}
-            className={`${SETTINGS_OUTLINE_BUTTON_CLASS} bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] hover:opacity-90`}
-          >
-            {t('settingsMcpImportBrowserBridge')}
-          </button>
           <button
             type="button"
             onClick={() => setShowImport((v) => !v)}
@@ -396,7 +374,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
             <textarea
               value={importJson}
               onChange={(e) => setImportJson(e.target.value)}
-              placeholder={`{\n  "mcpServers": {\n    "browser-control-bridge": { "url": "http://host.docker.internal:38976/mcp" }\n  }\n}`}
+              placeholder={`{\n  "mcpServers": {\n    "my-server": { "url": "https://example.com/mcp" }\n  }\n}`}
               className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} min-h-[140px] resize-y font-mono text-xs`}
               spellCheck={false}
             />
@@ -404,7 +382,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
               <div className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-600">{importError}</div>
             )}
             <div className="flex gap-2">
-              <button type="button" onClick={handleImportJson} className={SETTINGS_OUTLINE_BUTTON_CLASS}>
+              <button type="button" onClick={handleImportJson} className={SETTINGS_SECONDARY_ACTION_BUTTON_CLASS}>
                 {t('settingsMcpImportConfirm')}
               </button>
               <button
@@ -413,7 +391,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                   setShowImport(false);
                   setImportError(null);
                 }}
-                className={`${SETTINGS_OUTLINE_BUTTON_CLASS} opacity-60`}
+                className={SETTINGS_OUTLINE_BUTTON_CLASS}
               >
                 {t('settingsMcpImportCancel')}
               </button>
@@ -421,16 +399,22 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
           </div>
         )}
         {showMarketplaces && (
-          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3" data-testid="mcp-marketplace-grid">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="mcp-marketplace-grid">
             {MCP_MARKETPLACES.map((market) => (
               <a
                 key={market.url}
                 href={market.url}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="flex items-center justify-between gap-2 rounded-lg border border-[var(--theme-border-secondary)] px-2.5 py-1.5 text-xs hover:bg-[var(--theme-bg-tertiary)]"
+                className="flex items-center gap-2 rounded-lg border border-[var(--theme-border-secondary)] px-2.5 py-2 text-xs text-[var(--theme-text-secondary)] transition-colors hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)]"
               >
-                <span className="truncate">{market.name}</span>
+                <span
+                  aria-hidden
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[var(--theme-bg-tertiary)] text-[11px] font-semibold uppercase text-[var(--theme-text-secondary)]"
+                >
+                  {market.name.charAt(0)}
+                </span>
+                <span className="min-w-0 flex-1 truncate">{market.name}</span>
                 <ExternalLink size={12} strokeWidth={1.7} className="shrink-0 text-[var(--theme-text-tertiary)]" />
               </a>
             ))}
@@ -540,6 +524,10 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                   ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
                   : 'bg-sky-500/10 text-sky-700 dark:text-sky-400';
             const isExpanded = expandedCards.has(stateKey);
+            const displayName = server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 });
+            const sortIndex = sortOrder.indexOf(server.id);
+            const canMoveUp = sortIndex > 0;
+            const canMoveDown = sortIndex !== -1 && sortIndex < sortOrder.length - 1;
             const summaryText =
               server.transport === 'stdio'
                 ? [server.command ?? '', ...(server.args ?? [])].filter(Boolean).join(' ')
@@ -585,9 +573,14 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                       title={[pillLabel, status.lastError].filter(Boolean).join(' — ')}
                     />
                     <span className="min-w-0 truncate text-sm font-medium text-[var(--theme-text-primary)]">
-                      {server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}
+                      {displayName}
                     </span>
-                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium ${typeBadgeClass}`}>
+                    <span
+                      // Search anchor lives on the collapsed badge too, so the
+                      // transport entry resolves before the card is expanded.
+                      className={`shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium ${typeBadgeClass}`}
+                      data-settings-item={!isExpanded && index === 0 ? 'mcp-transport' : undefined}
+                    >
                       {typeLabel}
                     </span>
                     {status.state !== 'disabled' && (
@@ -619,7 +612,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                         }
                         updateServer(index, { enabled });
                       }}
-                      ariaLabel={server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}
+                      ariaLabel={displayName}
                     />
                     <button
                       type="button"
@@ -652,22 +645,6 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                     <div className="flex flex-wrap items-center gap-2">
                       <button
                         type="button"
-                        aria-label={`${t('settingsMcpMoveUp')} - ${server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}`}
-                        onClick={() => moveServer(server.id, -1)}
-                        className={SETTINGS_OUTLINE_BUTTON_CLASS}
-                      >
-                        {t('settingsMcpMoveUp')}
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={`${t('settingsMcpMoveDown')} - ${server.name || interpolate(t('settingsMcpUnnamedServer'), { index: index + 1 })}`}
-                        onClick={() => moveServer(server.id, 1)}
-                        className={SETTINGS_OUTLINE_BUTTON_CLASS}
-                      >
-                        {t('settingsMcpMoveDown')}
-                      </button>
-                      <button
-                        type="button"
                         onClick={() => testServerCapabilities(server, stateKey)}
                         disabled={capabilityState?.status === 'loading'}
                         className={`${SETTINGS_OUTLINE_BUTTON_CLASS} shrink-0 whitespace-nowrap`}
@@ -679,6 +656,30 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
                         />
                         {capabilityState?.status === 'loading' ? t('settingsMcpTesting') : t('settingsMcpTestServer')}
                       </button>
+                      <div className="ml-auto flex items-center gap-1 sm:ml-0">
+                        <button
+                          type="button"
+                          data-testid={`mcp-move-up-${index}`}
+                          aria-label={`${t('settingsMcpMoveUp')} - ${displayName}`}
+                          title={t('settingsMcpMoveUp')}
+                          disabled={!canMoveUp}
+                          onClick={() => moveServer(server.id, -1)}
+                          className={`${SMALL_ICON_BUTTON_CLASS} disabled:cursor-not-allowed disabled:opacity-40`}
+                        >
+                          <ArrowUp size={14} strokeWidth={1.7} />
+                        </button>
+                        <button
+                          type="button"
+                          data-testid={`mcp-move-down-${index}`}
+                          aria-label={`${t('settingsMcpMoveDown')} - ${displayName}`}
+                          title={t('settingsMcpMoveDown')}
+                          disabled={!canMoveDown}
+                          onClick={() => moveServer(server.id, 1)}
+                          className={`${SMALL_ICON_BUTTON_CLASS} disabled:cursor-not-allowed disabled:opacity-40`}
+                        >
+                          <ArrowDown size={14} strokeWidth={1.7} />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="space-y-3">

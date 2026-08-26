@@ -10,16 +10,18 @@ interface McpRuntimeSelection {
 interface McpRuntimeActions {
   toggleMaster: () => void;
   toggleServer: (id: string, allIds: string[]) => void;
+  /** Re-enables MCP from the off state, activating exactly the clicked server. */
+  wakeWithServer: (id: string) => void;
+  /** Restores "every enabled server" semantics; wakes MCP if it was off. */
+  selectAllServers: () => void;
 }
 
 export const useMcpRuntimeStore = create<McpRuntimeSelection & McpRuntimeActions>((set) => ({
   masterEnabled: true,
   selectedServerIds: null,
-  toggleMaster: () =>
-    set((state) => ({
-      masterEnabled: !state.masterEnabled,
-      selectedServerIds: state.masterEnabled ? state.selectedServerIds : state.selectedServerIds,
-    })),
+  toggleMaster: () => set((state) => ({ masterEnabled: !state.masterEnabled })),
+  wakeWithServer: (id) => set({ masterEnabled: true, selectedServerIds: [id] }),
+  selectAllServers: () => set({ masterEnabled: true, selectedServerIds: null }),
   toggleServer: (id, allIds) =>
     set((state) => {
       const base = state.selectedServerIds ?? [...allIds];

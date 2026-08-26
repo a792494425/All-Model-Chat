@@ -8,13 +8,12 @@ import type { SessionItemPassedProps } from './GroupItem';
 import { CollapsedRecentChatsButton } from './CollapsedRecentChatsButton';
 import { Search, Settings } from 'lucide-react';
 import { IconNewChat, IconSidebarToggle } from '@/components/icons';
-import { useHistorySidebarLogic } from './useHistorySidebarLogic';
+import { useHistorySidebarLogic, type HistoryDisplayMode } from './useHistorySidebarLogic';
 import { SIDEBAR_CLICKABLE_ICON_BUTTON_CLASS, SIDEBAR_ICON_LINK_BUTTON_CLASS } from './sidebarStyles';
 import { LimitedSessionList } from './LimitedSessionList';
 import { DESKTOP_BREAKPOINT_PX } from '@/constants/layout';
 import { isDarkThemeId } from '@/utils/themeMode';
 import { isGroupDrag, isSessionDrag } from './sidebarDragTypes';
-import type { HistoryDisplayMode } from './useHistorySidebarLogic';
 import {
   closestCenter,
   DndContext,

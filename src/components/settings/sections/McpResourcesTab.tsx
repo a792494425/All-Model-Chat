@@ -63,8 +63,8 @@ export const McpResourcesTab: React.FC<McpResourcesTabProps> = ({ server, resour
         const text = first.text;
         setPreviewText(text.length > MAX_PREVIEW_LENGTH ? `${text.slice(0, MAX_PREVIEW_LENGTH)}…` : text);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+    } catch (resourceFetchError) {
+      setError(resourceFetchError instanceof Error ? resourceFetchError.message : String(resourceFetchError));
     } finally {
       setLoadingUri(null);
     }

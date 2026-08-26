@@ -32,7 +32,7 @@ const MessageListComponent: React.FC = () => {
   const { language } = useI18n();
   const messages = useChatStore((state) => state.activeMessages);
   const setCommandedInput = useChatStore((state) => state.setCommandedInput);
-  const { activeSessionId, currentChatSettings } = useChatState(appSettings);
+  const { activeSessionId, currentChatSettings, isLoading } = useChatState(appSettings);
   const chatInputHeight = useUIStore((state) => state.chatInputHeight);
   const { onSendMessage } = useChatInputRuntime();
   const {
@@ -170,7 +170,9 @@ const MessageListComponent: React.FC = () => {
             isGemini3={isGemini3}
             userMessageCollapse={userMessageCollapse}
           />
-          {pair ? <McpToolCallGroup calls={pair.calls} responses={pair.responses} /> : null}
+          {pair ? (
+            <McpToolCallGroup calls={pair.calls} responses={pair.responses} turnActive={isLoading} />
+          ) : null}
         </div>
       );
     },
@@ -181,6 +183,7 @@ const MessageListComponent: React.FC = () => {
       handleLiveArtifactFollowUp,
       handleOpenHtmlPreview,
       isGemini3,
+      isLoading,
       mcpPairMap,
       onContinueGeneration,
       onDeleteMessage,

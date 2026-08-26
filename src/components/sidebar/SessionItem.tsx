@@ -76,10 +76,10 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
     onSessionDragEnd,
     onSessionDragOver,
     onSessionDropIndicatorClear,
+    disableNativeDrag,
   } = props as typeof props & {
     disableNativeDrag?: boolean;
   };
-  const disableNativeDrag = (props as unknown as { disableNativeDrag?: boolean }).disableNativeDrag;
 
   const [isRightClickAnimating, setIsRightClickAnimating] = useState(false);
   const dragStartRef = useRef<{ x: number; y: number; t: number } | null>(null);

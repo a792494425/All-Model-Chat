@@ -93,10 +93,10 @@ describe('SettingsModal', () => {
     ]);
 
     const groupElements = Array.from(document.querySelectorAll('[data-settings-group]'));
-    // First group sits flush; later groups carry a hairline divider above them.
-    expect(groupElements[0]?.className).not.toContain('border-t');
-    for (const group of groupElements.slice(1)) {
-      expect(group.className).toContain('md:border-t');
+    // Sidebar groups separate with spacing only — hairline dividers were removed
+    // from the left menu by design.
+    for (const group of groupElements) {
+      expect(group.className).not.toContain('border-t');
     }
   });
 

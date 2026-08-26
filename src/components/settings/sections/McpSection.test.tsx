@@ -612,6 +612,55 @@ describe('McpSection', () => {
     expect(reorderedIds).toEqual(['s2', 's1']);
   });
 
+  it('disables reorder buttons at the boundaries of the server list', async () => {
+    const settings = {
+      ...DEFAULT_APP_SETTINGS,
+      mcpServers: [
+        { id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x' } as any,
+        { id: 's2', name: 'S2', enabled: true, transport: 'http', url: 'https://y' } as any,
+      ],
+    };
+    await renderMcpSection({ settings });
+
+    await expandServerCard(0);
+    const firstUp = screen.getByLabelText('Move up - S1') as HTMLButtonElement;
+    const firstDown = screen.getByLabelText('Move down - S1') as HTMLButtonElement;
+    expect(firstUp.disabled).toBe(true);
+    expect(firstDown.disabled).toBe(false);
+
+    await expandServerCard(1);
+    const lastUp = screen.getByLabelText('Move up - S2') as HTMLButtonElement;
+    const lastDown = screen.getByLabelText('Move down - S2') as HTMLButtonElement;
+    expect(lastUp.disabled).toBe(false);
+    expect(lastDown.disabled).toBe(true);
+  });
+
+  it('renders the marketplace grid as a balanced set of external links', async () => {
+    await renderMcpSection({ settings: DEFAULT_APP_SETTINGS });
+
+    const toggle = Array.from(renderer.container.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Find more servers'),
+    );
+    expect(toggle).not.toBeUndefined();
+
+    await act(async () => {
+      fireEvent.click(toggle!);
+    });
+
+    const grid = renderer.container.querySelector('[data-testid="mcp-marketplace-grid"]');
+    expect(grid).not.toBeNull();
+    expect(grid?.className).toContain('sm:grid-cols-4');
+
+    const links = Array.from(grid!.querySelectorAll('a'));
+    expect(links).toHaveLength(8);
+    for (const link of links) {
+      expect(link.getAttribute('target')).toBe('_blank');
+      expect(link.getAttribute('rel')).toContain('noopener');
+      // Each entry carries a monogram tile so the rows are visually scannable.
+      expect(link.querySelector('span[aria-hidden]')?.textContent).toBeTruthy();
+    }
+  });
+
   it('renders logs tab and refreshes', async () => {
     fetchMcpServerCapabilitiesMock.mockResolvedValue({
       tools: [],

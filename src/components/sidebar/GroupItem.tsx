@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { ChevronDown, MoreHorizontal } from 'lucide-react';
+import { ChevronDown, GripVertical, MoreHorizontal } from 'lucide-react';
 import { type ChatGroup, type SavedChatSession } from '@/types';
 import type { SessionItem } from './SessionItem';
 import { GroupItemMenu } from './GroupItemMenu';
@@ -8,7 +8,6 @@ import { LimitedSessionList } from './LimitedSessionList';
 import { GROUP_DRAG_TYPE, isGroupDrag, isSessionDrag } from './sidebarDragTypes';
 import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
-import { GripVertical } from 'lucide-react';
 
 export type SessionItemPassedProps = Omit<React.ComponentProps<typeof SessionItem>, 'session'>;
 
@@ -126,19 +125,19 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
     setActiveMenu,
     setDragOverId,
     draggingSessionId: sessionItemProps.draggingSessionId,
-    draggingGroupId: draggingGroupId,
-    dropIndicator: (props as unknown as { sessionDropIndicator?: { id: string; position: 'before' | 'after' } | null }).sessionDropIndicator ?? (sessionItemProps as unknown as { dropIndicator?: { id: string; position: 'before' | 'after' } | null }).dropIndicator,
+    draggingGroupId,
+    dropIndicator: props.sessionDropIndicator ?? sessionItemProps.dropIndicator,
     onSessionDragStart: sessionItemProps.onSessionDragStart,
     onSessionDragEnd: sessionItemProps.onSessionDragEnd,
-    onSessionDragOver: (props as unknown as { onSessionDragOver?: (event: React.DragEvent, sessionId: string) => void }).onSessionDragOver ?? (sessionItemProps as unknown as { onSessionDragOver?: (event: React.DragEvent, sessionId: string) => void }).onSessionDragOver,
-    onSessionDropIndicatorClear: (props as unknown as { onSessionDropIndicatorClear?: () => void }).onSessionDropIndicatorClear ?? (sessionItemProps as unknown as { onSessionDropIndicatorClear?: () => void }).onSessionDropIndicatorClear,
+    onSessionDragOver: props.onSessionDragOver ?? sessionItemProps.onSessionDragOver,
+    onSessionDropIndicatorClear: props.onSessionDropIndicatorClear ?? sessionItemProps.onSessionDropIndicatorClear,
   };
 
   const isMenuOpenInGroup = activeMenu === group.id || sessions?.some((session) => session.id === activeMenu);
-  const isDraggingThisGroup = draggingGroupId === group.id || (props as unknown as { isSortableDragging?: boolean }).isSortableDragging;
+  const isDraggingThisGroup = draggingGroupId === group.id || !!props.isSortableDragging;
   const showGroupBefore = groupDropIndicator?.id === group.id && groupDropIndicator.position === 'before';
   const showGroupAfter = groupDropIndicator?.id === group.id && groupDropIndicator.position === 'after';
-  const dndListeners = (props as unknown as { dndListeners?: Record<string, unknown> }).dndListeners;
+  const dndListeners = props.dndListeners;
 
   const handleGroupDragStartInternal = (event: React.DragEvent) => {
     event.dataTransfer.setData(GROUP_DRAG_TYPE, group.id);

@@ -69,8 +69,8 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
   const { t, language } = useI18n();
   const { document: targetDocument, window: targetWindow } = useWindowContext();
   const themeId = useSettingsStore((state) => state.currentTheme.id);
-  const selectionAskModelId = useSettingsStore((state) => (state.appSettings as unknown as Record<string, unknown>).selectionAskModelId as string | undefined);
-  const selectionAskProviderId = useSettingsStore((state) => (state.appSettings as unknown as Record<string, unknown>).selectionAskProviderId as string | undefined);
+  const selectionAskModelId = useSettingsStore((state) => state.appSettings.selectionAskModelId);
+  const selectionAskProviderId = useSettingsStore((state) => state.appSettings.selectionAskProviderId);
   const { answer, isLoading, error, ask, cancel } = useSelectionAsk();
   const [question, setQuestion] = useState('');
   const [isCopied, setIsCopied] = useState(false);
@@ -155,7 +155,7 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
       setSize(clampedSize);
     }
     // 仅锚点/视口变化时重定位，size 变化不重定位
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reposition only on anchor/viewport changes; size updates must not reposition
   }, [anchorRect, targetWindow]);
 
   // Clamp position on resize
@@ -498,14 +498,18 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
     shouldAutoScrollRef.current = distanceToBottom < 80;
   }, []);
 
-  const handleTextareaInput = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const el = e.target;
-    setQuestion(el.value);
-    el.style.height = 'auto';
-    const maxH = 96;
-    el.style.height = `${Math.min(el.scrollHeight, maxH)}px`;
-    el.style.overflowY = el.scrollHeight > maxH ? 'auto' : 'hidden';
-  }, []);
+  // Accepts both change and input events so the textarea can share one handler.
+  const handleTextareaInput = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement> | React.FormEvent<HTMLTextAreaElement>) => {
+      const el = e.currentTarget;
+      setQuestion(el.value);
+      el.style.height = 'auto';
+      const maxH = 96;
+      el.style.height = `${Math.min(el.scrollHeight, maxH)}px`;
+      el.style.overflowY = el.scrollHeight > maxH ? 'auto' : 'hidden';
+    },
+    [],
+  );
 
   const hasAnswer = !!answer;
   const showEmptyState = !hasAnswer && !isLoading && !error;
@@ -530,7 +534,6 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
       aria-label={t('ask')}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      {/* Header — 极简：图标+标题 · spacer · 重置 · 关闭 */}
       <div
         className="flex h-11 shrink-0 items-center gap-2 border-b border-[var(--theme-border-primary)] px-3.5 select-none"
         onPointerDown={handlePointerDown}
@@ -576,9 +579,7 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
         </button>
       </div>
 
-      {/* 中部滚动区：上下文条 + 空状态/加载/错误/回答 */}
       <div ref={answerContainerRef} onScroll={handleAnswerScroll} className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-3">
-        {/* Context strip — 轻引用条，随内容滚动；line-clamp 自动带省略号 */}
         <div className="mb-3 shrink-0 rounded-xl bg-[var(--theme-bg-secondary)]/70 px-3 py-2">
           <p
             ref={previewRef}
@@ -668,7 +669,6 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
         )}
       </div>
 
-      {/* 回答操作行 */}
       {hasAnswer && (
         <div className="flex shrink-0 items-center gap-0.5 border-t border-[var(--theme-border-primary)] px-2.5 py-1.5">
           <button onClick={handleCopyAnswer} className={ghostPill}>
@@ -690,7 +690,6 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
         </div>
       )}
 
-      {/* Footer：快捷 chips（有回答后）+ 输入行 */}
       <div className="shrink-0 border-t border-[var(--theme-border-primary)] bg-[var(--theme-bg-secondary)]/60 p-2.5">
         {hasAnswer && (
           <div className="mb-2 flex flex-wrap gap-1">
@@ -717,7 +716,7 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
             ref={textareaRef}
             value={question}
             onChange={handleTextareaInput}
-            onInput={handleTextareaInput as unknown as React.FormEventHandler<HTMLTextAreaElement>}
+            onInput={handleTextareaInput}
             onKeyDown={handleKeyDown}
             rows={1}
             disabled={isLoading}
@@ -756,7 +755,6 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
         </div>
       </div>
 
-      {/* Resize handles */}
       <div onPointerDown={handleResizePointerDown('n')} className="absolute left-3 right-3 top-0 h-1 cursor-n-resize touch-none" />
       <div onPointerDown={handleResizePointerDown('s')} className="absolute bottom-0 left-3 right-3 h-1 cursor-s-resize touch-none" />
       <div onPointerDown={handleResizePointerDown('e')} className="absolute bottom-3 right-0 top-3 w-1 cursor-e-resize touch-none" />

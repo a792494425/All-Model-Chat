@@ -21,11 +21,31 @@ describe('useMcpRuntimeStore', () => {
     expect(state.selectedServerIds).toBeNull();
   });
 
-  it('toggleMaster flips the global switch', () => {
+  it('toggleMaster flips the global switch without touching the selection', () => {
+    useMcpRuntimeStore.setState({ masterEnabled: true, selectedServerIds: ['b'] });
     useMcpRuntimeStore.getState().toggleMaster();
     expect(useMcpRuntimeStore.getState().masterEnabled).toBe(false);
+    expect(useMcpRuntimeStore.getState().selectedServerIds).toEqual(['b']);
     useMcpRuntimeStore.getState().toggleMaster();
     expect(useMcpRuntimeStore.getState().masterEnabled).toBe(true);
+  });
+
+  it('wakeWithServer re-enables MCP with only the clicked server active', () => {
+    useMcpRuntimeStore.setState({ masterEnabled: false, selectedServerIds: ['a', 'b'] });
+    useMcpRuntimeStore.getState().wakeWithServer('c');
+    const state = useMcpRuntimeStore.getState();
+    expect(state.masterEnabled).toBe(true);
+    expect(state.selectedServerIds).toEqual(['c']);
+  });
+
+  it('selectAllServers restores everything and wakes MCP if it was off', () => {
+    useMcpRuntimeStore.setState({ masterEnabled: true, selectedServerIds: ['b'] });
+    useMcpRuntimeStore.getState().selectAllServers();
+    expect(useMcpRuntimeStore.getState()).toMatchObject({ masterEnabled: true, selectedServerIds: null });
+
+    useMcpRuntimeStore.setState({ masterEnabled: false, selectedServerIds: null });
+    useMcpRuntimeStore.getState().selectAllServers();
+    expect(useMcpRuntimeStore.getState()).toMatchObject({ masterEnabled: true, selectedServerIds: null });
   });
 
   it('toggleServer seeds the selection from the full set then excludes the id', () => {

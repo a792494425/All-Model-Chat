@@ -26,6 +26,12 @@ interface CreateMcpClientFunctionsOptions {
   ) => Promise<unknown>;
   /** Resolves user decisions for tools flagged as "ask before running". */
   requestApproval?: (request: McpApprovalRequest) => Promise<McpApprovalDecision>;
+  /**
+   * Returns the freshest server configs at call time. Discovery is cached for
+   * 30s, so without this re-check a tool the user just disabled could still
+   * execute inside the cache window.
+   */
+  resolveLatestServers?: () => McpServerConfig[] | undefined;
 }
 
 type McpToolsLister = NonNullable<CreateMcpClientFunctionsOptions['listTools']>;
@@ -245,6 +251,7 @@ export const createMcpClientFunctions = async ({
   listTools = fetchMcpTools,
   callTool = callMcpTool,
   requestApproval,
+  resolveLatestServers,
 }: CreateMcpClientFunctionsOptions): Promise<StandardClientFunctions> => {
   const enabledServers = servers.filter((server) => server.enabled);
   if (enabledServers.length === 0) {
@@ -307,6 +314,13 @@ export const createMcpClientFunctions = async ({
             parameters: toGeminiSchema(tool.inputSchema),
           },
           handler: async (args, options) => {
+            // Execution-time disable re-check: discovery results are cached
+            // for 30s, so honor what the user toggled after this turn began.
+            const latestServers = resolveLatestServers?.();
+            const latestServer = latestServers?.find((entry) => entry.id === server.id);
+            if (latestServer && (!latestServer.enabled || (latestServer.disabledTools ?? []).includes(tool.name))) {
+              throw new Error(`Tool ${tool.name} on ${serverTools.serverName} was disabled by the user.`);
+            }
             if (requestApproval && requiresApproval(server, tool.name)) {
               const approvalKey = sessionApprovalKey(server.id, tool.name);
               if (!isSessionApproved(approvalKey)) {

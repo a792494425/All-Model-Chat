@@ -220,6 +220,54 @@ describe('createMcpClientFunctions', () => {
     expect(Object.keys(fns).some((k) => k.includes('ok_tool'))).toBe(true);
   });
 
+  it('re-checks latest servers at call time and rejects tools disabled mid-turn', async () => {
+    const servers = [{ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'https://x' } as any];
+    const listTools = async () =>
+      ({
+        servers: [
+          {
+            serverId: 's1',
+            serverName: 'S1',
+            tools: [{ name: 'ok_tool', description: '', inputSchema: { type: 'object' } } as any],
+          },
+        ],
+        errors: [],
+      }) as any;
+    const callTool = vi.fn(async () => ({ content: [] }));
+    // Discovery cache is stale by construction here: the user disabled the
+    // tool (then the whole server) after discovery ran.
+    const fns = await createMcpClientFunctions({
+      servers,
+      listTools,
+      callTool,
+      resolveLatestServers: () => [{ ...servers[0], enabled: true, disabledTools: ['ok_tool'] }] as any,
+    } as any);
+    const handlerKey = Object.keys(fns).find((key) => key.includes('ok_tool'))!;
+    await expect(fns[handlerKey].handler({}, {} as any)).rejects.toThrow(/disabled by the user/);
+    expect(callTool).not.toHaveBeenCalled();
+
+    const fns2 = await createMcpClientFunctions({
+      servers,
+      listTools,
+      callTool,
+      resolveLatestServers: () => [{ ...servers[0], enabled: false }] as any,
+    } as any);
+    const handlerKey2 = Object.keys(fns2).find((key) => key.includes('ok_tool'))!;
+    await expect(fns2[handlerKey2].handler({}, {} as any)).rejects.toThrow(/disabled by the user/);
+    expect(callTool).not.toHaveBeenCalled();
+
+    // Unchanged config passes through to the real call.
+    const fns3 = await createMcpClientFunctions({
+      servers,
+      listTools,
+      callTool,
+      resolveLatestServers: () => servers,
+    } as any);
+    const handlerKey3 = Object.keys(fns3).find((key) => key.includes('ok_tool'))!;
+    await expect(fns3[handlerKey3].handler({}, {} as any)).resolves.toBeTruthy();
+    expect(callTool).toHaveBeenCalledTimes(1);
+  });
+
   it('maps nullable JSON Schema types and anyOf object branches into Gemini schemas', async () => {
     const listTools = vi.fn(async () => ({
       servers: [

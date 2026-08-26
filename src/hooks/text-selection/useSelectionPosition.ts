@@ -464,7 +464,7 @@ export const useSelectionPosition = ({
       toJSON() {
         return bounds;
       },
-    } as unknown as DOMRect;
+    } as DOMRect;
   })();
 
   return {

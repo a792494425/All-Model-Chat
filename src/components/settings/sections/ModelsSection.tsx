@@ -72,7 +72,7 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({
 
       <SelectionAskModelSection
         settings={currentSettings}
-        onUpdate={updateSetting as unknown as <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => void}
+        onUpdate={updateSetting}
         availableModels={availableModels}
       />
 

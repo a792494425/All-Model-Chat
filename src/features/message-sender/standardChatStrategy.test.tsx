@@ -997,6 +997,8 @@ describe('standardChatStrategy', () => {
     expect(mockCreateMcpClientFunctions).toHaveBeenCalledWith({
       servers: [mcpServer],
       abortSignal: expect.any(AbortSignal),
+      requestApproval: expect.any(Function),
+      resolveLatestServers: expect.any(Function),
     });
     expect(mockAppendFunctionDeclarationsToTools).toHaveBeenCalledWith('gemini-3-flash-preview', expect.any(Object), [
       mcpFunction.declaration,
