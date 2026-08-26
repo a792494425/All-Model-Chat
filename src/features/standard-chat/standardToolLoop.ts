@@ -26,7 +26,6 @@ interface RunStandardToolLoopOptions {
   clientFunctions: StandardClientFunctions;
   runTurn: (contents: ChatHistoryItem[]) => Promise<StandardToolTurnResult>;
   abortSignal?: AbortSignal;
-  maxIterations?: number;
 }
 
 interface GroundingCarryover {
@@ -186,7 +185,6 @@ export const runStandardToolLoop = async ({
   clientFunctions,
   runTurn,
   abortSignal,
-  maxIterations = 8,
 }: RunStandardToolLoopOptions): Promise<{
   finalTurn: StandardToolTurnResult;
   toolMessages: StandardToolLoopMessagePair[];
@@ -199,7 +197,12 @@ export const runStandardToolLoop = async ({
   let groundingCarryover: GroundingCarryover | undefined;
   let aggregatedUrlContext: unknown;
 
-  for (let iteration = 0; iteration < maxIterations; iteration += 1) {
+  // No iteration cap: long MCP workflows (multi-step file exploration, deep
+  // research chains) legitimately exceed a fixed budget, and a hard throw
+  // discarded the whole turn. The loop ends when the model stops calling
+  // tools; the user's stop button aborts the in-flight request and unwinds
+  // from there, and every round is a real API call so it can never spin.
+  for (;;) {
     const turn = await runTurn(contents);
     aggregatedUsage = mergeUsageMetadata(aggregatedUsage, turn.usage);
     aggregatedUrlContext = mergeUrlContextMetadata(aggregatedUrlContext, turn.urlContext);
@@ -289,6 +292,4 @@ export const runStandardToolLoop = async ({
     ];
     groundingCarryover = mergeGroundingCarryover(groundingCarryover, turn.grounding);
   }
-
-  throw new Error(`Exceeded maximum tool loop iterations (${maxIterations}).`);
 };
