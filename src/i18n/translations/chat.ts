@@ -71,6 +71,15 @@ export const chatTranslations = {
     fr: 'En attente d\'approbation',
     de: 'Wartet auf Genehmigung',
   },
+  mcpToolProgressTitle: {
+    en: 'Execution process',
+    zh: '执行过程',
+    ja: '実行ログ',
+    ko: '실행 과정',
+    es: 'Proceso de ejecución',
+    fr: 'Processus d\'exécution',
+    de: 'Ausführungsprotokoll',
+  },
   mcpApprovalTitle: {
     en: 'Approve MCP tool?',
     zh: '是否允许执行 MCP 工具？',

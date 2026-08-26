@@ -362,49 +362,52 @@ export const performStandardChatApiCall = async ({
   const hasFunctionDeclarationsInRequest = !!requestConfig.tools?.some((tool) => 'functionDeclarations' in tool);
 
   if (hasFunctionDeclarationsInRequest) {
+    // Internal tool-plumbing messages are inserted as the loop progresses so
+    // tool call cards render live (invoking → done) instead of appearing only
+    // after every tool finished. persist:false matches the previous bulk insert;
+    // the session is persisted later by the normal completion path.
+    const insertInternalToolMessages = (messages: ChatMessage[]) => {
+      updateAndPersistSessions(
+        (prev) =>
+          updateSessionById(prev, finalSessionId, (session) => ({
+            ...session,
+            messages: session.messages.flatMap((message) => {
+              if (message.id !== generationId) {
+                return [message];
+              }
+              return [...messages, { ...message }];
+            }),
+          })),
+        { persist: false },
+      );
+    };
+
     try {
       const toolLoopResult = await runStandardToolLoop({
         initialContents: [...historyForChat, { role: finalRole, parts: finalParts }],
         clientFunctions: combinedClientFunctions,
         abortSignal: newAbortController.signal,
+        onToolCallsStarted: (modelContent) => {
+          insertInternalToolMessages([
+            createMessage('model', '', {
+              apiParts: modelContent.parts,
+              isInternalToolMessage: true,
+              toolParentMessageId: generationId,
+            }),
+          ]);
+        },
+        onToolResponsesSettled: (functionResponseParts) => {
+          insertInternalToolMessages([
+            createMessage('user', '', {
+              apiParts: functionResponseParts,
+              isInternalToolMessage: true,
+              toolParentMessageId: generationId,
+            }),
+          ]);
+        },
         runTurn: (contents) =>
           generateContentTurnApi(keyToUse, apiModelId, contents, requestConfig, newAbortController.signal),
       });
-
-      if (toolLoopResult.toolMessages.length > 0) {
-        const internalMessages = toolLoopResult.toolMessages.flatMap(({ modelContent, functionResponseParts }) => [
-          createMessage('model', '', {
-            apiParts: modelContent.parts,
-            isInternalToolMessage: true,
-            toolParentMessageId: generationId,
-          }),
-          createMessage('user', '', {
-            apiParts: functionResponseParts,
-            isInternalToolMessage: true,
-            toolParentMessageId: generationId,
-          }),
-        ]);
-
-        updateAndPersistSessions(
-          (prev) =>
-            updateSessionById(prev, finalSessionId, (session) => ({
-              ...session,
-              messages: session.messages.flatMap((message) => {
-                if (message.id !== generationId) {
-                  return [message];
-                }
-
-                return [
-                  ...internalMessages,
-                  {
-                    ...message,
-                  },
-                ];
-              }),
-            })),
-          { persist: false },
-        );
-      }
 
       for (const part of toolLoopResult.finalTurn.parts) {
         streamOnPart(part, { recordFirstToken: false });

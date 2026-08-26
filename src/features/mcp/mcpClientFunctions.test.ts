@@ -1,6 +1,8 @@
 import { Type } from '@google/genai';
 import { describe, expect, it, vi } from 'vitest';
+import { act, renderHook } from '@testing-library/react';
 import type { McpServerConfig } from '@/types';
+import { useMcpToolRun } from '@/stores/mcpToolRuntimeStore';
 import { createMcpClientFunctions } from './mcpClientFunctions';
 import { toMcpFunctionName } from './mcpToolNames';
 
@@ -101,6 +103,7 @@ describe('createMcpClientFunctions', () => {
       'read_file',
       { path: '/tmp/demo.txt' },
       abortController.signal,
+      expect.any(Function),
     );
   });
 
@@ -144,8 +147,8 @@ describe('createMcpClientFunctions', () => {
     await functions[functionNames[0]].handler({ path: '/tmp/first.txt' });
     await functions[functionNames[1]].handler({ path: '/tmp/second.txt' });
 
-    expect(callTool).toHaveBeenNthCalledWith(1, filesystemServer, 'read_file', { path: '/tmp/first.txt' }, undefined);
-    expect(callTool).toHaveBeenNthCalledWith(2, secondServer, 'read_file', { path: '/tmp/second.txt' }, undefined);
+    expect(callTool).toHaveBeenNthCalledWith(1, filesystemServer, 'read_file', { path: '/tmp/first.txt' }, undefined, expect.any(Function));
+    expect(callTool).toHaveBeenNthCalledWith(2, secondServer, 'read_file', { path: '/tmp/second.txt' }, undefined, expect.any(Function));
   });
 
   it('does not throw when listTools fails so chat can continue without MCP tools', async () => {
@@ -448,5 +451,82 @@ describe('createMcpClientFunctions approval gate', () => {
     const fns = await createMcpClientFunctions({ servers: [server], listTools, callTool });
     await fns[toMcpFunctionName('fs', 'write_file')].handler({}, undefined);
     expect(callTool).toHaveBeenCalledOnce();
+  });
+});
+
+describe('createMcpClientFunctions live run lifecycle', () => {
+  const server: McpServerConfig = {
+    id: 'fs',
+    name: 'FS',
+    enabled: true,
+    transport: 'stdio',
+    command: 'npx',
+  };
+  const listTools = vi.fn(async () => ({
+    servers: [
+      {
+        serverId: 'fs',
+        serverName: 'FS',
+        tools: [{ name: 'read_file', inputSchema: { type: 'object' } }],
+      },
+    ],
+    errors: [],
+  }));
+
+  const getHandler = async (callTool: Parameters<typeof createMcpClientFunctions>[0]['callTool']) => {
+    const fns = await createMcpClientFunctions({ servers: [server], listTools, callTool });
+    return fns[toMcpFunctionName('fs', 'read_file')].handler;
+  };
+
+  it('opens a run keyed by the args object, forwards progress, and closes with success', async () => {
+    let capturedOnProgress: ((event: { message?: string }) => void) | undefined;
+    const callTool = vi.fn(
+      async (
+        _server: McpServerConfig,
+        _toolName: string,
+        _args: Record<string, unknown>,
+        _signal?: AbortSignal,
+        onProgress?: (event: { message?: string }) => void,
+      ) => {
+        capturedOnProgress = onProgress;
+        return { content: [] };
+      },
+    );
+    const handler = await getHandler(callTool);
+    const args = { path: '/tmp/a.txt' };
+
+    const pending = handler(args, undefined);
+    const { result } = renderHook(() => useMcpToolRun(args));
+
+    expect(result.current?.status).toBe('running');
+    act(() => {
+      capturedOnProgress?.({ message: 'halfway' });
+    });
+    expect(result.current?.events).toEqual([{ message: 'halfway' }]);
+
+    await act(async () => {
+      await pending;
+    });
+    expect(result.current?.status).toBe('success');
+  });
+
+  it('marks the run errored when the tool fails and cancelled when aborted', async () => {
+    const failingCallTool = vi.fn(async (_server, _toolName, _args, signal?: AbortSignal) => {
+      if (!signal?.aborted) throw new Error('tool exploded');
+      throw Object.assign(new Error('aborted'), { name: 'AbortError' });
+    });
+    const handler = await getHandler(failingCallTool);
+
+    const argsError = { mode: 'error' };
+    await expect(handler(argsError, undefined)).rejects.toThrow('tool exploded');
+    const errorRun = renderHook(() => useMcpToolRun(argsError)).result.current;
+    expect(errorRun?.status).toBe('error');
+
+    const abortController = new AbortController();
+    abortController.abort();
+    const argsCancelled = { mode: 'cancelled' };
+    await expect(handler(argsCancelled, { abortSignal: abortController.signal })).rejects.toThrow('aborted');
+    const cancelledRun = renderHook(() => useMcpToolRun(argsCancelled)).result.current;
+    expect(cancelledRun?.status).toBe('cancelled');
   });
 });

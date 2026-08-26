@@ -1,7 +1,14 @@
 import { Type, type Schema } from '@google/genai';
 import type { McpServerConfig, StandardClientFunctions } from '@/types';
-import { callMcpTool, fetchMcpTools, type McpToolDefinition, type McpToolsResponse } from '@/services/api/mcpApi';
+import {
+  callMcpTool,
+  fetchMcpTools,
+  type McpToolDefinition,
+  type McpToolProgressEvent,
+  type McpToolsResponse,
+} from '@/services/api/mcpApi';
 import { logService } from '@/services/logService';
+import { beginMcpToolRun, appendMcpToolProgress, finishMcpToolRun } from '@/stores/mcpToolRuntimeStore';
 import { toMcpFunctionName } from './mcpToolNames';
 import { isRecord } from '../../../shared/predicates';
 import { summarizeMcpResultForModel } from './mcpResultSummary';
@@ -23,6 +30,7 @@ interface CreateMcpClientFunctionsOptions {
     toolName: string,
     args: Record<string, unknown>,
     abortSignal?: AbortSignal,
+    onProgress?: (event: McpToolProgressEvent) => void,
   ) => Promise<unknown>;
   /** Resolves user decisions for tools flagged as "ask before running". */
   requestApproval?: (request: McpApprovalRequest) => Promise<McpApprovalDecision>;
@@ -338,11 +346,26 @@ export const createMcpClientFunctions = async ({
                 }
               }
             }
-            return {
-              response: summarizeMcpResultForModel(
-                await callTool(server, tool.name, isRecord(args) ? args : {}, options?.abortSignal ?? abortSignal),
-              ),
-            };
+            // Surface the call live: the card rendered from the FunctionCall
+            // part holds this exact args object, so the run attaches to it.
+            const callArgs = isRecord(args) ? args : {};
+            const runId = beginMcpToolRun(callArgs);
+            try {
+              const rawResult = await callTool(
+                server,
+                tool.name,
+                callArgs,
+                options?.abortSignal ?? abortSignal,
+                (event) => appendMcpToolProgress(runId, event),
+              );
+              finishMcpToolRun(runId, 'success');
+              return {
+                response: summarizeMcpResultForModel(rawResult),
+              };
+            } catch (error) {
+              finishMcpToolRun(runId, options?.abortSignal?.aborted ? 'cancelled' : 'error');
+              throw error;
+            }
           },
         };
       }

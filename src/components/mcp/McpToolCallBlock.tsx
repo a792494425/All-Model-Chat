@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { AlertTriangle, Ban, Check, Copy, Hourglass, Loader2, ShieldCheck } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, Ban, Check, ChevronDown, Copy, Hourglass, Loader2, ShieldCheck } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { extractMcpResultSegments } from '@/features/mcp/mcpResultSummary';
 import { resolveToolDisplay } from '@/features/mcp/toolDisplayNames';
 import { useMcpApprovalStore } from '@/stores/mcpApprovalStore';
+import { useMcpToolRun } from '@/stores/mcpToolRuntimeStore';
 
 const MAX_ARG_VALUE_LENGTH = 4000;
 
@@ -13,6 +14,21 @@ const formatElapsed = (ms: number): string => {
   const totalSeconds = Math.floor(ms / 1000);
   if (totalSeconds < 60) return `${totalSeconds}s`;
   return `${Math.floor(totalSeconds / 60)}m${String(totalSeconds % 60).padStart(2, '0')}s`;
+};
+
+/** One progress line: server message when present, else the raw counter. */
+const formatProgressLine = (event: { progress?: number; total?: number; message?: string }): string => {
+  if (event.message) {
+    const counter =
+      typeof event.progress === 'number' && typeof event.total === 'number'
+        ? ` (${event.progress}/${event.total})`
+        : '';
+    return `${event.message}${counter}`;
+  }
+  if (typeof event.progress === 'number') {
+    return typeof event.total === 'number' ? `${event.progress}/${event.total}` : String(event.progress);
+  }
+  return '…';
 };
 
 export const McpToolCallBlock: React.FC<{
@@ -37,6 +53,30 @@ export const McpToolCallBlock: React.FC<{
     const id = window.setInterval(() => setLiveMs(Date.now() - startedAt), 1000);
     return () => window.clearInterval(id);
   }, [status]);
+
+  // Live progress run: correlated by object identity of the call's args, so it
+  // matches the executing handler exactly. Absent for servers without progress.
+  const run = useMcpToolRun(call?.args);
+  const events = run?.events ?? [];
+  const latestTotalEvent = [...events].reverse().find((event) => typeof event.total === 'number');
+  const percent =
+    run && run.status === 'running' && latestTotalEvent
+      ? Math.max(
+          0,
+          Math.min(100, Math.round(((latestTotalEvent.progress ?? 0) / (latestTotalEvent.total as number)) * 100)),
+        )
+      : null;
+
+  const [logOverride, setLogOverride] = useState<boolean | null>(null);
+  const logOpen = logOverride ?? (run?.status === 'error' ? true : run?.status === 'running');
+
+  // Keep the live log pinned to the newest line while streaming in (container
+  // scrollTop, not scrollIntoView, so ancestors never jump).
+  const logContainerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const container = logContainerRef.current;
+    if (container && logOpen) container.scrollTop = container.scrollHeight;
+  }, [logOpen, events.length]);
 
   // Discovery responses are replayed into readable titles; unmatched names
   // (e.g. before the first discovery) fall back to the wire name.
@@ -102,6 +142,40 @@ export const McpToolCallBlock: React.FC<{
           <pre className="overflow-auto max-h-[300px] whitespace-pre-wrap">{truncated}</pre>
           {argsStr.length > MAX_ARG_VALUE_LENGTH && (
             <div className="text-[11px] text-muted">{t('mcpToolTruncated')}</div>
+          )}
+          {events.length > 0 && (
+            <>
+              <button
+                onClick={() => setLogOverride(!logOpen)}
+                data-testid="mcp-tool-log-toggle"
+                className="mt-2 flex items-center gap-1 text-[11px] text-[var(--theme-text-secondary)]"
+              >
+                <ChevronDown className={`h-3 w-3 transition-transform ${logOpen ? '' : '-rotate-90'}`} />
+                {t('mcpToolProgressTitle')} · {events.length}
+              </button>
+              {logOpen && (
+                <div
+                  ref={logContainerRef}
+                  data-testid="mcp-tool-progress-log"
+                  className="mt-1 overflow-auto max-h-[200px] rounded border border-[var(--theme-bg-tertiary)] bg-[var(--theme-bg-primary)] p-2 font-mono text-[11px] leading-relaxed"
+                >
+                  {percent !== null && (
+                    <div className="mb-1.5 h-1 overflow-hidden rounded-full bg-[var(--theme-bg-tertiary)]">
+                      <div
+                        data-testid="mcp-tool-progress-fill"
+                        className="h-full bg-emerald-500 transition-all"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  )}
+                  {events.map((event, index) => (
+                    <div key={index} className="whitespace-pre-wrap text-[var(--theme-text-secondary)]">
+                      {formatProgressLine(event)}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
           <div className="mt-2 overflow-auto max-h-[300px]">
             {responseSegments.map((segment, index) =>

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { McpServerConfig } from '@/types';
-import { fetchMcpLogs, fetchMcpPrompt, fetchMcpPrompts, fetchMcpResource, fetchMcpResources, fetchMcpServerCapabilities } from './mcpApi';
+import { callMcpTool, fetchMcpLogs, fetchMcpPrompt, fetchMcpPrompts, fetchMcpResource, fetchMcpResources, fetchMcpServerCapabilities } from './mcpApi';
 
 const fetchMock = vi.fn();
 
@@ -114,6 +114,78 @@ describe('mcpApi', () => {
       prompts: [{ name: 'summarize' }],
       errors: [],
     });
+  });
+});
+
+describe('callMcpTool streaming progress', () => {
+  const streamingServer: McpServerConfig = {
+    id: 'remote',
+    name: 'Remote',
+    enabled: true,
+    transport: 'http',
+    url: 'https://mcp.example.com/mcp',
+  };
+  const streamFetchMock = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubGlobal('fetch', streamFetchMock);
+  });
+
+  const ndjsonResponse = (chunks: string[]): Response => {
+    const encoder = new TextEncoder();
+    let index = 0;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (index < chunks.length) {
+          controller.enqueue(encoder.encode(chunks[index]));
+          index += 1;
+        } else {
+          controller.close();
+        }
+      },
+    });
+    return new Response(stream, { status: 200, headers: { 'content-type': 'application/x-ndjson' } });
+  };
+
+  it('forwards progress lines and resolves with the terminal result', async () => {
+    streamFetchMock.mockResolvedValueOnce(
+      ndjsonResponse([
+        '{"type":"start"}\n{"type":"prog',
+        'ress","progress":1,"total":2,"message":"halfway"}\n',
+        '{"type":"result","result":{"ok":true}}\n',
+      ]),
+    );
+    const onProgress = vi.fn();
+
+    const result = await callMcpTool(streamingServer, 'crawl', {}, undefined, onProgress);
+
+    expect(result).toEqual({ ok: true });
+    expect(onProgress).toHaveBeenCalledWith({ progress: 1, total: 2, message: 'halfway' });
+    expect(streamFetchMock).toHaveBeenCalledWith(
+      '/api/mcp/call',
+      expect.objectContaining({
+        headers: expect.objectContaining({ accept: 'application/x-ndjson' }),
+      }),
+    );
+  });
+
+  it('rejects with the streamed error message', async () => {
+    streamFetchMock.mockResolvedValueOnce(
+      ndjsonResponse(['{"type":"progress","message":"starting"}\n', '{"type":"error","error":"boom"}\n']),
+    );
+
+    await expect(callMcpTool(streamingServer, 'crawl', {})).rejects.toThrow('boom');
+  });
+
+  it('falls back to whole-body JSON for a legacy non-streaming server', async () => {
+    streamFetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ result: { legacy: true } }), { status: 200 }));
+
+    const onProgress = vi.fn();
+    const result = await callMcpTool(streamingServer, 'crawl', {}, undefined, onProgress);
+
+    expect(result).toEqual({ legacy: true });
+    expect(onProgress).not.toHaveBeenCalled();
   });
 });
 

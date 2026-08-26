@@ -4,6 +4,7 @@ import { McpToolCallBlock } from './McpToolCallBlock';
 import { toMcpFunctionName } from '@/features/mcp/mcpToolNames';
 import { rememberDiscoveredTools, resetToolDisplayRegistry } from '@/features/mcp/toolDisplayNames';
 import { useMcpApprovalStore } from '@/stores/mcpApprovalStore';
+import { appendMcpToolProgress, beginMcpToolRun, finishMcpToolRun } from '@/stores/mcpToolRuntimeStore';
 
 const renderSuccessBlock = () =>
   render(
@@ -173,5 +174,79 @@ describe('McpToolCallBlock', () => {
     );
     fireEvent.click(screen.getByText('plain'));
     expect(screen.getByText(/"ok": true/)).toBeInTheDocument();
+  });
+
+  it('shows live progress lines and a percent bar for the running call', () => {
+    const argsRef = { target: 'page' };
+    const runId = beginMcpToolRun(argsRef);
+
+    render(
+      <McpToolCallBlock
+        call={{ name: 'crawler', args: argsRef } as any}
+        responsePart={null}
+        status="invoking"
+      />,
+    );
+    expect(screen.queryByTestId('mcp-tool-progress-log')).toBeNull();
+
+    act(() => {
+      appendMcpToolProgress(runId, { message: 'fetched page 1', progress: 1, total: 4 });
+    });
+    expect(screen.getByTestId('mcp-tool-progress-log')).toHaveTextContent('fetched page 1 (1/4)');
+
+    act(() => {
+      appendMcpToolProgress(runId, { message: 'fetched page 2', progress: 2, total: 4 });
+    });
+    expect(screen.getByTestId('mcp-tool-progress-log')).toHaveTextContent('fetched page 2 (2/4)');
+    // 50% of the bar width is filled.
+    expect(screen.getByTestId('mcp-tool-progress-fill')).toHaveStyle({ width: '50%' });
+
+    finishMcpToolRun(runId, 'success');
+  });
+
+  it('retains the finished log collapsed, expanded by default on error', () => {
+    const argsRef = { keep: true };
+    const runId = beginMcpToolRun(argsRef);
+    appendMcpToolProgress(runId, { message: 'step done' });
+    finishMcpToolRun(runId, 'success');
+
+    const { rerender } = render(
+      <McpToolCallBlock
+        call={{ name: 'keeper', args: argsRef } as any}
+        responsePart={{ functionResponse: { name: 'keeper', response: { ok: true } } }}
+        status="success"
+      />,
+    );
+    fireEvent.click(screen.getByText('keeper'));
+    // Collapsed after success, but reachable through the toggle.
+    expect(screen.queryByTestId('mcp-tool-progress-log')).toBeNull();
+    fireEvent.click(screen.getByTestId('mcp-tool-log-toggle'));
+    expect(screen.getByTestId('mcp-tool-progress-log')).toHaveTextContent('step done');
+
+    const errorArgs = { boom: true };
+    const errorRun = beginMcpToolRun(errorArgs);
+    appendMcpToolProgress(errorRun, { message: 'halfway through' });
+    finishMcpToolRun(errorRun, 'error');
+    rerender(
+      <McpToolCallBlock
+        call={{ name: 'boomer', args: errorArgs } as any}
+        responsePart={null}
+        status="error"
+      />,
+    );
+    expect(screen.getByTestId('mcp-tool-progress-log')).toHaveTextContent('halfway through');
+  });
+
+  it('renders no log area when the server never sent progress', () => {
+    render(
+      <McpToolCallBlock
+        call={{ name: 'silent', args: {} } as any}
+        responsePart={null}
+        status="invoking"
+      />,
+    );
+    expect(screen.getByTestId('mcp-tool-status')).toHaveTextContent('Running');
+    expect(screen.queryByTestId('mcp-tool-progress-log')).toBeNull();
+    expect(screen.queryByTestId('mcp-tool-log-toggle')).toBeNull();
   });
 });

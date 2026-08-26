@@ -494,6 +494,18 @@ describe('createMcpClientBridge', () => {
       const client = sdkMocks.clientInstances[0];
       expect(client.connect).toHaveBeenCalledWith(expect.anything(), { timeout: 300_000 });
     });
+
+    it('forwards progress notifications to the onProgress callback', async () => {
+      const updates: Array<{ progress?: number; total?: number; message?: string }> = [];
+      const bridge = createBridge();
+      await bridge.callTool(httpServer, 't', {}, (update) => updates.push(update));
+      const client = sdkMocks.clientInstances[0];
+      const options = client.callTool.mock.calls[0][2] as { onprogress?: (n: unknown) => void };
+      expect(typeof options.onprogress).toBe('function');
+      options.onprogress?.({ progress: 3, total: 9, message: 'step 3' });
+      options.onprogress?.({ progress: 4 });
+      expect(updates).toEqual([{ progress: 3, total: 9, message: 'step 3' }, { progress: 4 }]);
+    });
   });
 
   describe('log redaction', () => {

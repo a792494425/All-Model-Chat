@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { Part } from '@google/genai';
 import type { ChatHistoryItem } from '@/types';
 import { createUploadedFile } from '@/test/data/factories';
 import { runStandardToolLoop } from './standardToolLoop';
@@ -559,5 +560,73 @@ describe('runStandardToolLoop', () => {
         renderedContent: '<div>beta widget</div>',
       },
     });
+  });
+
+  it('fires live-surface callbacks per iteration: calls started before responses settle', async () => {
+    const initialContents: ChatHistoryItem[] = [{ role: 'user', parts: [{ text: 'Do two things' }] }];
+    const toolCallMessage = {
+      role: 'model' as const,
+      parts: [
+        {
+          functionCall: {
+            id: `call-${1}`,
+            name: 'run_local_python',
+            args: { code: '1' },
+          },
+        },
+      ],
+    };
+    let resolveFirstHandler: ((value: { response: unknown }) => void) | undefined;
+    const runTurn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        modelContent: toolCallMessage,
+        parts: [],
+        functionCalls: [{ id: 'call-1', name: 'run_local_python', args: { code: '1' } }],
+      })
+      .mockResolvedValueOnce({
+        modelContent: { role: 'model' as const, parts: [{ text: 'done' }] },
+        parts: [{ text: 'done' }],
+        functionCalls: [],
+      });
+    const clientFunctions = {
+      run_local_python: {
+        declaration: { name: 'run_local_python', description: 'test' },
+        handler: vi.fn(
+          () =>
+            new Promise<{ response: unknown }>((resolve) => {
+              resolveFirstHandler = resolve;
+            }),
+        ),
+      },
+    };
+    const events: string[] = [];
+    const onToolCallsStarted = vi.fn((_modelContent: ChatHistoryItem) => {
+      events.push('calls-started');
+    });
+    const onToolResponsesSettled = vi.fn((_parts: Part[]) => {
+      events.push('responses-settled');
+    });
+
+    const loopPromise = runStandardToolLoop({
+      initialContents,
+      clientFunctions,
+      runTurn,
+      onToolCallsStarted,
+      onToolResponsesSettled,
+    });
+
+    // The calls-started callback fires while the handler is still pending.
+    await Promise.resolve();
+    expect(events).toEqual(['calls-started']);
+    expect(onToolCallsStarted).toHaveBeenCalledWith(toolCallMessage);
+
+    resolveFirstHandler?.({ response: { ok: true } });
+    await loopPromise;
+
+    expect(events).toEqual(['calls-started', 'responses-settled']);
+    expect(onToolResponsesSettled).toHaveBeenCalledTimes(1);
+    const parts = onToolResponsesSettled.mock.calls[0][0];
+    expect(parts[0]?.functionResponse?.name).toBe('run_local_python');
   });
 });

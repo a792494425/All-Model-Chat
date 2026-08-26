@@ -939,4 +939,103 @@ describe('MCP server config hardening', () => {
       {},
     );
   });
+
+  it('streams progress notifications as NDJSON lines when the caller asks for them', async () => {
+    const callTool = vi.fn(async (_server, _toolName, _args, onProgress) => {
+      onProgress?.({ progress: 1, total: 2, message: 'halfway' });
+      onProgress?.({ progress: 2, total: 2 });
+      return { ok: true };
+    });
+    const app = createServer(
+      { geminiApiBase: 'https://example.test', geminiApiKey: 'k', enableMcpStdio: true },
+      { mcpClient: { listTools: vi.fn(), callTool } },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/mcp/call`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/x-ndjson' },
+      body: JSON.stringify({
+        server: { id: 'fs', name: 'Filesystem', enabled: true, transport: 'stdio', command: 'npx' },
+        toolName: 'read_file',
+        args: { path: '/tmp/a.txt' },
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('application/x-ndjson');
+    const lines = (await response.text())
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+    expect(lines).toEqual([
+      { type: 'start' },
+      { type: 'progress', progress: 1, total: 2, message: 'halfway' },
+      { type: 'progress', progress: 2, total: 2 },
+      { type: 'result', result: { ok: true } },
+    ]);
+    expect(callTool).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'fs' }),
+      'read_file',
+      { path: '/tmp/a.txt' },
+      expect.any(Function),
+    );
+  });
+
+  it('reports mid-stream tool failures as a terminal error line', async () => {
+    const callTool = vi.fn(async (_server, _toolName, _args, onProgress) => {
+      onProgress?.({ message: 'starting' });
+      throw new Error('boom during execution');
+    });
+    const app = createServer(
+      { geminiApiBase: 'https://example.test', geminiApiKey: 'k', enableMcpStdio: true },
+      { mcpClient: { listTools: vi.fn(), callTool } },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/mcp/call`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/x-ndjson' },
+      body: JSON.stringify({
+        server: { id: 'fs', name: 'Filesystem', enabled: true, transport: 'stdio', command: 'npx' },
+        toolName: 'read_file',
+        args: {},
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    const lines = (await response.text())
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+    expect(lines).toEqual([
+      { type: 'start' },
+      { type: 'progress', message: 'starting' },
+      { type: 'error', error: 'boom during execution' },
+    ]);
+  });
+
+  it('keeps validation failures as plain JSON even when NDJSON was requested', async () => {
+    const callTool = vi.fn();
+    const app = createServer(
+      { geminiApiBase: 'https://example.test', geminiApiKey: 'k' },
+      { mcpClient: { listTools: vi.fn(), callTool } },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/mcp/call`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/x-ndjson' },
+      body: JSON.stringify({
+        server: { id: 'fs', name: 'Filesystem', enabled: true, transport: 'stdio', command: 'npx' },
+        toolName: '',
+        args: {},
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get('content-type')).toContain('application/json');
+    expect((await response.json()) as Record<string, unknown>).toEqual({ error: 'MCP tool name is required.' });
+    expect(callTool).not.toHaveBeenCalled();
+  });
 });

@@ -43,9 +43,21 @@ export interface McpLogEntry {
   timestamp: number;
 }
 
+/** Payload of an MCP progress notification for a running tool call. */
+export interface McpToolProgressUpdate {
+  progress?: number;
+  total?: number;
+  message?: string;
+}
+
 export interface McpClientBridge {
   listTools(server: McpServerConfig): Promise<McpTool[]>;
-  callTool(server: McpServerConfig, toolName: string, args: Record<string, unknown>): Promise<unknown>;
+  callTool(
+    server: McpServerConfig,
+    toolName: string,
+    args: Record<string, unknown>,
+    onProgress?: (update: McpToolProgressUpdate) => void,
+  ): Promise<unknown>;
   listResources?(server: McpServerConfig): Promise<McpResource[]>;
   listResourceTemplates?(server: McpServerConfig): Promise<McpResourceTemplate[]>;
   listResourcesAndTemplates?(server: McpServerConfig): Promise<{

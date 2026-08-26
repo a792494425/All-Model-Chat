@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { sendJson } from './cors.js';
-import type { McpClientBridge, McpServerConfig, McpTool } from './mcpTypes.js';
+import { getCorsHeaders, sendJson } from './cors.js';
+import type { McpClientBridge, McpServerConfig, McpTool, McpToolProgressUpdate } from './mcpTypes.js';
 import { isPrivateNetworkHostname } from '../../shared/privateNetwork.js';
 import {
   isValidMcpHttpUrl,
@@ -23,6 +23,49 @@ const MCP_PROMPT_PATH = '/api/mcp/prompt';
 const MCP_LOGS_PATH = '/api/mcp/logs';
 
 const MAX_MCP_REQUEST_BYTES = 1024 * 1024;
+
+const NDJSON_CONTENT_TYPE = 'application/x-ndjson';
+
+/** True when the caller asked for the streamed progress protocol. */
+const acceptsNdjsonStream = (request: IncomingMessage): boolean =>
+  String(request.headers.accept ?? '').includes(NDJSON_CONTENT_TYPE);
+
+/**
+ * Streams the NDJSON tool-call protocol on a chunked response: a `start` line,
+ * one `progress` line per MCP progress notification, then a terminal
+ * `result` or `error` line. Only reached after full request validation, so
+ * validation failures keep returning plain JSON for legacy callers.
+ */
+const streamNdjsonResponse = async (
+  request: IncomingMessage,
+  response: ServerResponse,
+  allowedOrigins: string[],
+  run: (emitProgress: (update: McpToolProgressUpdate) => void) => Promise<unknown>,
+): Promise<void> => {
+  if (response.headersSent || response.destroyed) {
+    return;
+  }
+  response.writeHead(200, {
+    ...getCorsHeaders(request, allowedOrigins),
+    'content-type': NDJSON_CONTENT_TYPE,
+    'cache-control': 'no-store',
+  });
+  const writeLine = (payload: Record<string, unknown>): void => {
+    if (!response.destroyed && !response.writableEnded) {
+      response.write(`${JSON.stringify(payload)}\n`);
+    }
+  };
+  writeLine({ type: 'start' });
+  try {
+    const result = await run((update) => writeLine({ type: 'progress', ...update }));
+    if (response.writableEnded) return;
+    writeLine({ type: 'result', ...(result !== undefined ? { result } : {}) });
+  } catch (error) {
+    writeLine({ type: 'error', error: getErrorMessage(error) });
+  } finally {
+    response.end();
+  }
+};
 
 const MCP_STDIO_DISABLED_ERROR = 'MCP stdio transport is disabled on this API server.';
 
@@ -335,6 +378,20 @@ interface SingleServerMcpRequestSpec {
     ) => ((server: McpServerConfig) => Promise<unknown>) | null;
     unsupportedError: string;
   };
+  /**
+   * Optional streamed-progress protocol (callTool only). When the caller sends
+   * Accept: application/x-ndjson, progress updates are streamed as NDJSON
+   * lines before the terminal result/error line instead of a single JSON body.
+   */
+  streaming?: {
+    accepted: (request: IncomingMessage) => boolean;
+    invoke: (
+      server: McpServerConfig,
+      requiredValue: string,
+      args: Record<string, unknown>,
+      emitProgress: (update: McpToolProgressUpdate) => void,
+    ) => Promise<unknown>;
+  };
 }
 
 /**
@@ -397,6 +454,13 @@ const respondToSingleServerRequest = async (
   if (!spec.capability) {
     // callTool is always available on the bridge.
     const args = isRecord(body.args) ? body.args : {};
+    const streaming = spec.streaming;
+    if (streaming && streaming.accepted(request)) {
+      await streamNdjsonResponse(request, response, allowedOrigins, (emitProgress) =>
+        streaming.invoke(server, requiredValue, args, emitProgress),
+      );
+      return;
+    }
     await sendInvocationResult((target) => mcpClient.callTool(target, requiredValue, args));
     return;
   }
@@ -420,6 +484,10 @@ const handleCallTool = async (
     serverRequiredFallbackError: 'MCP server and tool name are required.',
     extractRequiredValue: (body) => (typeof body.toolName === 'string' ? body.toolName.trim() : ''),
     requiredValueMissingError: 'MCP tool name is required.',
+    streaming: {
+      accepted: acceptsNdjsonStream,
+      invoke: (server, toolName, args, emitProgress) => mcpClient.callTool(server, toolName, args, emitProgress),
+    },
   });
 };
 

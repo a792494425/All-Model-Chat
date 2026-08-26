@@ -454,7 +454,7 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
       }
     },
 
-    callTool: async (server, toolName, args) => {
+    callTool: async (server, toolName, args, onProgress) => {
       try {
         const longRunning = server.longRunning === true;
         const result = await withConnectedClient(server, (client) =>
@@ -468,6 +468,19 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
               timeout: callToolTimeoutMs(server),
               resetTimeoutOnProgress: longRunning,
               ...(longRunning ? { maxTotalTimeout: LONG_RUNNING_MAX_TOTAL_TIMEOUT_MS } : {}),
+              // Forwarding onprogress also makes the SDK attach a progress
+              // token to the request, which is what prompts conforming
+              // servers to emit notifications at all.
+              ...(onProgress
+                ? {
+                    onprogress: (notification: { progress?: number; total?: number; message?: string }) =>
+                      onProgress({
+                        ...(typeof notification.progress === 'number' ? { progress: notification.progress } : {}),
+                        ...(typeof notification.total === 'number' ? { total: notification.total } : {}),
+                        ...(typeof notification.message === 'string' ? { message: notification.message } : {}),
+                      }),
+                  }
+                : {}),
             },
           ),
         );

@@ -26,6 +26,13 @@ interface RunStandardToolLoopOptions {
   clientFunctions: StandardClientFunctions;
   runTurn: (contents: ChatHistoryItem[]) => Promise<StandardToolTurnResult>;
   abortSignal?: AbortSignal;
+  /**
+   * Fired the moment an iteration's calls begin executing, before any handler
+   * resolves, so the caller can surface live tool cards while tools run.
+   */
+  onToolCallsStarted?: (modelContent: ChatHistoryItem) => void;
+  /** Fired after an iteration's handlers have all settled, with their response parts. */
+  onToolResponsesSettled?: (functionResponseParts: Part[]) => void;
 }
 
 interface GroundingCarryover {
@@ -185,6 +192,8 @@ export const runStandardToolLoop = async ({
   clientFunctions,
   runTurn,
   abortSignal,
+  onToolCallsStarted,
+  onToolResponsesSettled,
 }: RunStandardToolLoopOptions): Promise<{
   finalTurn: StandardToolTurnResult;
   toolMessages: StandardToolLoopMessagePair[];
@@ -222,6 +231,7 @@ export const runStandardToolLoop = async ({
     }
 
     const functionResponseParts: Part[] = new Array(functionCalls.length);
+    onToolCallsStarted?.(turn.modelContent);
     const results = await Promise.all(
       functionCalls.map(async (call, idx) => {
         const clientFunction = call.name ? clientFunctions[call.name] : undefined;
@@ -276,6 +286,7 @@ export const runStandardToolLoop = async ({
         functionResponseParts[r.idx] = r.part as Part;
         if (r.generatedFiles?.length) generatedFiles.push(...r.generatedFiles);
       });
+    onToolResponsesSettled?.(functionResponseParts);
 
     toolMessages.push({
       modelContent: turn.modelContent,

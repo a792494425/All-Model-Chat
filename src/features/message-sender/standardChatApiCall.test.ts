@@ -184,20 +184,23 @@ describe('performStandardChatApiCall', () => {
       mcpTool: { declaration: { name: 'mcpTool' }, handler: vi.fn() },
     });
     const updateAndPersistSessions = vi.fn();
-    mocks.runStandardToolLoop.mockResolvedValue({
-      toolMessages: [
-        {
-          modelContent: { role: 'model', parts: [{ text: 'calling tool' }] },
-          functionResponseParts: [{ functionResponse: { name: 'mcpTool', response: {} } }],
+    // Mirror the real loop: internal messages are surfaced incrementally via
+    // the live callbacks as each iteration's calls start and settle.
+    mocks.runStandardToolLoop.mockImplementation(async ({ onToolCallsStarted, onToolResponsesSettled }) => {
+      const modelContent = { role: 'model', parts: [{ text: 'calling tool' }] };
+      const functionResponseParts = [{ functionResponse: { name: 'mcpTool', response: {} } }];
+      onToolCallsStarted?.(modelContent);
+      onToolResponsesSettled?.(functionResponseParts);
+      return {
+        toolMessages: [{ modelContent, functionResponseParts }],
+        finalTurn: {
+          parts: [{ text: 'final answer' }],
+          thoughts: 'reasoning',
+          usage: { totalTokenCount: 5 },
+          grounding: undefined,
+          urlContext: undefined,
         },
-      ],
-      finalTurn: {
-        parts: [{ text: 'final answer' }],
-        thoughts: 'reasoning',
-        usage: { totalTokenCount: 5 },
-        grounding: undefined,
-        urlContext: undefined,
-      },
+      };
     });
 
     await performStandardChatApiCall(
@@ -211,7 +214,9 @@ describe('performStandardChatApiCall', () => {
     );
 
     expect(mocks.runStandardToolLoop).toHaveBeenCalledTimes(1);
-    expect(updateAndPersistSessions).toHaveBeenCalledTimes(1);
+    // One insert per callback: the model message when calls start, the user
+    // message when responses settle.
+    expect(updateAndPersistSessions).toHaveBeenCalledTimes(2);
     expect(handlers.streamOnPart).toHaveBeenCalledWith({ text: 'final answer' }, { recordFirstToken: false });
     expect(handlers.onThoughtChunk).toHaveBeenCalledWith('reasoning', { recordFirstToken: false });
     expect(handlers.streamOnComplete).toHaveBeenCalledWith({ totalTokenCount: 5 }, undefined, undefined, undefined);
