@@ -5,13 +5,22 @@ import { isRecord } from '../../shared/predicates';
 
 export type McpToolRunStatus = 'running' | 'success' | 'error' | 'cancelled';
 
+/** One progress line as stored: server payload plus local arrival time. */
+export interface McpToolRunEvent {
+  progress?: number;
+  total?: number;
+  message?: string;
+  /** Local clock when the notification arrived; powers the per-line +Ns stamps. */
+  at: number;
+}
+
 /** Live execution record of one MCP tool call, surfaced inside its call card. */
 export interface McpToolRun {
   runId: number;
   status: McpToolRunStatus;
   startedAt: number;
   endedAt?: number;
-  events: McpToolProgressEvent[];
+  events: McpToolRunEvent[];
 }
 
 const MAX_EVENTS_PER_RUN = 200;
@@ -62,7 +71,7 @@ export const appendMcpToolProgress = (runId: number | undefined, event: McpToolP
     if (!run || run.status !== 'running') return runs;
     return {
       ...runs,
-      [runId]: { ...run, events: [...run.events.slice(-(MAX_EVENTS_PER_RUN - 1)), event] },
+      [runId]: { ...run, events: [...run.events.slice(-(MAX_EVENTS_PER_RUN - 1)), { ...event, at: Date.now() }] },
     };
   });
 };

@@ -249,4 +249,116 @@ describe('McpToolCallBlock', () => {
     expect(screen.queryByTestId('mcp-tool-progress-log')).toBeNull();
     expect(screen.queryByTestId('mcp-tool-log-toggle')).toBeNull();
   });
+
+  it('surfaces the latest step inline in the header while running', () => {
+    const argsRef = { inline: true };
+    const runId = beginMcpToolRun(argsRef);
+
+    render(
+      <McpToolCallBlock
+        call={{ name: 'crawler', args: argsRef } as any}
+        responsePart={null}
+        status="invoking"
+      />,
+    );
+    expect(screen.queryByTestId('mcp-tool-current-step')).toBeNull();
+
+    act(() => {
+      appendMcpToolProgress(runId, { message: 'fetched page 1', progress: 1, total: 4 });
+    });
+    expect(screen.getByTestId('mcp-tool-current-step')).toHaveTextContent('fetched page 1 (1/4)');
+    // Header bar shows determinate progress without expanding the card.
+    expect(screen.getByTestId('mcp-tool-progress-fill')).toHaveStyle({ width: '25%' });
+
+    act(() => {
+      appendMcpToolProgress(runId, { message: 'fetched page 2', progress: 2, total: 4 });
+    });
+    expect(screen.getByTestId('mcp-tool-current-step')).toHaveTextContent('fetched page 2 (2/4)');
+
+    finishMcpToolRun(runId, 'success');
+  });
+
+  it('falls back to an indeterminate shimmer when the server reports no total', () => {
+    const argsRef = { shimmer: true };
+    const runId = beginMcpToolRun(argsRef);
+
+    render(
+      <McpToolCallBlock
+        call={{ name: 'watcher', args: argsRef } as any}
+        responsePart={null}
+        status="invoking"
+      />,
+    );
+    act(() => {
+      appendMcpToolProgress(runId, { message: 'polling upstream' });
+    });
+
+    expect(screen.queryByTestId('mcp-tool-progress-fill')).toBeNull();
+    expect(screen.getByTestId('mcp-tool-progress-shimmer')).toBeInTheDocument();
+
+    finishMcpToolRun(runId, 'success');
+  });
+
+  it('summarizes finished runs in the header with duration and step count', () => {
+    const argsRef = { summarize: true };
+    const runId = beginMcpToolRun(argsRef);
+    act(() => {
+      appendMcpToolProgress(runId, { message: 'step one' });
+      appendMcpToolProgress(runId, { message: 'step two' });
+    });
+    act(() => {
+      finishMcpToolRun(runId, 'success');
+    });
+
+    const { rerender } = render(
+      <McpToolCallBlock
+        call={{ name: 'summer', args: argsRef } as any}
+        responsePart={null}
+        status="success"
+      />,
+    );
+    expect(screen.getByTestId('mcp-tool-status')).toHaveTextContent(/· 2 steps/);
+    expect(screen.getByTestId('mcp-tool-status')).toHaveTextContent(/\d+\.\ds ·/);
+    // Settled cards no longer show the stale per-second timer.
+    expect(screen.getByTestId('mcp-tool-status')).not.toHaveTextContent(/Done \d/);
+
+    const errorArgs = { summarizeError: true };
+    const errorRun = beginMcpToolRun(errorArgs);
+    act(() => {
+      appendMcpToolProgress(errorRun, { message: 'halfway' });
+      appendMcpToolProgress(errorRun, { message: 'still going' });
+    });
+    act(() => {
+      finishMcpToolRun(errorRun, 'error');
+    });
+    rerender(
+      <McpToolCallBlock
+        call={{ name: 'summer', args: errorArgs } as any}
+        responsePart={null}
+        status="error"
+      />,
+    );
+    expect(screen.getByTestId('mcp-tool-status')).toHaveTextContent(/failed at step 2/);
+  });
+
+  it('stamps each log line with its relative arrival time', () => {
+    const argsRef = { stamped: true };
+    const runId = beginMcpToolRun(argsRef);
+
+    render(
+      <McpToolCallBlock
+        call={{ name: 'timer', args: argsRef } as any}
+        responsePart={null}
+        status="invoking"
+      />,
+    );
+    act(() => {
+      appendMcpToolProgress(runId, { message: 'first tick' });
+    });
+
+    expect(screen.getByTestId('mcp-tool-progress-log')).toHaveTextContent('+0s');
+    expect(screen.getByTestId('mcp-tool-progress-log')).toHaveTextContent('first tick');
+
+    finishMcpToolRun(runId, 'success');
+  });
 });

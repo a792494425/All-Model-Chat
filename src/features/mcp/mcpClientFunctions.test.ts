@@ -584,7 +584,7 @@ describe('createMcpClientFunctions live run lifecycle', () => {
     act(() => {
       capturedOnProgress?.({ message: 'halfway' });
     });
-    expect(result.current?.events).toEqual([{ message: 'halfway' }]);
+    expect(result.current?.events).toEqual([{ message: 'halfway', at: expect.any(Number) }]);
 
     await act(async () => {
       await pending;

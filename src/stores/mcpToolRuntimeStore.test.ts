@@ -23,7 +23,7 @@ describe('mcpToolRuntimeStore', () => {
     act(() => {
       appendMcpToolProgress(runId, { progress: 1, total: 4, message: 'step' });
     });
-    expect(result.current?.events).toEqual([{ progress: 1, total: 4, message: 'step' }]);
+    expect(result.current?.events).toEqual([{ progress: 1, total: 4, message: 'step', at: expect.any(Number) }]);
 
     act(() => {
       finishMcpToolRun(runId, 'success');

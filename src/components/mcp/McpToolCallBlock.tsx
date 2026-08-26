@@ -4,7 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { extractMcpResultSegments } from '@/features/mcp/mcpResultSummary';
 import { resolveToolDisplay } from '@/features/mcp/toolDisplayNames';
 import { useMcpApprovalStore } from '@/stores/mcpApprovalStore';
-import { useMcpToolRun } from '@/stores/mcpToolRuntimeStore';
+import { useMcpToolRun, type McpToolRunEvent } from '@/stores/mcpToolRuntimeStore';
 
 const MAX_ARG_VALUE_LENGTH = 4000;
 
@@ -16,8 +16,17 @@ const formatElapsed = (ms: number): string => {
   return `${Math.floor(totalSeconds / 60)}m${String(totalSeconds % 60).padStart(2, '0')}s`;
 };
 
+/** Finished-run duration with tenth-second precision below a minute. */
+const formatDuration = (ms: number): string => {
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+  return formatElapsed(ms);
+};
+
+/** Per-line stamp relative to run start: +0s, +3s, +1m05s. */
+const formatRelativeStamp = (ms: number): string => `+${formatElapsed(Math.max(0, ms))}`;
+
 /** One progress line: server message when present, else the raw counter. */
-const formatProgressLine = (event: { progress?: number; total?: number; message?: string }): string => {
+const formatProgressLine = (event: McpToolRunEvent): string => {
   if (event.message) {
     const counter =
       typeof event.progress === 'number' && typeof event.total === 'number'
@@ -58,9 +67,11 @@ export const McpToolCallBlock: React.FC<{
   // matches the executing handler exactly. Absent for servers without progress.
   const run = useMcpToolRun(call?.args);
   const events = run?.events ?? [];
+  const latestEvent = events.length > 0 ? events[events.length - 1] : undefined;
   const latestTotalEvent = [...events].reverse().find((event) => typeof event.total === 'number');
+  const isRunningLive = run?.status === 'running';
   const percent =
-    run && run.status === 'running' && latestTotalEvent
+    isRunningLive && latestTotalEvent
       ? Math.max(
           0,
           Math.min(100, Math.round(((latestTotalEvent.progress ?? 0) / (latestTotalEvent.total as number)) * 100)),
@@ -68,7 +79,25 @@ export const McpToolCallBlock: React.FC<{
       : null;
 
   const [logOverride, setLogOverride] = useState<boolean | null>(null);
-  const logOpen = logOverride ?? (run?.status === 'error' ? true : run?.status === 'running');
+  const logOpen = logOverride ?? (run?.status === 'error' ? true : isRunningLive);
+
+  // Finished-run header summary: "12.4s · 8 steps" on success,
+  // "5.2s · failed at step 6" on error. Runs are memory-only, so cards from
+  // reloaded history keep the plain settled label.
+  const finishedSummary = (() => {
+    if (!run || run.status === 'running' || run.endedAt === undefined) return undefined;
+    const duration = formatDuration(run.endedAt - run.startedAt);
+    if (status === 'success') {
+      if (events.length === 0) return duration;
+      return `${duration} · ${t('mcpToolStepCount').replace('{n}', String(events.length))}`;
+    }
+    if (status === 'error') {
+      return events.length > 0
+        ? `${duration} · ${t('mcpToolFailedAtStep').replace('{n}', String(events.length))}`
+        : duration;
+    }
+    return undefined;
+  })();
 
   // Keep the live log pinned to the newest line while streaming in (container
   // scrollTop, not scrollIntoView, so ancestors never jump).
@@ -103,39 +132,69 @@ export const McpToolCallBlock: React.FC<{
           ? t('mcpToolStatusError')
           : t('mcpToolStatusCancelled');
 
+  // Current step preview stays visible without expanding the card; the header
+  // bar is determinate when the server reports totals, otherwise a subtle
+  // indeterminate shimmer keeps "something is happening" visible.
+  const showCurrentStep = status === 'invoking' && !awaitingApproval && latestEvent !== undefined;
+  const showHeaderBar = isRunningLive && !awaitingApproval;
+
   return (
     <div className="rounded-lg border bg-[var(--theme-bg-secondary)] my-2">
-      <button
-        onClick={() => setManualExpanded(!expanded)}
-        className="flex w-full items-center justify-between px-3 py-2 text-sm"
-      >
-        <span className="font-mono text-xs truncate">
-          {display ? `${display.serverName} : ${display.toolName}` : call.name}
-        </span>
-        <span className="flex shrink-0 items-center gap-2">
-          {autoApproved && <ShieldCheck data-testid="mcp-shield" className="h-3.5 w-3.5 text-emerald-600" />}
-          <span
-            data-testid="mcp-tool-status"
-            className={`flex items-center gap-1.5 text-[11px] ${
-              status === 'error' ? 'text-[var(--theme-text-danger)]' : 'text-[var(--theme-text-secondary)]'
-            }`}
-          >
-            {awaitingApproval && <Hourglass className="h-3 w-3 animate-pulse text-amber-500" />}
-            {statusLabel}
-            {liveMs !== null && !awaitingApproval && <span className="tabular-nums">{formatElapsed(liveMs)}</span>}
+      <button onClick={() => setManualExpanded(!expanded)} className="w-full px-3 py-2 text-sm text-left">
+        <div className="flex w-full items-center justify-between gap-2">
+          <span className="font-mono text-xs truncate min-w-0">
+            {display ? `${display.serverName} : ${display.toolName}` : call.name}
           </span>
-          {status === 'invoking' ? (
-            awaitingApproval ? null : (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            )
-          ) : status === 'success' ? (
-            <Check className="h-4 w-4 text-emerald-600" />
-          ) : status === 'cancelled' ? (
-            <Ban data-testid="mcp-tool-cancelled" className="h-4 w-4 text-[var(--theme-text-tertiary)]" />
-          ) : (
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-          )}
-        </span>
+          <span className="flex shrink-0 items-center gap-2">
+            {autoApproved && <ShieldCheck data-testid="mcp-shield" className="h-3.5 w-3.5 text-emerald-600" />}
+            <span
+              data-testid="mcp-tool-status"
+              className={`flex items-center gap-1.5 text-[11px] ${
+                status === 'error' ? 'text-[var(--theme-text-danger)]' : 'text-[var(--theme-text-secondary)]'
+              }`}
+            >
+              {awaitingApproval && <Hourglass className="h-3 w-3 animate-pulse text-amber-500" />}
+              {statusLabel}
+              {status === 'invoking' && !awaitingApproval && (
+                <span className="tabular-nums">{formatElapsed(liveMs ?? 0)}</span>
+              )}
+              {finishedSummary && <span className="tabular-nums">&nbsp;({finishedSummary})</span>}
+            </span>
+            {status === 'invoking' ? (
+              awaitingApproval ? null : (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )
+            ) : status === 'success' ? (
+              <Check className="h-4 w-4 text-emerald-600" />
+            ) : status === 'cancelled' ? (
+              <Ban data-testid="mcp-tool-cancelled" className="h-4 w-4 text-[var(--theme-text-tertiary)]" />
+            ) : (
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+            )}
+          </span>
+        </div>
+        {showCurrentStep && (
+          <div
+            data-testid="mcp-tool-current-step"
+            className="mt-1 flex w-full items-center gap-1.5 text-[11px] text-[var(--theme-text-secondary)]"
+          >
+            <span className="h-1 w-1 shrink-0 animate-pulse rounded-full bg-emerald-500" />
+            <span className="truncate font-mono">{formatProgressLine(latestEvent as McpToolRunEvent)}</span>
+          </div>
+        )}
+        {showHeaderBar && (
+          <div className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-[var(--theme-bg-tertiary)]">
+            {percent !== null ? (
+              <div
+                data-testid="mcp-tool-progress-fill"
+                className="h-full bg-emerald-500 transition-all"
+                style={{ width: `${percent}%` }}
+              />
+            ) : (
+              <div data-testid="mcp-tool-progress-shimmer" className="mcp-indeterminate-bar h-full w-1/4 rounded-full bg-emerald-500/60" />
+            )}
+          </div>
+        )}
       </button>
       {expanded && (
         <div className="border-t px-3 py-2 text-xs">
@@ -159,17 +218,13 @@ export const McpToolCallBlock: React.FC<{
                   data-testid="mcp-tool-progress-log"
                   className="mt-1 overflow-auto max-h-[200px] rounded border border-[var(--theme-bg-tertiary)] bg-[var(--theme-bg-primary)] p-2 font-mono text-[11px] leading-relaxed"
                 >
-                  {percent !== null && (
-                    <div className="mb-1.5 h-1 overflow-hidden rounded-full bg-[var(--theme-bg-tertiary)]">
-                      <div
-                        data-testid="mcp-tool-progress-fill"
-                        className="h-full bg-emerald-500 transition-all"
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-                  )}
                   {events.map((event, index) => (
-                    <div key={index} className="whitespace-pre-wrap text-[var(--theme-text-secondary)]">
+                    <div key={index} className="animate-in fade-in whitespace-pre-wrap text-[var(--theme-text-secondary)]">
+                      {run && typeof event.at === 'number' && (
+                        <span className="mr-2 tabular-nums text-[var(--theme-text-tertiary)]">
+                          {formatRelativeStamp(event.at - run.startedAt)}
+                        </span>
+                      )}
                       {formatProgressLine(event)}
                     </div>
                   ))}

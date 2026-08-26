@@ -232,6 +232,20 @@
   animation: cursorBlink 1s step-end infinite;
 }
 
+/* Indeterminate progress bar for MCP tool calls whose servers report no total. */
+@keyframes mcpIndeterminateSlide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(520%);
+  }
+}
+
+.mcp-indeterminate-bar {
+  animation: mcpIndeterminateSlide 1.4s ease-in-out infinite;
+}
+
 /* Google Spinner Animation */
 .google-spinner {
   animation: google-rotator 1.4s linear infinite;
@@ -357,6 +371,7 @@
 
   .animate-cursor-blink,
   .google-spinner,
+  .mcp-indeterminate-bar,
   .google-path-anim,
   .mic-recording-animate {
     animation: none !important;
