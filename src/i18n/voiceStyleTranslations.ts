@@ -1,4 +1,4 @@
-import type { TranslationMap } from './coreTranslations';
+import type { TranslationMap } from './translationTypes';
 
 export const ttsStyleTranslations: TranslationMap = {
   tts_style_bright: {

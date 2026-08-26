@@ -2,7 +2,8 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { ChatGroup, SavedChatSession } from '@/types';
-import { GroupItem, type SessionItemPassedProps } from './GroupItem';
+import { GroupItem } from './GroupItem';
+import type { SessionItemPassedProps } from './sidebarTypes';
 
 interface SortableGroupItemProps extends SessionItemPassedProps {
   group: ChatGroup;

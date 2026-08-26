@@ -13,7 +13,7 @@ import { MessageListFooter } from './MessageListFooter';
 import { MessageListModals } from './MessageListModals';
 import { isGemini3Model } from '@/utils/model/modelCapabilities';
 import { getMcpToolPairs, getVisibleChatMessages } from '@/utils/chat/visibility';
-import { McpToolCallGroup } from '@/components/message/McpToolCallGroup';
+import { McpToolCallGroup } from '@/components/mcp/McpToolCallGroup';
 import { isMarkdownFile } from '@/utils/file/fileTypeClassification';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useChatStore } from '@/stores/chatStore';

@@ -3,7 +3,7 @@ import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { type SavedChatSession } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { SessionItem } from './SessionItem';
-import { type SessionItemPassedProps } from './GroupItem';
+import { type SessionItemPassedProps } from './sidebarTypes';
 import { interpolate } from '@/i18n/interpolate';
 
 const INITIAL_VISIBLE_SESSION_COUNT = 80;

@@ -4,7 +4,7 @@ import { type SavedChatSession, type ChatGroup } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { SidebarHeader } from './SidebarHeader';
 import { SidebarActions } from './SidebarActions';
-import type { SessionItemPassedProps } from './GroupItem';
+import type { SessionItemPassedProps } from './sidebarTypes';
 import { CollapsedRecentChatsButton } from './CollapsedRecentChatsButton';
 import { Search, Settings } from 'lucide-react';
 import { IconNewChat, IconSidebarToggle } from '@/components/icons';

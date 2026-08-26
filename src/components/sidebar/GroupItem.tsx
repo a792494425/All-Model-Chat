@@ -1,15 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { ChevronDown, GripVertical, MoreHorizontal } from 'lucide-react';
 import { type ChatGroup, type SavedChatSession } from '@/types';
-import type { SessionItem } from './SessionItem';
 import { GroupItemMenu } from './GroupItemMenu';
 import { InlineRenameInput } from './InlineRenameInput';
 import { LimitedSessionList } from './LimitedSessionList';
 import { GROUP_DRAG_TYPE, isGroupDrag, isSessionDrag } from './sidebarDragTypes';
 import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
-
-export type SessionItemPassedProps = Omit<React.ComponentProps<typeof SessionItem>, 'session'>;
+import type { SessionItemPassedProps } from './sidebarTypes';
 
 // Auto-expand delay: hold over a collapsed group this long to pop it open.
 const DRAG_HOVER_EXPAND_MS = 600;

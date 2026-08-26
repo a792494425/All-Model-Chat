@@ -9,7 +9,7 @@ import { useChatStore } from '@/stores/chatStore';
 import { SESSION_DRAG_TYPE } from './sidebarDragTypes';
 import { Z_INDEX_TOPMOST_OVERLAY } from '@/constants/layout';
 
-interface SessionItemProps {
+export interface SessionItemProps {
   session: SavedChatSession;
   activeSessionId: string | null;
   editingItem: { type: 'session' | 'group'; id: string; title: string } | null;

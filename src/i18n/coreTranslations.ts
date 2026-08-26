@@ -7,9 +7,12 @@ import { commonTranslations } from './translations/common';
 import { chatTranslations } from './translations/chat';
 import { ttsStyleTranslations } from './voiceStyleTranslations';
 import type { SupportedLanguage } from './languageRegistry';
+import type { TranslationMap } from './translationTypes';
 export type { SupportedLanguage } from './languageRegistry';
-export type TranslationEntry = Partial<Record<SupportedLanguage, string>>;
-export type TranslationMap = Record<string, TranslationEntry>;
+// Types live in a leaf module so feature packs can import them without
+// reaching back into this file (which imports their values) — keeps the
+// module graph acyclic.
+export type { TranslationEntry, TranslationMap } from './translationTypes';
 
 /**
  * Shell / always-mounted chrome strings that must work before lazy feature

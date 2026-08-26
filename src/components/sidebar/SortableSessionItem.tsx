@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { SavedChatSession } from '@/types';
 import { SessionItem } from './SessionItem';
-import type { SessionItemPassedProps } from './GroupItem';
+import type { SessionItemPassedProps } from './sidebarTypes';
 
 interface SortableSessionItemProps extends SessionItemPassedProps {
   session: SavedChatSession;
