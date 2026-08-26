@@ -15,7 +15,7 @@ vi.mock('./apiClient', async () => {
   };
 });
 
-import { sendStatelessMessageNonStreamApi, sendStatelessMessageStreamApi } from './chatApi';
+import { sendStatelessMessageNonStreamApi, sendStatelessMessageStreamApi, generateContentTurnApi } from './chatApi';
 
 describe('chatApi media resolution routing', () => {
   beforeEach(() => {
@@ -503,6 +503,81 @@ describe('chatApi media resolution routing', () => {
       undefined,
       undefined,
     );
+  });
+});
+
+describe('generateContentTurnApi finishReason handling', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetConfiguredApiClient.mockResolvedValue({
+      models: {
+        generateContent: mockGenerateContent,
+        generateContentStream: mockGenerateContentStream,
+      },
+    });
+  });
+
+  it('throws when the model produced a malformed function call even with partial text', async () => {
+    mockGenerateContent.mockResolvedValue({
+      candidates: [
+        {
+          finishReason: 'MALFORMED_FUNCTION_CALL',
+          content: { parts: [{ text: 'partial answer' }] },
+        },
+      ],
+    });
+
+    await expect(generateContentTurnApi('key', 'gemini-3-flash-preview', [], {}, new AbortController().signal))
+      .rejects.toThrow('malformed arguments');
+  });
+
+  it('throws when generation was stopped by a content filter with no usable parts', async () => {
+    mockGenerateContent.mockResolvedValue({
+      candidates: [{ finishReason: 'SAFETY', content: { parts: [] } }],
+    });
+
+    await expect(generateContentTurnApi('key', 'gemini-3-flash-preview', [], {}, new AbortController().signal))
+      .rejects.toThrow('SAFETY');
+  });
+
+  it('throws when the prompt itself was blocked before generation', async () => {
+    mockGenerateContent.mockResolvedValue({
+      promptFeedback: { blockReason: 'SAFETY' },
+    });
+
+    await expect(generateContentTurnApi('key', 'gemini-3-flash-preview', [], {}, new AbortController().signal))
+      .rejects.toThrow('prompt was blocked');
+  });
+
+  it('returns normally for truncation via MAX_TOKENS with usable parts', async () => {
+    mockGenerateContent.mockResolvedValue({
+      candidates: [
+        {
+          finishReason: 'MAX_TOKENS',
+          content: { parts: [{ text: 'truncated answer' }] },
+        },
+      ],
+    });
+
+    const turn = await generateContentTurnApi('key', 'gemini-3-flash-preview', [], {}, new AbortController().signal);
+
+    expect(turn.parts).toEqual([{ text: 'truncated answer' }]);
+    expect(turn.modelContent.role).toBe('model');
+  });
+
+  it('returns normally for a blocked finish reason when usable parts exist', async () => {
+    mockGenerateContent.mockResolvedValue({
+      candidates: [
+        {
+          finishReason: 'RECITATION',
+          content: { parts: [{ text: 'usable answer' }] },
+        },
+      ],
+    });
+
+    const turn = await generateContentTurnApi('key', 'gemini-3-flash-preview', [], {}, new AbortController().signal);
+
+    expect(turn.parts).toEqual([{ text: 'usable answer' }]);
   });
 });
 

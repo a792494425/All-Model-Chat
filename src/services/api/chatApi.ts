@@ -1,4 +1,4 @@
-import type { GenerateContentResponse, UsageMetadata } from '@google/genai';
+import type { GenerateContentResponse, Part, UsageMetadata } from '@google/genai';
 import { type ChatHistoryItem, type StreamMessageSender, type NonStreamMessageSender } from '@/types';
 import { logService } from '@/services/logService';
 import { executeConfiguredApiRequest } from './apiExecutor';
@@ -13,6 +13,39 @@ const withAbortSignal = <T extends object>(
   ...(config || ({} as T)),
   abortSignal,
 });
+
+/** Finish reasons that mean the response was withheld, not merely finished. */
+const CONTENT_BLOCKED_FINISH_REASONS = new Set(['SAFETY', 'RECITATION', 'BLOCKLIST', 'PROHIBITED_CONTENT', 'SPII']);
+
+/**
+ * Gemini docs best practice: always check finishReason so a failed turn is not
+ * mistaken for a successful empty answer. The tool-loop case matters most —
+ * MALFORMED_FUNCTION_CALL means the model intended to run an action but the
+ * API discarded the invalid call, so silently ending the loop would hide a
+ * step the user asked for.
+ */
+const assertUsableTurnResponse = (response: GenerateContentResponse, extractedParts: Part[]): void => {
+  const candidate = response.candidates?.[0];
+  const { finishReason } = candidate ?? {};
+
+  if (finishReason === 'MALFORMED_FUNCTION_CALL') {
+    throw new Error(
+      'The model tried to call a function but produced malformed arguments (finishReason: MALFORMED_FUNCTION_CALL). Try rephrasing the request or simplifying the tools involved.',
+    );
+  }
+
+  if (
+    extractedParts.length === 0 &&
+    typeof finishReason === 'string' &&
+    CONTENT_BLOCKED_FINISH_REASONS.has(finishReason)
+  ) {
+    throw new Error(`The model returned no content because generation was stopped (${finishReason}).`);
+  }
+
+  if (!candidate && extractedParts.length === 0 && response.promptFeedback?.blockReason) {
+    throw new Error(`The prompt was blocked before generation could start (${response.promptFeedback.blockReason}).`);
+  }
+};
 
 export const generateContentTurnApi = async (
   apiKey: string,
@@ -47,6 +80,7 @@ export const generateContentTurnApi = async (
   }
 
   const { parts, thoughts, usage, grounding, urlContext } = adaptGenAiResponse(response);
+  assertUsableTurnResponse(response, parts);
   const candidateContent = response.candidates?.[0]?.content;
 
   return {

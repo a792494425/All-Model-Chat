@@ -2,6 +2,8 @@ import { Type } from '@google/genai';
 import { describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import type { McpServerConfig } from '@/types';
+import { logService } from '@/services/logService';
+import type { McpToolDefinition } from '@/services/api/mcpApi';
 import { useMcpToolRun } from '@/stores/mcpToolRuntimeStore';
 import { createMcpClientFunctions } from './mcpClientFunctions';
 import { toMcpFunctionName } from './mcpToolNames';
@@ -316,7 +318,8 @@ describe('createMcpClientFunctions', () => {
       properties: {
         path: {
           type: Type.STRING,
-          description: 'Target path (nullable)',
+          description: 'Target path',
+          nullable: true,
         },
         payload: {
           type: Type.OBJECT,
@@ -328,6 +331,85 @@ describe('createMcpClientFunctions', () => {
       },
       required: ['path'],
     });
+  });
+
+  it('passes supported validation keywords through to Gemini schemas', async () => {
+    const listTools = vi.fn(async () => ({
+      servers: [
+        {
+          serverId: 'filesystem',
+          serverName: 'Filesystem',
+          tools: [
+            {
+              name: 'query',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string', pattern: '^[a-z]+$', minLength: 2, maxLength: 64 },
+                  page: { type: 'integer', minimum: 1, maximum: 100 },
+                  tags: { type: 'array', items: { type: 'string' }, minItems: 1, maxItems: 5 },
+                },
+                minProperties: 1,
+                maxProperties: 3,
+                propertyOrdering: ['code', 'page', 'tags'],
+              },
+            },
+          ],
+        },
+      ],
+      errors: [],
+    }));
+
+    const functions = await createMcpClientFunctions({
+      servers: [filesystemServer],
+      listTools,
+      callTool: vi.fn(),
+    });
+    const declaration = functions[toMcpFunctionName('filesystem', 'query')].declaration;
+    const properties = (declaration.parameters as { properties: Record<string, object> }).properties;
+
+    expect(properties.code).toMatchObject({ pattern: '^[a-z]+$', minLength: '2', maxLength: '64' });
+    expect(properties.page).toMatchObject({ minimum: 1, maximum: 100 });
+    expect(properties.tags).toMatchObject({ minItems: '1', maxItems: '5' });
+    expect(declaration.parameters).toMatchObject({
+      minProperties: '1',
+      maxProperties: '3',
+      propertyOrdering: ['code', 'page', 'tags'],
+    });
+  });
+
+  it('warns only when the active tool count exceeds the recommended set', async () => {
+    // logService comes from the global setup mock; clear its shared history
+    // instead of stacking another spy on top of the existing vi.fn.
+    const warnMock = vi.mocked(logService.warn);
+    warnMock.mockClear();
+    const toolsOf = (count: number): McpToolDefinition[] =>
+      Array.from({ length: count }, (_unused, index) => ({
+        name: `tool_${index}`,
+        inputSchema: { type: 'object' },
+      }));
+    const listToolsFor = (tools: McpToolDefinition[]) =>
+      vi.fn(async () => ({
+        servers: [{ serverId: 'filesystem', serverName: 'Filesystem', tools }],
+        errors: [],
+      }));
+
+    await createMcpClientFunctions({
+      servers: [filesystemServer],
+      listTools: listToolsFor(toolsOf(20)),
+      callTool: vi.fn(),
+    });
+    expect(warnMock).not.toHaveBeenCalled();
+
+    await createMcpClientFunctions({
+      servers: [filesystemServer],
+      listTools: listToolsFor(toolsOf(21)),
+      callTool: vi.fn(),
+    });
+    expect(warnMock).toHaveBeenCalledWith(
+      expect.stringContaining('21 MCP tools are active'),
+      expect.objectContaining({ totalToolCount: 21 }),
+    );
   });
 });
 
@@ -528,5 +610,20 @@ describe('createMcpClientFunctions live run lifecycle', () => {
     await expect(handler(argsCancelled, { abortSignal: abortController.signal })).rejects.toThrow('aborted');
     const cancelledRun = renderHook(() => useMcpToolRun(argsCancelled)).result.current;
     expect(cancelledRun?.status).toBe('cancelled');
+  });
+
+  it('reports MCP isError results as failed runs with the tool text as the error', async () => {
+    // MCP reports execution failures via isError:true on a successful RPC.
+    const callTool = vi.fn(async () => ({
+      content: [{ type: 'text', text: 'disk full' }],
+      isError: true,
+    }));
+    const handler = await getHandler(callTool);
+    const args = { path: '/tmp/full.bin' };
+
+    await expect(handler(args, undefined)).rejects.toThrow('disk full');
+
+    const run = renderHook(() => useMcpToolRun(args)).result.current;
+    expect(run?.status).toBe('error');
   });
 });

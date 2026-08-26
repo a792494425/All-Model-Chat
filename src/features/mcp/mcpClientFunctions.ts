@@ -11,7 +11,7 @@ import { logService } from '@/services/logService';
 import { beginMcpToolRun, appendMcpToolProgress, finishMcpToolRun } from '@/stores/mcpToolRuntimeStore';
 import { toMcpFunctionName } from './mcpToolNames';
 import { isRecord } from '../../../shared/predicates';
-import { summarizeMcpResultForModel } from './mcpResultSummary';
+import { extractMcpCallError, summarizeMcpResultForModel } from './mcpResultSummary';
 import {
   isSessionApproved,
   rememberSessionApproval,
@@ -45,6 +45,12 @@ interface CreateMcpClientFunctionsOptions {
 type McpToolsLister = NonNullable<CreateMcpClientFunctionsOptions['listTools']>;
 
 const MCP_DISCOVERY_CACHE_TTL_MS = 30_000;
+
+/**
+ * Gemini docs best practice: keep the active tool set to roughly 10–20 so the
+ * model does not mis-select and declarations do not bloat the input tokens.
+ */
+const MCP_TOOL_COUNT_GUIDANCE_MAX = 20;
 
 interface McpDiscoveryCacheEntry {
   configKey: string;
@@ -151,6 +157,45 @@ const pickUnionBranch = (schema: Record<string, unknown>): Record<string, unknow
   return first;
 };
 
+/**
+ * Validation keywords the v1beta Gemini Schema subset understands and the SDK
+ * Schema type carries. The count/length ones are proto int64s, so JSON Schema
+ * numbers must be stringified; minimum/maximum stay numeric.
+ */
+const STRINGIFIED_CONSTRAINT_KEYS = [
+  'minLength',
+  'maxLength',
+  'minItems',
+  'maxItems',
+  'minProperties',
+  'maxProperties',
+] as const;
+const NUMERIC_CONSTRAINT_KEYS = ['minimum', 'maximum'] as const;
+
+const copyConstraintKeywords = (source: Record<string, unknown>, target: Schema): void => {
+  for (const key of STRINGIFIED_CONSTRAINT_KEYS) {
+    const value = source[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      target[key] = String(value);
+    }
+  }
+  for (const key of NUMERIC_CONSTRAINT_KEYS) {
+    const value = source[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      target[key] = value;
+    }
+  }
+  if (typeof source.pattern === 'string' && source.pattern) {
+    target.pattern = source.pattern;
+  }
+  if (
+    Array.isArray(source.propertyOrdering) &&
+    source.propertyOrdering.every((item) => typeof item === 'string')
+  ) {
+    target.propertyOrdering = source.propertyOrdering as string[];
+  }
+};
+
 const toGeminiSchema = (schema: unknown): Schema => {
   if (!isRecord(schema)) {
     return { type: Type.OBJECT };
@@ -185,6 +230,8 @@ const toGeminiSchema = (schema: unknown): Schema => {
     geminiSchema.format = effective.format;
   }
 
+  copyConstraintKeywords(effective, geminiSchema);
+
   if (type === Type.OBJECT) {
     if (isRecord(effective.properties)) {
       geminiSchema.properties = Object.fromEntries(
@@ -211,10 +258,10 @@ const toGeminiSchema = (schema: unknown): Schema => {
     geminiSchema.items = toGeminiSchema(effective.items);
   }
 
-  // Nullable via type: ["string","null"] — Gemini uses nullable on some schemas; attach description note.
-  if (Array.isArray(schema.type) && schema.type.includes('null') && type !== Type.NULL) {
-    const baseDescription = geminiSchema.description ?? '';
-    geminiSchema.description = baseDescription ? `${baseDescription} (nullable)` : 'Nullable value.';
+  // JSON Schema unions like ["string","null"] become the primary type plus
+  // Gemini's native nullable flag (v1beta Schema supports it).
+  if (Array.isArray(effective.type) && effective.type.includes('null') && type !== Type.NULL) {
+    geminiSchema.nullable = true;
   }
 
   return geminiSchema;
@@ -358,6 +405,14 @@ export const createMcpClientFunctions = async ({
                 options?.abortSignal ?? abortSignal,
                 (event) => appendMcpToolProgress(runId, event),
               );
+              // MCP signals execution failure with isError:true on a successful
+              // RPC — surface it as an error response so the model can recover
+              // and the tool card reports the run as failed.
+              const callError = extractMcpCallError(rawResult);
+              if (callError) {
+                finishMcpToolRun(runId, 'error');
+                throw new Error(callError);
+              }
               finishMcpToolRun(runId, 'success');
               return {
                 response: summarizeMcpResultForModel(rawResult),
@@ -369,6 +424,15 @@ export const createMcpClientFunctions = async ({
           },
         };
       }
+    }
+
+    const totalToolCount = Object.keys(functions).length;
+    if (totalToolCount > MCP_TOOL_COUNT_GUIDANCE_MAX) {
+      logService.warn(
+        `${totalToolCount} MCP tools are active across ${filteredServers.length} server(s). ` +
+          'Gemini guidance recommends keeping the active set to about 10-20 tools to avoid mis-selection and input-token bloat.',
+        { totalToolCount },
+      );
     }
 
     return functions;

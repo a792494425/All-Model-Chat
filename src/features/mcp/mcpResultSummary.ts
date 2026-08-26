@@ -8,6 +8,41 @@ export interface McpResultSegment {
 
 const placeholderFor = (type: string): string => `[${type.charAt(0).toUpperCase()}${type.slice(1)} delivered to user]`;
 
+const MAX_CALL_ERROR_TEXT_LENGTH = 2000;
+
+/**
+ * MCP reports tool execution failures via CallToolResult.isError=true while the
+ * JSON-RPC call itself succeeds. Per the Gemini function-calling guidance,
+ * failures should reach the model as an informative error, so extract the
+ * human-readable text and let the caller throw an error-shaped response.
+ */
+export const extractMcpCallError = (result: unknown): string | undefined => {
+  if (!isRecord(result) || result.isError !== true) {
+    return undefined;
+  }
+
+  const segments: string[] = [];
+  if (Array.isArray(result.content)) {
+    for (const item of result.content) {
+      if (isRecord(item) && item.type === 'text' && typeof item.text === 'string' && item.text.trim()) {
+        segments.push(item.text);
+      }
+    }
+  }
+  if (segments.length === 0 && isRecord(result.structuredContent)) {
+    try {
+      segments.push(JSON.stringify(result.structuredContent));
+    } catch {
+      // Unserializable structured content — fall through to the generic message.
+    }
+  }
+
+  const message = segments.join('\n').trim() || 'MCP tool reported an error.';
+  return message.length > MAX_CALL_ERROR_TEXT_LENGTH
+    ? `${message.slice(0, MAX_CALL_ERROR_TEXT_LENGTH)}…`
+    : message;
+};
+
 /**
  * Model-facing view of an MCP CallToolResult. Binary parts (image/audio/blob)
  * would blow up the prompt with base64, so they become short placeholders —
