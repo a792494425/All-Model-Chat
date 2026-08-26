@@ -126,8 +126,8 @@ export const ChatInputArea: React.FC = () => {
     handleZipChange: handlers.handleZipChange,
   };
 
-  const currentFrameStyle = isCompact ? compactFrameStyle : frameStyle;
-  const currentContentStyle = isCompact ? compactEditorContentStyle : editorContentStyle;
+  const currentFrameStyle = hasCustomHeight || !isCompact ? frameStyle : compactFrameStyle;
+  const currentContentStyle = hasCustomHeight || !isCompact ? editorContentStyle : compactEditorContentStyle;
 
   return (
     <div className={wrapperClass} aria-hidden={isUIBlocked}>

@@ -52,8 +52,8 @@ export function useCompactChatInputPresentation({ enabled, frameRef, isComposing
     const row = frame?.closest<HTMLElement>('[data-composer-compact-row]') ?? frame?.querySelector<HTMLElement>('[data-composer-compact-row]');
     const targetRow = (row ?? frame) as HTMLElement | null;
     const hasHardBr = !!(ed?.querySelector(':scope > p > br:not(.ProseMirror-trailingBreak)') || (ed as HTMLTextAreaElement)?.value?.includes('\n'));
-    const hasOverflow = ed ? ed.scrollHeight > ed.clientHeight + TOL : false;
-    const hasRowOverflow = targetRow ? targetRow.scrollWidth > targetRow.clientWidth + TOL : false;
+    const hasOverflow = ed && ed.clientHeight > 0 ? ed.scrollHeight > ed.clientHeight + TOL : false;
+    const hasRowOverflow = targetRow && targetRow.clientWidth > 0 ? targetRow.scrollWidth > targetRow.clientWidth + TOL : false;
     setM({ presentation: hasHardBr || hasOverflow || hasRowOverflow ? 'regular' : 'compact', revision: rev });
   }, [enabled, frameRef, isComposing, m.revision, rev, requestMeasurement]);
 

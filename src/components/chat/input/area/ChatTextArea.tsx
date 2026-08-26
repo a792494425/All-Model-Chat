@@ -46,7 +46,7 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
   isCompact,
 }) => {
   const isExpandedMode = hasCustomHeight ?? isFullscreen;
-  const contentStyle = isCompact ? compactEditorContentStyle : editorContentStyle;
+  const contentStyle = editorContentStyle ?? (isCompact ? compactEditorContentStyle : undefined);
   const { t } = useI18n();
   const shadowRef = useRef<HTMLTextAreaElement>(null);
   const isComposingRef = useRef(false);
@@ -79,10 +79,12 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
 
     // When CSS variable sizing is provided (Cherry parity), let CSS handle height
     if (contentStyle) {
-      // Apply CSS variable based max-height via inline style for test visibility
-      if (isExpandedMode || isCompact) {
+      const cssOverflow = (contentStyle as unknown as Record<string, string>)['--composer-editor-overflow-y'];
+      const cssHeight = (contentStyle as unknown as Record<string, string>)['--composer-editor-height'] ?? (contentStyle as unknown as { height?: unknown }).height;
+      const isFixedHeight = cssHeight === '100%' || cssHeight === 29 || cssHeight === '29px';
+      if (isExpandedMode || isCompact || isFixedHeight) {
         target.style.height = '100%';
-        target.style.overflowY = isCompact ? 'hidden' : 'auto';
+        target.style.overflowY = cssOverflow ?? (isCompact && !hasCustomHeight ? 'hidden' : 'auto');
         // Ensure CSS var is present for test assertion
         (target.style as unknown as Record<string, string>)['max-height'] = 'var(--composer-editor-max-height)';
       } else {
