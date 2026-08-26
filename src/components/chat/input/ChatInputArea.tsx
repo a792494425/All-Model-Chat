@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ChatInputToolbar } from './ChatInputToolbar';
 import { ChatInputActions } from './ChatInputActions';
 import { SlashCommandMenu } from './SlashCommandMenu';
@@ -15,6 +15,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { useChatInputContext } from './ChatInputContext';
 import { ChatInputExpandCorner } from './ChatInputExpandCorner';
 import { useChatInputExpandSizing } from './useChatInputExpandSizing';
+import { useCompactChatInputPresentation } from './useCompactChatInputPresentation';
 
 export const ChatInputArea: React.FC = () => {
   const { t } = useI18n();
@@ -56,32 +57,61 @@ export const ChatInputArea: React.FC = () => {
     inputDisabled,
   });
 
-  const minHeight = isMobile ? 26 : initialTextareaHeight + 2;
+  const fontSize = (chatInput.appSettings as unknown as { baseFontSize?: number })?.baseFontSize ?? 14;
+  const minHeightProp = isMobile ? 26 : undefined;
+
   const {
     frameRef,
     frameStyle,
+    compactFrameStyle,
+    editorContentStyle,
+    compactEditorContentStyle,
+    editorElementStyle,
     isResizing,
     startResize,
     handleResizeKeyDown,
     handleTransitionEnd,
     toggleExpanded,
+    restoreDefaultHeight,
     hasCustomHeight,
     maxHeight,
+    minHeight,
     resizeHandleValue,
   } = useChatInputExpandSizing({
+    fontSize,
     isExpanded,
     onExpandedChange: (next) => {
       if (next !== isExpanded) inputState.handleToggleFullscreen();
     },
     focusEditor: () => inputState.textareaRef.current?.focus(),
-    minHeight,
+    minHeight: minHeightProp,
   });
+
+  const isComposingRef = React.useRef(false);
+  const handleCompositionStart = useCallback(() => {
+    isComposingRef.current = true;
+    handlers.onCompositionStart();
+  }, [handlers]);
+  const handleCompositionEnd = useCallback((value: string) => {
+    isComposingRef.current = false;
+    handlers.onCompositionEnd(value);
+  }, [handlers]);
+
+  const { isCompact, requestMeasurement } = useCompactChatInputPresentation({
+    enabled: !hasCustomHeight && !isMobile,
+    frameRef,
+    isComposing: () => isComposingRef.current,
+  });
+
+  React.useEffect(() => {
+    requestMeasurement();
+  }, [inputState.inputText, requestMeasurement]);
+
   const handleInputShellClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const target = event.target;
     if (target instanceof Element && target.closest(FOCUS_BLOCKING_SELECTOR)) {
       return;
     }
-
     inputState.textareaRef.current?.focus();
   };
 
@@ -95,6 +125,9 @@ export const ChatInputArea: React.FC = () => {
     handleFolderChange: handlers.handleFolderChange,
     handleZipChange: handlers.handleZipChange,
   };
+
+  const currentFrameStyle = isCompact ? compactFrameStyle : frameStyle;
+  const currentContentStyle = isCompact ? compactEditorContentStyle : editorContentStyle;
 
   return (
     <div className={wrapperClass} aria-hidden={isUIBlocked}>
@@ -124,7 +157,6 @@ export const ChatInputArea: React.FC = () => {
       </div>
 
       <div className={innerContainerClass}>
-        {/* Wrap toolbar in z-indexed container to ensure dropdowns render above status banner */}
         <div className="relative z-50">
           <ChatInputToolbar />
         </div>
@@ -160,6 +192,7 @@ export const ChatInputArea: React.FC = () => {
           <div
             className={`${inputContainerClass} ${hasCustomHeight ? 'expanded' : ''}`}
             onClick={handleInputShellClick}
+            data-composer-compact-row=""
           >
             <div
               data-composer-resize-handle=""
@@ -173,6 +206,7 @@ export const ChatInputArea: React.FC = () => {
               tabIndex={0}
               onMouseDown={startResize}
               onKeyDown={handleResizeKeyDown}
+              onDoubleClick={restoreDefaultHeight}
               className="group/composer-resize-handle absolute top-0 right-4 left-4 z-30 h-2 cursor-row-resize [-webkit-app-region:no-drag] focus-visible:bg-primary/40 focus-visible:outline-none"
             >
               <div className="absolute top-0 right-0 left-0 h-0.5 rounded-full bg-primary/20 opacity-0 transition-opacity group-hover/composer-resize-handle:opacity-100 group-focus/composer-resize-handle:opacity-100 group-data-[resizing=true]/composer-resize-handle:bg-primary/35 group-data-[resizing=true]/composer-resize-handle:opacity-100" />
@@ -197,9 +231,10 @@ export const ChatInputArea: React.FC = () => {
             <div
               ref={frameRef}
               data-composer-editor-frame=""
-              className="min-w-0 overflow-hidden transition-[height] ease-out"
+              className="min-w-0 overflow-hidden transition-[height] ease-out flex flex-col"
               onTransitionEnd={handleTransitionEnd}
-              style={frameStyle}
+              style={currentFrameStyle}
+              onDoubleClick={restoreDefaultHeight}
             >
               <ChatTextArea
                 textareaRef={inputState.textareaRef}
@@ -207,8 +242,8 @@ export const ChatInputArea: React.FC = () => {
                 onChange={handlers.handleInputChange}
                 onKeyDown={handlers.handleKeyDown}
                 onPaste={handlers.handlePaste}
-                onCompositionStart={handlers.onCompositionStart}
-                onCompositionEnd={handlers.onCompositionEnd}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={handleCompositionEnd}
                 placeholder={t('chatInputPlaceholder')}
                 disabled={inputDisabled}
                 isFullscreen={isFullscreen}
@@ -216,6 +251,10 @@ export const ChatInputArea: React.FC = () => {
                 isMobile={isMobile}
                 initialTextareaHeight={initialTextareaHeight}
                 isConverting={isConverting}
+                editorContentStyle={currentContentStyle as React.CSSProperties}
+                compactEditorContentStyle={compactEditorContentStyle as React.CSSProperties}
+                editorElementStyle={editorElementStyle}
+                isCompact={isCompact}
               />
             </div>
 
