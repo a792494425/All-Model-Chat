@@ -98,7 +98,7 @@ export const ChatInputArea: React.FC = () => {
   }, [handlers]);
 
   const { isCompact, requestMeasurement } = useCompactChatInputPresentation({
-    enabled: !hasCustomHeight && !isMobile,
+    enabled: false,
     frameRef,
     isComposing: () => isComposingRef.current,
   });
