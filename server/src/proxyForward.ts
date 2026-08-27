@@ -40,14 +40,10 @@ function buildProxyResponseHeaders(
 // ── SSRF guard ───────────────────────────────────────────────────────────────
 
 export type UpstreamUrlRejection =
-  | 'invalid-url'
-  | 'insecure-protocol'
-  | 'embedded-credentials'
-  | 'private-network-host';
+  'invalid-url' | 'insecure-protocol' | 'embedded-credentials' | 'private-network-host';
 
 export type UpstreamUrlGuard =
-  | { ok: true; url: URL }
-  | { ok: false; rejection: UpstreamUrlRejection; hostname?: string };
+  { ok: true; url: URL } | { ok: false; rejection: UpstreamUrlRejection; hostname?: string };
 
 export interface UpstreamUrlGuardOptions {
   /**

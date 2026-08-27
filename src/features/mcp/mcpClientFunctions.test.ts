@@ -149,8 +149,22 @@ describe('createMcpClientFunctions', () => {
     await functions[functionNames[0]].handler({ path: '/tmp/first.txt' });
     await functions[functionNames[1]].handler({ path: '/tmp/second.txt' });
 
-    expect(callTool).toHaveBeenNthCalledWith(1, filesystemServer, 'read_file', { path: '/tmp/first.txt' }, undefined, expect.any(Function));
-    expect(callTool).toHaveBeenNthCalledWith(2, secondServer, 'read_file', { path: '/tmp/second.txt' }, undefined, expect.any(Function));
+    expect(callTool).toHaveBeenNthCalledWith(
+      1,
+      filesystemServer,
+      'read_file',
+      { path: '/tmp/first.txt' },
+      undefined,
+      expect.any(Function),
+    );
+    expect(callTool).toHaveBeenNthCalledWith(
+      2,
+      secondServer,
+      'read_file',
+      { path: '/tmp/second.txt' },
+      undefined,
+      expect.any(Function),
+    );
   });
 
   it('does not throw when listTools fails so chat can continue without MCP tools', async () => {

@@ -83,7 +83,12 @@ export const McpCapabilitiesTabs: React.FC<McpCapabilitiesTabsProps> = ({
         >
           {t('settingsMcpTabTools')}
         </button>
-        <button role="tab" aria-selected={currentTab === 'prompts'} onClick={() => onTabChange('prompts')} className={tabButtonClass(currentTab === 'prompts')}>
+        <button
+          role="tab"
+          aria-selected={currentTab === 'prompts'}
+          onClick={() => onTabChange('prompts')}
+          className={tabButtonClass(currentTab === 'prompts')}
+        >
           {t('settingsMcpTabPrompts')}
         </button>
         <button
@@ -94,7 +99,12 @@ export const McpCapabilitiesTabs: React.FC<McpCapabilitiesTabsProps> = ({
         >
           {t('settingsMcpTabResources')}
         </button>
-        <button role="tab" aria-selected={currentTab === 'logs'} onClick={() => onTabChange('logs')} className={tabButtonClass(currentTab === 'logs')}>
+        <button
+          role="tab"
+          aria-selected={currentTab === 'logs'}
+          onClick={() => onTabChange('logs')}
+          className={tabButtonClass(currentTab === 'logs')}
+        >
           {t('settingsMcpTabLogs')}
         </button>
       </div>
@@ -158,7 +168,11 @@ export const McpCapabilitiesTabs: React.FC<McpCapabilitiesTabsProps> = ({
                         </button>
                         <div className="truncate text-xs text-[var(--theme-text-secondary)]">{tool.description}</div>
                       </div>
-                      <Toggle checked={isEnabled} onChange={(v) => toggleTool(tool.name, v)} ariaLabel={`${isEnabled ? 'Disable' : 'Enable'} ${tool.name}`} />
+                      <Toggle
+                        checked={isEnabled}
+                        onChange={(v) => toggleTool(tool.name, v)}
+                        ariaLabel={`${isEnabled ? 'Disable' : 'Enable'} ${tool.name}`}
+                      />
                       <button
                         type="button"
                         aria-label={`Auto-approve ${tool.name}`}
@@ -173,7 +187,9 @@ export const McpCapabilitiesTabs: React.FC<McpCapabilitiesTabsProps> = ({
                         <ShieldCheck size={16} strokeWidth={1.7} />
                       </button>
                     </div>
-                    {schemaToolNames.has(tool.name) && tool.inputSchema && <McpToolSchemaView inputSchema={tool.inputSchema} />}
+                    {schemaToolNames.has(tool.name) && tool.inputSchema && (
+                      <McpToolSchemaView inputSchema={tool.inputSchema} />
+                    )}
                   </div>
                 );
               });

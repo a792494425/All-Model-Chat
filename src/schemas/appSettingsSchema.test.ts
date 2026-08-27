@@ -185,7 +185,8 @@ describe('appSettingsSchema', () => {
     expect(settings.mcpServers[1].longRunning).toBeUndefined();
   });
 
-  it('drops identity-invalid MCP entries but keeps incomplete in-progress configs', () => {    const settings = sanitizeImportedAppSettings({
+  it('drops identity-invalid MCP entries but keeps incomplete in-progress configs', () => {
+    const settings = sanitizeImportedAppSettings({
       mcpServers: [
         {
           id: 'valid',

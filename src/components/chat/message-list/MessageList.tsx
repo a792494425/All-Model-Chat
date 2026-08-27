@@ -170,9 +170,7 @@ const MessageListComponent: React.FC = () => {
             isGemini3={isGemini3}
             userMessageCollapse={userMessageCollapse}
           />
-          {pair ? (
-            <McpToolCallGroup calls={pair.calls} responses={pair.responses} turnActive={isLoading} />
-          ) : null}
+          {pair ? <McpToolCallGroup calls={pair.calls} responses={pair.responses} turnActive={isLoading} /> : null}
         </div>
       );
     },

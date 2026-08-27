@@ -56,9 +56,7 @@ export const LanguageVoiceSection: React.FC<LanguageVoiceSectionProps> = (props)
         </h4>
         <div className="space-y-4">
           <div className="space-y-1">
-            <h5 className={SETTINGS_SECTION_LABEL_CLASS}>
-              {t('settingsInputTranslationSectionTitle')}
-            </h5>
+            <h5 className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsInputTranslationSectionTitle')}</h5>
             <Select
               id="translation-target-language-select"
               label=""
@@ -102,9 +100,7 @@ export const LanguageVoiceSection: React.FC<LanguageVoiceSectionProps> = (props)
           </div>
 
           <div className="space-y-1 border-t border-[var(--theme-border-secondary)] pt-4">
-            <h5 className={SETTINGS_SECTION_LABEL_CLASS}>
-              {t('settingsThoughtTranslationSectionTitle')}
-            </h5>
+            <h5 className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsThoughtTranslationSectionTitle')}</h5>
             <Select
               id="thought-translation-target-language-select"
               label=""

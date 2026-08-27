@@ -60,7 +60,7 @@ const SchemaNode: React.FC<{ schema: Record<string, unknown>; depth: number; nam
             <SchemaNode schema={child} depth={depth + 1} />
           </div>
         ))}
-      {!isBranch && !!((schema.items as Record<string, unknown> | undefined)?.properties) && (
+      {!isBranch && !!(schema.items as Record<string, unknown> | undefined)?.properties && (
         <SchemaNode schema={schema.items as Record<string, unknown>} depth={depth + 1} />
       )}
       {!isBranch && Array.isArray(schema.enum) && (

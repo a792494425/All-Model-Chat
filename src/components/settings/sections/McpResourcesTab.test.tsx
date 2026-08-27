@@ -49,9 +49,7 @@ describe('McpResourcesTab', () => {
     vi.spyOn(mcpApi, 'fetchMcpResource').mockResolvedValue({
       result: { contents: [{ uri: 'file:///x.bin' }] },
     });
-    render(
-      <McpResourcesTab server={server} resources={[{ uri: 'file:///x.bin', name: 'X' }]} templates={[]} t={t} />,
-    );
+    render(<McpResourcesTab server={server} resources={[{ uri: 'file:///x.bin', name: 'X' }]} templates={[]} t={t} />);
     fireEvent.click(screen.getByTestId('mcp-resource-row-file:///x.bin'));
     fireEvent.click(screen.getByRole('button', { name: 'settingsMcpResourcesRead' }));
     await waitFor(() => expect(screen.getByText('settingsMcpResourceBinary')).toBeInTheDocument());

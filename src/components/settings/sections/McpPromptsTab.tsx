@@ -63,9 +63,9 @@ export const McpPromptsTab: React.FC<McpPromptsTabProps> = ({ server, prompts, t
       setTimeout(() => setCopied(false), 2000);
       return;
     }
-    useChatDraftStore.getState().setDraftText(sessionId, (prev) =>
-      prev ? `${prev}\n\n${renderedText}` : renderedText,
-    );
+    useChatDraftStore
+      .getState()
+      .setDraftText(sessionId, (prev) => (prev ? `${prev}\n\n${renderedText}` : renderedText));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -82,7 +82,11 @@ export const McpPromptsTab: React.FC<McpPromptsTabProps> = ({ server, prompts, t
               onClick={() => setExpandedName(expanded ? null : prompt.name)}
               className="flex w-full items-center gap-2 text-left"
             >
-              {expanded ? <ChevronDown size={14} className="shrink-0" /> : <ChevronRight size={14} className="shrink-0" />}
+              {expanded ? (
+                <ChevronDown size={14} className="shrink-0" />
+              ) : (
+                <ChevronRight size={14} className="shrink-0" />
+              )}
               <span className="min-w-0 flex-1 truncate text-sm font-medium">{prompt.name}</span>
             </button>
             {!expanded && prompt.description && (
@@ -90,7 +94,9 @@ export const McpPromptsTab: React.FC<McpPromptsTabProps> = ({ server, prompts, t
             )}
             {expanded && (
               <div className="mt-2 pl-6">
-                {prompt.description && <div className="text-xs text-[var(--theme-text-secondary)]">{prompt.description}</div>}
+                {prompt.description && (
+                  <div className="text-xs text-[var(--theme-text-secondary)]">{prompt.description}</div>
+                )}
                 {(prompt.arguments ?? []).length > 0 && (
                   <div className="mt-2 space-y-1.5">
                     {(prompt.arguments ?? []).map((arg) => (

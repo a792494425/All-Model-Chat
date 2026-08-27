@@ -15,8 +15,7 @@ export const normalizeImportedServer = (
   raw: Record<string, unknown>,
   fallbackName?: string,
 ): McpServerConfig | null => {
-  const url =
-    typeof raw.url === 'string' ? raw.url.trim() : typeof raw.baseUrl === 'string' ? raw.baseUrl.trim() : '';
+  const url = typeof raw.url === 'string' ? raw.url.trim() : typeof raw.baseUrl === 'string' ? raw.baseUrl.trim() : '';
   const command = typeof raw.command === 'string' ? raw.command.trim() : '';
   if (!url && !command) return null;
   const isStdio = !!command || raw.transport === 'stdio' || raw.type === 'stdio';
@@ -57,7 +56,9 @@ export const normalizeImportedServer = (
 const serversFromParsed = (parsed: unknown): McpServerConfig[] => {
   if (!parsed || typeof parsed !== 'object') throw new McpImportError('notObject');
   if (Array.isArray(parsed)) {
-    return (parsed as Record<string, unknown>[]).map((r) => normalizeImportedServer(r)).filter(Boolean) as McpServerConfig[];
+    return (parsed as Record<string, unknown>[])
+      .map((r) => normalizeImportedServer(r))
+      .filter(Boolean) as McpServerConfig[];
   }
   const obj = parsed as Record<string, unknown>;
   for (const key of ['servers', 'mcpServers'] as const) {

@@ -1,11 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import {
-  appendMcpToolProgress,
-  beginMcpToolRun,
-  finishMcpToolRun,
-  useMcpToolRun,
-} from './mcpToolRuntimeStore';
+import { appendMcpToolProgress, beginMcpToolRun, finishMcpToolRun, useMcpToolRun } from './mcpToolRuntimeStore';
 
 describe('mcpToolRuntimeStore', () => {
   it('correlates a run to the exact args object and tracks its lifecycle', () => {

@@ -92,8 +92,20 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
   const panelRef = useRef<HTMLDivElement>(null);
   const answerContainerRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLParagraphElement>(null);
-  const dragState = useRef<{ offsetX: number; offsetY: number; pointerId?: number; capturedEl?: HTMLElement } | null>(null);
-  const resizeState = useRef<{ dir: ResizeDir; startX: number; startY: number; startW: number; startH: number; startTop: number; startLeft: number; pointerId: number; capturedEl: HTMLElement } | null>(null);
+  const dragState = useRef<{ offsetX: number; offsetY: number; pointerId?: number; capturedEl?: HTMLElement } | null>(
+    null,
+  );
+  const resizeState = useRef<{
+    dir: ResizeDir;
+    startX: number;
+    startY: number;
+    startW: number;
+    startH: number;
+    startTop: number;
+    startLeft: number;
+    pointerId: number;
+    capturedEl: HTMLElement;
+  } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const shouldAutoScrollRef = useRef(true);
 
@@ -316,7 +328,12 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
     if (e.button !== 0) return;
     if (!panelRef.current) return;
     const rect = panelRef.current.getBoundingClientRect();
-    dragState.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top, pointerId: e.pointerId, capturedEl: e.currentTarget as HTMLElement };
+    dragState.current = {
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      pointerId: e.pointerId,
+      capturedEl: e.currentTarget as HTMLElement,
+    };
     setIsDragging(true);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }, []);
@@ -579,7 +596,11 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
         </button>
       </div>
 
-      <div ref={answerContainerRef} onScroll={handleAnswerScroll} className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-3">
+      <div
+        ref={answerContainerRef}
+        onScroll={handleAnswerScroll}
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-3"
+      >
         <div className="mb-3 shrink-0 rounded-xl bg-[var(--theme-bg-secondary)]/70 px-3 py-2">
           <p
             ref={previewRef}
@@ -700,12 +721,7 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
                 ['summarize', t('askSummarize')],
               ] as const
             ).map(([key, label]) => (
-              <button
-                key={key}
-                onClick={() => handleQuick(key)}
-                disabled={isLoading}
-                className={ghostPill}
-              >
+              <button key={key} onClick={() => handleQuick(key)} disabled={isLoading} className={ghostPill}>
                 {label}
               </button>
             ))}
@@ -755,24 +771,54 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
         </div>
       </div>
 
-      <div onPointerDown={handleResizePointerDown('n')} className="absolute left-3 right-3 top-0 h-1 cursor-n-resize touch-none" />
-      <div onPointerDown={handleResizePointerDown('s')} className="absolute bottom-0 left-3 right-3 h-1 cursor-s-resize touch-none" />
-      <div onPointerDown={handleResizePointerDown('e')} className="absolute bottom-3 right-0 top-3 w-1 cursor-e-resize touch-none" />
-      <div onPointerDown={handleResizePointerDown('w')} className="absolute bottom-3 left-0 top-3 w-1 cursor-w-resize touch-none" />
-      <div onPointerDown={handleResizePointerDown('ne')} className="absolute right-0 top-0 h-3 w-3 cursor-ne-resize touch-none" />
-      <div onPointerDown={handleResizePointerDown('nw')} className="absolute left-0 top-0 h-3 w-3 cursor-nw-resize touch-none" />
-      <div onPointerDown={handleResizePointerDown('sw')} className="absolute bottom-0 left-0 h-3 w-3 cursor-sw-resize touch-none" />
+      <div
+        onPointerDown={handleResizePointerDown('n')}
+        className="absolute left-3 right-3 top-0 h-1 cursor-n-resize touch-none"
+      />
+      <div
+        onPointerDown={handleResizePointerDown('s')}
+        className="absolute bottom-0 left-3 right-3 h-1 cursor-s-resize touch-none"
+      />
+      <div
+        onPointerDown={handleResizePointerDown('e')}
+        className="absolute bottom-3 right-0 top-3 w-1 cursor-e-resize touch-none"
+      />
+      <div
+        onPointerDown={handleResizePointerDown('w')}
+        className="absolute bottom-3 left-0 top-3 w-1 cursor-w-resize touch-none"
+      />
+      <div
+        onPointerDown={handleResizePointerDown('ne')}
+        className="absolute right-0 top-0 h-3 w-3 cursor-ne-resize touch-none"
+      />
+      <div
+        onPointerDown={handleResizePointerDown('nw')}
+        className="absolute left-0 top-0 h-3 w-3 cursor-nw-resize touch-none"
+      />
+      <div
+        onPointerDown={handleResizePointerDown('sw')}
+        className="absolute bottom-0 left-0 h-3 w-3 cursor-sw-resize touch-none"
+      />
       <div
         onPointerDown={handleResizePointerDown('se')}
         onDoubleClick={handleResetSize}
         title={t('askResizeHint')}
         aria-label={t('askResetSize')}
         className={`absolute bottom-0 right-0 flex h-4 w-4 cursor-se-resize touch-none items-end justify-end p-0.5 transition-opacity ${
-          isResizing === 'se' ? 'text-[var(--theme-text-link)] opacity-100' : 'text-[var(--theme-text-tertiary)] opacity-70 hover:text-[var(--theme-text-secondary)] hover:opacity-100'
+          isResizing === 'se'
+            ? 'text-[var(--theme-text-link)] opacity-100'
+            : 'text-[var(--theme-text-tertiary)] opacity-70 hover:text-[var(--theme-text-secondary)] hover:opacity-100'
         }`}
       >
         <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
-          <path d="M9 1 L9 9 L1 9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M9 1 L9 9 L1 9"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </div>
     </div>,

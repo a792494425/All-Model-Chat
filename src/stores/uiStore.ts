@@ -76,7 +76,10 @@ interface UIActions {
   setHistoryDisplayMode: (mode: HistoryDisplayMode) => void;
 }
 
-type PersistedUiPreferences = Pick<UIState, 'desktopHistorySidebarOpen' | 'mobileHistorySidebarOpen' | 'historyDisplayMode'>;
+type PersistedUiPreferences = Pick<
+  UIState,
+  'desktopHistorySidebarOpen' | 'mobileHistorySidebarOpen' | 'historyDisplayMode'
+>;
 
 const mergePersistedUiPreferences = (
   persistedState: unknown,

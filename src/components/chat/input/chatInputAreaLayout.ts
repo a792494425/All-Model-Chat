@@ -6,10 +6,7 @@ interface ChatInputAreaLayoutParams {
   isAnimatingSend: boolean;
 }
 
-export const getChatInputAreaLayout = ({
-  isPipActive,
-  isAnimatingSend,
-}: ChatInputAreaLayoutParams) => {
+export const getChatInputAreaLayout = ({ isPipActive, isAnimatingSend }: ChatInputAreaLayoutParams) => {
   // Keep composer shell solid and visible without unwanted wrapper-level dimming/opacity drops.
   const wrapperClass = 'bg-transparent';
 

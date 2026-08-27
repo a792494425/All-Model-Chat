@@ -38,9 +38,7 @@ export const extractMcpCallError = (result: unknown): string | undefined => {
   }
 
   const message = segments.join('\n').trim() || 'MCP tool reported an error.';
-  return message.length > MAX_CALL_ERROR_TEXT_LENGTH
-    ? `${message.slice(0, MAX_CALL_ERROR_TEXT_LENGTH)}…`
-    : message;
+  return message.length > MAX_CALL_ERROR_TEXT_LENGTH ? `${message.slice(0, MAX_CALL_ERROR_TEXT_LENGTH)}…` : message;
 };
 
 /**

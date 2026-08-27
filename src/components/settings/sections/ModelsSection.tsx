@@ -70,11 +70,7 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({
         onUpdateSetting={updateSetting}
       />
 
-      <SelectionAskModelSection
-        settings={currentSettings}
-        onUpdate={updateSetting}
-        availableModels={availableModels}
-      />
+      <SelectionAskModelSection settings={currentSettings} onUpdate={updateSetting} availableModels={availableModels} />
 
       {!isThirdPartyMode && (
         <>

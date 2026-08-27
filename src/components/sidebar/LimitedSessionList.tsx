@@ -16,7 +16,12 @@ interface LimitedSessionListProps {
   isDragging?: boolean;
 }
 
-export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({ sessions, sessionItemProps, className, isDragging }) => {
+export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({
+  sessions,
+  sessionItemProps,
+  className,
+  isDragging,
+}) => {
   const { t } = useI18n();
   const [animatedParent] = useAutoAnimate<HTMLUListElement>({ duration: 200 });
   void isDragging;

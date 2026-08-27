@@ -35,11 +35,7 @@ describe('McpToolCallBlock', () => {
 
   it('keeps invoking calls expanded and finished calls collapsed', () => {
     const { rerender } = render(
-      <McpToolCallBlock
-        call={{ name: 'live', args: { q: 1 } } as any}
-        responsePart={null}
-        status="invoking"
-      />,
+      <McpToolCallBlock call={{ name: 'live', args: { q: 1 } } as any} responsePart={null} status="invoking" />,
     );
     // While running, the detail pane is open without any interaction.
     expect(screen.getAllByText(/"q": 1/).length).toBeGreaterThan(0);
@@ -120,11 +116,7 @@ describe('McpToolCallBlock', () => {
 
   it('lets a manual override survive status transitions', () => {
     const { rerender } = render(
-      <McpToolCallBlock
-        call={{ name: 'manual', args: {} } as any}
-        responsePart={null}
-        status="invoking"
-      />,
+      <McpToolCallBlock call={{ name: 'manual', args: {} } as any} responsePart={null} status="invoking" />,
     );
     // User collapses while running; completing must not force it back open.
     fireEvent.click(screen.getByText('manual'));
@@ -180,13 +172,7 @@ describe('McpToolCallBlock', () => {
     const argsRef = { target: 'page' };
     const runId = beginMcpToolRun(argsRef);
 
-    render(
-      <McpToolCallBlock
-        call={{ name: 'crawler', args: argsRef } as any}
-        responsePart={null}
-        status="invoking"
-      />,
-    );
+    render(<McpToolCallBlock call={{ name: 'crawler', args: argsRef } as any} responsePart={null} status="invoking" />);
     expect(screen.queryByTestId('mcp-tool-progress-log')).toBeNull();
 
     act(() => {
@@ -227,24 +213,12 @@ describe('McpToolCallBlock', () => {
     const errorRun = beginMcpToolRun(errorArgs);
     appendMcpToolProgress(errorRun, { message: 'halfway through' });
     finishMcpToolRun(errorRun, 'error');
-    rerender(
-      <McpToolCallBlock
-        call={{ name: 'boomer', args: errorArgs } as any}
-        responsePart={null}
-        status="error"
-      />,
-    );
+    rerender(<McpToolCallBlock call={{ name: 'boomer', args: errorArgs } as any} responsePart={null} status="error" />);
     expect(screen.getByTestId('mcp-tool-progress-log')).toHaveTextContent('halfway through');
   });
 
   it('renders no log area when the server never sent progress', () => {
-    render(
-      <McpToolCallBlock
-        call={{ name: 'silent', args: {} } as any}
-        responsePart={null}
-        status="invoking"
-      />,
-    );
+    render(<McpToolCallBlock call={{ name: 'silent', args: {} } as any} responsePart={null} status="invoking" />);
     expect(screen.getByTestId('mcp-tool-status')).toHaveTextContent('Running');
     expect(screen.queryByTestId('mcp-tool-progress-log')).toBeNull();
     expect(screen.queryByTestId('mcp-tool-log-toggle')).toBeNull();
@@ -254,13 +228,7 @@ describe('McpToolCallBlock', () => {
     const argsRef = { inline: true };
     const runId = beginMcpToolRun(argsRef);
 
-    render(
-      <McpToolCallBlock
-        call={{ name: 'crawler', args: argsRef } as any}
-        responsePart={null}
-        status="invoking"
-      />,
-    );
+    render(<McpToolCallBlock call={{ name: 'crawler', args: argsRef } as any} responsePart={null} status="invoking" />);
     expect(screen.queryByTestId('mcp-tool-current-step')).toBeNull();
 
     act(() => {
@@ -282,13 +250,7 @@ describe('McpToolCallBlock', () => {
     const argsRef = { shimmer: true };
     const runId = beginMcpToolRun(argsRef);
 
-    render(
-      <McpToolCallBlock
-        call={{ name: 'watcher', args: argsRef } as any}
-        responsePart={null}
-        status="invoking"
-      />,
-    );
+    render(<McpToolCallBlock call={{ name: 'watcher', args: argsRef } as any} responsePart={null} status="invoking" />);
     act(() => {
       appendMcpToolProgress(runId, { message: 'polling upstream' });
     });
@@ -311,11 +273,7 @@ describe('McpToolCallBlock', () => {
     });
 
     const { rerender } = render(
-      <McpToolCallBlock
-        call={{ name: 'summer', args: argsRef } as any}
-        responsePart={null}
-        status="success"
-      />,
+      <McpToolCallBlock call={{ name: 'summer', args: argsRef } as any} responsePart={null} status="success" />,
     );
     expect(screen.getByTestId('mcp-tool-status')).toHaveTextContent(/· 2 steps/);
     expect(screen.getByTestId('mcp-tool-status')).toHaveTextContent(/\d+\.\ds ·/);
@@ -331,13 +289,7 @@ describe('McpToolCallBlock', () => {
     act(() => {
       finishMcpToolRun(errorRun, 'error');
     });
-    rerender(
-      <McpToolCallBlock
-        call={{ name: 'summer', args: errorArgs } as any}
-        responsePart={null}
-        status="error"
-      />,
-    );
+    rerender(<McpToolCallBlock call={{ name: 'summer', args: errorArgs } as any} responsePart={null} status="error" />);
     expect(screen.getByTestId('mcp-tool-status')).toHaveTextContent(/failed at step 2/);
   });
 
@@ -345,13 +297,7 @@ describe('McpToolCallBlock', () => {
     const argsRef = { stamped: true };
     const runId = beginMcpToolRun(argsRef);
 
-    render(
-      <McpToolCallBlock
-        call={{ name: 'timer', args: argsRef } as any}
-        responsePart={null}
-        status="invoking"
-      />,
-    );
+    render(<McpToolCallBlock call={{ name: 'timer', args: argsRef } as any} responsePart={null} status="invoking" />);
     act(() => {
       appendMcpToolProgress(runId, { message: 'first tick' });
     });

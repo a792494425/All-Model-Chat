@@ -16,9 +16,12 @@ const openDropdown = (container: HTMLElement) => {
 describe('ThemeLanguageSelector', () => {
   it('renders language dropdown with all registry options', () => {
     const onUpdate = vi.fn();
-    const { container, getByRole } = renderWithProviders(<ThemeLanguageSelector settings={{ language: 'en', themeId: 'pearl' } as AppSettings} onUpdate={onUpdate} />, {
-      language: 'en',
-    });
+    const { container, getByRole } = renderWithProviders(
+      <ThemeLanguageSelector settings={{ language: 'en', themeId: 'pearl' } as AppSettings} onUpdate={onUpdate} />,
+      {
+        language: 'en',
+      },
+    );
 
     const trigger = openDropdown(container);
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
@@ -32,9 +35,12 @@ describe('ThemeLanguageSelector', () => {
 
   it('switches to ja on option select', () => {
     const onUpdate = vi.fn();
-    const { container } = renderWithProviders(<ThemeLanguageSelector settings={{ language: 'en', themeId: 'pearl' } as AppSettings} onUpdate={onUpdate} />, {
-      language: 'en',
-    });
+    const { container } = renderWithProviders(
+      <ThemeLanguageSelector settings={{ language: 'en', themeId: 'pearl' } as AppSettings} onUpdate={onUpdate} />,
+      {
+        language: 'en',
+      },
+    );
 
     openDropdown(container);
     const jaOption = Array.from(container.querySelectorAll('[role="option"]')).find((option) =>
@@ -48,9 +54,12 @@ describe('ThemeLanguageSelector', () => {
 
   it('keeps the language control keyboard operable', () => {
     const onUpdate = vi.fn();
-    const { container } = renderWithProviders(<ThemeLanguageSelector settings={{ language: 'en', themeId: 'pearl' } as AppSettings} onUpdate={onUpdate} />, {
-      language: 'en',
-    });
+    const { container } = renderWithProviders(
+      <ThemeLanguageSelector settings={{ language: 'en', themeId: 'pearl' } as AppSettings} onUpdate={onUpdate} />,
+      {
+        language: 'en',
+      },
+    );
 
     const trigger = openDropdown(container);
     fireEvent.keyDown(trigger, { key: 'ArrowDown' });

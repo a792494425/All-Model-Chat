@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { ArrowDown, ArrowUp, Check, ChevronDown, ChevronRight, Copy, RefreshCw, Trash2 } from 'lucide-react';
 import { Toggle } from '@/components/shared/Toggle';
 import { Select } from '@/components/shared/Select';
-import { SETTINGS_OUTLINE_BUTTON_CLASS, SMALL_ICON_BUTTON_CLASS, SMALL_ICON_DANGER_BUTTON_CLASS } from '@/constants/buttonClasses';
+import {
+  SETTINGS_OUTLINE_BUTTON_CLASS,
+  SMALL_ICON_BUTTON_CLASS,
+  SMALL_ICON_DANGER_BUTTON_CLASS,
+} from '@/constants/buttonClasses';
 import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { interpolate } from '@/i18n/interpolate';
@@ -20,15 +24,10 @@ import {
 
 /** Small uppercase heading that partitions the expanded server form into scannable groups. */
 const SettingsGroupLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
-    {children}
-  </div>
+  <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">{children}</div>
 );
 
-const applyTransportDefaults = (
-  server: McpServerConfig,
-  transport: McpServerTransport,
-): Partial<McpServerConfig> => {
+const applyTransportDefaults = (server: McpServerConfig, transport: McpServerTransport): Partial<McpServerConfig> => {
   if (transport === 'stdio') {
     return { transport, command: server.command ?? '', args: server.args ?? [], env: server.env ?? {} };
   }
@@ -142,10 +141,7 @@ export const McpServerCard: React.FC<McpServerCardProps> = ({
 
   return (
     <section className={SETTINGS_SECTION_CARD_CLASS} data-settings-item={`mcp-server-${index}`}>
-      <div
-        data-mcp-server-card-header
-        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-      >
+      <div data-mcp-server-card-header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           data-testid={`mcp-card-expand-${index}`}
@@ -155,9 +151,19 @@ export const McpServerCard: React.FC<McpServerCardProps> = ({
           className="flex min-w-0 flex-1 items-center gap-2 rounded-md text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-text-link)]"
         >
           {isExpanded ? (
-            <ChevronDown size={15} strokeWidth={1.7} className="shrink-0 text-[var(--theme-text-tertiary)]" aria-hidden />
+            <ChevronDown
+              size={15}
+              strokeWidth={1.7}
+              className="shrink-0 text-[var(--theme-text-tertiary)]"
+              aria-hidden
+            />
           ) : (
-            <ChevronRight size={15} strokeWidth={1.7} className="shrink-0 text-[var(--theme-text-tertiary)]" aria-hidden />
+            <ChevronRight
+              size={15}
+              strokeWidth={1.7}
+              className="shrink-0 text-[var(--theme-text-tertiary)]"
+              aria-hidden
+            />
           )}
           <span
             data-testid={`mcp-status-dot-${server.id}`}
@@ -189,7 +195,12 @@ export const McpServerCard: React.FC<McpServerCardProps> = ({
           className="flex shrink-0 items-center gap-2 self-start sm:self-auto"
         >
           <Toggle checked={server.enabled} onChange={onToggleEnabled} ariaLabel={displayName} />
-          <button type="button" onClick={onRemove} className={SMALL_ICON_DANGER_BUTTON_CLASS} aria-label={t('settingsMcpRemoveServer')}>
+          <button
+            type="button"
+            onClick={onRemove}
+            className={SMALL_ICON_DANGER_BUTTON_CLASS}
+            aria-label={t('settingsMcpRemoveServer')}
+          >
             <Trash2 size={15} strokeWidth={1.7} />
           </button>
         </div>

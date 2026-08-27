@@ -18,7 +18,10 @@ export const McpTrustDialog: React.FC<McpTrustDialogProps> = ({ server, onCancel
   const { t } = useI18n();
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4" data-testid="mcp-trust-backdrop">
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
+      data-testid="mcp-trust-backdrop"
+    >
       <div
         role="dialog"
         aria-modal="true"

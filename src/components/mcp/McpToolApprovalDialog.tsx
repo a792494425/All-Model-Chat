@@ -11,7 +11,10 @@ export const McpToolApprovalDialog: React.FC = () => {
   if (!pending) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4" data-testid="mcp-approval-backdrop">
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+      data-testid="mcp-approval-backdrop"
+    >
       <div
         role="dialog"
         aria-modal="true"

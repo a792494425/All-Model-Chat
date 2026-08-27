@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Copy } from 'lucide-react';
-import { fetchMcpResource, type McpResourceDefinition, type McpResourceTemplateDefinition } from '@/services/api/mcpApi';
+import {
+  fetchMcpResource,
+  type McpResourceDefinition,
+  type McpResourceTemplateDefinition,
+} from '@/services/api/mcpApi';
 import type { McpServerConfig } from '@/types';
 
 const MAX_PREVIEW_LENGTH = 4000;
@@ -86,7 +90,11 @@ export const McpResourcesTab: React.FC<McpResourcesTabProps> = ({ server, resour
               }}
               className="flex w-full items-center gap-2 text-left"
             >
-              {expanded ? <ChevronDown size={14} className="shrink-0" /> : <ChevronRight size={14} className="shrink-0" />}
+              {expanded ? (
+                <ChevronDown size={14} className="shrink-0" />
+              ) : (
+                <ChevronRight size={14} className="shrink-0" />
+              )}
               <span className="min-w-0 flex-1 truncate font-mono text-sm">
                 {row.uri ?? row.uriTemplate ?? row.name}
               </span>

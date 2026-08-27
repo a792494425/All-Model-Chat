@@ -37,13 +37,22 @@ export const McpShareInstallGate: React.FC = () => {
 
   const confirm = () => {
     const existing = appSettings.mcpServers ?? [];
-    const next = [...existing, ...dedupeServersById(pending, existing.map((s) => s.id))];
+    const next = [
+      ...existing,
+      ...dedupeServersById(
+        pending,
+        existing.map((s) => s.id),
+      ),
+    ];
     useSettingsStore.getState().setAppSettings({ ...appSettings, mcpServers: next });
     dismiss();
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4" data-testid="mcp-share-backdrop">
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
+      data-testid="mcp-share-backdrop"
+    >
       <div
         role="dialog"
         aria-modal="true"

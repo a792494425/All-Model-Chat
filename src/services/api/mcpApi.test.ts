@@ -1,6 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { McpServerConfig } from '@/types';
-import { callMcpTool, fetchMcpLogs, fetchMcpPrompt, fetchMcpPrompts, fetchMcpResource, fetchMcpResources, fetchMcpServerCapabilities } from './mcpApi';
+import {
+  callMcpTool,
+  fetchMcpLogs,
+  fetchMcpPrompt,
+  fetchMcpPrompts,
+  fetchMcpResource,
+  fetchMcpResources,
+  fetchMcpServerCapabilities,
+} from './mcpApi';
 
 const fetchMock = vi.fn();
 
@@ -214,10 +222,7 @@ describe('mcpApi resource/prompt reads', () => {
 
     const body = await fetchMcpResource(server, 'file:///a.md');
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/mcp/resource',
-      expect.objectContaining({ method: 'POST' }),
-    );
+    expect(fetchMock).toHaveBeenCalledWith('/api/mcp/resource', expect.objectContaining({ method: 'POST' }));
     const callBody = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
     expect(callBody).toEqual({ server, uri: 'file:///a.md' });
     expect(body.result?.contents[0].text).toBe('hello');

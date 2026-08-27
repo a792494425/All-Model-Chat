@@ -232,9 +232,7 @@ describe('McpSection', () => {
 
     const enabledIds = Array.from(
       renderer.container.querySelectorAll<HTMLInputElement>('[data-mcp-server-card-actions] input[type="checkbox"]'),
-    ).map(
-      (input) => input.id,
-    );
+    ).map((input) => input.id);
 
     expect(enabledIds).toHaveLength(2);
     expect(new Set(enabledIds).size).toBe(2);

@@ -20,12 +20,14 @@
 ### Task 1: 划词工具栏新增“询问”按钮
 
 **Files:**
+
 - Modify: `src/components/chat/message-list/text-selection/StandardActionsView.tsx`
 - Modify: `src/components/chat/message-list/text-selection/StandardActionsView.test.tsx`
 - Modify: `src/i18n/translations/selection.ts` (或现有 `messages.ts`) - 新增 ask 词条
 - Modify: `src/components/chat/message-list/TextSelectionToolbar.tsx` - 新增 onAsk prop
 
 **Interfaces:**
+
 - Consumes: 现有 `StandardActionsViewProps`, `useSelectionPosition` 的 `selectedText`
 - Produces: `onAsk?: (e: React.MouseEvent) => void` 供 Task 3 消费
 
@@ -74,19 +76,27 @@ git commit -m "feat(selection): add Ask button to text selection toolbar"
 ### Task 2: 隔离的划词询问 SSE 服务
 
 **Files:**
+
 - Create: `src/services/selectionAskService.ts`
 - Test: `src/services/selectionAskService.test.ts`
 
 **Interfaces:**
+
 - Consumes: `resolveChatApiRoute`, `useSettingsStore.getState().appSettings`, `useChatState().currentChatSettings.modelId`
 - Produces: `askSelection({ selectedText, question, modelId, signal, onDelta, onDone, onError }): Promise<void>`
 
 - [ ] **Step 1: 写 failing test**
 
 ```ts
-it('streams deltas via onDelta', async ()=>{
-  global.fetch = vi.fn(()=> mockSSE(['hello',' world']));
-  await askSelection({selectedText:'foo', question:'what?', modelId:'gemini-2.5-flash', onDelta:fn, signal: AbortController.signal});
+it('streams deltas via onDelta', async () => {
+  global.fetch = vi.fn(() => mockSSE(['hello', ' world']));
+  await askSelection({
+    selectedText: 'foo',
+    question: 'what?',
+    modelId: 'gemini-2.5-flash',
+    onDelta: fn,
+    signal: AbortController.signal,
+  });
   expect(fn).toHaveBeenCalledWith('hello');
 });
 ```
@@ -112,22 +122,37 @@ Run: `pnpm test src/services/selectionAskService.test.ts`
 ### Task 3: 悬浮窗口 SelectionAskPanel
 
 **Files:**
+
 - Create: `src/components/chat/message-list/text-selection/SelectionAskPanel.tsx`
 - Create: `src/components/chat/message-list/text-selection/useSelectionAsk.ts`
 - Modify: `src/components/chat/message-list/MessageList.tsx` - 挂载全局管理器
 
 **Interfaces:**
+
 - Consumes: `askSelection` from Task 2, `useSelectionDrag` 拖拽, `selection rect`
 - Produces: `<SelectionAskPanel selectedText rect onClose onInsert onQuote>`
 
 - [ ] **Step 1: hook useSelectionAsk**
 
 ```ts
-export function useSelectionAsk(){
-  const [answer,setAnswer]=useState(''); const [loading,setLoading]=useState(false);
-  const abortRef=useRef<AbortController|null>(null);
-  const ask = (selectedText, question)=>{ abortRef.current?.abort(); const ac=new AbortController(); setAnswer(''); setLoading(true); askSelection({selectedText, question, onDelta:(d)=>setAnswer(p=>p+d), onDone:()=>setLoading(false), signal: ac.signal}); };
-  return {answer, loading, ask, cancel:()=>abortRef.current?.abort()};
+export function useSelectionAsk() {
+  const [answer, setAnswer] = useState('');
+  const [loading, setLoading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const ask = (selectedText, question) => {
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    setAnswer('');
+    setLoading(true);
+    askSelection({
+      selectedText,
+      question,
+      onDelta: (d) => setAnswer((p) => p + d),
+      onDone: () => setLoading(false),
+      signal: ac.signal,
+    });
+  };
+  return { answer, loading, ask, cancel: () => abortRef.current?.abort() };
 }
 ```
 
@@ -156,10 +181,12 @@ Run: `pnpm build` + `pnpm test MessageList`
 ### Task 4: i18n 与快捷提问与移动端适配
 
 **Files:**
+
 - Modify: `src/i18n/translations/chat.ts`
 - Modify: `src/components/chat/message-list/text-selection/SelectionAskPanel.tsx` - 响应式
 
 **Interfaces:**
+
 - Consumes: `useI18n`
 - Produces: 完整多语言覆盖
 
@@ -167,4 +194,3 @@ Run: `pnpm build` + `pnpm test MessageList`
 - [ ] **Step 2: 快捷按钮填入问题并自动发送**
 - [ ] **Step 3: 移动端 bottom-sheet 样式 `max-h-[60vh] overflow-auto`**
 - [ ] **Step 4: Commit**
-

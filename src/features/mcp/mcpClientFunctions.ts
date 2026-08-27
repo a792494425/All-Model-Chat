@@ -188,10 +188,7 @@ const copyConstraintKeywords = (source: Record<string, unknown>, target: Schema)
   if (typeof source.pattern === 'string' && source.pattern) {
     target.pattern = source.pattern;
   }
-  if (
-    Array.isArray(source.propertyOrdering) &&
-    source.propertyOrdering.every((item) => typeof item === 'string')
-  ) {
+  if (Array.isArray(source.propertyOrdering) && source.propertyOrdering.every((item) => typeof item === 'string')) {
     target.propertyOrdering = source.propertyOrdering as string[];
   }
 };

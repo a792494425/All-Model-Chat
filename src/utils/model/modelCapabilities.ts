@@ -82,9 +82,7 @@ const supportsThinkingLevel = (modelId: string): boolean => {
     return true;
   }
   return (
-    !isTtsModel(modelId) &&
-    !isTranscribeModel(modelId) &&
-    (isGemini3Model(modelId) || isGeminiRoboticsModel(modelId))
+    !isTtsModel(modelId) && !isTranscribeModel(modelId) && (isGemini3Model(modelId) || isGeminiRoboticsModel(modelId))
   );
 };
 

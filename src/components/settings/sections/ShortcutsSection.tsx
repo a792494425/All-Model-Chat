@@ -3,7 +3,11 @@ import { Search, MoreHorizontal, Undo2 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '@/contexts/I18nContext';
 import { SHORTCUT_REGISTRY, DEFAULT_SHORTCUTS } from '@/constants/shortcuts';
-import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS, SETTINGS_SEARCH_INPUT_CLASS } from '@/constants/designTokens';
+import {
+  SETTINGS_SECTION_CARD_CLASS,
+  SETTINGS_SECTION_LABEL_CLASS,
+  SETTINGS_SEARCH_INPUT_CLASS,
+} from '@/constants/designTokens';
 import { FOCUS_VISIBLE_RING_BASE_CLASS } from '@/constants/focusClasses';
 import { type AppSettings, type ModelOption } from '@/types';
 import { formatShortcut } from '@/utils/keyboardShortcuts';

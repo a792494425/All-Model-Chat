@@ -28,8 +28,7 @@ export const useMcpRuntimeStore = create<McpRuntimeSelection & McpRuntimeActions
       const next = base.includes(id) ? base.filter((entry) => entry !== id) : [...base, id];
       // Back to "everything" semantics when nothing is excluded.
       return {
-        selectedServerIds:
-          next.length === 0 || next.length === allIds.length ? (next.length === 0 ? [] : null) : next,
+        selectedServerIds: next.length === 0 || next.length === allIds.length ? (next.length === 0 ? [] : null) : next,
       };
     }),
 }));

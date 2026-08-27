@@ -470,22 +470,22 @@ describe('createMcpClientBridge', () => {
       const bridge = createBridge();
       await bridge.callTool(httpServer, 't', {});
       const client = sdkMocks.clientInstances[0];
-      expect(client.callTool).toHaveBeenCalledWith(
-        { name: 't', arguments: {} },
-        undefined,
-        { timeout: 60_000, resetTimeoutOnProgress: false, maxTotalTimeout: undefined },
-      );
+      expect(client.callTool).toHaveBeenCalledWith({ name: 't', arguments: {} }, undefined, {
+        timeout: 60_000,
+        resetTimeoutOnProgress: false,
+        maxTotalTimeout: undefined,
+      });
     });
 
     it('honors configured timeout seconds and longRunning progress resets', async () => {
       const bridge = createBridge();
       await bridge.callTool({ ...httpServer, timeout: 120, longRunning: true }, 't', {});
       const client = sdkMocks.clientInstances[0];
-      expect(client.callTool).toHaveBeenCalledWith(
-        { name: 't', arguments: {} },
-        undefined,
-        { timeout: 120_000, resetTimeoutOnProgress: true, maxTotalTimeout: 600_000 },
-      );
+      expect(client.callTool).toHaveBeenCalledWith({ name: 't', arguments: {} }, undefined, {
+        timeout: 120_000,
+        resetTimeoutOnProgress: true,
+        maxTotalTimeout: 600_000,
+      });
     });
 
     it('raises the connect timeout floor when a larger per-server timeout is set', async () => {

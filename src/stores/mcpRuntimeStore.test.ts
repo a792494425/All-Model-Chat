@@ -65,8 +65,8 @@ describe('useMcpRuntimeStore', () => {
       'a',
       'b',
     ]);
-    expect(
-      selectServersForTurn(servers, { masterEnabled: true, selectedServerIds: ['b'] }).map((s) => s.id),
-    ).toEqual(['b']);
+    expect(selectServersForTurn(servers, { masterEnabled: true, selectedServerIds: ['b'] }).map((s) => s.id)).toEqual([
+      'b',
+    ]);
   });
 });

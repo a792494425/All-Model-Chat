@@ -23,9 +23,7 @@ export const McpToolCallGroup: React.FC<McpToolCallGroupProps> = ({ calls, respo
       {calls.map((call, index) => {
         const responsePart = responses[index] as unknown;
         const status = getStatus(responsePart, turnActive);
-        return (
-          <McpToolCallBlock key={index} call={call as any} responsePart={responsePart as any} status={status} />
-        );
+        return <McpToolCallBlock key={index} call={call as any} responsePart={responsePart as any} status={status} />;
       })}
     </div>
   );

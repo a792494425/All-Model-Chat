@@ -19,9 +19,9 @@ export const SelectionAskModelSection: React.FC<{
   const selectedId = settings.selectionAskModelId;
   const selectionAskProviderId = settings.selectionAskProviderId;
   const selectedModel = selectedId
-    ? models.find(
+    ? (models.find(
         (m) => m.id === selectedId && (m.providerId ?? 'gemini-native') === (selectionAskProviderId ?? 'gemini-native'),
-      ) ?? models.find((m) => m.id === selectedId)
+      ) ?? models.find((m) => m.id === selectedId))
     : undefined;
 
   return (

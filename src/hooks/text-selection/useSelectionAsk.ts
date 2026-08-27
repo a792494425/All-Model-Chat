@@ -110,7 +110,11 @@ export function useSelectionAsk() {
           isLocalPythonEnabled: false,
         });
         // Strip tools if any
-        if (requestConfig && typeof requestConfig === 'object' && 'tools' in (requestConfig as Record<string, unknown>)) {
+        if (
+          requestConfig &&
+          typeof requestConfig === 'object' &&
+          'tools' in (requestConfig as Record<string, unknown>)
+        ) {
           delete (requestConfig as Record<string, unknown>).tools;
         }
       } catch {

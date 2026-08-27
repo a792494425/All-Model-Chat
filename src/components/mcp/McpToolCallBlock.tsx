@@ -191,7 +191,10 @@ export const McpToolCallBlock: React.FC<{
                 style={{ width: `${percent}%` }}
               />
             ) : (
-              <div data-testid="mcp-tool-progress-shimmer" className="mcp-indeterminate-bar h-full w-1/4 rounded-full bg-emerald-500/60" />
+              <div
+                data-testid="mcp-tool-progress-shimmer"
+                className="mcp-indeterminate-bar h-full w-1/4 rounded-full bg-emerald-500/60"
+              />
             )}
           </div>
         )}
@@ -219,7 +222,10 @@ export const McpToolCallBlock: React.FC<{
                   className="mt-1 overflow-auto max-h-[200px] rounded border border-[var(--theme-bg-tertiary)] bg-[var(--theme-bg-primary)] p-2 font-mono text-[11px] leading-relaxed"
                 >
                   {events.map((event, index) => (
-                    <div key={index} className="animate-in fade-in whitespace-pre-wrap text-[var(--theme-text-secondary)]">
+                    <div
+                      key={index}
+                      className="animate-in fade-in whitespace-pre-wrap text-[var(--theme-text-secondary)]"
+                    >
                       {run && typeof event.at === 'number' && (
                         <span className="mr-2 tabular-nums text-[var(--theme-text-tertiary)]">
                           {formatRelativeStamp(event.at - run.startedAt)}
@@ -235,12 +241,7 @@ export const McpToolCallBlock: React.FC<{
           <div className="mt-2 overflow-auto max-h-[300px]">
             {responseSegments.map((segment, index) =>
               segment.kind === 'image' ? (
-                <img
-                  key={index}
-                  src={segment.src}
-                  alt="tool-result-image"
-                  className="max-w-full rounded border my-1"
-                />
+                <img key={index} src={segment.src} alt="tool-result-image" className="max-w-full rounded border my-1" />
               ) : (
                 <pre key={index} className="whitespace-pre-wrap">
                   {segment.text}

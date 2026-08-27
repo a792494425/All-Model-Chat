@@ -527,8 +527,9 @@ describe('generateContentTurnApi finishReason handling', () => {
       ],
     });
 
-    await expect(generateContentTurnApi('key', 'gemini-3-flash-preview', [], {}, new AbortController().signal))
-      .rejects.toThrow('malformed arguments');
+    await expect(
+      generateContentTurnApi('key', 'gemini-3-flash-preview', [], {}, new AbortController().signal),
+    ).rejects.toThrow('malformed arguments');
   });
 
   it('throws when generation was stopped by a content filter with no usable parts', async () => {
@@ -536,8 +537,9 @@ describe('generateContentTurnApi finishReason handling', () => {
       candidates: [{ finishReason: 'SAFETY', content: { parts: [] } }],
     });
 
-    await expect(generateContentTurnApi('key', 'gemini-3-flash-preview', [], {}, new AbortController().signal))
-      .rejects.toThrow('SAFETY');
+    await expect(
+      generateContentTurnApi('key', 'gemini-3-flash-preview', [], {}, new AbortController().signal),
+    ).rejects.toThrow('SAFETY');
   });
 
   it('throws when the prompt itself was blocked before generation', async () => {
@@ -545,8 +547,9 @@ describe('generateContentTurnApi finishReason handling', () => {
       promptFeedback: { blockReason: 'SAFETY' },
     });
 
-    await expect(generateContentTurnApi('key', 'gemini-3-flash-preview', [], {}, new AbortController().signal))
-      .rejects.toThrow('prompt was blocked');
+    await expect(
+      generateContentTurnApi('key', 'gemini-3-flash-preview', [], {}, new AbortController().signal),
+    ).rejects.toThrow('prompt was blocked');
   });
 
   it('returns normally for truncation via MAX_TOKENS with usable parts', async () => {

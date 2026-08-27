@@ -68,7 +68,7 @@ export const chatTranslations = {
     ja: '承認待ち',
     ko: '승인 대기 중',
     es: 'Esperando aprobación',
-    fr: 'En attente d\'approbation',
+    fr: "En attente d'approbation",
     de: 'Wartet auf Genehmigung',
   },
   mcpToolProgressTitle: {
@@ -77,7 +77,7 @@ export const chatTranslations = {
     ja: '実行ログ',
     ko: '실행 과정',
     es: 'Proceso de ejecución',
-    fr: 'Processus d\'exécution',
+    fr: "Processus d'exécution",
     de: 'Ausführungsprotokoll',
   },
   mcpToolStepCount: {
@@ -95,7 +95,7 @@ export const chatTranslations = {
     ja: 'ステップ{n}で失敗',
     ko: '{n}단계에서 실패',
     es: 'falló en el paso {n}',
-    fr: 'échec à l\'étape {n}',
+    fr: "échec à l'étape {n}",
     de: 'fehlgeschlagen bei Schritt {n}',
   },
   mcpApprovalTitle: {

@@ -145,10 +145,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
 
       <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`} data-settings-item="models-temperature">
         <div className="flex items-center justify-between">
-          <label
-            htmlFor="temperature-slider"
-            className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}
-          >
+          <label htmlFor="temperature-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
             {t('settingsTemperature')}
             <Tooltip text={t('chatBehaviorTempTooltip')}>
               <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
@@ -244,9 +241,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                 value={mediaResolution}
                 onChange={(event) => onUpdateSetting('mediaResolution', event.target.value as MediaResolution)}
               >
-                <option value={MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED}>
-                  {t('mediaResolutionUnspecified')}
-                </option>
+                <option value={MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED}>{t('mediaResolutionUnspecified')}</option>
                 <option value={MediaResolution.MEDIA_RESOLUTION_LOW}>{t('mediaResolutionLow')}</option>
                 {!isNativeAudio && (
                   <option value={MediaResolution.MEDIA_RESOLUTION_MEDIUM}>{t('mediaResolutionMedium')}</option>

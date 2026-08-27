@@ -214,8 +214,12 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
       }}
       className={`relative rounded-lg transition-all duration-200 mb-1 ${dragOverId === group.id ? 'bg-[var(--theme-bg-accent)] bg-opacity-20 ring-2 ring-[var(--theme-bg-accent)] ring-inset ring-opacity-50' : ''} ${dragOverId === `group-${group.id}` ? 'ring-2 ring-[var(--theme-bg-accent)] ring-offset-1' : ''} ${isMenuOpenInGroup ? 'z-20' : 'z-0'} ${isDraggingThisGroup ? 'opacity-30 scale-[0.97]' : ''}`}
     >
-      {showGroupBefore && <div className="absolute -top-1 left-2 right-2 h-0.5 rounded-full bg-[var(--theme-bg-accent)] pointer-events-none z-10" />}
-      {showGroupAfter && <div className="absolute -bottom-1 left-2 right-2 h-0.5 rounded-full bg-[var(--theme-bg-accent)] pointer-events-none z-10" />}
+      {showGroupBefore && (
+        <div className="absolute -top-1 left-2 right-2 h-0.5 rounded-full bg-[var(--theme-bg-accent)] pointer-events-none z-10" />
+      )}
+      {showGroupAfter && (
+        <div className="absolute -bottom-1 left-2 right-2 h-0.5 rounded-full bg-[var(--theme-bg-accent)] pointer-events-none z-10" />
+      )}
       <details open={group.isExpanded ?? true} className="group/details">
         <summary
           className="list-none flex items-center justify-between px-1 py-2 rounded-lg cursor-pointer hover:bg-[var(--theme-bg-tertiary)] group"
@@ -302,7 +306,12 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
             }}
           />
         )}
-        <LimitedSessionList sessions={sessions ?? []} sessionItemProps={childSessionItemProps} className="pl-1 pb-1" isDragging={!!isDragging || !!sessionItemProps.draggingSessionId || !!draggingGroupId} />
+        <LimitedSessionList
+          sessions={sessions ?? []}
+          sessionItemProps={childSessionItemProps}
+          className="pl-1 pb-1"
+          isDragging={!!isDragging || !!sessionItemProps.draggingSessionId || !!draggingGroupId}
+        />
       </details>
     </div>
   );

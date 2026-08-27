@@ -140,12 +140,10 @@ Also add branch for `url.pathname === '/api/mcp/logs'` to allowed list.
 import { describe, it, expect, vi } from 'vitest';
 import { fetchMcpLogs } from './mcpApi';
 it('fetches logs', async () => {
-  global.fetch = vi
-    .fn()
-    .mockResolvedValue({
-      ok: true,
-      json: async () => ({ logs: [{ level: 'info', message: 'hi', timestamp: 1 }] }),
-    } as any);
+  global.fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ logs: [{ level: 'info', message: 'hi', timestamp: 1 }] }),
+  } as any);
   const res = await fetchMcpLogs({ id: 's1', name: 'S1', enabled: true, transport: 'http', url: 'http://x' } as any);
   expect(res.logs[0].message).toBe('hi');
 });

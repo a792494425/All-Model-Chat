@@ -36,9 +36,7 @@ describe('settingsModelOptions', () => {
   });
 
   it('keeps transcription models aligned with the supported list', () => {
-    expect(AVAILABLE_TRANSCRIPTION_MODELS.map((model) => model.id)).toEqual([
-      'gemini-3.5-transcribe',
-    ]);
+    expect(AVAILABLE_TRANSCRIPTION_MODELS.map((model) => model.id)).toEqual(['gemini-3.5-transcribe']);
   });
 
   it('does not expose Gemini 3 Flash for transcription', () => {

@@ -6,10 +6,9 @@ import type { McpApprovalDecision } from '@/features/mcp/toolApproval';
 
 const openApproval = (args: Record<string, unknown> = {}) =>
   new Promise<McpApprovalDecision>((resolve) => {
-    useMcpApprovalStore.getState().openApproval(
-      { serverId: 's1', serverName: 'FS Server', toolName: 'write_file', args },
-      resolve,
-    );
+    useMcpApprovalStore
+      .getState()
+      .openApproval({ serverId: 's1', serverName: 'FS Server', toolName: 'write_file', args }, resolve);
   });
 
 describe('McpToolApprovalDialog', () => {

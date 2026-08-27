@@ -21,6 +21,7 @@
 
 **Files:** Modify `shared/mcpServerConfig.ts`, `shared/mcpServerConfig.test.ts`, `src/schemas/appSettingsSchema.ts`.
 **Interfaces (produced):**
+
 - `McpServerConfig.timeout?: number` — seconds, integer 1..3600, dropped otherwise.
 - `McpServerConfig.longRunning?: boolean`.
 - exported `sanitizeMcpTimeout(value: unknown): number | undefined`.
@@ -32,6 +33,7 @@
 
 **Files:** Modify `server/src/mcpClient.ts`, `server/src/mcpRoutes.ts`, `server/src/mcpTypes.ts` (if bridge types), tests in `server/src/mcpClient.test.ts` / `mcpRoutes` tests if present.
 **Interfaces:**
+
 - `callTool(server, toolName, args)` uses `{timeout:(server.timeout??60)*1000, resetTimeoutOnProgress: !!server.longRunning, maxTotalTimeout: longRunning?600000:undefined}`.
 - `connect` timeout = `Math.max(MCP_REQUEST_TIMEOUT_MS, (server.timeout??0)*1000)` when set.
 - Reused session idle >30s gets `client.ping({timeout:5000})`; failure → drop & reconnect (no throw to caller beyond normal retry path).
@@ -44,6 +46,7 @@
 
 **Files:** Create `src/features/mcp/mcpResultSummary.ts` + test; Modify `src/features/mcp/mcpClientFunctions.ts` (handler wraps `summarizeMcpResultForModel`), `src/components/message/McpToolCallBlock.tsx` (+ test).
 **Interfaces:**
+
 - `summarizeMcpResultForModel(result: unknown): unknown` — CallToolResult `{content:[{type:'text'|'image'|'audio'|'resource'|…}]}`: text kept; image/audio/blob/resource replaced by `{type:'text', text:'[Image delivered to user]'}` style placeholders (localized-independent English tag like Cherry); non-content shapes pass through.
 - Block renders `content[]` segments: text pretty-printed; image inline `<img src=data:...>`; other → muted placeholder chip. Fallback legacy stringify unchanged.
 
@@ -53,6 +56,7 @@
 
 **Files:** Create `src/features/mcp/toolApproval.ts` (+test), `src/stores/mcpApprovalStore.ts`, `src/components/message/McpToolApprovalDialog.tsx` (+test); Modify `src/features/mcp/mcpClientFunctions.ts` (options.requestApproval), `src/features/message-sender/standardChatApiCall.ts` (supply callback), mount dialog near chat root.
 **Interfaces:**
+
 - `type McpApprovalDecision = 'allow-once'|'allow-session'|'deny'`
 - `requiresApproval(server, toolName): boolean` (pure: in `disabledAutoApproveTools`)
 - session set: `isSessionApproved(key)`, `rememberSessionApproval(key)`, `resetSessionApprovals()`, key `${serverId}::${toolName}`
@@ -65,6 +69,7 @@
 
 **Files:** Modify `src/services/api/mcpApi.ts` (+test), `McpResourcesTab.tsx`, `McpPromptsTab.tsx`, `McpSection.tsx` (pass server + wire refresh), i18n mcp.ts ×7.
 **Interfaces:**
+
 - `fetchMcpResource(server, uri) => Promise<{result:{contents:Array<{uri,text?,mimeType?,blob?}>}}|null>` POST `/api/mcp/resource {server,uri}`.
 - `fetchMcpPrompt(server, promptName, args) => Promise<{result:{messages:Array<{role?,content?}>}}|null>` POST `/api/mcp/prompt {server,promptName,args}`.
 - Resources tab rows expandable → Read button → preview first 4000 chars + Copy; Prompts tab → Use button → args inputs (required marked) → Get → show message text → Copy.
@@ -82,11 +87,13 @@
 ### Task 7 — Settings UX batch
 
 **Files:** Create `src/components/settings/sections/mcp/McpToolSchemaView.tsx` (+test), marketplace links data+grid inside McpSection; Modify McpSection trust confirm → themed dialog with config preview; auto-test after import JSON success and after enabling a server; Tools tab row expandable to schema view.
+
 - [x] RED+GREEN (schema view recursion/depth cap render test; import auto-test via spy).
 
 ### Task 8 — Share-install `?mcp=`
 
 **Files:** Create `src/features/mcp/importMcpServers.ts` (+test) — move `normalizeImportedServer`/`parseImportJson` from McpSection (re-export shim), `src/hooks/useMcpShareInstall.ts` + dialog component mounted at app root.
+
 - [x] RED+GREEN (parser accepts base64url of `{mcpServers:{…}}`/array/single; invalid ignored silently).
 
 ### Task 9 — i18n sweep

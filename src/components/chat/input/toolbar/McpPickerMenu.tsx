@@ -16,8 +16,11 @@ import { useSettingsStore } from '@/stores/settingsStore';
  */
 export const McpPickerMenu: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
   const { t } = useI18n();
-  const { isOpen, menuPosition, containerRef, buttonRef, menuRef, targetWindow, toggleMenu } =
-    usePortaledMenu({ menuWidth: 256, constrainHeight: true });   const mcpServers = useSettingsStore((state) => state.appSettings.mcpServers);
+  const { isOpen, menuPosition, containerRef, buttonRef, menuRef, targetWindow, toggleMenu } = usePortaledMenu({
+    menuWidth: 256,
+    constrainHeight: true,
+  });
+  const mcpServers = useSettingsStore((state) => state.appSettings.mcpServers);
   const enabledServers = useMemo(() => (mcpServers ?? []).filter((server) => server.enabled), [mcpServers]);
   const masterEnabled = useMcpRuntimeStore((state) => state.masterEnabled);
   const selectedServerIds = useMcpRuntimeStore((state) => state.selectedServerIds);
@@ -107,8 +110,7 @@ export const McpPickerMenu: React.FC<{ disabled?: boolean }> = ({ disabled }) =>
                 );
               })()}
               {enabledServers.map((server) => {
-                const checked =
-                  masterEnabled && (selectedServerIds === null || selectedServerIds.includes(server.id));
+                const checked = masterEnabled && (selectedServerIds === null || selectedServerIds.includes(server.id));
                 return (
                   <button
                     key={server.id}
@@ -123,7 +125,10 @@ export const McpPickerMenu: React.FC<{ disabled?: boolean }> = ({ disabled }) =>
                         wakeWithServer(server.id);
                         return;
                       }
-                      toggleServer(server.id, enabledServers.map((entry) => entry.id));
+                      toggleServer(
+                        server.id,
+                        enabledServers.map((entry) => entry.id),
+                      );
                     }}
                     className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--theme-bg-tertiary)] focus:outline-none focus-visible:bg-[var(--theme-bg-tertiary)] flex items-center justify-between transition-colors"
                   >

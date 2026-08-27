@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { toMcpFunctionName } from './mcpToolNames';
-import {
-  rememberDiscoveredTools,
-  resetToolDisplayRegistry,
-  resolveToolDisplay,
-} from './toolDisplayNames';
+import { rememberDiscoveredTools, resetToolDisplayRegistry, resolveToolDisplay } from './toolDisplayNames';
 
 describe('toolDisplayNames', () => {
   it('resolves wire names back into readable server and tool titles', () => {

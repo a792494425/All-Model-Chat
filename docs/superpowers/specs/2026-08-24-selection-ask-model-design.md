@@ -9,11 +9,13 @@
 划词“询问”悬浮窗（`SelectionAskPanel` + `useSelectionAsk`）当前复用 `activeChat.settings ?? appSettings` 的 `modelId/providerId`。用户需要为该功能独立选模型，且希望在设置页统一配置、未配置时明确阻断而非静默回退。
 
 目标：
+
 - 独立、可持久化的询问模型配置，支持 Gemini 原生与所有已启用的第三方连接。
 - 未配置/连接禁用/缺 Key 时在弹窗内报错并引导去设置，不自动回退到会话模型。
 - UI 与现有 Token/主题一致，改动最小。
 
 非目标：
+
 - 弹窗内临时切换模型、per-conversation 覆盖、localStorage 记忆。
 
 ## 2. 数据模型
@@ -32,6 +34,7 @@ selectionAskProviderId?: ChatProviderId; // undefined = gemini-native
 ### 2.2 默认值与清洗
 
 `src/constants/settingsDefaults.ts`：
+
 - `BASE_DEFAULT_APP_SETTINGS` 新增 `selectionAskModelId: undefined`, `selectionAskProviderId: undefined`。
 - `sanitizeAppSettings()` 中：
   - `selectionAskModelId` 经 `migrateRemovedModelId` → `resolveSupportedModelId(sanitize)`；若为已下线模型则置 `undefined`。
@@ -60,6 +63,7 @@ selectionAskProviderId?: ChatProviderId; // undefined = gemini-native
 ### 3.3 i18n
 
 `src/i18n/translations/common.ts` 新增（7 语言）：
+
 - `selectionAskModel`
 - `selectionAskModelDesc`
 - `selectionAskModelNotConfigured`
@@ -71,6 +75,7 @@ selectionAskProviderId?: ChatProviderId; // undefined = gemini-native
 ### 4.1 `useSelectionAsk` 改造
 
 `src/hooks/text-selection/useSelectionAsk.ts`：
+
 - 读取 `const { selectionAskModelId, selectionAskProviderId } = useSettingsStore.getState().appSettings`。
 - 若 `!selectionAskModelId` → `setError(t('selectionAskModelNotConfigured') / formatApiKeyErrorMessage(...))`, `setIsLoading(false)` 并 `return`，阻断请求。
 - 构造 `ChatSettings` 代理：`{ modelId: selectionAskModelId, providerId: selectionAskProviderId } as ChatSettings`，用于 `resolveChatApiRoute(appSettings, proxySettings)` 与 `getKeyForRequest(appSettings, proxySettings)`。
@@ -82,6 +87,7 @@ selectionAskProviderId?: ChatProviderId; // undefined = gemini-native
 ### 4.2 `SelectionAskPanel` 展示
 
 `src/components/chat/message-list/text-selection/SelectionAskPanel.tsx`：
+
 - Header 标题 `询问` 右侧新增只读模型徽标：`useSettingsStore(s=>s.appSettings.selectionAskModelId)`。
   - 已配置：`rounded-full bg-secondary px-2 py-0.5 text-xs` 显示截断 `modelId`，`title` 显示全称 + 连接名。
   - 未配置/不可用：红点 + `t('selectionAskModelNotConfigured')`，点击触发 `onOpenSettings`（预留 prop，回退为 `toast` 提示）。
@@ -90,12 +96,12 @@ selectionAskProviderId?: ChatProviderId; // undefined = gemini-native
 
 ## 5. 边界与错误处理
 
-| 场景 | 行为 |
-|---|---|
-| 未配置 | 阻断，不发起请求，`error` 提示去设置 |
-| 模型被删除/迁移 | `sanitize` 置空，次启等同未配置 |
-| 连接禁用 | `isUnavailableThirdPartyRoute` 报错 |
-| 连接缺 Key | `getKeyForRequest` 报错 |
+| 场景               | 行为                                                          |
+| ------------------ | ------------------------------------------------------------- |
+| 未配置             | 阻断，不发起请求，`error` 提示去设置                          |
+| 模型被删除/迁移    | `sanitize` 置空，次启等同未配置                               |
+| 连接禁用           | `isUnavailableThirdPartyRoute` 报错                           |
+| 连接缺 Key         | `getKeyForRequest` 报错                                       |
 | 模型仍在但连接更名 | `connectionName` 仅展示用，不影响路由（以 `providerId` 为准） |
 
 ## 6. 测试

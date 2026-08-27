@@ -15,11 +15,7 @@ import { fetchMcpServerCapabilities } from '@/services/api/mcpApi';
 import { McpImportError, dedupeServersById, parseImportJson } from '@/features/mcp/importMcpServers';
 import { useMcpStatusStore } from '@/stores/mcpStatusStore';
 import { deriveStatus } from '@/features/mcp/mcpStatus';
-import {
-  MCP_INPUT_BASE_CLASSES,
-  createMcpServer,
-  type CapabilityTestState,
-} from './mcp/mcpSectionShared';
+import { MCP_INPUT_BASE_CLASSES, createMcpServer, type CapabilityTestState } from './mcp/mcpSectionShared';
 import { McpMarketplaceGrid } from './mcp/McpMarketplaceGrid';
 import { McpServerCard } from './mcp/McpServerCard';
 import { McpTrustDialog } from './mcp/McpTrustDialog';
@@ -249,7 +245,11 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
           <h3 className="text-base font-semibold text-[var(--theme-text-primary)]">{t('settingsMcpTitle')}</h3>
           <p className="text-sm leading-relaxed text-[var(--theme-text-secondary)]">{t('settingsMcpDescription')}</p>
         </div>
-        <button type="button" onClick={addServer} className={`${SETTINGS_PRIMARY_ACTION_BUTTON_CLASS} shrink-0 whitespace-nowrap`}>
+        <button
+          type="button"
+          onClick={addServer}
+          className={`${SETTINGS_PRIMARY_ACTION_BUTTON_CLASS} shrink-0 whitespace-nowrap`}
+        >
           <Plus size={14} strokeWidth={2} />
           {t('settingsMcpAddServer')}
         </button>
@@ -290,7 +290,9 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
               className={`${MCP_INPUT_BASE_CLASSES} ${SETTINGS_INPUT_CLASS} min-h-[140px] resize-y font-mono text-xs`}
               spellCheck={false}
             />
-            {importError && <div className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-600">{importError}</div>}
+            {importError && (
+              <div className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-600">{importError}</div>
+            )}
             <div className="flex gap-2">
               <button type="button" onClick={handleImportJson} className={SETTINGS_SECONDARY_ACTION_BUTTON_CLASS}>
                 {t('settingsMcpImportConfirm')}

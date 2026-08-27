@@ -75,10 +75,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
     } else if (activeCategoryTab === 'missing') {
       list = missingModels.map((m) => ({ ...m, isMissing: true }));
     } else {
-      list = [
-        ...fetchedPreviewModels,
-        ...missingModels.map((m) => ({ ...m, isMissing: true })),
-      ];
+      list = [...fetchedPreviewModels, ...missingModels.map((m) => ({ ...m, isMissing: true }))];
     }
 
     if (!searchFilter.trim()) return list;
@@ -86,10 +83,7 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
     return list.filter((m) => m.id.toLowerCase().includes(query) || m.name.toLowerCase().includes(query));
   }, [activeCategoryTab, existingModels, fetchedPreviewModels, missingModels, newModels, searchFilter]);
 
-  const importableFetchedModelIds = useMemo(
-    () => newModels.map((model) => model.id),
-    [newModels],
-  );
+  const importableFetchedModelIds = useMemo(() => newModels.map((model) => model.id), [newModels]);
 
   const selectedImportableFetchedModelIds = useMemo(
     () => importableFetchedModelIds.filter((modelId) => selectedFetchedModelIds.has(modelId)),
@@ -181,7 +175,9 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
     const missingIdSet = new Set(missingModels.map((m) => m.id));
     const remainingRows = rows.filter((r) => !missingIdSet.has(r.id));
     onCommitRows(remainingRows);
-    setManagerMessage(interpolate(t('settingsOpenAICompatiblePruneMissingConfirm'), { count: String(missingModels.length) }));
+    setManagerMessage(
+      interpolate(t('settingsOpenAICompatiblePruneMissingConfirm'), { count: String(missingModels.length) }),
+    );
   };
 
   return (
@@ -381,7 +377,9 @@ export const OpenAICompatibleModelImportPanel: React.FC<OpenAICompatibleModelImp
                 >
                   {t('settingsOpenAICompatiblePruneMissing')} ({missingModels.length})
                 </button>
-              ) : <div />}
+              ) : (
+                <div />
+              )}
               <button
                 type="button"
                 onClick={handleImportFetchedModels}

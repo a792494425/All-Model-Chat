@@ -27,9 +27,7 @@ describe('McpToolSchemaView', () => {
 
   it('renders nested object properties up to the depth cap', () => {
     const deep = (level: number): Record<string, unknown> =>
-      level === 0
-        ? { type: 'string' }
-        : { type: 'object', properties: { [`l${level}`]: deep(level - 1) } };
+      level === 0 ? { type: 'string' } : { type: 'object', properties: { [`l${level}`]: deep(level - 1) } };
 
     render(<McpToolSchemaView inputSchema={{ type: 'object', properties: { root: deep(7) } }} />);
     // Five named levels render (l7…l3); deeper levels are capped.

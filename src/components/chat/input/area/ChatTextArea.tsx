@@ -53,7 +53,8 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
   isCompact,
 }) => {
   const isExpandedMode = hasCustomHeight ?? isFullscreen;
-  const contentStyle = (editorContentStyle ?? (isCompact ? compactEditorContentStyle : undefined)) as ComposerCustomCssProps | undefined;
+  const contentStyle = (editorContentStyle ?? (isCompact ? compactEditorContentStyle : undefined)) as
+    ComposerCustomCssProps | undefined;
   const { t } = useI18n();
   const shadowRef = useRef<HTMLTextAreaElement>(null);
   const isComposingRef = useRef(false);
@@ -116,7 +117,17 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
     const newHeight = Math.max(baseHeight, Math.min(scrollHeight, maxHeight));
     target.style.height = `${newHeight}px`;
     target.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
-  }, [value, isExpandedMode, isFullscreen, isMobile, initialTextareaHeight, textareaRef, contentStyle, isCompact, hasCustomHeight]);
+  }, [
+    value,
+    isExpandedMode,
+    isFullscreen,
+    isMobile,
+    initialTextareaHeight,
+    textareaRef,
+    contentStyle,
+    isCompact,
+    hasCustomHeight,
+  ]);
 
   const handleCompositionStart = () => {
     isComposingRef.current = true;
