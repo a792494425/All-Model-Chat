@@ -143,7 +143,6 @@ describe('useVoiceInput', () => {
         onTranscribeAudio: vi.fn(async () => ''),
         setInputText: vi.fn(),
         setAppFileError: vi.fn(),
-        isSystemAudioRecordingEnabled: true,
         textareaRef: { current: null },
       }),
     );
@@ -157,7 +156,7 @@ describe('useVoiceInput', () => {
     unmount();
   });
 
-  it('always converts recorded audio before transcription, even when compression setting is off', async () => {
+  it('always converts recorded audio before transcription', async () => {
     const onTranscribeAudio = vi.fn(async () => '你好');
     const setInputText = vi.fn();
     const converted = new File([new Uint8Array([1, 2, 3])], 'voice-input.mp3', { type: 'audio/mpeg' });
@@ -167,7 +166,6 @@ describe('useVoiceInput', () => {
       useVoiceInput({
         onTranscribeAudio,
         setInputText,
-        isAudioCompressionEnabled: false,
         textareaRef: { current: null },
       }),
     );

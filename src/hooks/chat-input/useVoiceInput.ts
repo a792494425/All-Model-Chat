@@ -10,9 +10,6 @@ interface UseVoiceInputProps {
   onTranscribeAudio: (file: File) => Promise<string | null>;
   setInputText: Dispatch<SetStateAction<string>>;
   setAppFileError?: (error: string | null) => void;
-  /** @deprecated Voice input always converts to a Gemini-supported format; kept for call-site compatibility. */
-  isAudioCompressionEnabled?: boolean;
-  isSystemAudioRecordingEnabled?: boolean;
   textareaRef: RefObject<HTMLTextAreaElement>;
 }
 

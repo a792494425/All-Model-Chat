@@ -1,4 +1,3 @@
-import { FinishReason } from '@google/genai';
 import type { GenerateContentResponse, Part, UsageMetadata } from '@google/genai';
 import { executeConfiguredApiRequest } from '@/services/api/apiExecutor';
 import { logService } from '@/services/logService';
@@ -288,7 +287,7 @@ export const transcribeAudioApi = async (apiKey: string, audioFile: File, modelI
       }
 
       const candidate = response.candidates?.[0];
-      if (!candidate || candidate.finishReason === FinishReason.STOP) {
+      if (!candidate || candidate.finishReason === 'STOP') {
         return '';
       }
 
