@@ -17,9 +17,9 @@ describe('CHAT_INPUT_BUTTON_CLASS', () => {
     expect(CHAT_INPUT_BUTTON_CLASS).not.toContain('active:scale');
   });
 
-  it('keeps compact input buttons neatly sized at 32px square', () => {
-    expect(CHAT_INPUT_BUTTON_CLASS).toContain('h-8');
-    expect(CHAT_INPUT_BUTTON_CLASS).toContain('w-8');
+  it('keeps compact input buttons neatly sized at 36px square', () => {
+    expect(CHAT_INPUT_BUTTON_CLASS).toContain('h-9');
+    expect(CHAT_INPUT_BUTTON_CLASS).toContain('w-9');
   });
 
   it('uses color-only transitions so composer controls do not feel sluggish', () => {

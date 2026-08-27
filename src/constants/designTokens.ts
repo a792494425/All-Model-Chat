@@ -32,8 +32,8 @@ export const SUGGESTION_CHIP_CLASS = `${SUGGESTION_CHIP_BASE_CLASS} border-[var(
 /** Active mode chip (BBox / Guide) — stronger than hover. */
 export const SUGGESTION_CHIP_ACTIVE_CLASS = `${SUGGESTION_CHIP_BASE_CLASS} border-[var(--theme-bg-accent)] bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] hover:bg-[var(--theme-bg-accent-hover)] hover:border-[var(--theme-bg-accent-hover)] shadow-sm`;
 
-/** Intra-cluster gap for composer icon groups (preserves 44px icon pitch with 32px buttons). */
-export const COMPOSER_CLUSTER_GAP_CLASS = 'gap-3';
+/** Intra-cluster gap for composer icon groups (preserves 44px icon pitch with 36px buttons). */
+export const COMPOSER_CLUSTER_GAP_CLASS = 'gap-2';
 
 /** Gap between left/right composer clusters. */
 export const COMPOSER_CLUSTER_SEPARATION_CLASS = 'gap-1';

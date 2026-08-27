@@ -33,8 +33,8 @@ describe('SendControls', () => {
     const submitButton = renderer.container.querySelector('button[type="submit"]');
 
     expect(submitButton).not.toBeNull();
-    expect(submitButton?.className).toContain('!h-8');
-    expect(submitButton?.className).toContain('!w-8');
+    expect(submitButton?.className).toContain('!h-9');
+    expect(submitButton?.className).toContain('!w-9');
     expect(submitButton?.className).toContain('bg-[#3964FE]');
     expect(submitButton?.className).toContain('grid');
     expect((submitButton as HTMLElement)?.style.transform).toContain('translateY(-2px)');

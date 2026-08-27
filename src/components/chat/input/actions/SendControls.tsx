@@ -9,7 +9,7 @@ import {
 } from '@/components/chat/input/ChatInputContext';
 import { interpolate } from '@/i18n/interpolate';
 
-const SEND_BUTTON_SIZE_CLASS = '!h-8 !w-8';
+const SEND_BUTTON_SIZE_CLASS = '!h-9 !w-9';
 
 export const SendControls: React.FC = () => {
   const { isLoading, isWaitingForUpload } = useChatInputActionsContext();
