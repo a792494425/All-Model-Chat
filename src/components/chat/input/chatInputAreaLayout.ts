@@ -4,16 +4,12 @@ import { COMPOSER_SHELL_RADIUS_CLASS } from '@/constants/designTokens';
 interface ChatInputAreaLayoutParams {
   isPipActive?: boolean;
   isAnimatingSend: boolean;
-  isRecording: boolean;
-  inputDisabled: boolean;
 }
 
 export const getChatInputAreaLayout = ({
   isPipActive,
   isAnimatingSend,
 }: ChatInputAreaLayoutParams) => {
-  const isUIBlocked = false;
-
   // Keep composer shell solid and visible without unwanted wrapper-level dimming/opacity drops.
   const wrapperClass = 'bg-transparent';
 
@@ -28,7 +24,6 @@ export const getChatInputAreaLayout = ({
   const actionsContainerClass = 'flex items-center justify-between pt-1';
 
   return {
-    isUIBlocked,
     wrapperClass,
     innerContainerClass,
     formClass,

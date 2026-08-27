@@ -1,4 +1,5 @@
-import { FinishReason, type GenerateContentResponse, type Part, type UsageMetadata } from '@google/genai';
+import { FinishReason } from '@google/genai';
+import type { GenerateContentResponse, Part, UsageMetadata } from '@google/genai';
 import { executeConfiguredApiRequest } from '@/services/api/apiExecutor';
 import { logService } from '@/services/logService';
 import { blobToBase64 } from '@/utils/file/fileEncoding';

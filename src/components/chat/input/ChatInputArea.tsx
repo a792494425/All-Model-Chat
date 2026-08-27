@@ -26,7 +26,6 @@ export const ChatInputArea: React.FC = () => {
     liveApi,
     modalsState,
     localFileState,
-    voiceState,
     slashCommandState,
     handlers,
     inputDisabled,
@@ -39,11 +38,9 @@ export const ChatInputArea: React.FC = () => {
   const isAnimatingSend = inputState.isAnimatingSend;
   const isMobile = inputState.isMobile;
   const isConverting = localFileState.isConverting;
-  const isRecording = voiceState.isRecording;
   const isExpanded = isFullscreen;
 
   const {
-    isUIBlocked,
     wrapperClass,
     innerContainerClass,
     formClass,
@@ -53,8 +50,6 @@ export const ChatInputArea: React.FC = () => {
   } = getChatInputAreaLayout({
     isPipActive,
     isAnimatingSend,
-    isRecording: !!isRecording,
-    inputDisabled,
   });
 
   const fontSize = chatInput.appSettings?.baseFontSize ?? 14;
@@ -143,7 +138,7 @@ export const ChatInputArea: React.FC = () => {
   const currentContentStyle = hasCustomHeight || !isCompact ? editorContentStyle : compactEditorContentStyle;
 
   return (
-    <div className={wrapperClass} aria-hidden={isUIBlocked}>
+    <div className={wrapperClass}>
       {capabilities.isNativeAudioModel && (
         <video
           ref={liveApi.videoRef}

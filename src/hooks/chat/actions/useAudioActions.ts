@@ -7,6 +7,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { isThirdPartyApiRoute } from '@/utils/chatApiRoute';
 import { usesRemoteFileReference } from '@/utils/chat/fileTransferStrategy';
 import { formatI18nErrorMessage } from '@/i18n/interpolate';
+import { DEFAULT_TRANSCRIPTION_MODEL_ID } from '@/constants/modelConfiguration';
 
 interface UseAudioActionsProps {
   appSettings: AppSettings;
@@ -47,7 +48,7 @@ export const useAudioActions = ({
       }
 
       try {
-        const modelToUse = appSettings.transcriptionModelId || 'models/gemini-flash-latest';
+        const modelToUse = appSettings.transcriptionModelId || DEFAULT_TRANSCRIPTION_MODEL_ID;
         const transcribedText = await transcribeAudioApi(keyResult.key, audioFile, modelToUse);
         return transcribedText;
       } catch (error) {

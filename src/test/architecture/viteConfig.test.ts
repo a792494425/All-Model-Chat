@@ -340,10 +340,8 @@ describe('Runtime loading boundaries', () => {
     expect(audioApiSource).not.toMatch(/import\s+\{\s*ThinkingLevel/);
     expect(localPythonToolSource).not.toMatch(/import\s+\{\s*Type/);
     expectTypeImportFrom(audioApiSource, '@google/genai', [
-      'GenerateContentConfig',
+      'GenerateContentResponse',
       'Part',
-      'ThinkingConfig',
-      'ThinkingLevel',
       'UsageMetadata',
     ]);
     expectTypeImportFrom(localPythonToolSource, '@google/genai', ['FunctionDeclaration', 'Type']);
