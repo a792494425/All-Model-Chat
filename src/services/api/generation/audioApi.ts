@@ -1,4 +1,4 @@
-import { FinishReason, type Part, type UsageMetadata } from '@google/genai';
+import { FinishReason, type GenerateContentResponse, type Part, type UsageMetadata } from '@google/genai';
 import { executeConfiguredApiRequest } from '@/services/api/apiExecutor';
 import { logService } from '@/services/logService';
 import { blobToBase64 } from '@/utils/file/fileEncoding';
@@ -211,6 +211,46 @@ export const generateSpeechApi = async (
   }
 };
 
+interface AudioTranscriptionData {
+  text?: string;
+  transcript?: string;
+  [key: string]: unknown;
+}
+
+interface ExtendedResponsePart extends Part {
+  audioTranscription?: AudioTranscriptionData | string;
+}
+
+const extractTranscriptionText = (response: GenerateContentResponse): string => {
+  const candidate = response.candidates?.[0];
+  if (!candidate?.content?.parts) {
+    return typeof response.text === 'string' ? response.text.trim() : '';
+  }
+
+  const extractedSegments: string[] = [];
+
+  for (const rawPart of candidate.content.parts) {
+    const part = rawPart as ExtendedResponsePart;
+    if (typeof part.text === 'string' && part.text.length > 0) {
+      extractedSegments.push(part.text);
+    } else if (part.audioTranscription) {
+      if (typeof part.audioTranscription === 'string') {
+        extractedSegments.push(part.audioTranscription);
+      } else if (typeof part.audioTranscription.text === 'string') {
+        extractedSegments.push(part.audioTranscription.text);
+      } else if (typeof part.audioTranscription.transcript === 'string') {
+        extractedSegments.push(part.audioTranscription.transcript);
+      }
+    }
+  }
+
+  if (extractedSegments.length > 0) {
+    return extractedSegments.join('').trim();
+  }
+
+  return typeof response.text === 'string' ? response.text.trim() : '';
+};
+
 export const transcribeAudioApi = async (apiKey: string, audioFile: File, modelId: string): Promise<string> => {
   return executeConfiguredApiRequest({
     apiKey,
@@ -237,26 +277,25 @@ export const transcribeAudioApi = async (apiKey: string, audioFile: File, modelI
         contents: { parts: [textPart, audioPart] },
       });
 
-      if (typeof response.text === 'string') {
-        if (response.usageMetadata) {
-          recordAudioTokenUsage(modelId, response.usageMetadata, 'transcription');
-        }
-        return response.text;
+      if (response.usageMetadata) {
+        recordAudioTokenUsage(modelId, response.usageMetadata, 'transcription');
+      }
+
+      const transcriptionText = extractTranscriptionText(response);
+      if (transcriptionText.length > 0) {
+        return transcriptionText;
       }
 
       const candidate = response.candidates?.[0];
-      if (candidate?.finishReason === FinishReason.STOP) {
-        if (response.usageMetadata) {
-          recordAudioTokenUsage(modelId, response.usageMetadata, 'transcription');
-        }
+      if (!candidate || candidate.finishReason === FinishReason.STOP) {
         return '';
       }
 
-      if (candidate?.finishReason) {
+      if (candidate.finishReason) {
         throw new Error(`Transcription failed due to safety settings: ${candidate.finishReason}`);
       }
 
-      throw new Error('Transcription failed. The model returned an empty response.');
+      return '';
     },
   });
 };

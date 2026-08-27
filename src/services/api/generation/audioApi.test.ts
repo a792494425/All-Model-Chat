@@ -211,6 +211,29 @@ describe('transcribeAudioApi request config', () => {
     await expect(transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe')).resolves.toBe('');
   });
 
+  it('extracts transcription text from structured audioTranscription parts', async () => {
+    generateContentMock.mockResolvedValue({
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                audioTranscription: {
+                  text: '你好，这是语音转录测试',
+                },
+              },
+            ],
+            role: 'model',
+          },
+          finishReason: 'STOP',
+        },
+      ],
+    });
+
+    const result = await transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe');
+    expect(result).toBe('你好，这是语音转录测试');
+  });
+
   it('rejects unsupported Gemini audio MIME types before building the inline audio part', async () => {
     const unsupportedAudioFile = new File(['voice'], 'voice.webm', { type: 'audio/webm' });
 
