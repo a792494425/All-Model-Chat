@@ -1,4 +1,3 @@
-import type { McpToolsResponse } from '@/services/api/mcpApi';
 import { toMcpFunctionName } from './mcpToolNames';
 
 export interface McpToolDisplayInfo {
@@ -7,13 +6,21 @@ export interface McpToolDisplayInfo {
   toolName: string;
 }
 
+export interface DiscoveredToolsPayload {
+  servers: Array<{
+    serverId: string;
+    serverName: string;
+    tools: Array<{ name: string }>;
+  }>;
+}
+
 // Wire names are deterministic ((serverId, toolName) -> hashed function
 // name), so each discovery response can be replayed into a lookup that turns
 // opaque names like mcp_filesystem_read_file_a3f82c10 back into
 // "Filesystem : read_file" at render time.
 const registry = new Map<string, McpToolDisplayInfo>();
 
-export const rememberDiscoveredTools = (response: McpToolsResponse): void => {
+export const rememberDiscoveredTools = (response: DiscoveredToolsPayload): void => {
   for (const server of response.servers) {
     for (const tool of server.tools) {
       registry.set(toMcpFunctionName(server.serverId, tool.name), {
