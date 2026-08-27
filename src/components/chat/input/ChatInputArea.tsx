@@ -97,11 +97,9 @@ export const ChatInputArea: React.FC = () => {
     handlers.onCompositionEnd(value);
   }, [handlers]);
 
-  const { isCompact, requestMeasurement } = useCompactChatInputPresentation({
-    enabled: false,
-    frameRef,
-    isComposing: () => isComposingRef.current,
-  });
+  // Compact temporarily disabled to prevent input freeze - see fix for eraser
+  const isCompact = false;
+  const requestMeasurement = useCallback(() => {}, []);
 
   React.useEffect(() => {
     requestMeasurement();

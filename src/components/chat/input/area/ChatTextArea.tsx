@@ -89,8 +89,9 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
         (target.style as unknown as Record<string, string>)['max-height'] = 'var(--composer-editor-max-height)';
       } else {
         const scrollHeight = shadow.scrollHeight;
-        const baseHeight = isMobile ? 26 : initialTextareaHeight + 2;
-        const maxHeight = isMobile ? 120 : MAX_TEXTAREA_HEIGHT_PX;
+        const cssMinHeight = (contentStyle as unknown as Record<string, string>)['--composer-editor-min-height'];
+        const baseHeight = cssMinHeight ? parseInt(cssMinHeight, 10) : isMobile ? 26 : initialTextareaHeight + 2;
+        const maxHeight = isMobile ? 120 : Math.max(220, Math.round(window.innerHeight * 0.4));
         const newHeight = Math.max(baseHeight, Math.min(scrollHeight, maxHeight));
         target.style.height = `${newHeight}px`;
         target.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
@@ -104,7 +105,7 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
     } else {
       const scrollHeight = shadow.scrollHeight;
       const baseHeight = isMobile ? 26 : initialTextareaHeight + 2;
-      const maxHeight = isMobile ? 120 : MAX_TEXTAREA_HEIGHT_PX;
+      const maxHeight = isMobile ? 120 : Math.max(220, Math.round(window.innerHeight * 0.4));
       const newHeight = Math.max(baseHeight, Math.min(scrollHeight, maxHeight));
       target.style.height = `${newHeight}px`;
 
