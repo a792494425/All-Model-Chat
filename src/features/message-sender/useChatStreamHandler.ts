@@ -11,7 +11,7 @@ import { useApiErrorHandler } from './useApiErrorHandler';
 import { logService } from '@/services/logService';
 import { calculateTokenStats } from '@/utils/model/modelUsageStats';
 import { finalizeMessages } from '@/features/chat-streaming/processors';
-import { streamingStore } from '@/services/streamingStore';
+import { streamingStore } from '@/stores/streamingStore';
 import { buildExactPricingFromUsageMetadata } from '@/utils/usagePricingTelemetry';
 import { resolveChatExactPricing } from '@/utils/chatPricingEvidence';
 import { updateMessageInSession, updateSessionById } from '@/utils/chat/sessionMutations';

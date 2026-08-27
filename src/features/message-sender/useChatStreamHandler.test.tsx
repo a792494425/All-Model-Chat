@@ -47,7 +47,7 @@ vi.mock('@/services/logService', async () => {
   return createLogServiceMockModule({ warn: logWarnMock });
 });
 
-vi.mock('@/services/streamingStore', () => ({
+vi.mock('@/stores/streamingStore', () => ({
   streamingStore: streamingStoreMock,
 }));
 
