@@ -49,23 +49,30 @@ export function useCompactChatInputPresentation({ enabled, frameRef, isComposing
     if (m.revision === rev || isComposing()) return;
     const frame = frameRef.current;
     const ed = frame?.querySelector<HTMLElement>('textarea[data-chat-input-textarea="true"], .composer-tiptap');
-    const row = frame?.closest<HTMLElement>('[data-composer-compact-row]') ?? frame?.querySelector<HTMLElement>('[data-composer-compact-row]');
-    const targetRow = (row ?? frame) as HTMLElement | null;
-    if (!ed || !targetRow) return;
-    const hasHardBr = !!(ed.querySelector(':scope > p > br:not(.ProseMirror-trailingBreak)') || (ed as HTMLTextAreaElement).value?.includes('\n'));
+    if (!ed) return;
+    const hasHardBr = !!(
+      ed.querySelector(':scope > p > br:not(.ProseMirror-trailingBreak)') ||
+      (ed as HTMLTextAreaElement).value?.includes('\n')
+    );
     const hasOverflow = ed.clientHeight > 0 ? ed.scrollHeight > ed.clientHeight + TOL : false;
-    const hasRowOverflow = targetRow.clientWidth > 0 ? targetRow.scrollWidth > targetRow.clientWidth + TOL : false;
-    setM({ presentation: hasHardBr || hasOverflow || hasRowOverflow ? 'regular' : 'compact', revision: rev });
+    const hasHorizontalOverflow = ed.clientWidth > 0 ? ed.scrollWidth > ed.clientWidth + TOL : false;
+    setM({ presentation: hasHardBr || hasOverflow || hasHorizontalOverflow ? 'regular' : 'compact', revision: rev });
   }, [enabled, frameRef, isComposing, m.revision, rev, requestMeasurement]);
 
   useEffect(() => {
     if (!enabled) return;
     const frame = frameRef.current;
-    const row = frame?.closest<HTMLElement>('[data-composer-compact-row]') ?? frame?.querySelector<HTMLElement>('[data-composer-compact-row]');
-    const inputbarElement = frame?.closest<HTMLElement>('[data-composer-inputbar]') ?? (row as HTMLElement | null) ?? frame;
+    const inputbarElement = frame?.closest<HTMLElement>('[data-composer-inputbar]') ?? frame;
     if (!frame || !inputbarElement) return;
 
-    const mutationObserver = new MutationObserver(requestMeasurement);
+    // Textarea value writes rewrite the textarea's own text node on every render;
+    // those are the app's own updates, not content signals (value-driven changes
+    // are already measured via the inputText effect). Only act on other mutations,
+    // which is how the rich-text (.composer-tiptap) variant signals content edits.
+    const mutationObserver = new MutationObserver((records) => {
+      const isMeaningful = records.some((record) => !(record.target instanceof HTMLTextAreaElement));
+      if (isMeaningful) requestMeasurement();
+    });
     mutationObserver.observe(frame, {
       characterData: true,
       childList: true,

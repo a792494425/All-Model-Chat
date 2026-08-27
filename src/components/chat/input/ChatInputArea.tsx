@@ -88,20 +88,23 @@ export const ChatInputArea: React.FC = () => {
   });
 
   const isComposingRef = React.useRef(false);
+  const isComposingNow = useCallback(() => isComposingRef.current, []);
   const handleCompositionStart = useCallback(() => {
     isComposingRef.current = true;
     handlers.onCompositionStart();
   }, [handlers]);
-  const handleCompositionEnd = useCallback((value: string) => {
-    isComposingRef.current = false;
-    handlers.onCompositionEnd(value);
-  }, [handlers]);
+  const handleCompositionEnd = useCallback(
+    (value: string) => {
+      isComposingRef.current = false;
+      handlers.onCompositionEnd(value);
+    },
+    [handlers],
+  );
 
-  // Compact disabled for stable paste - root cause investigation ongoing (see systematic debugging)
   const { isCompact, requestMeasurement } = useCompactChatInputPresentation({
-    enabled: false,
+    enabled: !hasCustomHeight && !isMobile,
     frameRef,
-    isComposing: () => isComposingRef.current,
+    isComposing: isComposingNow,
   });
 
   React.useEffect(() => {
@@ -194,26 +197,27 @@ export const ChatInputArea: React.FC = () => {
             className={`${inputContainerClass} ${hasCustomHeight ? 'expanded' : ''}`}
             onClick={handleInputShellClick}
             data-composer-inputbar=""
-            data-composer-compact-row=""
           >
-            <div
-              data-composer-resize-handle=""
-              data-resizing={isResizing || undefined}
-              role="separator"
-              aria-orientation="horizontal"
-              aria-valuemin={minHeight}
-              aria-valuemax={maxHeight}
-              aria-valuenow={resizeHandleValue}
-              aria-label={t('chatInputResizeHandleAria')}
-              tabIndex={0}
-              onMouseDown={startResize}
-              onKeyDown={handleResizeKeyDown}
-              onDoubleClick={restoreDefaultHeight}
-              className="group/composer-resize-handle absolute top-0 right-4 left-4 z-30 h-2 cursor-row-resize [-webkit-app-region:no-drag] focus-visible:bg-primary/40 focus-visible:outline-none"
-            >
-              <div className="absolute top-0 right-0 left-0 h-0.5 rounded-full bg-primary/20 opacity-0 transition-opacity group-hover/composer-resize-handle:opacity-100 group-focus/composer-resize-handle:opacity-100 group-data-[resizing=true]/composer-resize-handle:bg-primary/35 group-data-[resizing=true]/composer-resize-handle:opacity-100" />
-            </div>
-            <ChatInputExpandCorner hasCustomHeight={hasCustomHeight} onToggle={toggleExpanded} />
+            {!isCompact && (
+              <div
+                data-composer-resize-handle=""
+                data-resizing={isResizing || undefined}
+                role="separator"
+                aria-orientation="horizontal"
+                aria-valuemin={minHeight}
+                aria-valuemax={maxHeight}
+                aria-valuenow={resizeHandleValue}
+                aria-label={t('chatInputResizeHandleAria')}
+                tabIndex={0}
+                onMouseDown={startResize}
+                onKeyDown={handleResizeKeyDown}
+                onDoubleClick={restoreDefaultHeight}
+                className="group/composer-resize-handle absolute top-0 right-4 left-4 z-30 h-2 cursor-row-resize [-webkit-app-region:no-drag] focus-visible:bg-primary/40 focus-visible:outline-none"
+              >
+                <div className="absolute top-0 right-0 left-0 h-0.5 rounded-full bg-primary/20 opacity-0 transition-opacity group-hover/composer-resize-handle:opacity-100 group-focus/composer-resize-handle:opacity-100 group-data-[resizing=true]/composer-resize-handle:bg-primary/35 group-data-[resizing=true]/composer-resize-handle:opacity-100" />
+              </div>
+            )}
+            {!isCompact && <ChatInputExpandCorner hasCustomHeight={hasCustomHeight} onToggle={toggleExpanded} />}
             <ChatFilePreviewList
               selectedFiles={chatInput.selectedFiles}
               onRemove={handlers.removeSelectedFile}
