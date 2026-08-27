@@ -11,17 +11,11 @@ interface ChatInputAreaLayoutParams {
 export const getChatInputAreaLayout = ({
   isPipActive,
   isAnimatingSend,
-  isRecording,
-  inputDisabled,
 }: ChatInputAreaLayoutParams) => {
-  // inputDisabled only greys out the textarea; isUIBlocked additionally dims the
-  // whole wrapper and is skipped during send/record animations so the user still
-  // sees feedback while a request is in flight.
-  const isUIBlocked = inputDisabled && !isAnimatingSend && !isRecording;
+  const isUIBlocked = false;
 
-  // Partial expand (Cherry-style) keeps the composer inline — no fullscreen overlay.
-  // isFullscreen now means "expanded to max(220px,50vh) inline" rather than fixed inset-0.
-  const wrapperClass = `bg-transparent ${isUIBlocked ? 'opacity-30 pointer-events-none' : ''}`;
+  // Keep composer shell solid and visible without unwanted wrapper-level dimming/opacity drops.
+  const wrapperClass = 'bg-transparent';
 
   const innerContainerClass = `mx-auto w-full ${!isPipActive ? CHAT_INPUT_MAX_WIDTH_CLASS : ''} px-2 sm:px-3 pt-0 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]`;
 
