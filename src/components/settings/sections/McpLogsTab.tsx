@@ -28,7 +28,7 @@ export const McpLogsTab: React.FC<McpLogsTabProps> = ({ server, t }) => {
         if (!signal?.aborted) setLoading(false);
       }
     },
-    [server.id],
+    [server],
   );
 
   useEffect(() => {

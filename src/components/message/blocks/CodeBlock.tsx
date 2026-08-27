@@ -128,7 +128,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
         uploadState: 'active' as const,
       };
     });
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- object URL lifecycle must stay in effects
+
     setGeneratedFiles(nextEntries);
     return () => {
       for (const entry of nextEntries) {
@@ -139,7 +139,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
 
   useEffect(() => {
     const url = image ? createManagedObjectUrl(new Blob([image], { type: 'image/png' })) : null;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- object URL lifecycle must stay in effects
+
     setImageUrl(url);
     return () => {
       if (url) {

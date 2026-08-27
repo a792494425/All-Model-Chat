@@ -67,7 +67,6 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
 
   useEffect(() => {
     if (file.dataUrl || !(file.rawFile instanceof Blob)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Clear stale object URLs when switching preview files.
       setLocalPreviewUrl(null);
       return;
     }
@@ -161,7 +160,6 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       };
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional loading-state transition before async preview extraction begins.
     setIsDocxPreviewLoading(true);
 
     void extractDocxText(file.rawFile)

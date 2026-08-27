@@ -85,7 +85,6 @@ const SlashCommandMenuComponent: React.FC<SlashCommandMenuProps> = ({
 
   useEffect(() => {
     if (!isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset assistive key state when panel closes
       setIsAssistivePressed(false);
       return;
     }

@@ -89,7 +89,6 @@ export const PreloadedMessagesModal: React.FC<PreloadedMessagesModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional reset of ephemeral UI state when the modal closes.
       setConfirm({ kind: 'none' });
       setIsMoreMenuOpen(false);
     }
