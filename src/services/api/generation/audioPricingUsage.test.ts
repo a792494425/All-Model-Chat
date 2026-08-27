@@ -97,4 +97,30 @@ describe('audio pricing usage logging', () => {
       }),
     );
   });
+
+  it('does not send thinkingConfig when using dedicated gemini-3.5-transcribe model', async () => {
+    generateContentMock.mockResolvedValue({
+      text: 'transcribed text from gemini 3.5 transcribe',
+      usageMetadata: {
+        promptTokenCount: 500,
+        responseTokenCount: 50,
+      },
+    });
+
+    const result = await transcribeAudioApi(
+      'api-key',
+      new File(['audio'], 'sample.wav', { type: 'audio/wav' }),
+      'gemini-3.5-transcribe',
+    );
+
+    expect(result).toBe('transcribed text from gemini 3.5 transcribe');
+    expect(generateContentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'gemini-3.5-transcribe',
+        config: expect.not.objectContaining({
+          thinkingConfig: expect.anything(),
+        }),
+      }),
+    );
+  });
 });

@@ -5,6 +5,7 @@ import { normalizeModelId } from './modelId';
 export const isGemini3Model = (modelId: string): boolean => {
   if (!modelId) return false;
   const lowerId = modelId.toLowerCase();
+  if (lowerId.includes('transcribe')) return false;
   return (
     REQUIRED_THINKING_MODEL_IDS.some((model) => lowerId.includes(model)) ||
     lowerId.includes('gemini-3-pro') ||
@@ -19,6 +20,9 @@ export const isGeminiRoboticsModel = (modelId: string): boolean =>
 
 export const isLiveTranslateModel = (modelId: string): boolean =>
   !!modelId && modelId.toLowerCase().includes('live-translate');
+
+export const isTranscribeModel = (modelId: string): boolean =>
+  !!modelId && modelId.toLowerCase().includes('transcribe');
 
 const isNativeAudioModel = (modelId: string): boolean => {
   const lowerId = modelId.toLowerCase();
@@ -77,7 +81,11 @@ const supportsThinkingLevel = (modelId: string): boolean => {
   if (isOpenAIGpt5FamilyModel(modelId) || isKimiK3Model(modelId) || isAnthropicEffortModel(modelId)) {
     return true;
   }
-  return !isTtsModel(modelId) && (isGemini3Model(modelId) || isGeminiRoboticsModel(modelId));
+  return (
+    !isTtsModel(modelId) &&
+    !isTranscribeModel(modelId) &&
+    (isGemini3Model(modelId) || isGeminiRoboticsModel(modelId))
+  );
 };
 
 const isGemini3ImageModel = (modelId: string): boolean =>
@@ -122,6 +130,7 @@ export interface ModelCapabilities {
   isFlashImageModel: boolean;
   isImageGenerationModel: boolean;
   isTtsModel: boolean;
+  isTranscribeModel: boolean;
   isNativeAudioModel: boolean;
   isLiveTranslate: boolean;
   supportsBuiltInCustomToolCombination: boolean;
@@ -137,6 +146,7 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
   const gemini3ImageModel = isGemini3ImageModel(modelId);
   const flashImageModel = isFlashImageModel(modelId);
   const ttsModel = isTtsModel(modelId);
+  const transcribeModel = isTranscribeModel(modelId);
   const nativeAudioModel = isNativeAudioModel(modelId);
   const flashModel = lowerId.includes('flash');
   const gemini25Model = lowerId.includes('gemini-2.5');
@@ -144,9 +154,9 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
   const gemini31FlashLiveModel = isGemini31FlashLiveModel(modelId);
   const roboticsModel = isGeminiRoboticsModel(modelId);
   const imageGenerationModel = isImageGenerationModel(modelId);
-  const canUseTextChatTools = !nativeAudioModel && !imageGenerationModel && !ttsModel;
+  const canUseTextChatTools = !nativeAudioModel && !imageGenerationModel && !ttsModel && !transcribeModel;
   const permissions: ModelInteractionPermissions = {
-    canAcceptAttachments: !ttsModel && !nativeAudioModel,
+    canAcceptAttachments: !ttsModel && !nativeAudioModel && !transcribeModel,
     canUseTools: canUseTextChatTools || nativeAudioModel || gemini3ImageModel || imageGenerationModel,
     canUseGoogleSearch: canUseTextChatTools || nativeAudioModel || gemini3ImageModel,
     canUseGoogleMaps: canUseTextChatTools || nativeAudioModel || gemini3ImageModel,
@@ -154,12 +164,12 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
     canUseCodeExecution: canUseTextChatTools && !isGemmaModel(modelId),
     canUseLocalPython: canUseTextChatTools || nativeAudioModel,
     canUseUrlContext: canUseTextChatTools && !isGemmaModel(modelId),
-    canUseTokenCount: !nativeAudioModel,
+    canUseTokenCount: !nativeAudioModel && !transcribeModel,
     canUseYouTubeUrl: canUseTextChatTools,
     canGenerateSuggestions: canUseTextChatTools,
-    canUseVoiceInput: !nativeAudioModel && !imageGenerationModel && !ttsModel,
+    canUseVoiceInput: !nativeAudioModel && !imageGenerationModel && !ttsModel && !transcribeModel,
     canUseLiveControls: nativeAudioModel,
-    requiresTextPrompt: ttsModel || imageGenerationModel,
+    requiresTextPrompt: ttsModel || imageGenerationModel || transcribeModel,
   };
 
   let supportedAspectRatios: string[] | undefined;
@@ -217,6 +227,7 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
     isFlashImageModel: flashImageModel,
     isImageGenerationModel: imageGenerationModel,
     isTtsModel: ttsModel,
+    isTranscribeModel: transcribeModel,
     isNativeAudioModel: nativeAudioModel,
     isLiveTranslate: isLiveTranslateModel(modelId),
     supportsBuiltInCustomToolCombination: isGemini3,

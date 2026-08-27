@@ -166,7 +166,7 @@ describe('settingsStore', () => {
 
       await useSettingsStore.getState().loadSettings();
 
-      expect(useSettingsStore.getState().appSettings.transcriptionModelId).toBe('gemini-3.7-flash');
+      expect(useSettingsStore.getState().appSettings.transcriptionModelId).toBe('gemini-3.5-transcribe');
     });
 
     it('preserves user edits made before settings finish loading', async () => {

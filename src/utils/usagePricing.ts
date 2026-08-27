@@ -46,6 +46,13 @@ const MODALITY_TEXT_PRICING: Record<
     response: { TEXT: 2.5 },
     tool: { TEXT: 0.3, IMAGE: 0.3, AUDIO: 0.3 },
   },
+  // Gemini 3.5 Transcribe pricing ($0.30/M input audio & text tokens / $2.50/M output tokens / $0.03 cache).
+  'gemini-3.5-transcribe': {
+    prompt: { TEXT: 0.3, AUDIO: 0.3 },
+    cache: { TEXT: 0.03, AUDIO: 0.03 },
+    response: { TEXT: 2.5 },
+    tool: { TEXT: 0.3, AUDIO: 0.3 },
+  },
   'gemini-3.1-pro-preview': {
     prompt: { TEXT: 2 },
     cache: { TEXT: 0.2 },

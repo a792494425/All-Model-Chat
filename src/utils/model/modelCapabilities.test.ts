@@ -5,6 +5,7 @@ import {
   getModelCapabilities,
   isGemini3Model,
   isLiveTranslateModel,
+  isTranscribeModel,
   normalizeThinkingLevelForModel,
   shouldStripThinkingFromContext,
 } from './modelCapabilities';
@@ -235,5 +236,34 @@ describe('Live Translate model capabilities', () => {
 
   it('does not require a text prompt (audio-first)', () => {
     expect(capabilities.permissions.requiresTextPrompt).toBe(false);
+  });
+});
+
+describe('isTranscribeModel', () => {
+  it('returns false for empty string or general chat models', () => {
+    expect(isTranscribeModel('')).toBe(false);
+    expect(isTranscribeModel('gemini-3.7-flash')).toBe(false);
+    expect(isTranscribeModel('gemini-3.5-flash-lite')).toBe(false);
+  });
+
+  it('returns true for dedicated transcribe models', () => {
+    expect(isTranscribeModel('gemini-3.5-transcribe')).toBe(true);
+    expect(isTranscribeModel('models/gemini-3.5-transcribe')).toBe(true);
+    expect(isTranscribeModel('gemini-3.5-transcribe-live')).toBe(true);
+  });
+});
+
+describe('Gemini 3.5 Transcribe model capabilities', () => {
+  const capabilities = getModelCapabilities('gemini-3.5-transcribe');
+
+  it('is classified as a dedicated transcribe model', () => {
+    expect(capabilities.isTranscribeModel).toBe(true);
+    expect(capabilities.supportsThinkingLevel).toBe(false);
+    expect(capabilities.supportsThinkingBudgetConfig).toBe(false);
+  });
+
+  it('does not allow general text chat tools but marks as specialized', () => {
+    expect(capabilities.permissions.canUseTools).toBe(false);
+    expect(capabilities.permissions.canAcceptAttachments).toBe(false);
   });
 });

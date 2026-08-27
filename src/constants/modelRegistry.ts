@@ -19,6 +19,14 @@ interface RegisteredModel {
 
 const MODEL_REGISTRY: RegisteredModel[] = [
   {
+    id: 'gemini-3.5-transcribe',
+    name: 'Gemini 3.5 Transcribe',
+    groups: ['transcription'],
+    groupLabels: {
+      transcription: 'Gemini 3.5 Transcribe',
+    },
+  },
+  {
     id: 'gemini-3.7-flash',
     name: 'Gemini 3.7 Flash',
     groups: ['defaultPinned', 'liveArtifacts', 'connectionTest', 'transcription'],
