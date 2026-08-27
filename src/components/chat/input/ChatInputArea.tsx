@@ -97,9 +97,12 @@ export const ChatInputArea: React.FC = () => {
     handlers.onCompositionEnd(value);
   }, [handlers]);
 
-  // Compact temporarily disabled to prevent input freeze - see fix for eraser
-  const isCompact = false;
-  const requestMeasurement = useCallback(() => {}, []);
+  // Compact disabled for stable paste - root cause investigation ongoing (see systematic debugging)
+  const { isCompact, requestMeasurement } = useCompactChatInputPresentation({
+    enabled: false,
+    frameRef,
+    isComposing: () => isComposingRef.current,
+  });
 
   React.useEffect(() => {
     requestMeasurement();
@@ -190,6 +193,7 @@ export const ChatInputArea: React.FC = () => {
           <div
             className={`${inputContainerClass} ${hasCustomHeight ? 'expanded' : ''}`}
             onClick={handleInputShellClick}
+            data-composer-inputbar=""
             data-composer-compact-row=""
           >
             <div

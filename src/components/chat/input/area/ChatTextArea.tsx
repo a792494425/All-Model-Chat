@@ -1,6 +1,5 @@
 import React, { useRef, useLayoutEffect, type RefObject } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { MAX_TEXTAREA_HEIGHT_PX } from '@/components/chat/input/chatInputTextAreaMetrics';
 
 interface ChatTextAreaProps {
   textareaRef: RefObject<HTMLTextAreaElement>;
@@ -42,7 +41,7 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
   isConverting,
   editorContentStyle,
   compactEditorContentStyle,
-  editorElementStyle,
+  editorElementStyle: _editorElementStyle,
   isCompact,
 }) => {
   const isExpandedMode = hasCustomHeight ?? isFullscreen;
@@ -73,50 +72,43 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
       target.setSelectionRange(nextStart, nextEnd);
     }
 
-    // Reset shadow height to allow accurate shrinking measurement
     shadow.style.height = '0px';
     shadow.value = target.value;
 
-    // When CSS variable sizing is provided (Cherry parity), let CSS handle height
+    // Cherry parity: when CSS vars are provided, fixed modes use 100% + var(--max-height), auto mode measures via shadow
     if (contentStyle) {
       const cssOverflow = (contentStyle as unknown as Record<string, string>)['--composer-editor-overflow-y'];
       const cssHeight = (contentStyle as unknown as Record<string, string>)['--composer-editor-height'] ?? (contentStyle as unknown as { height?: unknown }).height;
-      const isFixedHeight = cssHeight === '100%' || cssHeight === 29 || cssHeight === '29px';
+      const isFixedHeight = cssHeight === '100%';
       if (isExpandedMode || isCompact || isFixedHeight) {
         target.style.height = '100%';
-        target.style.overflowY = cssOverflow ?? (isCompact && !hasCustomHeight ? 'hidden' : 'auto');
-        // Ensure CSS var is present for test assertion
+        target.style.overflowY = cssOverflow ?? (isCompact ? 'hidden' : 'auto');
         (target.style as unknown as Record<string, string>)['max-height'] = 'var(--composer-editor-max-height)';
-      } else {
-        const scrollHeight = shadow.scrollHeight;
-        const cssMinHeight = (contentStyle as unknown as Record<string, string>)['--composer-editor-min-height'];
-        const baseHeight = cssMinHeight ? parseInt(cssMinHeight, 10) : isMobile ? 26 : initialTextareaHeight + 2;
-        const maxHeight = isMobile ? 120 : Math.max(220, Math.round(window.innerHeight * 0.4));
-        const newHeight = Math.max(baseHeight, Math.min(scrollHeight, maxHeight));
-        target.style.height = `${newHeight}px`;
-        target.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
+        return;
       }
+      const scrollHeight = shadow.scrollHeight;
+      const cssMinHeight = (contentStyle as unknown as Record<string, string>)['--composer-editor-min-height'];
+      const baseHeight = cssMinHeight ? parseInt(cssMinHeight, 10) : isMobile ? 26 : initialTextareaHeight + 2;
+      const maxHeight = isMobile ? 120 : Math.max(220, Math.round(window.innerHeight * 0.4));
+      const newHeight = Math.max(baseHeight, Math.min(scrollHeight, maxHeight));
+      target.style.height = `${newHeight}px`;
+      target.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
+      (target.style as unknown as Record<string, string>)['max-height'] = 'var(--composer-editor-max-height)';
       return;
     }
 
     if (isExpandedMode) {
       target.style.height = '100%';
       target.style.overflowY = 'auto';
-    } else {
-      const scrollHeight = shadow.scrollHeight;
-      const baseHeight = isMobile ? 26 : initialTextareaHeight + 2;
-      const maxHeight = isMobile ? 120 : Math.max(220, Math.round(window.innerHeight * 0.4));
-      const newHeight = Math.max(baseHeight, Math.min(scrollHeight, maxHeight));
-      target.style.height = `${newHeight}px`;
-
-      // Only show scrollbar if content exceeds max height
-      if (scrollHeight > maxHeight) {
-        target.style.overflowY = 'auto';
-      } else {
-        target.style.overflowY = 'hidden';
-      }
+      return;
     }
-  }, [value, isExpandedMode, isFullscreen, isMobile, initialTextareaHeight, textareaRef, contentStyle, isCompact]);
+    const scrollHeight = shadow.scrollHeight;
+    const baseHeight = isMobile ? 26 : initialTextareaHeight + 2;
+    const maxHeight = isMobile ? 120 : Math.max(220, Math.round(window.innerHeight * 0.4));
+    const newHeight = Math.max(baseHeight, Math.min(scrollHeight, maxHeight));
+    target.style.height = `${newHeight}px`;
+    target.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }, [value, isExpandedMode, isFullscreen, isMobile, initialTextareaHeight, textareaRef, contentStyle, isCompact, hasCustomHeight]);
 
   const handleCompositionStart = () => {
     isComposingRef.current = true;

@@ -51,11 +51,46 @@ export function useCompactChatInputPresentation({ enabled, frameRef, isComposing
     const ed = frame?.querySelector<HTMLElement>('textarea[data-chat-input-textarea="true"], .composer-tiptap');
     const row = frame?.closest<HTMLElement>('[data-composer-compact-row]') ?? frame?.querySelector<HTMLElement>('[data-composer-compact-row]');
     const targetRow = (row ?? frame) as HTMLElement | null;
-    const hasHardBr = !!(ed?.querySelector(':scope > p > br:not(.ProseMirror-trailingBreak)') || (ed as HTMLTextAreaElement)?.value?.includes('\n'));
-    const hasOverflow = ed && ed.clientHeight > 0 ? ed.scrollHeight > ed.clientHeight + TOL : false;
-    const hasRowOverflow = targetRow && targetRow.clientWidth > 0 ? targetRow.scrollWidth > targetRow.clientWidth + TOL : false;
+    if (!ed || !targetRow) return;
+    const hasHardBr = !!(ed.querySelector(':scope > p > br:not(.ProseMirror-trailingBreak)') || (ed as HTMLTextAreaElement).value?.includes('\n'));
+    const hasOverflow = ed.clientHeight > 0 ? ed.scrollHeight > ed.clientHeight + TOL : false;
+    const hasRowOverflow = targetRow.clientWidth > 0 ? targetRow.scrollWidth > targetRow.clientWidth + TOL : false;
     setM({ presentation: hasHardBr || hasOverflow || hasRowOverflow ? 'regular' : 'compact', revision: rev });
   }, [enabled, frameRef, isComposing, m.revision, rev, requestMeasurement]);
 
-  return { isCompact: m.presentation === 'compact', requestMeasurement };
+  useEffect(() => {
+    if (!enabled) return;
+    const frame = frameRef.current;
+    const row = frame?.closest<HTMLElement>('[data-composer-compact-row]') ?? frame?.querySelector<HTMLElement>('[data-composer-compact-row]');
+    const inputbarElement = frame?.closest<HTMLElement>('[data-composer-inputbar]') ?? (row as HTMLElement | null) ?? frame;
+    if (!frame || !inputbarElement) return;
+
+    const mutationObserver = new MutationObserver(requestMeasurement);
+    mutationObserver.observe(frame, {
+      characterData: true,
+      childList: true,
+      subtree: true,
+    });
+
+    let lastWidth = inputbarElement.getBoundingClientRect().width;
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver((entries) => {
+            const nextWidth = entries[0]?.contentRect.width ?? inputbarElement.getBoundingClientRect().width;
+            if (nextWidth === lastWidth) return;
+            lastWidth = nextWidth;
+            requestMeasurement();
+          });
+    resizeObserver?.observe(inputbarElement);
+
+    return () => {
+      mutationObserver.disconnect();
+      resizeObserver?.disconnect();
+    };
+  }, [enabled, frameRef, requestMeasurement]);
+
+  const measurementPending = m.revision !== rev;
+
+  return { isCompact: enabled && (measurementPending || m.presentation === 'compact'), requestMeasurement };
 }
