@@ -114,13 +114,14 @@ describe('audio pricing usage logging', () => {
     );
 
     expect(result).toBe('transcribed text from gemini 3.5 transcribe');
-    expect(generateContentMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        model: 'gemini-3.5-transcribe',
-        config: expect.not.objectContaining({
-          thinkingConfig: expect.anything(),
-        }),
-      }),
-    );
+    expect(generateContentMock).toHaveBeenCalledWith({
+      model: 'gemini-3.5-transcribe',
+      contents: {
+        parts: [
+          { text: 'Transcribe voice input exactly.' },
+          { inlineData: { data: 'base64-audio', mimeType: 'audio/wav' } },
+        ],
+      },
+    });
   });
 });
