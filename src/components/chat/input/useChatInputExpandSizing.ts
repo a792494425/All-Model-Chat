@@ -39,14 +39,14 @@ function getCollapsedHeightPx(frame: HTMLDivElement, minH: number) {
   const maxCollapsed = getViewportRelativeHeightPx(220, 0.4);
   if (ta) {
     const ph = ta.style.height,
-      pm = (ta.style as any).maxHeight;
+      pm = ta.style.maxHeight;
     try {
       ta.style.height = 'auto';
-      (ta.style as any).maxHeight = 'none';
+      ta.style.maxHeight = 'none';
       ch = ta.scrollHeight || ch;
     } finally {
       ta.style.height = ph;
-      (ta.style as any).maxHeight = pm;
+      ta.style.maxHeight = pm;
     }
   }
   return Math.max(minH, Math.min(ch, maxCollapsed));

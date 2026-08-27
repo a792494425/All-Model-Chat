@@ -15,9 +15,8 @@ export const getMcpToolPairs = (messages: ChatMessage[]) => {
       if (!byParent.has(pid)) byParent.set(pid, { calls: [], responses: [] });
       const bucket = byParent.get(pid)!;
       for (const p of m.apiParts ?? []) {
-        const anyPart = p as any;
-        if (anyPart.functionCall) bucket.calls.push(anyPart.functionCall);
-        if (anyPart.functionResponse) bucket.responses.push(p as Part);
+        if (p.functionCall) bucket.calls.push(p.functionCall);
+        if (p.functionResponse) bucket.responses.push(p as Part);
       }
     }
   return Array.from(byParent.entries()).map(([parentId, v]) => ({ parentId, ...v }));

@@ -6,6 +6,8 @@ import { resolveToolDisplay } from '@/features/mcp/toolDisplayNames';
 import { useMcpApprovalStore } from '@/stores/mcpApprovalStore';
 import { useMcpToolRun, type McpToolRunEvent } from '@/stores/mcpToolRuntimeStore';
 
+import type { FunctionCall, Part } from '@google/genai';
+
 const MAX_ARG_VALUE_LENGTH = 4000;
 
 export type McpToolCallStatus = 'invoking' | 'success' | 'error' | 'cancelled';
@@ -41,8 +43,8 @@ const formatProgressLine = (event: McpToolRunEvent): string => {
 };
 
 export const McpToolCallBlock: React.FC<{
-  call: any;
-  responsePart: any;
+  call: FunctionCall;
+  responsePart?: Part;
   status: McpToolCallStatus;
   autoApproved?: boolean;
 }> = ({ call, responsePart, status, autoApproved }) => {
