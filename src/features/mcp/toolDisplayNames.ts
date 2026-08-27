@@ -10,7 +10,12 @@ export interface DiscoveredToolsPayload {
   servers: Array<{
     serverId: string;
     serverName: string;
-    tools: Array<{ name: string }>;
+    tools: Array<{ name: string; description?: string; inputSchema?: Record<string, unknown> }>;
+  }>;
+  errors?: Array<{
+    serverId: string;
+    serverName: string;
+    error: string;
   }>;
 }
 

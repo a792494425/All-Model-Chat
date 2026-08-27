@@ -44,7 +44,7 @@ const formatProgressLine = (event: McpToolRunEvent): string => {
 
 export const McpToolCallBlock: React.FC<{
   call: FunctionCall;
-  responsePart?: Part;
+  responsePart?: Part | null;
   status: McpToolCallStatus;
   autoApproved?: boolean;
 }> = ({ call, responsePart, status, autoApproved }) => {
