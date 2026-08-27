@@ -186,56 +186,29 @@ describe('transcribeAudioApi request config', () => {
     generateContentMock.mockResolvedValue({ text: 'hello world' });
   });
 
-  it('instructs the model to transcribe voice input without translating or rewriting it', async () => {
-    await transcribeAudioApi('api-key', audioFile, 'gemini-3-flash-preview');
+  it('sends dedicated transcription payload with audio and prompt parts without developer instruction or thinking config', async () => {
+    await transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe');
 
-    expect(generateContentMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        contents: {
-          parts: [
-            { text: 'Transcribe voice input exactly.' },
-            {
-              inlineData: {
-                mimeType: 'audio/mpeg',
-                data: 'base64-audio',
-              },
+    expect(generateContentMock).toHaveBeenCalledWith({
+      model: 'gemini-3.5-transcribe',
+      contents: {
+        parts: [
+          { text: 'Transcribe voice input exactly.' },
+          {
+            inlineData: {
+              mimeType: 'audio/mpeg',
+              data: 'base64-audio',
             },
-          ],
-        },
-        config: expect.objectContaining({
-          systemInstruction: expect.stringContaining('只做 ASR'),
-        }),
-      }),
-    );
-
-    const request = generateContentMock.mock.calls[0][0];
-    expect(request.config.systemInstruction).toContain('保持原始语言和混合语言');
-    expect(request.config.systemInstruction).toContain('不要翻译、总结、回答、解释或描述音频');
-    expect(request.config.systemInstruction).toContain(
-      '尽量保留原词、语气词、代码、命令、URL、邮箱、数字、单位和专有名词',
-    );
-    expect(request.config.systemInstruction).toContain('不要补写音频中不存在的内容');
+          },
+        ],
+      },
+    });
   });
 
   it('returns an empty string when the model finds no recognizable speech', async () => {
     generateContentMock.mockResolvedValue({ text: '' });
 
-    await expect(transcribeAudioApi('api-key', audioFile, 'gemini-3-flash-preview')).resolves.toBe('');
-  });
-
-  it('uses LOW thinking for Gemini 3.1 Pro transcription because Pro does not support MINIMAL', async () => {
-    await transcribeAudioApi('api-key', audioFile, 'gemini-3.1-pro-preview');
-
-    expect(generateContentMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        config: expect.objectContaining({
-          thinkingConfig: {
-            includeThoughts: false,
-            thinkingLevel: 'LOW',
-          },
-        }),
-      }),
-    );
+    await expect(transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe')).resolves.toBe('');
   });
 
   it('rejects unsupported Gemini audio MIME types before building the inline audio part', async () => {

@@ -1,15 +1,7 @@
-import {
-  FinishReason,
-  type GenerateContentConfig,
-  type Part,
-  type ThinkingConfig,
-  type ThinkingLevel,
-  type UsageMetadata,
-} from '@google/genai';
+import { FinishReason, type Part, type UsageMetadata } from '@google/genai';
 import { executeConfiguredApiRequest } from '@/services/api/apiExecutor';
 import { logService } from '@/services/logService';
 import { blobToBase64 } from '@/utils/file/fileEncoding';
-import { getModelCapabilities } from '@/utils/model/modelCapabilities';
 import { calculateTokenStats } from '@/utils/model/modelUsageStats';
 import { buildExactPricingFromUsageMetadata } from '@/utils/usagePricingTelemetry';
 import { AVAILABLE_TTS_VOICES } from '@/constants/voiceOptions';
@@ -240,28 +232,9 @@ export const transcribeAudioApi = async (apiKey: string, audioFile: File, modelI
         text: 'Transcribe voice input exactly.',
       };
 
-      const capabilities = getModelCapabilities(modelId);
-      const config: GenerateContentConfig = {};
-
-      if (!capabilities.isTranscribeModel) {
-        config.systemInstruction =
-          '你是语音输入转写器，只做 ASR。请将音频中实际说出的语音转写为将插入聊天输入框的纯文本。保持原始语言和混合语言，不要翻译、总结、回答、解释或描述音频。尽量保留原词、语气词、代码、命令、URL、邮箱、数字、单位和专有名词；不要补写音频中不存在的内容。可以在不改变措辞和原意的前提下补充基础标点。若没有可辨识语音，请返回空字符串。';
-        const thinkingConfig: ThinkingConfig = {};
-        if (capabilities.isGemini3) {
-          thinkingConfig.includeThoughts = false;
-          thinkingConfig.thinkingLevel = (capabilities.isFlashModel ? 'MINIMAL' : 'LOW') as ThinkingLevel;
-        } else if (capabilities.isFlashModel) {
-          thinkingConfig.thinkingBudget = 512;
-        } else {
-          thinkingConfig.thinkingBudget = 0;
-        }
-        config.thinkingConfig = thinkingConfig;
-      }
-
       const response = await ai.models.generateContent({
         model: modelId,
         contents: { parts: [textPart, audioPart] },
-        ...(Object.keys(config).length > 0 ? { config } : {}),
       });
 
       if (typeof response.text === 'string') {
