@@ -53,6 +53,8 @@ interface ThirdPartyTemplateDefaults {
   modelId: string;
   models: ModelOption[];
   protocol: ThirdPartyApiProtocol;
+  apiKeyUrl?: string;
+  docUrl?: string;
 }
 
 const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults> = {
@@ -62,6 +64,8 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
     modelId: 'gpt-5.6-sol',
     models: [{ id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true }],
     protocol: 'openai-compatible',
+    apiKeyUrl: 'https://platform.openai.com/api-keys',
+    docUrl: 'https://platform.openai.com/docs',
   },
   deepseek: {
     name: 'DeepSeek',
@@ -72,6 +76,8 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
       { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro' },
     ],
     protocol: 'openai-compatible',
+    apiKeyUrl: 'https://platform.deepseek.com/api_keys',
+    docUrl: 'https://platform.deepseek.com/docs',
   },
   anthropic: {
     name: 'Anthropic',
@@ -84,6 +90,8 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
       { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5' },
     ],
     protocol: 'anthropic',
+    apiKeyUrl: 'https://console.anthropic.com/settings/keys',
+    docUrl: 'https://docs.anthropic.com',
   },
   openrouter: {
     name: 'OpenRouter',
@@ -91,6 +99,8 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
     modelId: '~openai/gpt-latest',
     models: [{ id: '~openai/gpt-latest', name: 'OpenAI GPT Latest', isPinned: true }],
     protocol: 'openai-compatible',
+    apiKeyUrl: 'https://openrouter.ai/keys',
+    docUrl: 'https://openrouter.ai/docs',
   },
   qwen: {
     name: 'Qwen',
@@ -101,6 +111,8 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
       { id: 'qwen3.7-plus', name: 'Qwen3.7 Plus' },
     ],
     protocol: 'openai-compatible',
+    apiKeyUrl: 'https://bailian.console.aliyun.com/?apiKey=1',
+    docUrl: 'https://help.aliyun.com/zh/model-studio',
   },
   kimi: {
     name: 'Kimi',
@@ -108,6 +120,8 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
     modelId: 'kimi-k3',
     models: [{ id: 'kimi-k3', name: 'Kimi K3', isPinned: true }],
     protocol: 'openai-compatible',
+    apiKeyUrl: 'https://platform.moonshot.cn/console/api-keys',
+    docUrl: 'https://platform.moonshot.cn/docs',
   },
   glm: {
     name: 'GLM',
@@ -115,6 +129,8 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
     modelId: 'glm-5.2',
     models: [{ id: 'glm-5.2', name: 'GLM-5.2', isPinned: true }],
     protocol: 'openai-compatible',
+    apiKeyUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
+    docUrl: 'https://open.bigmodel.cn/dev/api',
   },
   nvidia: {
     name: 'Nvidia',
@@ -125,6 +141,8 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
       { id: 'meta/llama-3.1-405b-instruct', name: 'Llama 3.1 405B Instruct' },
     ],
     protocol: 'openai-compatible',
+    apiKeyUrl: 'https://build.nvidia.com',
+    docUrl: 'https://docs.api.nvidia.com',
   },
   minimax: {
     name: 'MiniMax',
@@ -135,6 +153,8 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
       { id: 'MiniMax-M2', name: 'MiniMax M2' },
     ],
     protocol: 'openai-compatible',
+    apiKeyUrl: 'https://platform.minimaxi.com/user-center/basic-information/interface-key',
+    docUrl: 'https://platform.minimaxi.com/document',
   },
   grok: {
     name: 'Grok',
@@ -145,6 +165,8 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
       { id: 'grok-3', name: 'Grok 3' },
     ],
     protocol: 'openai-compatible',
+    apiKeyUrl: 'https://console.x.ai',
+    docUrl: 'https://docs.x.ai',
   },
   'custom-openai': {
     name: 'Custom',
@@ -187,6 +209,16 @@ export const getThirdPartyTemplateDefaults = (templateId: ThirdPartyTemplateId):
   ...TEMPLATE_DEFAULTS[templateId],
   models: cloneModels(TEMPLATE_DEFAULTS[templateId].models),
 });
+
+export const getThirdPartyTemplateLinks = (
+  templateId: ThirdPartyTemplateId,
+): { apiKeyUrl?: string; docUrl?: string } => {
+  const defaults = TEMPLATE_DEFAULTS[templateId];
+  return {
+    apiKeyUrl: defaults?.apiKeyUrl,
+    docUrl: defaults?.docUrl,
+  };
+};
 
 export const getConnectionDisplayTemplateId = (
   connection: Pick<ThirdPartyConnection, 'templateId' | 'protocol'>,

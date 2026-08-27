@@ -51,4 +51,19 @@ describe('ThirdPartyConnectionEditor', () => {
     expect(renderer.container.textContent).toContain('Advanced: extra headers (1)');
     expect(renderer.container.querySelector('#connection-openai-api-test-model')).not.toBeNull();
   });
+
+  it('renders official documentation and API key links for known provider templates', () => {
+    renderEditor();
+
+    expect(renderer.container.textContent).toContain('Get API Key');
+    expect(renderer.container.textContent).toContain('Documentation');
+  });
+
+  it('renders preset header chips in the advanced headers section', () => {
+    renderEditor();
+
+    expect(renderer.container.textContent).toContain('Presets:');
+    expect(renderer.container.textContent).toContain('+ HTTP-Referer');
+    expect(renderer.container.textContent).toContain('+ User-Agent');
+  });
 });

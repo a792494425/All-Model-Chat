@@ -8,6 +8,7 @@ import {
   getConnectionDisplayTemplateId,
   getProxyProviderHeader,
   getThirdPartyConnectionStatus,
+  getThirdPartyTemplateLinks,
   isThirdPartyConnectionInUse,
   sanitizeThirdPartyApiSettings,
   resolveProviderForModelId,
@@ -353,5 +354,20 @@ describe('isThirdPartyConnectionInUse', () => {
     expect(isThirdPartyConnectionInUse('openai', [], 'gemini-native')).toBe(false);
     expect(isThirdPartyConnectionInUse('openai', [], 'openai')).toBe(true);
     expect(isThirdPartyConnectionInUse('openai', [{ settings: { providerId: 'openai' } }], 'gemini-native')).toBe(true);
+  });
+});
+
+describe('getThirdPartyTemplateLinks', () => {
+  it('returns official API key and documentation links for known templates', () => {
+    const openaiLinks = getThirdPartyTemplateLinks('openai');
+    expect(openaiLinks.apiKeyUrl).toBe('https://platform.openai.com/api-keys');
+    expect(openaiLinks.docUrl).toBe('https://platform.openai.com/docs');
+
+    const deepseekLinks = getThirdPartyTemplateLinks('deepseek');
+    expect(deepseekLinks.apiKeyUrl).toBe('https://platform.deepseek.com/api_keys');
+
+    const customLinks = getThirdPartyTemplateLinks('custom-openai');
+    expect(customLinks.apiKeyUrl).toBeUndefined();
+    expect(customLinks.docUrl).toBeUndefined();
   });
 });

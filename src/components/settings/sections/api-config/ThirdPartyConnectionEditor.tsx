@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import {
@@ -19,7 +19,7 @@ import { sendAnthropicMessageNonStream } from '@/services/api/anthropicApi';
 import { fetchOpenAICompatibleModels, sendOpenAICompatibleMessageNonStream } from '@/services/api/openaiCompatibleApi';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { parseApiKeys } from '@/utils/apiKeySelection';
-import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
+import { getProxyProviderHeader, getThirdPartyTemplateLinks } from '@/utils/thirdPartyApiProviders';
 import type { ThirdPartyApiProtocol, ThirdPartyConnection } from '@/types';
 import { ApiKeyInput } from './ApiKeyInput';
 import { ApiConnectionTester } from './ApiConnectionTester';
@@ -202,8 +202,54 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
   const baseUrlInputId = `connection-${connection.id}-base-url-input`;
   const nameInputId = `connection-${connection.id}-name-input`;
 
+  const templateLinks = getThirdPartyTemplateLinks(connection.templateId);
+
+  const PRESET_HEADERS = [
+    { name: 'HTTP-Referer', defaultValue: 'https://github.com/yeahhe365/AMC-WebUI' },
+    { name: 'X-Title', defaultValue: 'AMC-WebUI' },
+    { name: 'User-Agent', defaultValue: 'AMC-WebUI/1.0' },
+  ];
+
+  const handleAddPresetHeader = (name: string, defaultValue: string) => {
+    setShowAdvanced(true);
+    const existing = headerRows.find((r) => r.name.toLowerCase() === name.toLowerCase());
+    if (existing) return;
+    const next = [
+      ...headerRows,
+      { rowId: `header-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`, name, value: defaultValue },
+    ];
+    commitHeaderRows(next);
+  };
+
   return (
     <div className="px-2.5 pb-2.5 space-y-3 border-t border-[var(--theme-border-secondary)]/30 pt-3">
+      {(templateLinks.apiKeyUrl || templateLinks.docUrl) && (
+        <div className="flex items-center gap-3 text-xs">
+          {templateLinks.apiKeyUrl && (
+            <a
+              href={templateLinks.apiKeyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-medium text-[var(--theme-text-link)] hover:underline"
+            >
+              <span>{t('thirdPartyGetApiKey')}</span>
+              <ExternalLink size={12} />
+            </a>
+          )}
+          {templateLinks.docUrl && (
+            <a
+              href={templateLinks.docUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:underline"
+            >
+              <span>{t('thirdPartyViewDocs')}</span>
+              <ExternalLink size={12} />
+            </a>
+          )}
+        </div>
+      )}
+
       <div className="space-y-2">
         <label
           htmlFor={nameInputId}
@@ -309,6 +355,27 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
         </button>
         {showAdvanced && (
           <div className="space-y-2">
+            <div className="flex items-center gap-1.5 flex-wrap pb-1">
+              <span className="text-[11px] text-[var(--theme-text-secondary)]">{t('thirdPartyPresetHeaders')}:</span>
+              {PRESET_HEADERS.map((preset) => {
+                const isAdded = headerRows.some((r) => r.name.toLowerCase() === preset.name.toLowerCase());
+                return (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    disabled={isAdded}
+                    onClick={() => handleAddPresetHeader(preset.name, preset.defaultValue)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
+                      isAdded
+                        ? 'bg-[var(--theme-bg-tertiary)]/50 text-[var(--theme-text-tertiary)] opacity-60 cursor-default'
+                        : 'bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-tertiary)]/80 text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
+                    }`}
+                  >
+                    + {preset.name}
+                  </button>
+                );
+              })}
+            </div>
             {headerRows.map((row, index) => (
               <div key={row.rowId} className="flex items-center gap-2">
                 <input
