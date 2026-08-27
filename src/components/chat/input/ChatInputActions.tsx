@@ -133,7 +133,7 @@ const ChatInputActionsComponent: React.FC = () => {
       <div
         ref={leftActionsRef}
         data-testid="chat-input-actions-left"
-        className={`flex min-w-0 items-center ${COMPOSER_CLUSTER_GAP_CLASS} overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
+        className={`flex min-w-0 items-center ${COMPOSER_CLUSTER_GAP_CLASS} overflow-x-auto p-1 -m-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
       >
         <button
           type="button"

@@ -44,11 +44,13 @@ export const McpPickerMenu: React.FC<{ disabled?: boolean }> = ({ disabled }) =>
           onClick={toggleMenu}
           disabled={disabled}
           className={`${CHAT_INPUT_BUTTON_CLASS} ${
-            isOpen || hasNarrowedSelection
+            isOpen
               ? 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-primary)]'
-              : !masterEnabled || activeCount === 0
-                ? 'bg-transparent text-[var(--theme-text-tertiary)] opacity-60 hover:opacity-100 hover:bg-[var(--theme-bg-tertiary)]'
-                : 'bg-transparent text-[var(--theme-icon-attach)] hover:bg-[var(--theme-bg-tertiary)]'
+              : hasNarrowedSelection
+                ? 'bg-transparent text-[var(--theme-text-link)] hover:bg-[var(--theme-bg-tertiary)]'
+                : !masterEnabled || activeCount === 0
+                  ? 'bg-transparent text-[var(--theme-text-tertiary)] opacity-60 hover:opacity-100 hover:bg-[var(--theme-bg-tertiary)]'
+                  : 'bg-transparent text-[var(--theme-icon-attach)] hover:bg-[var(--theme-bg-tertiary)]'
           }`}
           aria-label={t('mcpPickerTitle')}
           title={t('mcpPickerTitle')}
@@ -60,7 +62,7 @@ export const McpPickerMenu: React.FC<{ disabled?: boolean }> = ({ disabled }) =>
           {hasNarrowedSelection && (
             <span
               data-testid="mcp-picker-count"
-              className="absolute -top-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[var(--theme-bg-accent)] px-1 text-[9px] font-semibold text-white"
+              className="pointer-events-none absolute -top-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[var(--theme-bg-accent)] px-1 text-[9px] font-bold leading-none text-white ring-2 ring-[var(--theme-bg-input)]"
             >
               {activeCount}
             </span>
