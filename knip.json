@@ -15,6 +15,7 @@
     "type": true
   },
   "ignoreIssues": {
+    "src/components/icons/groups/GeneralIcons.tsx": ["exports"],
     "src/stores/persistentStorage.ts": ["exports"],
     "src/stores/syncedPersist.ts": ["exports", "types"]
   }

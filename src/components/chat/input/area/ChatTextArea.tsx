@@ -1,5 +1,13 @@
-import React, { useRef, useLayoutEffect, type RefObject } from 'react';
+import React, { useRef, useLayoutEffect, type CSSProperties, type RefObject } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
+import { INITIAL_TEXTAREA_HEIGHT_PX, MAX_TEXTAREA_HEIGHT_PX } from '@/components/chat/input/chatInputTextAreaMetrics';
+
+type ComposerCustomCssProps = CSSProperties & {
+  '--composer-editor-overflow-y'?: 'auto' | 'hidden';
+  '--composer-editor-height'?: string;
+  '--composer-editor-min-height'?: string;
+  '--composer-editor-max-height'?: string;
+};
 
 interface ChatTextAreaProps {
   textareaRef: RefObject<HTMLTextAreaElement>;
@@ -37,7 +45,7 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
   isFullscreen,
   hasCustomHeight,
   isMobile,
-  initialTextareaHeight,
+  initialTextareaHeight = INITIAL_TEXTAREA_HEIGHT_PX,
   isConverting,
   editorContentStyle,
   compactEditorContentStyle,
@@ -45,7 +53,7 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
   isCompact,
 }) => {
   const isExpandedMode = hasCustomHeight ?? isFullscreen;
-  const contentStyle = editorContentStyle ?? (isCompact ? compactEditorContentStyle : undefined);
+  const contentStyle = (editorContentStyle ?? (isCompact ? compactEditorContentStyle : undefined)) as ComposerCustomCssProps | undefined;
   const { t } = useI18n();
   const shadowRef = useRef<HTMLTextAreaElement>(null);
   const isComposingRef = useRef(false);
@@ -77,23 +85,23 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
 
     // Cherry parity: when CSS vars are provided, fixed modes use 100% + var(--max-height), auto mode measures via shadow
     if (contentStyle) {
-      const cssOverflow = (contentStyle as unknown as Record<string, string>)['--composer-editor-overflow-y'];
-      const cssHeight = (contentStyle as unknown as Record<string, string>)['--composer-editor-height'] ?? (contentStyle as unknown as { height?: unknown }).height;
+      const cssOverflow = contentStyle['--composer-editor-overflow-y'];
+      const cssHeight = contentStyle['--composer-editor-height'] ?? (contentStyle.height as string | undefined);
       const isFixedHeight = cssHeight === '100%';
       if (isExpandedMode || isCompact || isFixedHeight) {
         target.style.height = '100%';
         target.style.overflowY = cssOverflow ?? (isCompact ? 'hidden' : 'auto');
-        (target.style as unknown as Record<string, string>)['max-height'] = 'var(--composer-editor-max-height)';
+        target.style.maxHeight = 'var(--composer-editor-max-height)';
         return;
       }
       const scrollHeight = shadow.scrollHeight;
-      const cssMinHeight = (contentStyle as unknown as Record<string, string>)['--composer-editor-min-height'];
+      const cssMinHeight = contentStyle['--composer-editor-min-height'];
       const baseHeight = cssMinHeight ? parseInt(cssMinHeight, 10) : isMobile ? 26 : initialTextareaHeight + 2;
       const maxHeight = isMobile ? 120 : Math.max(220, Math.round(window.innerHeight * 0.4));
       const newHeight = Math.max(baseHeight, Math.min(scrollHeight, maxHeight));
       target.style.height = `${newHeight}px`;
       target.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
-      (target.style as unknown as Record<string, string>)['max-height'] = 'var(--composer-editor-max-height)';
+      target.style.maxHeight = 'var(--composer-editor-max-height)';
       return;
     }
 
@@ -104,7 +112,7 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
     }
     const scrollHeight = shadow.scrollHeight;
     const baseHeight = isMobile ? 26 : initialTextareaHeight + 2;
-    const maxHeight = isMobile ? 120 : Math.max(220, Math.round(window.innerHeight * 0.4));
+    const maxHeight = isMobile ? 120 : Math.max(MAX_TEXTAREA_HEIGHT_PX, Math.round(window.innerHeight * 0.4));
     const newHeight = Math.max(baseHeight, Math.min(scrollHeight, maxHeight));
     target.style.height = `${newHeight}px`;
     target.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';

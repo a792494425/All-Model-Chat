@@ -10,12 +10,6 @@ import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
 import { useI18n } from '@/contexts/I18nContext';
 import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 
-export interface SelectionAskState {
-  answer: string;
-  isLoading: boolean;
-  error: string | null;
-}
-
 export function useSelectionAsk() {
   const { t } = useI18n();
   const [answer, setAnswer] = useState('');
@@ -105,7 +99,7 @@ export function useSelectionAsk() {
       const parts = [{ text: prompt }];
 
       // Build a lightweight config (reuse generation config but without tools)
-      let requestConfig: unknown = undefined;
+      let requestConfig: unknown;
       try {
         requestConfig = await buildGenerationConfig({
           settings: selectionAskSettings,

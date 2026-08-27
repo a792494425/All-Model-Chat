@@ -183,7 +183,7 @@ export const McpSection: React.FC<McpSectionProps> = ({ settings, onUpdate }) =>
     try {
       return parseImportJson(text);
     } catch (error) {
-      if (error instanceof McpImportError) throw new Error(importErrorFromCode(error));
+      if (error instanceof McpImportError) throw new Error(importErrorFromCode(error), { cause: error });
       throw error;
     }
   };

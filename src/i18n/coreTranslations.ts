@@ -12,7 +12,7 @@ export type { SupportedLanguage } from './languageRegistry';
 // Types live in a leaf module so feature packs can import them without
 // reaching back into this file (which imports their values) — keeps the
 // module graph acyclic.
-export type { TranslationEntry, TranslationMap } from './translationTypes';
+export type { TranslationMap } from './translationTypes';
 
 /**
  * Shell / always-mounted chrome strings that must work before lazy feature

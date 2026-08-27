@@ -320,7 +320,7 @@ export const generateTitleApi = async (
             // the model occasionally returns no text (quota hiccup, safety, etc.).
             logService.debug('Title generation returned empty response', {
               model: TEXT_GENERATION_MODEL_ID,
-              candidates: (response as unknown as { candidates?: unknown }).candidates,
+              candidates: (response as { candidates?: unknown })?.candidates,
             });
             return '';
           }
@@ -328,7 +328,7 @@ export const generateTitleApi = async (
         } catch (error) {
           // Abort is intentional (timeout) — let it propagate so the timeout
           // controller can be observed; all other failures just fall back to
-          // the heuristic title without spamming console.error.
+          // the heuristic title without spamming error logs.
           if (error instanceof Error && error.name === 'AbortError') {
             throw error;
           }

@@ -34,7 +34,7 @@ describe('parseImportJson', () => {
 
   it('throws coded errors for empty and unrecognized payloads', () => {
     expect(() => parseImportJson('   ')).toThrow('empty');
-    expect(() => parseImportJson('{\"foo\":1}')).toThrow('unrecognized');
+    expect(() => parseImportJson('{"foo":1}')).toThrow('unrecognized');
   });
 });
 

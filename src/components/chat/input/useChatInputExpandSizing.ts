@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import { useResizeDrag } from '@/hooks/useResizeDrag';
 import { getChatInputMinHeight, getCompactChatInputMinHeight } from './chatInputSizing';
 // useTimer optional: if project has no such hook, wrap window.setTimeout, key is ignored
-export const CHAT_INPUT_EXPANDED_MAX_HEIGHT = 'max(220px, 50vh)';
-export const CHAT_INPUT_COLLAPSED_MAX_HEIGHT = 'max(220px, 40vh)';
+const CHAT_INPUT_EXPANDED_MAX_HEIGHT = 'max(220px, 50vh)';
+const CHAT_INPUT_COLLAPSED_MAX_HEIGHT = 'max(220px, 40vh)';
 const HEIGHT_TRANSITION_MS = 260;
 const STEP = 16;
 type Options = { fontSize: number; isExpanded: boolean; onExpandedChange: (b:boolean)=>void; focusEditor: ()=>void; minHeight?: number; setTimeoutTimer?: (k:string, fn:()=>void, ms:number)=>void };
@@ -17,12 +17,32 @@ function getCollapsedHeightPx(frame:HTMLDivElement,minH:number){
   if(ta){ const ph=ta.style.height, pm=(ta.style as any).maxHeight; try{ ta.style.height='auto'; (ta.style as any).maxHeight='none'; ch=ta.scrollHeight||ch;} finally{ ta.style.height=ph; (ta.style as any).maxHeight=pm; } }
   return Math.max(minH, Math.min(ch, maxCollapsed));
 }
-function getEditorContentStyle(fontSize:number,isExpanded:boolean,manual:number|null,compact=false){
+export interface ChatInputEditorContentStyle extends CSSProperties {
+  '--composer-editor-padding'?: string;
+  '--composer-editor-min-height'?: string;
+  '--composer-editor-font-size'?: string;
+  '--composer-editor-line-height'?: string;
+  '--composer-editor-max-height'?: string;
+  '--composer-editor-overflow-y'?: 'auto' | 'hidden';
+  '--composer-editor-height'?: 'auto' | '100%';
+}
+
+function getEditorContentStyle(fontSize:number,isExpanded:boolean,manual:number|null,compact=false): ChatInputEditorContentStyle {
   const minHeight = compact? getCompactChatInputMinHeight(fontSize) : getChatInputMinHeight(fontSize);
   const hasCustom = isExpanded || manual!==null;
   const isFixed = compact || hasCustom;
   const maxHeight = compact? `${minHeight}px` : isExpanded? CHAT_INPUT_EXPANDED_MAX_HEIGHT : manual!==null? `${manual}px` : CHAT_INPUT_COLLAPSED_MAX_HEIGHT;
-  return { height: compact? minHeight : hasCustom? '100%' as const : undefined, minHeight, '--composer-editor-padding': compact? '3px 0' : '6px 44px 0 15px', '--composer-editor-min-height': `${minHeight}px`, '--composer-editor-font-size': `${fontSize}px`, '--composer-editor-line-height': '1.4', '--composer-editor-max-height': maxHeight, '--composer-editor-overflow-y': compact? 'hidden' as const : 'auto' as const, '--composer-editor-height': isFixed? '100%' as const : 'auto' as const } as unknown as CSSProperties & Record<string,string>;
+  return {
+    height: compact? minHeight : hasCustom? '100%' : undefined,
+    minHeight,
+    '--composer-editor-padding': compact? '3px 0' : '6px 44px 0 15px',
+    '--composer-editor-min-height': `${minHeight}px`,
+    '--composer-editor-font-size': `${fontSize}px`,
+    '--composer-editor-line-height': '1.4',
+    '--composer-editor-max-height': maxHeight,
+    '--composer-editor-overflow-y': compact? 'hidden' : 'auto',
+    '--composer-editor-height': isFixed? '100%' : 'auto',
+  };
 }
 const EDITOR_ELEMENT_STYLE = ["max-height: var(--composer-editor-max-height) !important","overflow-y: var(--composer-editor-overflow-y)","height: var(--composer-editor-height)"].join("; ");
 export function useChatInputExpandSizing({ fontSize, isExpanded, onExpandedChange, focusEditor, minHeight: minHeightProp, setTimeoutTimer }: Options){
@@ -35,7 +55,8 @@ export function useChatInputExpandSizing({ fontSize, isExpanded, onExpandedChang
   const dragRef = useRef({ startClientY:0, startHeight:0, collapseExpanded:false });
   const [animatedHeight,setAnimatedHeight]=useState<string|null>(null);
   const [manualHeight,setManualHeight]=useState<number|null>(null);
-  const hasCustomHeight = isExpanded || manualHeight!==null;
+  const isAnimating = animatedHeight !== null;
+  const hasCustomHeight = isExpanded || manualHeight!==null || isAnimating;
   const clearAnim=useCallback(()=>{ if(animRef.current!==null){ cancelAnimationFrame(animRef.current); animRef.current=null; }},[]);
   const clearAfter=useCallback(()=>{ const fn=()=>{ setAnimatedHeight(null); pendingRef.current=null; }; if(setTimeoutTimer) setTimeoutTimer('chatInputFrame',fn,HEIGHT_TRANSITION_MS+80); else window.setTimeout(fn,HEIGHT_TRANSITION_MS+80); },[setTimeoutTimer]);
   const getCurrentHeight=useCallback(()=> frameRef.current?.offsetHeight ?? (isExpanded? maxHeight : manualHeight ?? minHeight),[isExpanded,manualHeight,maxHeight,minHeight]);
@@ -52,7 +73,7 @@ export function useChatInputExpandSizing({ fontSize, isExpanded, onExpandedChang
   const resolvedFrameHeight = animatedHeight ?? (isExpanded? CHAT_INPUT_EXPANDED_MAX_HEIGHT : manualHeight!==null? `${manualHeight}px` : undefined);
   const frameStyle=useMemo<CSSProperties>(()=>({ height: resolvedFrameHeight, minHeight, overflow:'hidden', transition: isResizing? 'none' : `height ${HEIGHT_TRANSITION_MS}ms cubic-bezier(0, 0, 0.2, 1)` }),[isResizing,minHeight,resolvedFrameHeight]);
   const compactFrameStyle=useMemo<CSSProperties>(()=>({ height: compactMinHeight, minHeight: compactMinHeight, overflow:'hidden', transitionDuration:'0ms' }),[compactMinHeight]);
-  const editorContentStyle=useMemo(()=>getEditorContentStyle(fontSize,isExpanded,manualHeight),[fontSize,isExpanded,manualHeight]);
+  const editorContentStyle=useMemo(()=>getEditorContentStyle(fontSize,isExpanded || isAnimating,manualHeight),[fontSize,isExpanded,isAnimating,manualHeight]);
   const compactEditorContentStyle=useMemo(()=>getEditorContentStyle(fontSize,false,null,true),[fontSize]);
   return { frameRef, frameStyle, compactFrameStyle, editorContentStyle, compactEditorContentStyle, editorElementStyle: EDITOR_ELEMENT_STYLE, minHeight, maxHeight, isResizing, startResize, handleResizeKeyDown, handleTransitionEnd, toggleExpanded, restoreDefaultHeight, hasCustomHeight, resizeHandleValue: isExpanded? maxHeight : manualHeight ?? minHeight };
 }
