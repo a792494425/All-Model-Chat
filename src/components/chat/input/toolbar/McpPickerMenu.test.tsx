@@ -55,10 +55,10 @@ describe('McpPickerMenu', () => {
     expect(screen.getByTestId('mcp-picker-server-alpha')).toHaveAttribute('aria-checked', 'false');
   });
 
-  it('shows a muted zero badge and no MCP row prefix when switched off', () => {
+  it('hides the badge and renders no MCP row prefix when switched off', () => {
     useMcpRuntimeStore.setState({ masterEnabled: false });
     openMenu();
-    expect(screen.getByTestId('mcp-picker-count')).toHaveTextContent('0');
+    expect(screen.queryByTestId('mcp-picker-count')).toBeNull();
     // Server rows must not carry the redundant "MCP" prefix label.
     expect(screen.queryByText('MCP')).toBeNull();
   });

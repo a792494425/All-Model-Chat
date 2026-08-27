@@ -33,6 +33,7 @@ export const McpPickerMenu: React.FC<{ disabled?: boolean }> = ({ disabled }) =>
 
   const activeCount = selectServersForTurn(enabledServers, { masterEnabled, selectedServerIds }).length;
   const allOn = selectedServerIds === null && masterEnabled;
+  const hasNarrowedSelection = masterEnabled && !allOn && activeCount > 0;
 
   return (
     <div className="flex items-center">
@@ -43,9 +44,11 @@ export const McpPickerMenu: React.FC<{ disabled?: boolean }> = ({ disabled }) =>
           onClick={toggleMenu}
           disabled={disabled}
           className={`${CHAT_INPUT_BUTTON_CLASS} ${
-            isOpen || !allOn
+            isOpen || hasNarrowedSelection
               ? 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-primary)]'
-              : 'bg-transparent text-[var(--theme-icon-attach)] hover:bg-[var(--theme-bg-tertiary)]'
+              : !masterEnabled || activeCount === 0
+                ? 'bg-transparent text-[var(--theme-text-tertiary)] opacity-60 hover:opacity-100 hover:bg-[var(--theme-bg-tertiary)]'
+                : 'bg-transparent text-[var(--theme-icon-attach)] hover:bg-[var(--theme-bg-tertiary)]'
           }`}
           aria-label={t('mcpPickerTitle')}
           title={t('mcpPickerTitle')}
@@ -54,14 +57,10 @@ export const McpPickerMenu: React.FC<{ disabled?: boolean }> = ({ disabled }) =>
           data-testid="mcp-picker-button"
         >
           <IconMcp size={20} />
-          {!allOn && (
+          {hasNarrowedSelection && (
             <span
               data-testid="mcp-picker-count"
-              className={`absolute -top-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-1 text-[9px] font-semibold ${
-                masterEnabled
-                  ? 'bg-[var(--theme-bg-accent)] text-white'
-                  : 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)]'
-              }`}
+              className="absolute -top-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[var(--theme-bg-accent)] px-1 text-[9px] font-semibold text-white"
             >
               {activeCount}
             </span>
