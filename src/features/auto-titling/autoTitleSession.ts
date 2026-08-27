@@ -174,7 +174,9 @@ export const autoTitleSession = async ({
       )
     ).trim();
   } catch (error) {
-    logService.error(`Failed to auto-generate title for session ${sessionId}`, { error });
+    // Title API failures (network, quota, 429) are routine during backfill
+    // bursts — keep the console quiet and let the heuristic fallback below run.
+    logService.debug(`Skipping AI title for session ${sessionId} (will use heuristic)`, { error });
   }
 
   if (newTitle) {

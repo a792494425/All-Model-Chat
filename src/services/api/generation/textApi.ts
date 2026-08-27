@@ -302,21 +302,39 @@ export const generateTitleApi = async (
       errorLabel: 'Error during title generation:',
       abortSignal: timeoutController.signal,
       run: async ({ client: ai }) => {
-        const response = await ai.models.generateContent({
-          model: TEXT_GENERATION_MODEL_ID,
-          contents,
-          config: {
-            ...buildMinimalThinkingConfig(TEXT_GENERATION_MODEL_ID),
-            temperature: 0.3,
-            topP: 0.9,
-          },
-        });
+        try {
+          const response = await ai.models.generateContent({
+            model: TEXT_GENERATION_MODEL_ID,
+            contents,
+            config: {
+              ...buildMinimalThinkingConfig(TEXT_GENERATION_MODEL_ID),
+              temperature: 0.3,
+              topP: 0.9,
+            },
+          });
 
-        const titleText = response.text?.trim();
-        if (!titleText) {
-          throw new Error('Title generation failed. The model returned an empty response.');
+          const titleText = response.text?.trim();
+          if (!titleText) {
+            // Empty is not an exceptional case — the caller falls back to the
+            // heuristic title. Log at debug so the console is not spammed when
+            // the model occasionally returns no text (quota hiccup, safety, etc.).
+            logService.debug('Title generation returned empty response', {
+              model: TEXT_GENERATION_MODEL_ID,
+              candidates: (response as unknown as { candidates?: unknown }).candidates,
+            });
+            return '';
+          }
+          return stripWrappingQuotes(titleText);
+        } catch (error) {
+          // Abort is intentional (timeout) — let it propagate so the timeout
+          // controller can be observed; all other failures just fall back to
+          // the heuristic title without spamming console.error.
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw error;
+          }
+          logService.debug('Title generation request failed (will use heuristic)', error);
+          return '';
         }
-        return stripWrappingQuotes(titleText);
       },
     });
   } finally {
