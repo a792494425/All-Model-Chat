@@ -178,6 +178,13 @@ const interfaceEntries: SettingsSearchEntry[] = [
     groupKey: 'settingsNotificationsFeedback',
   },
   {
+    id: 'interface-completion-sound-background-only',
+    tab: 'interface',
+    labelKey: 'settingsCompletionSoundBackgroundOnlyLabel',
+    descriptionKey: 'settingsCompletionSoundBackgroundOnlyTooltip',
+    groupKey: 'settingsNotificationsFeedback',
+  },
+  {
     id: 'interface-audio-compression',
     tab: 'interface',
     labelKey: 'settingsAudioCompressionLabel',

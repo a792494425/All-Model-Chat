@@ -12,6 +12,7 @@ describe('applyThemeToDocument', () => {
     document.head.querySelectorAll('style').forEach((style) => style.remove());
     document.body.classList.remove('antialiased');
     AVAILABLE_THEMES.forEach((theme) => document.body.classList.remove(`theme-${theme.id}`));
+    document.body.classList.remove('dark');
     document.body.style.removeProperty('font-size');
   });
 
@@ -63,5 +64,16 @@ describe('applyThemeToDocument', () => {
 
     expect(document.body.classList.contains('theme-pearl')).toBe(true);
     expect(document.body.style.fontSize).toBe('18px');
+  });
+
+  it('toggles the dark class with the theme so dark: variants follow the in-app theme', () => {
+    applyThemeToDocument(document, getTheme('onyx'), baseSettings);
+    expect(document.body.classList.contains('dark')).toBe(true);
+
+    applyThemeToDocument(document, getTheme('graphite'), baseSettings);
+    expect(document.body.classList.contains('dark')).toBe(true);
+
+    applyThemeToDocument(document, getTheme('pearl'), baseSettings);
+    expect(document.body.classList.contains('dark')).toBe(false);
   });
 });

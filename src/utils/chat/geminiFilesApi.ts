@@ -42,6 +42,28 @@ export const toFileApiExpirationTime = (expirationTime: unknown): string | undef
   return typeof expirationTime === 'string' ? expirationTime : undefined;
 };
 
+const FNV_32_OFFSET_BASIS = 0x811c9dc5;
+const FNV_32_PRIME = 0x01000193;
+
+/**
+ * Stable, non-cryptographic fingerprint of an API key. Files API uploads are
+ * only accessible with keys from the uploading project, so this lets us detect
+ * key switches and re-upload from the local backup instead of failing.
+ */
+export const getApiKeyFingerprint = (apiKey: string): string => {
+  let hash = FNV_32_OFFSET_BASIS;
+  for (let index = 0; index < apiKey.length; index += 1) {
+    hash ^= apiKey.charCodeAt(index);
+    hash = Math.imul(hash, FNV_32_PRIME) >>> 0;
+  }
+  return `fnv1a-${hash.toString(16)}-${apiKey.length}`;
+};
+
+type FileApiKeyFingerprintSource = Pick<UploadedFile, 'fileApiKeyFingerprint'>;
+
+export const isFileApiKeyMismatch = (file: FileApiKeyFingerprintSource, apiKey: string): boolean =>
+  Boolean(file.fileApiKeyFingerprint) && file.fileApiKeyFingerprint !== getApiKeyFingerprint(apiKey);
+
 const getExpirationTimestamp = (file: GeminiFilesApiExpirationSource): number | undefined => {
   if (!file.fileApiExpirationTime) {
     return undefined;

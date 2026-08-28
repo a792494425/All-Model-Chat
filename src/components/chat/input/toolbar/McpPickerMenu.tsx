@@ -11,8 +11,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 
 /**
  * Composer-level MCP control: master on/off plus per-server narrowing for the
- * next message. Session-scoped (not persisted) so a forgotten selection can
- * never silently disable tools across restarts.
+ * next message. Persisted across page refreshes so user selections remain active.
  */
 export const McpPickerMenu: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
   const { t } = useI18n();

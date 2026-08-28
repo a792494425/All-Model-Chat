@@ -135,4 +135,22 @@ describe('GenerationSection', () => {
 
     expect(renderer.container.querySelector('#top-k-slider')).not.toBeNull();
   });
+
+  it('renders dedicated speech-to-text info banner for gemini-3.5-transcribe without regular sliders', async () => {
+    const onUpdateSetting = vi.fn();
+
+    await act(async () => {
+      renderer.root.render(
+        <GenerationSection
+          modelId="gemini-3.5-transcribe"
+          currentSettings={baseSettings}
+          onUpdateSetting={onUpdateSetting}
+        />,
+      );
+    });
+
+    expect(renderer.container.textContent).toContain('Gemini 3.5 Transcribe');
+    expect(renderer.container.querySelector('#temperature-slider')).toBeNull();
+    expect(renderer.container.querySelector('#system-prompt-input')).toBeNull();
+  });
 });

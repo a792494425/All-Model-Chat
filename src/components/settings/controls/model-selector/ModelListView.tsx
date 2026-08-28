@@ -28,9 +28,9 @@ export const ModelListView: React.FC<ModelListViewProps> = ({
   return (
     <div
       data-testid="settings-model-list-container"
-      className="border border-[var(--theme-border-secondary)] rounded-xl bg-[var(--theme-bg-input)]/30 overflow-hidden"
+      className="border border-[var(--theme-border-secondary)]/70 rounded-xl bg-[var(--theme-bg-input)]/30 overflow-hidden"
     >
-      <div className="max-h-[280px] overflow-y-auto custom-scrollbar p-1.5 space-y-2">
+      <div className="max-h-[340px] overflow-y-auto custom-scrollbar p-2 space-y-2.5">
         <ModelCatalogList
           sections={sections}
           variant="settings"

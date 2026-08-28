@@ -10,6 +10,7 @@ import { base64ToBlob, blobToBase64 } from '@/utils/file/fileEncoding';
 import { getVisibleChatMessages } from './visibility';
 import { createManagedObjectUrl, releaseManagedObjectUrlsByOwner } from '@/services/objectUrlManager';
 import { TAB_ID } from '@/stores/tabIdentity';
+import { redactExportedSessionSettings } from '@/utils/secretRedaction';
 
 const logSessionWarning = (message: string, data?: unknown) => {
   console.warn(`[session] ${message}`, data);
@@ -292,6 +293,7 @@ const serializeFileForPortableExport = async (file: UploadedFile): Promise<Uploa
 
 export const serializeSessionForPortableExport = async (session: SavedChatSession): Promise<SavedChatSession> => ({
   ...session,
+  settings: redactExportedSessionSettings(session.settings),
   messages: await Promise.all(session.messages.map(serializeMessageForPortableExport)),
 });
 

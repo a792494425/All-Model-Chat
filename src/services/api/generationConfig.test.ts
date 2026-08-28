@@ -14,7 +14,7 @@ vi.mock('@/utils/model/modelCapabilities', async () => {
 
   return {
     ...actual,
-    isGemini3Model: vi.fn((id: string) => id?.includes('gemini-3')),
+    isGemini3Model: vi.fn((id: string) => id?.includes('gemini-3') && !id?.includes('transcribe')),
     isGeminiRoboticsModel: vi.fn((id: string) => id?.includes('gemini-robotics-er')),
     isGemmaModel: vi.fn((id: string) => id?.toLowerCase().includes('gemma')),
   };
@@ -905,24 +905,19 @@ describe('appendFunctionDeclarationsToTools', () => {
     });
   });
 
-  it('does not enable server-side tool invocation circulation for function-only Gemini 3 configs', () => {
-    const config = appendFunctionDeclarationsToTools('gemini-3-flash-preview', {}, [
-      {
-        name: 'run_local_python',
-        description: 'Execute Python locally.',
-      },
-    ]);
+  it('does not attach mediaResolution or tools for Gemini 3.5 Transcribe', async () => {
+    const config = await buildGenerationConfig({
+      modelId: 'gemini-3.5-transcribe',
+      systemInstruction: 'Transcribe this audio',
+      config: { temperature: 1, topP: 0.95, topK: 64 },
+      showThoughts: false,
+      thinkingBudget: 0,
+      isGoogleSearchEnabled: true,
+      mediaResolution: MediaResolution.MEDIA_RESOLUTION_HIGH,
+    });
 
-    expect(config.tools).toEqual([
-      {
-        functionDeclarations: [
-          {
-            name: 'run_local_python',
-            description: 'Execute Python locally.',
-          },
-        ],
-      },
-    ]);
-    expect(config.toolConfig).toBeUndefined();
+    expect(config.mediaResolution).toBeUndefined();
+    expect(config.tools).toBeUndefined();
+    expect(config.thinkingConfig).toBeUndefined();
   });
 });

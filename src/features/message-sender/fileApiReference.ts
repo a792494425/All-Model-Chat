@@ -7,8 +7,10 @@ import { logService } from '@/services/logService';
 import {
   formatGeminiFileApiProcessingError,
   formatHistoryFileApiUnavailablePartText,
+  getApiKeyFingerprint,
   getGeminiFilesApiName,
   getGeminiFilesApiNameFromUri,
+  isFileApiKeyMismatch,
   isGeminiFilesApiReferenceStillValid,
   sessionHasGeminiFilesApiReferences,
   shouldRefreshGeminiFilesApiReferenceFromExpiration,
@@ -102,7 +104,7 @@ const applyFilePatch = (
   return files.map((file) => (file.id === fileId ? { ...file, ...patch } : file));
 };
 
-const buildActivePatchFromMetadata = (metadata: GeminiFile, fallbackFile: UploadedFile): FilePatch =>
+const buildActivePatchFromMetadata = (metadata: GeminiFile, fallbackFile: UploadedFile, apiKey: string): FilePatch =>
   ({
     fileUri: metadata.uri ?? fallbackFile.fileUri,
     fileApiName: metadata.name ?? fallbackFile.fileApiName,
@@ -110,7 +112,15 @@ const buildActivePatchFromMetadata = (metadata: GeminiFile, fallbackFile: Upload
     isProcessing: false,
     error: undefined,
     fileApiExpirationTime: toFileApiExpirationTime((metadata as { expirationTime?: unknown }).expirationTime),
+    fileApiKeyFingerprint: getApiKeyFingerprint(apiKey),
   }) as FilePatch;
+
+const FILES_API_ACCESS_DENIED_PATTERN = /403|PERMISSION_DENIED|permission/i;
+
+const isFilesApiAccessDeniedError = (error: unknown): boolean => {
+  const message = error instanceof Error ? error.message : String(error ?? '');
+  return FILES_API_ACCESS_DENIED_PATTERN.test(message);
+};
 
 const createSyntheticHistoryFile = (fileApiName: string): UploadedFile => ({
   id: fileApiName,
@@ -228,6 +238,7 @@ const filePatchChangesFile = (file: UploadedFile, patch: FilePatch): boolean =>
       'fileApiName',
       'uploadState',
       'fileApiExpirationTime',
+      'fileApiKeyFingerprint',
       'error',
       'transferStrategy',
       'omittedFromApiHistory',
@@ -300,42 +311,60 @@ const resolveRemoteFileReference = async (
     return { kind: 'active', patch: {} };
   }
 
-  if (isGeminiFilesApiReferenceStillValid(file)) {
-    return { kind: 'active', patch: {} };
-  }
+  const uploadableFile = toUploadableFile(file);
+  // Files API access is scoped to the uploading key's project: once the key
+  // changed, a local backup must be re-uploaded right away — metadata probing
+  // would only yield 403. Without a backup we still probe, since keys from the
+  // same project remain valid.
+  const keyChanged = isFileApiKeyMismatch(file, apiKey);
+  if (!keyChanged || !uploadableFile) {
+    if (!keyChanged && isGeminiFilesApiReferenceStillValid(file)) {
+      return { kind: 'active', patch: {} };
+    }
 
-  if (!shouldRefreshGeminiFilesApiReferenceFromExpiration(file)) {
-    try {
-      const metadata = await getFileMetadataApi(apiKey, fileApiName);
+    if (!shouldRefreshGeminiFilesApiReferenceFromExpiration(file)) {
+      try {
+        const metadata = await getFileMetadataApi(apiKey, fileApiName);
 
-      if (metadata?.state === 'ACTIVE') {
-        return { kind: 'active', patch: buildActivePatchFromMetadata(metadata, file) };
+        if (metadata?.state === 'ACTIVE') {
+          return { kind: 'active', patch: buildActivePatchFromMetadata(metadata, file, apiKey) };
+        }
+
+        if (metadata && metadata.state !== 'FAILED') {
+          const lifecycle = getUploadLifecycleForGeminiState(metadata.state);
+          return {
+            kind: 'wait',
+            fileName: file.name,
+            patch: {
+              ...lifecycle,
+              fileUri: metadata.uri ?? file.fileUri,
+              fileApiName: metadata.name ?? file.fileApiName,
+              fileApiExpirationTime: toFileApiExpirationTime((metadata as { expirationTime?: unknown }).expirationTime),
+              fileApiKeyFingerprint: getApiKeyFingerprint(apiKey),
+            } as FilePatch,
+          };
+        }
+      } catch (error) {
+        if (!isFilesApiAccessDeniedError(error)) {
+          logService.warn('Could not verify Files API reference before send; leaving history unchanged.', {
+            fileName: file.name,
+            fileApiName,
+            error,
+          });
+          return { kind: 'verify-failed', fileName: file.name };
+        }
+        logService.warn(
+          'Files API reference is not accessible with the current key; falling back to re-upload when a local backup exists.',
+          {
+            fileName: file.name,
+            fileApiName,
+            error,
+          },
+        );
       }
-
-      if (metadata && metadata.state !== 'FAILED') {
-        const lifecycle = getUploadLifecycleForGeminiState(metadata.state);
-        return {
-          kind: 'wait',
-          fileName: file.name,
-          patch: {
-            ...lifecycle,
-            fileUri: metadata.uri ?? file.fileUri,
-            fileApiName: metadata.name ?? file.fileApiName,
-            fileApiExpirationTime: toFileApiExpirationTime((metadata as { expirationTime?: unknown }).expirationTime),
-          } as FilePatch,
-        };
-      }
-    } catch (error) {
-      logService.warn('Could not verify Files API reference before send; leaving history unchanged.', {
-        fileName: file.name,
-        fileApiName,
-        error,
-      });
-      return { kind: 'verify-failed', fileName: file.name };
     }
   }
 
-  const uploadableFile = toUploadableFile(file);
   if (!uploadableFile) {
     return { kind: 'needs-backup' };
   }
@@ -362,6 +391,7 @@ const resolveRemoteFileReference = async (
       error,
       omittedFromApiHistory: undefined,
       fileApiExpirationTime: toFileApiExpirationTime((uploadedFile as { expirationTime?: unknown }).expirationTime),
+      fileApiKeyFingerprint: getApiKeyFingerprint(apiKey),
     } as FilePatch;
 
     if (lifecycle.uploadState !== 'active') {

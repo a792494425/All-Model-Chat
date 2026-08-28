@@ -262,8 +262,10 @@ describe('Gemini 3.5 Transcribe model capabilities', () => {
     expect(capabilities.supportsThinkingBudgetConfig).toBe(false);
   });
 
-  it('does not allow general text chat tools but marks as specialized', () => {
+  it('does not allow general text chat tools but allows attachments and marks as specialized', () => {
     expect(capabilities.permissions.canUseTools).toBe(false);
-    expect(capabilities.permissions.canAcceptAttachments).toBe(false);
+    expect(capabilities.permissions.canAcceptAttachments).toBe(true);
+    expect(capabilities.permissions.canUseTokenCount).toBe(true);
+    expect(capabilities.permissions.requiresTextPrompt).toBe(false);
   });
 });

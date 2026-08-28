@@ -10,7 +10,11 @@ import { logService } from '@/services/logService';
 import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/apiKeySelection';
 import { generateUniqueId } from '@/utils/chat/ids';
 import { getFileMetadataApi } from '@/services/api/fileApi';
-import { formatGeminiFileApiProcessingError, toFileApiExpirationTime } from '@/utils/chat/geminiFilesApi';
+import {
+  formatGeminiFileApiProcessingError,
+  getApiKeyFingerprint,
+  toFileApiExpirationTime,
+} from '@/utils/chat/geminiFilesApi';
 import {
   createProcessingPlaceholderFile,
   getUploadLifecycleForGeminiState,
@@ -129,6 +133,7 @@ export const useFileIdAdder = ({
             fileUri: fileMetadata.uri,
             fileApiName: fileMetadata.name || fileApiId,
             fileApiExpirationTime: toFileApiExpirationTime(fileMetadata.expirationTime),
+            fileApiKeyFingerprint: getApiKeyFingerprint(keyToUse),
             transferStrategy: 'remote-file-id',
             isProcessing,
             progress: 100,

@@ -64,5 +64,7 @@ export interface ThemeColors {
 export interface Theme {
   id: string;
   name: string;
+  /** Governs the Tailwind `dark:` variant alongside the theme-* body class. */
+  isDark: boolean;
   colors: ThemeColors;
 }

@@ -5,6 +5,7 @@ import { toastError } from '@/stores/toastStore';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { serializeSessionForPortableExport } from '@/utils/chat/session';
 import { triggerDownload } from '@/utils/export/core';
+import { redactExportedAppSettings } from '@/utils/secretRedaction';
 import { dbService } from '@/services/db/dbService';
 import { buildScenarioExportPayload } from '@/features/scenarios/scenarioLibrary';
 
@@ -70,7 +71,7 @@ export const useDataExport = ({ appSettings, savedGroups, savedScenarios, t }: U
       const dataToExport = {
         type: 'AllModelChat-Settings',
         version: 1,
-        settings: redactMcpSecretsForExport(appSettings),
+        settings: redactExportedAppSettings(redactMcpSecretsForExport(appSettings)),
       };
       const jsonString = JSON.stringify(dataToExport, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });

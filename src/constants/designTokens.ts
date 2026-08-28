@@ -72,7 +72,7 @@ export const SETTINGS_SECTION_LABEL_CLASS =
 
 /** Numeric value badge (font size, etc.) — neutral, not link-colored. */
 export const SETTINGS_VALUE_BADGE_CLASS =
-  'rounded-md bg-[var(--theme-bg-tertiary)] px-2 py-0.5 font-mono text-sm tabular-nums text-[var(--theme-text-primary)]';
+  'inline-flex items-center justify-center rounded-full border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-tertiary)] px-2.5 py-0.5 font-mono text-xs font-semibold tabular-nums text-[var(--theme-text-primary)] shadow-xs';
 
 /** Keyboard key hint (shortcut affordance, e.g. '/' or 'Esc'). */
 export const SETTINGS_KBD_KEY_CLASS =
@@ -80,14 +80,15 @@ export const SETTINGS_KBD_KEY_CLASS =
 
 /** Segmented control track (theme, language, scope). */
 export const SETTINGS_SEGMENTED_TRACK_CLASS =
-  'inline-flex items-center gap-0.5 rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-tertiary)]/50 p-1';
+  'inline-flex items-center gap-1 rounded-lg border border-[var(--theme-border-secondary)]/50 bg-[var(--theme-bg-tertiary)]/60 p-1';
 
-export const SETTINGS_SEGMENTED_ACTIVE_CLASS = `px-3 py-1.5 text-xs font-medium rounded-md bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] shadow-sm transition-colors ${FOCUS_VISIBLE_RING_BASE_CLASS}`;
+export const SETTINGS_SEGMENTED_ACTIVE_CLASS = `px-3 py-1.5 text-xs font-semibold rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-sm transition-all duration-150 ${FOCUS_VISIBLE_RING_BASE_CLASS}`;
 
-export const SETTINGS_SEGMENTED_IDLE_CLASS = `px-3 py-1.5 text-xs font-medium rounded-md text-[var(--theme-text-secondary)] transition-colors hover:text-[var(--theme-text-primary)] ${FOCUS_VISIBLE_RING_BASE_CLASS} disabled:cursor-not-allowed disabled:opacity-50`;
+export const SETTINGS_SEGMENTED_IDLE_CLASS = `px-3 py-1.5 text-xs font-medium rounded-md text-[var(--theme-text-secondary)] transition-all duration-150 hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]/40 ${FOCUS_VISIBLE_RING_BASE_CLASS} disabled:cursor-not-allowed disabled:opacity-40`;
 
 /** Active settings nav tab — aligned with chat session selection. */
-export const SETTINGS_NAV_ACTIVE_CLASS = 'bg-[var(--theme-bg-accent)]/10 text-[var(--theme-text-primary)] font-medium';
+export const SETTINGS_NAV_ACTIVE_CLASS =
+  'bg-[var(--theme-bg-accent)]/12 text-[var(--theme-text-primary)] font-semibold shadow-xs';
 
 export const SETTINGS_NAV_IDLE_CLASS =
   'text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)]/50 hover:text-[var(--theme-text-primary)]';

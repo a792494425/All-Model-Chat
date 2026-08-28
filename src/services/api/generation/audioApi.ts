@@ -251,11 +251,28 @@ const extractTranscriptionText = (response: GenerateContentResponse): string => 
   return typeof response.text === 'string' ? response.text.trim() : '';
 };
 
-export const transcribeAudioApi = async (apiKey: string, audioFile: File, modelId: string): Promise<string> => {
+export interface AudioTranscriptionOptions {
+  prompt?: string;
+  systemInstruction?: string;
+  language?: string;
+  wordTimestamps?: boolean;
+  speakerLabels?: boolean;
+  smartMode?: boolean;
+  customVocabulary?: string;
+  abortSignal?: AbortSignal;
+}
+
+export const transcribeAudioApi = async (
+  apiKey: string,
+  audioFile: File,
+  modelId: string,
+  options?: AudioTranscriptionOptions,
+): Promise<string> => {
   return executeConfiguredApiRequest({
     apiKey,
     label: `Transcribing audio with model ${modelId}`,
     errorLabel: 'Error during audio transcription:',
+    abortSignal: options?.abortSignal,
     run: async ({ client: ai }) => {
       logService.debug('Audio transcription request file details', { fileName: audioFile.name, size: audioFile.size });
       const mimeType = getSupportedTranscriptionMimeType(audioFile);
@@ -268,13 +285,71 @@ export const transcribeAudioApi = async (apiKey: string, audioFile: File, modelI
         },
       };
 
+      const promptInstructions: string[] = [];
+      if (options?.smartMode) {
+        promptInstructions.push('Use smart transcription: clean up disfluencies, filler words, and format text.');
+      } else {
+        promptInstructions.push('Transcribe voice input exactly.');
+      }
+
+      if (options?.language) {
+        promptInstructions.push(`Primary language: ${options.language}.`);
+      }
+
+      if (options?.wordTimestamps) {
+        promptInstructions.push('Include word timestamps in the output.');
+      }
+
+      if (options?.speakerLabels) {
+        promptInstructions.push('Identify and label distinct speakers (e.g. Speaker 1, Speaker 2).');
+      }
+
+      if (options?.customVocabulary && options.customVocabulary.trim()) {
+        promptInstructions.push(`Custom vocabulary: ${options.customVocabulary.trim()}.`);
+      }
+
+      if (options?.prompt && options.prompt.trim()) {
+        promptInstructions.push(options.prompt.trim());
+      }
+
+      const promptText = promptInstructions.join(' ');
       const textPart: Part = {
-        text: 'Transcribe voice input exactly.',
+        text: promptText,
       };
+
+      const customVocabList = options?.customVocabulary
+        ? options.customVocabulary
+            .split(/[,，\n]/)
+            .map((word) => word.trim())
+            .filter(Boolean)
+        : undefined;
+
+      const audioTranscriptionConfig: Record<string, unknown> = {};
+      if (options?.wordTimestamps) {
+        audioTranscriptionConfig.wordTimestamp = true;
+      }
+      if (options?.speakerLabels) {
+        audioTranscriptionConfig.speakerLabels = true;
+      }
+      if (customVocabList && customVocabList.length > 0) {
+        audioTranscriptionConfig.customVocabulary = customVocabList;
+      }
+
+      const config: Record<string, unknown> = {};
+      if (options?.abortSignal) {
+        config.abortSignal = options.abortSignal;
+      }
+      if (options?.systemInstruction && options.systemInstruction.trim()) {
+        config.systemInstruction = options.systemInstruction.trim();
+      }
+      if (Object.keys(audioTranscriptionConfig).length > 0) {
+        config.audioTranscriptionConfig = audioTranscriptionConfig;
+      }
 
       const response = await ai.models.generateContent({
         model: modelId,
         contents: { parts: [textPart, audioPart] },
+        config: Object.keys(config).length > 0 ? (config as Parameters<typeof ai.models.generateContent>[0]['config']) : undefined,
       });
 
       if (response.usageMetadata) {
@@ -299,3 +374,4 @@ export const transcribeAudioApi = async (apiKey: string, audioFile: File, modelI
     },
   });
 };
+

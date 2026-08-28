@@ -216,9 +216,9 @@ export const ChatInputArea: React.FC = () => {
                 onMouseDown={startResize}
                 onKeyDown={handleResizeKeyDown}
                 onDoubleClick={restoreDefaultHeight}
-                className="group/composer-resize-handle absolute top-0 right-4 left-4 z-30 h-2 cursor-row-resize [-webkit-app-region:no-drag] focus-visible:bg-primary/40 focus-visible:outline-none"
+                className="group/composer-resize-handle absolute top-0 right-4 left-4 z-30 h-2 cursor-row-resize [-webkit-app-region:no-drag] focus-visible:outline-none flex items-center justify-center"
               >
-                <div className="absolute top-0 right-0 left-0 h-0.5 rounded-full bg-primary/20 opacity-0 transition-opacity group-hover/composer-resize-handle:opacity-100 group-focus/composer-resize-handle:opacity-100 group-data-[resizing=true]/composer-resize-handle:bg-primary/35 group-data-[resizing=true]/composer-resize-handle:opacity-100" />
+                <div className="mx-auto w-10 h-0.5 rounded-full bg-[var(--theme-border-secondary)] opacity-0 transition-all duration-200 group-hover/composer-resize-handle:opacity-100 group-hover/composer-resize-handle:w-16 group-hover/composer-resize-handle:bg-[var(--theme-bg-accent)] group-focus/composer-resize-handle:opacity-100 group-focus/composer-resize-handle:bg-[var(--theme-bg-accent)] group-data-[resizing=true]/composer-resize-handle:bg-[var(--theme-bg-accent)] group-data-[resizing=true]/composer-resize-handle:opacity-100 group-data-[resizing=true]/composer-resize-handle:w-20" />
               </div>
             )}
             {!isCompact && (
@@ -256,7 +256,9 @@ export const ChatInputArea: React.FC = () => {
                 onPaste={handlers.handlePaste}
                 onCompositionStart={handleCompositionStart}
                 onCompositionEnd={handleCompositionEnd}
-                placeholder={t('chatInputPlaceholder')}
+                placeholder={
+                  capabilities.isTranscribeModel ? t('chatInputPlaceholderTranscribe') : t('chatInputPlaceholder')
+                }
                 disabled={inputDisabled}
                 isFullscreen={isFullscreen}
                 hasCustomHeight={hasCustomHeight}

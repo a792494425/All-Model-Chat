@@ -154,7 +154,7 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
   const imageGenerationModel = isImageGenerationModel(modelId);
   const canUseTextChatTools = !nativeAudioModel && !imageGenerationModel && !ttsModel && !transcribeModel;
   const permissions: ModelInteractionPermissions = {
-    canAcceptAttachments: !ttsModel && !nativeAudioModel && !transcribeModel,
+    canAcceptAttachments: !ttsModel && !nativeAudioModel,
     canUseTools: canUseTextChatTools || nativeAudioModel || gemini3ImageModel || imageGenerationModel,
     canUseGoogleSearch: canUseTextChatTools || nativeAudioModel || gemini3ImageModel,
     canUseGoogleMaps: canUseTextChatTools || nativeAudioModel || gemini3ImageModel,
@@ -162,12 +162,12 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
     canUseCodeExecution: canUseTextChatTools && !isGemmaModel(modelId),
     canUseLocalPython: canUseTextChatTools || nativeAudioModel,
     canUseUrlContext: canUseTextChatTools && !isGemmaModel(modelId),
-    canUseTokenCount: !nativeAudioModel && !transcribeModel,
+    canUseTokenCount: !nativeAudioModel,
     canUseYouTubeUrl: canUseTextChatTools,
     canGenerateSuggestions: canUseTextChatTools,
-    canUseVoiceInput: !nativeAudioModel && !imageGenerationModel && !ttsModel && !transcribeModel,
+    canUseVoiceInput: !nativeAudioModel && !imageGenerationModel && !ttsModel,
     canUseLiveControls: nativeAudioModel,
-    requiresTextPrompt: ttsModel || imageGenerationModel || transcribeModel,
+    requiresTextPrompt: ttsModel || imageGenerationModel,
   };
 
   let supportedAspectRatios: string[] | undefined;

@@ -1,9 +1,11 @@
 import React from 'react';
+import { Volume2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { toastError } from '@/stores/toastStore';
 import { ToggleItem } from '@/components/shared/ToggleItem';
 import { type AppSettings } from '@/types';
 import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
+import { playCompletionSound } from '@/utils/browserCompletionFeedback';
 
 interface InterfaceTogglesProps {
   settings: AppSettings;
@@ -27,9 +29,11 @@ const SearchableToggle: React.FC<{
   checked: boolean;
   onChange: (checked: boolean) => void;
   tooltip?: string;
-}> = ({ itemId, label, checked, onChange, tooltip }) => (
+  /** Optional inline control after the label (kept away from the toggle column). */
+  labelTrailing?: React.ReactNode;
+}> = ({ itemId, label, checked, onChange, tooltip, labelTrailing }) => (
   <div data-settings-item={itemId}>
-    <ToggleItem label={label} checked={checked} onChange={onChange} tooltip={tooltip} />
+    <ToggleItem label={label} checked={checked} onChange={onChange} tooltip={tooltip} labelTrailing={labelTrailing} />
   </div>
 );
 
@@ -193,6 +197,24 @@ export const InterfaceToggles: React.FC<InterfaceTogglesProps> = ({ settings, on
           checked={settings.isCompletionSoundEnabled ?? false}
           onChange={(enabled) => onUpdate('isCompletionSoundEnabled', enabled)}
           tooltip={t('settingsEnableCompletionSoundTooltip')}
+          labelTrailing={
+            <button
+              type="button"
+              onClick={() => void playCompletionSound('success')}
+              className="rounded-md p-1 text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)]"
+              aria-label={t('settingsCompletionSoundPreviewAria')}
+              title={t('settingsCompletionSoundPreviewLabel')}
+            >
+              <Volume2 size={14} strokeWidth={1.75} />
+            </button>
+          }
+        />
+        <SearchableToggle
+          itemId="interface-completion-sound-background-only"
+          label={t('settingsCompletionSoundBackgroundOnlyLabel')}
+          checked={settings.isCompletionSoundBackgroundOnly ?? false}
+          onChange={(enabled) => onUpdate('isCompletionSoundBackgroundOnly', enabled)}
+          tooltip={t('settingsCompletionSoundBackgroundOnlyTooltip')}
         />
         <SearchableToggle
           itemId="interface-audio-compression"

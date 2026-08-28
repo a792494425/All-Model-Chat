@@ -30,6 +30,7 @@ import { useAppFavicon } from './useAppFavicon';
 import { focusChatInput } from '@/utils/chat-input/focus';
 import { useAppPromptModes } from './useAppPromptModes';
 import { DEFAULT_THINKING_BUDGET } from '@/constants/modelConfiguration';
+import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { getModelCapabilities } from '@/utils/model/modelCapabilities';
 import { formatI18nErrorMessage } from '@/i18n/interpolate';
 
@@ -210,9 +211,29 @@ export const useApp = (): AppViewModel => {
 
   const handleSaveSettings = useCallback(
     (newSettings: AppSettings) => {
+      // Chat-level keys that changed globally must also be written through to
+      // the active session: while a session is open, its settings snapshot
+      // shadows appSettings, so without this the settings modal would silently
+      // not apply to the open chat. Unchanged keys keep session-local overrides.
+      // Model identity (modelId/providerId) stays session-scoped — it is chosen
+      // per chat via the header model picker — and lockedApiKey is session-owned.
+      const changedChatSettings: Partial<ChatSettings> = {};
+      (Object.keys(DEFAULT_CHAT_SETTINGS) as (keyof ChatSettings)[]).forEach((key) => {
+        if (key === 'lockedApiKey' || key === 'modelId' || key === 'providerId') {
+          return;
+        }
+        if (!Object.is(appSettings[key], newSettings[key])) {
+          (changedChatSettings as Record<string, unknown>)[key] = newSettings[key];
+        }
+      });
+      const hasChatSettingChanges = Object.keys(changedChatSettings).length > 0;
+
       setAppSettings(newSettings);
+      if (activeSessionId && hasChatSettingChanges) {
+        setCurrentChatSettings((prevChatSettings) => ({ ...prevChatSettings, ...changedChatSettings }));
+      }
     },
-    [setAppSettings],
+    [activeSessionId, appSettings, setCurrentChatSettings, setAppSettings],
   );
 
   const handleSaveCurrentChatSettings = useCallback(

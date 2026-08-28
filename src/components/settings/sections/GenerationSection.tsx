@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AudioLines, Image as ImageIcon, Info, SquarePen, X } from 'lucide-react';
+import { Image as ImageIcon, Info, SquarePen, X } from 'lucide-react';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { SMALL_ICON_BUTTON_CLASS } from '@/constants/buttonClasses';
 import {
@@ -16,7 +16,6 @@ import { Tooltip } from '@/components/shared/Tooltip';
 import { Select } from '@/components/shared/Select';
 import { ToggleItem } from '@/components/shared/ToggleItem';
 import { TextEditorModal } from '@/components/modals/TextEditorModal';
-import { AVAILABLE_TTS_VOICES } from '@/constants/voiceOptions';
 
 interface GenerationSectionProps {
   isThirdPartyMode?: boolean;
@@ -32,7 +31,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
   onUpdateSetting,
 }) => {
   const { t } = useI18n();
-  const { systemInstruction, temperature, topP, mediaResolution, ttsVoice } = currentSettings;
+  const { systemInstruction, temperature, topP, mediaResolution } = currentSettings;
   const topK = currentSettings.topK ?? 64;
   const isRawModeEnabled = currentSettings.isRawModeEnabled ?? false;
   const hideThinkingInContext = currentSettings.hideThinkingInContext ?? false;
@@ -50,11 +49,19 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
     if (localPrompt !== systemInstruction) {
       onUpdateSetting('systemInstruction', localPrompt);
     }
-  }, [localPrompt, onUpdateSetting, systemInstruction]);
+  }, [localPrompt, systemInstruction, onUpdateSetting]);
 
   const handleOpenExpand = () => {
-    commitPromptIfNeeded();
     setIsSystemPromptExpanded(true);
+  };
+
+  const handleCloseExpand = () => {
+    setIsSystemPromptExpanded(false);
+  };
+
+  const handleSaveExpanded = (newPrompt: string) => {
+    setLocalPrompt(newPrompt);
+    onUpdateSetting('systemInstruction', newPrompt);
   };
 
   const handleClearPrompt = () => {
@@ -70,6 +77,17 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
   const inputBaseClasses =
     'w-full p-2.5 border rounded-lg transition-all duration-200 focus:ring-2 focus:ring-offset-0 text-sm';
 
+  if (capabilities.isTranscribeModel) {
+    return (
+      <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`} data-settings-item="models-transcribe-info">
+        <div className="flex items-start gap-3 text-sm text-[var(--theme-text-secondary)]">
+          <Info size={18} className="text-[var(--theme-text-accent)] shrink-0 mt-0.5" />
+          <p className="leading-relaxed">{t('settingsTranscribeModelInfo')}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`} data-settings-item="models-system-prompt">
@@ -80,10 +98,10 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
           >
             <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsSystemPrompt')}</span>
             <span
-              className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium normal-case tracking-normal ${
+              className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium normal-case tracking-normal border transition-colors ${
                 isSystemPromptSet
-                  ? 'bg-[var(--theme-bg-success)] text-[var(--theme-text-success)]'
-                  : 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)]'
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                  : 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] border-[var(--theme-border-secondary)]/50'
               }`}
             >
               {isSystemPromptSet ? t('settingsSystemPromptEnabled') : t('settingsSystemPromptUnset')}
@@ -127,7 +145,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
             commitPromptIfNeeded();
           }}
           rows={3}
-          className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} resize-y min-h-[112px] custom-scrollbar`}
+          className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} resize-none font-mono text-xs sm:text-sm leading-relaxed min-h-[112px] custom-scrollbar bg-[var(--theme-bg-input)]/50`}
           placeholder={t('chatBehaviorSystemPromptPlaceholder')}
           aria-label={t('settingsSystemPromptAria')}
         />
@@ -143,7 +161,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
         confirmLabel={t('settingsSaveAndClose')}
       />
 
-      <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`} data-settings-item="models-temperature">
+      <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-2.5`} data-settings-item="models-temperature">
         <div className="flex items-center justify-between">
           <label htmlFor="temperature-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
             {t('settingsTemperature')}
@@ -163,6 +181,11 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
           onChange={(event) => onUpdateSetting('temperature', parseFloat(event.target.value))}
           className={SETTINGS_RANGE_SLIDER_CLASS}
         />
+        <div className="flex justify-between text-[11px] font-medium text-[var(--theme-text-tertiary)] pt-0.5 select-none">
+          <span>{t('settingsTemperatureStrict')}</span>
+          <span>{t('settingsTemperatureBalanced')}</span>
+          <span>{t('settingsTemperatureCreative')}</span>
+        </div>
       </div>
 
       <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`} data-settings-item="models-top-p">
@@ -286,29 +309,13 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
         </div>
       )}
 
-      {!isThirdPartyMode && (
-        <div className={SETTINGS_SECTION_CARD_CLASS} data-settings-item="models-tts-voice">
-          <Select
-            id="tts-voice-select"
-            label=""
-            layout="horizontal"
-            labelContent={
-              <span className="flex items-center text-sm font-medium text-[var(--theme-text-primary)]">
-                <AudioLines size={14} className="mr-2 text-[var(--theme-text-primary)]" />
-                {t('settingsTtsVoice')}
-              </span>
-            }
-            value={ttsVoice}
-            onChange={(event) => onUpdateSetting('ttsVoice', event.target.value)}
-          >
-            {AVAILABLE_TTS_VOICES.map((voice) => (
-              <option key={voice.id} value={voice.id}>
-                {voice.name} ({t(voice.styleKey)})
-              </option>
-            ))}
-          </Select>
-        </div>
-      )}
+      <TextEditorModal
+        isOpen={isSystemPromptExpanded}
+        onClose={handleCloseExpand}
+        onChange={handleSaveExpanded}
+        value={localPrompt}
+        title={t('settingsSystemPrompt')}
+      />
     </div>
   );
 };

@@ -15,7 +15,7 @@ const MODEL_REGISTRY: RegisteredModel[] = [
   {
     id: 'gemini-3.5-transcribe',
     name: 'Gemini 3.5 Transcribe',
-    groups: ['transcription'],
+    groups: ['defaultPinned', 'transcription'],
     groupLabels: {
       transcription: 'Gemini 3.5 Transcribe',
     },

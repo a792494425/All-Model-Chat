@@ -762,7 +762,7 @@ describe('McpSection', () => {
     });
 
     // Trust dialog appears with a config preview; confirming enables + trusts.
-    expect(screen.getByTestId('mcp-trust-backdrop')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Trust this MCP server?' })).toBeInTheDocument();
     expect(screen.getByTestId('mcp-trust-confirm')).toBeInTheDocument();
 
     await act(async () => {
@@ -792,11 +792,11 @@ describe('McpSection', () => {
       fireEvent.click(enableToggle!);
     });
 
-    expect(screen.getByTestId('mcp-trust-backdrop')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Trust this MCP server?' })).toBeInTheDocument();
     await act(async () => {
       fireEvent.click(screen.getByTestId('mcp-trust-cancel'));
     });
-    expect(screen.queryByTestId('mcp-trust-backdrop')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(onUpdate).not.toHaveBeenCalled();
   });
 

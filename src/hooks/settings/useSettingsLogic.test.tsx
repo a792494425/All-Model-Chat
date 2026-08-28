@@ -1,9 +1,9 @@
-import { act } from 'react';
+import { act, type UIEvent } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
 import { createThirdPartyConnection } from '@/test/data/factories';
 import type { AppSettings } from '@/types';
-import { useSettingsLogic } from './useSettingsLogic';
+import { useSettingsLogic, ANCHOR_SCROLL_LOCK_MS } from './useSettingsLogic';
 import { renderHook } from '@/test/render/renderer';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';
 
@@ -227,6 +227,74 @@ describe('useSettingsLogic', () => {
         systemInstruction: 'Persist this prompt',
       }),
     );
+
+    unmount();
+  });
+
+  it('does not save the scroll position while an anchor scroll lock is active', () => {
+    vi.useFakeTimers();
+    try {
+      const { result, unmount } = renderHook(() =>
+        useSettingsLogic({
+          isOpen: true,
+          currentSettings: DEFAULT_APP_SETTINGS,
+          onSave: vi.fn(),
+          onClearAllHistory: vi.fn(),
+          onClearCache: vi.fn(),
+          onImportHistory: vi.fn(),
+          t: (key: string) => key,
+        }),
+      );
+
+      act(() => {
+        result.current.beginAnchorScroll();
+      });
+      const scrollEvent = { currentTarget: { scrollTop: 240 } } as unknown as UIEvent<HTMLDivElement>;
+      act(() => {
+        result.current.handleContentScroll(scrollEvent);
+      });
+
+      // Mid-animation saves are suppressed so they cannot cancel the smooth
+      // scrollIntoView via the restore effect.
+      expect(useSettingsUiStore.getState().scrollPositions.models).toBeUndefined();
+
+      act(() => {
+        vi.advanceTimersByTime(ANCHOR_SCROLL_LOCK_MS + 1);
+      });
+      act(() => {
+        result.current.handleContentScroll(scrollEvent);
+      });
+
+      // Once the lock expires, user scrolls persist again.
+      expect(useSettingsUiStore.getState().scrollPositions.models).toBe(240);
+
+      unmount();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('persists the container scroll position via saveActiveScrollPosition', () => {
+    const { result, unmount } = renderHook(() =>
+      useSettingsLogic({
+        isOpen: true,
+        currentSettings: DEFAULT_APP_SETTINGS,
+        onSave: vi.fn(),
+        onClearAllHistory: vi.fn(),
+        onClearCache: vi.fn(),
+        onImportHistory: vi.fn(),
+        t: (key: string) => key,
+      }),
+    );
+
+    (result.current.scrollContainerRef as { current: HTMLDivElement | null }).current = {
+      scrollTop: 360,
+    } as HTMLDivElement;
+    act(() => {
+      result.current.saveActiveScrollPosition();
+    });
+
+    expect(useSettingsUiStore.getState().scrollPositions.models).toBe(360);
 
     unmount();
   });

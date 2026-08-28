@@ -7,8 +7,12 @@
 export const SESSION_DRAG_TYPE = 'sessionid';
 export const GROUP_DRAG_TYPE = 'groupid';
 
-export const isSessionDrag = (event: { dataTransfer: DataTransfer }): boolean =>
-  event.dataTransfer.types.includes(SESSION_DRAG_TYPE);
+export const isSessionDrag = (event: { dataTransfer?: DataTransfer | null }): boolean => {
+  if (!event?.dataTransfer?.types) return false;
+  return Array.from(event.dataTransfer.types).includes(SESSION_DRAG_TYPE);
+};
 
-export const isGroupDrag = (event: { dataTransfer: DataTransfer }): boolean =>
-  event.dataTransfer.types.includes(GROUP_DRAG_TYPE);
+export const isGroupDrag = (event: { dataTransfer?: DataTransfer | null }): boolean => {
+  if (!event?.dataTransfer?.types) return false;
+  return Array.from(event.dataTransfer.types).includes(GROUP_DRAG_TYPE);
+};

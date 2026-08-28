@@ -82,6 +82,10 @@ export const applyThemeToDocument = (doc: Document, theme: Theme, settings: AppS
   const bodyClassList = doc.body.classList;
   AVAILABLE_THEMES.forEach((themeOption) => bodyClassList.remove(`theme-${themeOption.id}`));
   bodyClassList.add(`theme-${theme.id}`, 'antialiased');
+  // Tailwind's `dark:` variant is configured (main.css @custom-variant) to key
+  // off this class so component-level dark styles follow the in-app theme
+  // instead of the OS prefers-color-scheme.
+  bodyClassList.toggle('dark', theme.isDark);
 
   // Reading size targets chat body text (messages set their own px). Chrome uses rem from html.
   doc.body.style.fontSize = `${settings.baseFontSize}px`;

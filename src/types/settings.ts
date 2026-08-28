@@ -190,6 +190,11 @@ export interface ChatSettings {
   alwaysKeepThinkingInContext?: boolean;
   safetySettings?: SafetySetting[];
   mediaResolution?: MediaResolution;
+  transcriptionLanguage?: string;
+  transcriptionWordTimestamps?: boolean;
+  transcriptionSpeakerLabels?: boolean;
+  transcriptionSmartMode?: boolean;
+  transcriptionCustomVocabulary?: string;
 }
 
 export type ChatSettingsUpdater = (updater: (prevSettings: ChatSettings) => ChatSettings) => void;
@@ -237,6 +242,7 @@ export interface AppSettings extends ChatSettings {
   isGraphvizRenderingEnabled?: boolean;
   isCompletionNotificationEnabled: boolean;
   isCompletionSoundEnabled?: boolean;
+  isCompletionSoundBackgroundOnly?: boolean;
   isLoggingEnabled?: boolean;
   isSuggestionsEnabled: boolean;
   isAutoScrollOnSendEnabled?: boolean;

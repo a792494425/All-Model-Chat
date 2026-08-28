@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* `dark:` utilities follow the in-app theme (dark class applied by themeDom.ts),
+   not the OS prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Base Variables & Reset */
 :root {
   /* Apple-style spring easing for premium feel */

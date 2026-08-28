@@ -201,9 +201,9 @@ const GRAPHITE_THEME_COLORS: ThemeColors = {
 };
 
 export const AVAILABLE_THEMES: Theme[] = [
-  { id: 'onyx', name: 'Onyx (Dark)', colors: ONYX_THEME_COLORS },
-  { id: 'graphite', name: 'Graphite (Gray)', colors: GRAPHITE_THEME_COLORS },
-  { id: 'pearl', name: 'Pearl (Light)', colors: PEARL_THEME_COLORS },
+  { id: 'onyx', name: 'Onyx (Dark)', isDark: true, colors: ONYX_THEME_COLORS },
+  { id: 'graphite', name: 'Graphite (Gray)', isDark: true, colors: GRAPHITE_THEME_COLORS },
+  { id: 'pearl', name: 'Pearl (Light)', isDark: false, colors: PEARL_THEME_COLORS },
 ];
 
 export const DEFAULT_THEME_ID = 'pearl';

@@ -212,17 +212,31 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
         if (e.currentTarget.contains(e.relatedTarget as Node)) return;
         setDragOverId(null);
       }}
-      className={`relative rounded-lg transition-all duration-200 mb-1 ${dragOverId === group.id ? 'bg-[var(--theme-bg-accent)] bg-opacity-20 ring-2 ring-[var(--theme-bg-accent)] ring-inset ring-opacity-50' : ''} ${dragOverId === `group-${group.id}` ? 'ring-2 ring-[var(--theme-bg-accent)] ring-offset-1' : ''} ${isMenuOpenInGroup ? 'z-20' : 'z-0'} ${isDraggingThisGroup ? 'opacity-30 scale-[0.97]' : ''}`}
+      className={`relative rounded-xl transition-all duration-200 ease-out mb-1 ${
+        dragOverId === group.id
+          ? 'scale-[1.015] bg-[var(--theme-bg-accent)]/15 ring-2 ring-[var(--theme-bg-accent)]/70 shadow-md'
+          : 'hover:bg-[var(--theme-bg-secondary)]/30'
+      } ${dragOverId === `group-${group.id}` ? 'ring-2 ring-[var(--theme-bg-accent)] ring-offset-1' : ''} ${
+        isMenuOpenInGroup ? 'z-20' : 'z-0'
+      } ${isDraggingThisGroup ? 'opacity-30 scale-[0.97]' : ''}`}
     >
       {showGroupBefore && (
-        <div className="absolute -top-1 left-2 right-2 h-0.5 rounded-full bg-[var(--theme-bg-accent)] pointer-events-none z-10" />
+        <div className="absolute -top-1 left-2 right-2 h-0.5 rounded-full bg-[var(--theme-bg-accent)] shadow-[0_0_8px_var(--theme-bg-accent)] pointer-events-none z-10 animate-in fade-in duration-100 flex items-center">
+          <div className="h-1.5 w-1.5 -ml-0.5 rounded-full bg-[var(--theme-bg-accent)] shadow-[0_0_6px_var(--theme-bg-accent)]" />
+        </div>
       )}
       {showGroupAfter && (
-        <div className="absolute -bottom-1 left-2 right-2 h-0.5 rounded-full bg-[var(--theme-bg-accent)] pointer-events-none z-10" />
+        <div className="absolute -bottom-1 left-2 right-2 h-0.5 rounded-full bg-[var(--theme-bg-accent)] shadow-[0_0_8px_var(--theme-bg-accent)] pointer-events-none z-10 animate-in fade-in duration-100 flex items-center">
+          <div className="h-1.5 w-1.5 -ml-0.5 rounded-full bg-[var(--theme-bg-accent)] shadow-[0_0_6px_var(--theme-bg-accent)]" />
+        </div>
       )}
       <details open={group.isExpanded ?? true} className="group/details">
         <summary
-          className="list-none flex items-center justify-between px-1 py-2 rounded-lg cursor-pointer hover:bg-[var(--theme-bg-tertiary)] group"
+          className={`list-none flex items-center justify-between px-2 py-2 rounded-lg cursor-pointer transition-colors duration-150 ${
+            dragOverId === group.id
+              ? 'bg-[var(--theme-bg-accent)]/10 text-[var(--theme-text-link)]'
+              : 'hover:bg-[var(--theme-bg-tertiary)]'
+          } group`}
           onClick={(e) => {
             if (e.detail > 1) {
               // 双击由 onDoubleClick 处理，跳过展开切换
@@ -249,7 +263,9 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
             )}
             <ChevronDown
               size={16}
-              className="text-[var(--theme-text-primary)] transition-transform group-open/details:rotate-180 flex-shrink-0"
+              className={`text-[var(--theme-text-primary)] transition-transform duration-200 flex-shrink-0 ${
+                dragOverId === group.id ? 'text-[var(--theme-text-link)] scale-110' : 'group-open/details:rotate-180'
+              }`}
               strokeWidth={2.2}
             />
             {editingItem?.type === 'group' && editingItem.id === group.id ? (
@@ -265,9 +281,15 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
             ) : (
               <>
                 <span className="font-semibold text-sm truncate text-[var(--theme-text-primary)]">{group.title}</span>
-                {sessions.length > 0 && (
+                {sessions.length > 0 && dragOverId !== group.id && (
                   <span className="text-xs text-[var(--theme-text-tertiary)] tabular-nums shrink-0">
                     {interpolate(t('historyGroupCount'), { count: sessions.length })}
+                  </span>
+                )}
+                {dragOverId === group.id && (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-[var(--theme-bg-accent)]/20 px-1.5 py-0.5 text-[11px] font-semibold text-[var(--theme-text-link)] animate-in fade-in zoom-in-95 duration-150 shrink-0">
+                    <span>+</span>
+                    <span>{t('historyMoveToGroup')}</span>
                   </span>
                 )}
               </>

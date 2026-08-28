@@ -3,7 +3,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { type AppSettings, type ChatSettings, type ModelOption } from '@/types';
 import { Modal } from '@/components/shared/Modal';
 import { ConfirmationModal } from '@/components/modals/ConfirmationModal';
-import { useSettingsLogic } from '@/hooks/settings/useSettingsLogic';
+import { useSettingsLogic, ANCHOR_SCROLL_LOCK_MS } from '@/hooks/settings/useSettingsLogic';
 import { SettingsSidebar } from './SettingsSidebar';
 import { SettingsContent } from './SettingsContent';
 import { SettingsSearchResults } from './SettingsSearchResults';
@@ -153,6 +153,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     closeConfirm,
     scrollContainerRef,
     handleContentScroll,
+    beginAnchorScroll,
+    saveActiveScrollPosition,
     handleResetToDefaults,
     handleClearLogs,
     handleRequestClearHistory,
@@ -274,6 +276,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
 
     let highlightTimer: number | undefined;
+    let scrollSaveTimer: number | undefined;
+    // The anchor scroll owns the scroll container while it animates (see
+    // ANCHOR_SCROLL_LOCK_MS): without the lock, saving the per-tab scroll
+    // position mid-animation cancels the smooth scroll and the highlighted
+    // row stays off-screen.
+    beginAnchorScroll();
     const frame = window.requestAnimationFrame(() => {
       const container = scrollContainerRef.current;
       if (!container) {
@@ -291,6 +299,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         highlightTimer = window.setTimeout(() => {
           target.classList.remove(...SETTINGS_FOCUS_HIGHLIGHT_CLASSES);
         }, 1600);
+        scrollSaveTimer = window.setTimeout(() => {
+          saveActiveScrollPosition();
+        }, ANCHOR_SCROLL_LOCK_MS);
       }
 
       setPendingFocusId(null);
@@ -301,8 +312,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       if (highlightTimer !== undefined) {
         window.clearTimeout(highlightTimer);
       }
+      if (scrollSaveTimer !== undefined) {
+        window.clearTimeout(scrollSaveTimer);
+      }
     };
-  }, [pendingFocusId, isSearching, isOpen, activeTab, scrollContainerRef]);
+  }, [pendingFocusId, isSearching, isOpen, activeTab, scrollContainerRef, beginAnchorScroll, saveActiveScrollPosition]);
 
   if (!isOpen) return null;
 

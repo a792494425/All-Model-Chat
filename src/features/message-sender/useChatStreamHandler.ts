@@ -333,8 +333,10 @@ export const useChatStreamHandler = ({
                   {
                     isCompletionNotificationEnabled: appSettings.isCompletionNotificationEnabled,
                     isCompletionSoundEnabled: appSettings.isCompletionSoundEnabled,
+                    isCompletionSoundBackgroundOnly: appSettings.isCompletionSoundBackgroundOnly,
                   },
                   {
+                    variant: finalizationResult.completedMessageForNotification.role === 'error' ? 'error' : 'success',
                     notification: {
                       title: notificationTitle,
                       body: buildCompletionNotificationBody(finalizationResult.completedMessageForNotification),
@@ -453,6 +455,7 @@ export const useChatStreamHandler = ({
     [
       appSettings.isCompletionNotificationEnabled,
       appSettings.isCompletionSoundEnabled,
+      appSettings.isCompletionSoundBackgroundOnly,
       appSettings.language,
       updateAndPersistSessions,
       handleApiError,

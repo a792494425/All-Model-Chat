@@ -69,4 +69,11 @@ describe('useMcpRuntimeStore', () => {
       'b',
     ]);
   });
+
+  it('persists master switch and server selection', () => {
+    useMcpRuntimeStore.setState({ masterEnabled: false, selectedServerIds: ['server-1'] });
+    const state = useMcpRuntimeStore.getState();
+    expect(state.masterEnabled).toBe(false);
+    expect(state.selectedServerIds).toEqual(['server-1']);
+  });
 });

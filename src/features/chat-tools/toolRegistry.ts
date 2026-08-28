@@ -92,7 +92,10 @@ const CHAT_TOOL_REGISTRY: ChatToolDefinition[] = [
     icon: 'brain',
     settingKey: 'alwaysKeepThinkingInContext',
     isAvailable: ({ capabilities }) =>
-      !capabilities.isNativeAudioModel && !capabilities.isTtsModel && !capabilities.isImageGenerationModel,
+      !capabilities.isNativeAudioModel &&
+      !capabilities.isTtsModel &&
+      !capabilities.isImageGenerationModel &&
+      !capabilities.isTranscribeModel,
   },
   {
     id: 'tokenCount',

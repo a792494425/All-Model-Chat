@@ -10,6 +10,7 @@ import {
 } from '@/test/layout/fixtures';
 import { createThirdPartyConnection } from '@/test/data/factories';
 import { ChatRuntimeProvider, useChatHeaderRuntime } from './chat-runtime/ChatRuntimeContext';
+import { useMainContentViewModel } from './useMainContentViewModel';
 
 const mockStores = vi.hoisted(() => {
   const ui = {
@@ -353,6 +354,22 @@ describe('chat runtime values', () => {
 
     expect(app.chatState.handleSelectModelInHeader).toHaveBeenCalledWith('gemini-3-flash-preview', undefined);
     expect(app.setAppSettings).not.toHaveBeenCalled();
+
+    unmount();
+  });
+});
+
+describe('useMainContentViewModel sidebar wiring', () => {
+  it('routes the sidebar pin toggle to the clicked session, not the active session', () => {
+    const handleTogglePinSession = vi.fn();
+    const handleTogglePinCurrentSession = vi.fn();
+    const app = buildApp({ chatState: { handleTogglePinSession, handleTogglePinCurrentSession } });
+    const { result, unmount } = renderHook(() => useMainContentViewModel({ app }));
+
+    result.current.sidebarProps.onTogglePinSession('session-42');
+
+    expect(handleTogglePinSession).toHaveBeenCalledWith('session-42');
+    expect(handleTogglePinCurrentSession).not.toHaveBeenCalled();
 
     unmount();
   });

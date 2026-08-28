@@ -20,6 +20,7 @@ import {
   isGemini3Model,
   isGeminiRoboticsModel,
   isGemmaModel,
+  isTranscribeModel,
   normalizeThinkingLevelForModel,
   normalizeAspectRatioForModel,
   normalizeImageSizeForModel,
@@ -254,11 +255,12 @@ async function buildGenerationConfigFromOptions({
   };
 
   const isGemini3 = isGemini3Model(modelId);
+  const isTranscribe = isTranscribeModel(modelId);
   const normalizedMediaResolution =
-    !isGemini3 && mediaResolution === MediaResolution.MEDIA_RESOLUTION_ULTRA_HIGH
+    !isGemini3 && !isTranscribe && mediaResolution === MediaResolution.MEDIA_RESOLUTION_ULTRA_HIGH
       ? MediaResolution.MEDIA_RESOLUTION_HIGH
       : mediaResolution;
-  if (!isGemini3 && normalizedMediaResolution) {
+  if (!isGemini3 && !isTranscribe && normalizedMediaResolution) {
     generationConfig.mediaResolution = normalizedMediaResolution;
   }
 
@@ -299,16 +301,16 @@ async function buildGenerationConfigFromOptions({
   }
 
   const tools: NonNullable<GenerationConfig['tools']> = [];
-  if (isGoogleSearchEnabled || isDeepSearchEnabled) {
+  if (!isTranscribe && (isGoogleSearchEnabled || isDeepSearchEnabled)) {
     tools.push(googleSearchTool);
   }
-  if (isGoogleMapsEnabled) {
+  if (!isTranscribe && isGoogleMapsEnabled) {
     tools.push(buildGoogleMapsTool());
   }
-  if (!isGemma && isServerCodeExecutionMode({ isCodeExecutionEnabled, isLocalPythonEnabled })) {
+  if (!isTranscribe && !isGemma && isServerCodeExecutionMode({ isCodeExecutionEnabled, isLocalPythonEnabled })) {
     tools.push({ codeExecution: {} });
   }
-  if (!isGemma && isUrlContextEnabled) {
+  if (!isTranscribe && !isGemma && isUrlContextEnabled) {
     tools.push({ urlContext: {} });
   }
 

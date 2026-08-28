@@ -6,7 +6,7 @@ import { SessionItemMenu } from './SessionItemMenu';
 import { InlineRenameInput } from './InlineRenameInput';
 import { LoadingDots } from '@/components/shared/LoadingDots';
 import { useChatStore } from '@/stores/chatStore';
-import { SESSION_DRAG_TYPE } from './sidebarDragTypes';
+import { SESSION_DRAG_TYPE, isSessionDrag } from './sidebarDragTypes';
 import { Z_INDEX_TOPMOST_OVERLAY } from '@/constants/layout';
 
 export interface SessionItemProps {
@@ -118,6 +118,7 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
   const handleDragStart = (e: React.DragEvent<HTMLAnchorElement>) => {
     dragStartRef.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
     e.dataTransfer.setData(SESSION_DRAG_TYPE, session.id);
+    e.dataTransfer.setData('text/plain', session.id);
     e.dataTransfer.effectAllowed = 'move';
     onSessionDragStart(session.id);
 
@@ -154,6 +155,17 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
     onSessionDragEnd();
   };
 
+  const handleItemDrop = (e: React.DragEvent) => {
+    onSessionDropIndicatorClear?.();
+    if (!isSessionDrag(e)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const draggedId = e.dataTransfer.getData(SESSION_DRAG_TYPE) || e.dataTransfer.getData('text/plain');
+    if (draggedId && draggedId !== session.id) {
+      onMoveSessionToGroup(draggedId, session.groupId ?? null);
+    }
+  };
+
   const showBefore = dropIndicator?.id === session.id && dropIndicator.position === 'before';
   const showAfter = dropIndicator?.id === session.id && dropIndicator.position === 'after';
   const isBlockedByGroupDrag = !!draggingGroupId;
@@ -163,18 +175,25 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
       onContextMenu={handleContextMenu}
       onDragOver={onSessionDragOver ? (event) => onSessionDragOver(event, session.id) : undefined}
       onDragLeave={onSessionDropIndicatorClear}
-      onDrop={onSessionDropIndicatorClear}
+      onDrop={handleItemDrop}
       className={`group relative rounded-lg my-0.5 transition-all duration-150 ease-out ${
         session.id === activeSessionId || isRightClickAnimating ? 'bg-[var(--theme-bg-accent)]/10' : ''
       } ${newlyTitledSessionIds.has(session.id) ? 'title-update-animate' : ''} ${isActive ? 'z-20' : ''} ${isBlockedByGroupDrag ? 'opacity-50 pointer-events-none' : ''}`}
     >
       {showBefore && (
-        <div className="absolute -top-[1px] left-1 right-1 h-0.5 rounded-full bg-[var(--theme-bg-accent)] pointer-events-none z-10" />
+        <div className="absolute -top-[1px] left-1 right-1 h-0.5 rounded-full bg-[var(--theme-bg-accent)] shadow-[0_0_8px_var(--theme-bg-accent)] pointer-events-none z-10 animate-in fade-in duration-100 flex items-center">
+          <div className="h-1.5 w-1.5 -ml-0.5 rounded-full bg-[var(--theme-bg-accent)] shadow-[0_0_6px_var(--theme-bg-accent)]" />
+        </div>
+      )}
+      {showAfter && (
+        <div className="absolute -bottom-[1px] left-1 right-1 h-0.5 rounded-full bg-[var(--theme-bg-accent)] shadow-[0_0_8px_var(--theme-bg-accent)] pointer-events-none z-10 animate-in fade-in duration-100 flex items-center">
+          <div className="h-1.5 w-1.5 -ml-0.5 rounded-full bg-[var(--theme-bg-accent)] shadow-[0_0_6px_var(--theme-bg-accent)]" />
+        </div>
       )}
       <div
         className={`relative w-full text-left pl-2.5 pr-1 py-2 text-sm transition-colors rounded-lg text-[var(--theme-text-primary)] ${
           session.id === activeSessionId ? 'font-medium' : 'hover:bg-[var(--theme-bg-tertiary)]'
-        } ${isBeingDragged ? 'opacity-30 scale-[0.97] shadow-sm' : ''} ${isBlockedByGroupDrag ? 'opacity-40' : ''}`}
+        } ${isBeingDragged ? 'opacity-35 scale-[0.98] border border-dashed border-[var(--theme-border-focus)]/60 bg-[var(--theme-bg-tertiary)]/40 shadow-xs' : ''} ${isBlockedByGroupDrag ? 'opacity-40' : ''}`}
       >
         {editingItem?.type === 'session' && editingItem.id === session.id ? (
           <InlineRenameInput
@@ -248,6 +267,8 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
             {!generatingTitleSessionIds.has(session.id) && (
               <button
                 onClick={(e) => toggleMenu(e, session.id)}
+                title={t('sessionMoreOptions')}
+                aria-label={t('sessionMoreOptions')}
                 className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-[var(--theme-bg-secondary)] p-1 text-[var(--theme-text-primary)] opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)]"
               >
                 <MoreHorizontal size={16} strokeWidth={2.2} />

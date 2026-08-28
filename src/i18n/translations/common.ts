@@ -1,4 +1,5 @@
 export const commonTranslations = {
+  confirm: { en: 'Confirm', zh: '确认', ja: '確認', ko: '확인', es: 'Confirmar', fr: 'Confirmer', de: 'Bestätigen' },
   cancel: { en: 'Cancel', zh: '取消', ja: 'キャンセル', ko: '취소', es: 'Cancelar', fr: 'Annuler', de: 'Abbrechen' },
   save: { en: 'Save', zh: '保存', ja: '保存', ko: '저장', es: 'Guardar', fr: 'Enregistrer', de: 'Speichern' },
   add: { en: 'Add', zh: '添加', ja: '追加', ko: '추가', es: 'Añadir', fr: 'Ajouter', de: 'Hinzufügen' },

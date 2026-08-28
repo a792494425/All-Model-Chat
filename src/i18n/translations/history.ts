@@ -202,6 +202,15 @@ export const historyTranslations = {
     fr: 'Terminé',
     de: 'Abgeschlossen',
   },
+  sessionMoreOptions: {
+    en: 'Session options',
+    zh: '会话操作',
+    ja: 'セッション操作',
+    ko: '세션 옵션',
+    es: 'Opciones de sesión',
+    fr: 'Options de session',
+    de: 'Sitzungsoptionen',
+  },
   sessionCompletedWithError: {
     en: 'Generation failed',
     zh: '生成失败',

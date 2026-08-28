@@ -70,7 +70,7 @@ export const sortModels = (models: ModelOption[]): ModelOption[] => {
     const capabilities = getModelCapabilities(id);
     if (capabilities.isTtsModel) return 3;
     if (isImageGenerationModel(id)) return 4;
-    if (capabilities.isNativeAudioModel) return 2;
+    if (capabilities.isNativeAudioModel || capabilities.isTranscribeModel) return 2;
     return 1;
   };
 

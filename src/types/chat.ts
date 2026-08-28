@@ -37,6 +37,8 @@ export interface UploadedFile {
   fileUri?: string;
   fileApiName?: string;
   fileApiExpirationTime?: string;
+  /** Fingerprint of the API key the file was uploaded (or last verified) with — Files API access is scoped to that key's project. */
+  fileApiKeyFingerprint?: string;
   transferStrategy?: FileTransferStrategy;
   uploadState?: 'pending' | 'uploading' | 'processing_api' | 'active' | 'failed' | 'cancelled';
   /** When true, history replay emits a protocol omission note instead of file bytes. */

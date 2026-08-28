@@ -290,6 +290,7 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
   isGraphvizRenderingEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isGraphvizRenderingEnabled),
   isCompletionNotificationEnabled: booleanWithDefault(DEFAULT_APP_SETTINGS.isCompletionNotificationEnabled),
   isCompletionSoundEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isCompletionSoundEnabled),
+  isCompletionSoundBackgroundOnly: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isCompletionSoundBackgroundOnly),
   isLoggingEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isLoggingEnabled),
   isSuggestionsEnabled: booleanWithDefault(DEFAULT_APP_SETTINGS.isSuggestionsEnabled),
   isAutoScrollOnSendEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isAutoScrollOnSendEnabled),

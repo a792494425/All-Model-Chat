@@ -28,6 +28,7 @@ import { prepareFilesForOpenAICompatibleMode, prepareHistoryForOpenAICompatibleM
 import { validateMessageBeforeSend } from './sendMessageValidation';
 import { createSenderStoreActions } from './senderStoreActions';
 import { sendStandardMessage } from './standardChatStrategy';
+import { sendTranscribeMessage } from './transcribeStrategy';
 import { sendTtsMessage } from './ttsStrategy';
 import { useChatStreamHandler } from './useChatStreamHandler';
 import { useMessageLifecycle } from './useMessageLifecycle';
@@ -135,6 +136,7 @@ export const useMessageSender = (props: MessageSenderProps) => {
       const activeModelId = apiRoute.modelId;
       const capabilities = getModelCapabilities(activeModelId);
       const isTtsModel = capabilities.isTtsModel;
+      const isTranscribeModel = capabilities.isTranscribeModel;
       const isImageEditModel = capabilities.isFlashImageModel;
       const isGemini3Image = capabilities.isGemini3ImageModel;
       const permissions = capabilities.permissions ?? {
@@ -160,6 +162,7 @@ export const useMessageSender = (props: MessageSenderProps) => {
         isServerCodeExecutionEnabled,
         isImageEditModel,
         isGemini3Image,
+        isTranscribeModel,
         activeModelId,
         t,
       });
@@ -274,6 +277,26 @@ export const useMessageSender = (props: MessageSenderProps) => {
           appSettings,
           currentChatSettings: sessionToUpdate,
           text: textToUse.trim(),
+          shouldLockKey,
+          updateAndPersistSessions,
+          setActiveSessionId,
+          runMessageLifecycle,
+          t,
+        });
+        if (editingMessageId) setEditingMessageId(null);
+        return;
+      }
+
+      if (isTranscribeModel) {
+        await sendTranscribeMessage({
+          keyToUse,
+          activeSessionId,
+          generationId,
+          abortController: newAbortController,
+          appSettings,
+          currentChatSettings: sessionToUpdate,
+          text: textToUse.trim(),
+          files: filesReadyForSend,
           shouldLockKey,
           updateAndPersistSessions,
           setActiveSessionId,

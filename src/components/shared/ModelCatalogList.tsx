@@ -175,8 +175,8 @@ export const ModelCatalogList: React.FC<ModelCatalogListProps> = ({
 
                 <div className="flex-shrink-0 ml-2">
                   {isSelected && (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] text-xs font-bold shadow-sm border border-transparent">
-                      <Check size={11} strokeWidth={3} />
+                    <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] text-xs font-semibold shadow-xs border border-transparent">
+                      <Check size={11} strokeWidth={2.5} />
                       <span>{t('settingsActiveModel')}</span>
                     </div>
                   )}

@@ -298,7 +298,7 @@ describe('useApp', () => {
     unmount();
   });
 
-  it('saves default settings without mutating the active chat settings', () => {
+  it('propagates changed chat settings to the active chat but keeps its session-scoped model', () => {
     currentChatState.activeChat = {
       ...hydratedSession,
       settings: {
@@ -320,8 +320,12 @@ describe('useApp', () => {
 
     expect(currentAppSettings.modelId).toBe('default-model');
     expect(currentAppSettings.temperature).toBe(1.4);
+    // The model is chosen per chat via the header picker, so a global default
+    // change must not yank the open session away from its own model.
     expect(currentChatState.activeChat.settings.modelId).toBe('session-model');
-    expect(currentChatState.activeChat.settings.temperature).toBe(0.2);
+    // Generation settings have no per-session UI, so they must reach the open
+    // chat instead of being silently shadowed by the session snapshot.
+    expect(currentChatState.activeChat.settings.temperature).toBe(1.4);
 
     unmount();
   });

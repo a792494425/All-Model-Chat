@@ -6,7 +6,11 @@ import { releaseManagedObjectUrl } from '@/services/objectUrlManager';
 import { generateUniqueId } from '@/utils/chat/ids';
 import { fileToBlobUrl } from '@/utils/file/filePreviewUrls';
 import { uploadFileApi } from '@/services/api/fileApi';
-import { formatGeminiFileApiProcessingError, toFileApiExpirationTime } from '@/utils/chat/geminiFilesApi';
+import {
+  formatGeminiFileApiProcessingError,
+  getApiKeyFingerprint,
+  toFileApiExpirationTime,
+} from '@/utils/chat/geminiFilesApi';
 import {
   createProcessingPlaceholderFile,
   formatSpeed,
@@ -95,6 +99,7 @@ export const uploadFileItem = async ({
       return;
     }
     const controller = new AbortController();
+    const apiKeyFingerprint = getApiKeyFingerprint(keyToUse);
 
     const initialFileState: UploadedFile = createProcessingPlaceholderFile({
       id: fileId,
@@ -171,6 +176,7 @@ export const uploadFileItem = async ({
                 fileUri: uploadedFileInfo.uri,
                 fileApiName: uploadedFileInfo.name,
                 fileApiExpirationTime: toFileApiExpirationTime(uploadedFileInfo.expirationTime),
+                fileApiKeyFingerprint: apiKeyFingerprint,
                 rawFile: file,
                 transferStrategy: 'files-api',
                 uploadState,

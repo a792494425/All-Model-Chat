@@ -63,6 +63,11 @@ export const DEFAULT_CHAT_SETTINGS: Omit<ChatSettings, 'lockedApiKey'> & { locke
   alwaysKeepThinkingInContext: false,
   safetySettings: DEFAULT_SAFETY_SETTINGS,
   mediaResolution: DEFAULT_MEDIA_RESOLUTION,
+  transcriptionLanguage: '',
+  transcriptionWordTimestamps: false,
+  transcriptionSpeakerLabels: false,
+  transcriptionSmartMode: false,
+  transcriptionCustomVocabulary: '',
 };
 
 const BASE_DEFAULT_APP_SETTINGS: Omit<AppSettings, 'thirdPartyApi'> = {
@@ -89,6 +94,7 @@ const BASE_DEFAULT_APP_SETTINGS: Omit<AppSettings, 'thirdPartyApi'> = {
   isGraphvizRenderingEnabled: true,
   isCompletionNotificationEnabled: false,
   isCompletionSoundEnabled: false,
+  isCompletionSoundBackgroundOnly: false,
   isLoggingEnabled: false,
   isSuggestionsEnabled: true,
   isAutoScrollOnSendEnabled: true,

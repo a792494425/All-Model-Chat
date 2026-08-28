@@ -9,6 +9,7 @@ import { updateSessionById } from '@/utils/chat/sessionMutations';
 import { releaseSessionLoadingForGenerationHandoff } from '@/features/message-sender/activeGenerationJobs';
 import { isGenerationLeaseHeldByOther } from '@/features/message-sender/generationLease';
 import { useChatStore } from '@/stores/chatStore';
+import { useI18n } from '@/contexts/I18nContext';
 
 type CommandedInputSetter = Dispatch<SetStateAction<InputCommand | null>>;
 type SessionsUpdater = (updater: (prev: SavedChatSession[]) => SavedChatSession[]) => void;
@@ -55,6 +56,7 @@ export const useMessageActions = ({
   handleSendMessage,
   setSessionLoading,
 }: UseMessageActionsOptions) => {
+  const { t } = useI18n();
   /**
    * @returns `stopped` when a local job was aborted; `no_local_job` when loading is remote/orphan
    * (and a cross-tab abort was requested); `not_loading` when nothing to stop.
@@ -164,7 +166,7 @@ export const useMessageActions = ({
             sessionId: activeSessionId,
             stopResult,
           });
-          setAppFileError('This chat is generating in another tab. Stop it there first, or wait for it to finish.');
+          setAppFileError(t('chatGeneratingInOtherTab'));
           return;
         }
       } else if (isGenerationLeaseHeldByOther(activeSessionId)) {
@@ -198,6 +200,7 @@ export const useMessageActions = ({
       activeJobs,
       setSessionLoading,
       setAppFileError,
+      t,
     ],
   );
 
@@ -248,7 +251,7 @@ export const useMessageActions = ({
             sessionId: activeSessionId,
             stopResult,
           });
-          setAppFileError('This chat is generating in another tab. Stop it there first, or wait for it to finish.');
+          setAppFileError(t('chatGeneratingInOtherTab'));
           return;
         }
       } else if (isGenerationLeaseHeldByOther(activeSessionId)) {
@@ -277,6 +280,7 @@ export const useMessageActions = ({
       setCommandedInput,
       setAppFileError,
       setEditingMessageId,
+      t,
     ],
   );
 

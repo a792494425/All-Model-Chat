@@ -39,7 +39,13 @@ export const MainContent: React.FC<MainContentProps> = ({ app }) => {
     <>
       <div
         onClick={closeHistorySidebar}
-        className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 md:hidden ${
+        onTouchEnd={(e) => {
+          if (overlayVisible) {
+            e.preventDefault();
+            closeHistorySidebar();
+          }
+        }}
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity duration-300 md:hidden ${
           overlayVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         aria-hidden="true"

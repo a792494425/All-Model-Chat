@@ -17,6 +17,7 @@ import {
   formatHistoryFileApiUnavailablePartText,
   sessionHasGeminiFilesApiReferences,
 } from './fileApiReference';
+import { getApiKeyFingerprint } from '@/utils/chat/geminiFilesApi';
 
 const translate = (key: string) => {
   if (key === 'messageSenderHistoryFileReferenceUnavailable') {
@@ -94,7 +95,7 @@ describe('ensureHistoryFilesApiReferences', () => {
     expect(mockUploadFileApi).not.toHaveBeenCalled();
   });
 
-  it('leaves still-active historical references in place without re-uploading', async () => {
+  it('stamps the current key fingerprint on still-active historical references without re-uploading', async () => {
     const file = createUploadedFile({
       id: 'file-1',
       fileApiName: 'files/current',
@@ -116,12 +117,13 @@ describe('ensureHistoryFilesApiReferences', () => {
     if (!result.ok) {
       throw new Error('expected success');
     }
-    expect(result.changed).toBe(false);
+    expect(result.changed).toBe(true);
     expect(result.messages[0].files?.[0]).toEqual(
       expect.objectContaining({
         fileApiName: 'files/current',
         fileUri: 'https://files/current',
         uploadState: 'active',
+        fileApiKeyFingerprint: getApiKeyFingerprint('api-key'),
       }),
     );
   });
@@ -146,6 +148,116 @@ describe('ensureHistoryFilesApiReferences', () => {
     expect(result).toEqual({ ok: true, messages, changed: false });
     expect(mockGetFileMetadataApi).not.toHaveBeenCalled();
     expect(mockUploadFileApi).not.toHaveBeenCalled();
+  });
+
+  it('re-uploads a still-valid reference immediately when the uploading key no longer matches', async () => {
+    const rawFile = new File(['video-bytes'], 'clip.mp4', { type: 'video/mp4' });
+    const file = createUploadedFile({
+      id: 'file-key',
+      name: 'clip.mp4',
+      type: 'video/mp4',
+      size: rawFile.size,
+      rawFile,
+      fileApiName: 'files/other-key',
+      fileUri: 'https://files/other-key',
+      uploadState: 'active',
+      transferStrategy: 'files-api',
+      fileApiExpirationTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      fileApiKeyFingerprint: getApiKeyFingerprint('different-key'),
+    });
+    const messages = [
+      createChatMessage({
+        id: 'user-1',
+        content: 'what do you see',
+        files: [file],
+        apiParts: [
+          { fileData: { mimeType: 'video/mp4', fileUri: 'https://files/other-key' } },
+          { text: 'what do you see' },
+        ],
+      }),
+    ];
+
+    const result = await ensureHistoryFilesApiReferences({
+      messages,
+      apiKey: 'api-key',
+      abortSignal: new AbortController().signal,
+      translate,
+    });
+
+    expect(mockGetFileMetadataApi).not.toHaveBeenCalled();
+    expect(mockUploadFileApi).toHaveBeenCalledWith(
+      'api-key',
+      rawFile,
+      'video/mp4',
+      'clip.mp4',
+      expect.any(AbortSignal),
+    );
+    if (!result.ok) {
+      throw new Error('expected success');
+    }
+    expect(result.changed).toBe(true);
+    expect(result.messages[0].files?.[0]).toEqual(
+      expect.objectContaining({
+        fileApiName: 'files/refreshed',
+        fileUri: 'https://files/refreshed',
+        uploadState: 'active',
+        fileApiKeyFingerprint: getApiKeyFingerprint('api-key'),
+      }),
+    );
+    expect(result.messages[0].apiParts?.[0]).toEqual({
+      fileData: { mimeType: 'video/mp4', fileUri: 'https://files/refreshed' },
+    });
+  });
+
+  it('degrades a key-mismatched history file without a local backup when metadata access is denied', async () => {
+    mockGetFileMetadataApi.mockRejectedValue(new Error('403 PERMISSION_DENIED: caller lacks access'));
+    const file = createUploadedFile({
+      id: 'file-remote',
+      name: 'remote-only.pdf',
+      type: 'application/pdf',
+      fileApiName: 'files/other-key',
+      fileUri: 'https://files/other-key',
+      uploadState: 'active',
+      transferStrategy: 'remote-file-id',
+      fileApiKeyFingerprint: getApiKeyFingerprint('different-key'),
+    });
+    const messages = [
+      createChatMessage({
+        id: 'user-1',
+        content: 'summarize this',
+        files: [file],
+        apiParts: [
+          { fileData: { mimeType: 'application/pdf', fileUri: 'https://files/other-key' } },
+          { text: 'summarize this' },
+        ],
+      }),
+    ];
+
+    const result = await ensureHistoryFilesApiReferences({
+      messages,
+      apiKey: 'api-key',
+      abortSignal: new AbortController().signal,
+      translate,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mockUploadFileApi).not.toHaveBeenCalled();
+    if (!result.ok) {
+      throw new Error('expected success');
+    }
+    expect(result.changed).toBe(true);
+    expect(result.messages[0].files?.[0]).toEqual(
+      expect.objectContaining({
+        uploadState: 'failed',
+        transferStrategy: 'inline',
+        omittedFromApiHistory: true,
+        error: 'unavailable:remote-only.pdf',
+      }),
+    );
+    expect(result.messages[0].apiParts).toEqual([
+      { text: formatHistoryFileApiUnavailablePartText('remote-only.pdf') },
+      { text: 'summarize this' },
+    ]);
   });
 
   it('fails the turn without rewriting history when metadata lookup is transiently unavailable', async () => {
@@ -506,6 +618,73 @@ describe('ensureFilesApiReferences', () => {
         ok: false,
         errorKey: 'messageSenderFileReferenceVerifyFailed',
         fileName: 'notes.pdf',
+      }),
+    );
+    expect(mockUploadFileApi).not.toHaveBeenCalled();
+  });
+
+  it('re-uploads the local backup when metadata lookup is denied for the current key', async () => {
+    mockGetFileMetadataApi.mockRejectedValue(new Error('403 PERMISSION_DENIED: caller lacks access'));
+    const rawFile = new File(['pdf-bytes'], 'notes.pdf', { type: 'application/pdf' });
+    const file = createUploadedFile({
+      name: 'notes.pdf',
+      type: 'application/pdf',
+      rawFile,
+      fileApiName: 'files/current',
+      fileUri: 'https://files/current',
+      uploadState: 'active',
+      transferStrategy: 'files-api',
+    });
+
+    const result = await ensureFilesApiReferences({
+      files: [file],
+      apiKey: 'api-key',
+      abortSignal: new AbortController().signal,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mockUploadFileApi).toHaveBeenCalledWith(
+      'api-key',
+      rawFile,
+      'application/pdf',
+      'notes.pdf',
+      expect.any(AbortSignal),
+    );
+    if (!result.ok) {
+      throw new Error('expected success');
+    }
+    expect(result.files[0]).toEqual(
+      expect.objectContaining({
+        fileApiName: 'files/refreshed',
+        fileUri: 'https://files/refreshed',
+        uploadState: 'active',
+        fileApiKeyFingerprint: getApiKeyFingerprint('api-key'),
+      }),
+    );
+  });
+
+  it('fails with the no-backup error when metadata access is denied and no local backup exists', async () => {
+    mockGetFileMetadataApi.mockRejectedValue(new Error('403 PERMISSION_DENIED: caller lacks access'));
+    const file = createUploadedFile({
+      name: 'remote-only.pdf',
+      type: 'application/pdf',
+      fileApiName: 'files/current',
+      fileUri: 'https://files/current',
+      uploadState: 'active',
+      transferStrategy: 'remote-file-id',
+    });
+
+    const result = await ensureFilesApiReferences({
+      files: [file],
+      apiKey: 'api-key',
+      abortSignal: new AbortController().signal,
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        ok: false,
+        errorKey: 'messageSenderFileReferenceExpiredNoBackup',
+        fileName: 'remote-only.pdf',
       }),
     );
     expect(mockUploadFileApi).not.toHaveBeenCalled();

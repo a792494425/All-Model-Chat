@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
 import { type AppSettings } from '@/types';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
 import { logService } from '@/services/logService';
@@ -16,6 +16,15 @@ interface UseSettingsLogicProps {
   onImportHistory: (file: File) => void;
   t: (key: keyof typeof translations) => string;
 }
+
+/**
+ * Window during which a programmatic anchor scroll (settings search
+ * "navigate + highlight") owns the scroll container. Saving or restoring the
+ * per-tab scroll position inside this window would write `scrollTop`
+ * mid-animation, which cancels the smooth `scrollIntoView` and leaves the
+ * highlighted row off-screen.
+ */
+export const ANCHOR_SCROLL_LOCK_MS = 1200;
 
 /** Connection, credential, and integration data that "Reset Settings Only"
  * carries over: resetting app preferences must not wipe API keys, deployment
@@ -64,11 +73,26 @@ export const useSettingsLogic = ({
   }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const anchorScrollLockUntilRef = useRef(0);
+
+  /** Begin the lock window for a programmatic anchor scroll (search jump). */
+  const beginAnchorScroll = useCallback(() => {
+    anchorScrollLockUntilRef.current = Date.now() + ANCHOR_SCROLL_LOCK_MS;
+  }, []);
+
+  /** Persist the container's current scrollTop for the active tab. */
+  const saveActiveScrollPosition = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      setScrollPosition(activeTab, container.scrollTop);
+    }
+  }, [activeTab, setScrollPosition]);
 
   useLayoutEffect(() => {
     if (isOpen && scrollContainerRef.current) {
       requestAnimationFrame(() => {
-        if (scrollContainerRef.current) {
+        // Skip the restore while an anchor scroll owns the container.
+        if (scrollContainerRef.current && Date.now() >= anchorScrollLockUntilRef.current) {
           scrollContainerRef.current.scrollTop = activeTabScrollTop;
         }
       });
@@ -76,6 +100,12 @@ export const useSettingsLogic = ({
   }, [activeTab, activeTabScrollTop, isOpen]);
 
   const handleContentScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    // Skip saving while an anchor scroll animates: writing the intermediate
+    // position re-triggers the restore effect, whose scrollTop write cancels
+    // the smooth scrollIntoView before it reaches the target row.
+    if (Date.now() < anchorScrollLockUntilRef.current) {
+      return;
+    }
     setScrollPosition(activeTab, e.currentTarget.scrollTop);
   };
 
@@ -185,6 +215,8 @@ export const useSettingsLogic = ({
     closeConfirm,
     scrollContainerRef,
     handleContentScroll,
+    beginAnchorScroll,
+    saveActiveScrollPosition,
     handleResetToDefaults,
     handleClearLogs,
     handleRequestClearHistory,

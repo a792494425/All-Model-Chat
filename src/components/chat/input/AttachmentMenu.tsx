@@ -23,7 +23,8 @@ const attachIconSize = 20;
 const menuIconSize = 18;
 
 export const AttachmentMenu: React.FC = () => {
-  const { onAttachmentAction, disabled, isImageGenerationModel, canAddYouTubeVideo } = useChatInputActionsContext();
+  const { onAttachmentAction, disabled, isImageGenerationModel, isTranscribeModel, canAddYouTubeVideo } =
+    useChatInputActionsContext();
   const { t } = useI18n();
   const { isOpen, menuPosition, containerRef, buttonRef, menuRef, targetWindow, closeMenu, toggleMenu } =
     usePortaledMenu({ constrainHeight: true });
@@ -51,16 +52,18 @@ export const AttachmentMenu: React.FC = () => {
     { labelKey: 'attachMenuUpload', icon: <IconUpload size={menuIconSize} />, action: 'upload' },
   ] as const;
 
-  const filteredMenuItems = isImageGenerationModel
-    ? menuItems.filter(
-        (item) =>
-          item.action === 'upload' ||
-          item.action === 'gallery' ||
-          item.action === 'camera' ||
-          item.action === 'screenshot' ||
-          item.action === 'id',
-      )
-    : menuItems;
+  const filteredMenuItems = isTranscribeModel
+    ? menuItems.filter((item) => item.action === 'upload' || item.action === 'recorder' || item.action === 'id')
+    : isImageGenerationModel
+      ? menuItems.filter(
+          (item) =>
+            item.action === 'upload' ||
+            item.action === 'gallery' ||
+            item.action === 'camera' ||
+            item.action === 'screenshot' ||
+            item.action === 'id',
+        )
+      : menuItems;
 
   return (
     <div className="relative" ref={containerRef}>

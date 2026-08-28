@@ -1,7 +1,7 @@
 import type { UploadedFile } from '@/types';
 import { logService } from '@/services/logService';
 import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES } from '@/utils/codeExecution';
-import { isImageMimeType, isPdfMimeType, isTextFile } from '@/utils/file/fileTypeClassification';
+import { isAudioMimeType, isImageMimeType, isPdfMimeType, isTextFile } from '@/utils/file/fileTypeClassification';
 import { normalizeModelId } from '@/utils/model/modelId';
 import type { MessageSenderTranslator } from './messageSenderTypes';
 
@@ -18,6 +18,7 @@ interface ValidateMessageBeforeSendOptions {
   isServerCodeExecutionEnabled: boolean;
   isImageEditModel: boolean;
   isGemini3Image: boolean;
+  isTranscribeModel?: boolean;
   activeModelId: string;
   t: MessageSenderTranslator;
 }
@@ -37,6 +38,7 @@ export const validateMessageBeforeSend = ({
   isServerCodeExecutionEnabled,
   isImageEditModel,
   isGemini3Image,
+  isTranscribeModel,
   activeModelId,
   t,
 }: ValidateMessageBeforeSendOptions): MessageSendValidationResult => {
@@ -118,6 +120,24 @@ export const validateMessageBeforeSend = ({
         attachmentTypes: files.map((file) => file.type),
       });
       return { ok: false, fileError: t('messageSenderGemma4TextImageOnly') };
+    }
+  }
+
+  if (isTranscribeModel) {
+    const activeFiles = files.filter((file) => file.uploadState === 'active' && !file.error);
+    const hasAudioAttachment = activeFiles.some((file) => isAudioMimeType(file.type));
+    if (!hasAudioAttachment && !isContinueMode) {
+      logService.warn('Send message blocked: transcribe model requires at least one audio attachment.');
+      return { ok: false, fileError: t('messageSenderTranscribeRequiresAudio') };
+    }
+
+    const hasUnsupportedAttachment = activeFiles.some((file) => !isAudioMimeType(file.type));
+    if (hasUnsupportedAttachment) {
+      logService.warn('Send message blocked: transcribe model received non-audio attachment types.', {
+        activeModelId,
+        attachmentTypes: files.map((file) => file.type),
+      });
+      return { ok: false, fileError: t('messageSenderTranscribeSupportsAudioOnly') };
     }
   }
 

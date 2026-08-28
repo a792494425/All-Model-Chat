@@ -41,11 +41,13 @@ export const LanguageVoiceSection: React.FC<LanguageVoiceSectionProps> = (props)
 
   return (
     <div className="space-y-5">
-      <div className={SETTINGS_SECTION_CARD_CLASS}>
+      <div className={SETTINGS_SECTION_CARD_CLASS} data-settings-item="models-tts-voice">
         <VoiceControl
           transcriptionModelId={currentSettings.transcriptionModelId}
           setTranscriptionModelId={(value) => onUpdateSetting('transcriptionModelId', value)}
-          titleKey="settingsTranscriptionSectionTitle"
+          ttsVoice={currentSettings.ttsVoice}
+          setTtsVoice={(value) => onUpdateSetting('ttsVoice', value)}
+          titleKey="settingsVoiceSectionTitle"
         />
       </div>
 

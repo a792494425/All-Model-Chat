@@ -3,8 +3,10 @@ import { createChatMessage, createUploadedFile } from '@/test/data/factories';
 import {
   formatGeminiFileApiProcessingError,
   formatHistoryFileApiUnavailablePartText,
+  getApiKeyFingerprint,
   getGeminiFilesApiName,
   getGeminiFilesApiNameFromUri,
+  isFileApiKeyMismatch,
   isGeminiFilesApiReferenceStillValid,
   sessionHasGeminiFilesApiReferences,
   shouldRefreshGeminiFilesApiReferenceFromExpiration,
@@ -155,5 +157,22 @@ describe('getGeminiFilesApiName', () => {
         }),
       ),
     ).toBe('files/from-name');
+  });
+});
+
+describe('getApiKeyFingerprint', () => {
+  it('is deterministic per key and distinguishes different keys', () => {
+    expect(getApiKeyFingerprint('api-key')).toBe(getApiKeyFingerprint('api-key'));
+    expect(getApiKeyFingerprint('api-key')).not.toBe(getApiKeyFingerprint('other-key'));
+  });
+
+  it('stamps fingerprint state used for key-mismatch detection', () => {
+    const file = createUploadedFile({ fileApiKeyFingerprint: getApiKeyFingerprint('key-a') });
+    expect(isFileApiKeyMismatch(file, 'key-a')).toBe(false);
+    expect(isFileApiKeyMismatch(file, 'key-b')).toBe(true);
+  });
+
+  it('treats legacy files without a fingerprint as unchanged', () => {
+    expect(isFileApiKeyMismatch(createUploadedFile({}), 'any-key')).toBe(false);
   });
 });

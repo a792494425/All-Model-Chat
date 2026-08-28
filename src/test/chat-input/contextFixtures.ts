@@ -37,6 +37,7 @@ export const createChatInputActionsContextValue = (
   onToggleToolAndFocus: vi.fn((toggle: () => void) => toggle()),
   onCountTokens: vi.fn(),
   isImageGenerationModel: false,
+  isTranscribeModel: false,
   isNativeAudioModel: false,
   canAddYouTubeVideo: false,
   isLoading: false,
