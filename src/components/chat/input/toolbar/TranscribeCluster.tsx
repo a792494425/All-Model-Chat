@@ -27,7 +27,7 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
   const speakerLabels = currentChatSettings.transcriptionSpeakerLabels ?? false;
   const smartMode = currentChatSettings.transcriptionSmartMode ?? false;
   const customVocabulary = currentChatSettings.transcriptionCustomVocabulary ?? '';
-  const systemInstruction = currentChatSettings.systemInstruction ?? '';
+  const systemInstruction = currentChatSettings.transcriptionSystemInstruction ?? '';
 
   const hasAdvancedConfig = Boolean(customVocabulary.trim() || systemInstruction.trim());
 
@@ -50,7 +50,7 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
   const handleSaveModalSettings = (settings: { systemInstruction: string; customVocabulary: string }) => {
     setCurrentChatSettings((prev) => ({
       ...prev,
-      systemInstruction: settings.systemInstruction,
+      transcriptionSystemInstruction: settings.systemInstruction,
       transcriptionCustomVocabulary: settings.customVocabulary,
     }));
   };

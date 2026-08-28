@@ -70,6 +70,22 @@ describe('ModelListView', () => {
     expect(onSelectModel).toHaveBeenCalledWith('gpt-5.6-sol', 'third-party');
   });
 
+  it('labels the selected model with the provided scope-aware badge text', () => {
+    act(() => {
+      renderer.root.render(
+        <ModelListView
+          availableModels={[{ id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' }]}
+          selectedModelId="gemini-3-flash-preview"
+          onSelectModel={vi.fn()}
+          activeBadgeLabel="New chat default"
+        />,
+      );
+    });
+
+    expect(renderer.container.textContent).toContain('New chat default');
+    expect(renderer.container.textContent).not.toContain('Active');
+  });
+
   it('does not select an unavailable third-party model', () => {
     const onSelectModel = vi.fn();
 

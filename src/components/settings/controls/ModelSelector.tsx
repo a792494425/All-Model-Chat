@@ -12,6 +12,8 @@ interface ModelSelectorProps {
   setAvailableModels: (models: ModelOption[]) => void;
   defaultModels?: ModelOption[];
   defaultApiMode?: ApiMode;
+  /** Badge text for the selected model; see ModelCatalogList.activeBadgeLabel. */
+  activeBadgeLabel?: string;
 }
 
 export const ModelSelector: React.FC<ModelSelectorProps> = ({
@@ -22,6 +24,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   setAvailableModels,
   defaultModels,
   defaultApiMode,
+  activeBadgeLabel,
 }) => {
   const [isEditingList, setIsEditingList] = useState(false);
   const isProviderAwareList =
@@ -47,6 +50,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           selectedModelId={selectedModelId}
           selectedApiMode={selectedApiMode}
           onSelectModel={onSelectModel}
+          activeBadgeLabel={activeBadgeLabel}
         />
       )}
     </div>

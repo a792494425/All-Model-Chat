@@ -30,6 +30,8 @@ interface SettingsContentProps extends SettingsTransferProps {
   onExportSettings: () => void;
   onImportHistory: (file: File) => void;
   onExportHistory: () => void;
+  /** Badge text for the selected model in the Models tab; see ModelCatalogList.activeBadgeLabel. */
+  activeModelBadgeLabel?: string;
 }
 
 const stripApiMode = (model: ModelOption): ModelOption => {
@@ -76,6 +78,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({
   onExportHistory,
   onImportScenarios,
   onExportScenarios,
+  activeModelBadgeLabel,
 }) => {
   const animClass = 'animate-in fade-in duration-200 ease-out';
   const isThirdPartyMode = resolveChatApiRoute(currentSettings, currentSettings).apiMode === 'third-party';
@@ -127,6 +130,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({
             currentSettings={currentSettings}
             currentThemeId={currentThemeId}
             onUpdateSettings={handleBatchUpdate}
+            activeModelBadgeLabel={activeModelBadgeLabel}
           />
         </div>
       )}

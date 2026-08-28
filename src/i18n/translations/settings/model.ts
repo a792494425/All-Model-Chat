@@ -576,6 +576,15 @@ const modelSettings = {
     ko: '활성',
     fr: 'Actif',
   },
+  settingsDefaultModelBadge: {
+    en: 'New chat default',
+    zh: '新聊天默认',
+    ja: '新規チャットのデフォルト',
+    de: 'Neuer-Chat-Standard',
+    es: 'Predeterminado',
+    ko: '새 채팅 기본값',
+    fr: 'Défaut nouveaux chats',
+  },
   settingsNoModelsInList: {
     en: 'No models in the list yet. Add one or reset the defaults.',
     zh: '当前列表中还没有模型。可以手动添加，或重置为默认列表。',

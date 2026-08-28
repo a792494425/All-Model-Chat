@@ -4,6 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { SUGGESTIONS_KEYS } from '@/constants/welcomeSuggestions';
 import { SUGGESTION_CHIP_ACTIVE_CLASS, SUGGESTION_CHIP_CLASS } from '@/constants/designTokens';
 import { SuggestionIcon } from './SuggestionIcon';
+import { PdfNavChip } from './PdfNavChip';
 import { type translations } from '@/i18n/translations';
 
 /** Scroll-arrow chrome shared by both directions. */
@@ -39,6 +40,8 @@ interface ChatSuggestionsProps {
   isBBoxModeActive?: boolean;
   onToggleGuide?: () => void;
   isGuideModeActive?: boolean;
+  onTogglePdfNav?: () => void;
+  isPdfNavEnabled?: boolean;
   isFullscreen: boolean;
 }
 
@@ -50,6 +53,8 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
   isBBoxModeActive,
   onToggleGuide,
   isGuideModeActive,
+  onTogglePdfNav,
+  isPdfNavEnabled,
   isFullscreen,
 }) => {
   const { t } = useI18n();
@@ -143,6 +148,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
                     <SuggestionToggleDot />
                   </button>
                 )}
+                {onTogglePdfNav && <PdfNavChip isPdfNavEnabled={!!isPdfNavEnabled} onToggle={onTogglePdfNav} />}
               </>
             )}
           </React.Fragment>

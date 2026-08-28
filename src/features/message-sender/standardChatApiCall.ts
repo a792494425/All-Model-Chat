@@ -1,4 +1,6 @@
 import { createChatHistoryForApi } from '@/utils/chat/builder';
+import { buildPdfLocateDirective } from '@/utils/pdf-nav/locateMarker';
+import { collectSessionPdfFiles, isPdfFile, partsContainPdf } from '@/utils/pdf-nav/sessionPdfFiles';
 import { toError } from '@/utils/errorMessage';
 import { createMessage } from '@/utils/chat/session';
 import { isServerCodeExecutionMode } from '@/utils/codeExecution';
@@ -162,6 +164,22 @@ export const performStandardChatApiCall = async ({
     alwaysKeepThinking,
   );
 
+  // PDF Locate Protocol: augment the system instruction (all providers take it
+  // as plain text) when the preset is on and any PDF rides with this turn or
+  // the conversation history.
+  const pdfLocateDirective =
+    sessionToUpdate.isPdfNavEnabled &&
+    (enrichedFiles.some(isPdfFile) ||
+      partsContainPdf(finalParts) ||
+      baseMessagesForApi.some((message) => message.files?.some(isPdfFile)))
+      ? buildPdfLocateDirective(collectSessionPdfFiles(enrichedFiles, baseMessagesForApi).map((file) => file.name))
+      : '';
+  const effectiveSystemInstruction = pdfLocateDirective
+    ? sessionToUpdate.systemInstruction
+      ? `${sessionToUpdate.systemInstruction}\n\n${pdfLocateDirective}`
+      : pdfLocateDirective
+    : sessionToUpdate.systemInstruction;
+
   const { streamOnError, streamOnComplete, streamOnPart, onThoughtChunk } = getStreamHandlers(
     finalSessionId,
     generationId,
@@ -195,7 +213,7 @@ export const performStandardChatApiCall = async ({
   if (activeProvider) {
     const providerConfig = {
       baseUrl: activeProvider.baseUrl,
-      systemInstruction: sessionToUpdate.systemInstruction,
+      systemInstruction: effectiveSystemInstruction,
       temperature: sessionToUpdate.temperature,
       topP: sessionToUpdate.topP,
       thinkingLevel: sessionToUpdate.thinkingLevel,
@@ -348,6 +366,7 @@ export const performStandardChatApiCall = async ({
   const config = await buildGenerationConfig({
     settings: sessionToUpdate,
     modelId: apiModelId,
+    systemInstruction: effectiveSystemInstruction,
     aspectRatio,
     imageSize,
     isLocalPythonEnabled: isLocalPythonEnabledForTurn,

@@ -82,9 +82,9 @@ export const SETTINGS_KBD_KEY_CLASS =
 export const SETTINGS_SEGMENTED_TRACK_CLASS =
   'inline-flex items-center gap-1 rounded-lg border border-[var(--theme-border-secondary)]/50 bg-[var(--theme-bg-tertiary)]/60 p-1';
 
-export const SETTINGS_SEGMENTED_ACTIVE_CLASS = `px-3 py-1.5 text-xs font-semibold rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-sm transition-all duration-150 ${FOCUS_VISIBLE_RING_BASE_CLASS}`;
+export const SETTINGS_SEGMENTED_ACTIVE_CLASS = `px-3 py-1.5 text-xs font-semibold rounded-md bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-sm ring-1 ring-inset ring-[var(--theme-border-secondary)]/70 transition-all duration-150 ${FOCUS_VISIBLE_RING_BASE_CLASS}`;
 
-export const SETTINGS_SEGMENTED_IDLE_CLASS = `px-3 py-1.5 text-xs font-medium rounded-md text-[var(--theme-text-secondary)] transition-all duration-150 hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]/40 ${FOCUS_VISIBLE_RING_BASE_CLASS} disabled:cursor-not-allowed disabled:opacity-40`;
+export const SETTINGS_SEGMENTED_IDLE_CLASS = `px-3 py-1.5 text-xs font-medium rounded-md text-[var(--theme-text-secondary)] transition-all duration-150 hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]/70 ${FOCUS_VISIBLE_RING_BASE_CLASS} disabled:cursor-not-allowed disabled:opacity-40`;
 
 /** Active settings nav tab — aligned with chat session selection. */
 export const SETTINGS_NAV_ACTIVE_CLASS =

@@ -24,6 +24,12 @@ interface ModelCatalogListProps {
   /** Selection predicate: plain id match in the picker, id+apiMode match in settings. */
   isEntrySelected: (entry: ModelCatalogEntry) => boolean;
   /**
+   * Settings-variant badge text for the selected model. Callers in a scoped
+   * surface should pass the scope name (e.g. "New chat default") — the default
+   * ("Active") would be misleading when the selection is not the in-use model.
+   */
+  activeBadgeLabel?: string;
+  /**
    * Picker keyboard navigation highlight (matched by model id, mirroring the
    * original `visibleEntries[activeIndex]?.id === entry.id` check). Settings
    * lists have no keyboard highlight and omit this prop.
@@ -46,6 +52,7 @@ export const ModelCatalogList: React.FC<ModelCatalogListProps> = ({
   variant,
   renderModelIcon,
   isEntrySelected,
+  activeBadgeLabel,
   activeEntryId,
   onSelectEntry,
 }) => {
@@ -177,7 +184,7 @@ export const ModelCatalogList: React.FC<ModelCatalogListProps> = ({
                   {isSelected && (
                     <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] text-xs font-semibold shadow-xs border border-transparent">
                       <Check size={11} strokeWidth={2.5} />
-                      <span>{t('settingsActiveModel')}</span>
+                      <span>{activeBadgeLabel ?? t('settingsActiveModel')}</span>
                     </div>
                   )}
                 </div>

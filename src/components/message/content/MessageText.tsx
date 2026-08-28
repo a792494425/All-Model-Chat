@@ -20,6 +20,8 @@ import {
 } from './userMessageCollapse';
 import { resolveLiveArtifactsFontSize } from '@/utils/live-artifacts/liveArtifactsFontSize';
 import { isLiveArtifactsModeFromSettings } from '@/utils/live-artifacts/liveArtifactsMode';
+import { parsePdfLocateMarkers } from '@/utils/pdf-nav/locateMarker';
+import { PdfLocateChips } from '@/components/pdf-nav/PdfLocateChip';
 import { useChatStore } from '@/stores/chatStore';
 
 interface MessageTextProps {
@@ -65,7 +67,16 @@ export const MessageText: React.FC<MessageTextProps> = ({
   // 流式期间本组件每帧重渲染，extraction 对全文跑正则，必须 memo；
   // 字符串相等时 React 保留上一次结果，避免每帧重复解析。
   const rawThinkingExtraction = useMemo(() => extractRawThinkingBlocks(fullStreamingText), [fullStreamingText]);
-  const effectiveContent = rawThinkingExtraction.content;
+  // PDF locate markers (<pdf-locate …>) live in the raw content but must never
+  // reach the markdown renderer; parse is memoized like thinking extraction.
+  const locateExtraction = useMemo(
+    () =>
+      message.role === 'model'
+        ? parsePdfLocateMarkers(rawThinkingExtraction.content)
+        : { cleanContent: rawThinkingExtraction.content, locates: [] },
+    [rawThinkingExtraction.content, message.role],
+  );
+  const effectiveContent = locateExtraction.cleanContent;
   const effectiveThoughts = useMemo(
     () => [thoughts, streamThoughts, rawThinkingExtraction.thoughts].filter(Boolean).join('\n\n'),
     [thoughts, streamThoughts, rawThinkingExtraction.thoughts],
@@ -242,6 +253,8 @@ export const MessageText: React.FC<MessageTextProps> = ({
           )}
         </div>
       ) : null}
+
+      {message.role === 'model' && <PdfLocateChips messageId={message.id} locates={locateExtraction.locates} />}
     </>
   );
 };

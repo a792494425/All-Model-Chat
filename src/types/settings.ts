@@ -185,6 +185,7 @@ export interface ChatSettings {
   isLocalPythonEnabled?: boolean;
   isUrlContextEnabled?: boolean;
   isDeepSearchEnabled?: boolean;
+  isPdfNavEnabled?: boolean;
   isRawModeEnabled?: boolean;
   hideThinkingInContext?: boolean;
   alwaysKeepThinkingInContext?: boolean;
@@ -195,6 +196,8 @@ export interface ChatSettings {
   transcriptionSpeakerLabels?: boolean;
   transcriptionSmartMode?: boolean;
   transcriptionCustomVocabulary?: string;
+  /** Instruction used only for transcription turns; kept separate from the chat `systemInstruction`. */
+  transcriptionSystemInstruction?: string;
 }
 
 export type ChatSettingsUpdater = (updater: (prevSettings: ChatSettings) => ChatSettings) => void;

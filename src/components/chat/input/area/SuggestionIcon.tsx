@@ -11,6 +11,7 @@ import {
   AppWindow,
   Palette,
   Scan,
+  BookOpenText,
 } from 'lucide-react';
 
 export const SuggestionIcon = ({ iconName, className }: { iconName?: string; className?: string }) => {
@@ -28,6 +29,8 @@ export const SuggestionIcon = ({ iconName, className }: { iconName?: string; cla
       return <ScanText className={className} size={size} />;
     case 'Scan':
       return <Scan className={className} size={size} />;
+    case 'BookOpenText':
+      return <BookOpenText className={className} size={size} />;
     case 'AudioWaveform':
       return <AudioWaveform className={className} size={size} />;
     case 'Captions':

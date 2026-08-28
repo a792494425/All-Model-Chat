@@ -443,6 +443,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onExportHistory={settingsTransferActions.onExportHistory}
                 onImportScenarios={onImportScenarios}
                 onExportScenarios={onExportScenarios}
+                activeModelBadgeLabel={
+                  activeTabUsesScope && visibleScope === 'defaults' ? t('settingsDefaultModelBadge') : undefined
+                }
               />
             )}
           </div>

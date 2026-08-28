@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type ApiMode, type ModelOption } from '@/types';
 import { getModelIcon } from '@/components/shared/ModelIcon';
 import { useI18n } from '@/contexts/I18nContext';
@@ -10,6 +10,8 @@ interface ModelListViewProps {
   selectedModelId: string;
   selectedApiMode?: ApiMode;
   onSelectModel: (id: string, apiMode?: ApiMode) => void;
+  /** Badge text for the selected model; see ModelCatalogList.activeBadgeLabel. */
+  activeBadgeLabel?: string;
 }
 
 export const ModelListView: React.FC<ModelListViewProps> = ({
@@ -17,24 +19,45 @@ export const ModelListView: React.FC<ModelListViewProps> = ({
   selectedModelId,
   selectedApiMode,
   onSelectModel,
+  activeBadgeLabel,
 }) => {
   const { t } = useI18n();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showBottomFade, setShowBottomFade] = useState(false);
 
-  const catalog = useMemo(() => buildModelCatalog(availableModels), [availableModels]);
-  const filteredEntries = useMemo(() => filterModelCatalog(catalog, ''), [catalog]);
+  const updateBottomFade = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      return;
+    }
+    setShowBottomFade(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+  }, []);
 
-  const sections = useMemo(() => buildModelCatalogSections(filteredEntries), [filteredEntries]);
+  useEffect(() => {
+    updateBottomFade();
+  }, [availableModels, updateBottomFade]);
+
+  const sections = useMemo(() => {
+    const catalog = buildModelCatalog(availableModels);
+    const filteredEntries = filterModelCatalog(catalog, '');
+    return buildModelCatalogSections(filteredEntries);
+  }, [availableModels]);
 
   return (
     <div
       data-testid="settings-model-list-container"
-      className="border border-[var(--theme-border-secondary)]/70 rounded-xl bg-[var(--theme-bg-input)]/30 overflow-hidden"
+      className="relative border border-[var(--theme-border-secondary)]/70 rounded-xl bg-[var(--theme-bg-input)]/30 overflow-hidden"
     >
-      <div className="max-h-[340px] overflow-y-auto custom-scrollbar p-2 space-y-2.5">
+      <div
+        ref={scrollRef}
+        onScroll={updateBottomFade}
+        className="max-h-[340px] overflow-y-auto custom-scrollbar overscroll-contain p-2 space-y-2.5"
+      >
         <ModelCatalogList
           sections={sections}
           variant="settings"
           renderModelIcon={getModelIcon}
+          activeBadgeLabel={activeBadgeLabel}
           isEntrySelected={(entry) =>
             entry.id === selectedModelId &&
             (!selectedApiMode || !entry.model.apiMode || entry.model.apiMode === selectedApiMode)
@@ -52,6 +75,12 @@ export const ModelListView: React.FC<ModelListViewProps> = ({
           </div>
         )}
       </div>
+      {showBottomFade && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-8 rounded-b-xl bg-gradient-to-t from-[var(--theme-bg-primary)] via-[var(--theme-bg-primary)]/60 to-transparent"
+        />
+      )}
     </div>
   );
 };

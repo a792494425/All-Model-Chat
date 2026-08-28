@@ -129,7 +129,7 @@ export const ModelListEditor: React.FC<ModelListEditorProps> = ({
   return (
     <>
       <div className="border border-[var(--theme-border-secondary)] rounded-xl bg-[var(--theme-bg-input)]/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-        <div className="max-h-[400px] overflow-y-auto custom-scrollbar p-2 space-y-2">
+        <div className="max-h-[400px] overflow-y-auto custom-scrollbar overscroll-contain p-2 space-y-2">
           {tempModels.map((model, modelIndex) => (
             <ModelListEditorRow
               key={model._rowId}

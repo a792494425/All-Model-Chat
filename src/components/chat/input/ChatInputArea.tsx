@@ -10,6 +10,7 @@ import { LiveStatusBanner } from './LiveStatusBanner';
 import { QueuedSubmissionList } from './QueuedSubmissionList';
 import { HiddenFileInputs } from './files/HiddenFileInputs';
 import { getChatInputAreaLayout } from './chatInputAreaLayout';
+import { closePdfNavPanel, openPdfNavPanel } from '@/stores/pdfNavStore';
 import { CHAT_INPUT_MAX_WIDTH_CLASS, FOCUS_BLOCKING_SELECTOR } from '@/constants/layout';
 import { useI18n } from '@/contexts/I18nContext';
 import { useChatInputContext } from './ChatInputContext';
@@ -35,6 +36,17 @@ export const ChatInputArea: React.FC = () => {
 
   const isFullscreen = inputState.isFullscreen;
   const isPipActive = chatInput.isPipActive;
+  const { setCurrentChatSettings } = chatInput;
+  const isPdfNavEnabled = !!chatInput.currentChatSettings.isPdfNavEnabled;
+  const handleTogglePdfNav = useCallback(() => {
+    const next = !isPdfNavEnabled;
+    setCurrentChatSettings((prev) => ({ ...prev, isPdfNavEnabled: next }));
+    if (next) {
+      openPdfNavPanel();
+    } else {
+      closePdfNavPanel();
+    }
+  }, [isPdfNavEnabled, setCurrentChatSettings]);
   const isAnimatingSend = inputState.isAnimatingSend;
   const isMobile = inputState.isMobile;
   const isConverting = localFileState.isConverting;
@@ -159,6 +171,8 @@ export const ChatInputArea: React.FC = () => {
             isBBoxModeActive={chatInput.isBBoxModeActive}
             onToggleGuide={chatInput.onToggleGuide}
             isGuideModeActive={chatInput.isGuideModeActive}
+            onTogglePdfNav={handleTogglePdfNav}
+            isPdfNavEnabled={isPdfNavEnabled}
             isFullscreen={isFullscreen}
           />
         )}

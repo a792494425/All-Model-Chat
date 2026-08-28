@@ -1,6 +1,5 @@
 import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { Globe } from 'lucide-react';
 import { Select } from '@/components/shared/Select';
 
 interface TranscribeLanguageSelectorProps {
@@ -8,11 +7,28 @@ interface TranscribeLanguageSelectorProps {
   setLanguage: (lang: string) => void;
 }
 
-export const TranscribeLanguageSelector: React.FC<TranscribeLanguageSelectorProps> = ({
-  language,
-  setLanguage,
-}) => {
+/**
+ * Values are the BCP-47 codes documented for Gemini 3.5 Transcribe; bare legacy
+ * codes persisted from older versions are normalized at the API layer.
+ */
+export const TranscribeLanguageSelector: React.FC<TranscribeLanguageSelectorProps> = ({ language, setLanguage }) => {
   const { t } = useI18n();
+
+  const options: Array<{ value: string; label: string }> = [
+    { value: 'cmn-Hans-CN', label: t('transcribeLangZh') },
+    { value: 'yue-Hant-HK', label: t('transcribeLangYue') },
+    { value: 'en-US', label: t('transcribeLangEn') },
+    { value: 'ja-JP', label: t('transcribeLangJa') },
+    { value: 'ko-KR', label: t('transcribeLangKo') },
+    { value: 'es-419', label: t('transcribeLangEs') },
+    { value: 'fr-FR', label: t('transcribeLangFr') },
+    { value: 'de-DE', label: t('transcribeLangDe') },
+    { value: 'ru-RU', label: t('transcribeLangRu') },
+    { value: 'pt-BR', label: t('transcribeLangPt') },
+    { value: 'it-IT', label: t('transcribeLangIt') },
+    { value: 'ar-EG', label: t('transcribeLangAr') },
+    { value: 'hi-IN', label: t('transcribeLangHi') },
+  ];
 
   return (
     <Select
@@ -26,90 +42,12 @@ export const TranscribeLanguageSelector: React.FC<TranscribeLanguageSelectorProp
       direction="up"
       size="compact"
     >
-      <option value="">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangDetect')}</span>
-        </span>
-      </option>
-      <option value="zh">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangZh')}</span>
-        </span>
-      </option>
-      <option value="en">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangEn')}</span>
-        </span>
-      </option>
-      <option value="ja">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangJa')}</span>
-        </span>
-      </option>
-      <option value="ko">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangKo')}</span>
-        </span>
-      </option>
-      <option value="yue">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangYue')}</span>
-        </span>
-      </option>
-      <option value="es">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangEs')}</span>
-        </span>
-      </option>
-      <option value="fr">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangFr')}</span>
-        </span>
-      </option>
-      <option value="de">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangDe')}</span>
-        </span>
-      </option>
-      <option value="ru">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangRu')}</span>
-        </span>
-      </option>
-      <option value="pt">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangPt')}</span>
-        </span>
-      </option>
-      <option value="it">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangIt')}</span>
-        </span>
-      </option>
-      <option value="ar">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangAr')}</span>
-        </span>
-      </option>
-      <option value="hi">
-        <span className="flex items-center gap-2">
-          <Globe size={14} className="text-[var(--theme-text-accent)] flex-shrink-0" />
-          <span>{t('transcribeLangHi')}</span>
-        </span>
-      </option>
+      <option value="">{t('transcribeLangDetect')}</option>
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
     </Select>
   );
 };

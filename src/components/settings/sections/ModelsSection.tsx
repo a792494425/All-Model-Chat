@@ -37,6 +37,8 @@ interface ModelsSectionProps {
   currentSettings: AppSettings;
   currentThemeId: string;
   onUpdateSettings: (settings: Partial<AppSettings>) => void;
+  /** Badge text for the selected model; see ModelCatalogList.activeBadgeLabel. */
+  activeModelBadgeLabel?: string;
 }
 
 export const ModelsSection: React.FC<ModelsSectionProps> = ({
@@ -50,6 +52,7 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({
   currentSettings,
   currentThemeId,
   onUpdateSettings,
+  activeModelBadgeLabel,
 }) => {
   const { t } = useI18n();
   const [activeSubTab, setActiveSubTab] = useState<ModelsSubTab>('all');
@@ -105,6 +108,7 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({
             setAvailableModels={setAvailableModels}
             defaultModels={defaultModels}
             defaultApiMode={defaultApiMode}
+            activeBadgeLabel={activeModelBadgeLabel}
           />
         </div>
       )}

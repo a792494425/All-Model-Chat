@@ -1893,8 +1893,6 @@ export const messagesTranslations = {
     ko: '오디오 전사가 성공적으로 완료되었습니다.',
   },
 
-
-
   messageSenderTranscribing: {
     en: 'Transcribing audio...',
     zh: '正在转写音频…',
@@ -1930,5 +1928,14 @@ export const messagesTranslations = {
     fr: 'Erreur de transcription audio',
     es: 'Error de transcripción de audio',
     ko: '오디오 전사 오류',
+  },
+  messageSenderTranscribeDurationExceeded: {
+    en: 'Audio exceeds the transcription limit: up to 30 minutes when word timestamps or speaker labels are enabled, otherwise up to 60 minutes.',
+    zh: '音频时长超出转写限制：开启词级时间戳或说话人分离时最长 30 分钟，否则最长 60 分钟。',
+    ja: '音声が文字起こしの上限を超えています：単語レベルのタイムスタンプまたは話者分離を有効にしている場合は最大30分、それ以外は最大60分です。',
+    de: 'Das Audio überschreitet das Transkriptionslimit: max. 30 Minuten bei aktivierten Wortzeitstempeln oder Sprecheretiketten, sonst max. 60 Minuten.',
+    fr: "L'audio dépasse la limite de transcription : 30 minutes maximum si les horodatages par mot ou les étiquettes de locuteur sont activés, sinon 60 minutes maximum.",
+    es: 'El audio supera el límite de transcripción: hasta 30 minutos con marcas de tiempo por palabra o etiquetas de hablante activadas, o hasta 60 minutos.',
+    ko: '오디오가 전사 제한을 초과했습니다: 단어 수준 타임스탬프 또는 화자 분리 사용 시 최대 30분, 그 외에는 최대 60분입니다.',
   },
 };

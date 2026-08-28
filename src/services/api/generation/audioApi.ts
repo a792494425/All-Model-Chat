@@ -262,6 +262,34 @@ export interface AudioTranscriptionOptions {
   abortSignal?: AbortSignal;
 }
 
+const MAX_TRANSCRIPTION_VOCABULARY_TERMS = 1000;
+
+/**
+ * Maps legacy bare ISO selector values to the BCP-47 codes the transcribe models
+ * document (see the model's supported-language table). Canonical codes pass through.
+ */
+const LEGACY_LANGUAGE_CODE_MAP: Record<string, string> = {
+  zh: 'cmn-Hans-CN',
+  yue: 'yue-Hant-HK',
+  en: 'en-US',
+  ja: 'ja-JP',
+  ko: 'ko-KR',
+  es: 'es-419',
+  fr: 'fr-FR',
+  de: 'de-DE',
+  ru: 'ru-RU',
+  pt: 'pt-BR',
+  it: 'it-IT',
+  ar: 'ar-EG',
+  hi: 'hi-IN',
+};
+
+export const normalizeTranscriptionLanguage = (language?: string): string | undefined => {
+  const trimmed = language?.trim();
+  if (!trimmed) return undefined;
+  return LEGACY_LANGUAGE_CODE_MAP[trimmed.toLowerCase()] ?? trimmed;
+};
+
 export const transcribeAudioApi = async (
   apiKey: string,
   audioFile: File,
@@ -292,8 +320,9 @@ export const transcribeAudioApi = async (
         promptInstructions.push('Transcribe voice input exactly.');
       }
 
-      if (options?.language) {
-        promptInstructions.push(`Primary language: ${options.language}.`);
+      const normalizedLanguage = normalizeTranscriptionLanguage(options?.language);
+      if (normalizedLanguage) {
+        promptInstructions.push(`Primary language: ${normalizedLanguage}.`);
       }
 
       if (options?.wordTimestamps) {
@@ -304,8 +333,16 @@ export const transcribeAudioApi = async (
         promptInstructions.push('Identify and label distinct speakers (e.g. Speaker 1, Speaker 2).');
       }
 
-      if (options?.customVocabulary && options.customVocabulary.trim()) {
-        promptInstructions.push(`Custom vocabulary: ${options.customVocabulary.trim()}.`);
+      const customVocabList = options?.customVocabulary
+        ? options.customVocabulary
+            .split(/[,，\n]/)
+            .map((word) => word.trim())
+            .filter(Boolean)
+            .slice(0, MAX_TRANSCRIPTION_VOCABULARY_TERMS)
+        : [];
+
+      if (customVocabList.length > 0) {
+        promptInstructions.push(`Custom vocabulary: ${customVocabList.join(', ')}.`);
       }
 
       if (options?.prompt && options.prompt.trim()) {
@@ -317,13 +354,6 @@ export const transcribeAudioApi = async (
         text: promptText,
       };
 
-      const customVocabList = options?.customVocabulary
-        ? options.customVocabulary
-            .split(/[,，\n]/)
-            .map((word) => word.trim())
-            .filter(Boolean)
-        : undefined;
-
       const audioTranscriptionConfig: Record<string, unknown> = {};
       if (options?.wordTimestamps) {
         audioTranscriptionConfig.wordTimestamp = true;
@@ -331,7 +361,7 @@ export const transcribeAudioApi = async (
       if (options?.speakerLabels) {
         audioTranscriptionConfig.speakerLabels = true;
       }
-      if (customVocabList && customVocabList.length > 0) {
+      if (customVocabList.length > 0) {
         audioTranscriptionConfig.customVocabulary = customVocabList;
       }
 
@@ -349,7 +379,10 @@ export const transcribeAudioApi = async (
       const response = await ai.models.generateContent({
         model: modelId,
         contents: { parts: [textPart, audioPart] },
-        config: Object.keys(config).length > 0 ? (config as Parameters<typeof ai.models.generateContent>[0]['config']) : undefined,
+        config:
+          Object.keys(config).length > 0
+            ? (config as Parameters<typeof ai.models.generateContent>[0]['config'])
+            : undefined,
       });
 
       if (response.usageMetadata) {
@@ -362,16 +395,19 @@ export const transcribeAudioApi = async (
       }
 
       const candidate = response.candidates?.[0];
-      if (!candidate || candidate.finishReason === 'STOP') {
-        return '';
+
+      // Non-STOP finish reasons mean generation ended abnormally — surface the
+      // actual reason instead of masking it as an "empty transcript".
+      if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
+        throw new Error(`Transcription failed (finishReason: ${candidate.finishReason}).`);
       }
 
-      if (candidate.finishReason) {
-        throw new Error(`Transcription failed due to safety settings: ${candidate.finishReason}`);
+      // A missing candidate with a block reason means the request never generated.
+      if (!candidate && response.promptFeedback?.blockReason) {
+        throw new Error(`Transcription request was blocked (reason: ${response.promptFeedback.blockReason}).`);
       }
 
       return '';
     },
   });
 };
-

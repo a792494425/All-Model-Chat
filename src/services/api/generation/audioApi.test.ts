@@ -244,4 +244,50 @@ describe('transcribeAudioApi request config', () => {
     expect(blobToBase64Mock).not.toHaveBeenCalled();
     expect(generateContentMock).not.toHaveBeenCalled();
   });
+
+  it('normalizes legacy bare language codes to BCP-47 in the prompt', async () => {
+    await transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe', { language: 'zh' });
+
+    const call = generateContentMock.mock.calls[0][0];
+    expect(call.contents.parts[0].text).toContain('Primary language: cmn-Hans-CN.');
+  });
+
+  it('keeps already-canonical BCP-47 language codes untouched', async () => {
+    await transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe', { language: 'yue-Hant-HK' });
+
+    const call = generateContentMock.mock.calls[0][0];
+    expect(call.contents.parts[0].text).toContain('Primary language: yue-Hant-HK.');
+  });
+
+  it('rejects with the prompt block reason instead of silently returning an empty transcript', async () => {
+    generateContentMock.mockResolvedValue({ promptFeedback: { blockReason: 'SAFETY' } });
+
+    await expect(transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe')).rejects.toThrow('SAFETY');
+  });
+
+  it('reports the actual finish reason without claiming a safety block', async () => {
+    generateContentMock.mockResolvedValue({ candidates: [{ finishReason: 'RECITATION' }] });
+
+    await expect(transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe')).rejects.toThrow('RECITATION');
+    await expect(transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe')).rejects.not.toThrow(/safety/i);
+  });
+
+  it('caps the custom vocabulary list at the model limit of 1000 terms', async () => {
+    const vocabulary = Array.from({ length: 1200 }, (_, index) => `term${index}`).join(', ');
+
+    await transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe', { customVocabulary: vocabulary });
+
+    const config = generateContentMock.mock.calls[0][0].config;
+    expect(config.audioTranscriptionConfig.customVocabulary).toHaveLength(1000);
+  });
+
+  it('keeps the custom vocabulary prompt instruction aligned with the capped list', async () => {
+    const vocabulary = Array.from({ length: 1200 }, (_, index) => `term${index}`).join(', ');
+
+    await transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe', { customVocabulary: vocabulary });
+
+    const call = generateContentMock.mock.calls[0][0];
+    expect(call.contents.parts[0].text).toContain('Custom vocabulary: term0, term1, term2');
+    expect(call.contents.parts[0].text).not.toContain('term1000');
+  });
 });

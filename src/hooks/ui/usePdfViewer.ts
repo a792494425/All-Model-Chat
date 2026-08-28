@@ -91,12 +91,15 @@ export const usePdfViewer = (_file: UploadedFile) => {
     logService.error('PDF Load Error:', error);
   };
 
-  const scrollToPage = (pageNumber: number) => {
+  /** Scrolls to a page; returns false when the page element is not mounted yet. */
+  const scrollToPage = (pageNumber: number): boolean => {
     const pageElement = pageRefs.current.get(pageNumber);
     if (pageElement) {
       pageElement.scrollIntoView({ behavior: 'auto', block: 'start' });
       setCurrentPage(pageNumber);
+      return true;
     }
+    return false;
   };
 
   const previousPage = () => {

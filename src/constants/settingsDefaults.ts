@@ -58,6 +58,7 @@ export const DEFAULT_CHAT_SETTINGS: Omit<ChatSettings, 'lockedApiKey'> & { locke
   isCodeExecutionEnabled: false,
   isUrlContextEnabled: false,
   isDeepSearchEnabled: false,
+  isPdfNavEnabled: false,
   isRawModeEnabled: false,
   hideThinkingInContext: false,
   alwaysKeepThinkingInContext: false,
