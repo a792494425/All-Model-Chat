@@ -4,7 +4,6 @@ import type { LiveArtifactsPromptMode } from '@/types';
 import type { SupportedLanguage } from '@/i18n/languageRegistry';
 
 type PromptLanguage = SupportedLanguage;
-type LiveArtifactsPromptTheme = 'dark' | 'light';
 type LiveArtifactsPromptModule = typeof import('./liveArtifacts');
 
 const LIVE_ARTIFACTS_PROMPT_MARKERS = [
@@ -53,7 +52,6 @@ const LIVE_ARTIFACT_PROMPT_EXPORT_BY_MODE: Record<
 export const loadLiveArtifactsSystemPrompt = async (
   language: PromptLanguage = 'zh',
   mode: LiveArtifactsPromptMode = 'inline',
-  _theme?: LiveArtifactsPromptTheme,
 ) => {
   const prompts = await import('./liveArtifacts');
   const key = LIVE_ARTIFACT_PROMPT_EXPORT_BY_MODE[mode][language] ?? LIVE_ARTIFACT_PROMPT_EXPORT_BY_MODE[mode].en;

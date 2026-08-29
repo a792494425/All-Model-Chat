@@ -9,7 +9,7 @@ import { isDarkThemeId } from '@/utils/themeMode';
 
 const LazyHistorySidebar = lazyNamedComponent(() => import('@/components/sidebar/HistorySidebar'), 'HistorySidebar');
 const LazySidePanel = lazyNamedComponent(() => import('./SidePanel'), 'SidePanel');
-const LazyPdfNavPanel = lazyNamedComponent(() => import('@/components/pdf-nav/PdfNavPanel'), 'PdfNavPanel');
+const LazyMediaNavPanel = lazyNamedComponent(() => import('@/components/media-nav/MediaNavPanel'), 'MediaNavPanel');
 
 interface MainContentProps {
   app: AppViewModel;
@@ -60,7 +60,7 @@ export const MainContent: React.FC<MainContentProps> = ({ app }) => {
       </ChatRuntimeProvider>
 
       <Suspense fallback={null}>
-        <LazyPdfNavPanel />
+        <LazyMediaNavPanel />
       </Suspense>
 
       {sidePanelContent && (

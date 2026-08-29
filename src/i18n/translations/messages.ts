@@ -196,7 +196,7 @@ export const messagesTranslations = {
   // Live artifact suggestions
   suggestionHtmlTitle: {
     en: 'Live Artifacts',
-    zh: 'Live Artifacts',
+    zh: '可视化排版',
     ja: 'Live Artifacts',
     de: 'Live Artifacts',
     fr: 'Live Artifacts',

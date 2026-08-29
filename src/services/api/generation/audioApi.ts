@@ -284,7 +284,7 @@ const LEGACY_LANGUAGE_CODE_MAP: Record<string, string> = {
   hi: 'hi-IN',
 };
 
-export const normalizeTranscriptionLanguage = (language?: string): string | undefined => {
+const normalizeTranscriptionLanguage = (language?: string): string | undefined => {
   const trimmed = language?.trim();
   if (!trimmed) return undefined;
   return LEGACY_LANGUAGE_CODE_MAP[trimmed.toLowerCase()] ?? trimmed;

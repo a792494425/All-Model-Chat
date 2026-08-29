@@ -11,8 +11,14 @@ import {
   AppWindow,
   Palette,
   Scan,
+  ScanSearch,
+  BoxSelect,
   BookOpenText,
+  MonitorPlay,
+  Clapperboard,
 } from 'lucide-react';
+
+import { IconPdf } from '@/components/icons';
 
 export const SuggestionIcon = ({ iconName, className }: { iconName?: string; className?: string }) => {
   const size = 13;
@@ -29,8 +35,16 @@ export const SuggestionIcon = ({ iconName, className }: { iconName?: string; cla
       return <ScanText className={className} size={size} />;
     case 'Scan':
       return <Scan className={className} size={size} />;
+    case 'ScanSearch':
+      return <ScanSearch className={className} size={size} />;
+    case 'BoxSelect':
+      return <BoxSelect className={className} size={size} />;
     case 'BookOpenText':
       return <BookOpenText className={className} size={size} />;
+    case 'MonitorPlay':
+      return <MonitorPlay className={className} size={size} />;
+    case 'Clapperboard':
+      return <Clapperboard className={className} size={size} />;
     case 'AudioWaveform':
       return <AudioWaveform className={className} size={size} />;
     case 'Captions':
@@ -41,6 +55,9 @@ export const SuggestionIcon = ({ iconName, className }: { iconName?: string; cla
       return <FileQuestion className={className} size={size} />;
     case 'FileText':
       return <FileText className={className} size={size} />;
+    case 'Pdf':
+    case 'IconPdf':
+      return <IconPdf className={className} size={size} />;
     default:
       return <Sparkles className={className} size={size} />;
   }

@@ -10,7 +10,7 @@ import { LiveStatusBanner } from './LiveStatusBanner';
 import { QueuedSubmissionList } from './QueuedSubmissionList';
 import { HiddenFileInputs } from './files/HiddenFileInputs';
 import { getChatInputAreaLayout } from './chatInputAreaLayout';
-import { closePdfNavPanel, openPdfNavPanel } from '@/stores/pdfNavStore';
+import { closeMediaNavPanel, openPdfNavPanel, openVideoNavPanel } from '@/stores/mediaNavStore';
 import { CHAT_INPUT_MAX_WIDTH_CLASS, FOCUS_BLOCKING_SELECTOR } from '@/constants/layout';
 import { useI18n } from '@/contexts/I18nContext';
 import { useChatInputContext } from './ChatInputContext';
@@ -38,15 +38,25 @@ export const ChatInputArea: React.FC = () => {
   const isPipActive = chatInput.isPipActive;
   const { setCurrentChatSettings } = chatInput;
   const isPdfNavEnabled = !!chatInput.currentChatSettings.isPdfNavEnabled;
+  const isVideoNavEnabled = !!chatInput.currentChatSettings.isVideoNavEnabled;
   const handleTogglePdfNav = useCallback(() => {
     const next = !isPdfNavEnabled;
     setCurrentChatSettings((prev) => ({ ...prev, isPdfNavEnabled: next }));
     if (next) {
       openPdfNavPanel();
     } else {
-      closePdfNavPanel();
+      closeMediaNavPanel();
     }
   }, [isPdfNavEnabled, setCurrentChatSettings]);
+  const handleToggleVideoNav = useCallback(() => {
+    const next = !isVideoNavEnabled;
+    setCurrentChatSettings((prev) => ({ ...prev, isVideoNavEnabled: next }));
+    if (next) {
+      openVideoNavPanel();
+    } else {
+      closeMediaNavPanel();
+    }
+  }, [isVideoNavEnabled, setCurrentChatSettings]);
   const isAnimatingSend = inputState.isAnimatingSend;
   const isMobile = inputState.isMobile;
   const isConverting = localFileState.isConverting;
@@ -173,6 +183,8 @@ export const ChatInputArea: React.FC = () => {
             isGuideModeActive={chatInput.isGuideModeActive}
             onTogglePdfNav={handleTogglePdfNav}
             isPdfNavEnabled={isPdfNavEnabled}
+            onToggleVideoNav={handleToggleVideoNav}
+            isVideoNavEnabled={isVideoNavEnabled}
             isFullscreen={isFullscreen}
           />
         )}

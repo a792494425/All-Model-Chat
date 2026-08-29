@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, type MutableRefObject } from 'react
 import { Document, Page } from 'react-pdf';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
-import type { PdfNavHighlight } from '@/stores/pdfNavStore';
-import PdfHighlightOverlay from '@/components/pdf-nav/PdfHighlightOverlay';
+import type { PdfNavHighlight } from '@/stores/mediaNavStore';
+import PdfHighlightOverlay from '@/components/media-nav/PdfHighlightOverlay';
 
 interface PdfMainContentProps {
   fileUrl: string | undefined;
@@ -123,8 +123,8 @@ export const PdfMainContent: React.FC<PdfMainContentProps> = ({
 }) => {
   const { t } = useI18n();
   return (
-    <div className="flex-grow h-full relative flex flex-col min-w-0">
-      <div ref={containerRef} className="flex-grow overflow-y-auto custom-scrollbar p-4 sm:p-8 relative">
+    <div className="flex-1 min-h-0 relative flex flex-col min-w-0">
+      <div ref={containerRef} className="flex-grow overflow-y-auto custom-scrollbar p-4 sm:p-8 pb-8 relative">
         <div
           className={`flex flex-col items-center gap-6 transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
         >

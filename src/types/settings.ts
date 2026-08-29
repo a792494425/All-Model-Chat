@@ -185,7 +185,12 @@ export interface ChatSettings {
   isLocalPythonEnabled?: boolean;
   isUrlContextEnabled?: boolean;
   isDeepSearchEnabled?: boolean;
+  /** PDF navigation preset (AI page-locate + side viewer). */
   isPdfNavEnabled?: boolean;
+  /** Video navigation preset (AI timestamp-locate + side player). */
+  isVideoNavEnabled?: boolean;
+  /** Unified media navigation preset (PDF + Video). */
+  isMediaNavEnabled?: boolean;
   isRawModeEnabled?: boolean;
   hideThinkingInContext?: boolean;
   alwaysKeepThinkingInContext?: boolean;

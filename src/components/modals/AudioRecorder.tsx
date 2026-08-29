@@ -1,5 +1,5 @@
 import { logService } from '@/services/logService';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Mic, X, Loader2, AlertCircle, ChevronRight } from 'lucide-react';
 import { Modal } from '@/components/shared/Modal';
 import { toastError } from '@/stores/toastStore';
@@ -38,12 +38,17 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
 
   const [isSaving, setIsSaving] = useState(false);
 
+  // Start recording the microphone as soon as the recorder opens — no source
+  // picker. The ref guard keeps effects/re-renders from re-triggering it.
+  const hasAutoStarted = useRef(false);
+  useEffect(() => {
+    if (hasAutoStarted.current) return;
+    hasAutoStarted.current = true;
+    startRecording({ captureSystemAudio: false });
+  }, [startRecording]);
+
   const handleStartMicrophone = () => {
     startRecording({ captureSystemAudio: false });
-  };
-
-  const handleStartSystemAudio = () => {
-    startRecording({ captureSystemAudio: true });
   };
 
   const handleSave = async () => {
@@ -100,9 +105,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
           </div>
         )}
 
-        {(viewState === 'idle' || (viewState === 'recording' && status !== 'recording')) && !error && (
+        {(viewState === 'idle' || (viewState === 'recording' && status !== 'recording')) && (
           <div className="rounded-xl bg-[var(--theme-bg-tertiary)]/35 p-2">
-            {isInitializing && (
+            {isInitializing ? (
               <div className="px-3 py-2.5">
                 <div className="flex min-w-0 items-center gap-2">
                   <Loader2 size={15} className="shrink-0 animate-spin text-[var(--theme-text-tertiary)]" />
@@ -111,45 +116,21 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
                   </p>
                 </div>
               </div>
-            )}
-            {!isInitializing && (
-              <div className="grid grid-cols-1 gap-1">
-                <button
-                  type="button"
-                  onClick={handleStartMicrophone}
-                  className={`group flex min-h-14 items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-[var(--theme-text-primary)] transition-colors hover:bg-[var(--theme-bg-primary)]/80 ${FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS}`}
-                >
-                  <span className="flex min-w-0 flex-col">
-                    <span className="text-sm font-medium">{t('audioRecorderRecordMicrophone')}</span>
-                    <span className="text-xs text-[var(--theme-text-tertiary)]">
-                      {t('audioRecorderMicrophoneOnly')}
-                    </span>
-                  </span>
-                  <ChevronRight
-                    size={16}
-                    className="shrink-0 text-[var(--theme-text-tertiary)] opacity-60 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100"
-                  />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleStartSystemAudio}
-                  className={`group flex min-h-14 items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-[var(--theme-text-primary)] transition-colors hover:bg-[var(--theme-bg-primary)]/80 ${FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS}`}
-                >
-                  <span className="flex min-w-0 flex-col">
-                    <span className="text-sm font-medium">{t('audioRecorderRecordSystemAudio')}</span>
-                    <span className="text-xs text-[var(--theme-text-tertiary)]">
-                      {t('audioRecorderSystemAudioAndMic')}
-                    </span>
-                  </span>
-                  <ChevronRight
-                    size={16}
-                    className="shrink-0 text-[var(--theme-text-tertiary)] opacity-60 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100"
-                  />
-                </button>
-                <p className="px-3 pb-1.5 pt-1 text-xs leading-5 text-[var(--theme-text-tertiary)]">
-                  {t('audioRecorderBrowserPermissionRequired')}
-                </p>
-              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleStartMicrophone}
+                className={`group flex min-h-14 w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-[var(--theme-text-primary)] transition-colors hover:bg-[var(--theme-bg-primary)]/80 ${FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS}`}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <Mic size={16} className="shrink-0 text-[var(--theme-text-tertiary)]" />
+                  <span className="text-sm font-medium">{t('audioRecorderRecordMicrophone')}</span>
+                </span>
+                <ChevronRight
+                  size={16}
+                  className="shrink-0 text-[var(--theme-text-tertiary)] opacity-60 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100"
+                />
+              </button>
             )}
           </div>
         )}

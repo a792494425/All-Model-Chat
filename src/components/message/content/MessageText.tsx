@@ -20,8 +20,8 @@ import {
 } from './userMessageCollapse';
 import { resolveLiveArtifactsFontSize } from '@/utils/live-artifacts/liveArtifactsFontSize';
 import { isLiveArtifactsModeFromSettings } from '@/utils/live-artifacts/liveArtifactsMode';
-import { parsePdfLocateMarkers } from '@/utils/pdf-nav/locateMarker';
-import { PdfLocateChips } from '@/components/pdf-nav/PdfLocateChip';
+import { parseLocateMarkers } from '@/utils/media-nav/locateMarker';
+import { LocateChips } from '@/components/media-nav/LocateChips';
 import { useChatStore } from '@/stores/chatStore';
 
 interface MessageTextProps {
@@ -72,8 +72,8 @@ export const MessageText: React.FC<MessageTextProps> = ({
   const locateExtraction = useMemo(
     () =>
       message.role === 'model'
-        ? parsePdfLocateMarkers(rawThinkingExtraction.content)
-        : { cleanContent: rawThinkingExtraction.content, locates: [] },
+        ? parseLocateMarkers(rawThinkingExtraction.content)
+        : { cleanContent: rawThinkingExtraction.content, pdfLocates: [], videoLocates: [] },
     [rawThinkingExtraction.content, message.role],
   );
   const effectiveContent = locateExtraction.cleanContent;
@@ -254,7 +254,13 @@ export const MessageText: React.FC<MessageTextProps> = ({
         </div>
       ) : null}
 
-      {message.role === 'model' && <PdfLocateChips messageId={message.id} locates={locateExtraction.locates} />}
+      {message.role === 'model' && (
+        <LocateChips
+          messageId={message.id}
+          pdfLocates={locateExtraction.pdfLocates}
+          videoLocates={locateExtraction.videoLocates}
+        />
+      )}
     </>
   );
 };

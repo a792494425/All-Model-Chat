@@ -4,7 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { SUGGESTIONS_KEYS } from '@/constants/welcomeSuggestions';
 import { SUGGESTION_CHIP_ACTIVE_CLASS, SUGGESTION_CHIP_CLASS } from '@/constants/designTokens';
 import { SuggestionIcon } from './SuggestionIcon';
-import { PdfNavChip } from './PdfNavChip';
+import { NavChip } from './NavChip';
 import { type translations } from '@/i18n/translations';
 
 /** Scroll-arrow chrome shared by both directions. */
@@ -27,11 +27,6 @@ const suggestionFadeClass = (fadeLeft: boolean, fadeRight: boolean): string => {
   return '';
 };
 
-/** Trailing state dot — separates toggle chips (BBox / Guide) from one-shot actions. */
-const SuggestionToggleDot = () => (
-  <span aria-hidden="true" className="h-1 w-1 flex-shrink-0 rounded-full bg-current opacity-50" />
-);
-
 interface ChatSuggestionsProps {
   show: boolean;
   onSuggestionClick?: (suggestion: string) => void;
@@ -42,6 +37,8 @@ interface ChatSuggestionsProps {
   isGuideModeActive?: boolean;
   onTogglePdfNav?: () => void;
   isPdfNavEnabled?: boolean;
+  onToggleVideoNav?: () => void;
+  isVideoNavEnabled?: boolean;
   isFullscreen: boolean;
 }
 
@@ -55,6 +52,8 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
   isGuideModeActive,
   onTogglePdfNav,
   isPdfNavEnabled,
+  onToggleVideoNav,
+  isVideoNavEnabled,
   isFullscreen,
 }) => {
   const { t } = useI18n();
@@ -129,9 +128,8 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
                     aria-pressed={!!isBBoxModeActive}
                     title={t('bboxButtonTitle')}
                   >
-                    <SuggestionIcon iconName="Scan" />
+                    <SuggestionIcon iconName="BoxSelect" />
                     <span>{t('bboxButtonShort')}</span>
-                    <SuggestionToggleDot />
                   </button>
                 )}
                 {onToggleGuide && (
@@ -145,10 +143,30 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
                   >
                     <SuggestionIcon iconName="MousePointer2" />
                     <span>{t('guideButtonShort')}</span>
-                    <SuggestionToggleDot />
                   </button>
                 )}
-                {onTogglePdfNav && <PdfNavChip isPdfNavEnabled={!!isPdfNavEnabled} onToggle={onTogglePdfNav} />}
+                {onTogglePdfNav && (
+                  <NavChip
+                    iconName="Pdf"
+                    labelKey="pdfNavLabel"
+                    missingHintKey="pdfNavNoPdfHint"
+                    mediaKind="pdf"
+                    isEnabled={!!isPdfNavEnabled}
+                    onToggle={onTogglePdfNav}
+                    testId="pdf-nav-chip"
+                  />
+                )}
+                {onToggleVideoNav && (
+                  <NavChip
+                    iconName="Clapperboard"
+                    labelKey="videoNavChipLabel"
+                    missingHintKey="videoNavNoVideoHint"
+                    mediaKind="video"
+                    isEnabled={!!isVideoNavEnabled}
+                    onToggle={onToggleVideoNav}
+                    testId="video-nav-chip"
+                  />
+                )}
               </>
             )}
           </React.Fragment>

@@ -40,17 +40,15 @@ describe('promptRegistry', () => {
   });
 
   it('keeps Live Artifacts prompts independent from the current page theme', async () => {
-    const zhDefaultPrompt = await loadLiveArtifactsSystemPrompt('zh', 'inline');
-    const zhDarkPrompt = await loadLiveArtifactsSystemPrompt('zh', 'inline', 'dark');
-    const enLightPrompt = await loadLiveArtifactsSystemPrompt('en', 'inline', 'light');
+    const zhPrompt = await loadLiveArtifactsSystemPrompt('zh', 'inline');
+    const enPrompt = await loadLiveArtifactsSystemPrompt('en', 'inline');
 
-    expect(zhDarkPrompt).toBe(zhDefaultPrompt);
-    expect(zhDarkPrompt).not.toContain('当前页面主题');
-    expect(zhDarkPrompt).not.toContain('深色主题');
-    expect(zhDarkPrompt).not.toContain('color-scheme: dark');
-    expect(enLightPrompt).not.toContain('Current Page Theme');
-    expect(enLightPrompt).not.toContain('light theme');
-    expect(enLightPrompt).not.toContain('color-scheme: light');
+    expect(zhPrompt).not.toContain('当前页面主题');
+    expect(zhPrompt).not.toContain('深色主题');
+    expect(zhPrompt).not.toContain('color-scheme: dark');
+    expect(enPrompt).not.toContain('Current Page Theme');
+    expect(enPrompt).not.toContain('light theme');
+    expect(enPrompt).not.toContain('color-scheme: light');
   });
 
   it('emphasizes HTML artifacts instead of traditional Markdown output', async () => {

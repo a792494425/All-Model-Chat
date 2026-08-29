@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, ArrowDown } from 'lucide-react';
-import type { PdfNavHighlight } from '@/stores/pdfNavStore';
+import type { PdfNavHighlight } from '@/stores/mediaNavStore';
 
 /**
  * Visual-grounding overlay rendered on top of a single PDF page.

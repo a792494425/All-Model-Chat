@@ -1,6 +1,12 @@
 import { createChatHistoryForApi } from '@/utils/chat/builder';
-import { buildPdfLocateDirective } from '@/utils/pdf-nav/locateMarker';
-import { collectSessionPdfFiles, isPdfFile, partsContainPdf } from '@/utils/pdf-nav/sessionPdfFiles';
+import { buildPdfLocateDirective, buildVideoLocateDirective } from '@/utils/media-nav/locateMarker';
+import {
+  collectSessionMediaFiles,
+  isPdfFile,
+  isVideoFile,
+  partsContainPdf,
+  partsContainVideo,
+} from '@/utils/media-nav/sessionMediaFiles';
 import { toError } from '@/utils/errorMessage';
 import { createMessage } from '@/utils/chat/session';
 import { isServerCodeExecutionMode } from '@/utils/codeExecution';
@@ -164,21 +170,31 @@ export const performStandardChatApiCall = async ({
     alwaysKeepThinking,
   );
 
-  // PDF Locate Protocol: augment the system instruction (all providers take it
-  // as plain text) when the preset is on and any PDF rides with this turn or
-  // the conversation history.
-  const pdfLocateDirective =
-    sessionToUpdate.isPdfNavEnabled &&
-    (enrichedFiles.some(isPdfFile) ||
-      partsContainPdf(finalParts) ||
-      baseMessagesForApi.some((message) => message.files?.some(isPdfFile)))
-      ? buildPdfLocateDirective(collectSessionPdfFiles(enrichedFiles, baseMessagesForApi).map((file) => file.name))
-      : '';
-  const effectiveSystemInstruction = pdfLocateDirective
-    ? sessionToUpdate.systemInstruction
-      ? `${sessionToUpdate.systemInstruction}\n\n${pdfLocateDirective}`
-      : pdfLocateDirective
-    : sessionToUpdate.systemInstruction;
+  // Media Locate Protocols: augment the system instruction (all providers take
+  // it as plain text) when the preset is on and the matching media rides with
+  // this turn or the conversation history. PDF and video directives are
+  // injected independently.
+  const hasPdfMedia =
+    enrichedFiles.some(isPdfFile) ||
+    partsContainPdf(finalParts) ||
+    baseMessagesForApi.some((message) => message.files?.some(isPdfFile));
+  const hasVideoMedia =
+    enrichedFiles.some(isVideoFile) ||
+    partsContainVideo(finalParts) ||
+    baseMessagesForApi.some((message) => message.files?.some(isVideoFile));
+  const { pdfs, videos } = collectSessionMediaFiles(enrichedFiles, baseMessagesForApi);
+  const locateDirectives = [
+    sessionToUpdate.isPdfNavEnabled && hasPdfMedia ? buildPdfLocateDirective(pdfs.map((file) => file.name)) : '',
+    sessionToUpdate.isVideoNavEnabled && hasVideoMedia
+      ? buildVideoLocateDirective(videos.map((file) => file.name))
+      : '',
+  ].filter(Boolean);
+  const effectiveSystemInstruction =
+    locateDirectives.length > 0
+      ? sessionToUpdate.systemInstruction
+        ? `${sessionToUpdate.systemInstruction}\n\n${locateDirectives.join('\n\n')}`
+        : locateDirectives.join('\n\n')
+      : sessionToUpdate.systemInstruction;
 
   const { streamOnError, streamOnComplete, streamOnPart, onThoughtChunk } = getStreamHandlers(
     finalSessionId,

@@ -4,7 +4,7 @@ import { usePdfViewer } from '@/hooks/ui/usePdfViewer';
 import { PdfSidebar } from './pdf-viewer/PdfSidebar';
 import { PdfMainContent } from './pdf-viewer/PdfMainContent';
 import { PdfToolbar } from './pdf-viewer/PdfToolbar';
-import type { PdfNavHighlight } from '@/stores/pdfNavStore';
+import type { PdfNavHighlight } from '@/stores/mediaNavStore';
 
 interface PdfViewerProps {
   file: UploadedFile;
