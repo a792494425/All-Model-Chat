@@ -173,9 +173,14 @@ describe('normalizeThinkingLevelForModel', () => {
     expect(normalizeThinkingLevelForModel('models/gemini-3-pro-preview', 'MINIMAL')).toBe('LOW');
   });
 
+  it('maps MINIMAL to LOW for gemini-3.7-flash, whose model card rejects minimal', () => {
+    expect(normalizeThinkingLevelForModel('gemini-3.7-flash', 'MINIMAL')).toBe('LOW');
+  });
+
   it('keeps MINIMAL for Gemini 3 Flash models', () => {
     expect(normalizeThinkingLevelForModel('gemini-3-flash-preview', 'MINIMAL')).toBe('MINIMAL');
     expect(normalizeThinkingLevelForModel('gemini-3.5-flash-lite', 'MINIMAL')).toBe('MINIMAL');
+    expect(normalizeThinkingLevelForModel('gemini-3.6-flash', 'MINIMAL')).toBe('MINIMAL');
   });
 });
 

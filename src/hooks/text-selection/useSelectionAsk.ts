@@ -106,7 +106,6 @@ export function useSelectionAsk() {
           modelId: apiModelId,
           aspectRatio: '1:1',
           imageOutputMode: 'IMAGE_TEXT' as const,
-          personGeneration: 'ALLOW_ADULT' as const,
           isLocalPythonEnabled: false,
         });
         // Strip tools if any

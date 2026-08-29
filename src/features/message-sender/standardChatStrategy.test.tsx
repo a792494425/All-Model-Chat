@@ -381,7 +381,6 @@ describe('standardChatStrategy', () => {
         imageSize: '1K',
         isLocalPythonEnabled: true,
         imageOutputMode: 'IMAGE_TEXT',
-        personGeneration: 'ALLOW_ADULT',
       }),
     );
 
@@ -748,7 +747,6 @@ describe('standardChatStrategy', () => {
         imageSize: '1K',
         isLocalPythonEnabled: false,
         imageOutputMode: 'IMAGE_TEXT',
-        personGeneration: 'ALLOW_ADULT',
       }),
     );
     expect(mockRunStandardToolLoop).not.toHaveBeenCalled();

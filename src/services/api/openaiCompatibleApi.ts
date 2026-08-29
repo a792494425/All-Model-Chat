@@ -2,6 +2,7 @@ import type { UsageMetadata } from '@google/genai';
 import type { ModelOption, NonStreamMessageSender, StreamMessageSender } from '@/types';
 import { buildOpenAICompatibleRequestBody } from './openaiCompatibleMessages';
 import {
+  extractOpenAICompatibleFinishReason,
   extractOpenAICompatibleMessageText,
   extractOpenAICompatibleReasoningDelta,
   extractOpenAICompatibleReasoningText,
@@ -23,6 +24,10 @@ import {
 const openAiCompatibleAuthHeaders = (apiKey: string): Record<string, string> => ({
   authorization: `Bearer ${apiKey}`,
 });
+
+const TRUNCATION_NOTICE = '\n\n[Output truncated: the response hit max_tokens (finish_reason: length).]';
+
+const appendTruncationNotice = (text: string): string => `${text}${TRUNCATION_NOTICE}`;
 
 const { createRequestInit, createGetRequestInit } = createApiRequestInitFactory(openAiCompatibleAuthHeaders);
 
@@ -69,9 +74,17 @@ export const sendOpenAICompatibleMessageNonStream: NonStreamMessageSender = asyn
     onError,
     onComplete,
     toCompletionArgs: (payload) => {
+      const finishReason = extractOpenAICompatibleFinishReason(payload);
       const text = extractOpenAICompatibleMessageText(payload);
+
+      // Mirror the Gemini-native line's finishReason handling: a filtered
+      // response with no content is an error, not a silent empty answer.
+      if (finishReason === 'content_filter' && !text) {
+        throw new Error('The model returned no content because generation was filtered (finish_reason: content_filter).');
+      }
+
       return [
-        text ? [{ text }] : [],
+        text ? [{ text: finishReason === 'length' ? appendTruncationNotice(text) : text }] : [],
         extractOpenAICompatibleReasoningText(payload),
         mapOpenAICompatibleUsage(payload.usage),
       ];
@@ -112,7 +125,24 @@ export const sendOpenAICompatibleMessageStream: StreamMessageSender = async (
     onError,
     onComplete,
     readStream: async (response) => {
+      // The SSE reader swallows exceptions thrown from its event callback (it
+      // treats them as malformed events), so a filtered finish_reason is
+      // captured here and thrown after the loop — that lands in
+      // executeStreamChatRequest's catch → onError, like the Gemini line.
+      let contentFiltered = false;
+      let truncationNoticeSent = false;
+
       await readOpenAICompatibleStreamEvents(response, abortSignal, (payload) => {
+        const finishReason = extractOpenAICompatibleFinishReason(payload);
+        if (finishReason === 'content_filter') {
+          contentFiltered = true;
+        }
+
+        if (finishReason === 'length' && !truncationNoticeSent) {
+          truncationNoticeSent = true;
+          onPart({ text: TRUNCATION_NOTICE });
+        }
+
         const reasoningContent = extractOpenAICompatibleReasoningDelta(payload);
         if (reasoningContent) {
           onThoughtChunk(reasoningContent);
@@ -128,6 +158,10 @@ export const sendOpenAICompatibleMessageStream: StreamMessageSender = async (
           finalUsage = usage;
         }
       });
+
+      if (contentFiltered) {
+        throw new Error('The model returned no content because generation was filtered (finish_reason: content_filter).');
+      }
       return finalUsage;
     },
   });

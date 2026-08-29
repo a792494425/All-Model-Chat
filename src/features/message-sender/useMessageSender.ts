@@ -6,7 +6,6 @@ import {
   type UploadedFile,
   type ChatSettings as IndividualChatSettings,
   type ImageOutputMode,
-  type ImagePersonGeneration,
 } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { logService } from '@/services/logService';
@@ -47,7 +46,6 @@ interface MessageSenderProps {
   aspectRatio: string;
   imageSize?: string;
   imageOutputMode: ImageOutputMode;
-  personGeneration: ImagePersonGeneration;
   userScrolledUpRef: MutableRefObject<boolean>;
   activeSessionId: string | null;
   sessionKeyMapRef: MutableRefObject<Map<string, string>>;
@@ -68,7 +66,6 @@ export const useMessageSender = (props: MessageSenderProps) => {
     aspectRatio,
     imageSize,
     imageOutputMode,
-    personGeneration,
     userScrolledUpRef,
     activeSessionId,
     sessionKeyMapRef,
@@ -326,7 +323,6 @@ export const useMessageSender = (props: MessageSenderProps) => {
           aspectRatio,
           imageSize,
           imageOutputMode,
-          personGeneration,
           shouldLockKey,
           updateAndPersistSessions,
           setActiveSessionId,
@@ -347,7 +343,6 @@ export const useMessageSender = (props: MessageSenderProps) => {
           aspectRatio,
           imageSize,
           imageOutputMode,
-          personGeneration,
           userScrolledUpRef,
           activeSessionId,
           sessionKeyMapRef,
@@ -377,7 +372,6 @@ export const useMessageSender = (props: MessageSenderProps) => {
       aspectRatio,
       imageSize,
       imageOutputMode,
-      personGeneration,
       userScrolledUpRef,
       activeSessionId,
       sessionKeyMapRef,

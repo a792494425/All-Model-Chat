@@ -48,7 +48,6 @@ export const resetChatStoreState = () => {
     aspectRatio: initialChatState.aspectRatio,
     imageSize: initialChatState.imageSize,
     imageOutputMode: initialChatState.imageOutputMode,
-    personGeneration: initialChatState.personGeneration,
     isSwitchingModel: initialChatState.isSwitchingModel,
     _activeJobs: initialChatState._activeJobs,
     _userScrolledUp: initialChatState._userScrolledUp,

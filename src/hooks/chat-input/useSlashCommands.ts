@@ -209,8 +209,12 @@ export const useSlashCommands = ({
             return { name, description, icon, action: onTogglePip };
           case 'fast': {
             const capabilities = getCachedModelCapabilities(currentModelId);
+            // gemini-3.7-flash rejects MINIMAL with an API error — fall back to LOW there.
             const targetLevel =
-              capabilities.isGemini3FlashModel || capabilities.isGeminiRoboticsModel ? 'MINIMAL' : 'LOW';
+              (capabilities.isGemini3FlashModel || capabilities.isGeminiRoboticsModel) &&
+              capabilities.supportsMinimalThinkingLevel
+                ? 'MINIMAL'
+                : 'LOW';
             const isActive = thinkingLevel === targetLevel;
             return {
               name,

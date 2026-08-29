@@ -43,7 +43,6 @@ export const useChat = (
   const aspectRatio = useChatStore((state) => state.aspectRatio);
   const imageSize = useChatStore((state) => state.imageSize);
   const imageOutputMode = useChatStore((state) => state.imageOutputMode);
-  const personGeneration = useChatStore((state) => state.personGeneration);
   const isSwitchingModel = useChatStore((state) => state.isSwitchingModel);
 
   const setActiveSessionId = useChatStore((state) => state.setActiveSessionId);
@@ -153,7 +152,6 @@ export const useChat = (
     aspectRatio,
     imageSize,
     imageOutputMode,
-    personGeneration,
     userScrolledUpRef,
     activeSessionId,
     sessionKeyMapRef,

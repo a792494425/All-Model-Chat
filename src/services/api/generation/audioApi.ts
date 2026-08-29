@@ -359,7 +359,9 @@ export const transcribeAudioApi = async (
         audioTranscriptionConfig.wordTimestamp = true;
       }
       if (options?.speakerLabels) {
-        audioTranscriptionConfig.speakerLabels = true;
+        // The v1beta reference names this field `diarization` (AudioTranscriptionConfig);
+        // `speakerLabels` is not part of the documented schema.
+        audioTranscriptionConfig.diarization = true;
       }
       if (customVocabList.length > 0) {
         audioTranscriptionConfig.customVocabulary = customVocabList;

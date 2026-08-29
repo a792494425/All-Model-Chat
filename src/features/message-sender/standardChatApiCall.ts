@@ -1,9 +1,15 @@
 import { createChatHistoryForApi } from '@/utils/chat/builder';
-import { buildPdfLocateDirective, buildVideoLocateDirective } from '@/utils/media-nav/locateMarker';
+import {
+  buildAudioLocateDirective,
+  buildPdfLocateDirective,
+  buildVideoLocateDirective,
+} from '@/utils/media-nav/locateMarker';
 import {
   collectSessionMediaFiles,
+  isAudioFile,
   isPdfFile,
   isVideoFile,
+  partsContainAudio,
   partsContainPdf,
   partsContainVideo,
 } from '@/utils/media-nav/sessionMediaFiles';
@@ -66,7 +72,6 @@ interface StandardChatApiCallContext {
   aspectRatio: string;
   imageSize?: string;
   imageOutputMode: StandardChatProps['imageOutputMode'];
-  personGeneration: StandardChatProps['personGeneration'];
   resolveTurn: typeof resolveStandardChatTurn;
 }
 
@@ -121,7 +126,6 @@ export const performStandardChatApiCall = async ({
   aspectRatio,
   imageSize,
   imageOutputMode,
-  personGeneration,
   resolveTurn,
   finalSessionId,
   generationId,
@@ -182,11 +186,18 @@ export const performStandardChatApiCall = async ({
     enrichedFiles.some(isVideoFile) ||
     partsContainVideo(finalParts) ||
     baseMessagesForApi.some((message) => message.files?.some(isVideoFile));
-  const { pdfs, videos } = collectSessionMediaFiles(enrichedFiles, baseMessagesForApi);
+  const hasAudioMedia =
+    enrichedFiles.some(isAudioFile) ||
+    partsContainAudio(finalParts) ||
+    baseMessagesForApi.some((message) => message.files?.some(isAudioFile));
+  const { pdfs, videos, audios } = collectSessionMediaFiles(enrichedFiles, baseMessagesForApi);
   const locateDirectives = [
     sessionToUpdate.isPdfNavEnabled && hasPdfMedia ? buildPdfLocateDirective(pdfs.map((file) => file.name)) : '',
     sessionToUpdate.isVideoNavEnabled && hasVideoMedia
       ? buildVideoLocateDirective(videos.map((file) => file.name))
+      : '',
+    sessionToUpdate.isAudioNavEnabled && hasAudioMedia
+      ? buildAudioLocateDirective(audios.map((file) => file.name))
       : '',
   ].filter(Boolean);
   const effectiveSystemInstruction =
@@ -387,7 +398,6 @@ export const performStandardChatApiCall = async ({
     imageSize,
     isLocalPythonEnabled: isLocalPythonEnabledForTurn,
     imageOutputMode,
-    personGeneration,
   });
 
   const requestConfig = appendFunctionDeclarationsToTools(apiModelId, config, [

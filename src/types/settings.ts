@@ -46,7 +46,6 @@ export enum MediaResolution {
 }
 
 export type ImageOutputMode = 'IMAGE_TEXT' | 'IMAGE_ONLY';
-export type ImagePersonGeneration = 'ALLOW_ADULT' | 'ALLOW_ALL' | 'DONT_ALLOW';
 /** All valid API modes — used for both type checking and runtime validation. */
 export const API_MODES = ['gemini-native', 'third-party'] as const;
 export type ApiMode = (typeof API_MODES)[number];
@@ -189,6 +188,8 @@ export interface ChatSettings {
   isPdfNavEnabled?: boolean;
   /** Video navigation preset (AI timestamp-locate + side player). */
   isVideoNavEnabled?: boolean;
+  /** Audio navigation preset (AI timestamp-locate + side player). */
+  isAudioNavEnabled?: boolean;
   /** Unified media navigation preset (PDF + Video). */
   isMediaNavEnabled?: boolean;
   isRawModeEnabled?: boolean;

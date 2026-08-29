@@ -109,8 +109,11 @@ export const ThinkingSpeedControl: React.FC = () => {
   if (isImageThinkingLevelOnly) {
     supportedLevels = ['MINIMAL', 'HIGH'];
   } else if (supportsThinkingLevel) {
-    if (isFlash3 || isRobotics) supportedLevels = ['MINIMAL', 'LOW', 'MEDIUM', 'HIGH'];
-    else supportedLevels = ['LOW', 'MEDIUM', 'HIGH'];
+    // gemini-3.7-flash rejects MINIMAL with an API error — only offer it where supported.
+    supportedLevels =
+      (isFlash3 || isRobotics) && activeCapabilities.supportsMinimalThinkingLevel
+        ? ['MINIMAL', 'LOW', 'MEDIUM', 'HIGH']
+        : ['LOW', 'MEDIUM', 'HIGH'];
   } else {
     supportedLevels = [];
   }

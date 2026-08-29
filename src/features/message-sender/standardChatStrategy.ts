@@ -43,7 +43,6 @@ export const sendStandardMessage = async ({
     aspectRatio,
     imageSize,
     imageOutputMode,
-    personGeneration,
     userScrolledUpRef,
     activeSessionId,
     setActiveSessionId,
@@ -56,7 +55,9 @@ export const sendStandardMessage = async ({
 
   if (isFastMode) {
     const capabilities = getModelCapabilities(effectiveActiveModelId);
-    const targetLevel = capabilities.isGemini3FlashModel ? 'MINIMAL' : 'LOW';
+    // gemini-3.7-flash rejects MINIMAL with an API error — fall back to LOW there.
+    const targetLevel =
+      capabilities.isGemini3FlashModel && capabilities.supportsMinimalThinkingLevel ? 'MINIMAL' : 'LOW';
 
     settingsForApi.thinkingLevel = targetLevel;
     settingsForApi.thinkingBudget = 0;
@@ -140,7 +141,6 @@ export const sendStandardMessage = async ({
         aspectRatio,
         imageSize,
         imageOutputMode,
-        personGeneration,
         resolveTurn: resolveStandardChatTurn,
         finalSessionId: turn.finalSessionId,
         generationId,

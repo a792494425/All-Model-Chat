@@ -30,6 +30,8 @@ export type OpenAIUsage = {
 };
 
 export type OpenAIChoice = {
+  finish_reason?: string;
+  finishReason?: string;
   message?: {
     content?: string | Array<{ text?: string }>;
     reasoning_content?: string;

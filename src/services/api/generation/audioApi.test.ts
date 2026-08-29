@@ -290,4 +290,12 @@ describe('transcribeAudioApi request config', () => {
     expect(call.contents.parts[0].text).toContain('Custom vocabulary: term0, term1, term2');
     expect(call.contents.parts[0].text).not.toContain('term1000');
   });
+
+  it('sends speaker diarization as the documented `diarization` field', async () => {
+    await transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe', { speakerLabels: true });
+
+    const config = generateContentMock.mock.calls[0][0].config;
+    expect(config.audioTranscriptionConfig.diarization).toBe(true);
+    expect(config.audioTranscriptionConfig.speakerLabels).toBeUndefined();
+  });
 });

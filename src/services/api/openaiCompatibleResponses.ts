@@ -1,5 +1,12 @@
 import type { OpenAIResponsePayload } from './openaiCompatibleTypes';
 
+// The OpenAI spec writes finish_reason in snake_case, but some compatible
+// providers camelCase it; read both.
+export const extractOpenAICompatibleFinishReason = (payload: OpenAIResponsePayload): string | undefined => {
+  const choice = payload.choices?.[0];
+  return choice?.finish_reason ?? choice?.finishReason;
+};
+
 export const extractOpenAICompatibleMessageText = (payload: OpenAIResponsePayload): string => {
   const content = payload.choices?.[0]?.message?.content;
 

@@ -7,7 +7,6 @@ import {
   type SavedChatSession,
   type UploadedFile,
   type ImageOutputMode,
-  type ImagePersonGeneration,
 } from '@/types';
 import type { Part, UsageMetadata } from '@google/genai';
 import type { getTranslator } from '@/i18n/translations';
@@ -69,7 +68,6 @@ export interface StandardChatProps extends BaseSenderProps {
   aspectRatio: string;
   imageSize?: string;
   imageOutputMode: ImageOutputMode;
-  personGeneration: ImagePersonGeneration;
   userScrolledUpRef: MutableRefObject<boolean>;
   activeSessionId: string | null;
   setActiveSessionId: (id: string | null) => void;

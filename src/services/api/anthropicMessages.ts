@@ -117,6 +117,10 @@ export const buildAnthropicRequestBody = (
     const budgetTokens = Math.max(ANTHROPIC_MIN_THINKING_BUDGET, config.thinkingBudget);
     body.thinking = { type: 'enabled', budget_tokens: budgetTokens };
     body.max_tokens = budgetTokens + ANTHROPIC_OUTPUT_TOKENS;
+    // Anthropic rejects modified sampling while thinking is enabled (temperature
+    // must stay 1, top_p must be omitted) — drop both instead of failing the request.
+    delete body.temperature;
+    delete body.top_p;
   }
 
   return body;

@@ -6,7 +6,6 @@ import {
   type ChatSettings as IndividualChatSettings,
   type UploadedFile,
   type ImageOutputMode,
-  type ImagePersonGeneration,
 } from '@/types';
 import { editImageApi } from '@/services/api/generation/imageEditApi';
 import { logService } from '@/services/logService';
@@ -58,7 +57,6 @@ interface SendImageEditMessageParams {
   aspectRatio: string;
   imageSize: string | undefined;
   imageOutputMode: ImageOutputMode;
-  personGeneration: ImagePersonGeneration;
   shouldLockKey?: boolean;
   updateAndPersistSessions: SessionsUpdater;
   setActiveSessionId: (id: string | null) => void;
@@ -80,7 +78,6 @@ export const sendImageEditMessage = async ({
   aspectRatio,
   imageSize,
   imageOutputMode,
-  personGeneration,
   shouldLockKey,
   updateAndPersistSessions,
   setActiveSessionId,
@@ -155,7 +152,6 @@ export const sendImageEditMessage = async ({
             isDeepSearchEnabled: !!currentChatSettings.isDeepSearchEnabled,
             safetySettings: currentChatSettings.safetySettings,
             imageOutputMode,
-            personGeneration,
           },
         );
 

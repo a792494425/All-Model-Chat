@@ -30,7 +30,6 @@ const mockChatStoreState = vi.hoisted(() => ({
   aspectRatio: '1:1',
   imageSize: '1K',
   imageOutputMode: 'IMAGE_TEXT',
-  personGeneration: 'ALLOW_ADULT',
   loadingSessionIds: new Set<string>(),
   setSelectedFiles: vi.fn((value: unknown[] | ((previous: unknown[]) => unknown[])) => {
     mockChatStoreState.selectedFiles =
@@ -55,9 +54,6 @@ const mockChatStoreState = vi.hoisted(() => ({
   }),
   setImageOutputMode: vi.fn((value: string) => {
     mockChatStoreState.imageOutputMode = value;
-  }),
-  setPersonGeneration: vi.fn((value: string) => {
-    mockChatStoreState.personGeneration = value;
   }),
   setCurrentChatSettings: vi.fn(),
 }));

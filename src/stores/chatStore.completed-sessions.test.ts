@@ -83,7 +83,6 @@ describe('chatStore completedSessions', () => {
       aspectRatio: '1:1',
       imageSize: '1K',
       imageOutputMode: 'IMAGE_TEXT',
-      personGeneration: 'ALLOW_ADULT',
       isSwitchingModel: false,
       completedSessions: {},
     });

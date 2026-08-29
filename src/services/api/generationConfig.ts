@@ -10,7 +10,6 @@ import {
   MediaResolution,
   type ChatSettings,
   type ImageOutputMode,
-  type ImagePersonGeneration,
   type SafetySetting,
   type ThinkingLevel,
 } from '@/types';
@@ -76,7 +75,6 @@ interface BuildGenerationConfigOptions {
   imageSize?: string;
   isLocalPythonEnabled?: boolean;
   imageOutputMode?: ImageOutputMode;
-  personGeneration?: ImagePersonGeneration;
 }
 
 type InternalBuildGenerationConfigOptions = {
@@ -97,7 +95,6 @@ type InternalBuildGenerationConfigOptions = {
   mediaResolution?: MediaResolution;
   isLocalPythonEnabled?: boolean;
   imageOutputMode?: ImageOutputMode;
-  personGeneration?: ImagePersonGeneration;
 };
 
 const buildGoogleSearchToolForModel = (modelId: string): Tool =>
@@ -147,7 +144,6 @@ const toInternalBuildGenerationConfigOptions = (
     mediaResolution: settings.mediaResolution,
     isLocalPythonEnabled: options.isLocalPythonEnabled ?? settings.isLocalPythonEnabled,
     imageOutputMode: options.imageOutputMode,
-    personGeneration: options.personGeneration,
   };
 };
 

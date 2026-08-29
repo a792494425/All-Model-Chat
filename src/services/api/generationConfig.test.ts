@@ -43,7 +43,6 @@ type LegacyGenerationConfigTestOptions = {
   mediaResolution?: MediaResolution;
   isLocalPythonEnabled?: boolean;
   imageOutputMode?: 'IMAGE_TEXT' | 'IMAGE_ONLY';
-  personGeneration?: 'ALLOW_ADULT' | 'ALLOW_ALL' | 'DONT_ALLOW';
 };
 
 const buildGenerationConfig = (
@@ -64,7 +63,6 @@ const buildGenerationConfig = (
   mediaResolution?: MediaResolution,
   isLocalPythonEnabled?: boolean,
   imageOutputMode?: 'IMAGE_TEXT' | 'IMAGE_ONLY',
-  personGeneration?: 'ALLOW_ADULT' | 'ALLOW_ALL' | 'DONT_ALLOW',
 ) => {
   if (typeof optionsOrModelId === 'object' && 'settings' in optionsOrModelId) {
     return buildGenerationConfigFromSettings(optionsOrModelId);
@@ -89,7 +87,6 @@ const buildGenerationConfig = (
           mediaResolution,
           isLocalPythonEnabled,
           imageOutputMode,
-          personGeneration,
         }
       : optionsOrModelId;
 
@@ -120,7 +117,6 @@ const buildGenerationConfig = (
     imageSize: options.imageSize,
     isLocalPythonEnabled: options.isLocalPythonEnabled,
     imageOutputMode: options.imageOutputMode,
-    personGeneration: options.personGeneration,
   });
 };
 
@@ -354,7 +350,6 @@ describe('buildGenerationConfig', () => {
         mediaResolution?: unknown,
         isLocalPythonEnabled?: boolean,
         imageOutputMode?: string,
-        personGeneration?: string,
       ) => Promise<any>
     )(
       'gemini-3.1-flash-image-preview',
@@ -373,7 +368,6 @@ describe('buildGenerationConfig', () => {
       undefined,
       false,
       'IMAGE_ONLY',
-      'ALLOW_ADULT',
     );
 
     expect(config.responseModalities).toEqual(['IMAGE']);
@@ -399,53 +393,6 @@ describe('buildGenerationConfig', () => {
 
     expect(config.imageConfig).not.toHaveProperty('aspectRatio');
     expect(config.imageConfig!.imageSize).toBe('1K');
-  });
-
-  it('omits unsupported personGeneration for Gemini 2.5 image config', async () => {
-    const config = await (
-      buildGenerationConfig as unknown as (
-        modelId: string,
-        systemInstruction: string,
-        config: typeof baseConfig,
-        showThoughts: boolean,
-        thinkingBudget: number,
-        isGoogleSearchEnabled?: boolean,
-        isCodeExecutionEnabled?: boolean,
-        isUrlContextEnabled?: boolean,
-        thinkingLevel?: ThinkingLevel,
-        aspectRatio?: string,
-        isDeepSearchEnabled?: boolean,
-        imageSize?: string,
-        safetySettings?: unknown,
-        mediaResolution?: unknown,
-        isLocalPythonEnabled?: boolean,
-        imageOutputMode?: string,
-        personGeneration?: string,
-      ) => Promise<any>
-    )(
-      'gemini-2.5-flash-image',
-      'sys',
-      baseConfig,
-      false,
-      0,
-      false,
-      false,
-      false,
-      undefined,
-      '16:9',
-      false,
-      undefined,
-      undefined,
-      undefined,
-      false,
-      'IMAGE_TEXT',
-      'DONT_ALLOW',
-    );
-
-    expect(config.responseModalities).toEqual(['IMAGE', 'TEXT']);
-    expect(config.imageConfig).toEqual({
-      aspectRatio: '16:9',
-    });
   });
 
   it('includes thinkingConfig for Gemini 3 models', async () => {

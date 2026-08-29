@@ -18,6 +18,14 @@ export const isGemmaModel = (modelId: string): boolean => !!modelId && modelId.t
 export const isGeminiRoboticsModel = (modelId: string): boolean =>
   !!modelId && modelId.toLowerCase().includes('gemini-robotics-er');
 
+/**
+ * gemini-3.7-flash is the only Gemini 3 Flash model whose documented thinking
+ * levels are low/medium/high — "minimal is not supported and returns an error"
+ * (gemini-3.7-flash model card). 3.5/3.6 Flash and 3.5 Flash-Lite do accept MINIMAL.
+ */
+export const isGemini37FlashModel = (modelId: string): boolean =>
+  !!modelId && modelId.toLowerCase().includes('gemini-3.7-flash');
+
 export const isLiveTranslateModel = (modelId: string): boolean =>
   !!modelId && modelId.toLowerCase().includes('live-translate');
 
@@ -124,6 +132,7 @@ export interface ModelCapabilities {
   isGemini31FlashLiveModel: boolean;
   isGemini31FlashImageModel: boolean;
   isGeminiRoboticsModel: boolean;
+  supportsMinimalThinkingLevel: boolean;
   isGemini3ImageModel: boolean;
   isFlashImageModel: boolean;
   isImageGenerationModel: boolean;
@@ -221,6 +230,7 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
     isGemini31FlashLiveModel: gemini31FlashLiveModel,
     isGemini31FlashImageModel: isGemini31FlashImageModel(modelId),
     isGeminiRoboticsModel: roboticsModel,
+    supportsMinimalThinkingLevel: !isGemini3ProTextModel(modelId) && !isGemini37FlashModel(modelId),
     isGemini3ImageModel: gemini3ImageModel,
     isFlashImageModel: flashImageModel,
     isImageGenerationModel: imageGenerationModel,
@@ -283,7 +293,8 @@ export const normalizeThinkingLevelForModel = (
 ): ThinkingLevel => {
   const resolvedLevel = thinkingLevel ?? fallback;
 
-  if (resolvedLevel === 'MINIMAL' && isGemini3ProTextModel(modelId)) {
+  // Both families reject MINIMAL with an API error per their model cards.
+  if (resolvedLevel === 'MINIMAL' && (isGemini3ProTextModel(modelId) || isGemini37FlashModel(modelId))) {
     return 'LOW';
   }
 

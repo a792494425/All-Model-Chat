@@ -73,7 +73,6 @@ describe('performStandardChatApiCall', () => {
     getStreamHandlers: () => handlers,
     aspectRatio: '1:1',
     imageOutputMode: 'IMAGE_TEXT' as const,
-    personGeneration: 'ALLOW_ALL' as const,
     resolveTurn: () => ({
       baseMessagesForApi: [],
       finalRole: 'user' as const,

@@ -1,5 +1,5 @@
 import type { Content, Part, UsageMetadata, FunctionDeclaration } from '@google/genai';
-import type { ImageOutputMode, ImagePersonGeneration, SafetySetting, ThinkingLevel } from './settings';
+import type { ImageOutputMode, SafetySetting, ThinkingLevel } from './settings';
 import type { UploadedFile } from './chat';
 
 export type ChatHistoryItem = Content & {
@@ -96,7 +96,6 @@ export interface EditImageRequestConfig {
   isDeepSearchEnabled?: boolean;
   safetySettings?: SafetySetting[];
   imageOutputMode?: ImageOutputMode;
-  personGeneration?: ImagePersonGeneration;
 }
 
 export interface ThoughtSupportingPart extends Part {
