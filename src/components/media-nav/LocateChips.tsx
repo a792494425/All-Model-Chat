@@ -4,8 +4,8 @@ import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
 import { useChatStore } from '@/stores/chatStore';
 import { useMediaNavStore } from '@/stores/mediaNavStore';
-import { toPdfNavHighlight, type PdfLocate, type VideoLocate } from '@/utils/media-nav/locateMarker';
-import { collectSessionMediaFiles } from '@/utils/media-nav/sessionMediaFiles';
+import { toPdfNavHighlight, type AudioLocate, type PdfLocate, type VideoLocate } from '@/utils/media-nav/locateMarker';
+import { collectSessionAudioFiles, collectSessionMediaFiles } from '@/utils/media-nav/sessionMediaFiles';
 import { formatTimestamp } from '@/utils/media-nav/timestamp';
 
 const CHIP_CLASS =
@@ -23,6 +23,7 @@ interface LocateChipsProps {
   messageId: string;
   pdfLocates: PdfLocate[];
   videoLocates: VideoLocate[];
+  audioLocates: AudioLocate[];
 }
 
 /**
@@ -30,10 +31,10 @@ interface LocateChipsProps {
  * panel on the referenced page (with visual-grounding highlight); video chips
  * seek the referenced moment and optionally loop the referenced segment.
  */
-export const LocateChips: React.FC<LocateChipsProps> = ({ messageId, pdfLocates, videoLocates }) => {
+export const LocateChips: React.FC<LocateChipsProps> = ({ messageId, pdfLocates, videoLocates, audioLocates }) => {
   const { t } = useI18n();
 
-  if (pdfLocates.length === 0 && videoLocates.length === 0) return null;
+  if (pdfLocates.length === 0 && videoLocates.length === 0 && audioLocates.length === 0) return null;
 
   const handlePdfLocate = (locate: PdfLocate) => {
     const { selectedFiles, activeMessages } = useChatStore.getState();
@@ -58,6 +59,19 @@ export const LocateChips: React.FC<LocateChipsProps> = ({ messageId, pdfLocates,
 
     const store = useMediaNavStore.getState();
     store.openAs('video');
+    store.setActiveFile(target.id);
+    store.jumpToTime(locate.startSeconds, locate.endSeconds);
+  };
+
+  const handleAudioLocate = (locate: AudioLocate) => {
+    const { selectedFiles, activeMessages } = useChatStore.getState();
+    const audios = collectSessionAudioFiles(selectedFiles, activeMessages);
+    if (audios.length === 0) return;
+    const target = resolveNamedFile(audios, locate.audioName);
+    if (!target) return;
+
+    const store = useMediaNavStore.getState();
+    store.openAs('audio');
     store.setActiveFile(target.id);
     store.jumpToTime(locate.startSeconds, locate.endSeconds);
   };
@@ -90,6 +104,28 @@ export const LocateChips: React.FC<LocateChipsProps> = ({ messageId, pdfLocates,
         >
           <Play size={13} strokeWidth={2} />
           <span>{t('videoLocateButton')}</span>
+          <span className="opacity-70">·</span>
+          <span className="font-mono">
+            {locate.endSeconds !== undefined
+              ? interpolate(t('videoLocateSegment'), {
+                  start: formatTimestamp(locate.startSeconds),
+                  end: formatTimestamp(locate.endSeconds),
+                })
+              : formatTimestamp(locate.startSeconds)}
+          </span>
+        </button>
+      ))}
+      {audioLocates.map((locate, index) => (
+        <button
+          key={`audio:${locate.startSeconds}:${locate.endSeconds ?? ''}:${locate.snippet ?? ''}:${index}`}
+          type="button"
+          onClick={() => handleAudioLocate(locate)}
+          className={CHIP_CLASS}
+          title={locate.snippet || t('audioLocateButton')}
+          data-testid={`audio-locate-chip-${locate.startSeconds}`}
+        >
+          <Play size={13} strokeWidth={2} />
+          <span>{t('audioLocateButton')}</span>
           <span className="opacity-70">·</span>
           <span className="font-mono">
             {locate.endSeconds !== undefined

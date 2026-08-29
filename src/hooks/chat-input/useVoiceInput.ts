@@ -23,21 +23,12 @@ export const useVoiceInput = ({
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isFinalizingRecording, setIsFinalizingRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [systemAudioWarning, setSystemAudioWarning] = useState<string | null>(null);
   const insertText = useTextAreaInsert(textareaRef, setInputText);
 
   const reportError = useCallback(
     (message: string | null) => {
       setError(message);
       setAppFileError?.(message);
-    },
-    [setAppFileError],
-  );
-
-  const reportSystemAudioWarning = useCallback(
-    (warning: string | null) => {
-      setSystemAudioWarning(warning);
-      setAppFileError?.(warning);
     },
     [setAppFileError],
   );
@@ -73,8 +64,10 @@ export const useVoiceInput = ({
   const { status, isInitializing, startRecording, stopRecording, cancelRecording } = useRecorder({
     onStop: handleRecordingComplete,
     onError: reportError,
-    onSystemAudioWarning: reportSystemAudioWarning,
     permissionErrorMessage: t('voiceInputPermissionError'),
+    // The input-bar path predates the recorder's speech enhancement and its
+    // transcription prompts were tuned against the unprocessed signal.
+    enhanceSpeech: false,
   });
 
   const isRecording = status === 'recording';
@@ -86,14 +79,12 @@ export const useVoiceInput = ({
       stopRecording();
     } else {
       reportError(null);
-      reportSystemAudioWarning(null);
-      startRecording({ captureSystemAudio: false });
+      startRecording();
     }
   };
 
   const handleCancelRecording = () => {
     setIsFinalizingRecording(false);
-    reportSystemAudioWarning(null);
     cancelRecording();
   };
 
@@ -102,7 +93,6 @@ export const useVoiceInput = ({
     isTranscribing: isBusy,
     isMicInitializing: isInitializing,
     error,
-    systemAudioWarning,
     handleVoiceInputClick,
     handleCancelRecording,
   };

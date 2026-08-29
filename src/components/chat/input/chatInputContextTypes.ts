@@ -191,7 +191,6 @@ export interface ChatInputVoiceState {
   isTranscribing: boolean;
   isMicInitializing: boolean;
   error: string | null;
-  systemAudioWarning: string | null;
   handleVoiceInputClick: () => void;
   handleCancelRecording: () => void;
 }

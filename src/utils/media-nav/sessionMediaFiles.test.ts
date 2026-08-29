@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { ChatMessage, UploadedFile } from '@/types';
 import {
+  collectSessionAudioFiles,
   collectSessionMediaFiles,
-  collectSessionVideoFiles,
+  isAudioFile,
   isPdfFile,
   isVideoFile,
+  partsContainAudio,
   partsContainPdf,
   partsContainVideo,
-  sessionHasMediaFiles,
 } from './sessionMediaFiles';
 
 const makeFile = (overrides: Partial<UploadedFile> = {}): UploadedFile => ({
@@ -33,9 +34,11 @@ describe('file kind detection', () => {
     expect(isPdfFile(makeFile({ type: 'image/png', name: 'x.png' }))).toBe(false);
   });
 
-  it('detects videos by mime type', () => {
+  it('detects videos and audios by mime type', () => {
     expect(isVideoFile(makeFile({ type: 'video/mp4', name: 'clip' }))).toBe(true);
     expect(isVideoFile(makeFile({ type: 'application/pdf' }))).toBe(false);
+    expect(isAudioFile(makeFile({ type: 'audio/mpeg', name: 'track' }))).toBe(true);
+    expect(isAudioFile(makeFile({ type: 'video/mp4' }))).toBe(false);
   });
 });
 
@@ -44,22 +47,18 @@ describe('collectSessionMediaFiles', () => {
     const draftPdf = makeFile({ id: 'a', name: 'draft.pdf' });
     const historyPdf = makeFile({ id: 'b', name: 'history.pdf' });
     const video = makeFile({ id: 'v', name: 'clip.mp4', type: 'video/mp4' });
+    const audio = makeFile({ id: 'm', name: 'take.mp3', type: 'audio/mpeg' });
     const image = makeFile({ id: 'c', name: 'pic.png', type: 'image/png' });
-    const messages = [makeMessage([historyPdf, draftPdf, video, image])];
-    const { pdfs, videos } = collectSessionMediaFiles([draftPdf], messages);
+    const messages = [makeMessage([historyPdf, draftPdf, video, audio, image])];
+    const { pdfs, videos, audios } = collectSessionMediaFiles([draftPdf], messages);
     expect(pdfs.map((file) => file.id)).toEqual(['a', 'b']);
     expect(videos.map((file) => file.id)).toEqual(['v']);
-    expect(collectSessionVideoFiles([], messages)).toHaveLength(1);
+    expect(audios.map((file) => file.id)).toEqual(['m']);
+    expect(collectSessionAudioFiles([], messages)).toHaveLength(1);
   });
 
   it('returns empty for a session without media', () => {
-    expect(collectSessionMediaFiles([], [makeMessage([])])).toEqual({ pdfs: [], videos: [] });
-    expect(sessionHasMediaFiles([], [])).toBe(false);
-  });
-
-  it('reports media presence when only a video exists', () => {
-    const video = makeFile({ id: 'v', name: 'clip.mp4', type: 'video/mp4' });
-    expect(sessionHasMediaFiles([video], [])).toBe(true);
+    expect(collectSessionMediaFiles([], [makeMessage([])])).toEqual({ pdfs: [], videos: [], audios: [] });
   });
 });
 
@@ -76,5 +75,12 @@ describe('partsContain', () => {
     expect(partsContainVideo([{ fileData: { mimeType: 'video/webm', fileUri: 'uri' } } as never])).toBe(true);
     expect(partsContainVideo([{ inlineData: { mimeType: 'application/pdf', data: 'x' } }])).toBe(false);
     expect(partsContainVideo(undefined)).toBe(false);
+  });
+
+  it('detects audio parts', () => {
+    expect(partsContainAudio([{ inlineData: { mimeType: 'audio/mpeg', data: 'x' } }])).toBe(true);
+    expect(partsContainAudio([{ fileData: { mimeType: 'audio/wav', fileUri: 'uri' } } as never])).toBe(true);
+    expect(partsContainAudio([{ inlineData: { mimeType: 'video/mp4', data: 'x' } }])).toBe(false);
+    expect(partsContainAudio(undefined)).toBe(false);
   });
 });

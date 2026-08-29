@@ -18,7 +18,7 @@ export interface VideoNavTarget {
   seekToken: number;
 }
 
-export type MediaNavKind = 'pdf' | 'video';
+export type MediaNavKind = 'pdf' | 'video' | 'audio';
 
 interface MediaNavState {
   isOpen: boolean;
@@ -88,4 +88,5 @@ export const useMediaNavStore = create<MediaNavState>((set) => ({
 /** Imperative helpers for callers outside React trees (toggle chips, locate chips). */
 export const openPdfNavPanel = () => useMediaNavStore.getState().openAs('pdf');
 export const openVideoNavPanel = () => useMediaNavStore.getState().openAs('video');
+export const openAudioNavPanel = () => useMediaNavStore.getState().openAs('audio');
 export const closeMediaNavPanel = () => useMediaNavStore.getState().close();

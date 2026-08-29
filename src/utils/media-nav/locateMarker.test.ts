@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildAudioLocateDirective,
   buildPdfLocateDirective,
   buildVideoLocateDirective,
   parseLocateMarkers,
@@ -10,7 +11,12 @@ import {
 describe('parseLocateMarkers (pdf)', () => {
   it('returns content untouched when no markers exist', () => {
     const content = 'Just a normal answer.';
-    expect(parseLocateMarkers(content)).toEqual({ cleanContent: content, pdfLocates: [], videoLocates: [] });
+    expect(parseLocateMarkers(content)).toEqual({
+      cleanContent: content,
+      pdfLocates: [],
+      videoLocates: [],
+      audioLocates: [],
+    });
   });
 
   it('extracts a full marker with doc, page, box and snippet', () => {
@@ -121,6 +127,62 @@ describe('parseLocateMarkers (video)', () => {
     expect(videoLocates).toHaveLength(1);
     expect(cleanContent).not.toContain('<pdf-locate');
     expect(cleanContent).not.toContain('<video-locate');
+  });
+});
+
+describe('parseLocateMarkers (audio)', () => {
+  it('extracts a moment marker with mm:ss', () => {
+    const content = '录音里说到这点。\n<audio-locate audio="interview.mp3" start="12:05">关键回答</audio-locate>';
+    const { cleanContent, pdfLocates, videoLocates, audioLocates } = parseLocateMarkers(content);
+    expect(cleanContent.trim()).toBe('录音里说到这点。');
+    expect(pdfLocates).toEqual([]);
+    expect(videoLocates).toEqual([]);
+    expect(audioLocates).toEqual([
+      { audioName: 'interview.mp3', startSeconds: 725, endSeconds: undefined, snippet: '关键回答' },
+    ]);
+  });
+
+  it('extracts a segment marker and drops inverted ranges', () => {
+    const content = [
+      '<audio-locate start="00:30" end="01:15">开场</audio-locate>',
+      '<audio-locate start="05:00" end="04:00">倒置区间应丢弃 end</audio-locate>',
+    ].join('\n');
+    const { audioLocates } = parseLocateMarkers(content);
+    expect(audioLocates).toHaveLength(2);
+    expect(audioLocates[0]).toMatchObject({ startSeconds: 30, endSeconds: 75 });
+    expect(audioLocates[1]).toMatchObject({ startSeconds: 300, endSeconds: undefined });
+  });
+
+  it('strips an unterminated audio marker tail (mid-stream)', () => {
+    const content = '答案 <audio-locate start="00:10">部分';
+    const { cleanContent, audioLocates } = parseLocateMarkers(content);
+    expect(cleanContent).toBe('答案 ');
+    expect(audioLocates).toEqual([]);
+  });
+
+  it('extracts pdf, video and audio markers from the same answer', () => {
+    const content = [
+      '<pdf-locate page="2">表格</pdf-locate>',
+      '<video-locate start="00:30">演示</video-locate>',
+      '<audio-locate start="01:00">访谈</audio-locate>',
+    ].join('\n');
+    const { cleanContent, pdfLocates, videoLocates, audioLocates } = parseLocateMarkers(content);
+    expect(pdfLocates).toHaveLength(1);
+    expect(videoLocates).toHaveLength(1);
+    expect(audioLocates).toHaveLength(1);
+    expect(cleanContent).not.toContain('-locate');
+  });
+});
+
+describe('buildAudioLocateDirective', () => {
+  it('describes the marker format and lists audio names', () => {
+    const directive = buildAudioLocateDirective(['a.mp3', 'b.wav']);
+    expect(directive).toContain('"a.mp3", "b.wav"');
+    expect(directive).toContain('<audio-locate audio="FILE_NAME" start="mm:ss"');
+  });
+
+  it('omits the name list when empty', () => {
+    expect(buildAudioLocateDirective([])).not.toContain('available audio file names');
   });
 });
 

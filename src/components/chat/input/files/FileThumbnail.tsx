@@ -24,6 +24,12 @@ const getDisplayExtension = (file: UploadedFile) => {
   return (mimeSuffix || 'FILE').slice(0, 4).toUpperCase();
 };
 
+const AUDIO_WAVEFORM_BAR_COUNT = 8;
+
+// Bar heights land in 25%–90% so the waveform stays visibly uneven. Bars are
+// flex-1 with a 2px floor, so the same markup stays visible in the 48px
+// message-list thumbnail (where 18 fixed-width bars used to collapse to 0px
+// against the flex gaps) and fills larger input-area preview boxes.
 const getWaveformBars = (file: UploadedFile) => {
   const seed = `${file.name}:${file.size}:${file.type}`;
   let hash = 0;
@@ -31,10 +37,9 @@ const getWaveformBars = (file: UploadedFile) => {
     hash = (hash * 31 + seed.charCodeAt(index)) % 9973;
   }
 
-  return Array.from({ length: 18 }, (_, index) => {
-    const wave = Math.sin((hash + index * 29) / 13);
-    const stepped = (hash + index * 37) % 41;
-    return 24 + Math.round(Math.abs(wave) * 42) + stepped;
+  return Array.from({ length: AUDIO_WAVEFORM_BAR_COUNT }, (_, index) => {
+    const wave = Math.abs(Math.sin((hash + index * 29) / 13));
+    return 25 + Math.round(wave * 65);
   });
 };
 
@@ -172,8 +177,8 @@ const AudioThumbnail = ({ file }: { file: UploadedFile }) => {
           <span
             key={index}
             data-waveform-bar="true"
-            className="w-1 rounded-full bg-[var(--theme-text-tertiary)]/70"
-            style={{ height: `${Math.min(88, height)}%` }}
+            className="min-w-[2px] max-w-[5px] flex-1 rounded-full bg-[var(--theme-text-tertiary)]/70"
+            style={{ height: `${height}%` }}
           />
         ))}
       </div>

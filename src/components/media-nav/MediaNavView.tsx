@@ -5,24 +5,26 @@ import type { UploadedFile } from '@/types';
 import { useMediaNavStore } from '@/stores/mediaNavStore';
 import { formatTimestamp } from '@/utils/media-nav/timestamp';
 
-interface VideoNavViewProps {
+interface MediaNavViewProps {
   file: UploadedFile;
+  kind: 'video' | 'audio';
 }
 
 /**
- * Video player inside the media navigation panel. Honors store-driven seeks
- * (locate chips) and keeps a segment looping until the user exits the segment.
+ * Media player inside the media navigation panel (video or audio). Honors
+ * store-driven seeks (locate chips) and keeps a segment looping until the user
+ * exits the segment.
  */
-const VideoNavViewComponent: React.FC<VideoNavViewProps> = ({ file }) => {
+const MediaNavViewComponent: React.FC<MediaNavViewProps> = ({ file, kind }) => {
   const { t } = useI18n();
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const mediaRef = useRef<HTMLMediaElement | null>(null);
   const [isMetadataReady, setIsMetadataReady] = useState(false);
   const [isSegmentLoopEnabled, setIsSegmentLoopEnabled] = useState(true);
 
-  const videoTarget = useMediaNavStore((state) => state.videoTarget);
+  const seekTarget = useMediaNavStore((state) => state.videoTarget);
   const consumeTarget = useMediaNavStore((state) => state.consumeVideoTarget);
 
-  // Segment state mirrors videoTarget for as long as the segment is playing.
+  // Segment state mirrors seekTarget for as long as the segment is playing.
   const [segment, setSegment] = useState<{ start: number; end: number } | null>(null);
   const segmentRef = useRef<{ start: number; end: number } | null>(null);
   segmentRef.current = segment;
@@ -30,11 +32,11 @@ const VideoNavViewComponent: React.FC<VideoNavViewProps> = ({ file }) => {
   isSegmentLoopEnabledRef.current = isSegmentLoopEnabled;
 
   const seekTo = (seconds: number, autoplay = true) => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.currentTime = seconds;
+    const media = mediaRef.current;
+    if (!media) return;
+    media.currentTime = seconds;
     if (autoplay) {
-      void video.play().catch(() => {
+      void media.play().catch(() => {
         // Autoplay can be rejected; the user can press play manually.
       });
     }
@@ -42,35 +44,35 @@ const VideoNavViewComponent: React.FC<VideoNavViewProps> = ({ file }) => {
 
   // Apply incoming seek requests; keep the target queued until metadata exists.
   useEffect(() => {
-    if (!videoTarget) return;
+    if (!seekTarget) return;
     if (!isMetadataReady) return;
 
-    seekTo(videoTarget.seconds);
-    setSegment(videoTarget.end !== undefined ? { start: videoTarget.seconds, end: videoTarget.end } : null);
+    seekTo(seekTarget.seconds);
+    setSegment(seekTarget.end !== undefined ? { start: seekTarget.seconds, end: seekTarget.end } : null);
     setIsSegmentLoopEnabled(true);
     consumeTarget();
-  }, [videoTarget, isMetadataReady, consumeTarget]);
+  }, [seekTarget, isMetadataReady, consumeTarget]);
 
-  // A seek may arrive before the video metadata is available; retry on load.
+  // A seek may arrive before the media metadata is available; retry on load.
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    const media = mediaRef.current;
+    if (!media) return;
     const handleLoadedMetadata = () => {
       setIsMetadataReady(true);
     };
-    if (video.readyState >= 1) {
+    if (media.readyState >= 1) {
       setIsMetadataReady(true);
     }
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    media.addEventListener('loadedmetadata', handleLoadedMetadata);
+    return () => media.removeEventListener('loadedmetadata', handleLoadedMetadata);
   }, [file.id]);
 
   const handleTimeUpdate = () => {
-    const video = videoRef.current;
+    const media = mediaRef.current;
     const activeSegment = segmentRef.current;
-    if (!video || !activeSegment || !isSegmentLoopEnabledRef.current) return;
-    if (video.currentTime >= activeSegment.end - 0.05) {
-      video.currentTime = activeSegment.start;
+    if (!media || !activeSegment || !isSegmentLoopEnabledRef.current) return;
+    if (media.currentTime >= activeSegment.end - 0.05) {
+      media.currentTime = activeSegment.start;
     }
   };
 
@@ -98,7 +100,7 @@ const VideoNavViewComponent: React.FC<VideoNavViewProps> = ({ file }) => {
               aria-pressed={isSegmentLoopEnabled}
               aria-label={t('videoSegmentLoop')}
               title={t('videoSegmentLoop')}
-              data-testid="video-segment-loop"
+              data-testid="media-segment-loop"
             >
               <Repeat size={14} />
             </button>
@@ -108,7 +110,7 @@ const VideoNavViewComponent: React.FC<VideoNavViewProps> = ({ file }) => {
               className="p-1.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors"
               aria-label={t('videoSegmentExit')}
               title={t('videoSegmentExit')}
-              data-testid="video-segment-exit"
+              data-testid="media-segment-exit"
             >
               <X size={14} />
             </button>
@@ -116,20 +118,41 @@ const VideoNavViewComponent: React.FC<VideoNavViewProps> = ({ file }) => {
         </div>
       )}
 
-      <div className="flex-grow min-h-0 flex items-center justify-center">
-        <video
-          ref={videoRef}
-          key={file.id}
-          src={file.dataUrl}
-          controls
-          playsInline
-          onTimeUpdate={handleTimeUpdate}
-          className="max-w-full max-h-full outline-none"
-          data-testid="media-nav-video"
-        />
+      <div className="flex-grow min-h-0 flex items-center justify-center p-4">
+        {kind === 'video' ? (
+          <video
+            key={file.id}
+            ref={(el) => {
+              mediaRef.current = el;
+            }}
+            src={file.dataUrl}
+            controls
+            playsInline
+            onTimeUpdate={handleTimeUpdate}
+            className="max-w-full max-h-full outline-none"
+            data-testid="media-nav-video"
+          />
+        ) : (
+          <div className="w-full max-w-md flex flex-col items-center gap-4 rounded-xl bg-[#141518] border border-white/10 p-6">
+            <span className="truncate text-sm font-medium text-white/90" title={file.name}>
+              {file.name}
+            </span>
+            <audio
+              key={file.id}
+              ref={(el) => {
+                mediaRef.current = el;
+              }}
+              src={file.dataUrl}
+              controls
+              onTimeUpdate={handleTimeUpdate}
+              className="w-full outline-none"
+              data-testid="media-nav-audio"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export const VideoNavView = React.memo(VideoNavViewComponent);
+export const MediaNavView = React.memo(MediaNavViewComponent);

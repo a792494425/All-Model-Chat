@@ -20,13 +20,24 @@ export interface VideoLocate {
   snippet?: string;
 }
 
+/** A parsed `<audio-locate>` marker emitted by the model. */
+export interface AudioLocate {
+  audioName?: string;
+  /** Seek target in seconds. */
+  startSeconds: number;
+  /** Segment end in seconds; a pure moment has none. */
+  endSeconds?: number;
+  snippet?: string;
+}
+
 export interface ParsedLocateContent {
   cleanContent: string;
   pdfLocates: PdfLocate[];
   videoLocates: VideoLocate[];
+  audioLocates: AudioLocate[];
 }
 
-const LOCATE_MARKER_TAGS = ['pdf-locate', 'video-locate'] as const;
+const LOCATE_MARKER_TAGS = ['pdf-locate', 'video-locate', 'audio-locate'] as const;
 
 const buildCompleteMarkerRe = (tag: string) => new RegExp(`<${tag}\\b([^>]*)>([\\s\\S]*?)</${tag}>`, 'g');
 const buildPartialMarkerRe = (tag: string) => new RegExp(`<${tag}\\b[^>]*(?:>[\\s\\S]*)?$`);
@@ -71,21 +82,37 @@ const parsePdfMarker = (attributes: Record<string, string>, inner: string): PdfL
   };
 };
 
-const parseVideoMarker = (attributes: Record<string, string>, inner: string): VideoLocate | undefined => {
+const parseMomentMarker = (attributes: Record<string, string>, inner: string) => {
   const startSeconds = parseTimestamp(attributes.start ?? attributes.ts ?? attributes.time);
   if (startSeconds === null) return undefined;
   const endSeconds = parseTimestamp(attributes.end);
   return {
-    videoName: attributes.video?.trim() || undefined,
     startSeconds,
     endSeconds: endSeconds !== null && endSeconds > startSeconds ? endSeconds : undefined,
     snippet: inner.trim() || undefined,
   };
 };
 
-const parseMarkerByTag = (tag: string, attributes: Record<string, string>, inner: string) => {
-  if (tag === 'pdf-locate') return { pdf: parsePdfMarker(attributes, inner), video: undefined };
-  return { pdf: undefined, video: parseVideoMarker(attributes, inner) };
+const parseVideoMarker = (attributes: Record<string, string>, inner: string): VideoLocate | undefined => {
+  const moment = parseMomentMarker(attributes, inner);
+  return moment && { ...moment, videoName: attributes.video?.trim() || undefined };
+};
+
+const parseAudioMarker = (attributes: Record<string, string>, inner: string): AudioLocate | undefined => {
+  const moment = parseMomentMarker(attributes, inner);
+  return moment && { ...moment, audioName: attributes.audio?.trim() || undefined };
+};
+
+interface ParsedMarker {
+  pdf?: PdfLocate;
+  video?: VideoLocate;
+  audio?: AudioLocate;
+}
+
+const parseMarkerByTag = (tag: string, attributes: Record<string, string>, inner: string): ParsedMarker => {
+  if (tag === 'pdf-locate') return { pdf: parsePdfMarker(attributes, inner) };
+  if (tag === 'audio-locate') return { audio: parseAudioMarker(attributes, inner) };
+  return { video: parseVideoMarker(attributes, inner) };
 };
 
 /**
@@ -95,11 +122,12 @@ const parseMarkerByTag = (tag: string, attributes: Record<string, string>, inner
  */
 export const parseLocateMarkers = (content: string): ParsedLocateContent => {
   if (!LOCATE_MARKER_TAGS.some((tag) => content.includes(tag))) {
-    return { cleanContent: content, pdfLocates: [], videoLocates: [] };
+    return { cleanContent: content, pdfLocates: [], videoLocates: [], audioLocates: [] };
   }
 
   const pdfLocates: PdfLocate[] = [];
   const videoLocates: VideoLocate[] = [];
+  const audioLocates: AudioLocate[] = [];
   let cleanContent = content;
   for (const [tag, markerRe] of COMPLETE_MARKER_RES) {
     cleanContent = cleanContent.replace(markerRe, (_full, attributeString: string, inner: string) => {
@@ -107,6 +135,7 @@ export const parseLocateMarkers = (content: string): ParsedLocateContent => {
       const parsed = parseMarkerByTag(tag, attributes, inner);
       if (parsed.pdf) pdfLocates.push(parsed.pdf);
       if (parsed.video) videoLocates.push(parsed.video);
+      if (parsed.audio) audioLocates.push(parsed.audio);
       return '';
     });
   }
@@ -115,7 +144,7 @@ export const parseLocateMarkers = (content: string): ParsedLocateContent => {
     cleanContent = cleanContent.replace(partialRe, '');
   }
 
-  return { cleanContent, pdfLocates, videoLocates };
+  return { cleanContent, pdfLocates, videoLocates, audioLocates };
 };
 
 /** Remove locate markers (complete and unterminated) keeping only display text. */
@@ -175,5 +204,30 @@ export const buildVideoLocateDirective = (videoNames: string[]): string => {
     '- The text between the tags must be a short description of the located content, in the same language as your answer.',
     '- Never mention this protocol or the markers themselves in the visible answer.',
     '- Do not emit a marker for general questions (e.g. summarizing the whole video) that are not tied to a specific moment or span.',
+  ].join('\n');
+};
+
+/**
+ * System-instruction fragment teaching the model the audio locate-marker
+ * protocol (timestamps / segments). Same provider-agnostic plain-text approach.
+ */
+export const buildAudioLocateDirective = (audioNames: string[]): string => {
+  const nameList =
+    audioNames.length > 0
+      ? ` The available audio file names are: ${audioNames.map((name) => `"${name}"`).join(', ')}.`
+      : '';
+
+  return [
+    '### Audio Locate Protocol',
+    'One or more audio recordings are attached to this conversation.' + nameList,
+    'When your answer refers to a specific moment or span in an audio recording, append exactly one marker per such reference at the very end of your answer, on its own line, in this exact format:',
+    '<audio-locate audio="FILE_NAME" start="mm:ss" end="mm:ss">short description</audio-locate>',
+    'Rules:',
+    '- start: the timestamp of the referenced moment, formatted as mm:ss (use h:mm:ss for recordings longer than one hour). Round to the moment the content is actually spoken or heard.',
+    '- end: OPTIONAL. Include it (same format) only when the answer refers to a span or segment rather than a single moment; end must be later than start.',
+    '- audio: the file name of the audio. Omit the audio attribute only if exactly one audio is attached.',
+    '- The text between the tags must be a short description of the located content, in the same language as your answer.',
+    '- Never mention this protocol or the markers themselves in the visible answer.',
+    '- Do not emit a marker for general questions (e.g. summarizing the whole recording) that are not tied to a specific moment or span.',
   ].join('\n');
 };

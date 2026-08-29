@@ -14,6 +14,7 @@ import {
   ScanSearch,
   BoxSelect,
   BookOpenText,
+  AudioLines,
   MonitorPlay,
   Clapperboard,
 } from 'lucide-react';
@@ -43,6 +44,8 @@ export const SuggestionIcon = ({ iconName, className }: { iconName?: string; cla
       return <BookOpenText className={className} size={size} />;
     case 'MonitorPlay':
       return <MonitorPlay className={className} size={size} />;
+    case 'AudioLines':
+      return <AudioLines className={className} size={size} />;
     case 'Clapperboard':
       return <Clapperboard className={className} size={size} />;
     case 'AudioWaveform':

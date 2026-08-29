@@ -10,7 +10,7 @@ import { LiveStatusBanner } from './LiveStatusBanner';
 import { QueuedSubmissionList } from './QueuedSubmissionList';
 import { HiddenFileInputs } from './files/HiddenFileInputs';
 import { getChatInputAreaLayout } from './chatInputAreaLayout';
-import { closeMediaNavPanel, openPdfNavPanel, openVideoNavPanel } from '@/stores/mediaNavStore';
+import { closeMediaNavPanel, openAudioNavPanel, openPdfNavPanel, openVideoNavPanel } from '@/stores/mediaNavStore';
 import { CHAT_INPUT_MAX_WIDTH_CLASS, FOCUS_BLOCKING_SELECTOR } from '@/constants/layout';
 import { useI18n } from '@/contexts/I18nContext';
 import { useChatInputContext } from './ChatInputContext';
@@ -39,6 +39,7 @@ export const ChatInputArea: React.FC = () => {
   const { setCurrentChatSettings } = chatInput;
   const isPdfNavEnabled = !!chatInput.currentChatSettings.isPdfNavEnabled;
   const isVideoNavEnabled = !!chatInput.currentChatSettings.isVideoNavEnabled;
+  const isAudioNavEnabled = !!chatInput.currentChatSettings.isAudioNavEnabled;
   const handleTogglePdfNav = useCallback(() => {
     const next = !isPdfNavEnabled;
     setCurrentChatSettings((prev) => ({ ...prev, isPdfNavEnabled: next }));
@@ -57,6 +58,15 @@ export const ChatInputArea: React.FC = () => {
       closeMediaNavPanel();
     }
   }, [isVideoNavEnabled, setCurrentChatSettings]);
+  const handleToggleAudioNav = useCallback(() => {
+    const next = !isAudioNavEnabled;
+    setCurrentChatSettings((prev) => ({ ...prev, isAudioNavEnabled: next }));
+    if (next) {
+      openAudioNavPanel();
+    } else {
+      closeMediaNavPanel();
+    }
+  }, [isAudioNavEnabled, setCurrentChatSettings]);
   const isAnimatingSend = inputState.isAnimatingSend;
   const isMobile = inputState.isMobile;
   const isConverting = localFileState.isConverting;
@@ -185,6 +195,8 @@ export const ChatInputArea: React.FC = () => {
             isPdfNavEnabled={isPdfNavEnabled}
             onToggleVideoNav={handleToggleVideoNav}
             isVideoNavEnabled={isVideoNavEnabled}
+            onToggleAudioNav={handleToggleAudioNav}
+            isAudioNavEnabled={isAudioNavEnabled}
             isFullscreen={isFullscreen}
           />
         )}

@@ -11,6 +11,11 @@ import { type translations } from '@/i18n/translations';
 const SUGGESTION_SCROLL_ARROW_CLASSES =
   'absolute top-1/2 -translate-y-[calc(50%+4px)] z-10 p-1.5 rounded-full bg-[var(--theme-bg-primary)]/95 border border-[var(--theme-border-secondary)] shadow-md text-[var(--theme-text-primary)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)] focus-visible:border-[var(--theme-border-focus)]';
 
+/** Trailing state dot — separates toggle chips (导航/BBox/Guide) from one-shot actions. */
+const SuggestionToggleDot = () => (
+  <span aria-hidden="true" className="h-1 w-1 flex-shrink-0 rounded-full bg-current opacity-50" />
+);
+
 /** Hidden-by-default state that stays reachable via keyboard focus. */
 const SUGGESTION_SCROLL_ARROW_HIDDEN_CLASSES =
   'opacity-0 pointer-events-none focus-visible:opacity-100 focus-visible:pointer-events-auto';
@@ -39,6 +44,8 @@ interface ChatSuggestionsProps {
   isPdfNavEnabled?: boolean;
   onToggleVideoNav?: () => void;
   isVideoNavEnabled?: boolean;
+  onToggleAudioNav?: () => void;
+  isAudioNavEnabled?: boolean;
   isFullscreen: boolean;
 }
 
@@ -54,6 +61,8 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
   isPdfNavEnabled,
   onToggleVideoNav,
   isVideoNavEnabled,
+  onToggleAudioNav,
+  isAudioNavEnabled,
   isFullscreen,
 }) => {
   const { t } = useI18n();
@@ -130,6 +139,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
                   >
                     <SuggestionIcon iconName="BoxSelect" />
                     <span>{t('bboxButtonShort')}</span>
+                    <SuggestionToggleDot />
                   </button>
                 )}
                 {onToggleGuide && (
@@ -143,6 +153,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
                   >
                     <SuggestionIcon iconName="MousePointer2" />
                     <span>{t('guideButtonShort')}</span>
+                    <SuggestionToggleDot />
                   </button>
                 )}
                 {onTogglePdfNav && (
@@ -165,6 +176,17 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
                     isEnabled={!!isVideoNavEnabled}
                     onToggle={onToggleVideoNav}
                     testId="video-nav-chip"
+                  />
+                )}
+                {onToggleAudioNav && (
+                  <NavChip
+                    iconName="AudioLines"
+                    labelKey="audioNavChipLabel"
+                    missingHintKey="audioNavNoAudioHint"
+                    mediaKind="audio"
+                    isEnabled={!!isAudioNavEnabled}
+                    onToggle={onToggleAudioNav}
+                    testId="audio-nav-chip"
                   />
                 )}
               </>

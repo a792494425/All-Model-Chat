@@ -9,13 +9,13 @@ import { Z_INDEX_SIDE_PANEL_MOBILE, Z_INDEX_TOPMOST_OVERLAY } from '@/constants/
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';
 import type { UploadedFile } from '@/types';
-import { VideoNavView } from './VideoNavView';
+import { MediaNavView } from './MediaNavView';
 
 const LazyPdfViewer = lazyNamedComponent(() => import('@/components/shared/file-preview/PdfViewerEntry'), 'PdfViewer');
 
 interface MediaEntry {
   file: UploadedFile;
-  kind: MediaNavKind;
+  kind: Exclude<MediaNavKind, 'pdf'> | 'pdf';
 }
 
 /**
@@ -47,6 +47,7 @@ const MediaNavPanelComponent: React.FC = () => {
     () => [
       ...media.pdfs.map((file) => ({ file, kind: 'pdf' as const })),
       ...media.videos.map((file) => ({ file, kind: 'video' as const })),
+      ...media.audios.map((file) => ({ file, kind: 'audio' as const })),
     ],
     [media],
   );
@@ -74,7 +75,7 @@ const MediaNavPanelComponent: React.FC = () => {
     () => entries.find((entry) => entry.file.id === activeFileId) ?? entries[0],
     [entries, activeFileId],
   );
-  const isPdfActive = activeEntry ? activeEntry.kind === 'pdf' : openKind !== 'video';
+  const isPdfActive = activeEntry ? activeEntry.kind === 'pdf' : openKind === 'pdf' || openKind === null;
 
   const startResizing = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -180,6 +181,15 @@ const MediaNavPanelComponent: React.FC = () => {
                     ))}
                   </optgroup>
                 )}
+                {media.audios.length > 0 && (
+                  <optgroup label={t('audioNavLabel')}>
+                    {media.audios.map((file) => (
+                      <option key={file.id} value={file.id}>
+                        {file.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             )}
             {entries.length === 1 && (
@@ -214,7 +224,7 @@ const MediaNavPanelComponent: React.FC = () => {
               onCurrentPageChange={setPage}
             />
           ) : activeEntry ? (
-            <VideoNavView file={activeEntry.file} />
+            <MediaNavView file={activeEntry.file} kind={activeEntry.kind === 'audio' ? 'audio' : 'video'} />
           ) : (
             <div className="h-full flex flex-col items-center justify-center gap-3 p-8 text-center">
               <p className="text-sm text-[var(--theme-text-secondary)]">{t('mediaNavEmptyHint')}</p>

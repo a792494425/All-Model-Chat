@@ -73,7 +73,7 @@ export const MessageText: React.FC<MessageTextProps> = ({
     () =>
       message.role === 'model'
         ? parseLocateMarkers(rawThinkingExtraction.content)
-        : { cleanContent: rawThinkingExtraction.content, pdfLocates: [], videoLocates: [] },
+        : { cleanContent: rawThinkingExtraction.content, pdfLocates: [], videoLocates: [], audioLocates: [] },
     [rawThinkingExtraction.content, message.role],
   );
   const effectiveContent = locateExtraction.cleanContent;
@@ -259,6 +259,7 @@ export const MessageText: React.FC<MessageTextProps> = ({
           messageId={message.id}
           pdfLocates={locateExtraction.pdfLocates}
           videoLocates={locateExtraction.videoLocates}
+          audioLocates={locateExtraction.audioLocates}
         />
       )}
     </>

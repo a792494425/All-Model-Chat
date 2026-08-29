@@ -13,7 +13,7 @@ interface NavChipProps {
   /** i18n key of the hint shown when the session has no matching media. */
   missingHintKey: string;
   /** 'pdf', 'video', or 'any' — which media kind this chip requires. */
-  mediaKind?: 'pdf' | 'video' | 'any';
+  mediaKind?: 'pdf' | 'video' | 'audio' | 'any';
   isEnabled: boolean;
   onToggle: () => void;
   testId: string;

@@ -208,16 +208,14 @@ describe('source readability boundaries', () => {
   });
 
   it('names audio stream composition locals after their runtime role', () => {
-    const audioProcessingSource = readProjectFile('src/features/audio/audioProcessing.ts');
+    const audioAnalyserSource = readProjectFile('src/features/audio/useAudioAnalyser.ts');
 
     for (const vagueLocalName of VAGUE_AUDIO_STREAM_LOCALS) {
-      expect(audioProcessingSource).not.toContain(vagueLocalName);
+      expect(audioAnalyserSource).not.toContain(vagueLocalName);
     }
 
-    expect(audioProcessingSource).toContain('const audioContext =');
-    expect(audioProcessingSource).toContain('const mixedDestination =');
-    expect(audioProcessingSource).toContain('const microphoneSource =');
-    expect(audioProcessingSource).toContain('const systemAudioSource =');
+    expect(audioAnalyserSource).toContain('const audioContext =');
+    expect(audioAnalyserSource).toContain('const sessionAnalyser =');
   });
 
   it('keeps compact UI helpers readable through domain names', () => {
