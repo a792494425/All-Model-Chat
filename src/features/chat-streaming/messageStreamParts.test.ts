@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Part } from '@google/genai';
-import {
-  appendApiPart,
-  getContentDeltaFromPart,
-  isCodeExecutionPendingInContent,
-} from './messageStreamParts';
+import { appendApiPart, getContentDeltaFromPart, isCodeExecutionPendingInContent } from './messageStreamParts';
 
 describe('appendApiPart', () => {
   it('preserves signature-only text parts instead of merging them into the previous text part', () => {
@@ -93,8 +89,7 @@ describe('isCodeExecutionPendingInContent', () => {
   });
 
   it('is true when the latest code block has no following result block', () => {
-    const content =
-      '\n\n<pre class="code-exec-code"><code class="language-python">x = 1</code></pre>\n\n';
+    const content = '\n\n<pre class="code-exec-code"><code class="language-python">x = 1</code></pre>\n\n';
     expect(isCodeExecutionPendingInContent(content)).toBe(true);
   });
 

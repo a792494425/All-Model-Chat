@@ -51,8 +51,8 @@ const toPreSafeHtmlText = (value: string): string => {
     .join('&#10;');
 };
 
-export const CODE_EXEC_CODE_CLASS = 'code-exec-code';
-export const CODE_EXEC_RESULT_CLASS = 'tool-result';
+const CODE_EXEC_CODE_CLASS = 'code-exec-code';
+const CODE_EXEC_RESULT_CLASS = 'tool-result';
 
 // While streaming, the model's executableCode part lands before the sandbox
 // has produced its codeExecutionResult part. The content string then ends with

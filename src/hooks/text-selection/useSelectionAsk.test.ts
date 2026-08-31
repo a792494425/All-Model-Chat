@@ -11,13 +11,14 @@ type CapturedStream = {
   onComplete: () => void;
 };
 
-const streams = vi.hoisted(() =>
-  [] as Array<{
-    signal: AbortSignal;
-    onPart: (part: { text?: string }) => void;
-    onError: (e: Error) => void;
-    onComplete: () => void;
-  }>,
+const streams = vi.hoisted(
+  () =>
+    [] as Array<{
+      signal: AbortSignal;
+      onPart: (part: { text?: string }) => void;
+      onError: (e: Error) => void;
+      onComplete: () => void;
+    }>,
 );
 
 vi.mock('@/services/api/chatApi', () => ({

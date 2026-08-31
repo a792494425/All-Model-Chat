@@ -1,10 +1,6 @@
 import { APP_NOTIFICATION_ICON_URL } from '@/constants/assets';
 import type { AppSettings, ChatMessage } from '@/types';
-import {
-  playCompletionSound,
-  showNotification,
-  type CompletionSoundVariant,
-} from '@/utils/browserCompletionFeedback';
+import { playCompletionSound, showNotification, type CompletionSoundVariant } from '@/utils/browserCompletionFeedback';
 import { logService } from '@/services/logService';
 
 const DEFAULT_NOTIFICATION_BODY = 'Media or tool response received';

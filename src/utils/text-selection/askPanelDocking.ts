@@ -1,7 +1,6 @@
 export type AskPanelDockSide = 'left' | 'right';
 
-/** 拖拽结束时，面板边缘进入视口边缘该距离内即吸附停靠 */
-export const ASK_PANEL_DOCK_THRESHOLD = 28;
+const ASK_PANEL_DOCK_THRESHOLD = 28;
 
 /**
  * 拖拽结束时判断询问面板应停靠到哪一侧：

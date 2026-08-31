@@ -266,8 +266,7 @@ export const BaseMarkdownRenderer: React.FC<BaseMarkdownRendererProps> = React.m
           const language = langMatch ? langMatch[1] : '';
           const isGraphviz = language === 'graphviz' || language === 'dot';
 
-          const isServerCodeExecution =
-            typeof rest.className === 'string' && rest.className.includes('code-exec-code');
+          const isServerCodeExecution = typeof rest.className === 'string' && rest.className.includes('code-exec-code');
 
           const codeBlock = (
             <CodeBlock
@@ -294,9 +293,7 @@ export const BaseMarkdownRenderer: React.FC<BaseMarkdownRendererProps> = React.m
           );
 
           if (isServerCodeExecution) {
-            return (
-              <CodeExecutionBlock isRunning={hasPendingCodeExecution}>{codeBlock}</CodeExecutionBlock>
-            );
+            return <CodeExecutionBlock isRunning={hasPendingCodeExecution}>{codeBlock}</CodeExecutionBlock>;
           }
 
           if (isMermaidRenderingEnabled && language === 'mermaid' && typeof rawCode === 'string') {

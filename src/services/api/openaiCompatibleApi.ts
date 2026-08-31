@@ -80,7 +80,9 @@ export const sendOpenAICompatibleMessageNonStream: NonStreamMessageSender = asyn
       // Mirror the Gemini-native line's finishReason handling: a filtered
       // response with no content is an error, not a silent empty answer.
       if (finishReason === 'content_filter' && !text) {
-        throw new Error('The model returned no content because generation was filtered (finish_reason: content_filter).');
+        throw new Error(
+          'The model returned no content because generation was filtered (finish_reason: content_filter).',
+        );
       }
 
       return [
@@ -172,7 +174,9 @@ export const sendOpenAICompatibleMessageStream: StreamMessageSender = async (
         throw new Error(streamErrorMessage);
       }
       if (contentFiltered) {
-        throw new Error('The model returned no content because generation was filtered (finish_reason: content_filter).');
+        throw new Error(
+          'The model returned no content because generation was filtered (finish_reason: content_filter).',
+        );
       }
       return finalUsage;
     },

@@ -1,10 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, PanelLeft } from 'lucide-react';
-import {
-  ToolbarButton,
-  ToolbarDivider,
-  ToolbarLabel,
-} from '@/components/shared/file-preview/FloatingToolbar';
+import { ToolbarButton, ToolbarDivider, ToolbarLabel } from '@/components/shared/file-preview/FloatingToolbar';
 import { useI18n } from '@/contexts/I18nContext';
 
 interface PdfToolbarProps {

@@ -41,12 +41,7 @@ const completedSseUpstream = () =>
       }),
   );
 
-const postWithJob = (
-  baseUrl: string,
-  jobId: string | null,
-  secret: string | null,
-  body = '{}',
-): Promise<Response> => {
+const postWithJob = (baseUrl: string, jobId: string | null, secret: string | null, body = '{}'): Promise<Response> => {
   const headers: Record<string, string> = { 'content-type': 'application/json' };
   if (jobId) headers['x-amc-job-id'] = jobId;
   if (secret) headers['x-amc-job-secret'] = secret;

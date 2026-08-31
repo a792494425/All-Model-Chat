@@ -35,7 +35,10 @@ const KNOWN_MODEL_TOKENS: Record<string, string> = {
  * 面板 chip 等小空间展示用；未知 token 走首字母大写兜底。
  */
 export const formatSelectionAskModelLabel = (modelId: string): string => {
-  const cleaned = modelId.replace(/^models\//, '').replace(/_+/g, '-').trim();
+  const cleaned = modelId
+    .replace(/^models\//, '')
+    .replace(/_+/g, '-')
+    .trim();
   if (!cleaned) return modelId;
 
   return cleaned

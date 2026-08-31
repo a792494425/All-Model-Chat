@@ -13,7 +13,14 @@ interface ToggleItemProps {
   labelTrailing?: React.ReactNode;
 }
 
-export const ToggleItem: React.FC<ToggleItemProps> = ({ label, checked, onChange, tooltip, small = false, labelTrailing }) => {
+export const ToggleItem: React.FC<ToggleItemProps> = ({
+  label,
+  checked,
+  onChange,
+  tooltip,
+  small = false,
+  labelTrailing,
+}) => {
   const rowPaddingClass = small ? 'py-2' : 'py-3';
   const labelClass = small
     ? 'text-xs text-[var(--theme-text-secondary)]'

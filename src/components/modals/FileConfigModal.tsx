@@ -217,9 +217,7 @@ const FileConfigModalContent: React.FC<FileConfigModalContentProps> = ({
         ? 'video'
         : undefined;
   const estimateCount =
-    estimateKind && draft.mediaResolution
-      ? RESOLUTION_TOKEN_ESTIMATES[estimateKind][draft.mediaResolution]
-      : undefined;
+    estimateKind && draft.mediaResolution ? RESOLUTION_TOKEN_ESTIMATES[estimateKind][draft.mediaResolution] : undefined;
   const tokenEstimate =
     estimateKind && estimateCount !== undefined
       ? interpolate(

@@ -62,9 +62,7 @@ export const ToolResultBlock: React.FC<ToolResultBlockProps> = ({
       ),
   );
 
-  const preElement = visibleChildren.find(
-    (child) => React.isValidElement(child) && child.type === 'pre',
-  );
+  const preElement = visibleChildren.find((child) => React.isValidElement(child) && child.type === 'pre');
 
   const rawOutput = preElement
     ? extractTextFromNode(preElement)
@@ -141,22 +139,14 @@ export const ToolResultBlock: React.FC<ToolResultBlockProps> = ({
         </strong>
         {hasActions && (
           <div className="flex items-center gap-1">
-            <button
-              onClick={handleCopy}
-              className={MESSAGE_BLOCK_BUTTON_CLASS}
-              title={t('codeExecutionCopyOutput')}
-            >
+            <button onClick={handleCopy} className={MESSAGE_BLOCK_BUTTON_CLASS} title={t('codeExecutionCopyOutput')}>
               {copied ? (
                 <Check size={14} className="text-[var(--theme-text-success)] icon-animate-pop" />
               ) : (
                 <Copy size={14} />
               )}
             </button>
-            <button
-              onClick={handleDownload}
-              className={MESSAGE_BLOCK_BUTTON_CLASS}
-              title={t('codeDownloadOutput')}
-            >
+            <button onClick={handleDownload} className={MESSAGE_BLOCK_BUTTON_CLASS} title={t('codeDownloadOutput')}>
               {downloaded ? (
                 <Check size={14} className="text-[var(--theme-text-success)] icon-animate-pop" />
               ) : (

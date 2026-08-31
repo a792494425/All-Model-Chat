@@ -80,8 +80,7 @@ const CHAT_TOOL_REGISTRY: ChatToolDefinition[] = [
     icon: 'terminal',
     settingKey: 'isCodeExecutionEnabled',
     slashCommand: { name: 'code', descriptionKey: 'helpCmdCode', icon: 'code' },
-    isAvailable: (context) =>
-      isGeminiNativeRoute(context) && context.capabilities.permissions.canUseCodeExecution,
+    isAvailable: (context) => isGeminiNativeRoute(context) && context.capabilities.permissions.canUseCodeExecution,
   },
   {
     id: 'localPython',

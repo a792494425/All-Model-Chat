@@ -8,11 +8,7 @@ import { getCorsHeaders, sendJson } from './cors.js';
 // share the exact same header names.
 export const JOB_ID_HEADER = 'x-amc-job-id';
 export const LAST_SEQ_HEADER = 'x-amc-last-seq';
-// Per-job random secret the CLIENT generates. The first request under a job id
-// registers it; any later attach/abort must present the same value. Without
-// this, anyone who can reach the port (or learns/guesses a job id) could attach
-// to someone else's job and replay its buffered conversation content.
-export const JOB_SECRET_HEADER = 'x-amc-job-secret';
+const JOB_SECRET_HEADER = 'x-amc-job-secret';
 
 // ── Job data structures ─────────────────────────────────────────────────────
 

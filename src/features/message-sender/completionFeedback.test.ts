@@ -20,8 +20,7 @@ const feedback = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-const setHidden = (hidden: boolean) =>
-  vi.spyOn(document, 'hidden', 'get').mockReturnValue(hidden);
+const setHidden = (hidden: boolean) => vi.spyOn(document, 'hidden', 'get').mockReturnValue(hidden);
 
 describe('emitCompletionFeedback sound gating', () => {
   beforeEach(() => {
@@ -56,9 +55,12 @@ describe('emitCompletionFeedback sound gating', () => {
 
   it('still shows the notification while visible when background-only is enabled', async () => {
     setHidden(true);
-    await emitCompletionFeedback(settings({ isCompletionNotificationEnabled: true, isCompletionSoundBackgroundOnly: true }), {
-      notification: { title: 't', body: 'b' },
-    });
+    await emitCompletionFeedback(
+      settings({ isCompletionNotificationEnabled: true, isCompletionSoundBackgroundOnly: true }),
+      {
+        notification: { title: 't', body: 'b' },
+      },
+    );
     expect(showNotification).toHaveBeenCalled();
   });
 });

@@ -34,13 +34,37 @@ const COMPLETION_SOUND_VARIANTS: Record<CompletionSoundVariant, [CompletionNoteS
   // Warm two-tone chime: fundamental + quiet octave overtone reads as a soft
   // bell instead of a bare system beep.
   success: [
-    { frequency: SUCCESS_FIRST_NOTE_FREQUENCY, overtoneFrequency: SUCCESS_FIRST_NOTE_FREQUENCY * 2, duration: FIRST_NOTE_DURATION_S, peakGain: 0.2, type: 'sine' },
-    { frequency: SUCCESS_SECOND_NOTE_FREQUENCY, overtoneFrequency: SUCCESS_SECOND_NOTE_FREQUENCY * 2, duration: SECOND_NOTE_DURATION_S, peakGain: 0.2, type: 'sine' },
+    {
+      frequency: SUCCESS_FIRST_NOTE_FREQUENCY,
+      overtoneFrequency: SUCCESS_FIRST_NOTE_FREQUENCY * 2,
+      duration: FIRST_NOTE_DURATION_S,
+      peakGain: 0.2,
+      type: 'sine',
+    },
+    {
+      frequency: SUCCESS_SECOND_NOTE_FREQUENCY,
+      overtoneFrequency: SUCCESS_SECOND_NOTE_FREQUENCY * 2,
+      duration: SECOND_NOTE_DURATION_S,
+      peakGain: 0.2,
+      type: 'sine',
+    },
   ],
   // Lower, duller descending pair so failures are distinguishable by ear.
   error: [
-    { frequency: ERROR_FIRST_NOTE_FREQUENCY, overtoneFrequency: ERROR_FIRST_NOTE_FREQUENCY * 2, duration: FIRST_NOTE_DURATION_S + 0.05, peakGain: 0.18, type: 'triangle' },
-    { frequency: ERROR_SECOND_NOTE_FREQUENCY, overtoneFrequency: ERROR_SECOND_NOTE_FREQUENCY * 2, duration: SECOND_NOTE_DURATION_S + 0.05, peakGain: 0.18, type: 'triangle' },
+    {
+      frequency: ERROR_FIRST_NOTE_FREQUENCY,
+      overtoneFrequency: ERROR_FIRST_NOTE_FREQUENCY * 2,
+      duration: FIRST_NOTE_DURATION_S + 0.05,
+      peakGain: 0.18,
+      type: 'triangle',
+    },
+    {
+      frequency: ERROR_SECOND_NOTE_FREQUENCY,
+      overtoneFrequency: ERROR_SECOND_NOTE_FREQUENCY * 2,
+      duration: SECOND_NOTE_DURATION_S + 0.05,
+      peakGain: 0.18,
+      type: 'triangle',
+    },
   ],
 };
 

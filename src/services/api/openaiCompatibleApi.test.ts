@@ -482,13 +482,14 @@ describe('openaiCompatibleApi', () => {
   it('surfaces a non-streaming content_filter finish_reason as an error instead of an empty answer', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify({
-            choices: [{ finish_reason: 'content_filter', message: { content: null } }],
-          }),
-          { status: 200, headers: { 'content-type': 'application/json' } },
-        ),
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              choices: [{ finish_reason: 'content_filter', message: { content: null } }],
+            }),
+            { status: 200, headers: { 'content-type': 'application/json' } },
+          ),
       ),
     );
 
@@ -506,20 +507,23 @@ describe('openaiCompatibleApi', () => {
       onComplete,
     );
 
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('content_filter') }));
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('content_filter') }),
+    );
     expect(onComplete).not.toHaveBeenCalled();
   });
 
   it('appends a truncation notice to a non-streaming response that ended with finish_reason length', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify({
-            choices: [{ finish_reason: 'length', message: { content: 'partial answer' } }],
-          }),
-          { status: 200, headers: { 'content-type': 'application/json' } },
-        ),
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              choices: [{ finish_reason: 'length', message: { content: 'partial answer' } }],
+            }),
+            { status: 200, headers: { 'content-type': 'application/json' } },
+          ),
       ),
     );
 
@@ -634,7 +638,9 @@ describe('openaiCompatibleApi', () => {
       onComplete,
     );
 
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('content_filter') }));
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('content_filter') }),
+    );
     expect(onComplete).not.toHaveBeenCalled();
   });
 

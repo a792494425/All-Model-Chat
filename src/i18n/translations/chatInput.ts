@@ -1999,7 +1999,7 @@ export const chatInputTranslations = {
     zh: '此文件的特定细节等级，覆盖全局设置。',
     ja: 'このファイル固有の詳細レベルです。グローバル設定を上書きします。',
     de: 'Spezifischer Detailgrad für diese Datei. Überschreibt die globale Einstellung.',
-    fr: "Niveau de détail spécifique à ce fichier. Remplace le réglage global.",
+    fr: 'Niveau de détail spécifique à ce fichier. Remplace le réglage global.',
     es: 'Nivel de detalle específico para este archivo. Anula el ajuste global.',
     ko: '이 파일의 특정 세부 수준입니다. 전역 설정을 재정의합니다.',
   },

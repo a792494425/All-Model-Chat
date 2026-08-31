@@ -35,7 +35,8 @@ interface PendingStreamJob {
  * call this BEFORE recordPendingStreamJob and pass the value as `secret`, so
  * the request, the stored record, and later resumes all share one secret.
  */
-export const generateJobSecret = (): string => {  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+export const generateJobSecret = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
   }
   // Extremely restricted contexts without crypto.randomUUID: a timestamped

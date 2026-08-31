@@ -1,12 +1,6 @@
 // Aligned with the documented image-understanding format list (PNG/JPEG/WEBP/
 // HEIC/HEIF). GIF is intentionally absent — it is not a documented input format.
-export const SUPPORTED_IMAGE_MIME_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/heic',
-  'image/heif',
-];
+export const SUPPORTED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 export const SUPPORTED_TEXT_MIME_TYPES = [
   'text/html',
   'text/plain',

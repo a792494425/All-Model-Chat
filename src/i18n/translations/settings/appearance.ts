@@ -317,7 +317,7 @@ const appearanceSettings = {
     ja: '完了通知音を再生する',
     ko: '완료음 미리 들어보기',
     es: 'Escuchar el sonido de finalización',
-    fr: "Écouter le son de fin de génération",
+    fr: 'Écouter le son de fin de génération',
     de: 'Abschluss-Ton anhören',
   },
   settingsCompletionSoundBackgroundOnlyLabel: {

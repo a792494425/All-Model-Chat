@@ -355,6 +355,4 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
 });
 
 export const sanitizeImportedAppSettings = (value: unknown): AppSettings =>
-  appSettingsSchema.parse(
-    migrateLegacyOpenAICompatibleInput(migrateLegacyAutoOpenHtmlPreview(value)),
-  );
+  appSettingsSchema.parse(migrateLegacyOpenAICompatibleInput(migrateLegacyAutoOpenHtmlPreview(value)));

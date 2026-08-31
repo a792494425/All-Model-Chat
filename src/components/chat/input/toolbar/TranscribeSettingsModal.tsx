@@ -49,9 +49,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
         <div className="flex items-center justify-between border-b border-[var(--theme-border-secondary)]/50 pb-3">
           <div className="flex items-center gap-2">
             <SlidersHorizontal size={18} className="text-[var(--theme-text-accent)]" />
-            <h3 className="text-base font-semibold text-[var(--theme-text-primary)]">
-              {t('transcribeModalTitle')}
-            </h3>
+            <h3 className="text-base font-semibold text-[var(--theme-text-primary)]">{t('transcribeModalTitle')}</h3>
           </div>
           <button
             type="button"
@@ -67,9 +65,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
             <label htmlFor="transcribe-instruction" className="text-xs font-semibold text-[var(--theme-text-primary)]">
               {t('settingsSystemPrompt')}
             </label>
-            <p className="text-xs text-[var(--theme-text-secondary)]">
-              {t('transcribeSystemInstructionHelp')}
-            </p>
+            <p className="text-xs text-[var(--theme-text-secondary)]">{t('transcribeSystemInstructionHelp')}</p>
             <textarea
               id="transcribe-instruction"
               value={draftInstruction}
@@ -87,9 +83,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
                 {t('transcribeCustomVocabulary')}
               </label>
             </div>
-            <p className="text-xs text-[var(--theme-text-secondary)]">
-              {t('transcribeCustomVocabularyHelp')}
-            </p>
+            <p className="text-xs text-[var(--theme-text-secondary)]">{t('transcribeCustomVocabularyHelp')}</p>
             <textarea
               id="transcribe-vocab"
               value={draftVocabulary}
