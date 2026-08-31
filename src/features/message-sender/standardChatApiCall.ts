@@ -45,6 +45,7 @@ import {
   recordPendingStreamJob,
   advancePendingStreamJobSeq,
   clearPendingStreamJob,
+  generateJobSecret,
 } from '@/features/stream-jobs/amcStreamJobs';
 import { isGeminiProxyRelativePath } from '@/services/api/geminiApiBaseUrl';
 import type {
@@ -480,9 +481,14 @@ export const performStandardChatApiCall = async ({
     // loops and other internal turns don't carry a stable generation id.
     const canJournalStream =
       !activeProvider && isGeminiProxyRelativePath(appSettings) && finalRole === 'user' && !isContinueMode;
+    // One secret shared by the creating request, the persisted record (used by
+    // resume after a refresh), and the abort call; the server binds the job to
+    // it so only this browser can attach to the buffer.
+    const jobSecret = canJournalStream ? generateJobSecret() : undefined;
     const streamResume = canJournalStream
       ? {
           jobId: generationId,
+          jobSecret,
           lastSeq: 0,
           onSeq: (seq: number) => advancePendingStreamJobSeq(finalSessionId, seq),
         }
@@ -493,6 +499,7 @@ export const performStandardChatApiCall = async ({
         sessionId: finalSessionId,
         generationId,
         jobId: generationId,
+        secret: jobSecret,
         startedAt: generationStartTime.getTime(),
       });
     }

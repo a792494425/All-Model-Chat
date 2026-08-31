@@ -8,6 +8,11 @@ import { getCorsHeaders, sendJson } from './cors.js';
 // share the exact same header names.
 export const JOB_ID_HEADER = 'x-amc-job-id';
 export const LAST_SEQ_HEADER = 'x-amc-last-seq';
+// Per-job random secret the CLIENT generates. The first request under a job id
+// registers it; any later attach/abort must present the same value. Without
+// this, anyone who can reach the port (or learns/guesses a job id) could attach
+// to someone else's job and replay its buffered conversation content.
+export const JOB_SECRET_HEADER = 'x-amc-job-secret';
 
 // ── Job data structures ─────────────────────────────────────────────────────
 
@@ -27,6 +32,8 @@ export interface StreamJob {
   createdAt: number;
   updatedAt: number;
   bufferedBytes: number;
+  /** Client-generated secret bound at creation; undefined for legacy secret-less jobs. */
+  secret?: string;
 }
 
 // ── Tuning constants ────────────────────────────────────────────────────────
@@ -136,12 +143,17 @@ const finishJob = (job: StreamJob, error?: string): void => {
 const ABORTED_BY_CLIENT_MESSAGE = 'aborted by client';
 
 /**
- * Abort a job by id. Returns true if the job was aborted, false if not found
- * or already done. Works for any provider's job in the shared Map.
+ * Abort a job by id. Returns true if the job was aborted, false if not found,
+ * already done, or the presented secret does not match a secret-bound job
+ * (reported as "not found" so the endpoint doesn't leak a job's existence).
+ * Works for any provider's job in the shared Map.
  */
-export const abortJob = (id: string): boolean => {
+export const abortJob = (id: string, secret?: string): boolean => {
   const job = jobs.get(id);
   if (!job || job.done) {
+    return false;
+  }
+  if (job.secret && job.secret !== secret) {
     return false;
   }
   try {
@@ -367,6 +379,13 @@ const buildStreamErrorEvent = (raw: string): string => {
  * (the provider supplies the URL, headers, abort signal wiring, and fetch impl).
  * It is only invoked for a brand-new job.
  */
+export const readJobSecret = (request: IncomingMessage): string | undefined => {
+  const raw = request.headers[JOB_SECRET_HEADER];
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const trimmed = value?.trim();
+  return trimmed || undefined;
+};
+
 export async function maybeStreamWithSharedJob(
   request: IncomingMessage,
   response: ServerResponse,
@@ -378,15 +397,24 @@ export async function maybeStreamWithSharedJob(
   if (!jobId) {
     return false;
   }
+  const jobSecret = readJobSecret(request);
 
   let job = getJob(jobId);
   if (!job) {
     job = createJob(jobId);
+    if (jobSecret) {
+      job.secret = jobSecret;
+    }
     // Fire the upstream fetch detached from the browser connection so that a
     // browser disconnect does not cancel the upstream. The fetch reads the
     // request body lazily; if the browser never sent a body (e.g. an abort
     // probe) the upstream fetch will fail fast and finish the job.
     startUpstream(job);
+  } else if (job.secret && job.secret !== jobSecret) {
+    // Secret-bound job: reject before any headers are written so a caller
+    // without the secret can neither replay nor attach to the buffer.
+    sendJson(request, response, 403, { error: 'stream job secret mismatch' }, config.allowedOrigins);
+    return true;
   }
 
   return attachJobStream(request, response, config, job);

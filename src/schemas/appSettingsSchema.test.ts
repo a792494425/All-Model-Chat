@@ -270,4 +270,23 @@ describe('appSettingsSchema', () => {
 
     expect(settings.isLoggingEnabled).toBe(true);
   });
+
+  it('migrates the legacy autoFullscreenHtml key to autoOpenHtmlPreview', () => {
+    const settings = sanitizeImportedAppSettings({ autoFullscreenHtml: true });
+
+    expect(settings.autoOpenHtmlPreview).toBe(true);
+    expect((settings as { autoFullscreenHtml?: boolean }).autoFullscreenHtml).toBeUndefined();
+  });
+
+  it('defaults a migrated legacy autoFullscreenHtml false to false', () => {
+    const settings = sanitizeImportedAppSettings({ autoFullscreenHtml: false });
+
+    expect(settings.autoOpenHtmlPreview).toBe(false);
+  });
+
+  it('keeps an explicit autoOpenHtmlPreview when a legacy key is also present', () => {
+    const settings = sanitizeImportedAppSettings({ autoFullscreenHtml: true, autoOpenHtmlPreview: false });
+
+    expect(settings.autoOpenHtmlPreview).toBe(false);
+  });
 });

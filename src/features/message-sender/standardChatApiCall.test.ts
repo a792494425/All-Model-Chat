@@ -56,6 +56,7 @@ vi.mock('@/features/stream-jobs/amcStreamJobs', () => ({
   recordPendingStreamJob: mocks.recordPendingStreamJob,
   advancePendingStreamJobSeq: mocks.advancePendingStreamJobSeq,
   clearPendingStreamJob: mocks.clearPendingStreamJob,
+  generateJobSecret: () => 'mock-job-secret',
 }));
 
 describe('performStandardChatApiCall', () => {
@@ -235,10 +236,16 @@ describe('performStandardChatApiCall', () => {
       sessionId: 'session-1',
       generationId: 'generation-1',
       jobId: 'generation-1',
+      secret: 'mock-job-secret',
       startedAt: expect.any(Number),
     });
     const streamResume = mocks.sendStatelessMessageStreamApi.mock.calls[0][12];
-    expect(streamResume).toEqual({ jobId: 'generation-1', lastSeq: 0, onSeq: expect.any(Function) });
+    expect(streamResume).toEqual({
+      jobId: 'generation-1',
+      jobSecret: 'mock-job-secret',
+      lastSeq: 0,
+      onSeq: expect.any(Function),
+    });
     expect(mocks.clearPendingStreamJob).toHaveBeenCalledWith('session-1');
   });
 

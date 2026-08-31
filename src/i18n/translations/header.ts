@@ -143,13 +143,4 @@ export const headerTranslations = {
     fr: `Cliquez pour changer de modèle`,
     de: `Klicken zum Modellwechsel`,
   },
-  headerReasoningHighTitle: {
-    en: 'Reasoning: High',
-    zh: '推理：高',
-    ja: '推論：高',
-    ko: '추론: 높음',
-    es: 'Razonamiento: Alto',
-    fr: 'Raisonnement : Élevé',
-    de: 'Reasoning: Hoch',
-  },
 };

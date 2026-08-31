@@ -110,15 +110,6 @@ export const historyTranslations = {
     fr: '{title} (Copie)',
     de: '{title} (Kopie)',
   },
-  historyDragSession: {
-    en: 'Drag to move chat',
-    zh: '拖动以移动聊天',
-    ja: 'ドラッグしてチャットを移動',
-    ko: '드래그하여 채팅 이동',
-    es: 'Arrastra para mover el chat',
-    fr: 'Faites glisser pour déplacer la discussion',
-    de: 'Ziehen zum Verschieben des Chats',
-  },
   generatingTitle: {
     en: 'Generating title...',
     zh: '生成标题中…',

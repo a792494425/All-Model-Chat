@@ -298,6 +298,10 @@ describe('source readability boundaries', () => {
       'Search container aligned with main header baseline',
       'Search collapses the tab list into a desktop-only match-count status.',
       'Danger severity escalates by consequence: reset < delete chats < wipe all data.',
+      // Selection ask panel (selection-ask dock / resize hit zones)
+      '常显品牌色条：贴边收起后把手要有足够的视觉存在感，避免找不到面板',
+      '把手仅作视觉指示，命中区在面板外侧热区；内缩 4px 防圆角裁剪',
+      '热区是面板兄弟节点、跨边框（外 6 内 1）：放面板内会盖住右缘滚动条',
     ]);
     const jsxCommentPattern = /\{\/\*\s*([^*]+?)\s*\*\/\}/g;
     const unexpectedComments = listProjectSourceFiles('src')

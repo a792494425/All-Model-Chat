@@ -103,7 +103,7 @@ const BASE_DEFAULT_APP_SETTINGS: Omit<AppSettings, 'thirdPartyApi'> = {
   isAutoScrollOnSendEnabled: true,
   isAutoSendOnSuggestionClick: true,
   generateQuadImages: false,
-  autoFullscreenHtml: false,
+  autoOpenHtmlPreview: false,
   unwrapMislabeledHtmlBlocks: true,
   showWelcomeSuggestions: true,
   isAudioCompressionEnabled: DEFAULT_IS_AUDIO_COMPRESSION_ENABLED,
@@ -123,7 +123,7 @@ const BASE_DEFAULT_APP_SETTINGS: Omit<AppSettings, 'thirdPartyApi'> = {
   tabModelCycleIds: undefined,
   liveTranslateTargetLanguageCode: 'en',
   liveTranslateEchoTargetLanguage: false,
-  selectionAskModelId: undefined,
+  selectionAskModelId: DEFAULT_MODEL_ID,
   selectionAskProviderId: undefined,
 };
 

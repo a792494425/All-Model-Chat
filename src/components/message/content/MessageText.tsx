@@ -3,6 +3,7 @@ import { type ChatMessage, type UploadedFile, type AppSettings, type SideViewCon
 import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { useI18n } from '@/contexts/I18nContext';
 import { LazyMarkdownRenderer } from '@/components/message/LazyMarkdownRenderer';
+import { isCodeExecutionPendingInContent } from '@/features/chat-streaming/messageStreamParts';
 import { GroundedResponse } from '@/components/message/GroundedResponse';
 import { GoogleSpinner } from '@/components/icons/GoogleSpinner';
 import { extractAutoPreviewableBlock, normalizePreviewableMarkdownContent } from '@/utils/previewableMarkdown';
@@ -92,6 +93,14 @@ export const MessageText: React.FC<MessageTextProps> = ({
       }),
     [displayedContent, shouldSmooth, appSettings.unwrapMislabeledHtmlBlocks],
   );
+  // The sandbox round-trip has no tokens to show while Google executes, so the
+  // code-exec card would sit silently. The content itself carries the signal:
+  // an executableCode block with no following tool-result block means the
+  // sandbox is still running (streaming only — completed messages resolve it).
+  const hasPendingCodeExecution = useMemo(
+    () => isLoading && message.role === 'model' && isCodeExecutionPendingInContent(markdownContent),
+    [markdownContent, isLoading, message.role],
+  );
   const shouldOfferUserMessageCollapse =
     Boolean(userMessageCollapse) &&
     message.role === 'user' &&
@@ -142,7 +151,7 @@ export const MessageText: React.FC<MessageTextProps> = ({
     let previewTimeout: number | null = null;
 
     if (prevIsLoadingRef.current && !isLoading) {
-      if (appSettings.autoFullscreenHtml && message.role === 'model' && markdownContent) {
+      if (appSettings.autoOpenHtmlPreview && message.role === 'model' && markdownContent) {
         // Strict auto-open path: only explicit html/svg fences or an unlabeled
         // full HTML/SVG document trigger the preview, so code labeled
         // python/css/text never opens the preview by content sniffing.
@@ -166,7 +175,7 @@ export const MessageText: React.FC<MessageTextProps> = ({
         clearTimeout(previewTimeout);
       }
     };
-  }, [isLoading, appSettings.autoFullscreenHtml, markdownContent, message.role, onOpenHtmlPreview]);
+  }, [isLoading, appSettings.autoOpenHtmlPreview, markdownContent, message.role, onOpenHtmlPreview]);
 
   // Avoid showing the primary spinner when content, audio, or MessageThoughts already covers the loading state.
   const showPrimaryThinkingIndicator =
@@ -222,6 +231,7 @@ export const MessageText: React.FC<MessageTextProps> = ({
                 isMermaidRenderingEnabled={isMermaidRenderingEnabled}
                 isGraphvizRenderingEnabled={isGraphvizRenderingEnabled}
                 allowHtml={true}
+                hasPendingCodeExecution={hasPendingCodeExecution}
                 themeId={themeId}
                 onOpenSidePanel={onOpenSidePanel}
                 hideThinkingInContext={appSettings.hideThinkingInContext}

@@ -95,6 +95,15 @@ const shellFeatureTranslations: TranslationMap = {
     fr: 'Ultra élevé (images uniquement)',
     de: 'Ultrahoch (nur Bilder)',
   },
+  mediaResolutionLiveTokensPerImage: {
+    en: '{count} tokens / image',
+    zh: '{count} tokens / 张图片',
+    ja: '{count} トークン / 枚',
+    ko: '{count} 토큰 / 이미지',
+    es: '{count} tokens / imagen',
+    fr: '{count} tokens / image',
+    de: '{count} Tokens / Bild',
+  },
   // PWA update banner (always available).
   aboutUpdateReady: {
     en: 'Update ready to refresh',

@@ -39,6 +39,7 @@ export const createChatInputActionsContextValue = (
   isImageGenerationModel: false,
   isTranscribeModel: false,
   isNativeAudioModel: false,
+  isTtsModel: false,
   canAddYouTubeVideo: false,
   isLoading: false,
   isEditing: false,

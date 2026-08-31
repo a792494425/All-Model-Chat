@@ -637,4 +637,50 @@ describe('openaiCompatibleApi', () => {
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('content_filter') }));
     expect(onComplete).not.toHaveBeenCalled();
   });
+
+  it('surfaces in-stream error payloads via onError instead of completing silently', async () => {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode(
+            [
+              'data: {"choices":[{"delta":{"content":"partial "}}]}',
+              '',
+              'data: {"error":{"message":"upstream exploded","type":"server_error"}}',
+              '',
+              'data: [DONE]',
+              '',
+            ].join('\n'),
+          ),
+        );
+        controller.close();
+      },
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(stream, { status: 200, headers: { 'content-type': 'text/event-stream' } })),
+    );
+
+    const onPart = vi.fn();
+    const onComplete = vi.fn();
+    const onError = vi.fn();
+
+    await sendOpenAICompatibleMessageStream(
+      'api-key',
+      'gpt-4o-mini',
+      [],
+      [{ text: 'say hello' }],
+      { baseUrl: 'https://api.openai.com/v1' },
+      new AbortController().signal,
+      onPart,
+      vi.fn(),
+      onError,
+      onComplete,
+    );
+
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect((onError.mock.calls[0][0] as Error).message).toBe('upstream exploded');
+    expect(onComplete).not.toHaveBeenCalled();
+  });
 });

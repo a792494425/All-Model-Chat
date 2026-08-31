@@ -12,6 +12,7 @@ import {
   THIRD_PARTY_TEMPLATE_IDS,
 } from '@/types';
 import { AVAILABLE_THEMES } from '@/constants/themeRegistry';
+import { DEFAULT_TRANSCRIPTION_MODEL_ID } from '@/constants/modelConfiguration';
 import { createDefaultThirdPartyApiSettings, getThirdPartyTemplateDefaults } from '@/utils/thirdPartyApiProviders';
 
 export const createChatSettings = (overrides: Partial<ChatSettings> = {}): ChatSettings => ({
@@ -48,7 +49,7 @@ export const createAppSettings = (overrides: Partial<AppSettings> = {}): AppSett
   language: 'en',
   translationTargetLanguage: 'English',
   isStreamingEnabled: true,
-  transcriptionModelId: 'gemini-2.5-flash',
+  transcriptionModelId: DEFAULT_TRANSCRIPTION_MODEL_ID,
   filesApiConfig: {
     images: true,
     pdfs: true,

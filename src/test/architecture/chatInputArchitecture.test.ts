@@ -68,7 +68,9 @@ describe('chat input architecture guardrails', () => {
     expect(chatTypesSource).not.toContain('toolStates: ChatToolToggleStates;');
     expect(chatInputActionsSource).toContain('toolStates');
     expect(toolsMenuSource).toContain('getChatToolsForSurface');
-    expect(slashCommandsSource).toContain('getSlashCommandToolDefinitions');
+    // Slash commands share the same registry AND the same availability gates
+    // (model capabilities + provider routing) as the tools menu.
+    expect(slashCommandsSource).toContain('getChatToolsForSurface');
 
     for (const source of [chatTypesSource, toolsMenuSource]) {
       expect(source).not.toContain('isGoogleSearchEnabled: boolean;');

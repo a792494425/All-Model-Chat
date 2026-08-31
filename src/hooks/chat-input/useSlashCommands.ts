@@ -3,7 +3,7 @@ import { type translations } from '@/i18n/translations';
 import { type AttachmentAction, type ModelOption, type ThinkingLevel } from '@/types';
 import type { SlashCommand as Command } from '@/types/slashCommands';
 import type { ChatToolToggleStates, ToggleableChatToolId } from '@/types/chatTools';
-import { getSlashCommandToolDefinitions } from '@/features/chat-tools/toolRegistry';
+import { getChatToolsForSurface } from '@/features/chat-tools/toolRegistry';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
 import { isImageGenerationModel } from '@/utils/model/modelCapabilities';
 
@@ -33,6 +33,8 @@ interface UseSlashCommandsProps {
   onTogglePip: () => void;
   setInputText: Dispatch<SetStateAction<string>>;
   currentModelId: string;
+  /** Active session routing — Gemini built-in tool commands are hidden on third-party routes. */
+  providerId?: string;
   onSetThinkingLevel: (level: ThinkingLevel) => void;
   thinkingLevel?: ThinkingLevel;
   inputText?: string;
@@ -125,6 +127,7 @@ export const useSlashCommands = ({
   onTogglePip,
   setInputText,
   currentModelId,
+  providerId,
   onSetThinkingLevel,
   thinkingLevel,
   inputText,
@@ -132,11 +135,20 @@ export const useSlashCommands = ({
   const [slashCommandState, setSlashCommandState] = useState<SlashCommandState>(CLOSED_SLASH_COMMAND_STATE);
 
   const commandDefinitions = useMemo(() => {
-    const toolCommands = getSlashCommandToolDefinitions().map((tool) => ({
-      name: tool.slashCommand!.name,
-      description: t(tool.slashCommand!.descriptionKey as keyof typeof translations),
-      icon: tool.slashCommand!.icon,
-    }));
+    // Slash tool commands go through the same availability gates as the tools
+    // menu (model capabilities + session provider routing), so a dead toggle
+    // can never be offered — e.g. /maps on Live models, /code on third-party.
+    const toolCommands = getChatToolsForSurface({
+      surface: 'slash-command',
+      capabilities: getCachedModelCapabilities(currentModelId),
+      providerId,
+    })
+      .filter((tool) => !!tool.slashCommand)
+      .map((tool) => ({
+        name: tool.slashCommand!.name,
+        description: t(tool.slashCommand!.descriptionKey as keyof typeof translations),
+        icon: tool.slashCommand!.icon,
+      }));
 
     return [
       { name: 'model', description: t('helpCmdModel'), icon: 'bot' },
@@ -153,7 +165,7 @@ export const useSlashCommands = ({
       { name: 'pip', description: t('helpCmdPip'), icon: 'pip' },
       { name: 'fast', description: t('helpCmdFast'), icon: 'fast' },
     ];
-  }, [t]);
+  }, [t, currentModelId, providerId]);
 
   const commands = useMemo<Command[]>(
     () =>

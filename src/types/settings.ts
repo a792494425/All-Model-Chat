@@ -26,7 +26,6 @@ export enum HarmCategory {
   HARM_CATEGORY_HATE_SPEECH = 'HARM_CATEGORY_HATE_SPEECH',
   HARM_CATEGORY_SEXUALLY_EXPLICIT = 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
   HARM_CATEGORY_DANGEROUS_CONTENT = 'HARM_CATEGORY_DANGEROUS_CONTENT',
-  HARM_CATEGORY_CIVIC_INTEGRITY = 'HARM_CATEGORY_CIVIC_INTEGRITY',
 }
 
 export enum HarmBlockThreshold {
@@ -257,7 +256,7 @@ export interface AppSettings extends ChatSettings {
   isAutoScrollOnSendEnabled?: boolean;
   isAutoSendOnSuggestionClick?: boolean;
   generateQuadImages?: boolean;
-  autoFullscreenHtml?: boolean;
+  autoOpenHtmlPreview?: boolean;
   /** 将语言误标为 css/text/txt/markdown/md、内容却像完整 HTML 文档或含 LA
    *  标记的代码块自动解包为实时预览。关闭后此类代码块一律按源码显示。 */
   unwrapMislabeledHtmlBlocks?: boolean;

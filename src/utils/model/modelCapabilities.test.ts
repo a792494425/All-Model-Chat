@@ -34,9 +34,11 @@ describe('isGemini3Model', () => {
     expect(isGemini3Model('models/gemini-3.5-flash-lite')).toBe(true);
   });
 
-  it('returns true for stable gemini-3-flash IDs', () => {
-    expect(isGemini3Model('gemini-3-flash')).toBe(true);
-    expect(isGemini3Model('models/gemini-3-flash')).toBe(true);
+  it('returns false for the retired bare gemini-3-flash ID', () => {
+    // Only gemini-3-flash-preview exists upstream; the bare stable ID is no
+    // longer special-cased.
+    expect(isGemini3Model('gemini-3-flash')).toBe(false);
+    expect(isGemini3Model('models/gemini-3-flash')).toBe(false);
   });
 
   it('returns true for gemini-3-pro', () => {
@@ -80,8 +82,8 @@ describe('getModelCapabilities', () => {
     expect(capabilities.isGemini3).toBe(false);
   });
 
-  it('marks stable Gemini 3 Flash as supporting thinking levels', () => {
-    const capabilities = getModelCapabilities('gemini-3-flash');
+  it('marks Gemini 3 Flash Preview as supporting thinking levels', () => {
+    const capabilities = getModelCapabilities('gemini-3-flash-preview');
 
     expect(capabilities.isGemini3).toBe(true);
     expect(capabilities.supportsThinkingLevel).toBe(true);
@@ -264,7 +266,6 @@ describe('Gemini 3.5 Transcribe model capabilities', () => {
   it('is classified as a dedicated transcribe model', () => {
     expect(capabilities.isTranscribeModel).toBe(true);
     expect(capabilities.supportsThinkingLevel).toBe(false);
-    expect(capabilities.supportsThinkingBudgetConfig).toBe(false);
   });
 
   it('does not allow general text chat tools but allows attachments and marks as specialized', () => {

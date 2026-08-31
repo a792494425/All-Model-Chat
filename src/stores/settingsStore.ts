@@ -11,7 +11,7 @@ import { resolveSupportedModelId } from '@/utils/model/modelSorting';
 import { dbService } from '@/services/db/dbService';
 import { normalizeLiveArtifactsSystemPrompts } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
 import { sanitizeThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
-import { migrateLegacyOpenAICompatibleInput } from '@/schemas/appSettingsSchema';
+import { migrateLegacyAutoOpenHtmlPreview, migrateLegacyOpenAICompatibleInput } from '@/schemas/appSettingsSchema';
 import { type ConcreteThemeId } from '@/utils/themeMode';
 import { resolveUpdaterOrValue, type UpdaterOrValue } from './stateUpdaters';
 import { CHAT_SYNC_CHANNEL_NAME } from './chatSyncChannel';
@@ -69,7 +69,7 @@ function sanitizeAppSettings(settings: AppSettings): AppSettings {
     ),
     selectionAskModelId: (() => {
       const raw = settings.selectionAskModelId;
-      if (typeof raw !== 'string' || !raw.trim()) return undefined;
+      if (typeof raw !== 'string' || !raw.trim()) return defaultSettings.selectionAskModelId;
       return migrateRemovedModelId(raw) ?? raw;
     })(),
     selectionAskProviderId: (() => {
@@ -148,9 +148,11 @@ function buildLoadedAppSettings(
   const shouldMigrateLegacyTranscriptionDefault =
     storedSettings?.transcriptionModelId === LEGACY_DEFAULT_TRANSCRIPTION_MODEL_ID &&
     preloadOverrides?.transcriptionModelId === undefined;
-  // Fold legacy top-level openaiCompatible* fields (pre-thirdPartyApi layout)
-  // into thirdPartyApi.providers.openai before sanitizing into connections.
-  const migratedStoredSettings = migrateLegacyOpenAICompatibleInput(storedSettings ?? {});
+  // Fold legacy stored keys: autoFullscreenHtml → autoOpenHtmlPreview, then
+  // legacy top-level openaiCompatible* fields into thirdPartyApi.providers.openai.
+  const migratedStoredSettings = migrateLegacyOpenAICompatibleInput(
+    migrateLegacyAutoOpenHtmlPreview(storedSettings ?? {}),
+  );
   const appSettings = sanitizeAppSettings({
     ...defaultSettings,
     ...migratedStoredSettings,

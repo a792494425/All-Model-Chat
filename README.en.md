@@ -115,7 +115,7 @@ The project currently focuses on one main application shape: a **Vite + React SP
   - File mounting and generated file download support.
   - Automatic capture of matplotlib chart output.
 - TTS with 30 voices.
-- Speech transcription through Gemini models.
+- Speech transcription through the Gemini 3.5 Transcribe model.
 - Gemini native image generation (Nano Banana) with aspect ratio, size, and quad-image options.
 
 ### API Management
@@ -156,8 +156,9 @@ The project currently focuses on one main application shape: a **Vite + React SP
 
 ### Safety Settings
 
-- Five safety filter categories: harassment, hate speech, sexual content, dangerous content, and civic integrity.
+- Four safety filter categories: harassment, hate speech, sexual content, and dangerous content.
 - Each category can be independently configured with levels: Off / Block None / Block Few / Block Some / Block Most.
+- All four default to Off, matching the Gemini API default for 2.5 and 3 models.
 
 ### Theme System
 

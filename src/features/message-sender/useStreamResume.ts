@@ -184,6 +184,7 @@ export const useStreamResume = ({
           undefined,
           {
             jobId: pending.jobId,
+            jobSecret: pending.secret,
             // This resume path only runs after a full page load: streamingStore
             // (which held the streamed prefix) is gone and the DB message
             // content is still the empty string written at stream start (parts

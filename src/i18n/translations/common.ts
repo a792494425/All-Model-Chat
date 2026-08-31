@@ -96,15 +96,6 @@ export const commonTranslations = {
   fillInput: { en: 'Insert', zh: '插入', ja: '挿入', ko: '삽입', es: 'Insertar', fr: 'Insérer', de: 'Einfügen' },
   search: { en: 'Search', zh: '搜索', ja: '検索', ko: '검색', es: 'Buscar', fr: 'Rechercher', de: 'Suchen' },
   ask: { en: 'Ask', zh: '询问', ja: '質問', ko: '질문', es: 'Preguntar', fr: 'Demander', de: 'Fragen' },
-  askSelection: {
-    en: 'Ask about selection',
-    zh: '询问划中内容',
-    ja: '選択範囲について質問',
-    ko: '선택 영역에 대해 질문',
-    es: 'Preguntar sobre la selección',
-    fr: 'Question sur la sélection',
-    de: 'Zur Auswahl fragen',
-  },
   askPlaceholder: {
     en: 'Ask about the selected text...',
     zh: '输入你想询问划中内容的问题…',
@@ -187,6 +178,15 @@ export const commonTranslations = {
     es: 'Arrastra para cambiar tamaño · doble clic en la esquina para restablecer',
     fr: 'Glisser pour redimensionner · double-clic sur le coin pour réinitialiser',
     de: 'Ziehen zum Anpassen · Ecke doppelklicken zum Zurücksetzen',
+  },
+  askDockHandleHint: {
+    en: 'Hover to expand · right-click or Esc to close',
+    zh: '悬停展开 · 右键或 Esc 关闭',
+    ja: 'ホバーで展開 · 右クリックまたは Esc で閉じる',
+    ko: '호버로 펼치기 · 우클릭 또는 Esc로 닫기',
+    es: 'Pasa el cursor para expandir · clic derecho o Esc para cerrar',
+    fr: 'Survolez pour développer · clic droit ou Échap pour fermer',
+    de: 'Zum Aufklappen hovern · Rechtsklick oder Esc zum Schließen',
   },
   selectionAskModel: {
     en: 'Selection Ask Model',

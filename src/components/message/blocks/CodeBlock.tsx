@@ -38,6 +38,8 @@ interface CodeBlockProps {
   themeId?: string;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   liveArtifactsMode?: boolean;
+  /** Hides the local Pyodide run button — used for server-executed code blocks. */
+  disableRun?: boolean;
 }
 
 type GeneratedFileEntry = {
@@ -253,7 +255,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
         onDownload={handleDownload}
         onOpenSide={handleOpenSide}
         onOpenPreview={handleOpenPreview}
-        canRun={isPython}
+        canRun={isPython && !props.disableRun}
         isRunning={isRunning}
         onRun={handleRun}
       />

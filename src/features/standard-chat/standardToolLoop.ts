@@ -27,6 +27,13 @@ interface RunStandardToolLoopOptions {
   runTurn: (contents: ChatHistoryItem[]) => Promise<StandardToolTurnResult>;
   abortSignal?: AbortSignal;
   /**
+   * Maximum number of model turns (rounds) before the loop stops gracefully.
+   * A model that repeats tool calls forever would otherwise issue billable API
+   * turns without end. When the cap is reached, every completed round is kept,
+   * the pending calls are not executed, and a notice text part is appended.
+   */
+  maxToolRounds?: number;
+  /**
    * Fired the moment an iteration's calls begin executing, before any handler
    * resolves, so the caller can surface live tool cards while tools run.
    */
@@ -187,11 +194,22 @@ const mergeGroundingForFinalTurn = (finalGrounding: unknown, carryover: Groundin
   };
 };
 
+/**
+ * Round cap for the tool loop. Generous enough for long MCP workflows (multi-step
+ * file exploration, deep research chains); a hard throw would discard the whole
+ * turn, so hitting the cap returns the accumulated result with a notice instead.
+ */
+export const DEFAULT_TOOL_LOOP_ROUNDS = 50;
+
+const TOOL_LOOP_CAP_NOTICE =
+  '[Tool loop stopped: the model kept requesting tool calls after reaching the round limit, so the remaining calls were not executed. Try narrowing the task.]';
+
 export const runStandardToolLoop = async ({
   initialContents,
   clientFunctions,
   runTurn,
   abortSignal,
+  maxToolRounds,
   onToolCallsStarted,
   onToolResponsesSettled,
 }: RunStandardToolLoopOptions): Promise<{
@@ -205,14 +223,12 @@ export const runStandardToolLoop = async ({
   let aggregatedUsage: UsageMetadata | undefined;
   let groundingCarryover: GroundingCarryover | undefined;
   let aggregatedUrlContext: unknown;
+  const maxRounds = maxToolRounds ?? DEFAULT_TOOL_LOOP_ROUNDS;
+  let rounds = 0;
 
-  // No iteration cap: long MCP workflows (multi-step file exploration, deep
-  // research chains) legitimately exceed a fixed budget, and a hard throw
-  // discarded the whole turn. The loop ends when the model stops calling
-  // tools; the user's stop button aborts the in-flight request and unwinds
-  // from there, and every round is a real API call so it can never spin.
   for (;;) {
     const turn = await runTurn(contents);
+    rounds += 1;
     aggregatedUsage = mergeUsageMetadata(aggregatedUsage, turn.usage);
     aggregatedUrlContext = mergeUrlContextMetadata(aggregatedUrlContext, turn.urlContext);
     const functionCalls = turn.functionCalls ?? [];
@@ -221,6 +237,22 @@ export const runStandardToolLoop = async ({
       return {
         finalTurn: {
           ...turn,
+          usage: aggregatedUsage,
+          grounding: mergeGroundingForFinalTurn(turn.grounding, groundingCarryover),
+          urlContext: aggregatedUrlContext,
+        },
+        toolMessages,
+        generatedFiles,
+      };
+    }
+
+    // Cap reached: keep everything completed so far and stop without executing
+    // this turn's calls (every earlier round was a real, finished API turn).
+    if (rounds >= maxRounds) {
+      return {
+        finalTurn: {
+          ...turn,
+          parts: [...turn.parts, { text: TOOL_LOOP_CAP_NOTICE }],
           usage: aggregatedUsage,
           grounding: mergeGroundingForFinalTurn(turn.grounding, groundingCarryover),
           urlContext: aggregatedUrlContext,

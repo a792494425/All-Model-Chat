@@ -308,6 +308,8 @@ export interface ChatInputToolbarContextValue {
 
 export interface ChatInputActionsContextValue {
   currentModelId: string;
+  /** Active session routing — Gemini built-in tools are hidden on third-party routes. */
+  providerId?: string;
   toolStates: ChatToolToggleStates;
   onAttachmentAction: (action: AttachmentAction) => void;
   onNewChat: () => void;
@@ -335,6 +337,7 @@ export interface ChatInputActionsContextValue {
   isImageGenerationModel: boolean;
   isTranscribeModel: boolean;
   isNativeAudioModel: boolean;
+  isTtsModel: boolean;
   canAddYouTubeVideo: boolean;
   isLoading: boolean;
   isEditing: boolean;

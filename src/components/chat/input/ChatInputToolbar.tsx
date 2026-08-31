@@ -146,11 +146,7 @@ const ChatInputToolbarComponent: React.FC = () => {
             </button>
           )}
           {canShowMediaResolution && mediaResolution !== undefined && (
-            <MediaResolutionSelector
-              mediaResolution={mediaResolution}
-              setMediaResolution={setMediaResolution}
-              isNativeAudioModel={isNativeAudioModel}
-            />
+            <MediaResolutionSelector mediaResolution={mediaResolution} setMediaResolution={setMediaResolution} />
           )}
           {showImageCluster && (
             <div className={TOOLBAR_IMAGE_CLUSTER_CLASS} data-testid="image-settings-cluster">

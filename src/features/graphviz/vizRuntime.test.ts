@@ -70,7 +70,13 @@ describe('getGraphvizCacheKey', () => {
   });
 
   it('prefixes the key with the render style version', () => {
-    expect(getGraphvizCacheKey('digraph { A -> B }')).toMatch(/^v5:/);
+    expect(getGraphvizCacheKey('digraph { A -> B }')).toMatch(/^v6:/);
+  });
+
+  it('normalizes style="rounded" to style="rounded,filled" so fill is preserved', () => {
+    const code = applyThemeAndLayout('digraph { node[style="rounded"]; n1[fillcolor=accent] }', { themeId: 'pearl' });
+    expect(code).toContain('style="rounded,filled"');
+    expect(code).not.toMatch(/style="rounded"(?!,)/);
   });
 
   it('differs when layout differs for the same dot', () => {

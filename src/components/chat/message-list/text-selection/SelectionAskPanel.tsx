@@ -8,6 +8,8 @@ import {
   Quote,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   RotateCcw,
   BookOpen,
   Languages,
@@ -17,6 +19,8 @@ import { useWindowContext } from '@/contexts/WindowContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSelectionAsk } from '@/hooks/text-selection/useSelectionAsk';
+import { resolveAskPanelDockSide, type AskPanelDockSide } from '@/utils/text-selection/askPanelDocking';
+import { formatSelectionAskModelLabel } from '@/utils/text-selection/selectionAskDisplay';
 import { MathMarkdownRenderer } from '@/components/message/MathMarkdownRenderer';
 
 interface SelectionAskPanelProps {
@@ -33,6 +37,10 @@ const PANEL_MIN_WIDTH = 340;
 const PANEL_MIN_HEIGHT = 320;
 const PANEL_MAX_HEIGHT_CAP = 520;
 const VIEWPORT_PADDING = 12;
+const DOCK_HANDLE_WIDTH = 22;
+const DOCK_HANDLE_HEIGHT = 56;
+/** 指针位移小于该值视为单击而非拖拽，不触发贴边吸附 */
+const DOCK_DRAG_MIN_MOVE = 6;
 const PANEL_Z_INDEX = 'z-[10000]';
 const STORAGE_KEY = 'amc-selection-ask-panel-size';
 
@@ -71,7 +79,7 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
   const themeId = useSettingsStore((state) => state.currentTheme.id);
   const selectionAskModelId = useSettingsStore((state) => state.appSettings.selectionAskModelId);
   const selectionAskProviderId = useSettingsStore((state) => state.appSettings.selectionAskProviderId);
-  const { answer, isLoading, error, ask, cancel } = useSelectionAsk();
+  const { answer, isLoading, error, ask, cancel, reset } = useSelectionAsk();
   const [question, setQuestion] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
@@ -79,6 +87,9 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
   const [isPreviewClamped, setIsPreviewClamped] = useState(false);
   const [isResizing, setIsResizing] = useState<ResizeDir | null>(null);
+  // 贴边停靠：非 null 时面板收起，仅渲染边缘把手，悬停把手展开（展开后保持，直到再次拖近边缘）
+  const [docked, setDocked] = useState<AskPanelDockSide | null>(null);
+  const [dockedTop, setDockedTop] = useState(0);
   const [size, setSize] = useState<PanelSize>(() => {
     const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
     const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
@@ -92,9 +103,14 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
   const panelRef = useRef<HTMLDivElement>(null);
   const answerContainerRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLParagraphElement>(null);
-  const dragState = useRef<{ offsetX: number; offsetY: number; pointerId?: number; capturedEl?: HTMLElement } | null>(
-    null,
-  );
+  const dragState = useRef<{
+    offsetX: number;
+    offsetY: number;
+    startX: number;
+    startY: number;
+    pointerId?: number;
+    capturedEl?: HTMLElement;
+  } | null>(null);
   const resizeState = useRef<{
     dir: ResizeDir;
     startX: number;
@@ -138,6 +154,16 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
     };
   }, [cancel]);
 
+  // 面板开着时再次"询问"会换锚点：清掉上一轮问答与未发送的问题，
+  // 避免旧答案被当成新选区内容的回答（锚点对象在打开期间身份稳定，不会误触发）
+  const lastAnchorRef = useRef<DOMRect | null>(anchorRect);
+  useEffect(() => {
+    if (lastAnchorRef.current === anchorRect) return;
+    lastAnchorRef.current = anchorRect;
+    reset();
+    setQuestion('');
+  }, [anchorRect, reset]);
+
   // Initial positioning — 用当前 size 的实际宽高
   useLayoutEffect(() => {
     const vw = targetWindow.innerWidth;
@@ -170,9 +196,11 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reposition only on anchor/viewport changes; size updates must not reposition
   }, [anchorRect, targetWindow]);
 
-  // Clamp position on resize
+  // Clamp position on resize。注意不能在 effect 里以 panelRef.current 为空提前 return：
+  // 挂载时 position 还是 null、面板未渲染，提前返回会导致监听永远挂不上（面板渲染后 effect 不会重跑）。
+  const isPanelRendered = position !== null && docked === null;
   useEffect(() => {
-    if (!panelRef.current) return;
+    if (!isPanelRendered) return;
     const clamp = () => {
       const el = panelRef.current;
       if (!el) return;
@@ -190,6 +218,7 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
         return { top, left };
       });
     };
+    clamp();
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => clamp()) : null;
     if (panelRef.current) ro?.observe(panelRef.current);
     targetWindow.addEventListener('resize', clamp);
@@ -199,7 +228,25 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
       targetWindow.removeEventListener('resize', clamp);
       targetWindow.visualViewport?.removeEventListener('resize', clamp);
     };
-  }, [targetWindow]);
+  }, [isPanelRendered, targetWindow]);
+
+  // 停靠状态下视口变化时，把手垂直位置重新 clamp
+  useEffect(() => {
+    if (!docked) return;
+    const reclampHandle = () => {
+      setDockedTop((prev) =>
+        Math.round(
+          Math.max(VIEWPORT_PADDING, Math.min(prev, targetWindow.innerHeight - size.height - VIEWPORT_PADDING)),
+        ),
+      );
+    };
+    targetWindow.addEventListener('resize', reclampHandle);
+    targetWindow.visualViewport?.addEventListener('resize', reclampHandle);
+    return () => {
+      targetWindow.removeEventListener('resize', reclampHandle);
+      targetWindow.visualViewport?.removeEventListener('resize', reclampHandle);
+    };
+  }, [docked, size.height, targetWindow]);
 
   useEffect(() => {
     const id = targetWindow.setTimeout(() => textareaRef.current?.focus(), 100);
@@ -331,6 +378,8 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
     dragState.current = {
       offsetX: e.clientX - rect.left,
       offsetY: e.clientY - rect.top,
+      startX: e.clientX,
+      startY: e.clientY,
       pointerId: e.pointerId,
       capturedEl: e.currentTarget as HTMLElement,
     };
@@ -355,22 +404,63 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
     [isDragging, targetWindow],
   );
 
-  const handlePointerUp = useCallback(() => {
-    if (dragState.current?.capturedEl && dragState.current.pointerId !== undefined) {
-      try {
-        dragState.current.capturedEl.releasePointerCapture(dragState.current.pointerId);
-      } catch {
-        // ignore
+  const handlePointerUp = useCallback(
+    (e: PointerEvent) => {
+      const st = dragState.current;
+      if (st?.capturedEl && st.pointerId !== undefined) {
+        try {
+          st.capturedEl.releasePointerCapture(st.pointerId);
+        } catch {
+          // ignore
+        }
       }
-    }
-    dragState.current = null;
-    setIsDragging(false);
-  }, []);
+      // 位移过小说明是单击标题栏而非拖拽：面板恢复原位即可，不触发贴边吸附
+      const moved = st ? Math.hypot(e.clientX - st.startX, e.clientY - st.startY) : Number.POSITIVE_INFINITY;
+      dragState.current = null;
+      setIsDragging(false);
+      if (moved < DOCK_DRAG_MIN_MOVE) return;
+
+      // 拖拽结束时贴边吸附
+      const el = panelRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const side = resolveAskPanelDockSide(rect.left, rect.right, targetWindow.innerWidth);
+      if (!side) return;
+      setDockedTop(
+        Math.round(
+          Math.max(VIEWPORT_PADDING, Math.min(rect.top, targetWindow.innerHeight - rect.height - VIEWPORT_PADDING)),
+        ),
+      );
+      setDocked(side);
+    },
+    [targetWindow],
+  );
+
+  // 从停靠状态展开：恢复到停靠前那一侧的完整位置，之后保持展开，直到再次拖近边缘。
+  // focusTextarea：键盘 Tab / 点击展开时把焦点送进输入框；悬停展开不抢焦点（面板卸载过，
+  // textarea 是新节点，必须等重渲染后再聚焦）。已在展开态时（如悬停已展开后的补发 click）只补焦点。
+  const expandFromDock = useCallback(
+    (focusTextarea?: boolean) => {
+      if (focusTextarea) {
+        targetWindow.setTimeout(() => textareaRef.current?.focus(), 0);
+      }
+      if (!docked) return;
+      const vw = targetWindow.innerWidth;
+      const vh = targetWindow.innerHeight;
+      const clampedSize = clampSizeToViewport(size, vw, vh);
+      setPosition({
+        top: Math.round(Math.max(VIEWPORT_PADDING, Math.min(dockedTop, vh - clampedSize.height - VIEWPORT_PADDING))),
+        left: Math.round(docked === 'right' ? vw - clampedSize.width - VIEWPORT_PADDING : VIEWPORT_PADDING),
+      });
+      setDocked(null);
+    },
+    [docked, dockedTop, size, targetWindow],
+  );
 
   useEffect(() => {
     if (!isDragging) return;
     const onMove = (e: PointerEvent) => handlePointerMove(e);
-    const onUp = () => handlePointerUp();
+    const onUp = (e: PointerEvent) => handlePointerUp(e);
     targetWindow.addEventListener('pointermove', onMove);
     targetWindow.addEventListener('pointerup', onUp);
     return () => {
@@ -436,6 +526,8 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
         if (newW !== st.startW - (newLeft - st.startLeft)) {
           newW = st.startW - (newLeft - st.startLeft);
         }
+        // 反推出的宽度必须重新套上限，否则左缘贴边时宽度会越过视口
+        newW = Math.max(PANEL_MIN_WIDTH, Math.min(newW, vw - VIEWPORT_PADDING * 2));
         newLeft = Math.max(VIEWPORT_PADDING, Math.min(newLeft, vw - newW - VIEWPORT_PADDING));
       }
       if (st.dir.includes('n')) {
@@ -444,6 +536,8 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
         if (newH !== st.startH - (newTop - st.startTop)) {
           newH = st.startH - (newTop - st.startTop);
         }
+        // 反推出的高度必须重新套上限（含 PANEL_MAX_HEIGHT_CAP），否则上缘拖到视口顶部时高度会超出上限
+        newH = Math.max(PANEL_MIN_HEIGHT, Math.min(newH, vh - VIEWPORT_PADDING * 2, PANEL_MAX_HEIGHT_CAP));
         newTop = Math.max(VIEWPORT_PADDING, Math.min(newTop, vh - newH - VIEWPORT_PADDING));
       }
       if (st.dir.includes('e') && !st.dir.includes('w')) {
@@ -493,10 +587,22 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
   }, [targetWindow]);
 
   useEffect(() => {
+    const isEditableElement = (el: Element | null): boolean =>
+      el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       if (e.defaultPrevented) return;
       const active = targetDocument.activeElement;
+
+      // 停靠状态下面板已卸载：焦点不在任何可编辑元素里时，Escape 直接关闭整个询问会话
+      if (docked) {
+        if (isEditableElement(active)) return;
+        e.stopPropagation();
+        onClose();
+        return;
+      }
+
       if (panelRef.current && active && panelRef.current.contains(active)) {
         e.stopPropagation();
         onClose();
@@ -506,7 +612,7 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
     };
     targetDocument.addEventListener('keydown', onKey);
     return () => targetDocument.removeEventListener('keydown', onKey);
-  }, [onClose, targetDocument]);
+  }, [docked, onClose, targetDocument]);
 
   const handleAnswerScroll = useCallback(() => {
     const el = answerContainerRef.current;
@@ -533,295 +639,377 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
 
   if (!position) return null;
 
+  if (docked) {
+    const handleTop = Math.round(
+      Math.max(
+        VIEWPORT_PADDING,
+        Math.min(
+          dockedTop + size.height / 2 - DOCK_HANDLE_HEIGHT / 2,
+          targetWindow.innerHeight - DOCK_HANDLE_HEIGHT - VIEWPORT_PADDING,
+        ),
+      ),
+    );
+    const isRight = docked === 'right';
+    return createPortal(
+      <button
+        type="button"
+        className={`fixed ${PANEL_Z_INDEX} flex items-center justify-center border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] text-[var(--theme-text-secondary)] shadow-[0_6px_20px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-colors hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)]`}
+        style={{
+          top: handleTop,
+          width: DOCK_HANDLE_WIDTH,
+          height: DOCK_HANDLE_HEIGHT,
+          ...(isRight ? { right: 0, borderRadius: '10px 0 0 10px' } : { left: 0, borderRadius: '0 10px 10px 0' }),
+        }}
+        onMouseEnter={() => expandFromDock()}
+        onFocus={() => expandFromDock(true)}
+        onClick={() => expandFromDock(true)}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          onClose();
+        }}
+        aria-label={t('ask')}
+        title={t('askDockHandleHint')}
+      >
+        {/* 常显品牌色条：贴边收起后把手要有足够的视觉存在感，避免找不到面板 */}
+        <span
+          aria-hidden
+          className={`absolute top-2.5 bottom-2.5 w-[3px] rounded-full bg-[var(--theme-text-link)] opacity-80 ${
+            isRight ? 'right-1' : 'left-1'
+          }`}
+        />
+        {isRight ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+        {(isLoading || error) && (
+          <span
+            aria-hidden
+            className={`absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full ${
+              error ? 'bg-[var(--theme-text-danger)]' : 'animate-pulse bg-[var(--theme-text-link)]'
+            }`}
+          />
+        )}
+      </button>,
+      targetDocument.body,
+    );
+  }
+
   const ghostPill =
     'flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium text-[var(--theme-text-secondary)] transition-colors hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] disabled:opacity-50 disabled:pointer-events-none';
 
   return createPortal(
-    <div
-      ref={panelRef}
-      className={`fixed ${PANEL_Z_INDEX} flex flex-col overflow-hidden rounded-[20px] border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)]/95 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.14)]`}
-      style={{
-        top: position.top,
-        left: position.left,
-        width: size.width,
-        height: size.height,
-        animation: 'askPanelIn 0.22s var(--ease-out-expo) both',
-      }}
-      role="dialog"
-      aria-label={t('ask')}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
+    <>
       <div
-        className="flex h-11 shrink-0 items-center gap-2 border-b border-[var(--theme-border-primary)] px-3.5 select-none"
-        onPointerDown={handlePointerDown}
-        style={{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
+        ref={panelRef}
+        className={`fixed ${PANEL_Z_INDEX} flex flex-col overflow-hidden rounded-[20px] border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)]/95 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.14)]`}
+        style={{
+          top: position.top,
+          left: position.left,
+          width: size.width,
+          height: size.height,
+          animation: 'askPanelIn 0.22s var(--ease-out-expo) both',
+        }}
+        role="dialog"
+        aria-label={t('ask')}
+        onMouseDown={(e) => e.stopPropagation()}
       >
-        <span className="text-sm font-semibold text-[var(--theme-text-primary)]">{t('ask')}</span>
-        {selectionAskModelId ? (
-          <span
-            className="max-w-[160px] truncate rounded-full bg-[var(--theme-bg-secondary)] px-2 py-0.5 text-xs font-medium text-[var(--theme-text-secondary)]"
-            title={selectionAskProviderId ? `${selectionAskModelId} · ${selectionAskProviderId}` : selectionAskModelId}
-          >
-            {selectionAskModelId}
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--theme-bg-error-message)] px-2 py-0.5 text-xs font-medium text-[var(--theme-text-danger)]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--theme-text-danger)]" />
-            {t('selectionAskModelNotConfigured')}
-          </span>
-        )}
-        <div className="flex-1" />
-        <button
-          type="button"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={handleResetSize}
-          className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
-            isResizing || isDragging
-              ? 'text-[var(--theme-text-primary)]'
-              : 'text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)]'
-          }`}
-          title={t('askResizeHint')}
-          aria-label={t('askResetSize')}
+        <div
+          className="flex h-11 shrink-0 items-center gap-2 border-b border-[var(--theme-border-primary)] px-3.5 select-none"
+          onPointerDown={handlePointerDown}
+          style={{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
         >
-          <RotateCcw size={13} />
-        </button>
-        <button
-          type="button"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={onClose}
-          className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)]"
-          aria-label={t('close')}
-        >
-          <X size={15} />
-        </button>
-      </div>
-
-      <div
-        ref={answerContainerRef}
-        onScroll={handleAnswerScroll}
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-3"
-      >
-        <div className="mb-3 shrink-0 rounded-xl bg-[var(--theme-bg-secondary)]/70 px-3 py-2">
-          <p
-            ref={previewRef}
-            className={`${isPreviewExpanded ? '' : 'line-clamp-2'} whitespace-pre-wrap break-words text-xs leading-relaxed text-[var(--theme-text-secondary)]`}
-          >
-            {selectedText}
-          </p>
-          {(isPreviewExpanded || isPreviewClamped || selectedText.length > 90) && (
-            <button
-              onClick={() => setIsPreviewExpanded((v) => !v)}
-              className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-[var(--theme-text-link)] hover:underline"
+          <span className="text-sm font-semibold text-[var(--theme-text-primary)]">{t('ask')}</span>
+          {selectionAskModelId ? (
+            <span
+              className="max-w-[160px] truncate rounded-full bg-[var(--theme-bg-secondary)] px-2 py-0.5 text-xs font-medium text-[var(--theme-text-secondary)]"
+              title={
+                selectionAskProviderId ? `${selectionAskModelId} · ${selectionAskProviderId}` : selectionAskModelId
+              }
             >
-              {isPreviewExpanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
-              {isPreviewExpanded ? t('collapse') : `${t('expand')} · ${selectedText.length}`}
-            </button>
+              {formatSelectionAskModelLabel(selectionAskModelId)}
+            </span>
+          ) : (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-[var(--theme-bg-secondary)] px-2 py-0.5 text-xs font-medium text-[var(--theme-text-secondary)]"
+              title={t('selectionAskModelNotConfigured')}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--theme-text-danger)]" />
+              {t('selectionAskModelNotConfigured')}
+            </span>
+          )}
+          <div className="flex-1" />
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={handleResetSize}
+            className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
+              isResizing || isDragging
+                ? 'text-[var(--theme-text-primary)]'
+                : 'text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)]'
+            }`}
+            title={t('askResizeHint')}
+            aria-label={t('askResetSize')}
+          >
+            <RotateCcw size={13} />
+          </button>
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={onClose}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)]"
+            aria-label={t('close')}
+          >
+            <X size={15} />
+          </button>
+        </div>
+
+        <div
+          ref={answerContainerRef}
+          onScroll={handleAnswerScroll}
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-3"
+        >
+          <div className="mb-3 shrink-0 rounded-xl bg-[var(--theme-bg-secondary)]/70 px-3 py-2">
+            <p
+              ref={previewRef}
+              className={`${isPreviewExpanded ? '' : 'line-clamp-2'} whitespace-pre-wrap break-words text-xs leading-relaxed text-[var(--theme-text-primary)]`}
+            >
+              {selectedText}
+            </p>
+            {(isPreviewExpanded || isPreviewClamped || selectedText.length > 90) && (
+              <button
+                onClick={() => setIsPreviewExpanded((v) => !v)}
+                className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[var(--theme-text-link)] hover:underline"
+              >
+                {isPreviewExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                {isPreviewExpanded ? t('collapse') : `${t('expand')} · ${selectedText.length}`}
+              </button>
+            )}
+          </div>
+
+          {showEmptyState && (
+            <div className="flex flex-1 flex-col items-center justify-center gap-2.5 py-2">
+              {(
+                [
+                  ['explain', t('askExplain'), BookOpen],
+                  ['translate', t('askTranslate'), Languages],
+                  ['summarize', t('askSummarize'), List],
+                ] as const
+              ).map(([key, label, Icon]) => (
+                <button
+                  key={key}
+                  onClick={() => handleQuick(key)}
+                  className="group flex w-full max-w-[340px] items-center gap-3 rounded-xl border border-[var(--theme-border-primary)] bg-[var(--theme-bg-secondary)]/50 px-4 py-3 text-left transition-all hover:border-[var(--theme-border-focus)]/40 hover:bg-[var(--theme-bg-tertiary)]"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--theme-bg-accent)]/10 text-[var(--theme-text-link)] transition-colors group-hover:bg-[var(--theme-bg-accent)]/20">
+                    <Icon size={16} />
+                  </span>
+                  <span className="text-sm font-medium text-[var(--theme-text-primary)]">{label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {isLoading && !hasAnswer && (
+            <div className="flex items-center justify-center gap-2.5 pb-6 pt-2 text-sm text-[var(--theme-text-secondary)]">
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[var(--theme-text-link)] border-t-transparent" />
+              {t('askThinking')}
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-xl border border-[var(--theme-text-danger)]/20 bg-[var(--theme-bg-error-message)] px-3.5 py-3">
+              <p className="text-sm leading-relaxed text-[var(--theme-text-danger)]">{error}</p>
+              <button
+                onClick={() => question.trim() && handleAsk(question)}
+                disabled={!question.trim()}
+                className="mt-2.5 rounded-full bg-[var(--theme-bg-danger)] px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--theme-bg-danger-hover)] disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {t('retryButtonTitle')}
+              </button>
+            </div>
+          )}
+
+          {hasAnswer && (
+            <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:overflow-auto prose-pre:bg-[var(--theme-bg-code-block)]">
+              <MathMarkdownRenderer
+                content={answer}
+                isLoading={isLoading}
+                onImageClick={() => {}}
+                onOpenHtmlPreview={() => {}}
+                expandCodeBlocksByDefault={false}
+                isMermaidRenderingEnabled={true}
+                isGraphvizRenderingEnabled={true}
+                themeId={themeId}
+                onOpenSidePanel={() => {}}
+              />
+              {isLoading && (
+                <span className="ml-0.5 inline-flex translate-y-[-1px] items-center gap-0.5 align-middle">
+                  {[0, 120, 240].map((delay) => (
+                    <span
+                      key={delay}
+                      className="h-1 w-1 animate-bounce rounded-full bg-[var(--theme-text-link)]"
+                      style={{ animationDelay: `-${delay}ms` }}
+                    />
+                  ))}
+                </span>
+              )}
+            </div>
           )}
         </div>
 
-        {showEmptyState && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2.5 py-2">
-            {(
-              [
-                ['explain', t('askExplain'), BookOpen],
-                ['translate', t('askTranslate'), Languages],
-                ['summarize', t('askSummarize'), List],
-              ] as const
-            ).map(([key, label, Icon]) => (
-              <button
-                key={key}
-                onClick={() => handleQuick(key)}
-                className="group flex w-full max-w-[340px] items-center gap-3 rounded-xl border border-[var(--theme-border-primary)] bg-[var(--theme-bg-secondary)]/50 px-4 py-3 text-left transition-all hover:border-[var(--theme-border-focus)]/40 hover:bg-[var(--theme-bg-tertiary)]"
-              >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--theme-bg-accent)]/10 text-[var(--theme-text-link)] transition-colors group-hover:bg-[var(--theme-bg-accent)]/20">
-                  <Icon size={16} />
-                </span>
-                <span className="text-sm font-medium text-[var(--theme-text-primary)]">{label}</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {isLoading && !hasAnswer && (
-          <div className="flex items-center justify-center gap-2.5 pb-6 pt-2 text-sm text-[var(--theme-text-secondary)]">
-            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[var(--theme-text-link)] border-t-transparent" />
-            {t('askThinking')}
-          </div>
-        )}
-
-        {error && (
-          <div className="rounded-xl border border-[var(--theme-text-danger)]/20 bg-[var(--theme-bg-error-message)] px-3.5 py-3">
-            <p className="text-sm leading-relaxed text-[var(--theme-text-danger)]">{error}</p>
-            <button
-              onClick={() => question.trim() && handleAsk(question)}
-              disabled={!question.trim()}
-              className="mt-2.5 rounded-full bg-[var(--theme-bg-danger)] px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--theme-bg-danger-hover)] disabled:opacity-50 disabled:pointer-events-none"
-            >
-              {t('retryButtonTitle')}
-            </button>
-          </div>
-        )}
-
         {hasAnswer && (
-          <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:overflow-auto prose-pre:bg-[var(--theme-bg-code-block)]">
-            <MathMarkdownRenderer
-              content={answer}
-              isLoading={isLoading}
-              onImageClick={() => {}}
-              onOpenHtmlPreview={() => {}}
-              expandCodeBlocksByDefault={false}
-              isMermaidRenderingEnabled={true}
-              isGraphvizRenderingEnabled={true}
-              themeId={themeId}
-              onOpenSidePanel={() => {}}
-            />
-            {isLoading && (
-              <span className="ml-0.5 inline-flex translate-y-[-1px] items-center gap-0.5 align-middle">
-                {[0, 120, 240].map((delay) => (
-                  <span
-                    key={delay}
-                    className="h-1 w-1 animate-bounce rounded-full bg-[var(--theme-text-link)]"
-                    style={{ animationDelay: `-${delay}ms` }}
-                  />
-                ))}
-              </span>
+          <div className="flex shrink-0 items-center gap-0.5 border-t border-[var(--theme-border-primary)] px-2.5 py-1.5">
+            <button onClick={handleCopyAnswer} className={ghostPill}>
+              {isCopied ? <Check size={13} className="text-[var(--theme-text-success)]" /> : <Copy size={13} />}
+              {isCopied ? t('copied') : t('askCopyAnswer')}
+            </button>
+            {onInsert && (
+              <button onClick={handleInsertAnswer} className={ghostPill}>
+                <CornerRightDown size={13} />
+                {t('askInsertAnswer')}
+              </button>
+            )}
+            {onQuote && (
+              <button onClick={handleQuoteAnswer} className={ghostPill}>
+                <Quote size={13} />
+                {t('quote')}
+              </button>
             )}
           </div>
         )}
-      </div>
 
-      {hasAnswer && (
-        <div className="flex shrink-0 items-center gap-0.5 border-t border-[var(--theme-border-primary)] px-2.5 py-1.5">
-          <button onClick={handleCopyAnswer} className={ghostPill}>
-            {isCopied ? <Check size={13} className="text-[var(--theme-text-success)]" /> : <Copy size={13} />}
-            {isCopied ? t('copied') : t('askCopyAnswer')}
-          </button>
-          {onInsert && (
-            <button onClick={handleInsertAnswer} className={ghostPill}>
-              <CornerRightDown size={13} />
-              {t('askInsertAnswer')}
-            </button>
+        <div className="shrink-0 border-t border-[var(--theme-border-primary)] bg-[var(--theme-bg-secondary)]/60 p-2.5">
+          {hasAnswer && (
+            <div className="mb-2 flex flex-wrap gap-1">
+              {(
+                [
+                  ['explain', t('askExplain')],
+                  ['translate', t('askTranslate')],
+                  ['summarize', t('askSummarize')],
+                ] as const
+              ).map(([key, label]) => (
+                <button key={key} onClick={() => handleQuick(key)} disabled={isLoading} className={ghostPill}>
+                  {label}
+                </button>
+              ))}
+            </div>
           )}
-          {onQuote && (
-            <button onClick={handleQuoteAnswer} className={ghostPill}>
-              <Quote size={13} />
-              {t('quote')}
-            </button>
-          )}
-        </div>
-      )}
-
-      <div className="shrink-0 border-t border-[var(--theme-border-primary)] bg-[var(--theme-bg-secondary)]/60 p-2.5">
-        {hasAnswer && (
-          <div className="mb-2 flex flex-wrap gap-1">
-            {(
-              [
-                ['explain', t('askExplain')],
-                ['translate', t('askTranslate')],
-                ['summarize', t('askSummarize')],
-              ] as const
-            ).map(([key, label]) => (
-              <button key={key} onClick={() => handleQuick(key)} disabled={isLoading} className={ghostPill}>
-                {label}
+          <div className="flex items-end gap-2">
+            <textarea
+              ref={textareaRef}
+              value={question}
+              onChange={handleTextareaInput}
+              onKeyDown={handleKeyDown}
+              rows={1}
+              disabled={isLoading}
+              placeholder={isLoading ? t('askThinking') : t('askPlaceholder')}
+              className="max-h-24 min-h-[40px] flex-1 resize-none overflow-y-hidden rounded-2xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] px-3.5 py-2.5 text-sm text-[var(--theme-text-primary)] outline-none transition-colors placeholder:text-[var(--theme-text-tertiary)] focus:border-[var(--theme-border-focus)] disabled:cursor-not-allowed disabled:opacity-60"
+              style={{ fieldSizing: 'content' } as React.CSSProperties}
+            />
+            {isLoading ? (
+              <button
+                onClick={cancel}
+                className={`grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full text-white transition-colors ${'bg-[var(--theme-bg-danger)] hover:bg-[var(--theme-bg-danger-hover)]'}`}
+                aria-label={t('retryAndStopButtonTitle')}
+                title={t('retryAndStopButtonTitle')}
+                style={{ transform: 'translateY(-2px)' }}
+              >
+                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden>
+                  <rect x="3" y="3" width="10" height="10" rx="3" fill="currentColor" />
+                </svg>
               </button>
-            ))}
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={!question.trim()}
+                className={`grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${SEND_BUTTON_BG}`}
+                aria-label={t('askSend')}
+                style={{ transform: 'translateY(-2px)' }}
+              >
+                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden>
+                  <path
+                    d="M8.3125 0.980183C8.66767 1.0531 8.97902 1.20418 9.2627 1.43233C9.48724 1.61297 9.73029 1.85793 9.97949 2.10714L14.707 6.83468L13.293 8.24874L9 3.95577V15.0417H7V3.95577L2.70703 8.24874L1.29297 6.83468L6.02051 2.10714C6.26971 1.85793 6.51277 1.61297 6.7373 1.43233C6.97662 1.23986 7.28445 1.04402 7.6875 0.980183C7.8973 0.947006 8.1031 0.95516 8.3125 0.980183Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
-        )}
-        <div className="flex items-end gap-2">
-          <textarea
-            ref={textareaRef}
-            value={question}
-            onChange={handleTextareaInput}
-            onInput={handleTextareaInput}
-            onKeyDown={handleKeyDown}
-            rows={1}
-            disabled={isLoading}
-            placeholder={isLoading ? t('askThinking') : t('askPlaceholder')}
-            className="max-h-24 min-h-[40px] flex-1 resize-none overflow-y-hidden rounded-2xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] px-3.5 py-2.5 text-sm text-[var(--theme-text-primary)] outline-none transition-colors placeholder:text-[var(--theme-text-tertiary)] focus:border-[var(--theme-border-focus)] disabled:cursor-not-allowed disabled:opacity-60"
-            style={{ fieldSizing: 'content' } as React.CSSProperties}
-          />
-          {isLoading ? (
-            <button
-              onClick={cancel}
-              className={`grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full text-white transition-colors ${'bg-[var(--theme-bg-danger)] hover:bg-[var(--theme-bg-danger-hover)]'}`}
-              aria-label={t('retryAndStopButtonTitle')}
-              title={t('retryAndStopButtonTitle')}
-              style={{ transform: 'translateY(-2px)' }}
-            >
-              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden>
-                <rect x="3" y="3" width="10" height="10" rx="3" fill="currentColor" />
-              </svg>
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              disabled={!question.trim()}
-              className={`grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${SEND_BUTTON_BG}`}
-              aria-label={t('askSend')}
-              style={{ transform: 'translateY(-2px)' }}
-            >
-              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden>
-                <path
-                  d="M8.3125 0.980183C8.66767 1.0531 8.97902 1.20418 9.2627 1.43233C9.48724 1.61297 9.73029 1.85793 9.97949 2.10714L14.707 6.83468L13.293 8.24874L9 3.95577V15.0417H7V3.95577L2.70703 8.24874L1.29297 6.83468L6.02051 2.10714C6.26971 1.85793 6.51277 1.61297 6.7373 1.43233C6.97662 1.23986 7.28445 1.04402 7.6875 0.980183C7.8973 0.947006 8.1031 0.95516 8.3125 0.980183Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </button>
-          )}
+        </div>
+
+        {/* 把手仅作视觉指示，命中区在面板外侧热区；内缩 4px 防圆角裁剪 */}
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute bottom-1 right-1 flex h-4 w-4 items-end justify-end p-0.5 transition-opacity ${
+            isResizing === 'se'
+              ? 'text-[var(--theme-text-link)] opacity-100'
+              : 'text-[var(--theme-text-tertiary)] opacity-70'
+          }`}
+        >
+          <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
+            <path
+              d="M9 1 L9 9 L1 9"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
       </div>
 
-      <div
-        onPointerDown={handleResizePointerDown('n')}
-        className="absolute left-3 right-3 top-0 h-1 cursor-n-resize touch-none"
-      />
-      <div
-        onPointerDown={handleResizePointerDown('s')}
-        className="absolute bottom-0 left-3 right-3 h-1 cursor-s-resize touch-none"
-      />
-      <div
-        onPointerDown={handleResizePointerDown('e')}
-        className="absolute bottom-3 right-0 top-3 w-1 cursor-e-resize touch-none"
-      />
-      <div
-        onPointerDown={handleResizePointerDown('w')}
-        className="absolute bottom-3 left-0 top-3 w-1 cursor-w-resize touch-none"
-      />
-      <div
-        onPointerDown={handleResizePointerDown('ne')}
-        className="absolute right-0 top-0 h-3 w-3 cursor-ne-resize touch-none"
-      />
-      <div
-        onPointerDown={handleResizePointerDown('nw')}
-        className="absolute left-0 top-0 h-3 w-3 cursor-nw-resize touch-none"
-      />
-      <div
-        onPointerDown={handleResizePointerDown('sw')}
-        className="absolute bottom-0 left-0 h-3 w-3 cursor-sw-resize touch-none"
-      />
-      <div
-        onPointerDown={handleResizePointerDown('se')}
-        onDoubleClick={handleResetSize}
-        title={t('askResizeHint')}
-        aria-label={t('askResetSize')}
-        className={`absolute bottom-0 right-0 flex h-4 w-4 cursor-se-resize touch-none items-end justify-end p-0.5 transition-opacity ${
-          isResizing === 'se'
-            ? 'text-[var(--theme-text-link)] opacity-100'
-            : 'text-[var(--theme-text-tertiary)] opacity-70 hover:text-[var(--theme-text-secondary)] hover:opacity-100'
-        }`}
-      >
-        <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
-          <path
-            d="M9 1 L9 9 L1 9"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-    </div>,
+      {/* 热区是面板兄弟节点、跨边框（外 6 内 1）：放面板内会盖住右缘滚动条 */}
+      {(
+        [
+          // 边缘热区内侧只伸入 1px：右缘 5px 滚动条占据 [right-6, right-1]，
+          // 内侧再深就会盖住滚动条导致拖不动。
+          // 两端只留 5px 给角部热区（角区为角点 ±5px 的 10×10），保证边缘与角部无缝衔接、没有光标死区
+          [
+            'n',
+            { top: position.top - 6, left: position.left + 5, width: size.width - 10, height: 7 },
+            'cursor-n-resize',
+          ],
+          [
+            's',
+            { top: position.top + size.height - 1, left: position.left + 5, width: size.width - 10, height: 7 },
+            'cursor-s-resize',
+          ],
+          [
+            'e',
+            { top: position.top + 5, left: position.left + size.width - 1, width: 7, height: size.height - 10 },
+            'cursor-e-resize',
+          ],
+          [
+            'w',
+            { top: position.top + 5, left: position.left - 6, width: 7, height: size.height - 10 },
+            'cursor-w-resize',
+          ],
+        ] as const
+      ).map(([dir, hitStyle, cursor]) => (
+        <div
+          key={dir}
+          onPointerDown={handleResizePointerDown(dir)}
+          className={`fixed z-[10000] ${cursor} touch-none`}
+          style={hitStyle}
+        />
+      ))}
+      {(
+        [
+          ['ne', position.top - 5, position.left + size.width - 5, 'cursor-ne-resize'],
+          ['nw', position.top - 5, position.left - 5, 'cursor-nw-resize'],
+          ['sw', position.top + size.height - 5, position.left - 5, 'cursor-sw-resize'],
+          ['se', position.top + size.height - 5, position.left + size.width - 5, 'cursor-se-resize'],
+        ] as const
+      ).map(([dir, hitTop, hitLeft, cursor]) => (
+        <div
+          key={dir}
+          onPointerDown={handleResizePointerDown(dir)}
+          onDoubleClick={dir === 'se' ? handleResetSize : undefined}
+          title={dir === 'se' ? t('askResizeHint') : undefined}
+          aria-label={dir === 'se' ? t('askResetSize') : undefined}
+          className={`fixed z-[10000] ${cursor} touch-none`}
+          style={{ top: hitTop, left: hitLeft, width: 10, height: 10 }}
+        />
+      ))}
+    </>,
     targetDocument.body,
   );
 };

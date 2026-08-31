@@ -131,8 +131,17 @@ export const sendOpenAICompatibleMessageStream: StreamMessageSender = async (
       // executeStreamChatRequest's catch → onError, like the Gemini line.
       let contentFiltered = false;
       let truncationNoticeSent = false;
+      // Some providers (web-session proxies in particular) deliver in-stream
+      // failures as a data frame carrying {error:{message}} instead of a
+      // non-200 response. Capture and throw after the loop — the reader wraps
+      // the callback in try/catch, so throwing inside it would be swallowed.
+      let streamErrorMessage: string | null = null;
 
       await readOpenAICompatibleStreamEvents(response, abortSignal, (payload) => {
+        if (!streamErrorMessage && payload.error?.message) {
+          streamErrorMessage = payload.error.message;
+        }
+
         const finishReason = extractOpenAICompatibleFinishReason(payload);
         if (finishReason === 'content_filter') {
           contentFiltered = true;
@@ -159,6 +168,9 @@ export const sendOpenAICompatibleMessageStream: StreamMessageSender = async (
         }
       });
 
+      if (streamErrorMessage) {
+        throw new Error(streamErrorMessage);
+      }
       if (contentFiltered) {
         throw new Error('The model returned no content because generation was filtered (finish_reason: content_filter).');
       }

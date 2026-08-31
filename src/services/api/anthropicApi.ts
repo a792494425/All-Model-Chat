@@ -108,6 +108,9 @@ export const sendAnthropicMessageStream: StreamMessageSender = async (
     onError,
     onComplete,
     readStream: async (response) => {
+      // Anthropic 把完整 usage 拆在两个事件里：message_start 携带 input_tokens，
+      // message_delta 只带累计 output_tokens；必须合并才能得到真实的 token 统计。
+      let inputTokens: number | undefined;
       await readAnthropicStreamEvents(response, abortSignal, (event: AnthropicStreamEvent) => {
         if (event.type === 'content_block_delta' && event.delta?.text) {
           onPart({ text: event.delta.text });
@@ -115,12 +118,21 @@ export const sendAnthropicMessageStream: StreamMessageSender = async (
         if (event.type === 'content_block_delta' && event.delta?.type === 'thinking_delta' && event.delta.thinking) {
           onThoughtChunk(event.delta.thinking);
         }
-        if (event.usage) {
-          const usage = mapAnthropicUsage(event.usage);
-          if (usage) finalUsage = usage;
+        // 流中 error 事件（如 overloaded_error）：不抛出会把截断的回答当成功收尾。
+        // 抛出让 executeStreamChatRequest 走 onError，已流出的部分内容由上层保留。
+        if (event.type === 'error') {
+          throw new Error(event.error?.message || 'Anthropic stream error');
         }
-        if (event.type === 'message_delta' && event.usage) {
-          const usage = mapAnthropicUsage(event.usage);
+        if (event.type === 'message_start' && event.message?.usage) {
+          inputTokens = event.message.usage.input_tokens;
+          const startUsage = mapAnthropicUsage(event.message.usage);
+          if (startUsage) finalUsage = startUsage;
+        }
+        if (event.usage) {
+          const usage = mapAnthropicUsage({
+            input_tokens: event.usage.input_tokens ?? inputTokens,
+            output_tokens: event.usage.output_tokens,
+          });
           if (usage) finalUsage = usage;
         }
       });

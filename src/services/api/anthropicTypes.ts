@@ -41,6 +41,8 @@ export type AnthropicStreamEvent = {
   message?: AnthropicResponsePayload;
   delta?: { type?: string; text?: string; thinking?: string };
   usage?: AnthropicUsage;
+  /** Mid-stream failure (e.g. overloaded_error); Anthropic ends the stream after this event. */
+  error?: { type?: string; message?: string };
 };
 
 export const asAnthropicChatConfig = (config: unknown): AnthropicChatConfig =>

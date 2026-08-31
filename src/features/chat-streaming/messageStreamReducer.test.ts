@@ -39,8 +39,8 @@ describe('messageStreamReducer', () => {
     );
 
     expect(state.content).toContain('Result: ');
-    expect(state.content).toContain('```python\nprint(42)\n```');
-    expect(state.content).toContain('class="tool-result outcome-outcome_ok"');
+    expect(state.content).toContain('<pre class="code-exec-code"><code class="language-python">print(42)</code></pre>');
+    expect(state.content).toContain('class="tool-result outcome-ok"');
     expect(state.thoughts).toBe('I should calculate.');
     expect(state.apiParts).toEqual([
       { text: 'Result: ' },

@@ -122,7 +122,7 @@ export const LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT_ZH = `[Live Artifacts Inline Pr
 - 禁止 HTML-like label（<...>，会被当作标签解析）；禁止任何 URL/href/image
 - 上限：DOT ≤ ${DOT_MAX_CHARS} 字符；节点 ≤ ${DOT_MAX_NODES}；边 ≤ ${DOT_MAX_EDGES}
 - 节点 id 用 ASCII；label 可中文；默认布局 LR，层级/上下结构图必须显式写 rankdir=TB
-- 并行分支才用 subgraph cluster_* { label="泳道" }；有决策再用 shape=diamond；起止可用 shape=ellipse；回边 style=dashed。直线流程不要硬套泳道
+- 节点默认使用圆角填充卡片（shape=box style="rounded,filled"）；长文本节点禁止使用 shape=ellipse（长文本会导致椭圆横向拉伸变形，统一用 shape=box style="rounded,filled"）；仅并行分支才用 subgraph cluster_* { label="泳道" }；有决策再用 shape=diamond；起止可用 shape=ellipse；回边 style=dashed。直线流程不要硬套泳道
 - 禁止 penwidth/arrowsize/fontname/margin 与任何 hex/rgb；颜色仅 accent/success/warning/danger/muted/subtle
 - 着色时 fillcolor 与 color 写同一语义名（宿主配文字色）；边也用 color=语义名
 - 规则：节点里不要再写任何内容
@@ -354,7 +354,7 @@ Use data-amc-graphviz for structure/dependency/flow/state-machine/organization; 
 - No HTML-like labels (<...>, parsed as tags); no URLs/href/images
 - Limits: DOT ≤ ${DOT_MAX_CHARS} chars; nodes ≤ ${DOT_MAX_NODES}; edges ≤ ${DOT_MAX_EDGES}
 - Node ids ASCII; labels may be localized; default layout LR; hierarchical/top-down graphs must set rankdir=TB explicitly
-- Parallel branches only: subgraph cluster_* { label="lane" }; decisions may use shape=diamond; start/end may use shape=ellipse; back-edges style=dashed. Do not wrap a straight pipeline in lanes
+- Default nodes to rounded filled cards (shape=box style="rounded,filled"); long text labels must NOT use shape=ellipse (which horizontally distorts, use shape=box style="rounded,filled" instead); parallel branches only: subgraph cluster_* { label="lane" }; Do not wrap a straight pipeline in lanes; decisions may use shape=diamond; back-edges style=dashed
 - Never write penwidth/arrowsize/fontname/margin or any hex/rgb; colors only accent/success/warning/danger/muted/subtle
 - When coloring, set fillcolor and color to the same semantic name (host supplies text color); edges may use color=semantic
 - Rules: keep the node empty

@@ -7,7 +7,7 @@ import { buildGeminiProxyHeaders, resolveGeminiRequestApiKey } from './proxyHead
 // (createServer, geminiProxy) keep importing from a single module.
 // Header constants and the rest of the store live in streamJobStore —
 // import them from there directly (thirdPartyProxy already does).
-export { abortJob } from './streamJobStore.js';
+export { abortJob, readJobSecret } from './streamJobStore.js';
 
 const isStreamPath = (pathname: string): boolean => pathname.includes(':streamGenerateContent');
 

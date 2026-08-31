@@ -62,15 +62,6 @@ const safetySettings = {
     fr: 'Contenu dangereux',
     de: 'Gefährliche Inhalte',
   },
-  safetyCategoryCivicIntegrity: {
-    en: 'Civic Integrity',
-    zh: '公民诚信',
-    ja: '市民の公正性',
-    ko: '시민 무결성',
-    es: 'Integridad cívica',
-    fr: 'Intégrité civique',
-    de: 'Bürgerliche Integrität',
-  },
   safetyThresholdOff: { en: 'Off', zh: '关闭', ja: 'オフ', ko: '끔', es: 'Desactivado', fr: 'Désactivé', de: 'Aus' },
   safetyThresholdBlockNone: {
     en: 'Block None',

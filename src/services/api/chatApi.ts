@@ -14,8 +14,27 @@ const withAbortSignal = <T extends object>(
   abortSignal,
 });
 
-/** Finish reasons that mean the response was withheld, not merely finished. */
-const CONTENT_BLOCKED_FINISH_REASONS = new Set(['SAFETY', 'RECITATION', 'BLOCKLIST', 'PROHIBITED_CONTENT', 'SPII']);
+/**
+ * FinishReason values that mean the response was withheld, not merely finished.
+ * Mirrors the "Generation blocked" codes in the Gemini docs (safety, recitation,
+ * language, other, prohibited_content, spii, blocklist, image_safety,
+ * image_prohibited_content, image_recitation) plus the two no-content cases
+ * that only exist as finish reasons (ESCALATION, NO_IMAGE).
+ */
+const CONTENT_BLOCKED_FINISH_REASONS = new Set([
+  'SAFETY',
+  'RECITATION',
+  'LANGUAGE',
+  'OTHER',
+  'BLOCKLIST',
+  'PROHIBITED_CONTENT',
+  'SPII',
+  'IMAGE_SAFETY',
+  'IMAGE_PROHIBITED_CONTENT',
+  'IMAGE_RECITATION',
+  'ESCALATION',
+  'NO_IMAGE',
+]);
 
 /**
  * Gemini docs best practice: always check finishReason so a failed turn is not
@@ -24,28 +43,36 @@ const CONTENT_BLOCKED_FINISH_REASONS = new Set(['SAFETY', 'RECITATION', 'BLOCKLI
  * API discarded the invalid call, so silently ending the loop would hide a
  * step the user asked for.
  */
-const assertUsableTurnResponse = (response: GenerateContentResponse, extractedParts: Part[]): void => {
-  const candidate = response.candidates?.[0];
-  const { finishReason } = candidate ?? {};
-
+const assertUsableTurn = ({
+  finishReason,
+  blockReason,
+  hasUsableParts,
+}: {
+  finishReason?: string;
+  blockReason?: string;
+  hasUsableParts: boolean;
+}): void => {
   if (finishReason === 'MALFORMED_FUNCTION_CALL') {
     throw new Error(
       'The model tried to call a function but produced malformed arguments (finishReason: MALFORMED_FUNCTION_CALL). Try rephrasing the request or simplifying the tools involved.',
     );
   }
 
-  if (
-    extractedParts.length === 0 &&
-    typeof finishReason === 'string' &&
-    CONTENT_BLOCKED_FINISH_REASONS.has(finishReason)
-  ) {
+  if (!hasUsableParts && typeof finishReason === 'string' && CONTENT_BLOCKED_FINISH_REASONS.has(finishReason)) {
     throw new Error(`The model returned no content because generation was stopped (${finishReason}).`);
   }
 
-  if (!candidate && extractedParts.length === 0 && response.promptFeedback?.blockReason) {
-    throw new Error(`The prompt was blocked before generation could start (${response.promptFeedback.blockReason}).`);
+  if (!hasUsableParts && blockReason) {
+    throw new Error(`The prompt was blocked before generation could start (${blockReason}).`);
   }
 };
+
+const assertUsableTurnResponse = (response: GenerateContentResponse, extractedParts: Part[]): void =>
+  assertUsableTurn({
+    finishReason: response.candidates?.[0]?.finishReason,
+    blockReason: response.promptFeedback?.blockReason,
+    hasUsableParts: extractedParts.length > 0,
+  });
 
 export const generateContentTurnApi = async (
   apiKey: string,
@@ -125,11 +152,13 @@ export const sendStatelessMessageStreamApi: StreamMessageSender = async (
   let streamFailed = false;
 
   // Stream-journal resume: stamp x-amc-job-id / x-amc-last-seq on the request
-  // so the api container replays the buffered upstream from this cursor.
+  // so the api container replays the buffered upstream from this cursor. The
+  // secret authenticates the attach when the job was created with one.
   const resumeHeaders = streamResume
     ? {
         'x-amc-job-id': streamResume.jobId,
         'x-amc-last-seq': String(streamResume.lastSeq),
+        ...(streamResume.jobSecret ? { 'x-amc-job-secret': streamResume.jobSecret } : {}),
       }
     : undefined;
 
@@ -178,6 +207,12 @@ export const sendStatelessMessageStreamApi: StreamMessageSender = async (
         idleWatchdog.unref?.();
 
         let resumeSeq = streamResume?.lastSeq ?? 0;
+        // The last chunk carries the terminal finishReason; prompt blocks arrive
+        // as promptFeedback with no candidates. Both are only actionable once the
+        // stream is exhausted, so track them and assert after the loop.
+        let lastFinishReason: string | undefined;
+        let lastBlockReason: string | undefined;
+        let streamedAnyPart = false;
 
         try {
           const result = await ai.models.generateContentStream({
@@ -196,6 +231,18 @@ export const sendStatelessMessageStreamApi: StreamMessageSender = async (
             }
             lastActivityAt = Date.now();
             const adaptedChunk = adaptGenAiResponse(chunkResponse as GenerateContentResponse);
+
+            const chunkFinishReason = (chunkResponse as GenerateContentResponse).candidates?.[0]?.finishReason;
+            if (chunkFinishReason) {
+              lastFinishReason = chunkFinishReason;
+            }
+            const chunkBlockReason = (chunkResponse as GenerateContentResponse).promptFeedback?.blockReason;
+            if (chunkBlockReason) {
+              lastBlockReason = chunkBlockReason;
+            }
+            if (adaptedChunk.parts.length > 0) {
+              streamedAnyPart = true;
+            }
 
             if (adaptedChunk.usage) {
               finalUsageMetadata = adaptedChunk.usage;
@@ -243,6 +290,16 @@ export const sendStatelessMessageStreamApi: StreamMessageSender = async (
           streamFailed = true;
           onError(createStreamIdleTimeoutError());
           return;
+        }
+
+        // Same contract as the non-streaming turn: a filtered or malformed
+        // finish must surface as an error, not as a silently empty reply.
+        if (!abortSignal.aborted) {
+          assertUsableTurn({
+            finishReason: lastFinishReason,
+            blockReason: lastBlockReason,
+            hasUsableParts: streamedAnyPart,
+          });
         }
       },
     });
@@ -297,6 +354,7 @@ export const sendStatelessMessageNonStreamApi: NonStreamMessageSender = async (
         }
 
         const { parts: responseParts, thoughts, usage, grounding, urlContext } = adaptGenAiResponse(response);
+        assertUsableTurnResponse(response, responseParts);
 
         logService.info(`Stateless non-stream complete for ${modelId}.`, {
           usage,

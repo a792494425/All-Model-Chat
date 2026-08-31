@@ -152,3 +152,81 @@ describe('Live WS proxy bridging', () => {
     upstreamHttp.closeAllConnections?.();
   });
 });
+
+describe('Live WS upgrade security', () => {
+  it('rejects upgrades whose Origin is not in the allowlist (CSWSH)', async () => {
+    const config = buildConfig({ allowedOrigins: ['https://app.example.com'] });
+    const app = createServer(config);
+    attachLiveWsUpgrade(app, config);
+    const appServer = serverCleanup.track(await startHttpServer(app));
+
+    const evil = new WebSocket(`${appServer.baseUrl.replace('http', 'ws')}/api/live?key=byok-key`, {
+      headers: { origin: 'https://evil.example' },
+    });
+    const outcome = await new Promise<string>((resolve) => {
+      evil.on('open', () => resolve('open'));
+      evil.on('error', () => resolve('error'));
+      evil.on('unexpected-response', () => resolve('unexpected-response'));
+    });
+    expect(outcome).not.toBe('open');
+    evil.terminate();
+  });
+
+  it('still bridges upgrades whose Origin is in the allowlist', async () => {
+    const upstreamHttp = http.createServer((_req, res) => res.end());
+    upstreamHttp.on('upgrade', (request, socket, head) => {
+      const wss = new WebSocketServer({ noServer: true });
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        ws.on('message', () => undefined);
+      });
+    });
+    const upstream = serverCleanup.track(await startHttpServer(upstreamHttp));
+
+    const config = buildConfig({
+      allowedOrigins: ['https://app.example.com'],
+      liveWsUpstreamBase: upstream.baseUrl.replace('http', 'ws'),
+    });
+    const app = createServer(config);
+    attachLiveWsUpgrade(app, config);
+    const appServer = serverCleanup.track(await startHttpServer(app));
+
+    const client = new WebSocket(`${appServer.baseUrl.replace('http', 'ws')}/api/live?key=byok-key`, {
+      headers: { origin: 'https://app.example.com' },
+    });
+    const outcome = await new Promise<string>((resolve) => {
+      client.on('open', () => resolve('open'));
+      client.on('error', () => resolve('error'));
+      client.on('unexpected-response', () => resolve('unexpected-response'));
+    });
+    expect(outcome).toBe('open');
+    client.terminate();
+    await new Promise<void>((resolve) => setTimeout(resolve, 100));
+    app.closeAllConnections?.();
+    upstreamHttp.closeAllConnections?.();
+  });
+
+  it('destroys the socket for upgrade requests outside /api/live instead of leaving them open', async () => {
+    const config = buildConfig();
+    const app = createServer(config);
+    attachLiveWsUpgrade(app, config);
+    const appServer = serverCleanup.track(await startHttpServer(app));
+    const { hostname, port } = new URL(appServer.baseUrl);
+
+    const outcome = await new Promise<string>((resolve) => {
+      const request = http.request({
+        hostname,
+        port: Number(port),
+        path: '/v1/other-upgrade',
+        headers: { connection: 'Upgrade', upgrade: 'websocket' },
+      });
+      request.on('upgrade', () => resolve('upgraded'));
+      request.on('close', () => resolve('closed'));
+      request.on('error', () => resolve('error'));
+      request.end();
+      setTimeout(() => resolve('timeout'), 1500);
+    });
+    expect(outcome).not.toBe('upgraded');
+    expect(outcome).not.toBe('timeout');
+    app.closeAllConnections?.();
+  });
+});

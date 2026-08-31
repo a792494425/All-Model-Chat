@@ -18,6 +18,7 @@ interface LiveWsProxyConfig {
   liveWsIdleTimeoutMs: number;
   geminiApiKey?: string;
   upstreamBase: string;
+  allowedOrigins: string[];
 }
 
 // Log only non-secret context. The key and full upstream URL are never printed.
@@ -30,6 +31,7 @@ const resolveLiveWsProxyConfig = (config: ApiServerConfig): LiveWsProxyConfig =>
   liveWsIdleTimeoutMs: config.liveWsIdleTimeoutMs,
   geminiApiKey: config.geminiApiKey,
   upstreamBase: config.liveWsUpstreamBase || UPSTREAM_WS_BASE,
+  allowedOrigins: config.allowedOrigins,
 });
 
 const isPathHandled = (request: IncomingMessage): boolean => {
@@ -214,13 +216,26 @@ const bridge = (clientWs: WebSocket, request: IncomingMessage, upstreamHost: str
   });
 };
 
+// Origin check mirrors the HTTP CORS layer (cors.ts): no allowlist configured →
+// allow; non-browser clients send no Origin header → allow; otherwise the
+// origin must match. WebSockets bypass CORS, so without this check any webpage
+// could open a cross-site WS and consume the server-managed key (CSWSH).
+const isOriginAllowed = (request: IncomingMessage, allowedOrigins: string[]): boolean => {
+  if (!allowedOrigins.length) return true;
+  const origin = request.headers.origin;
+  if (!origin) return true;
+  if (allowedOrigins.includes('*')) return true;
+  return allowedOrigins.includes(origin);
+};
+
 export function attachLiveWsUpgrade(server: Server, config: ApiServerConfig): void {
   const liveConfig = resolveLiveWsProxyConfig(config);
 
   if (!liveConfig.enableLiveWsProxy) {
-    // Still own the path so unconfigured upgrades don't hang; reject firmly.
-    server.on('upgrade', (request, socket) => {
-      if (!isPathHandled(request)) return;
+    // Owning the 'upgrade' event disables Node's default destroy-on-upgrade
+    // behavior, so every non-matching request must be destroyed explicitly or
+    // its socket leaks.
+    server.on('upgrade', (_request, socket) => {
       socket.destroy();
     });
     return;
@@ -230,6 +245,15 @@ export function attachLiveWsUpgrade(server: Server, config: ApiServerConfig): vo
 
   server.on('upgrade', (request, socket, head) => {
     if (!isPathHandled(request)) {
+      // Same as above: an upgrade listener takes over the event, so unhandled
+      // paths must not leave the socket hanging.
+      socket.destroy();
+      return;
+    }
+
+    if (!isOriginAllowed(request, liveConfig.allowedOrigins)) {
+      logLiveEvent('rejected', { reason: 'origin-not-allowed' });
+      socket.destroy();
       return;
     }
 

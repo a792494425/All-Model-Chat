@@ -15,6 +15,8 @@ import type { ChatToolId, ChatToolToggleStates, ChatToolUtilityActions, Toggleab
 
 interface ToolsMenuProps {
   currentModelId: string;
+  /** Active session routing — Gemini built-in tools are hidden on third-party routes. */
+  providerId?: string;
   toolStates: ChatToolToggleStates;
   toolUtilityActions: ChatToolUtilityActions;
   disabled: boolean;
@@ -84,7 +86,13 @@ const renderToolIcon = (icon: ChatToolIconKey, size: number) => {
   }
 };
 
-export const ToolsMenu: React.FC<ToolsMenuProps> = ({ currentModelId, toolStates, toolUtilityActions, disabled }) => {
+export const ToolsMenu: React.FC<ToolsMenuProps> = ({
+  currentModelId,
+  providerId,
+  toolStates,
+  toolUtilityActions,
+  disabled,
+}) => {
   const { t } = useI18n();
   const { isOpen, menuPosition, containerRef, buttonRef, menuRef, targetWindow, closeMenu, toggleMenu } =
     usePortaledMenu();
@@ -118,6 +126,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({ currentModelId, toolStates
   const filteredItems = getChatToolsForSurface({
     surface: 'tools-menu',
     capabilities,
+    providerId,
     hasLocalPythonHandler: !!toolStates.localPython?.onToggle,
   }).filter((tool) => !isToggleableToolId(tool.id) || !!toolStates[tool.id]?.onToggle);
 

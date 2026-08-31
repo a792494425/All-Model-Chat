@@ -28,7 +28,10 @@ export const writeLastActiveSessionSnapshot = (snapshot: Omit<LastActiveSessionS
       storage.removeItem(LAST_ACTIVE_CHAT_SESSION_ID_KEY);
       return;
     }
-    storage.setItem(LAST_ACTIVE_CHAT_SESSION_ID_KEY, JSON.stringify({ ...snapshot, ts: Date.now() }));
+    // localStorage 属于可被任意脚本/扩展读取的位置，锁定会话的原始 API key
+    // 绝不能落盘；消费端（sessionLoaderSettings）本就不使用该值。
+    const settings: ChatSettings = { ...snapshot.settings, lockedApiKey: null };
+    storage.setItem(LAST_ACTIVE_CHAT_SESSION_ID_KEY, JSON.stringify({ ...snapshot, settings, ts: Date.now() }));
   } catch {
     // Ignore storage failures in restricted contexts.
   }

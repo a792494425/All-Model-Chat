@@ -24,9 +24,11 @@ const ChatInputActionsComponent: React.FC = () => {
     isWaitingForUpload,
     isLiveConnected,
     isNativeAudioModel,
+    isTtsModel,
     onToggleToolAndFocus,
     onCountTokens,
     currentModelId,
+    providerId,
     toolStates,
     isLoading,
     isEditing,
@@ -147,7 +149,7 @@ const ChatInputActionsComponent: React.FC = () => {
           <IconNewChat size={20} />
         </button>
 
-        <AttachmentMenu />
+        {!isTtsModel && <AttachmentMenu />}
 
         {isNativeAudioModel && (
           <WebSearchToggle
@@ -159,6 +161,7 @@ const ChatInputActionsComponent: React.FC = () => {
 
         <ToolsMenu
           currentModelId={currentModelId}
+          providerId={providerId}
           toolStates={focusedToolStates}
           toolUtilityActions={toolUtilityActions}
           disabled={disabled}

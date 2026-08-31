@@ -5,7 +5,7 @@ import { sanitizeModelOptions, sortModels } from '@/utils/model/modelSorting';
 import { useModelPreferencesStore } from '@/stores/modelPreferencesStore';
 import { getDefaultModelOptions } from '@/utils/defaultModelOptions';
 
-export const reconcileCustomModelsWithDefaults = (
+const reconcileCustomModelsWithDefaults = (
   customModels: ModelOption[],
   defaultModels: ModelOption[],
 ): { merged: ModelOption[]; hasChanges: boolean } => {

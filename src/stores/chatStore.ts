@@ -25,7 +25,7 @@ import {
   unregisterActiveGenerationJob,
 } from '@/features/message-sender/activeGenerationJobs';
 import { abortServerStreamJob } from '@/features/stream-jobs/streamAbort';
-import { clearPendingStreamJob } from '@/features/stream-jobs/amcStreamJobs';
+import { clearPendingStreamJob, readPendingStreamJob } from '@/features/stream-jobs/amcStreamJobs';
 import { mergeSessionMetadata } from './sessionRefresh';
 import {
   createVirtualFullSessions,
@@ -285,7 +285,10 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
         // Also ask the api container to abort the upstream Gemini
         // connection (the stream journal keeps the upstream alive across
         // browser disconnects). Fire-and-forget; the local abort drives UI.
-        void abortServerStreamJob(generationId);
+        // The job secret must be read before the pending record is cleared.
+        void abortServerStreamJob(generationId, {
+          jobSecret: readPendingStreamJob(activeSessionId)?.secret,
+        });
         clearPendingStreamJob(activeSessionId);
 
         if (!silent) {

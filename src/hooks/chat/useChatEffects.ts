@@ -181,7 +181,7 @@ export const useChatEffects = ({
     if (prevModelIdRef.current !== currentChatSettings.modelId) {
       const modelId = currentChatSettings.modelId;
       const capabilities = getModelCapabilities(modelId);
-      const isBananaModel = capabilities.isFlashImageModel || capabilities.isGemini3ImageModel;
+      const isBananaModel = capabilities.isGemini3ImageModel;
 
       if (capabilities.supportedAspectRatios?.length) {
         const preferredAspectRatio = isBananaModel ? 'Auto' : aspectRatio;

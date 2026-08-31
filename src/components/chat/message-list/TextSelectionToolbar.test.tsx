@@ -1,5 +1,5 @@
 import { act } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setupProviderTestRenderer } from '@/test/render/providerRenderer';
 import { TextSelectionToolbar } from './TextSelectionToolbar';
 
@@ -138,5 +138,95 @@ describe('TextSelectionToolbar', () => {
 
     expect(onTTS).toHaveBeenCalledWith('hello world');
     expect(onTTS).not.toHaveBeenCalledWith('**hello world**');
+  });
+});
+
+describe('TextSelectionToolbar copy state', () => {
+  const renderer = setupProviderTestRenderer({ providers: { language: 'en' } });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const stubClipboard = () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+    return writeText;
+  };
+
+  const renderToolbarWithSelection = async (host: HTMLElement, target: HTMLElement) => {
+    await act(async () => {
+      renderer.render(<TextSelectionToolbar onQuote={vi.fn()} containerRef={host} />);
+    });
+    selectNode(target);
+    await flushAnimationFrame();
+    await act(async () => {});
+  };
+
+  const clickCopyButton = async () => {
+    const copyButton = document.querySelector<HTMLButtonElement>('button[aria-label="Copy"]');
+    expect(copyButton).not.toBeNull();
+    await act(async () => {
+      copyButton?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    });
+  };
+
+  it('resets the copied state so the next selection does not show "Copied"', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    stubClipboard();
+
+    const host = document.createElement('div');
+    const paragraph = document.createElement('p');
+    paragraph.textContent = 'copy me';
+    host.appendChild(paragraph);
+    document.body.appendChild(host);
+
+    await renderToolbarWithSelection(host, paragraph);
+    await clickCopyButton();
+
+    expect(document.querySelector('button[aria-label="Copied"]')).not.toBeNull();
+
+    await act(async () => {
+      vi.advanceTimersByTime(1100);
+    });
+    expect(document.querySelector('button[aria-label="Copy"]')).toBeNull();
+
+    selectNode(paragraph);
+    await flushAnimationFrame();
+    await act(async () => {});
+
+    expect(document.querySelector('button[aria-label="Copy"]')).not.toBeNull();
+    expect(document.querySelector('button[aria-label="Copied"]')).toBeNull();
+  });
+
+  it('keeps a new selection alive when made within the post-copy grace window', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    stubClipboard();
+
+    const host = document.createElement('div');
+    const first = document.createElement('p');
+    first.textContent = 'first passage';
+    const second = document.createElement('p');
+    second.textContent = 'second passage';
+    host.appendChild(first);
+    host.appendChild(second);
+    document.body.appendChild(host);
+
+    await renderToolbarWithSelection(host, first);
+    await clickCopyButton();
+
+    selectNode(second);
+    await flushAnimationFrame();
+    await act(async () => {});
+
+    await act(async () => {
+      vi.advanceTimersByTime(1100);
+    });
+
+    expect(window.getSelection()?.isCollapsed).toBe(false);
+    expect(document.querySelector('button[aria-label="Copy"]')).not.toBeNull();
   });
 });

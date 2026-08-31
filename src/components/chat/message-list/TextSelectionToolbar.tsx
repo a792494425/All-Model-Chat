@@ -29,7 +29,11 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
   containerRef,
 }) => {
   const toolbarRef = useRef<HTMLDivElement>(null);
-  const copyResetTimeoutRef = useRef<number | null>(null);
+  // Two independent timers: one resets the "Copied" feedback, the other hides
+  // the toolbar after a button copy. Sharing a ref used to cancel the feedback
+  // reset and leave the button stuck in the copied state.
+  const copyFeedbackTimeoutRef = useRef<number | null>(null);
+  const copyClearTimeoutRef = useRef<number | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const preserveFormattingOnCopy = useSettingsStore(
     (state) => state.appSettings.isCopySelectionFormattingEnabled ?? true,
@@ -37,19 +41,22 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
 
   const showCopiedFeedback = () => {
     setIsCopied(true);
-    if (copyResetTimeoutRef.current) {
-      window.clearTimeout(copyResetTimeoutRef.current);
+    if (copyFeedbackTimeoutRef.current) {
+      window.clearTimeout(copyFeedbackTimeoutRef.current);
     }
-    copyResetTimeoutRef.current = window.setTimeout(() => {
+    copyFeedbackTimeoutRef.current = window.setTimeout(() => {
       setIsCopied(false);
-      copyResetTimeoutRef.current = null;
+      copyFeedbackTimeoutRef.current = null;
     }, 1000);
   };
 
   useEffect(() => {
     return () => {
-      if (copyResetTimeoutRef.current) {
-        window.clearTimeout(copyResetTimeoutRef.current);
+      if (copyFeedbackTimeoutRef.current) {
+        window.clearTimeout(copyFeedbackTimeoutRef.current);
+      }
+      if (copyClearTimeoutRef.current) {
+        window.clearTimeout(copyClearTimeoutRef.current);
       }
     };
   }, []);
@@ -66,6 +73,15 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
       onCopySuccess: showCopiedFeedback,
       preserveFormattingOnCopy,
     });
+
+  // A pending post-copy clear must not wipe a selection the user starts inside
+  // the grace window; any toolbar reposition means new user activity, so drop it.
+  useEffect(() => {
+    if (position && copyClearTimeoutRef.current !== null) {
+      window.clearTimeout(copyClearTimeoutRef.current);
+      copyClearTimeoutRef.current = null;
+    }
+  }, [position]);
 
   const { handleDragStart, isDragging } = useSelectionDrag({
     toolbarRef,
@@ -92,10 +108,11 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
     e.stopPropagation();
     if (await writeSelectionTextToClipboard(selectedCopyText || selectedText)) {
       showCopiedFeedback();
-      if (copyResetTimeoutRef.current) {
-        window.clearTimeout(copyResetTimeoutRef.current);
+      if (copyClearTimeoutRef.current) {
+        window.clearTimeout(copyClearTimeoutRef.current);
       }
-      copyResetTimeoutRef.current = window.setTimeout(() => {
+      copyClearTimeoutRef.current = window.setTimeout(() => {
+        copyClearTimeoutRef.current = null;
         clearSelection();
       }, 1000);
     }

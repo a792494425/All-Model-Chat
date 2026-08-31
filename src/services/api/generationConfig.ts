@@ -14,8 +14,8 @@ import {
   type ThinkingLevel,
 } from '@/types';
 import { logService } from '@/services/logService';
+import { toApiSafetySettings } from '@/constants/safetySettings';
 import {
-  getModelCapabilities,
   isGemini3Model,
   isGeminiRoboticsModel,
   isGemmaModel,
@@ -27,7 +27,9 @@ import {
 import { normalizeModelId } from '@/utils/model/modelId';
 import { isServerCodeExecutionMode } from '@/utils/codeExecution';
 
-const IMAGE_TEXT_MODALITIES = ['IMAGE', 'TEXT'];
+// Docs examples always list TEXT before IMAGE; the set order is what the API
+// expects on the wire.
+const IMAGE_TEXT_MODALITIES = ['TEXT', 'IMAGE'];
 const IMAGE_ONLY_MODALITIES = ['IMAGE'];
 const THINKING_LEVEL_FOR_SDK = {
   MINIMAL: GenAIThinkingLevel.MINIMAL,
@@ -170,21 +172,6 @@ async function buildGenerationConfigFromOptions({
   const normalizedImageSize = normalizeImageSizeForModel(modelId, imageSize);
   const googleSearchTool = buildGoogleSearchToolForModel(modelId);
 
-  if (normalizeModelId(modelId) === 'gemini-2.5-flash-image') {
-    const imageConfig: NonNullable<GenerationConfig['imageConfig']> = {};
-    if (normalizedAspectRatio && normalizedAspectRatio !== 'Auto') {
-      imageConfig.aspectRatio = normalizedAspectRatio;
-    }
-
-    const generationConfig: GenerationConfig = {
-      responseModalities: imageOutputMode === 'IMAGE_ONLY' ? IMAGE_ONLY_MODALITIES : IMAGE_TEXT_MODALITIES,
-    };
-    if (Object.keys(imageConfig).length > 0) {
-      generationConfig.imageConfig = imageConfig;
-    }
-    return generationConfig;
-  }
-
   if (
     normalizeModelId(modelId) === 'gemini-3-pro-image-preview' ||
     normalizeModelId(modelId) === 'gemini-3.1-flash-image-preview' ||
@@ -214,10 +201,10 @@ async function buildGenerationConfigFromOptions({
     }
 
     const tools: NonNullable<GenerationConfig['tools']> = [];
-    // gemini-3.1-flash-lite-image does not support Google Search or Maps grounding.
+    // gemini-3.1-flash-lite-image does not support Google Search or Maps grounding;
+    // Maps grounding is not documented for any image-generation model.
     if (normalizeModelId(modelId) !== 'gemini-3.1-flash-lite-image') {
       if (isGoogleSearchEnabled) tools.push(googleSearchTool);
-      if (isGoogleMapsEnabled) tools.push(buildGoogleMapsTool());
     }
     if (tools.length > 0) generationConfig.tools = tools;
 
@@ -226,8 +213,12 @@ async function buildGenerationConfigFromOptions({
     return generationConfig;
   }
 
+  const isGemma = isGemmaModel(modelId);
+
   let finalSystemInstruction = systemInstruction;
-  if (isDeepSearchEnabled) {
+  // Deep Search = googleSearch tool + search-directive prompt; Gemma supports
+  // neither the tool (unsupported by the API) nor the round-trip, so skip both.
+  if (isDeepSearchEnabled && !isGemma) {
     const deepSearchPrompt = await loadDeepSearchSystemPrompt();
     finalSystemInstruction = finalSystemInstruction
       ? `${finalSystemInstruction}\n\n${deepSearchPrompt}`
@@ -241,13 +232,12 @@ async function buildGenerationConfigFromOptions({
       : localPythonPrompt;
   }
 
-  const isGemma = isGemmaModel(modelId);
   const gemmaThinkingLevel = isGemma ? (showThoughts ? 'HIGH' : 'MINIMAL') : undefined;
 
   const generationConfig: GenerationConfig = {
     ...config,
     systemInstruction: finalSystemInstruction || undefined,
-    safetySettings: safetySettings || undefined,
+    safetySettings: toApiSafetySettings(safetySettings),
   };
 
   const isGemini3 = isGemini3Model(modelId);
@@ -285,19 +275,10 @@ async function buildGenerationConfigFromOptions({
       includeThoughts: true,
       thinkingLevel: gemmaThinkingLevel ? toSdkThinkingLevel(gemmaThinkingLevel, 'MINIMAL') : undefined,
     };
-  } else {
-    const modelSupportsThinking = getModelCapabilities(modelId).supportsThinkingBudgetConfig;
-
-    if (modelSupportsThinking) {
-      generationConfig.thinkingConfig = {
-        thinkingBudget,
-        includeThoughts: true,
-      };
-    }
   }
 
   const tools: NonNullable<GenerationConfig['tools']> = [];
-  if (!isTranscribe && (isGoogleSearchEnabled || isDeepSearchEnabled)) {
+  if (!isTranscribe && !isGemma && (isGoogleSearchEnabled || isDeepSearchEnabled)) {
     tools.push(googleSearchTool);
   }
   if (!isTranscribe && isGoogleMapsEnabled) {

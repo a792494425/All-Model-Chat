@@ -15485,20 +15485,6 @@
   },
   {
     "file": "src/i18n/translations/settings/safety.ts",
-    "key": "safetyCategoryCivicIntegrity",
-    "line": 12,
-    "t": {
-      "en": "Civic Integrity",
-      "zh": "公民诚信",
-      "ja": "市民の公正性",
-      "ko": "시민 공정성",
-      "es": "Integridad cívica",
-      "fr": "Intégrité civique",
-      "de": "Bürgerliche Integrität"
-    }
-  },
-  {
-    "file": "src/i18n/translations/settings/safety.ts",
     "key": "safetyThresholdOff",
     "line": 13,
     "t": {

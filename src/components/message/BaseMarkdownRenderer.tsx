@@ -5,6 +5,7 @@ import type { PluggableList } from 'unified';
 import { CodeBlock } from './blocks/CodeBlock';
 import { TableBlock } from './blocks/TableBlock';
 import { ToolResultBlock } from './blocks/ToolResultBlock';
+import { CodeExecutionBlock } from './blocks/CodeExecutionBlock';
 import { DeferredDiagramBlock } from './blocks/DeferredDiagramBlock';
 import { type UploadedFile, type SideViewContent } from '@/types';
 import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
@@ -41,6 +42,8 @@ export interface MarkdownRendererProps {
   liveArtifactFontSize?: number;
   liveArtifactsMode?: boolean;
   unwrapMislabeledHtmlBlocks?: boolean;
+  /** True while the stream has emitted an executableCode part with no result yet. */
+  hasPendingCodeExecution?: boolean;
 }
 
 type MarkdownCodeProps = React.ComponentPropsWithoutRef<'code'> & {
@@ -139,6 +142,7 @@ export const BaseMarkdownRenderer: React.FC<BaseMarkdownRendererProps> = React.m
     liveArtifactFontSize,
     liveArtifactsMode,
     unwrapMislabeledHtmlBlocks = true,
+    hasPendingCodeExecution = false,
     remarkPlugins,
     rehypePlugins,
   }) => {
@@ -262,6 +266,39 @@ export const BaseMarkdownRenderer: React.FC<BaseMarkdownRendererProps> = React.m
           const language = langMatch ? langMatch[1] : '';
           const isGraphviz = language === 'graphviz' || language === 'dot';
 
+          const isServerCodeExecution =
+            typeof rest.className === 'string' && rest.className.includes('code-exec-code');
+
+          const codeBlock = (
+            <CodeBlock
+              {...rest}
+              cacheKey={
+                messageId && node?.position?.start?.offset !== undefined
+                  ? `${messageId}:${node.position.start.offset}`
+                  : undefined
+              }
+              className={codeClassName}
+              onOpenHtmlPreview={handlersRef.current.onOpenHtmlPreview}
+              onLiveArtifactFollowUp={handlersRef.current.onLiveArtifactFollowUp}
+              expandCodeBlocksByDefault={expandCodeBlocksByDefault}
+              showPreviewControls={isInteractive}
+              isLoading={isLoading}
+              onOpenSidePanel={handlersRef.current.onOpenSidePanel}
+              liveArtifactFontSize={liveArtifactFontSize}
+              themeId={themeId}
+              liveArtifactsMode={liveArtifactsMode}
+              disableRun={isServerCodeExecution}
+            >
+              {codeElement || children}
+            </CodeBlock>
+          );
+
+          if (isServerCodeExecution) {
+            return (
+              <CodeExecutionBlock isRunning={hasPendingCodeExecution}>{codeBlock}</CodeExecutionBlock>
+            );
+          }
+
           if (isMermaidRenderingEnabled && language === 'mermaid' && typeof rawCode === 'string') {
             return (
               <DeferredDiagramBlock
@@ -298,28 +335,7 @@ export const BaseMarkdownRenderer: React.FC<BaseMarkdownRendererProps> = React.m
             );
           }
 
-          return (
-            <CodeBlock
-              {...rest}
-              cacheKey={
-                messageId && node?.position?.start?.offset !== undefined
-                  ? `${messageId}:${node.position.start.offset}`
-                  : undefined
-              }
-              className={codeClassName}
-              onOpenHtmlPreview={handlersRef.current.onOpenHtmlPreview}
-              onLiveArtifactFollowUp={handlersRef.current.onLiveArtifactFollowUp}
-              expandCodeBlocksByDefault={expandCodeBlocksByDefault}
-              showPreviewControls={isInteractive}
-              isLoading={isLoading}
-              onOpenSidePanel={handlersRef.current.onOpenSidePanel}
-              liveArtifactFontSize={liveArtifactFontSize}
-              themeId={themeId}
-              liveArtifactsMode={liveArtifactsMode}
-            >
-              {codeElement || children}
-            </CodeBlock>
-          );
+          return codeBlock;
         },
       }),
       [
@@ -327,6 +343,7 @@ export const BaseMarkdownRenderer: React.FC<BaseMarkdownRendererProps> = React.m
         diagramRenderDelayMs,
         expandCodeBlocksByDefault,
         files,
+        hasPendingCodeExecution,
         isGraphvizRenderingEnabled,
         isInteractive,
         isLoading,

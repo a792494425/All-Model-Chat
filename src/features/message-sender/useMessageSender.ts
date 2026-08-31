@@ -134,11 +134,10 @@ export const useMessageSender = (props: MessageSenderProps) => {
       const capabilities = getModelCapabilities(activeModelId);
       const isTtsModel = capabilities.isTtsModel;
       const isTranscribeModel = capabilities.isTranscribeModel;
-      const isImageEditModel = capabilities.isFlashImageModel;
       const isGemini3Image = capabilities.isGemini3ImageModel;
       const permissions = capabilities.permissions ?? {
         canAcceptAttachments: !isTtsModel && !capabilities.isNativeAudioModel,
-        requiresTextPrompt: isTtsModel || isImageEditModel || isGemini3Image,
+        requiresTextPrompt: isTtsModel || isGemini3Image,
       };
 
       logService.info(`Sending message with model ${activeModelId}`, {
@@ -157,7 +156,6 @@ export const useMessageSender = (props: MessageSenderProps) => {
         permissions,
         isContinueMode,
         isServerCodeExecutionEnabled,
-        isImageEditModel,
         isGemini3Image,
         isTranscribeModel,
         activeModelId,
@@ -304,7 +302,7 @@ export const useMessageSender = (props: MessageSenderProps) => {
         return;
       }
 
-      if (isImageEditModel || (isGemini3Image && appSettings.generateQuadImages)) {
+      if (isGemini3Image && appSettings.generateQuadImages) {
         const editIndex = effectiveEditingId
           ? messagesForTurn.findIndex((message) => message.id === effectiveEditingId)
           : -1;

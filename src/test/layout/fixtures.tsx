@@ -49,7 +49,6 @@ type ChatAreaInputValue = {
   onTranscribeAudio: (file: File) => Promise<string | null>;
   isProcessingFile: boolean;
   fileError: string | null;
-  isImageEditModel?: boolean;
   aspectRatio?: string;
   setAspectRatio?: (ratio: string) => void;
   imageSize?: string;
@@ -197,7 +196,6 @@ export const createChatAreaProviderValue = (overrides: ChatAreaProviderValueOver
       onTranscribeAudio: vi.fn(async () => null),
       isProcessingFile: false,
       fileError: null,
-      isImageEditModel: false,
       aspectRatio: '1:1',
       setAspectRatio: vi.fn(),
       imageSize: '1K',

@@ -140,13 +140,6 @@
     "severity": "low"
   },
   {
-    "key": "safetyCategoryCivicIntegrity",
-    "current": "시민 공정성",
-    "suggested": "시민 무결성",
-    "reason": "'Civic Integrity' is a Gemini API safety category whose established Korean term is '시민 무결성'; '공정성' (fairness) shifts the meaning.",
-    "severity": "low"
-  },
-  {
     "key": "safetyCategorySexuallyExplicit",
     "current": "선정적 콘텐츠",
     "suggested": "성적으로 노골적인 콘텐츠",

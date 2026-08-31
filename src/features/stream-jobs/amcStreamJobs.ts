@@ -15,6 +15,13 @@ interface PendingStreamJob {
   generationId: string;
   /** Job id sent to the api container; today this equals generationId. */
   jobId: string;
+  /**
+   * Client-generated secret bound to the job server-side. Sent as
+   * `x-amc-job-secret` on the creating request, on resumes, and on the abort
+   * call so only the browser that started the stream can attach to the buffer
+   * or kill it. Undefined for records written before this field existed.
+   */
+  secret?: string;
   /** Epoch ms when the generation started (for firstToken latency). */
   startedAt: number;
   /** Highest SSE event seq the browser has consumed so far. */
@@ -22,6 +29,19 @@ interface PendingStreamJob {
   /** Tab that owns the job; only it resumes (multi-tab guard). */
   tabId: string;
 }
+
+/**
+ * Random per-job secret. Callers that stamp the creating request's headers must
+ * call this BEFORE recordPendingStreamJob and pass the value as `secret`, so
+ * the request, the stored record, and later resumes all share one secret.
+ */
+export const generateJobSecret = (): string => {  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Extremely restricted contexts without crypto.randomUUID: a timestamped
+  // fallback keeps the flow working (weaker, but better than no secret).
+  return `secret-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
 
 const PENDING_JOB_KEY_PREFIX = 'amc_stream_job:';
 const PENDING_JOB_TTL_MS = 10 * 60_000; // match server-side job TTL
@@ -68,6 +88,7 @@ export const readPendingStreamJob = (sessionId: string): PendingStreamJob | null
       sessionId: parsed.sessionId,
       generationId: parsed.generationId,
       jobId: parsed.jobId,
+      ...(typeof parsed.secret === 'string' ? { secret: parsed.secret } : {}),
       startedAt: parsed.startedAt,
       lastSeq: parsed.lastSeq,
       tabId: parsed.tabId,
@@ -102,6 +123,9 @@ export const recordPendingStreamJob = (
         sessionId: job.sessionId,
         generationId: job.generationId,
         jobId: job.jobId,
+        // Caller-supplied secrets win (creation and resume must share one);
+        // otherwise generate one so the server binds the job to this browser.
+        secret: job.secret ?? generateJobSecret(),
         startedAt: job.startedAt,
         lastSeq: job.lastSeq ?? 0,
         tabId: TAB_ID,

@@ -161,15 +161,6 @@ const apiSettings = {
     fr: '{selected} sélectionnés sur {count} modèles récupérés.',
     de: '{selected} von {count} abgerufenen Modellen ausgewählt.',
   },
-  settingsOpenAICompatibleSelectAllFetched: {
-    en: 'Select all',
-    zh: '全选',
-    ja: 'すべて選択',
-    ko: '모두 선택',
-    es: 'Seleccionar todo',
-    fr: 'Tout sélectionner',
-    de: 'Alle auswählen',
-  },
   settingsOpenAICompatibleClearFetchedSelection: {
     en: 'Clear',
     zh: '清空选择',
@@ -178,15 +169,6 @@ const apiSettings = {
     es: 'Borrar',
     fr: 'Effacer',
     de: 'Löschen',
-  },
-  settingsOpenAICompatibleAlreadyAdded: {
-    en: 'Already added',
-    zh: '已添加',
-    ja: '追加済み',
-    ko: '이미 추가됨',
-    es: 'Ya añadido',
-    fr: 'Déjà ajouté',
-    de: 'Bereits hinzugefügt',
   },
   settingsOpenAICompatibleImportSelectedModels: {
     en: 'Import Selected',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CornerDownLeft, GripVertical, Trash2 } from 'lucide-react';
+import { GripVertical, ListOrdered, Pencil, Trash2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { FOCUS_VISIBLE_RING_INPUT_OFFSET_CLASS } from '@/constants/focusClasses';
 import { SMALL_ICON_DANGER_BUTTON_CLASS } from '@/constants/buttonClasses';
@@ -52,7 +52,7 @@ const QueuedSubmissionCardComponent: React.FC<QueuedSubmissionCardProps> = ({
         aria-label={`${t('queuedSubmissionEdit')}: ${title}`}
         title={t('queuedSubmissionEdit')}
       >
-        <CornerDownLeft size={13} strokeWidth={2} className="flex-shrink-0 text-[var(--theme-text-tertiary)]" />
+        <ListOrdered size={13} strokeWidth={2} className="flex-shrink-0 text-[var(--theme-text-tertiary)]" />
         <span data-testid="queued-submission-preview" className="min-w-0 truncate">
           {previewText}
         </span>
@@ -71,7 +71,7 @@ const QueuedSubmissionCardComponent: React.FC<QueuedSubmissionCardProps> = ({
           aria-label={t('queuedSubmissionEdit')}
           title={t('queuedSubmissionEdit')}
         >
-          <CornerDownLeft size={13} strokeWidth={2} />
+          <Pencil size={13} strokeWidth={2} />
           <span>{t('queuedSubmissionAction')}</span>
         </button>
         <button

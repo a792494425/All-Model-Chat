@@ -16,7 +16,6 @@ interface ValidateMessageBeforeSendOptions {
   permissions: MessageSendPermissions;
   isContinueMode: boolean;
   isServerCodeExecutionEnabled: boolean;
-  isImageEditModel: boolean;
   isGemini3Image: boolean;
   isTranscribeModel?: boolean;
   activeModelId: string;
@@ -36,7 +35,6 @@ export const validateMessageBeforeSend = ({
   permissions,
   isContinueMode,
   isServerCodeExecutionEnabled,
-  isImageEditModel,
   isGemini3Image,
   isTranscribeModel,
   activeModelId,
@@ -81,7 +79,7 @@ export const validateMessageBeforeSend = ({
     }
   }
 
-  if (isImageEditModel || isGemini3Image) {
+  if (isGemini3Image) {
     const allowsPdfReferences = normalizeModelId(activeModelId) === 'gemini-3.1-flash-image-preview';
     const hasUnsupportedAttachments = files.some((file) => {
       if (isImageMimeType(file.type)) return false;

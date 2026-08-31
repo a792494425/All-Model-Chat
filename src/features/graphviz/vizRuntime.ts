@@ -222,7 +222,7 @@ const GRAPHVIZ_SVG_FONT_FAMILY =
 
 // Bump when the injected default styling changes so cached SVGs rendered with
 // the previous style are never reused (see getGraphvizCacheKey).
-const RENDER_STYLE_VERSION = 'v5';
+const RENDER_STYLE_VERSION = 'v6';
 
 /**
  * Theme-aware default styles injected before the model's own DOT so a bare
@@ -319,6 +319,9 @@ export const applyThemeAndLayout = (dot: string, options: DotRenderOptions): str
   let code = dot;
   const layout = resolveDotLayout(code, options.layout);
   const colors = resolveGraphvizTheme(options.themeId).colors;
+
+  // Normalize style="rounded" to style="rounded,filled" so fillcolor is never ignored when the model specifies rounded style
+  code = code.replace(/\bstyle\s*=\s*(["'])rounded\1/gi, 'style=$1rounded,filled$1');
 
   // Layout: rewrite an explicit rankdir, or inject the default right after the
   // graph-opening declaration so it wins over any node/edge defaults below.

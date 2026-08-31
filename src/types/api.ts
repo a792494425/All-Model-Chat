@@ -45,9 +45,10 @@ export type StreamMessageSender = (
   role?: 'user' | 'model',
   providerId?: string | null,
   // Optional stream-journal resume context. When provided, the sender stamps
-  // x-amc-job-id / x-amc-last-seq headers so the api container can resume a
-  // buffered upstream instead of restarting it (see server/src/streamJobs.ts).
-  streamResume?: { jobId: string; lastSeq: number; onSeq?: (seq: number) => void },
+  // x-amc-job-id / x-amc-last-seq (plus x-amc-job-secret for secret-bound jobs)
+  // headers so the api container can resume a buffered upstream instead of
+  // restarting it (see server/src/streamJobs.ts).
+  streamResume?: { jobId: string; jobSecret?: string; lastSeq: number; onSeq?: (seq: number) => void },
 ) => Promise<void>;
 
 export type NonStreamMessageSender = (

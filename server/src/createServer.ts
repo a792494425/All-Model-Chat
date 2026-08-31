@@ -13,7 +13,7 @@ import { IMAGE_PROXY_PATH, proxyExternalImage } from './imageProxy.js';
 import { createMcpClientBridge } from './mcpClient.js';
 import { handleMcpRequest } from './mcpRoutes.js';
 import type { McpClientBridge } from './mcpTypes.js';
-import { abortJob } from './streamJobs.js';
+import { abortJob, readJobSecret } from './streamJobs.js';
 import { STREAM_ABORT_PREFIX, UNIFIED_STREAM_ABORT_PREFIX } from './streamJobsRoutes.js';
 import { OPENAI_PROXY_PREFIX, proxyThirdPartyRequest, type ThirdPartyProxyConfig } from './thirdPartyProxy.js';
 
@@ -165,7 +165,7 @@ export function createServer(config: CreateServerConfig, dependencies: CreateSer
         if (!(method === 'POST' && jobId)) {
           return false;
         }
-        const aborted = abortJob(jobId);
+        const aborted = abortJob(jobId, readJobSecret(request));
         sendJson(
           request,
           response,

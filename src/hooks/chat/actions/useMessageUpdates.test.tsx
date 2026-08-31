@@ -160,7 +160,7 @@ describe('useMessageUpdates', () => {
       expect.objectContaining({
         role: 'model',
         content:
-          '\n\n<div class="tool-result outcome-outcome_ok"><strong>Execution Result (OUTCOME_OK):</strong><pre><code class="language-text">42\n</code></pre></div>\n\n',
+          '\n\n<div class="tool-result outcome-ok"><pre><code class="language-text">42&#10;&#10;</code></pre></div>\n\n',
         apiParts: [part],
         isLoading: true,
       }),

@@ -236,6 +236,25 @@ export const migrateLegacyOpenAICompatibleInput = (value: unknown): Partial<AppS
   return settings as Partial<AppSettings>;
 };
 
+/**
+ * Rename the legacy stored key `autoFullscreenHtml` to `autoOpenHtmlPreview`.
+ * The setting auto-opens the HTML preview modal; it never forces fullscreen,
+ * so the old name misdescribed the behavior.
+ */
+export const migrateLegacyAutoOpenHtmlPreview = (value: unknown): Partial<AppSettings> => {
+  if (!isRecord(value) || !('autoFullscreenHtml' in value)) {
+    return value as Partial<AppSettings>;
+  }
+
+  const settings: Record<string, unknown> = { ...value };
+  const legacyValue = settings.autoFullscreenHtml;
+  delete settings.autoFullscreenHtml;
+  if (settings.autoOpenHtmlPreview === undefined && legacyValue !== undefined) {
+    settings.autoOpenHtmlPreview = legacyValue;
+  }
+  return settings as Partial<AppSettings>;
+};
+
 const appSettingsSchema: z.ZodType<AppSettings> = z.object({
   modelId: stringWithDefault(DEFAULT_APP_SETTINGS.modelId),
   providerId: optionalWithDefault(z.string().min(1), DEFAULT_APP_SETTINGS.providerId),
@@ -296,7 +315,7 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
   isAutoScrollOnSendEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isAutoScrollOnSendEnabled),
   isAutoSendOnSuggestionClick: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isAutoSendOnSuggestionClick),
   generateQuadImages: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.generateQuadImages),
-  autoFullscreenHtml: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.autoFullscreenHtml),
+  autoOpenHtmlPreview: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.autoOpenHtmlPreview),
   unwrapMislabeledHtmlBlocks: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.unwrapMislabeledHtmlBlocks),
   showWelcomeSuggestions: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.showWelcomeSuggestions),
   isAudioCompressionEnabled: booleanWithDefault(DEFAULT_APP_SETTINGS.isAudioCompressionEnabled),
@@ -336,4 +355,6 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
 });
 
 export const sanitizeImportedAppSettings = (value: unknown): AppSettings =>
-  appSettingsSchema.parse(migrateLegacyOpenAICompatibleInput(value));
+  appSettingsSchema.parse(
+    migrateLegacyOpenAICompatibleInput(migrateLegacyAutoOpenHtmlPreview(value)),
+  );

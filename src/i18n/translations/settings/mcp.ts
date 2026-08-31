@@ -785,15 +785,6 @@ const mcpSettings = {
     fr: "Aucun serveur n'a été analysé.",
     de: 'Es wurden keine Server erkannt.',
   },
-  settingsMcpImportDuplicate: {
-    en: 'A server with the same id or URL already exists.',
-    zh: '已存在相同 id 或 URL 的服务器',
-    ja: '同じ id または URL のサーバーが既に存在します',
-    es: 'Ya existe un servidor con el mismo id o URL.',
-    ko: '동일한 id 또는 URL의 서버가 이미 있습니다.',
-    fr: 'Un serveur avec le même id ou la même URL existe déjà.',
-    de: 'Ein Server mit derselben ID oder URL existiert bereits.',
-  },
   settingsMcpFilterAria: {
     en: 'Filter servers',
     zh: '筛选服务器',

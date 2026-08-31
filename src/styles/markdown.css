@@ -463,13 +463,18 @@ code.hljs {
 }
 
 .tool-result strong {
-  display: block;
-  margin-bottom: 0.5rem;
   color: var(--theme-text-secondary);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   opacity: 0.9;
+}
+
+/* The localized header row replaces the legacy baked <strong> header; keep the
+   strong inline (icon + label share the row with the action buttons). */
+.tool-result > div:first-child strong {
+  display: inline-flex;
+  align-items: center;
 }
 
 /* Ensure pre/code blocks inside tool results are readable and handle overflow */
@@ -489,4 +494,34 @@ code.hljs {
 .tool-result .group.relative.rounded-lg {
   border: 1px solid var(--theme-border-secondary);
   background-color: var(--theme-bg-primary); /* Slightly elevate the code block */
+}
+
+/* Server code execution card: the status strip (CodeExecutionBlock) above the
+   code block, plus the tool result attached right below, so the round-trip
+   reads as one unit. */
+.code-exec-block {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* CodeBlock owns a default my-3 — collapse it inside the card so the strip,
+   code and (soon) result sit tightly together. */
+.code-exec-block > div {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* The result block directly following the code-exec card is part of the same
+   round-trip: pull it up and drop its own top gap so they read as one card. */
+.code-exec-block + .tool-result {
+  margin-top: 0.375rem;
+}
+
+/* The pre.code-exec-code itself is styled by the inner CodeBlock; neutralize
+   any inherited pre margins/padding so no double spacing appears. */
+pre.code-exec-code {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
 }

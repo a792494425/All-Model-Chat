@@ -101,6 +101,7 @@ export const useChatInput = () => {
     setInputText: inputState.setInputText,
     onTogglePip,
     currentModelId: currentChatSettings.modelId,
+    providerId: currentChatSettings.providerId,
     onSetThinkingLevel: (level) => setCurrentChatSettings((prev) => ({ ...prev, thinkingLevel: level })),
     thinkingLevel: currentChatSettings.thinkingLevel,
     inputText: inputState.inputText,

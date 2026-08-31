@@ -417,19 +417,10 @@ const ProviderLogo = ({
 
 const resolveBrandIcon = (model: ModelOption): ModelBrandIconKey | null => {
   const normalizedId = model.id.toLowerCase();
-  const { isGemini3ImageModel, isGemini31FlashImageModel, isFlashImageModel, isImageGenerationModel, isGemmaModel } =
-    getCachedModelCapabilities(model.id);
+  const { isImageGenerationModel, isGemmaModel } = getCachedModelCapabilities(model.id);
 
-  // Nano Banana family: Gemini native image models (Pro / 2 / Lite / legacy Flash Image)
-  if (
-    isGemini3ImageModel ||
-    isGemini31FlashImageModel ||
-    isFlashImageModel ||
-    isImageGenerationModel ||
-    (normalizedId.includes('gemini') && normalizedId.includes('image')) ||
-    normalizedId.includes('nano-banana') ||
-    normalizedId.includes('nanobanana')
-  ) {
+  // Nano Banana family: any image-capable model, plus the literal Nano Banana ids.
+  if (isImageGenerationModel || normalizedId.includes('nano-banana') || normalizedId.includes('nanobanana')) {
     return 'nanobanana';
   }
 

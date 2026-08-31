@@ -18,7 +18,6 @@ const isGeminiImageHistoryTarget = (modelId?: string): boolean => {
 
   const normalizedId = normalizeModelId(modelId);
   return (
-    normalizedId.includes('gemini-2.5-flash-image') ||
     normalizedId === 'gemini-3-pro-image-preview' ||
     normalizedId === 'gemini-3.1-flash-image-preview' ||
     normalizedId === 'gemini-3.1-flash-lite-image'

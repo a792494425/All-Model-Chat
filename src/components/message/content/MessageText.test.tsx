@@ -82,7 +82,7 @@ describe('MessageText', () => {
             timestamp: new Date('2026-04-21T00:00:00.000Z'),
           }}
           showThoughts={false}
-          appSettings={createAppSettings({ autoFullscreenHtml: false, hideThinkingInContext: false })}
+          appSettings={createAppSettings({ autoOpenHtmlPreview: false, hideThinkingInContext: false })}
           themeId="pearl"
           baseFontSize={16}
           onImageClick={vi.fn()}
@@ -116,7 +116,7 @@ describe('MessageText', () => {
       <MessageText
         message={message}
         showThoughts={false}
-        appSettings={createAppSettings({ autoFullscreenHtml: true, hideThinkingInContext: false })}
+        appSettings={createAppSettings({ autoOpenHtmlPreview: true, hideThinkingInContext: false })}
         themeId="pearl"
         baseFontSize={16}
         onImageClick={vi.fn()}
@@ -162,7 +162,7 @@ describe('MessageText', () => {
       <MessageText
         message={message}
         showThoughts={false}
-        appSettings={createAppSettings({ autoFullscreenHtml: true, hideThinkingInContext: false })}
+        appSettings={createAppSettings({ autoOpenHtmlPreview: true, hideThinkingInContext: false })}
         themeId="pearl"
         baseFontSize={16}
         onImageClick={vi.fn()}
@@ -207,7 +207,7 @@ describe('MessageText', () => {
       <MessageText
         message={message}
         showThoughts={false}
-        appSettings={createAppSettings({ autoFullscreenHtml: true, hideThinkingInContext: false })}
+        appSettings={createAppSettings({ autoOpenHtmlPreview: true, hideThinkingInContext: false })}
         themeId="pearl"
         baseFontSize={16}
         onImageClick={vi.fn()}
@@ -275,7 +275,7 @@ describe('MessageText', () => {
           }}
           showThoughts={false}
           appSettings={createAppSettings({
-            autoFullscreenHtml: false,
+            autoOpenHtmlPreview: false,
             hideThinkingInContext: false,
             // No LA prompt at the global level: systemInstruction is empty.
             systemInstruction: '',
@@ -323,7 +323,7 @@ describe('MessageText', () => {
             timestamp: new Date('2026-04-21T00:00:00.000Z'),
           }}
           showThoughts={false}
-          appSettings={createAppSettings({ autoFullscreenHtml: false, hideThinkingInContext: true })}
+          appSettings={createAppSettings({ autoOpenHtmlPreview: false, hideThinkingInContext: true })}
           themeId="pearl"
           baseFontSize={16}
           onImageClick={vi.fn()}
@@ -350,7 +350,7 @@ describe('MessageText', () => {
             timestamp: new Date('2026-04-21T00:00:00.000Z'),
           }}
           showThoughts={true}
-          appSettings={createAppSettings({ autoFullscreenHtml: false, hideThinkingInContext: false })}
+          appSettings={createAppSettings({ autoOpenHtmlPreview: false, hideThinkingInContext: false })}
           themeId="pearl"
           baseFontSize={16}
           onImageClick={vi.fn()}
@@ -380,7 +380,7 @@ describe('MessageText', () => {
             timestamp: new Date('2026-04-21T00:00:00.000Z'),
           }}
           showThoughts={false}
-          appSettings={createAppSettings({ autoFullscreenHtml: false, hideThinkingInContext: false })}
+          appSettings={createAppSettings({ autoOpenHtmlPreview: false, hideThinkingInContext: false })}
           themeId="pearl"
           baseFontSize={16}
           onImageClick={vi.fn()}
@@ -411,7 +411,7 @@ describe('MessageText', () => {
             timestamp: new Date('2026-04-21T00:00:00.000Z'),
           }}
           showThoughts={false}
-          appSettings={createAppSettings({ autoFullscreenHtml: false, hideThinkingInContext: false })}
+          appSettings={createAppSettings({ autoOpenHtmlPreview: false, hideThinkingInContext: false })}
           themeId="pearl"
           baseFontSize={16}
           onImageClick={vi.fn()}
@@ -450,7 +450,7 @@ describe('MessageText', () => {
             timestamp: new Date('2026-04-21T00:00:00.000Z'),
           }}
           showThoughts={false}
-          appSettings={createAppSettings({ autoFullscreenHtml: false, hideThinkingInContext: false })}
+          appSettings={createAppSettings({ autoOpenHtmlPreview: false, hideThinkingInContext: false })}
           themeId="pearl"
           baseFontSize={16}
           onImageClick={vi.fn()}
@@ -482,7 +482,7 @@ describe('MessageText', () => {
             timestamp: new Date('2026-04-21T00:00:00.000Z'),
           }}
           showThoughts={false}
-          appSettings={createAppSettings({ autoFullscreenHtml: false, hideThinkingInContext: false })}
+          appSettings={createAppSettings({ autoOpenHtmlPreview: false, hideThinkingInContext: false })}
           themeId="pearl"
           baseFontSize={16}
           onImageClick={vi.fn()}
@@ -516,7 +516,7 @@ describe('MessageText', () => {
             timestamp: new Date('2026-04-21T00:00:00.000Z'),
           }}
           showThoughts={false}
-          appSettings={createAppSettings({ autoFullscreenHtml: false, hideThinkingInContext: false })}
+          appSettings={createAppSettings({ autoOpenHtmlPreview: false, hideThinkingInContext: false })}
           themeId="pearl"
           baseFontSize={16}
           onImageClick={vi.fn()}
@@ -554,7 +554,7 @@ describe('MessageText', () => {
             timestamp: new Date('2026-04-21T00:00:00.000Z'),
           }}
           showThoughts={false}
-          appSettings={createAppSettings({ autoFullscreenHtml: false, hideThinkingInContext: false })}
+          appSettings={createAppSettings({ autoOpenHtmlPreview: false, hideThinkingInContext: false })}
           themeId="pearl"
           baseFontSize={16}
           onImageClick={vi.fn()}
@@ -619,7 +619,7 @@ describe('MessageText', () => {
           timestamp: new Date('2026-04-21T00:00:00.000Z'),
         }}
         showThoughts={false}
-        appSettings={createAppSettings({ autoFullscreenHtml: false, hideThinkingInContext: false })}
+        appSettings={createAppSettings({ autoOpenHtmlPreview: false, hideThinkingInContext: false })}
         themeId="pearl"
         baseFontSize={16}
         onImageClick={vi.fn()}
@@ -667,7 +667,7 @@ describe('MessageText', () => {
             timestamp: new Date('2026-04-21T00:00:00.000Z'),
           }}
           showThoughts={false}
-          appSettings={createAppSettings({ autoFullscreenHtml: false, hideThinkingInContext: false })}
+          appSettings={createAppSettings({ autoOpenHtmlPreview: false, hideThinkingInContext: false })}
           themeId="pearl"
           baseFontSize={16}
           onImageClick={vi.fn()}

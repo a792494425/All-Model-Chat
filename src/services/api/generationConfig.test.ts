@@ -182,23 +182,6 @@ describe('buildGenerationConfig', () => {
     );
   });
 
-  it('returns image config for gemini-2.5-flash-image (retained GA image model)', async () => {
-    const config = await buildGenerationConfig(
-      'gemini-2.5-flash-image',
-      'sys',
-      baseConfig,
-      false,
-      0,
-      false,
-      false,
-      false,
-      undefined,
-      '1:1',
-      false,
-    );
-    expect(config.responseModalities).toEqual(['IMAGE', 'TEXT']);
-  });
-
   it('returns image config with imageSize for gemini-3-pro-image-preview', async () => {
     const config = await buildGenerationConfig(
       'gemini-3-pro-image-preview',
@@ -214,7 +197,7 @@ describe('buildGenerationConfig', () => {
       false,
       '2K',
     );
-    expect(config.responseModalities).toEqual(['IMAGE', 'TEXT']);
+    expect(config.responseModalities).toEqual(['TEXT', 'IMAGE']);
     expect(config.imageConfig!.imageSize).toBe('2K');
   });
 
@@ -476,10 +459,9 @@ describe('buildGenerationConfig', () => {
     expect(config.mediaResolution).toBe(MediaResolution.MEDIA_RESOLUTION_HIGH);
   });
 
-  it('includes thinkingConfig for gemini-2.5 models', async () => {
+  it('no longer sends a thinking budget for Gemini 2.5 models', async () => {
     const config = await buildGenerationConfig('gemini-2.5-flash', 'sys', baseConfig, false, 8000);
-    expect(config.thinkingConfig!.thinkingBudget).toBe(8000);
-    expect(config.thinkingConfig!.includeThoughts).toBe(true);
+    expect(config.thinkingConfig).toBeUndefined();
   });
 
   it('includes thinkingBudget config for Gemini Robotics-ER 2', async () => {

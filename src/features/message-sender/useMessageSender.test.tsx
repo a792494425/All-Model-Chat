@@ -117,7 +117,6 @@ describe('useMessageSender', () => {
     mockUploadFileApi.mockResolvedValue({ state: 'ACTIVE', name: 'files/refreshed', uri: 'https://files/refreshed' });
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: false,
       isNativeAudioModel: false,
       permissions: {
@@ -135,7 +134,6 @@ describe('useMessageSender', () => {
   it('blocks attachments for models that cannot accept files', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: true,
-      isFlashImageModel: false,
       isGemini3ImageModel: false,
       isNativeAudioModel: false,
       permissions: {
@@ -175,7 +173,6 @@ describe('useMessageSender', () => {
   it('blocks Gemini 3 image requests with more than 14 reference images', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: true,
     });
 
@@ -212,7 +209,6 @@ describe('useMessageSender', () => {
   it('blocks oversized text files when server-side code execution is enabled', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: false,
     });
 
@@ -250,7 +246,6 @@ describe('useMessageSender', () => {
   it('blocks audio attachments for hosted Gemma 4 large models', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: false,
       isGemmaModel: true,
     });
@@ -282,7 +277,6 @@ describe('useMessageSender', () => {
   it('blocks manual sends while failed attachments are still selected', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: false,
     });
 
@@ -315,7 +309,6 @@ describe('useMessageSender', () => {
   it('blocks PDF attachments for Gemini 3 Pro image', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: true,
     });
 
@@ -350,7 +343,6 @@ describe('useMessageSender', () => {
   it('allows PDF attachments for Gemini 3.1 Flash image', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: true,
     });
 
@@ -383,7 +375,6 @@ describe('useMessageSender', () => {
   it('passes per-send settings overrides into the standard message route', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: false,
     });
 
@@ -421,7 +412,6 @@ describe('useMessageSender', () => {
   it('converts local Files API references to inline files before sending in OpenAI-compatible mode', async () => {
     mockGetModelCapabilities.mockImplementation((modelId: string) => ({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: modelId === 'gemini-3-pro-image-preview',
     }));
 
@@ -491,7 +481,6 @@ describe('useMessageSender', () => {
   it('blocks remote-only Files API references in OpenAI-compatible mode', async () => {
     mockGetModelCapabilities.mockImplementation((modelId: string) => ({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: modelId === 'gemini-3-pro-image-preview',
     }));
 
@@ -537,7 +526,6 @@ describe('useMessageSender', () => {
   it('omits historical Gemini Files API ids before sending in OpenAI-compatible mode', async () => {
     mockGetModelCapabilities.mockImplementation((modelId: string) => ({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: modelId === 'gemini-3-pro-image-preview',
     }));
 
@@ -602,7 +590,6 @@ describe('useMessageSender', () => {
   it('creates a localized error session when no model is selected', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: false,
     });
 
@@ -633,7 +620,6 @@ describe('useMessageSender', () => {
   it('refreshes an expired Files API reference from the local file before sending', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: false,
     });
     mockGetFileMetadataApi.mockResolvedValue(null);
@@ -692,7 +678,6 @@ describe('useMessageSender', () => {
   it('blocks an expired Files API reference when no local backup is available', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: false,
     });
     mockGetFileMetadataApi.mockResolvedValue(null);
@@ -732,7 +717,6 @@ describe('useMessageSender', () => {
   it('starts a continue-generation turn with a fresh generationStartTime, not the target message timestamp', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: false,
     });
 
@@ -778,7 +762,6 @@ describe('useMessageSender', () => {
   it('sends with the live store files when the closure selectedFiles are stale (pending-submission flush)', async () => {
     mockGetModelCapabilities.mockReturnValue({
       isTtsModel: false,
-      isFlashImageModel: false,
       isGemini3ImageModel: false,
     });
 

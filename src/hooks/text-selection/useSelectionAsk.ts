@@ -48,7 +48,7 @@ export function useSelectionAsk() {
       const selectionAskProviderId = appSettings.selectionAskProviderId;
 
       if (!selectionAskModelId || !selectionAskModelId.trim()) {
-        setError(t('selectionAskModelConfigureHint') || '请先在设置 → 界面中配置划词询问模型');
+        setError(t('selectionAskModelConfigureHint'));
         setIsLoading(false);
         return;
       }
@@ -123,7 +123,13 @@ export function useSelectionAsk() {
       const abortController = new AbortController();
       abortRef.current = abortController;
 
+      // 回调必须确认自己仍代表当前请求：发起新 ask / 用户 cancel 后，底层流仍可能
+      // 补发 onComplete/onPart（OpenAI 兼容路径 abort 早退时会直接调 onComplete），
+      // 不加守卫会把新请求的 isLoading 清掉、abortRef 置空，甚至污染新答案。
+      const isCurrentRequest = () => abortRef.current === abortController;
+
       const onPart = (part: { text?: string }) => {
+        if (!isCurrentRequest()) return;
         if (part.text) {
           answerRef.current += part.text;
           setAnswer(answerRef.current);
@@ -131,12 +137,13 @@ export function useSelectionAsk() {
       };
       const onThoughtChunk = () => {};
       const onError = (e: Error) => {
-        if (abortController.signal.aborted) return;
+        if (!isCurrentRequest()) return;
         setError(e.message || t('askError'));
         setIsLoading(false);
         abortRef.current = null;
       };
       const onComplete = () => {
+        if (!isCurrentRequest()) return;
         setIsLoading(false);
         abortRef.current = null;
       };

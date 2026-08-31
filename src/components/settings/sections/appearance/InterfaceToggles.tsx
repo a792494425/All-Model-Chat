@@ -156,8 +156,8 @@ export const InterfaceToggles: React.FC<InterfaceTogglesProps> = ({ settings, on
         <SearchableToggle
           itemId="interface-auto-preview"
           label={t('settingsAutoFullscreenHtmlLabel')}
-          checked={settings.autoFullscreenHtml ?? false}
-          onChange={(enabled) => onUpdate('autoFullscreenHtml', enabled)}
+          checked={settings.autoOpenHtmlPreview ?? false}
+          onChange={(enabled) => onUpdate('autoOpenHtmlPreview', enabled)}
           tooltip={t('settingsAutoFullscreenHtmlTooltip')}
         />
         <SearchableToggle

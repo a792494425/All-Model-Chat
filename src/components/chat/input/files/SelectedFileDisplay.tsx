@@ -166,8 +166,16 @@ export const SelectedFileDisplay: React.FC<SelectedFileDisplayProps> = ({
             className={`text-xs truncate leading-tight mt-0.5 flex items-center gap-1 ${isFailed ? 'text-[var(--theme-text-danger)] font-medium' : 'text-[var(--theme-text-tertiary)]'}`}
             title={isFailed ? file.error : undefined}
           >
-            {file.videoMetadata ? <Scissors size={8} className="text-[var(--theme-text-link)]" /> : null}
-            {file.mediaResolution && <SlidersHorizontal size={8} className="text-[var(--theme-text-link)]" />}
+            {file.videoMetadata ? (
+              <span title={t('fileBadgeVideoMetadata')}>
+                <Scissors size={10} className="text-[var(--theme-text-link)]" />
+              </span>
+            ) : null}
+            {file.mediaResolution && (
+              <span title={t('fileBadgeMediaResolution')}>
+                <SlidersHorizontal size={10} className="text-[var(--theme-text-link)]" />
+              </span>
+            )}
             {isFailed
               ? file.error || t('selectedFileErrorFallback')
               : isUploading
