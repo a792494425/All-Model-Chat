@@ -58,7 +58,7 @@ test('editing the system prompt still persists when switching to models and sele
   await targetButton.scrollIntoViewIfNeeded();
   await targetButton.click();
 
-  await expect(targetButton).toContainText('Active');
+  await expect(targetButton).toContainText('New chat default');
 
   await expect(textarea).toHaveValue('Persist this prompt while selecting a model');
 
@@ -69,7 +69,9 @@ test('editing the system prompt still persists when switching to models and sele
     .click();
 
   await expect(textarea).toHaveValue('Persist this prompt while selecting a model');
-  await expect(page.getByTestId('settings-model-option-gemini-native:gemma-4-31b-it')).toContainText('Active');
+  await expect(page.getByTestId('settings-model-option-gemini-native:gemma-4-31b-it')).toContainText(
+    'New chat default',
+  );
 });
 
 test('workspace settings content does not expose a horizontal scrollbar', async ({ page }) => {
