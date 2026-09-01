@@ -9,6 +9,7 @@ import {
   getNormalizedUpstreamBaseUrl,
   toAbsoluteHttpUrl,
 } from './geminiApiBaseUrl';
+import { getGeminiApiProxyBaseUrl } from '@/runtime/runtimeConfig';
 import { normalizeGeminiApiBaseUrl } from '@/utils/apiProxyUrl';
 import { type GeminiClientHttpOptions, withHttpOptionHeaders } from './geminiApiVersion';
 import type { InternalGeminiApiClient } from './geminiResumableUpload';
@@ -104,7 +105,10 @@ export const getConfiguredApiClient = async (
 ): Promise<GoogleGenAI> => {
   const { settings, apiProxyUrl } = await loadConfiguredApiRouting();
 
-  const effectiveApiProxyUrl = routingOverrides?.directGoogleApi ? null : apiProxyUrl;
+  const runtimeProxyUrl = getGeminiApiProxyBaseUrl();
+  const effectiveApiProxyUrl = routingOverrides?.directGoogleApi
+    ? null
+    : apiProxyUrl || (runtimeProxyUrl ? toAbsoluteHttpUrl(runtimeProxyUrl) : null);
 
   // Docker mode: when the user configured an absolute upstream proxy URL, the
   // frontend sends all Gemini requests to the api container's relative path
@@ -127,7 +131,9 @@ export const getConfiguredApiClientContext = async (
   httpOptions?: GeminiClientHttpOptions,
 ): Promise<ConfiguredApiClientContext> => {
   const { settings, apiProxyUrl } = await loadConfiguredApiRouting();
-  const client = await getClient(apiKey, apiProxyUrl, httpOptions);
+  const runtimeProxyUrl = getGeminiApiProxyBaseUrl();
+  const effectiveApiProxyUrl = apiProxyUrl || (runtimeProxyUrl ? toAbsoluteHttpUrl(runtimeProxyUrl) : null);
+  const client = await getClient(apiKey, effectiveApiProxyUrl, httpOptions);
 
   return {
     client,
