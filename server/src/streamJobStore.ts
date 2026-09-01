@@ -247,11 +247,8 @@ export async function runDetachedUpstream(
       redirect: 'manual',
     };
     if (hasBody) {
-      const chunks: Buffer[] = [];
-      for await (const chunk of request) {
-        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-      }
-      requestInit.body = Buffer.concat(chunks);
+      requestInit.body = request as unknown as BodyInit;
+      requestInit.duplex = 'half';
     }
 
     const upstreamResponse = await fetchImpl(upstreamUrl, requestInit);
