@@ -24,6 +24,9 @@ const ChatInputActionsComponent: React.FC = () => {
     isWaitingForUpload,
     isLiveConnected,
     isNativeAudioModel,
+    isLiveTranslate,
+    isLiveTranscribe,
+    isTranscribeModel,
     isTtsModel,
     onToggleToolAndFocus,
     onCountTokens,
@@ -151,7 +154,7 @@ const ChatInputActionsComponent: React.FC = () => {
 
         {!isTtsModel && <AttachmentMenu />}
 
-        {isNativeAudioModel && (
+        {isNativeAudioModel && !isLiveTranslate && !isLiveTranscribe && (
           <WebSearchToggle
             isGoogleSearchEnabled={!!focusedToolStates.googleSearch?.isEnabled}
             onToggleGoogleSearch={focusedToolStates.googleSearch?.onToggle ?? (() => undefined)}
@@ -167,7 +170,9 @@ const ChatInputActionsComponent: React.FC = () => {
           disabled={disabled}
         />
 
-        <McpPickerMenu disabled={disabled} />
+        {!isTtsModel && !isLiveTranslate && !isLiveTranscribe && !isTranscribeModel && (
+          <McpPickerMenu disabled={disabled} />
+        )}
       </div>
 
       <div

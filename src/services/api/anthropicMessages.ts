@@ -96,11 +96,16 @@ export const buildAnthropicRequestBody = (
   role: 'user' | 'model',
   stream: boolean,
 ): Record<string, unknown> => {
+  const customMaxTokens =
+    typeof config.maxOutputTokens === 'number' && config.maxOutputTokens > 0
+      ? config.maxOutputTokens
+      : ANTHROPIC_OUTPUT_TOKENS;
+
   const body: Record<string, unknown> = {
     model: modelId,
     messages: buildAnthropicMessages(history, parts, role),
     stream,
-    max_tokens: ANTHROPIC_OUTPUT_TOKENS,
+    max_tokens: customMaxTokens,
   };
 
   const systemInstruction = config.systemInstruction?.trim();
@@ -108,6 +113,13 @@ export const buildAnthropicRequestBody = (
     body.system = systemInstruction;
   }
   appendSamplingParameters(body, config);
+
+  if (Array.isArray(config.stopSequences) && config.stopSequences.length > 0) {
+    const validStops = config.stopSequences.map((s) => s.trim()).filter(Boolean);
+    if (validStops.length > 0) {
+      body.stop_sequences = validStops;
+    }
+  }
 
   if (isAnthropicEffortModel(modelId)) {
     // Adaptive models: control thoroughness via output_config.effort; never send budget_tokens.

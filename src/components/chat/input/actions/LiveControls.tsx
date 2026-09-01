@@ -8,6 +8,8 @@ export const LiveControls: React.FC = () => {
   const {
     isLiveConnected,
     isLiveMuted,
+    isLiveTranslate,
+    isLiveTranscribe,
     onStartLiveSession,
     onDisconnectLiveSession,
     onToggleLiveMute,
@@ -31,9 +33,11 @@ export const LiveControls: React.FC = () => {
   const activeSourceClass = `${CHAT_INPUT_BUTTON_CLASS} bg-[var(--theme-bg-accent)]/10 text-[var(--theme-text-primary)]`;
   const dangerButtonClass = `${CHAT_INPUT_BUTTON_CLASS} bg-[var(--theme-bg-danger)]/10 text-[var(--theme-text-danger)] hover:bg-[var(--theme-bg-danger)]/20`;
 
+  const supportsLiveVideo = !isLiveTranslate && !isLiveTranscribe;
+
   return (
     <>
-      {onStartLiveCamera && (
+      {supportsLiveVideo && onStartLiveCamera && (
         <button
           type="button"
           onClick={onStartLiveCamera}
@@ -46,7 +50,7 @@ export const LiveControls: React.FC = () => {
         </button>
       )}
 
-      {onStartLiveScreenShare && (
+      {supportsLiveVideo && onStartLiveScreenShare && (
         <button
           type="button"
           onClick={onStartLiveScreenShare}

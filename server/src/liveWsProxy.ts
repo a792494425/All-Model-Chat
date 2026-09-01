@@ -29,7 +29,7 @@ const logLiveEvent = (event: string, context: Record<string, unknown> = {}) => {
 const resolveLiveWsProxyConfig = (config: ApiServerConfig): LiveWsProxyConfig => ({
   enableLiveWsProxy: config.enableLiveWsProxy,
   liveWsIdleTimeoutMs: config.liveWsIdleTimeoutMs,
-  geminiApiKey: config.geminiApiKey,
+  geminiApiKey: config.liveGeminiApiKey || config.geminiApiKey,
   upstreamBase: config.liveWsUpstreamBase || UPSTREAM_WS_BASE,
   allowedOrigins: config.allowedOrigins,
 });

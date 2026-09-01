@@ -123,14 +123,20 @@ export const useAppFavicon = ({ activeSessionId }: UseAppFaviconProps) => {
   const loadingSessionIds = useChatStore((state) => state.loadingSessionIds);
   const isLoading = activeSessionId ? loadingSessionIds.has(activeSessionId) : false;
 
-  // Idempotent write so repeat transitions don't thrash the browser's favicon
-  // renderer (which would flicker).
+  // Idempotent write with node replacement so repeat transitions don't thrash
+  // the browser's favicon renderer while ensuring Safari/Firefox immediately update.
   const setFaviconHref = (href: string | null) => {
     const link = document.querySelector<HTMLLinkElement>('#favicon');
     if (!link || !href || link.href === href) {
       return;
     }
-    link.href = href;
+    const newLink = link.cloneNode(true) as HTMLLinkElement;
+    newLink.href = href;
+    if (link.parentNode) {
+      link.parentNode.replaceChild(newLink, link);
+    } else {
+      link.href = href;
+    }
   };
 
   const getStateHref = (state: FaviconState): string | null => stateHrefsRef.current[state] ?? defaultHrefRef.current;
@@ -198,7 +204,10 @@ export const useAppFavicon = ({ activeSessionId }: UseAppFaviconProps) => {
     if (!link) {
       return;
     }
-    defaultHrefRef.current = link.href;
+    // Only capture defaultHref if it's a real file path and not an already-tinted data URL
+    if (link.href && !link.href.startsWith('data:')) {
+      defaultHrefRef.current = link.href;
+    }
 
     let cancelled = false;
     void (async () => {

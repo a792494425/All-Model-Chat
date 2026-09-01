@@ -6,6 +6,12 @@ export interface OpenAICompatibleChatConfig {
   systemInstruction?: string;
   temperature?: number;
   topP?: number;
+  topK?: number;
+  maxOutputTokens?: number;
+  stopSequences?: string[];
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  seed?: number;
   thinkingLevel?: ThinkingLevel;
   extraHeaders?: Record<string, string> | null;
 }

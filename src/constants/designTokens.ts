@@ -43,7 +43,7 @@ const TOOLBAR_CONTROL_HEIGHT_CLASS = 'h-9';
 
 /** Soft cluster wrapping image-generation controls above the composer. */
 export const TOOLBAR_IMAGE_CLUSTER_CLASS =
-  'flex flex-wrap items-center gap-1.5 sm:gap-2 rounded-xl border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-tertiary)]/30 px-1.5 py-1';
+  'flex flex-wrap items-center gap-1.5 sm:gap-2 rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] shadow-sm px-1.5 py-1';
 
 /** Segmented control track (size, output mode) — outer height matches toolbar controls. */
 export const TOOLBAR_SEGMENTED_TRACK_CLASS = `${TOOLBAR_CONTROL_HEIGHT_CLASS} inline-flex items-center gap-0.5 rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] p-0.5`;

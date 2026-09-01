@@ -4,9 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@/test/render/providerRenderer';
 import { AudioRecorder } from './AudioRecorder';
 
-const { mockUseAudioRecorder, mockUseAudioAnalyser } = vi.hoisted(() => ({
+const { mockUseAudioRecorder, mockUseAudioAnalyser, mockUseLiveTranscription } = vi.hoisted(() => ({
   mockUseAudioRecorder: vi.fn(),
   mockUseAudioAnalyser: vi.fn(),
+  mockUseLiveTranscription: vi.fn(),
 }));
 
 vi.mock('@/features/audio/useAudioRecorder', () => ({
@@ -15,6 +16,10 @@ vi.mock('@/features/audio/useAudioRecorder', () => ({
 
 vi.mock('@/features/audio/useAudioAnalyser', () => ({
   useAudioAnalyser: mockUseAudioAnalyser,
+}));
+
+vi.mock('@/hooks/live-api/useLiveTranscription', () => ({
+  useLiveTranscription: mockUseLiveTranscription,
 }));
 
 vi.mock('@/components/audio/AudioVisualizer', () => ({
@@ -74,6 +79,16 @@ describe('AudioRecorder', () => {
 
     mockUseAudioRecorder.mockImplementation(() => recorderState);
     mockUseAudioAnalyser.mockImplementation(() => ({ analyser: null, isSilent: false }));
+    mockUseLiveTranscription.mockImplementation(() => ({
+      isListening: false,
+      interimText: '',
+      finalText: '',
+      volume: 0,
+      error: null,
+      startListening: vi.fn(),
+      stopListening: vi.fn().mockResolvedValue('Transcribed text'),
+      cancelListening: vi.fn(),
+    }));
   });
 
   it('starts microphone recording automatically when the recorder opens', () => {
@@ -162,7 +177,7 @@ describe('AudioRecorder', () => {
     expect(onRecord).toHaveBeenCalledTimes(1);
     const savedFile = onRecord.mock.calls[0][0] as File;
     expect(savedFile.type).toBe('audio/mp4');
-    expect(savedFile.name).toMatch(/^recording-\d{4}-\d{2}-\d{2}-\d{6}\.m4a$/);
+    expect(savedFile.name).toMatch(/^rec-\d{4}-\d{6}\.m4a$/);
   });
 
   it('warns when the recording hit the duration cap', () => {
@@ -192,4 +207,17 @@ describe('AudioRecorder', () => {
     expect(screen.getByRole('heading', { name: '录音' })).toBeInTheDocument();
     expect(recorderState.startRecording).toHaveBeenCalledWith();
   });
+
+  it('switches to live streaming tab and displays dictation interface', () => {
+    renderWithProviders(<AudioRecorder onRecord={vi.fn()} onCancel={vi.fn()} />);
+
+    const liveTabButton = screen.getByRole('button', { name: /实时流式听写/i });
+    expect(liveTabButton).toBeInTheDocument();
+
+    fireEvent.click(liveTabButton);
+
+    expect(screen.getByText('Smart 智能')).toBeInTheDocument();
+    expect(screen.getByText('逐字')).toBeInTheDocument();
+  });
 });
+

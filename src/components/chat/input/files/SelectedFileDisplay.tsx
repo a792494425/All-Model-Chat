@@ -41,6 +41,14 @@ const MENU_ITEM_CLASS =
 const FILE_PREVIEW_BOX_CLASS =
   'file-preview-box relative w-full aspect-square rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-tertiary)]/30 flex items-center justify-center transition-colors group-hover:border-[var(--theme-border-focus)]/50';
 
+const formatDisplayFileName = (fileName: string): string => {
+  const recordingMatch = fileName.match(/^recording-\d{4}-\d{2}-\d{2}-(\d{2})(\d{2})(\d{2})(\.[^.]+)$/);
+  if (recordingMatch) {
+    return `rec-${recordingMatch[1]}:${recordingMatch[2]}:${recordingMatch[3]}${recordingMatch[4]}`;
+  }
+  return fileName;
+};
+
 export const SelectedFileDisplay: React.FC<SelectedFileDisplayProps> = ({
   file,
   onRemove,
@@ -160,7 +168,7 @@ export const SelectedFileDisplay: React.FC<SelectedFileDisplayProps> = ({
 
         <div className="mt-1.5 px-0.5 text-left w-full">
           <p className="text-xs font-medium text-[var(--theme-text-primary)] truncate leading-tight" title={file.name}>
-            {file.name}
+            {formatDisplayFileName(file.name)}
           </p>
           <p
             className={`text-xs truncate leading-tight mt-0.5 flex items-center gap-1 ${isFailed ? 'text-[var(--theme-text-danger)] font-medium' : 'text-[var(--theme-text-tertiary)]'}`}

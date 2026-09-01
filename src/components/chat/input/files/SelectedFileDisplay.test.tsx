@@ -192,11 +192,12 @@ describe('SelectedFileDisplay', () => {
     expect(moveButton).toBeUndefined();
   });
 
-  it('renders a skeleton-bar thumbnail for text files', () => {
+  it('renders a cover thumbnail with type badge for text files', () => {
     act(() => {
       renderer.root.render(
         <SelectedFileDisplay
           file={createFile({
+            name: 'notes.txt',
             textContent: 'first line\nsecond line\nthird line',
           })}
           onRemove={() => {}}
@@ -207,10 +208,7 @@ describe('SelectedFileDisplay', () => {
 
     const thumbnail = renderer.container.querySelector('[data-thumbnail-kind="text"]');
     expect(thumbnail).not.toBeNull();
-    // Skeleton bars are decorative and aria-hidden; no actual file text or line
-    // numbers are rendered (that would require reading the whole file).
-    expect(thumbnail?.getAttribute('aria-hidden')).toBe('true');
-    expect(thumbnail?.querySelectorAll('span')).toHaveLength(4); // 1 title bar + 3 body bars
+    expect(thumbnail?.textContent).toContain('TXT');
     expect(renderer.container.textContent).not.toContain('first line');
   });
 
@@ -273,7 +271,7 @@ describe('SelectedFileDisplay', () => {
     expect(renderer.container.querySelector('video')).not.toBeNull();
   });
 
-  it('renders a waveform thumbnail for audio files', () => {
+  it('renders an audio thumbnail for audio files', () => {
     act(() => {
       renderer.root.render(
         <SelectedFileDisplay
@@ -289,7 +287,6 @@ describe('SelectedFileDisplay', () => {
     });
 
     expect(renderer.container.querySelector('[data-thumbnail-kind="audio"]')).not.toBeNull();
-    expect(renderer.container.querySelectorAll('[data-waveform-bar="true"]').length).toBeGreaterThan(0);
   });
 
   it('renders a cover thumbnail for spreadsheet and other document files', () => {

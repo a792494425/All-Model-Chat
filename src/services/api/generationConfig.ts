@@ -45,7 +45,16 @@ type GenerationConfig = Omit<GenerateContentConfig, 'mediaResolution' | 'safetyS
 
 type BuildGenerationConfigInput = Pick<
   GenerationConfig,
-  'temperature' | 'topP' | 'topK' | 'responseMimeType' | 'responseSchema'
+  | 'temperature'
+  | 'topP'
+  | 'topK'
+  | 'maxOutputTokens'
+  | 'stopSequences'
+  | 'presencePenalty'
+  | 'frequencyPenalty'
+  | 'seed'
+  | 'responseMimeType'
+  | 'responseSchema'
 >;
 
 type GenerationConfigSettings = Pick<
@@ -55,6 +64,11 @@ type GenerationConfigSettings = Pick<
   | 'temperature'
   | 'topP'
   | 'topK'
+  | 'maxOutputTokens'
+  | 'stopSequences'
+  | 'presencePenalty'
+  | 'frequencyPenalty'
+  | 'seed'
   | 'showThoughts'
   | 'thinkingBudget'
   | 'isGoogleSearchEnabled'
@@ -130,6 +144,11 @@ const toInternalBuildGenerationConfigOptions = (
       temperature: settings.temperature,
       topP: settings.topP,
       topK: settings.topK,
+      maxOutputTokens: settings.maxOutputTokens,
+      stopSequences: settings.stopSequences,
+      presencePenalty: settings.presencePenalty,
+      frequencyPenalty: settings.frequencyPenalty,
+      seed: settings.seed,
       ...options.config,
     },
     showThoughts: settings.showThoughts,
@@ -252,6 +271,21 @@ async function buildGenerationConfigFromOptions({
 
   if (!generationConfig.systemInstruction) {
     delete generationConfig.systemInstruction;
+  }
+  if (typeof generationConfig.maxOutputTokens !== 'number' || generationConfig.maxOutputTokens <= 0) {
+    delete generationConfig.maxOutputTokens;
+  }
+  if (!Array.isArray(generationConfig.stopSequences) || generationConfig.stopSequences.length === 0) {
+    delete generationConfig.stopSequences;
+  }
+  if (typeof generationConfig.presencePenalty !== 'number') {
+    delete generationConfig.presencePenalty;
+  }
+  if (typeof generationConfig.frequencyPenalty !== 'number') {
+    delete generationConfig.frequencyPenalty;
+  }
+  if (typeof generationConfig.seed !== 'number') {
+    delete generationConfig.seed;
   }
 
   const supportsThinkingLevel = isGemini3 || isGeminiRoboticsModel(modelId);

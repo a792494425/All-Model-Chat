@@ -5,6 +5,7 @@ import {
   getModelCapabilities,
   isGemini3Model,
   isLiveTranslateModel,
+  isLiveTranscribeModel,
   isTranscribeModel,
   normalizeThinkingLevelForModel,
   shouldStripThinkingFromContext,
@@ -256,7 +257,12 @@ describe('isTranscribeModel', () => {
   it('returns true for dedicated transcribe models', () => {
     expect(isTranscribeModel('gemini-3.5-transcribe')).toBe(true);
     expect(isTranscribeModel('models/gemini-3.5-transcribe')).toBe(true);
-    expect(isTranscribeModel('gemini-3.5-transcribe-live')).toBe(true);
+    expect(isTranscribeModel('gemini-3.5-transcribe-live')).toBe(false);
+  });
+
+  it('identifies live transcribe models specifically', () => {
+    expect(isLiveTranscribeModel('gemini-3.5-transcribe-live')).toBe(true);
+    expect(isLiveTranscribeModel('gemini-3.5-transcribe')).toBe(false);
   });
 });
 

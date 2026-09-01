@@ -13,6 +13,11 @@ import { IMAGE_PROXY_PATH, proxyExternalImage } from './imageProxy.js';
 import { createMcpClientBridge } from './mcpClient.js';
 import { handleMcpRequest } from './mcpRoutes.js';
 import type { McpClientBridge } from './mcpTypes.js';
+import {
+  handleEphemeralTokenRequest,
+  EPHEMERAL_TOKEN_PATH,
+  LEGACY_AUTH_TOKENS_PATH,
+} from './ephemeralToken.js';
 import { abortJob, readJobSecret } from './streamJobs.js';
 import { STREAM_ABORT_PREFIX, UNIFIED_STREAM_ABORT_PREFIX } from './streamJobsRoutes.js';
 import { OPENAI_PROXY_PREFIX, proxyThirdPartyRequest, type ThirdPartyProxyConfig } from './thirdPartyProxy.js';
@@ -146,6 +151,11 @@ export function createServer(config: CreateServerConfig, dependencies: CreateSer
           enablePrivateHttp: resolvedConfig.enableMcpPrivateHttp,
         })
       ) {
+        return;
+      }
+
+      if (path === EPHEMERAL_TOKEN_PATH || path === LEGACY_AUTH_TOKENS_PATH) {
+        await handleEphemeralTokenRequest(request, response, resolvedConfig, fetchImpl);
         return;
       }
 

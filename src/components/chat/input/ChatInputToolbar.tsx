@@ -38,6 +38,7 @@ const ChatInputToolbarComponent: React.FC = () => {
     isAddingByUrl,
     ttsContext,
     onEditTtsContext,
+    onAttachmentAction,
   } = useChatInputToolbarContext();
   const {
     isImageGenerationModel,
@@ -69,17 +70,19 @@ const ChatInputToolbarComponent: React.FC = () => {
   const showImageCluster = showAspectRatio || showImageSize || showImageOutputMode || showQuadToggle;
 
   // Allow voice selection for TTS and Native Audio (Live) models, except Live Translate
-  // which shows a language-direction selector instead.
-  const canShowTtsVoice = (isTtsModel || isNativeAudioModel) && !isLiveTranslate && Boolean(ttsVoice);
+  // and Live Transcribe (which output translated speech or text only).
+  const canShowTtsVoice =
+    (isTtsModel || isNativeAudioModel) && !isLiveTranslate && !capabilities.isLiveTranscribe && Boolean(ttsVoice);
 
   // Live Translate models show a language-direction selector instead of voice
   const canShowLanguageDirection = isLiveTranslate;
 
-  // Show Media Resolution selector for Native Audio (Live API) to control stream quality
-  const canShowMediaResolution = isNativeAudioModel && Boolean(mediaResolution);
+  // Show Media Resolution selector for Native Audio multimodal (Live API) to control stream quality
+  const canShowMediaResolution =
+    isNativeAudioModel && !isLiveTranslate && !capabilities.isLiveTranscribe && Boolean(mediaResolution);
 
-  // Show Transcribe cluster for Gemini 3.5 Transcribe
-  const canShowTranscribeCluster = capabilities.isTranscribeModel;
+  // Show Transcribe cluster for Gemini 3.5 Transcribe (batch file transcription)
+  const canShowTranscribeCluster = capabilities.isTranscribeModel && !capabilities.isLiveTranscribe;
 
   const hasVisibleContent =
     showAspectRatio ||
@@ -113,6 +116,7 @@ const ChatInputToolbarComponent: React.FC = () => {
             <TranscribeCluster
               currentChatSettings={currentChatSettings}
               setCurrentChatSettings={setCurrentChatSettings}
+              onAttachmentAction={onAttachmentAction}
             />
           )}
           {canShowTtsVoice && <TtsVoiceSelector ttsVoice={ttsVoice} setTtsVoice={setTtsVoice} />}

@@ -6,6 +6,7 @@ const loadImage = (src: string): Promise<HTMLImageElement> => {
   if (!promise) {
     promise = new Promise((resolve, reject) => {
       const img = new Image();
+      img.crossOrigin = 'anonymous';
       img.onload = () => resolve(img);
       img.onerror = () => reject(new Error(`Failed to load favicon: ${src}`));
       img.src = src;
@@ -45,6 +46,8 @@ export const getTintedFaviconUrl = async (baseSrc: string, color: string): Promi
       return null;
     }
 
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
     context.drawImage(img, 0, 0, size, size);
     // Keep only the icon's alpha shape and fill it with the status color.
     context.globalCompositeOperation = 'source-in';

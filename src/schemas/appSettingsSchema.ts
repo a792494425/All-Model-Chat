@@ -273,6 +273,14 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
   isLocalPythonEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isLocalPythonEnabled),
   isUrlContextEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isUrlContextEnabled),
   isDeepSearchEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isDeepSearchEnabled),
+  maxOutputTokens: optionalWithDefault(z.number().finite().positive(), DEFAULT_APP_SETTINGS.maxOutputTokens),
+  stopSequences: z
+    .unknown()
+    .optional()
+    .transform((value) => sanitizeStringArray(value)),
+  presencePenalty: optionalWithDefault(z.number().finite().min(-2).max(2), DEFAULT_APP_SETTINGS.presencePenalty),
+  frequencyPenalty: optionalWithDefault(z.number().finite().min(-2).max(2), DEFAULT_APP_SETTINGS.frequencyPenalty),
+  seed: optionalWithDefault(z.number().finite().int(), DEFAULT_APP_SETTINGS.seed),
   isRawModeEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isRawModeEnabled),
   hideThinkingInContext: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.hideThinkingInContext),
   alwaysKeepThinkingInContext: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.alwaysKeepThinkingInContext),
@@ -351,6 +359,10 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
     .transform((value) => sanitizeTabModelCycleIds(value, DEFAULT_APP_SETTINGS.tabModelCycleIds)),
   liveTranslateTargetLanguageCode: stringWithDefault(DEFAULT_APP_SETTINGS.liveTranslateTargetLanguageCode),
   liveTranslateEchoTargetLanguage: z.boolean().optional().default(DEFAULT_APP_SETTINGS.liveTranslateEchoTargetLanguage),
+  selectionAskModelId: optionalStringWithDefault(DEFAULT_APP_SETTINGS.selectionAskModelId),
+  selectionAskProviderId: optionalWithDefault(z.string(), DEFAULT_APP_SETTINGS.selectionAskProviderId),
+  tokenCalculatorApiKey: nullableStringWithDefault(DEFAULT_APP_SETTINGS.tokenCalculatorApiKey),
+  liveApiKey: nullableStringWithDefault(DEFAULT_APP_SETTINGS.liveApiKey),
   thirdPartyApi: thirdPartyApiSchema,
 });
 

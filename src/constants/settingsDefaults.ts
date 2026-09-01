@@ -61,6 +61,11 @@ export const DEFAULT_CHAT_SETTINGS: Omit<ChatSettings, 'lockedApiKey'> & { locke
   isPdfNavEnabled: false,
   isVideoNavEnabled: false,
   isAudioNavEnabled: false,
+  maxOutputTokens: undefined,
+  stopSequences: undefined,
+  presencePenalty: undefined,
+  frequencyPenalty: undefined,
+  seed: undefined,
   isRawModeEnabled: false,
   hideThinkingInContext: false,
   alwaysKeepThinkingInContext: false,
@@ -125,6 +130,8 @@ const BASE_DEFAULT_APP_SETTINGS: Omit<AppSettings, 'thirdPartyApi'> = {
   liveTranslateEchoTargetLanguage: false,
   selectionAskModelId: DEFAULT_MODEL_ID,
   selectionAskProviderId: undefined,
+  tokenCalculatorApiKey: null,
+  liveApiKey: null,
 };
 
 export function getDefaultAppSettings(): AppSettings {

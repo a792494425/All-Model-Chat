@@ -205,27 +205,40 @@ export const useLiveConnection = ({
         setupCompleteRejectRef.current = reject;
       });
 
-      await initializeAudio((pcmData) => {
-        // IMPORTANT: If connection is closed/closing, stop sending immediately to prevent WebSocket flood errors
-        if (!isConnectedRef.current) return;
+      await initializeAudio(
+        (pcmData) => {
+          // IMPORTANT: If connection is closed/closing, stop sending immediately to prevent WebSocket flood errors
+          if (!isConnectedRef.current) return;
 
-        const base64Data = float32ToPCM16Base64(pcmData);
-        if (sessionRef.current) {
+          const base64Data = float32ToPCM16Base64(pcmData);
+          if (sessionRef.current) {
+            sessionRef.current.then((session) => {
+              try {
+                session.sendRealtimeInput({
+                  audio: {
+                    mimeType: 'audio/pcm;rate=16000',
+                    data: base64Data,
+                  },
+                });
+              } catch (audioSendError) {
+                // Catch synchronous send errors (e.g. if socket closed between checks)
+                logService.warn('Failed to send audio frame:', audioSendError);
+              }
+            });
+          }
+        },
+        () => {
+          // Hybrid VAD: client-side silence detected after speech, finalize turn early
+          if (!isConnectedRef.current || !sessionRef.current) return;
           sessionRef.current.then((session) => {
             try {
-              session.sendRealtimeInput({
-                audio: {
-                  mimeType: 'audio/pcm;rate=16000',
-                  data: base64Data,
-                },
-              });
-            } catch (audioSendError) {
-              // Catch synchronous send errors (e.g. if socket closed between checks)
-              logService.warn('Failed to send audio frame:', audioSendError);
+              session.sendRealtimeInput({ audioStreamEnd: true });
+            } catch {
+              // Ignore transient sends racing with teardown
             }
           });
-        }
-      });
+        },
+      );
       if (shouldAbortConnect()) {
         resetAudioState();
         return false;
@@ -508,6 +521,39 @@ export const useLiveConnection = ({
     return disconnectOnUnmount;
   }, [disconnectOnUnmount]);
 
+  const signalActivityStart = useCallback(() => {
+    if (!isConnectedRef.current || !sessionRef.current) return;
+    sessionRef.current.then((session) => {
+      try {
+        session.sendRealtimeInput({ activityStart: {} });
+      } catch {
+        // Ignore
+      }
+    });
+  }, [isConnectedRef, sessionRef]);
+
+  const signalActivityEnd = useCallback(() => {
+    if (!isConnectedRef.current || !sessionRef.current) return;
+    sessionRef.current.then((session) => {
+      try {
+        session.sendRealtimeInput({ activityEnd: {} });
+      } catch {
+        // Ignore
+      }
+    });
+  }, [isConnectedRef, sessionRef]);
+
+  const sendAudioStreamEnd = useCallback(() => {
+    if (!isConnectedRef.current || !sessionRef.current) return;
+    sessionRef.current.then((session) => {
+      try {
+        session.sendRealtimeInput({ audioStreamEnd: true });
+      } catch {
+        // Ignore
+      }
+    });
+  }, [isConnectedRef, sessionRef]);
+
   return {
     isConnected,
     isReconnecting,
@@ -517,5 +563,8 @@ export const useLiveConnection = ({
     disconnect,
     sendText,
     sendContent,
+    signalActivityStart,
+    signalActivityEnd,
+    sendAudioStreamEnd,
   };
 };

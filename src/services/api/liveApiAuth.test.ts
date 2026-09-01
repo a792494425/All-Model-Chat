@@ -134,3 +134,42 @@ describe('getLiveApiClient', () => {
     });
   });
 });
+
+describe('createLiveEphemeralToken', () => {
+  it('posts to the ephemeral token endpoint and returns token data', async () => {
+    const { createLiveEphemeralToken } = await import('./liveApiAuth');
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        token: 'mock-ephemeral-token',
+        name: 'authTokens/mock-ephemeral-token',
+        expireTime: '2026-09-01T22:00:00Z',
+      }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const result = await createLiveEphemeralToken(
+      {
+        useCustomApiConfig: false,
+        useApiProxy: false,
+        apiProxyUrl: null,
+      },
+      { model: 'gemini-3.1-flash-live-preview', apiKey: 'custom-key' },
+    );
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/live/ephemeral-token',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'x-goog-api-key': 'custom-key',
+          'Content-Type': 'application/json',
+        }),
+      }),
+    );
+    expect(result.token).toBe('mock-ephemeral-token');
+
+    vi.unstubAllGlobals();
+  });
+});
+

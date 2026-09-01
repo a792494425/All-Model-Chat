@@ -232,6 +232,30 @@ export const getGeminiKeyForRequest = (
   });
 };
 
+export const getLiveApiKey = (
+  appSettings: AppSettings,
+  currentChatSettings?: ChatSettings,
+): string | null => {
+  if (appSettings.liveApiKey && appSettings.liveApiKey.trim()) {
+    const parsedKeys = parseApiKeys(appSettings.liveApiKey);
+    if (parsedKeys.length > 0) {
+      return parsedKeys[0];
+    }
+  }
+
+  const fallbackSettings = currentChatSettings ?? ({ modelId: 'gemini-3.1-flash-live-preview' } as ChatSettings);
+  const keyResult = getGeminiKeyForRequest(appSettings, fallbackSettings, {
+    skipIncrement: true,
+    skipUsageLogging: true,
+  });
+
+  if ('error' in keyResult || keyResult.key === SERVER_MANAGED_API_KEY) {
+    return null;
+  }
+
+  return keyResult.key;
+};
+
 const getApiKeyErrorTranslationKey = (error: string): string | null => {
   switch (error) {
     case 'API Key not configured.':

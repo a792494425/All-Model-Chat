@@ -191,6 +191,16 @@ export interface ChatSettings {
   isAudioNavEnabled?: boolean;
   /** Unified media navigation preset (PDF + Video). */
   isMediaNavEnabled?: boolean;
+  /** Maximum output tokens to generate (optional; unset = model default). */
+  maxOutputTokens?: number;
+  /** Stop sequences to halt generation (optional). */
+  stopSequences?: string[];
+  /** Presence penalty (-2.0 to 2.0) to encourage new topics (optional). */
+  presencePenalty?: number;
+  /** Frequency penalty (-2.0 to 2.0) to discourage repetition (optional). */
+  frequencyPenalty?: number;
+  /** Seed for deterministic sampling on supported models (optional). */
+  seed?: number;
   isRawModeEnabled?: boolean;
   hideThinkingInContext?: boolean;
   alwaysKeepThinkingInContext?: boolean;
@@ -280,5 +290,7 @@ export interface AppSettings extends ChatSettings {
   liveTranslateEchoTargetLanguage: boolean; // 输入已是目标语言时是否回放原声
   selectionAskModelId?: string;
   selectionAskProviderId?: ChatProviderId;
+  tokenCalculatorApiKey?: string | null;
+  liveApiKey?: string | null;
   thirdPartyApi: ThirdPartyApiSettings;
 }

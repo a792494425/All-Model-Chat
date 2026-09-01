@@ -25,6 +25,14 @@ const MIN_DISPLAY_EXTENSION_LENGTH = 2;
 const MAX_DISPLAY_EXTENSION_LENGTH = 4;
 const MAX_MIME_SUBTYPE_DISPLAY_LENGTH = 8;
 
+const formatDisplayFileName = (fileName: string): string => {
+  const recordingMatch = fileName.match(/^recording-\d{4}-\d{2}-\d{2}-(\d{2})(\d{2})(\d{2})(\.[^.]+)$/);
+  if (recordingMatch) {
+    return `rec-${recordingMatch[1]}:${recordingMatch[2]}:${recordingMatch[3]}${recordingMatch[4]}`;
+  }
+  return fileName;
+};
+
 const getFileExtensionLabel = (name: string): string | undefined => {
   if (!name.includes('.')) return undefined;
 
@@ -184,7 +192,7 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
 
       <div className="flex-grow min-w-0">
         <p className="text-sm font-medium text-[var(--theme-text-primary)] truncate" title={file.name}>
-          {file.name}
+          {formatDisplayFileName(file.name)}
         </p>
         <div className="flex items-center gap-1.5 text-xs text-[var(--theme-text-tertiary)]">
           <span className="truncate">{getDisplayType(file.type, file.name)}</span>

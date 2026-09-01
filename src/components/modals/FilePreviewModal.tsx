@@ -309,11 +309,21 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               )}
             </div>
           ) : isAudio ? (
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center p-4">
               {previewFile.dataUrl && (
-                <div className="max-w-[calc(100vw-2rem)] bg-[var(--theme-bg-secondary)] p-4 sm:p-8 rounded-xl border border-[var(--theme-border-secondary)] shadow-2xl flex flex-col items-center gap-4">
-                  <FileAudio size={64} className="text-[var(--theme-text-tertiary)]" />
-                  <audio src={previewFile.dataUrl} controls className="w-full max-w-full sm:w-[400px]" />
+                <div className="max-w-[calc(100vw-2rem)] bg-[var(--theme-bg-secondary)] p-6 sm:p-8 rounded-2xl border border-[var(--theme-border-secondary)] shadow-2xl flex flex-col items-center gap-4">
+                  <div className="p-3.5 rounded-2xl bg-purple-500/10 text-purple-500 dark:text-purple-400">
+                    <FileAudio size={44} strokeWidth={1.5} />
+                  </div>
+                  <div className="text-center max-w-sm px-2">
+                    <p className="text-sm font-semibold text-[var(--theme-text-primary)] truncate" title={previewFile.name}>
+                      {previewFile.name}
+                    </p>
+                    <p className="text-xs text-[var(--theme-text-tertiary)] mt-1 font-mono">
+                      {previewFile.type}
+                    </p>
+                  </div>
+                  <audio src={previewFile.dataUrl} controls className="w-full max-w-full sm:w-[400px] outline-none" />
                 </div>
               )}
             </div>

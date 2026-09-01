@@ -39,6 +39,8 @@ export const createChatInputActionsContextValue = (
   isImageGenerationModel: false,
   isTranscribeModel: false,
   isNativeAudioModel: false,
+  isLiveTranslate: false,
+  isLiveTranscribe: false,
   isTtsModel: false,
   canAddYouTubeVideo: false,
   isLoading: false,
@@ -88,5 +90,6 @@ export const createChatInputToolbarContextValue = (
   onCancelAddUrl: vi.fn(),
   isAddingByUrl: false,
   onEditTtsContext: vi.fn(),
+  onAttachmentAction: vi.fn(),
   ...overrides,
 });

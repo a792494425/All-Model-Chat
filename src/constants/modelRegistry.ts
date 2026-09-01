@@ -21,6 +21,11 @@ const MODEL_REGISTRY: RegisteredModel[] = [
     },
   },
   {
+    id: 'gemini-3.5-transcribe-live',
+    name: 'Gemini 3.5 Transcribe Live',
+    groups: ['defaultPinned'],
+  },
+  {
     id: 'gemini-3.7-flash',
     name: 'Gemini 3.7 Flash',
     groups: ['defaultPinned', 'liveArtifacts', 'connectionTest'],

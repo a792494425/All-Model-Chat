@@ -7,6 +7,7 @@ import {
   formatApiKeyErrorMessage,
   getGeminiKeyForRequest,
   getKeyForRequest,
+  getLiveApiKey,
   isServerManagedApiEnabledForProxyRequests,
   SERVER_MANAGED_API_KEY,
   THIRD_PARTY_CONNECTION_DISABLED_ERROR,
@@ -424,5 +425,41 @@ describe('formatApiKeyErrorMessage', () => {
       'translated:apiRuntimeThirdPartyConnectionDisabled',
     );
     expect(formatApiKeyErrorMessage('custom failure', translate)).toBe('custom failure');
+  });
+});
+
+describe('getLiveApiKey', () => {
+  it('prioritizes dedicated liveApiKey over general apiKey', () => {
+    const key = getLiveApiKey({
+      ...DEFAULT_APP_SETTINGS,
+      useCustomApiConfig: true,
+      apiKey: 'general-gemini-key',
+      liveApiKey: 'dedicated-live-gemini-key',
+    });
+
+    expect(key).toBe('dedicated-live-gemini-key');
+  });
+
+  it('falls back to general Gemini API key when liveApiKey is not set', () => {
+    const key = getLiveApiKey({
+      ...DEFAULT_APP_SETTINGS,
+      useCustomApiConfig: true,
+      apiKey: 'general-gemini-key',
+      liveApiKey: null,
+    });
+
+    expect(key).toBe('general-gemini-key');
+  });
+
+  it('returns null when server-managed key or missing key', () => {
+    const key = getLiveApiKey({
+      ...DEFAULT_APP_SETTINGS,
+      useCustomApiConfig: false,
+      serverManagedApi: false,
+      apiKey: null,
+      liveApiKey: null,
+    });
+
+    expect(key).toBeNull();
   });
 });

@@ -160,6 +160,25 @@ export const buildOpenAICompatibleRequestBody = (
 
   appendSamplingParameters(body, config);
 
+  if (typeof config.maxOutputTokens === 'number' && config.maxOutputTokens > 0) {
+    body.max_tokens = config.maxOutputTokens;
+  }
+  if (Array.isArray(config.stopSequences) && config.stopSequences.length > 0) {
+    const validStops = config.stopSequences.map((s) => s.trim()).filter(Boolean);
+    if (validStops.length > 0) {
+      body.stop = validStops.length === 1 ? validStops[0] : validStops;
+    }
+  }
+  if (typeof config.presencePenalty === 'number') {
+    body.presence_penalty = config.presencePenalty;
+  }
+  if (typeof config.frequencyPenalty === 'number') {
+    body.frequency_penalty = config.frequencyPenalty;
+  }
+  if (typeof config.seed === 'number') {
+    body.seed = config.seed;
+  }
+
   // GLM-5 series supports a thinking parameter for chain-of-thought reasoning.
   // Map HIGH/MEDIUM to enabled, LOW/MINIMAL to disabled (controlled via ThinkingSpeedControl slider).
   if (isGlmModel(modelId)) {

@@ -1,6 +1,6 @@
 import { logService } from '@/services/logService';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Mic, X, Loader2, AlertCircle, ChevronRight, Trash2 } from 'lucide-react';
+import { Mic, X, Loader2, AlertCircle, ChevronRight, Trash2, Radio, Check, Sparkles, RefreshCw } from 'lucide-react';
 import { Modal } from '@/components/shared/Modal';
 import { toastError } from '@/stores/toastStore';
 import { AudioPlayer } from '@/components/shared/AudioPlayer';
@@ -16,6 +16,8 @@ import { SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
 import { formatClockTime } from '@/utils/formatClockTime';
 import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { useLiveTranscription } from '@/hooks/live-api/useLiveTranscription';
 
 interface AudioRecorderProps {
   onRecord: (file: File) => Promise<void>;
@@ -27,10 +29,6 @@ const WARNING_BANNER_CLASS =
 
 const padTimePart = (value: number) => value.toString().padStart(2, '0');
 
-/**
- * The recorded container is not always WebM: Safari falls through to audio/mp4,
- * so the extension has to follow the actual mime type instead of being assumed.
- */
 const getRecordingExtension = (mimeType: string | null): string => {
   if (!mimeType) return 'webm';
   if (mimeType.includes('mp4')) return 'm4a';
@@ -40,22 +38,21 @@ const getRecordingExtension = (mimeType: string | null): string => {
 
 const buildRecordingFileName = (mimeType: string | null): string => {
   const capturedAt = new Date();
-  const timestamp = [
-    capturedAt.getFullYear(),
-    padTimePart(capturedAt.getMonth() + 1),
-    padTimePart(capturedAt.getDate()),
-  ].join('-');
-  const clockTime = [
-    padTimePart(capturedAt.getHours()),
-    padTimePart(capturedAt.getMinutes()),
-    padTimePart(capturedAt.getSeconds()),
-  ].join('');
+  const month = padTimePart(capturedAt.getMonth() + 1);
+  const day = padTimePart(capturedAt.getDate());
+  const hours = padTimePart(capturedAt.getHours());
+  const minutes = padTimePart(capturedAt.getMinutes());
+  const seconds = padTimePart(capturedAt.getSeconds());
 
-  return `recording-${timestamp}-${clockTime}.${getRecordingExtension(mimeType)}`;
+  return `rec-${month}${day}-${hours}${minutes}${seconds}.${getRecordingExtension(mimeType)}`;
 };
 
 export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel }) => {
   const { t } = useI18n();
+  const appSettings = useSettingsStore((state) => state.appSettings);
+  const [activeTab, setActiveTab] = useState<'standard' | 'live'>('standard');
+  const [transcribeMode, setTranscribeMode] = useState<'SMART' | 'VERBATIM'>('SMART');
+
   const {
     viewState,
     isInitializing,
@@ -84,14 +81,38 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
   const [isSaving, setIsSaving] = useState(false);
   const [isConfirmingDiscard, setIsConfirmingDiscard] = useState(false);
 
-  // Start recording the microphone as soon as the recorder opens — no source
-  // picker. The ref guard keeps effects/re-renders from re-triggering it.
+  // Live streaming transcription hook
+  const liveTranscribe = useLiveTranscription({
+    appSettings,
+    options: {
+      mode: transcribeMode,
+    },
+  });
+
+  // Start recording when standard recorder opens
   const hasAutoStarted = useRef(false);
   useEffect(() => {
-    if (hasAutoStarted.current) return;
-    hasAutoStarted.current = true;
-    startRecording();
-  }, [startRecording]);
+    if (activeTab === 'standard') {
+      if (hasAutoStarted.current) return;
+      hasAutoStarted.current = true;
+      startRecording();
+    }
+  }, [activeTab, startRecording]);
+
+  const handleTabSwitch = (nextTab: 'standard' | 'live') => {
+    if (nextTab === activeTab) return;
+    if (activeTab === 'standard') {
+      discardRecording();
+    } else {
+      liveTranscribe.cancelListening();
+    }
+    setActiveTab(nextTab);
+    if (nextTab === 'standard') {
+      startRecording();
+    } else {
+      void liveTranscribe.startListening();
+    }
+  };
 
   const handleSave = async () => {
     if (!audioBlob) return;
@@ -109,16 +130,37 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
     }
   };
 
+  const handleSaveLiveTranscript = async () => {
+    const textToSave = (liveTranscribe.finalText + (liveTranscribe.interimText ? ` ${liveTranscribe.interimText}` : '')).trim();
+    if (!textToSave) return;
+    setIsSaving(true);
+    try {
+      await liveTranscribe.stopListening();
+      const file = new File([textToSave], `live-transcribe-${Date.now()}.txt`, {
+        type: 'text/plain;charset=utf-8',
+      });
+      await onRecord(file);
+    } catch (liveSaveError) {
+      logService.error('Failed to save live transcription:', liveSaveError);
+      toastError(t('audioRecorderFailedToSave'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleRerecord = useCallback(() => {
     discardRecording();
     startRecording();
   }, [discardRecording, startRecording]);
 
-  // Closing with captured audio in hand used to throw it away silently — a
-  // stray backdrop click could destroy a long recording.
   const hasUnsavedAudio = recordingTime > 0 && (status !== 'idle' || Boolean(audioBlob));
 
   const requestClose = () => {
+    if (activeTab === 'live') {
+      liveTranscribe.cancelListening();
+      onCancel();
+      return;
+    }
     if (hasUnsavedAudio) {
       setIsConfirmingDiscard(true);
       return;
@@ -138,23 +180,139 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
   return (
     <Modal
       isOpen={true}
-      // While the discard confirmation is up, Esc/backdrop should step back into
-      // the recorder rather than close it outright.
       onClose={isConfirmingDiscard ? () => setIsConfirmingDiscard(false) : requestClose}
       contentClassName="w-full max-w-md bg-[var(--theme-bg-primary)] rounded-xl shadow-2xl overflow-hidden"
       noPadding
     >
-      <div className="flex items-center justify-between px-5 pt-4 pb-3 bg-[var(--theme-bg-primary)]">
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--theme-text-primary)]">
-          <Mic size={20} className="text-[var(--theme-text-tertiary)]" />
+      <div className="flex items-center justify-between px-5 pt-4 pb-3 bg-[var(--theme-bg-primary)] border-b border-[var(--theme-border-subtle)]/40">
+        <h2 className="sr-only">
           {viewState === 'review' ? t('audioRecorderPreviewTitle') : t('audioRecorderTitle')}
         </h2>
+        <div className="flex items-center gap-1.5 p-0.5 rounded-lg bg-[var(--theme-bg-tertiary)]/50">
+          <button
+            type="button"
+            onClick={() => handleTabSwitch('standard')}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+              activeTab === 'standard'
+                ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-sm'
+                : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
+            }`}
+          >
+            <Mic size={14} />
+            <span>{viewState === 'review' ? t('audioRecorderPreviewTitle') : t('audioRecorderTitle')}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabSwitch('live')}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+              activeTab === 'live'
+                ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-accent)] shadow-sm'
+                : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
+            }`}
+          >
+            <Radio size={14} className={liveTranscribe.isListening ? 'animate-pulse text-[var(--theme-text-accent)]' : ''} />
+            <span>实时流式听写</span>
+          </button>
+        </div>
         <button onClick={requestClose} aria-label={t('close')} className={MODAL_CLOSE_BUTTON_CLASS}>
           <X size={20} />
         </button>
       </div>
 
-      {isConfirmingDiscard ? (
+      {activeTab === 'live' ? (
+        <div className="p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className={`inline-block h-2 w-2 rounded-full ${liveTranscribe.isListening ? 'bg-[var(--theme-text-success)] animate-ping' : 'bg-[var(--theme-text-tertiary)]'}`} />
+              <span className="text-xs font-medium text-[var(--theme-text-secondary)]">
+                {liveTranscribe.isListening ? '正在流式识别中...' : '已就绪'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-[var(--theme-bg-tertiary)]/40 p-0.5 rounded-md text-xs">
+              <button
+                type="button"
+                onClick={() => setTranscribeMode('SMART')}
+                className={`px-2 py-0.5 rounded flex items-center gap-1 transition-colors ${
+                  transcribeMode === 'SMART'
+                    ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] font-medium shadow-sm'
+                    : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)]'
+                }`}
+              >
+                <Sparkles size={11} className="text-[var(--theme-text-warning)]" />
+                <span>Smart 智能</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTranscribeMode('VERBATIM')}
+                className={`px-2 py-0.5 rounded transition-colors ${
+                  transcribeMode === 'VERBATIM'
+                    ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] font-medium shadow-sm'
+                    : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)]'
+                }`}
+              >
+                逐字
+              </button>
+            </div>
+          </div>
+
+          <div className="min-h-36 max-h-56 overflow-y-auto rounded-lg border border-[var(--theme-border-subtle)] bg-[var(--theme-bg-tertiary)]/20 p-3.5 text-sm text-[var(--theme-text-primary)]">
+            {liveTranscribe.finalText || liveTranscribe.interimText ? (
+              <p className="leading-relaxed">
+                <span>{liveTranscribe.finalText}</span>
+                {liveTranscribe.interimText && (
+                  <span className="text-[var(--theme-text-accent)] font-medium opacity-90 ml-1 bg-[var(--theme-bg-accent)]/10 px-1 rounded">
+                    {liveTranscribe.interimText}
+                  </span>
+                )}
+              </p>
+            ) : (
+              <p className="text-[var(--theme-text-tertiary)] text-center pt-8">
+                {liveTranscribe.isListening ? '请开始说话，实时文字将呈现在这里…' : '点击开始启动听写'}
+              </p>
+            )}
+          </div>
+
+          {liveTranscribe.error && (
+            <div className="text-xs text-[var(--theme-text-danger)] flex items-center gap-1.5">
+              <AlertCircle size={14} />
+              <span>{liveTranscribe.error}</span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between pt-2 border-t border-[var(--theme-border-subtle)]/40">
+            <button
+              type="button"
+              onClick={() => {
+                liveTranscribe.cancelListening();
+                void liveTranscribe.startListening();
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] rounded-md hover:bg-[var(--theme-bg-tertiary)]/50 transition-colors"
+            >
+              <RefreshCw size={13} />
+              <span>重新开始</span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={requestClose}
+                className="px-3.5 py-1.5 text-xs font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] rounded-md transition-colors"
+              >
+                {t('cancel')}
+              </button>
+              <button
+                type="button"
+                disabled={isSaving || (!liveTranscribe.finalText && !liveTranscribe.interimText)}
+                onClick={handleSaveLiveTranscript}
+                className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-[var(--theme-bg-accent)] hover:brightness-110 disabled:opacity-50 rounded-lg shadow-sm transition-all"
+              >
+                {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Check size={14} />}
+                <span>完成并填入</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : isConfirmingDiscard ? (
         <div className="px-5 pb-5 pt-2 space-y-4">
           <p className="text-sm font-semibold text-[var(--theme-text-primary)]">
             {t('audioRecorderDiscardConfirmTitle')}

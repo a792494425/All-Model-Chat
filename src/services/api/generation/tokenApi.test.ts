@@ -47,7 +47,6 @@ describe('countTokensApi', () => {
       model: 'gemini-3.1-pro-preview',
       contents: [
         {
-          role: 'user',
           parts: [
             {
               inlineData: {
@@ -80,7 +79,6 @@ describe('countTokensApi', () => {
       model: 'gemini-3.1-pro-preview',
       contents: [
         {
-          role: 'user',
           parts: [{ text: 'How many tokens?' }],
         },
       ],
@@ -107,7 +105,6 @@ describe('countTokensApi', () => {
       model: 'gemini-3.1-pro-preview',
       contents: [
         {
-          role: 'user',
           parts: [{ text: 'How many tokens?' }],
         },
       ],
@@ -121,7 +118,6 @@ describe('countTokensApi', () => {
       model: 'gemini-3.1-pro-preview',
       contents: [
         {
-          role: 'user',
           parts: [{ text: 'How many tokens?' }],
         },
       ],
@@ -139,7 +135,6 @@ describe('countTokensApi', () => {
       model: 'gemini-3-flash-preview',
       contents: [
         {
-          role: 'user',
           parts: [{ text: 'screenshot' }],
         },
       ],
@@ -150,4 +145,19 @@ describe('countTokensApi', () => {
       contents: 'screenshot',
     });
   });
+
+  it('routes to direct Google API baseUrl when directGoogleApi option is enabled', async () => {
+    await countTokensApi(
+      'key',
+      'gemini-3.7-flash',
+      [{ text: 'count me' } as Part],
+      undefined,
+      { directGoogleApi: true },
+    );
+
+    expect(mockGetConfiguredApiClient).toHaveBeenCalledWith('key', undefined, {
+      directGoogleApi: true,
+    });
+  });
 });
+

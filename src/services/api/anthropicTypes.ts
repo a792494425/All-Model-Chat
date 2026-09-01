@@ -6,6 +6,9 @@ export interface AnthropicChatConfig {
   systemInstruction?: string;
   temperature?: number;
   topP?: number;
+  topK?: number;
+  maxOutputTokens?: number;
+  stopSequences?: string[];
   thinkingBudget?: number;
   /** Maps to output_config.effort on adaptive Claude models (Fable 5 / Opus 5 / Sonnet 5, …). */
   thinkingLevel?: ThinkingLevel;

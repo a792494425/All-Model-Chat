@@ -512,6 +512,33 @@ const apiSettings = {
     fr: 'Note Proxy : le test de connexion vérifie les requêtes Gemini normales. Live ignore les chemins proxy relatifs du frontend et se connecte depuis ce navigateur ; seules les Base URL absolues compatibles Live sont appliquées.',
     de: 'Proxy-Hinweis: Der Verbindungstest prüft reguläre Gemini-Anfragen. Live ignoriert relative Frontend-Proxy-Pfade und verbindet sich von diesem Browser aus; nur absolute Live-kompatible Base URLs werden angewendet.',
   },
+  settingsLiveApiKey: {
+    en: 'Live API Dedicated Key (Optional)',
+    zh: 'Live API 独立官方密钥（可选）',
+    ja: 'Live API 専用公式キー（任意）',
+    ko: 'Live API 전용 공식 키 (선택사항)',
+    es: 'Clave oficial dedicada para Live API (Opcional)',
+    fr: 'Clé officielle dédiée Live API (Optionnel)',
+    de: 'Dedizierter offizieller Live API-Schlüssel (Optional)',
+  },
+  settingsLiveApiKeyHelp: {
+    en: 'Live API uses WebSockets directly with Google. If your general API uses a third-party gateway or proxy that lacks Live WebSocket support, configure an official Gemini API key here specifically for real-time voice and streaming dictation.',
+    zh: 'Live API 使用 WebSocket 协议与 Google 官方直连。如果您的普通 API 使用了不支持 Live WebSocket 的第三方中转或代理，可在此配置官方 Gemini API 密钥专门用于实时语音与流式听写。',
+    ja: 'Live APIはGoogleと直接WebSocket通信を行います。通常のAPIがLive WebSocket非対応のプロキシや中継サービスを使用している場合、ここに公式のGemini APIキーを設定してリアルタイム音声とストリーミング音声入力に専用で使用できます。',
+    ko: 'Live API는 Google과 직접 WebSocket 통신을 사용합니다. 일반 API가 Live WebSocket을 지원하지 않는 프록시나 중계를 사용하는 경우 여기에 공식 Gemini API 키를 설정하여 실시간 음성 및 스트리밍 받아쓰기에 전용으로 사용할 수 있습니다.',
+    es: 'Live API usa WebSockets directamente con Google. Si tu API general usa un proxy o intermediario que no admite Live WebSocket, configura aquí una clave oficial de Gemini específica para voz en tiempo real y dictado continuo.',
+    fr: 'Live API utilise des WebSockets directement avec Google. Si votre API générale utilise un proxy ou relais ne prenant pas en charge Live WebSocket, configurez ici une clé API Gemini officielle dédiée à la voix en temps réel et à la dictée en direct.',
+    de: 'Die Live API nutzt direkte WebSocket-Verbindungen zu Google. Wenn deine allgemeine API einen Proxy oder Drittanbieter nutzt, der kein Live-WebSocket unterstützt, konfiguriere hier einen offiziellen Gemini-API-Schlüssel speziell für Echtzeit-Sprache und Live-Diktat.',
+  },
+  settingsLiveApiKeyPlaceholder: {
+    en: 'Enter dedicated official Gemini API key (AIzaSy...)',
+    zh: '输入专用的官方 Gemini API 密钥（AIzaSy…）',
+    ja: '専用の公式Gemini APIキーを入力（AIzaSy…）',
+    ko: '전용 공식 Gemini API 키 입력 (AIzaSy...)',
+    es: 'Introduce la clave oficial dedicada de Gemini (AIzaSy...)',
+    fr: 'Saisissez la clé API Gemini officielle dédiée (AIzaSy...)',
+    de: 'Dedizierten offiziellen Gemini-API-Schlüssel eingeben (AIzaSy...)',
+  },
 
   // Third-party API provider
   thirdPartyApiKey: {

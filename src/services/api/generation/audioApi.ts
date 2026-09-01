@@ -355,6 +355,9 @@ export const transcribeAudioApi = async (
       };
 
       const audioTranscriptionConfig: Record<string, unknown> = {};
+      if (normalizedLanguage) {
+        audioTranscriptionConfig.languageCodes = [normalizedLanguage];
+      }
       if (options?.wordTimestamps) {
         audioTranscriptionConfig.wordTimestamp = true;
       }

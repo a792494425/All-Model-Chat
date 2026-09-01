@@ -42,12 +42,22 @@ const mergeTokenCountAppSettings = (modalAppSettings: AppSettings, latestStoredS
   apiKey: modalAppSettings.apiKey ?? latestStoredSettings.apiKey,
   apiProxyUrl: modalAppSettings.apiProxyUrl ?? latestStoredSettings.apiProxyUrl,
   useApiProxy: modalAppSettings.useApiProxy ?? latestStoredSettings.useApiProxy,
+  tokenCalculatorApiKey: modalAppSettings.tokenCalculatorApiKey ?? latestStoredSettings.tokenCalculatorApiKey,
 });
 
 const resolveTokenCountRequestKey = (
   effectiveAppSettings: AppSettings,
   modelId: string,
-): { key: string } | { error: string } => {
+  dedicatedApiKey?: string | null,
+): { key: string; isDirectGoogleApi?: boolean } | { error: string } => {
+  const activeDedicated = dedicatedApiKey?.trim() || effectiveAppSettings.tokenCalculatorApiKey?.trim();
+  if (activeDedicated) {
+    const parsedDedicated = parseApiKeys(activeDedicated);
+    if (parsedDedicated.length > 0) {
+      return { key: parsedDedicated[0], isDirectGoogleApi: true };
+    }
+  }
+
   const parsedKeys = parseApiKeys(effectiveAppSettings.apiKey);
 
   if (effectiveAppSettings.useCustomApiConfig && parsedKeys.length > 0) {
@@ -83,11 +93,15 @@ export const useTokenCountLogic = ({
   const [videoTokenEstimate, setVideoTokenEstimate] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isApiKeyConfigOpen, setIsApiKeyConfigOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const latestStoredSettings = useSettingsStore((state) => state.appSettings);
+  const [dedicatedApiKey, setDedicatedApiKey] = useState(
+    () => appSettings.tokenCalculatorApiKey ?? latestStoredSettings.tokenCalculatorApiKey ?? '',
+  );
 
   const performCalculation = useCallback(
-    async (txt: string, fls: UploadedFile[], modelId: string) => {
+    async (txt: string, fls: UploadedFile[], modelId: string, customKeyOverride?: string | null) => {
       if (!txt.trim() && fls.length === 0) return;
 
       setIsLoading(true);
@@ -95,7 +109,11 @@ export const useTokenCountLogic = ({
       setTokenCount(null);
 
       const effectiveAppSettings = mergeTokenCountAppSettings(appSettings, latestStoredSettings);
-      const keyResult = resolveTokenCountRequestKey(effectiveAppSettings, modelId);
+      const activeDedicatedKey =
+        customKeyOverride !== undefined
+          ? customKeyOverride
+          : (dedicatedApiKey.trim() || effectiveAppSettings.tokenCalculatorApiKey);
+      const keyResult = resolveTokenCountRequestKey(effectiveAppSettings, modelId, activeDedicatedKey);
 
       if ('error' in keyResult) {
         setError(formatApiKeyErrorMessage(keyResult.error, t));
@@ -128,7 +146,13 @@ export const useTokenCountLogic = ({
           ? appendFunctionDeclarationsToTools(modelId, generationConfig, [createLocalPythonToolDeclaration()])
           : generationConfig;
 
-        const count = await countTokensApi(keyResult.key, modelId, contentParts, toCountTokensConfig(requestConfig));
+        const count = await countTokensApi(
+          keyResult.key,
+          modelId,
+          contentParts,
+          toCountTokensConfig(requestConfig),
+          { directGoogleApi: keyResult.isDirectGoogleApi },
+        );
         setTokenCount(count);
       } catch (tokenCountError) {
         logService.error('Token calculation failed', tokenCountError);
@@ -138,7 +162,7 @@ export const useTokenCountLogic = ({
         setIsLoading(false);
       }
     },
-    [appSettings, latestStoredSettings, t],
+    [appSettings, dedicatedApiKey, latestStoredSettings, t],
   );
 
   // Local, instant estimate for the video portion only. Surfaced separately
@@ -158,8 +182,10 @@ export const useTokenCountLogic = ({
     [],
   );
 
+  const wasOpenRef = useRef(false);
+
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !wasOpenRef.current) {
       setText(initialText);
       const shallowFiles = [...initialFiles];
       setFiles(shallowFiles);
@@ -171,6 +197,7 @@ export const useTokenCountLogic = ({
         performCalculation(initialText, shallowFiles, currentModelId);
       }
     }
+    wasOpenRef.current = isOpen;
   }, [isOpen, initialText, initialFiles, currentModelId, performCalculation]);
 
   // Recompute the local video estimate whenever files, model, or resolution
@@ -224,6 +251,23 @@ export const useTokenCountLogic = ({
     setTokenCount(null);
   };
 
+  const handleSaveDedicatedApiKey = (newKey: string) => {
+    const trimmed = newKey.trim() || null;
+    setDedicatedApiKey(trimmed ?? '');
+    useSettingsStore.getState().setAppSettings((prev) => ({
+      ...prev,
+      tokenCalculatorApiKey: trimmed,
+    }));
+    setTokenCount(null);
+    if (text.trim() || files.length > 0) {
+      performCalculation(text, files, selectedModelId, trimmed);
+    }
+  };
+
+  const hasDedicatedApiKey = Boolean(
+    dedicatedApiKey.trim() || latestStoredSettings.tokenCalculatorApiKey || appSettings.tokenCalculatorApiKey,
+  );
+
   return {
     text,
     setText,
@@ -240,5 +284,11 @@ export const useTokenCountLogic = ({
     handleCalculateClick,
     handleModelSelect,
     setTokenCount,
+    dedicatedApiKey,
+    setDedicatedApiKey,
+    handleSaveDedicatedApiKey,
+    isApiKeyConfigOpen,
+    setIsApiKeyConfigOpen,
+    hasDedicatedApiKey,
   };
 };

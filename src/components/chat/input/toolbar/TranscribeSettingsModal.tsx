@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/shared/Modal';
+import { ToggleItem } from '@/components/shared/ToggleItem';
 import { Sparkles, SlidersHorizontal, X } from 'lucide-react';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 
@@ -9,7 +10,16 @@ interface TranscribeSettingsModalProps {
   onClose: () => void;
   systemInstruction: string;
   customVocabulary: string;
-  onSave: (settings: { systemInstruction: string; customVocabulary: string }) => void;
+  wordTimestamps: boolean;
+  speakerLabels: boolean;
+  smartMode: boolean;
+  onSave: (settings: {
+    systemInstruction: string;
+    customVocabulary: string;
+    wordTimestamps: boolean;
+    speakerLabels: boolean;
+    smartMode: boolean;
+  }) => void;
 }
 
 export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = ({
@@ -17,23 +27,35 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
   onClose,
   systemInstruction,
   customVocabulary,
+  wordTimestamps,
+  speakerLabels,
+  smartMode,
   onSave,
 }) => {
   const { t } = useI18n();
   const [draftInstruction, setDraftInstruction] = useState(systemInstruction);
   const [draftVocabulary, setDraftVocabulary] = useState(customVocabulary);
+  const [draftWordTimestamps, setDraftWordTimestamps] = useState(wordTimestamps);
+  const [draftSpeakerLabels, setDraftSpeakerLabels] = useState(speakerLabels);
+  const [draftSmartMode, setDraftSmartMode] = useState(smartMode);
 
   useEffect(() => {
     if (isOpen) {
       setDraftInstruction(systemInstruction);
       setDraftVocabulary(customVocabulary);
+      setDraftWordTimestamps(wordTimestamps);
+      setDraftSpeakerLabels(speakerLabels);
+      setDraftSmartMode(smartMode);
     }
-  }, [isOpen, systemInstruction, customVocabulary]);
+  }, [isOpen, systemInstruction, customVocabulary, wordTimestamps, speakerLabels, smartMode]);
 
   const handleSave = () => {
     onSave({
       systemInstruction: draftInstruction.trim(),
       customVocabulary: draftVocabulary.trim(),
+      wordTimestamps: draftWordTimestamps,
+      speakerLabels: draftSpeakerLabels,
+      smartMode: draftSmartMode,
     });
     onClose();
   };
@@ -60,7 +82,31 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="space-y-1 rounded-xl border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-secondary)]/30 p-2.5">
+            <ToggleItem
+              label={t('transcribeWordTimestamps')}
+              checked={draftWordTimestamps}
+              onChange={setDraftWordTimestamps}
+              tooltip={t('transcribeWordTimestampsHelp')}
+              small
+            />
+            <ToggleItem
+              label={t('transcribeSpeakerLabels')}
+              checked={draftSpeakerLabels}
+              onChange={setDraftSpeakerLabels}
+              tooltip={t('transcribeSpeakerLabelsHelp')}
+              small
+            />
+            <ToggleItem
+              label={t('transcribeSmartMode')}
+              checked={draftSmartMode}
+              onChange={setDraftSmartMode}
+              tooltip={t('transcribeSmartModeHelp')}
+              small
+            />
+          </div>
+
           <div className="space-y-1.5">
             <label htmlFor="transcribe-instruction" className="text-xs font-semibold text-[var(--theme-text-primary)]">
               {t('settingsSystemPrompt')}

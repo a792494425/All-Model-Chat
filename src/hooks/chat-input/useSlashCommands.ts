@@ -137,10 +137,10 @@ export const useSlashCommands = ({
   const commandDefinitions = useMemo(() => {
     // Slash tool commands go through the same availability gates as the tools
     // menu (model capabilities + session provider routing), so a dead toggle
-    // can never be offered — e.g. /maps on Live models, /code on third-party.
+    const capabilities = getCachedModelCapabilities(currentModelId);
     const toolCommands = getChatToolsForSurface({
       surface: 'slash-command',
-      capabilities: getCachedModelCapabilities(currentModelId),
+      capabilities,
       providerId,
     })
       .filter((tool) => !!tool.slashCommand)
@@ -150,6 +150,9 @@ export const useSlashCommands = ({
         icon: tool.slashCommand!.icon,
       }));
 
+    const canAcceptAttachments = capabilities.permissions.canAcceptAttachments;
+    const canUseThinking = capabilities.supportsThinkingLevel && !capabilities.isTtsModel;
+
     return [
       { name: 'model', description: t('helpCmdModel'), icon: 'bot' },
       { name: 'help', description: t('helpCmdHelp'), icon: 'help' },
@@ -157,13 +160,13 @@ export const useSlashCommands = ({
       { name: 'pin', description: t('helpCmdPin'), icon: 'pin' },
       { name: 'retry', description: t('helpCmdRetry'), icon: 'retry' },
       ...toolCommands,
-      { name: 'file', description: t('helpCmdFile'), icon: 'paperclip' },
+      ...(canAcceptAttachments ? [{ name: 'file', description: t('helpCmdFile'), icon: 'paperclip' }] : []),
       { name: 'clear', description: t('helpCmdClear'), icon: 'clear' },
       { name: 'new', description: t('helpCmdNew'), icon: 'new' },
       { name: 'settings', description: t('helpCmdSettings'), icon: 'settings' },
       { name: 'artifacts', description: t('helpCmdArtifacts'), icon: 'artifacts' },
       { name: 'pip', description: t('helpCmdPip'), icon: 'pip' },
-      { name: 'fast', description: t('helpCmdFast'), icon: 'fast' },
+      ...(canUseThinking ? [{ name: 'fast', description: t('helpCmdFast'), icon: 'fast' }] : []),
     ];
   }, [t, currentModelId, providerId]);
 

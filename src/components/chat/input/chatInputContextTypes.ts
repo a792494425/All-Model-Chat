@@ -304,6 +304,7 @@ export interface ChatInputToolbarContextValue {
   isAddingByUrl: boolean;
   ttsContext?: string;
   onEditTtsContext: () => void;
+  onAttachmentAction?: (action: AttachmentAction) => void;
 }
 
 export interface ChatInputActionsContextValue {
@@ -337,6 +338,8 @@ export interface ChatInputActionsContextValue {
   isImageGenerationModel: boolean;
   isTranscribeModel: boolean;
   isNativeAudioModel: boolean;
+  isLiveTranslate: boolean;
+  isLiveTranscribe: boolean;
   isTtsModel: boolean;
   canAddYouTubeVideo: boolean;
   isLoading: boolean;

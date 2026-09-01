@@ -22,11 +22,25 @@ import {
   SETTINGS_SEGMENTED_TRACK_CLASS,
 } from '@/constants/designTokens';
 import { MODAL_CLOSE_BUTTON_CLASS } from '@/constants/buttonClasses';
-import type { SettingsTab } from '@/stores/settingsUiStore';
+import { type SettingsTab, useSettingsUiStore } from '@/stores/settingsUiStore';
 import { SETTINGS_SEARCH_RESULTS_ID, settingsSearchOptionId } from '@/constants/settingsSearchCatalog';
 import { searchSettingsCatalog, type SettingsSearchResult } from '@/utils/settingsSearch';
 import { interpolate } from '@/i18n/interpolate';
 import { isEditableElement } from '@/utils/chat-input/focus';
+
+const ADVANCED_SETTINGS_ITEM_IDS = new Set([
+  'models-advanced',
+  'models-top-k',
+  'models-max-output-tokens',
+  'models-stop-sequences',
+  'models-presence-penalty',
+  'models-frequency-penalty',
+  'models-seed',
+  'models-media-resolution',
+  'models-raw-mode',
+  'models-hide-thinking',
+  'models-always-keep-thinking',
+]);
 
 const SETTINGS_FOCUS_HIGHLIGHT_CLASSES = [
   'ring-2',
@@ -200,6 +214,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleSelectSearchResult = useCallback(
     (result: SettingsSearchResult) => {
+      if (ADVANCED_SETTINGS_ITEM_IDS.has(result.id)) {
+        useSettingsUiStore.getState().setIsAdvancedModeEnabled(true);
+      }
       setPendingFocusId(result.id);
       setSearchQuery('');
       setActiveTab(result.tab);

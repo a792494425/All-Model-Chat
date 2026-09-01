@@ -29,12 +29,20 @@ const isGemini37FlashModel = (modelId: string): boolean =>
 export const isLiveTranslateModel = (modelId: string): boolean =>
   !!modelId && modelId.toLowerCase().includes('live-translate');
 
+export const isLiveTranscribeModel = (modelId: string): boolean =>
+  !!modelId && modelId.toLowerCase().includes('transcribe-live');
+
 export const isTranscribeModel = (modelId: string): boolean =>
-  !!modelId && modelId.toLowerCase().includes('transcribe');
+  !!modelId && modelId.toLowerCase().includes('transcribe') && !modelId.toLowerCase().includes('transcribe-live');
 
 const isNativeAudioModel = (modelId: string): boolean => {
   const lowerId = modelId.toLowerCase();
-  return lowerId.includes('native-audio') || lowerId.includes('-live-') || lowerId.includes('live-translate');
+  return (
+    lowerId.includes('native-audio') ||
+    lowerId.includes('-live-') ||
+    lowerId.includes('live-translate') ||
+    lowerId.includes('transcribe-live')
+  );
 };
 
 export const isGemini31FlashLiveModel = (modelId: string): boolean =>
@@ -133,6 +141,7 @@ export interface ModelCapabilities {
   isTranscribeModel: boolean;
   isNativeAudioModel: boolean;
   isLiveTranslate: boolean;
+  isLiveTranscribe: boolean;
   supportsBuiltInCustomToolCombination: boolean;
   permissions: ModelInteractionPermissions;
   supportedAspectRatios?: string[];
@@ -234,6 +243,7 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
     isTranscribeModel: transcribeModel,
     isNativeAudioModel: nativeAudioModel,
     isLiveTranslate: isLiveTranslateModel(modelId),
+    isLiveTranscribe: isLiveTranscribeModel(modelId),
     supportsBuiltInCustomToolCombination: isGemini3,
     permissions,
     supportedAspectRatios,

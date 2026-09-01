@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_APP_SETTINGS, DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { ensureFeatureTranslations } from '@/i18n/featureTranslations';
 import { setupStoreStateReset } from '@/test/stores/reset';
+import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { SettingsModal } from './SettingsModal';
 
 describe('SettingsModal', () => {
@@ -334,5 +335,29 @@ describe('SettingsModal', () => {
     const footerRow = advancedButton?.closest('div.flex-shrink-0');
     expect(footerRow?.className.split(' ')).toContain('hidden');
     expect(footerRow?.className.split(' ')).toContain('md:block');
+  });
+
+  it('auto-enables advanced mode when selecting an advanced parameter search result', async () => {
+    useSettingsUiStore.setState({ isAdvancedModeEnabled: false });
+    await ensureFeatureTranslations('settings');
+    await renderSettingsModal();
+
+    expect(useSettingsUiStore.getState().isAdvancedModeEnabled).toBe(false);
+
+    const searchInput = document.querySelector<HTMLInputElement>('input[aria-label="Search settings"]');
+    await act(async () => {
+      fireEvent.change(searchInput!, { target: { value: 'Top K' } });
+    });
+
+    const topKResult = Array.from(document.querySelectorAll('[role="option"]')).find((opt) =>
+      opt.textContent?.includes('Top K'),
+    );
+    expect(topKResult).not.toBeUndefined();
+
+    await act(async () => {
+      topKResult?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(useSettingsUiStore.getState().isAdvancedModeEnabled).toBe(true);
   });
 });

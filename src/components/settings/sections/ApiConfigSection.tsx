@@ -178,7 +178,7 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
             />
 
             <div className="space-y-3 pt-2">
-              <div className="rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-tertiary)]/20 p-3">
+              <div className="rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-tertiary)]/20 p-3 space-y-3">
                 <div className="flex items-start gap-3">
                   <RadioTower
                     size={16}
@@ -198,6 +198,17 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
                       </p>
                     )}
                   </div>
+                </div>
+
+                <div className="pt-2 border-t border-[var(--theme-border-secondary)]/40">
+                  <ApiKeyInput
+                    inputId="live-api-key-input"
+                    label={t('settingsLiveApiKey')}
+                    apiKey={settings.liveApiKey ?? null}
+                    setApiKey={(nextKey) => onUpdate('liveApiKey', nextKey)}
+                    placeholder={t('settingsLiveApiKeyPlaceholder')}
+                    helpText={t('settingsLiveApiKeyHelp')}
+                  />
                 </div>
               </div>
             </div>

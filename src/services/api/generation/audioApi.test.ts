@@ -245,18 +245,20 @@ describe('transcribeAudioApi request config', () => {
     expect(generateContentMock).not.toHaveBeenCalled();
   });
 
-  it('normalizes legacy bare language codes to BCP-47 in the prompt', async () => {
+  it('normalizes legacy bare language codes to BCP-47 in the prompt and config', async () => {
     await transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe', { language: 'zh' });
 
     const call = generateContentMock.mock.calls[0][0];
     expect(call.contents.parts[0].text).toContain('Primary language: cmn-Hans-CN.');
+    expect(call.config.audioTranscriptionConfig.languageCodes).toEqual(['cmn-Hans-CN']);
   });
 
-  it('keeps already-canonical BCP-47 language codes untouched', async () => {
+  it('keeps already-canonical BCP-47 language codes untouched in prompt and config', async () => {
     await transcribeAudioApi('api-key', audioFile, 'gemini-3.5-transcribe', { language: 'yue-Hant-HK' });
 
     const call = generateContentMock.mock.calls[0][0];
     expect(call.contents.parts[0].text).toContain('Primary language: yue-Hant-HK.');
+    expect(call.config.audioTranscriptionConfig.languageCodes).toEqual(['yue-Hant-HK']);
   });
 
   it('rejects with the prompt block reason instead of silently returning an empty transcript', async () => {

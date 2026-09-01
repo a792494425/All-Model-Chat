@@ -849,4 +849,24 @@ describe('appendFunctionDeclarationsToTools', () => {
     expect(config.tools).toBeUndefined();
     expect(config.thinkingConfig).toBeUndefined();
   });
+
+  it('includes advanced generation parameters (maxOutputTokens, stopSequences, penalties, seed)', async () => {
+    const config = await buildGenerationConfigFromSettings({
+      settings: {
+        ...DEFAULT_APP_SETTINGS,
+        modelId: 'gemini-2.5-flash',
+        maxOutputTokens: 2048,
+        stopSequences: ['STOP', 'END'],
+        presencePenalty: 0.5,
+        frequencyPenalty: 0.8,
+        seed: 42,
+      },
+    });
+
+    expect(config.maxOutputTokens).toBe(2048);
+    expect(config.stopSequences).toEqual(['STOP', 'END']);
+    expect(config.presencePenalty).toBe(0.5);
+    expect(config.frequencyPenalty).toBe(0.8);
+    expect(config.seed).toBe(42);
+  });
 });

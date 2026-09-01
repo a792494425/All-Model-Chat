@@ -137,6 +137,7 @@ export const ChatInputProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isAddingByUrl: inputState.isAddingByUrl,
       ttsContext: inputState.ttsContext,
       onEditTtsContext,
+      onAttachmentAction,
     }),
     [
       logic.capabilities,
@@ -159,6 +160,7 @@ export const ChatInputProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       onCancelAddById,
       onCancelAddUrl,
       onEditTtsContext,
+      onAttachmentAction,
     ],
   );
 
@@ -193,6 +195,8 @@ export const ChatInputProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isImageGenerationModel: logic.capabilities.isImageGenerationModel || false,
       isTranscribeModel: logic.capabilities.isTranscribeModel || false,
       isNativeAudioModel: logic.capabilities.isNativeAudioModel || false,
+      isLiveTranslate: logic.capabilities.isLiveTranslate || false,
+      isLiveTranscribe: logic.capabilities.isLiveTranscribe || false,
       isTtsModel: logic.capabilities.isTtsModel || false,
       canAddYouTubeVideo: !!logic.capabilities.permissions?.canUseYouTubeUrl,
       isLoading: logic.chatInput.isLoading,
@@ -213,6 +217,8 @@ export const ChatInputProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       logic.capabilities.isImageGenerationModel,
       logic.capabilities.isTranscribeModel,
       logic.capabilities.isNativeAudioModel,
+      logic.capabilities.isLiveTranslate,
+      logic.capabilities.isLiveTranscribe,
       logic.capabilities.isTtsModel,
       logic.capabilities.permissions?.canUseYouTubeUrl,
       logic.chatInput.appSettings.showInputClearButton,

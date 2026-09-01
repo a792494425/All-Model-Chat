@@ -74,7 +74,7 @@ export const getGeminiProxyBaseUrlForSettings = (settings?: GeminiApiBaseUrlSett
 // web container into an absolute http(s) URL against the current origin. The
 // @google/genai SDK converts http→ws / https→wss itself in getWebsocketBaseUrl,
 // so we hand it an HTTP(S) URL rather than a pre-converted ws(s):// one.
-const toAbsoluteHttpUrl = (httpUrl: string): string => {
+export const toAbsoluteHttpUrl = (httpUrl: string): string => {
   const trimmed = httpUrl.trim();
   if (isAbsoluteHttpUrl(trimmed)) {
     return trimmed;

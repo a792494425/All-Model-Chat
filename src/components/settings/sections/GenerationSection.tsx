@@ -31,7 +31,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
   onUpdateSetting,
 }) => {
   const { t } = useI18n();
-  const { systemInstruction, temperature, topP, mediaResolution } = currentSettings;
+  const { systemInstruction, temperature, topP, mediaResolution, maxOutputTokens, stopSequences, presencePenalty, frequencyPenalty, seed } = currentSettings;
   const topK = currentSettings.topK ?? 64;
   const isRawModeEnabled = currentSettings.isRawModeEnabled ?? false;
   const hideThinkingInContext = currentSettings.hideThinkingInContext ?? false;
@@ -39,11 +39,18 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
   const isAdvancedModeEnabled = useSettingsUiStore((state) => state.isAdvancedModeEnabled);
   const [isSystemPromptExpanded, setIsSystemPromptExpanded] = useState(false);
   const [localPrompt, setLocalPrompt] = useState(systemInstruction);
+  const [localStopSequences, setLocalStopSequences] = useState(() =>
+    Array.isArray(stopSequences) ? stopSequences.join(', ') : '',
+  );
   const skipNextPromptBlurCommitRef = useRef(false);
 
   useEffect(() => {
     setLocalPrompt(systemInstruction);
   }, [systemInstruction]);
+
+  useEffect(() => {
+    setLocalStopSequences(Array.isArray(stopSequences) ? stopSequences.join(', ') : '');
+  }, [stopSequences]);
 
   const commitPromptIfNeeded = useCallback(() => {
     if (localPrompt !== systemInstruction) {
@@ -214,32 +221,168 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
         <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-5`} data-settings-item="models-advanced">
           <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsAdvancedParamsTitle')}</span>
 
-          {!isThirdPartyMode && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label htmlFor="top-k-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
-                  {t('settingsTopK')}
-                  <Tooltip text={t('settingsTopKTooltip')}>
+          <div data-settings-item="models-top-k">
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="top-k-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
+                {t('settingsTopK')}
+                <Tooltip text={t('settingsTopKTooltip')}>
+                  <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
+                </Tooltip>
+              </label>
+              <span className={SETTINGS_VALUE_BADGE_CLASS}>{topK}</span>
+            </div>
+            <input
+              id="top-k-slider"
+              type="range"
+              min="0"
+              max="128"
+              step="1"
+              value={topK}
+              onChange={(event) => onUpdateSetting('topK', parseInt(event.target.value, 10))}
+              className={SETTINGS_RANGE_SLIDER_CLASS}
+            />
+          </div>
+
+          <div data-settings-item="models-max-output-tokens">
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="max-output-tokens-input" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
+                {t('settingsMaxOutputTokens')}
+                <Tooltip text={t('settingsMaxOutputTokensTooltip')}>
+                  <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
+                </Tooltip>
+              </label>
+              <span className={SETTINGS_VALUE_BADGE_CLASS}>
+                {maxOutputTokens && maxOutputTokens > 0 ? maxOutputTokens : t('settingsDefaultUnset')}
+              </span>
+            </div>
+            <input
+              id="max-output-tokens-input"
+              type="number"
+              min="1"
+              max="1048576"
+              step="256"
+              value={maxOutputTokens ?? ''}
+              onChange={(event) => {
+                const val = event.target.value.trim();
+                const num = val === '' ? undefined : parseInt(val, 10);
+                onUpdateSetting('maxOutputTokens', num && num > 0 ? num : undefined);
+              }}
+              placeholder={t('settingsMaxOutputTokensPlaceholder')}
+              className={`w-full p-2.5 rounded-lg border text-sm font-mono ${SETTINGS_INPUT_CLASS}`}
+            />
+          </div>
+
+          <div data-settings-item="models-stop-sequences">
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="stop-sequences-input" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
+                {t('settingsStopSequences')}
+                <Tooltip text={t('settingsStopSequencesTooltip')}>
+                  <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
+                </Tooltip>
+              </label>
+            </div>
+            <input
+              id="stop-sequences-input"
+              type="text"
+              value={localStopSequences}
+              onChange={(event) => setLocalStopSequences(event.target.value)}
+              onBlur={() => {
+                const parsed = localStopSequences
+                  .split(',')
+                  .map((s) => s.trim())
+                  .filter(Boolean);
+                onUpdateSetting('stopSequences', parsed.length > 0 ? parsed : undefined);
+              }}
+              placeholder={t('settingsStopSequencesPlaceholder')}
+              className={`w-full p-2.5 rounded-lg border text-sm font-mono ${SETTINGS_INPUT_CLASS}`}
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 pt-1 border-t border-[var(--theme-border-secondary)]/40">
+            <div data-settings-item="models-presence-penalty" className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor="presence-penalty-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
+                  {t('settingsPresencePenalty')}
+                  <Tooltip text={t('settingsPresencePenaltyTooltip')}>
                     <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
                   </Tooltip>
                 </label>
-                <span className={SETTINGS_VALUE_BADGE_CLASS}>{topK}</span>
+                <span className={SETTINGS_VALUE_BADGE_CLASS}>
+                  {presencePenalty !== undefined ? Number(presencePenalty).toFixed(2) : '0.00'}
+                </span>
               </div>
               <input
-                id="top-k-slider"
+                id="presence-penalty-slider"
                 type="range"
-                min="0"
-                max="128"
-                step="1"
-                value={topK}
-                onChange={(event) => onUpdateSetting('topK', parseInt(event.target.value, 10))}
+                min="-2"
+                max="2"
+                step="0.1"
+                value={presencePenalty ?? 0}
+                onChange={(event) => {
+                  const val = parseFloat(event.target.value);
+                  onUpdateSetting('presencePenalty', val === 0 ? undefined : val);
+                }}
                 className={SETTINGS_RANGE_SLIDER_CLASS}
               />
             </div>
-          )}
+
+            <div data-settings-item="models-frequency-penalty" className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor="frequency-penalty-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
+                  {t('settingsFrequencyPenalty')}
+                  <Tooltip text={t('settingsFrequencyPenaltyTooltip')}>
+                    <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
+                  </Tooltip>
+                </label>
+                <span className={SETTINGS_VALUE_BADGE_CLASS}>
+                  {frequencyPenalty !== undefined ? Number(frequencyPenalty).toFixed(2) : '0.00'}
+                </span>
+              </div>
+              <input
+                id="frequency-penalty-slider"
+                type="range"
+                min="-2"
+                max="2"
+                step="0.1"
+                value={frequencyPenalty ?? 0}
+                onChange={(event) => {
+                  const val = parseFloat(event.target.value);
+                  onUpdateSetting('frequencyPenalty', val === 0 ? undefined : val);
+                }}
+                className={SETTINGS_RANGE_SLIDER_CLASS}
+              />
+            </div>
+          </div>
+
+          <div data-settings-item="models-seed" className="pt-1 border-t border-[var(--theme-border-secondary)]/40">
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="seed-input" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
+                {t('settingsSeed')}
+                <Tooltip text={t('settingsSeedTooltip')}>
+                  <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
+                </Tooltip>
+              </label>
+              <span className={SETTINGS_VALUE_BADGE_CLASS}>
+                {seed !== undefined ? seed : t('settingsDefaultUnset')}
+              </span>
+            </div>
+            <input
+              id="seed-input"
+              type="number"
+              step="1"
+              value={seed ?? ''}
+              onChange={(event) => {
+                const val = event.target.value.trim();
+                const num = val === '' ? undefined : parseInt(val, 10);
+                onUpdateSetting('seed', num !== undefined && Number.isFinite(num) ? num : undefined);
+              }}
+              placeholder={t('settingsSeedPlaceholder')}
+              className={`w-full p-2.5 rounded-lg border text-sm font-mono ${SETTINGS_INPUT_CLASS}`}
+            />
+          </div>
 
           {!isThirdPartyMode && mediaResolution && (
-            <div data-settings-item="models-media-resolution">
+            <div data-settings-item="models-media-resolution" className="pt-1 border-t border-[var(--theme-border-secondary)]/40">
               <Select
                 id="media-resolution-select"
                 label=""
@@ -278,21 +421,25 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
 
           {!isThirdPartyMode && (
             <div className="pt-1 border-t border-[var(--theme-border-secondary)]/40 space-y-1">
-              <ToggleItem
-                label={t('settingsRawModeLabel')}
-                checked={isRawModeEnabled}
-                onChange={(value) => onUpdateSetting('isRawModeEnabled', value)}
-                tooltip={t('settingsRawModeTooltip')}
-              />
-              <ToggleItem
-                label={t('settingsHideThinkingInContextLabel')}
-                checked={hideThinkingInContext}
-                onChange={(value) => {
-                  onUpdateSetting('hideThinkingInContext', value);
-                  if (value) onUpdateSetting('alwaysKeepThinkingInContext', false);
-                }}
-                tooltip={t('settingsHideThinkingInContextTooltip')}
-              />
+              <div data-settings-item="models-raw-mode">
+                <ToggleItem
+                  label={t('settingsRawModeLabel')}
+                  checked={isRawModeEnabled}
+                  onChange={(value) => onUpdateSetting('isRawModeEnabled', value)}
+                  tooltip={t('settingsRawModeTooltip')}
+                />
+              </div>
+              <div data-settings-item="models-hide-thinking">
+                <ToggleItem
+                  label={t('settingsHideThinkingInContextLabel')}
+                  checked={hideThinkingInContext}
+                  onChange={(value) => {
+                    onUpdateSetting('hideThinkingInContext', value);
+                    if (value) onUpdateSetting('alwaysKeepThinkingInContext', false);
+                  }}
+                  tooltip={t('settingsHideThinkingInContextTooltip')}
+                />
+              </div>
               <div data-settings-item="models-always-keep-thinking">
                 <ToggleItem
                   label={t('settingsAlwaysKeepThinkingInContextLabel')}

@@ -74,8 +74,8 @@ describe('LogViewer', () => {
     vi.clearAllMocks();
   });
 
-  it('groups overview, tokens, and api key stats under the usage tab', () => {
-    act(() => {
+  it('groups overview, tokens, and api key stats under the usage tab', async () => {
+    await act(async () => {
       renderer.root.render(
         <LogViewer
           isOpen
@@ -89,7 +89,7 @@ describe('LogViewer', () => {
     expect(findButton('Console')).toBeDefined();
     expect(findButton('Usage')).toBeDefined();
 
-    act(() => {
+    await act(async () => {
       findButton('Usage')?.click();
     });
 
@@ -98,8 +98,8 @@ describe('LogViewer', () => {
     expect(findButton('API Keys')).toBeDefined();
   });
 
-  it('can open directly to a requested usage sub-tab', () => {
-    act(() => {
+  it('can open directly to a requested usage sub-tab', async () => {
+    await act(async () => {
       renderer.root.render(
         <LogViewer
           isOpen
@@ -117,8 +117,8 @@ describe('LogViewer', () => {
     expect(document.body.textContent).toContain('Token Usage Statistics');
   });
 
-  it('keeps the usage tab active after live logs arrive', () => {
-    act(() => {
+  it('keeps the usage tab active after live logs arrive', async () => {
+    await act(async () => {
       renderer.root.render(
         <LogViewer
           isOpen
@@ -129,13 +129,13 @@ describe('LogViewer', () => {
       );
     });
 
-    act(() => {
+    await act(async () => {
       findButton('Usage')?.click();
     });
 
     expect(findButton('Overview')).toBeDefined();
 
-    act(() => {
+    await act(async () => {
       emitLiveLogs?.([
         {
           timestamp: new Date('2026-04-18T13:00:00.000Z'),
@@ -150,8 +150,8 @@ describe('LogViewer', () => {
     expect(document.body.textContent).not.toContain('Search logs...');
   });
 
-  it('matches the settings modal shell height', () => {
-    act(() => {
+  it('matches the settings modal shell height', async () => {
+    await act(async () => {
       renderer.root.render(
         <LogViewer
           isOpen

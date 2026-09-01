@@ -185,4 +185,21 @@ describe('buildAnthropicRequestBody', () => {
     expect(body.temperature).toBe(0.7);
     expect(body.top_p).toBe(0.9);
   });
+
+  it('supports custom maxOutputTokens and stopSequences', () => {
+    const body = buildAnthropicRequestBody(
+      'claude-sonnet-5',
+      [],
+      [{ text: 'hi' }],
+      {
+        maxOutputTokens: 2048,
+        stopSequences: ['Human:', 'Assistant:'],
+      },
+      'user',
+      false,
+    );
+
+    expect(body.max_tokens).toBe(2048);
+    expect(body.stop_sequences).toEqual(['Human:', 'Assistant:']);
+  });
 });
