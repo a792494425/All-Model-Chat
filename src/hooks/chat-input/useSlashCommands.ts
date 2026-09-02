@@ -152,9 +152,7 @@ export const useSlashCommands = ({
 
     const canAcceptAttachments = capabilities.permissions.canAcceptAttachments;
     const canUseThinking =
-      capabilities.supportsThinkingLevel &&
-      !capabilities.isTtsModel &&
-      !capabilities.isImageGenerationModel;
+      capabilities.supportsThinkingLevel && !capabilities.isTtsModel && !capabilities.isImageGenerationModel;
 
     return [
       { name: 'model', description: t('helpCmdModel'), icon: 'bot' },

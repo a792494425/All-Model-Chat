@@ -437,7 +437,9 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                   value={mediaResolution}
                   onChange={(event) => onUpdateSetting('mediaResolution', event.target.value as MediaResolution)}
                 >
-                  <option value={MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED}>{t('mediaResolutionUnspecified')}</option>
+                  <option value={MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED}>
+                    {t('mediaResolutionUnspecified')}
+                  </option>
                   <option value={MediaResolution.MEDIA_RESOLUTION_LOW}>{t('mediaResolutionLow')}</option>
                   {!isNativeAudio && (
                     <option value={MediaResolution.MEDIA_RESOLUTION_MEDIUM}>{t('mediaResolutionMedium')}</option>

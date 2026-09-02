@@ -187,11 +187,9 @@ const ChatInputActionsComponent: React.FC = () => {
         data-testid="chat-input-actions-right"
         className={`flex min-w-0 flex-shrink-0 items-center ${COMPOSER_CLUSTER_GAP_CLASS}`}
       >
-        {showVoiceInputButton &&
-          !isLiveConnected &&
-          !isNativeAudioModel &&
-          !isImageGenerationModel &&
-          !isTtsModel && <RecordControls />}
+        {showVoiceInputButton && !isLiveConnected && !isNativeAudioModel && !isImageGenerationModel && !isTtsModel && (
+          <RecordControls />
+        )}
 
         {!showAuxiliaryActionsInMenu && auxiliaryActions.length > 0 && (
           <div className={`flex items-center ${COMPOSER_CLUSTER_GAP_CLASS}`}>
