@@ -63,6 +63,7 @@ vi.mock('@/utils/chat/session', () => ({
     ...options,
     timestamp: new Date(),
   })),
+  rehydrateSessionFiles: vi.fn((session) => session),
 }));
 
 vi.mock('@/utils/model/modelCapabilities', () => ({

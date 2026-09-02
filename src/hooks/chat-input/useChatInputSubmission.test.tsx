@@ -77,45 +77,27 @@ describe('useChatInputSubmission', () => {
     expect(params.submissionState.stopSendAnimation).not.toHaveBeenCalled();
   });
 
-  it('flushes the pending submission after the files finish processing (commit-time flush)', () => {
+  it('sends the submission optimistically immediately even while files are uploading', () => {
     const processingFile = createUploadedFile({
       id: 'file-uploading',
       isProcessing: true,
       uploadState: 'uploading',
     });
-    const activeFile = createUploadedFile({
-      id: 'file-uploading',
-      isProcessing: false,
-      uploadState: 'active',
-    });
 
     const params = createSubmissionParams();
     params.selectedFiles = [processingFile];
-    // Mirror the production invariant: the store selectedFiles is the same
-    // reference as the render prop, so queuePendingSubmission sees the file as
-    // still processing and defers instead of flushing immediately.
     useChatStore.setState({ selectedFiles: [processingFile] });
 
-    const { result, rerender } = renderHook(() => useChatInputSubmission(params));
+    const { result } = renderHook(() => useChatInputSubmission(params));
 
     act(() => {
       result.current.handleSubmit();
     });
 
-    // The send is deferred while the file is still processing.
-    expect(params.onSendMessage).not.toHaveBeenCalled();
-    expect(params.submissionState.setWaitingForUpload).toHaveBeenCalledWith(true);
-
-    // The upload completes: the store update drives a re-render with the active
-    // file, and the effect flushes the pending submission with the latest text.
-    useChatStore.setState({ selectedFiles: [activeFile] });
-    params.selectedFiles = [activeFile];
-    act(() => {
-      rerender(() => useChatInputSubmission(params));
-    });
-
+    // The send is dispatched immediately for optimistic display in chat timeline.
     expect(params.onSendMessage).toHaveBeenCalledWith('Hello', expect.objectContaining({ isFastMode: false }));
-    expect(params.submissionState.setWaitingForUpload).toHaveBeenCalledWith(false);
+    expect(params.submissionState.clearCurrentDraft).toHaveBeenCalled();
+    expect(params.submissionState.setInputText).toHaveBeenCalledWith('');
 
     useChatStore.setState({ selectedFiles: [] });
   });

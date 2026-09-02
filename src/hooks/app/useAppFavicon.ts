@@ -20,6 +20,10 @@ type FaviconState = keyof typeof FAVICON_STATE_COLORS;
 
 type GenerationOutcome = 'success' | 'error' | 'stopped';
 
+// wheel / scroll / mousemove arrive in dense bursts; re-evaluating the favicon
+// on every one of them is wasted work, so they're throttled to this window.
+const ACTIVITY_THROTTLE_MS = 200;
+
 interface CompletionRecord {
   outcome: GenerationOutcome;
 }
@@ -105,8 +109,9 @@ interface UseAppFaviconProps {
  *  - `success` | `error` for a completed *local* generation, classified from
  *    the terminal message. The badge persists as an "unread notification" —
  *    it stays until the user returns to the tab (visibilitychange → visible)
- *    or, if already on the tab, until the next click or keypress. A
- *    user-stopped turn produces no badge (straight to default).
+ *    or, if already on the tab, until the next sign of activity: click,
+ *    keypress, wheel, scroll or mouse move (see the activity effect below).
+ *    A user-stopped turn produces no badge (straight to default).
  *  - `default` otherwise.
  *
  * Returning to the tab re-evaluates (rather than blindly clearing) so a still
@@ -250,21 +255,45 @@ export const useAppFavicon = ({ activeSessionId }: UseAppFaviconProps) => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [evaluate]);
 
-  // 前台完成：标签页就在前台时，下一次点击或按键作为"已查看"信号，
-  // 与 visibilitychange 路径对称——徽标只在用户交互后消失，无时间限制。
+  // 前台完成：标签页就在前台时，任何表明用户正在看的活动都作为"已查看"信号，
+  // 与 visibilitychange 路径对称——徽标只在用户有动作后消失，无时间限制。
+  // 离散的点击/按键不算高频，直接处理；wheel / scroll / mousemove 走节流。
   useEffect(() => {
-    const dismissOnInteraction = () => {
+    // -Infinity so the very first event always wins the throttle window,
+    // regardless of what the clock reads (it's faked in tests).
+    let lastActivityAt = Number.NEGATIVE_INFINITY;
+
+    const dismiss = () => {
       if (document.hidden || !completionRef.current) {
         return;
       }
       completionRef.current = null;
       evaluate(useChatStore.getState().activeSessionId);
     };
-    document.addEventListener('pointerdown', dismissOnInteraction);
-    document.addEventListener('keydown', dismissOnInteraction);
+
+    // 丢弃节流窗口内的事件是安全的：这类事件成串到达，后面总会有下一个，
+    // 而徽标一天没清就会一直留着，不会因为丢了一次事件而永久残留。
+    const dismissThrottled = () => {
+      const now = Date.now();
+      if (now - lastActivityAt < ACTIVITY_THROTTLE_MS) {
+        return;
+      }
+      lastActivityAt = now;
+      dismiss();
+    };
+
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('keydown', dismiss);
+    document.addEventListener('wheel', dismissThrottled);
+    document.addEventListener('mousemove', dismissThrottled);
+    // scroll 不冒泡，必须在捕获阶段监听才能收到内层滚动容器的滚动。
+    document.addEventListener('scroll', dismissThrottled, true);
     return () => {
-      document.removeEventListener('pointerdown', dismissOnInteraction);
-      document.removeEventListener('keydown', dismissOnInteraction);
+      document.removeEventListener('pointerdown', dismiss);
+      document.removeEventListener('keydown', dismiss);
+      document.removeEventListener('wheel', dismissThrottled);
+      document.removeEventListener('mousemove', dismissThrottled);
+      document.removeEventListener('scroll', dismissThrottled, true);
     };
   }, [evaluate]);
 };

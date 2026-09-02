@@ -7,6 +7,13 @@ import type { UploadedFile } from '@/types';
 import { runOptimisticMessagePipeline, type MessageLifecycleRunner } from './messagePipeline';
 import { resolveStandardChatTurn } from './standardChatTurn';
 import { performStandardChatApiCall } from './standardChatApiCall';
+import { waitForFilesReady } from './waitForFilesReady';
+import { useChatStore } from '@/stores/chatStore';
+import { updateMessageInSession } from '@/utils/chat/sessionMutations';
+import { ensureFilesApiReferences, formatFileReferenceErrorMessage } from './fileApiReference';
+import { prepareFilesForOpenAICompatibleMode } from './openaiCompatibleFiles';
+import { getTranslator } from '@/i18n/translations';
+import { formatMessageSenderText } from './i18nFormat';
 import type { GetStreamHandlers, StandardChatProps } from './messageSenderTypes';
 import type { PreparedModelRequest } from './useModelRequestRunner';
 
@@ -107,7 +114,7 @@ export const sendStandardMessage = async ({
     updateAndPersistSessions,
     setActiveSessionId,
     text: textToUse.trim(),
-    files: enrichedFiles.length ? enrichedFiles : undefined,
+    files: filesToUse.length ? filesToUse : undefined,
     generationId,
     generationStartTime,
     editingMessageId: effectiveEditingId,
@@ -133,6 +140,101 @@ export const sendStandardMessage = async ({
       }
     },
     execute: async (turn) => {
+      let effectivePromptParts = promptParts;
+      let effectiveEnrichedFiles = enrichedFiles;
+
+      if (filesToUse.some((file) => file.uploadState === 'uploading' || file.isProcessing)) {
+        const waitResult = await waitForFilesReady(
+          filesToUse.map((file) => file.id),
+          newAbortController.signal,
+        );
+
+        const t = getTranslator(props.language);
+        if (!waitResult.ok) {
+          if (newAbortController.signal.aborted) {
+            return undefined;
+          }
+          return {
+            patch: {
+              content: formatMessageSenderText(t('messageSenderErrorWithPrefix'), {
+                prefix: t('messageSenderApiErrorPrefix'),
+                message: waitResult.error || t('messageSenderFileUploadFailedBeforeSend'),
+              }),
+              isLoading: false,
+              generationEndTime: new Date(),
+            },
+          };
+        }
+
+        const state = useChatStore.getState();
+        const activeMessagesMatch =
+          turn.finalSessionId === state.activeSessionId
+            ? state.activeMessages.find((m) => m.id === turn.userMessage?.id)
+            : undefined;
+        const currentSession = state.savedSessions.find((s) => s.id === turn.finalSessionId);
+        const currentUserMsg =
+          activeMessagesMatch ?? currentSession?.messages.find((m) => m.id === turn.userMessage?.id);
+        const readyFiles = currentUserMsg?.files ?? filesToUse;
+
+        let filesReadyForSend: UploadedFile[];
+        const apiRoute = resolveChatApiRoute(appSettings, settingsForApi);
+        if (apiRoute.apiMode === 'third-party') {
+          const openAiFilesResult = prepareFilesForOpenAICompatibleMode(readyFiles);
+          if (!openAiFilesResult.ok) {
+            return {
+              patch: {
+                content: formatMessageSenderText(t('messageSenderErrorWithPrefix'), {
+                  prefix: t('messageSenderApiErrorPrefix'),
+                  message: formatFileReferenceErrorMessage(openAiFilesResult, t),
+                }),
+                isLoading: false,
+                generationEndTime: new Date(),
+              },
+            };
+          }
+          filesReadyForSend = openAiFilesResult.files;
+        } else {
+          const fileRefResult = await ensureFilesApiReferences({
+            files: readyFiles,
+            apiKey: keyToUse,
+            abortSignal: newAbortController.signal,
+          });
+          if (!fileRefResult.ok) {
+            return {
+              patch: {
+                content: formatMessageSenderText(t('messageSenderErrorWithPrefix'), {
+                  prefix: t('messageSenderApiErrorPrefix'),
+                  message: formatFileReferenceErrorMessage(fileRefResult, t),
+                }),
+                isLoading: false,
+                generationEndTime: new Date(),
+              },
+            };
+          }
+          filesReadyForSend = fileRefResult.files;
+        }
+
+        const built = await buildContentParts(
+          textToUse.trim(),
+          filesReadyForSend,
+          effectiveActiveModelId,
+          settingsForApi.mediaResolution,
+          preferCodeExecutionFileInputs,
+        );
+        effectivePromptParts = built.contentParts;
+        effectiveEnrichedFiles = built.enrichedFiles;
+
+        if (turn.userMessage?.id) {
+          updateAndPersistSessions((prev) =>
+            updateMessageInSession(prev, turn.finalSessionId, turn.userMessage!.id, (msg) => ({
+              ...msg,
+              files: effectiveEnrichedFiles,
+              apiParts: effectivePromptParts,
+            })),
+          );
+        }
+      }
+
       await performStandardChatApiCall({
         appSettings,
         messages,
@@ -147,15 +249,17 @@ export const sendStandardMessage = async ({
         generationStartTime,
         keyToUse,
         activeModelId: effectiveActiveModelId,
-        promptParts,
+        promptParts: effectivePromptParts,
         effectiveEditingId,
         isContinueMode,
         isRawMode,
         sessionToUpdate: settingsForApi,
         newAbortController,
         textToUse,
-        enrichedFiles,
+        enrichedFiles: effectiveEnrichedFiles,
       });
+
+      return undefined;
     },
   });
 };

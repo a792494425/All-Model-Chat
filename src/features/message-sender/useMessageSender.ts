@@ -195,27 +195,32 @@ export const useMessageSender = (props: MessageSenderProps) => {
         return;
       }
       const { keyToUse, shouldLockKey, generationId, abortController: newAbortController } = request;
-      const fileReferenceResult =
-        apiRoute.apiMode === 'third-party'
-          ? prepareFilesForOpenAICompatibleMode(filesToUse)
-          : await ensureFilesApiReferences({
-              files: filesToUse,
-              apiKey: keyToUse,
-              abortSignal: newAbortController.signal,
-              onFileUpdate: (fileId, patch) => {
-                if (overrideOptions?.files !== undefined) {
-                  return;
-                }
+      let filesReadyForSend = filesToUse;
+      const isAnyFileUploading = filesToUse.some((file) => file.uploadState === 'uploading' || file.isProcessing);
 
-                setSelectedFiles((prev) => prev.map((file) => (file.id === fileId ? { ...file, ...patch } : file)));
-              },
-            });
+      if (!isAnyFileUploading && filesToUse.length > 0) {
+        const fileReferenceResult =
+          apiRoute.apiMode === 'third-party'
+            ? prepareFilesForOpenAICompatibleMode(filesToUse)
+            : await ensureFilesApiReferences({
+                files: filesToUse,
+                apiKey: keyToUse,
+                abortSignal: newAbortController.signal,
+                onFileUpdate: (fileId, patch) => {
+                  if (overrideOptions?.files !== undefined) {
+                    return;
+                  }
 
-      if (!fileReferenceResult.ok) {
-        setAppFileError(formatFileReferenceErrorMessage(fileReferenceResult, t));
-        return;
+                  setSelectedFiles((prev) => prev.map((file) => (file.id === fileId ? { ...file, ...patch } : file)));
+                },
+              });
+
+        if (!fileReferenceResult.ok) {
+          setAppFileError(formatFileReferenceErrorMessage(fileReferenceResult, t));
+          return;
+        }
+        filesReadyForSend = fileReferenceResult.files;
       }
-      const filesReadyForSend = fileReferenceResult.files;
       let messagesForTurn = messages;
 
       const persistHistoryIfChanged = (nextMessages: ChatMessage[], changed: boolean) => {

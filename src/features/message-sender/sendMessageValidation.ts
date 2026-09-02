@@ -42,22 +42,20 @@ export const validateMessageBeforeSend = ({
 }: ValidateMessageBeforeSendOptions): MessageSendValidationResult => {
   const trimmedText = text.trim();
 
-  if (
-    !trimmedText &&
-    !permissions.requiresTextPrompt &&
-    !isContinueMode &&
-    files.filter((file) => file.uploadState === 'active').length === 0
-  ) {
+  const hasUsableFiles = files.some(
+    (file) =>
+      file.uploadState === 'active' ||
+      file.uploadState === 'uploading' ||
+      file.uploadState === 'processing_api' ||
+      file.isProcessing,
+  );
+
+  if (!trimmedText && !permissions.requiresTextPrompt && !isContinueMode && !hasUsableFiles) {
     return { ok: false };
   }
 
   if (permissions.requiresTextPrompt && !trimmedText) {
     return { ok: false };
-  }
-
-  if (files.some((file) => file.isProcessing || (file.uploadState !== 'active' && !file.error))) {
-    logService.warn('Send message blocked: files are still processing.');
-    return { ok: false, fileError: t('messageSenderWaitForFiles') };
   }
 
   if (files.some((file) => file.uploadState === 'failed' || file.uploadState === 'cancelled' || !!file.error)) {
@@ -67,7 +65,7 @@ export const validateMessageBeforeSend = ({
 
   if (isServerCodeExecutionEnabled) {
     const oversizedTextFile = files.find(
-      (file) => file.uploadState === 'active' && isTextFile(file) && file.size > CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES,
+      (file) => isTextFile(file) && file.size > CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES,
     );
 
     if (oversizedTextFile) {
@@ -122,14 +120,16 @@ export const validateMessageBeforeSend = ({
   }
 
   if (isTranscribeModel) {
-    const activeFiles = files.filter((file) => file.uploadState === 'active' && !file.error);
-    const hasAudioAttachment = activeFiles.some((file) => isAudioMimeType(file.type));
+    const usableFiles = files.filter(
+      (file) => !file.error && file.uploadState !== 'failed' && file.uploadState !== 'cancelled',
+    );
+    const hasAudioAttachment = usableFiles.some((file) => isAudioMimeType(file.type));
     if (!hasAudioAttachment && !isContinueMode) {
       logService.warn('Send message blocked: transcribe model requires at least one audio attachment.');
       return { ok: false, fileError: t('messageSenderTranscribeRequiresAudio') };
     }
 
-    const hasUnsupportedAttachment = activeFiles.some((file) => !isAudioMimeType(file.type));
+    const hasUnsupportedAttachment = files.some((file) => !isAudioMimeType(file.type));
     if (hasUnsupportedAttachment) {
       logService.warn('Send message blocked: transcribe model received non-audio attachment types.', {
         activeModelId,

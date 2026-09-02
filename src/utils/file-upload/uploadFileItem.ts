@@ -37,6 +37,7 @@ interface UploadFileItemParams {
   setSelectedFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>;
   uploadStatsRef: MutableRefObject<Map<string, { lastLoaded: number; lastTime: number }>>;
   t?: Translator;
+  onFileUpdate?: (fileId: string, patch: Partial<UploadedFile>) => void;
 }
 
 export const uploadFileItem = async ({
@@ -49,6 +50,7 @@ export const uploadFileItem = async ({
   setSelectedFiles,
   uploadStatsRef,
   t = getTranslator('en'),
+  onFileUpdate,
 }: UploadFileItemParams) => {
   const fileId = generateUniqueId();
   const effectiveMimeType = getEffectiveMimeType(file);
@@ -120,6 +122,7 @@ export const uploadFileItem = async ({
 
     setSelectedFiles((previousFiles) => [...previousFiles, initialFileState]);
 
+    let lastReportedPercent = -1;
     const handleProgress = (loaded: number, total: number) => {
       const now = Date.now();
       const stats = uploadStatsRef.current.get(fileId);
@@ -137,6 +140,19 @@ export const uploadFileItem = async ({
       }
 
       const progressPercent = Math.round((loaded / total) * PERCENT_MULTIPLIER);
+
+      if (progressPercent === lastReportedPercent && !speedStr && progressPercent < 100) {
+        return;
+      }
+      lastReportedPercent = progressPercent;
+
+      const patch: Partial<UploadedFile> = {
+        progress: progressPercent,
+      };
+      if (speedStr) {
+        patch.uploadSpeed = speedStr;
+      }
+      onFileUpdate?.(fileId, patch);
 
       setSelectedFiles((previousFiles) =>
         previousFiles.map((selectedFile) => {
@@ -165,6 +181,28 @@ export const uploadFileItem = async ({
       logService.info(`File uploaded, initial state: ${uploadedFileInfo.state}`, { fileInfo: uploadedFileInfo });
 
       const { uploadState, isProcessing } = getUploadLifecycleForGeminiState(uploadedFileInfo.state);
+
+      onFileUpdate?.(fileId, {
+        isProcessing,
+        progress: 100,
+        fileUri: uploadedFileInfo.uri,
+        fileApiName: uploadedFileInfo.name,
+        fileApiExpirationTime: toFileApiExpirationTime(uploadedFileInfo.expirationTime),
+        fileApiKeyFingerprint: apiKeyFingerprint,
+        rawFile: file,
+        transferStrategy: 'files-api',
+        uploadState,
+        error:
+          uploadState === 'failed'
+            ? formatGeminiFileApiProcessingError(
+                uploadedFileInfo,
+                t('uploadApiProcessingFailed'),
+                t('uploadApiProcessingFailedWithMessage'),
+              )
+            : undefined,
+        abortController: undefined,
+        uploadSpeed: undefined,
+      });
 
       setSelectedFiles((previousFiles) =>
         previousFiles.map((selectedFile) =>
@@ -208,6 +246,16 @@ export const uploadFileItem = async ({
 
       releaseManagedObjectUrl(dataUrl);
 
+      onFileUpdate?.(fileId, {
+        isProcessing: false,
+        error: errorMsg,
+        uploadState: uploadStateUpdate,
+        abortController: undefined,
+        uploadSpeed: undefined,
+        dataUrl: undefined,
+        rawFile: undefined,
+      });
+
       setSelectedFiles((previousFiles) =>
         previousFiles.map((selectedFile) =>
           selectedFile.id === fileId
@@ -240,6 +288,8 @@ export const uploadFileItem = async ({
       mediaResolution: defaultResolution,
     });
     setSelectedFiles((previousFiles) => [...previousFiles, initialFileState]);
+
+    onFileUpdate?.(fileId, { isProcessing: false, progress: 100, uploadState: 'active' });
 
     setSelectedFiles((previousFiles) =>
       previousFiles.map((selectedFile) =>

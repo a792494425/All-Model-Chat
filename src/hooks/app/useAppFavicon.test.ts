@@ -148,7 +148,7 @@ const render = async (initial: Props) => {
       view.rerender();
     });
   };
-  return { rerender };
+  return { rerender, unmount: view.unmount };
 };
 
 const modelMessage = (overrides: Partial<ChatMessage> = {}): ChatMessage => ({
@@ -274,6 +274,61 @@ describe('useAppFavicon', () => {
       document.dispatchEvent(new Event('pointerdown'));
     });
     expect(faviconHref()).toBe(DEFAULT_HREF);
+  });
+
+  it.each([
+    ['wheel', () => document.dispatchEvent(new Event('wheel'))],
+    ['mousemove', () => document.dispatchEvent(new Event('mousemove'))],
+    [
+      // scroll 不冒泡：必须从内层容器派发，以此验证监听用的是捕获阶段。
+      'scroll inside a nested container',
+      () => {
+        const child = document.createElement('div');
+        document.body.appendChild(child);
+        try {
+          child.dispatchEvent(new Event('scroll', { bubbles: false }));
+        } finally {
+          child.remove();
+        }
+      },
+    ],
+  ])('treats %s as a "viewed" signal', async (_label, dispatch) => {
+    setLease('test-tab');
+    setActiveMessages([modelMessage()]);
+    const { rerender, unmount } = await render({ activeSessionId: 'session-1' });
+    try {
+      setLoading('session-1', true);
+      await rerender({ activeSessionId: 'session-1' });
+      setLoading('session-1', false);
+      await rerender({ activeSessionId: 'session-1' });
+      expect(faviconHref()).toBe(SUCCESS_HREF);
+
+      act(() => {
+        dispatch();
+      });
+      expect(faviconHref()).toBe(DEFAULT_HREF);
+    } finally {
+      // 每个用例独立挂载：节流窗口是 per-effect 的，复用挂载会让后一个
+      // 用例落在前一个的窗口内而与真实时钟赛跑。
+      act(() => {
+        unmount();
+      });
+    }
+  });
+
+  it('keeps the generating favicon through activity (activity is not a "viewed" signal yet)', async () => {
+    setLease('test-tab');
+    setActiveMessages([modelMessage()]);
+    setLoading('session-1', true);
+    await render({ activeSessionId: 'session-1' });
+    expect(faviconHref()).toBe(GENERATING_HREF);
+
+    act(() => {
+      document.dispatchEvent(new Event('wheel'));
+      document.dispatchEvent(new Event('mousemove'));
+      document.dispatchEvent(new Event('pointerdown'));
+    });
+    expect(faviconHref()).toBe(GENERATING_HREF);
   });
 
   it('shows the error favicon when the completed message has role=error', async () => {

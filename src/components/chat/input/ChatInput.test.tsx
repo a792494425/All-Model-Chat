@@ -699,19 +699,14 @@ describe('ChatInput', () => {
     expect(removeConvertedFile?.([{ id: 'text-file' }, { id: 'image-file' }])).toEqual([{ id: 'image-file' }]);
   });
 
-  it('does not auto-send a pending message when an attachment finishes as failed', async () => {
+  it('blocks send if an attachment has already failed before sending', async () => {
     const onSendMessage = vi.fn();
     const setAppFileError = vi.fn();
-    const processingFile: UploadedFile = {
-      id: 'processing-file',
+    const failedFile: UploadedFile = {
+      id: 'failed-file',
       name: 'large.pdf',
       type: 'application/pdf',
       size: 4096,
-      uploadState: 'processing_api',
-      isProcessing: true,
-    };
-    const failedFile: UploadedFile = {
-      ...processingFile,
       uploadState: 'failed',
       isProcessing: false,
       error: 'Backend processing failed.',
@@ -721,10 +716,10 @@ describe('ChatInput', () => {
     providerValue.input.isEditing = false;
     providerValue.input.editMode = 'resend';
     providerValue.input.editingMessageId = null;
-    providerValue.input.selectedFiles = [processingFile];
+    providerValue.input.selectedFiles = [failedFile];
     providerValue.input.onSendMessage = onSendMessage;
     providerValue.input.setAppFileError = setAppFileError;
-    mockChatStoreState.selectedFiles = [processingFile];
+    mockChatStoreState.selectedFiles = [failedFile];
 
     await act(async () => {
       renderChatInput(providerValue);
@@ -743,36 +738,20 @@ describe('ChatInput', () => {
     });
 
     expect(onSendMessage).not.toHaveBeenCalled();
-
-    // The attachment finishes as failed: re-rendering with the failed file
-    // drives the commit-time flush, which sees the blocked upload and surfaces
-    // the error instead of sending.
-    providerValue.input.selectedFiles = [failedFile];
-    mockChatStoreState.selectedFiles = [failedFile];
-    await act(async () => {
-      renderChatInput(providerValue);
-    });
-
-    expect(onSendMessage).not.toHaveBeenCalled();
     expect(setAppFileError).toHaveBeenCalledWith(
       'Attachment upload failed. Remove the failed file or upload it again before sending.',
     );
   });
 
-  it('cancels a pending automatic send while an attachment is still uploading', async () => {
+  it('sends optimistically immediately when pressing Enter even if an attachment is still uploading', async () => {
     const onSendMessage = vi.fn();
     const processingFile: UploadedFile = {
       id: 'processing-file',
       name: 'large.pdf',
       type: 'application/pdf',
       size: 4096,
-      uploadState: 'processing_api',
+      uploadState: 'uploading',
       isProcessing: true,
-    };
-    const activeFile: UploadedFile = {
-      ...processingFile,
-      uploadState: 'active',
-      isProcessing: false,
     };
     const providerValue = createProviderValue(null);
     providerValue.input.isLoading = false;
@@ -788,12 +767,7 @@ describe('ChatInput', () => {
     });
 
     const textarea = renderer.container.querySelector<HTMLTextAreaElement>('[data-testid="chat-input-textarea"]');
-    const cancelPendingButton = renderer.container.querySelector<HTMLButtonElement>(
-      '[data-testid="cancel-pending-upload-send"]',
-    );
-
     expect(textarea).not.toBeNull();
-    expect(cancelPendingButton).not.toBeNull();
 
     await act(async () => {
       if (!textarea) {
@@ -804,21 +778,7 @@ describe('ChatInput', () => {
       dispatchKeyDown(textarea, 'Enter');
     });
 
-    expect(onSendMessage).not.toHaveBeenCalled();
-
-    await act(async () => {
-      cancelPendingButton?.click();
-    });
-
-    // The upload finishes after the user cancelled: re-rendering with the
-    // active file drives the commit-time flush, but the pending submission was
-    // cancelled, so nothing is sent.
-    providerValue.input.selectedFiles = [activeFile];
-    mockChatStoreState.selectedFiles = [activeFile];
-    await act(async () => {
-      renderChatInput(providerValue);
-    });
-
-    expect(onSendMessage).not.toHaveBeenCalled();
+    expect(onSendMessage).toHaveBeenCalledWith('Summarize this file', expect.objectContaining({ isFastMode: false }));
+    expect(textarea?.value).toBe('');
   });
 });

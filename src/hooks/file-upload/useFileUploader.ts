@@ -17,6 +17,7 @@ import { uploadFileItem } from '@/utils/file-upload/uploadFileItem';
 import { runWithConcurrencyLimit } from '@/utils/file-upload/uploadQueue';
 import { useI18n } from '@/contexts/I18nContext';
 import { isThirdPartyApiRoute } from '@/utils/chatApiRoute';
+import { useChatStore } from '@/stores/chatStore';
 
 const MAX_CONCURRENT_FILE_UPLOADS = 3;
 
@@ -38,6 +39,7 @@ export const useFileUploader = ({
   setCurrentChatSettings,
 }: UseFileUploaderProps) => {
   const { t } = useI18n();
+  const updateUploadedFile = useChatStore((state) => state.updateUploadedFile);
   const uploadStatsRef = useRef<Map<string, { lastLoaded: number; lastTime: number }>>(new Map());
 
   const uploadFiles = useCallback(
@@ -95,6 +97,7 @@ export const useFileUploader = ({
             appSettings,
             providerId: currentChatSettings.providerId,
             setSelectedFiles: writeSelectedFiles,
+            onFileUpdate: updateUploadedFile,
             uploadStatsRef,
             t,
           }),
@@ -102,12 +105,30 @@ export const useFileUploader = ({
 
       await runWithConcurrencyLimit(uploadTasks, MAX_CONCURRENT_FILE_UPLOADS);
     },
-    [appSettings, currentChatSettings, selectedFiles, setCurrentChatSettings, setAppFileError, setSelectedFiles, t],
+    [
+      appSettings,
+      currentChatSettings,
+      selectedFiles,
+      setCurrentChatSettings,
+      setAppFileError,
+      setSelectedFiles,
+      t,
+      updateUploadedFile,
+    ],
   );
 
   const cancelUpload = useCallback(
     (fileIdToCancel: string) => {
       logService.warn(`User cancelled file upload: ${fileIdToCancel}`);
+
+      updateUploadedFile(fileIdToCancel, {
+        isProcessing: false,
+        error: t('uploadCancelled'),
+        uploadState: 'cancelled',
+        uploadSpeed: undefined,
+        dataUrl: undefined,
+        rawFile: undefined,
+      });
 
       setSelectedFiles((prevFiles) =>
         prevFiles.map((file) => {
@@ -135,7 +156,7 @@ export const useFileUploader = ({
       // Clean up speed calculation stats
       uploadStatsRef.current.delete(fileIdToCancel);
     },
-    [setSelectedFiles, t],
+    [setSelectedFiles, t, updateUploadedFile],
   );
 
   return { uploadFiles, cancelUpload };

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState, type ElementType, type FC, type ReactNode } from 'react';
+import { lazy, memo, Suspense, useEffect, useRef, useState, type ElementType, type FC, type ReactNode } from 'react';
 import type { UploadedFile } from '@/types';
 import { SUPPORTED_IMAGE_MIME_TYPES } from '@/constants/fileTypeSupport';
 import { getFileTypeCategory } from '@/utils/file/fileTypeClassification';
@@ -113,28 +113,31 @@ const PdfThumbnail = ({ file, fallback }: { file: UploadedFile; fallback: ReactN
   );
 };
 
-const VideoThumbnail = ({ file, fallback }: { file: UploadedFile; fallback: ReactNode }) => {
-  if (!file.dataUrl) {
+const VideoThumbnail = memo(
+  ({ file, fallback }: { file: UploadedFile; fallback: ReactNode }) => {
+    if (!file.dataUrl) {
+      return (
+        <div data-thumbnail-kind="video" className="h-full w-full">
+          {fallback}
+        </div>
+      );
+    }
+
     return (
-      <div data-thumbnail-kind="video" className="h-full w-full">
-        {fallback}
+      <div data-thumbnail-kind="video" className="relative h-full w-full overflow-hidden bg-black">
+        <video
+          src={`${file.dataUrl}#t=0.1`}
+          className="h-full w-full object-cover pointer-events-none"
+          muted
+          playsInline
+          preload="metadata"
+          aria-label={file.name}
+        />
       </div>
     );
-  }
-
-  return (
-    <div data-thumbnail-kind="video" className="relative h-full w-full overflow-hidden bg-black">
-      <video
-        src={`${file.dataUrl}#t=0.1`}
-        className="h-full w-full object-cover"
-        muted
-        playsInline
-        preload="metadata"
-        aria-label={file.name}
-      />
-    </div>
-  );
-};
+  },
+  (prev, next) => prev.file.id === next.file.id && prev.file.dataUrl === next.file.dataUrl,
+);
 
 const CoverThumbnail = ({
   file,
@@ -170,7 +173,7 @@ const CoverThumbnail = ({
   );
 };
 
-export const FileThumbnail: FC<FileThumbnailProps> = (props) => {
+const FileThumbnailComponent: FC<FileThumbnailProps> = (props) => {
   const { file } = props;
   const category = getFileTypeCategory(file.type, file.error);
   const fallback = <CoverThumbnail {...props} />;
@@ -196,3 +199,15 @@ export const FileThumbnail: FC<FileThumbnailProps> = (props) => {
 
   return fallback;
 };
+
+export const FileThumbnail: FC<FileThumbnailProps> = memo(
+  FileThumbnailComponent,
+  (prev, next) =>
+    prev.file.id === next.file.id &&
+    prev.file.dataUrl === next.file.dataUrl &&
+    prev.file.type === next.file.type &&
+    prev.file.error === next.file.error &&
+    prev.Icon === next.Icon &&
+    prev.colorClass === next.colorClass &&
+    prev.bgClass === next.bgClass,
+);

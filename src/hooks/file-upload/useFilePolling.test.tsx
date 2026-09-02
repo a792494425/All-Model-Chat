@@ -4,6 +4,7 @@ import { renderHookWithProviders } from '@/test/render/providerRenderer';
 import { createAppSettings, createChatSettings, createUploadedFile } from '@/test/data/factories';
 import { flushPromises } from '@/test/render/renderer';
 import { useFilePolling } from './useFilePolling';
+import { useChatStore } from '@/stores/chatStore';
 
 const { getFileMetadataApiMock, getGeminiKeyForRequestMock } = vi.hoisted(() => ({
   getFileMetadataApiMock: vi.fn(),
@@ -128,6 +129,63 @@ describe('useFilePolling', () => {
         error: 'Backend processing failed: Video codec is not supported.',
       }),
     );
+
+    unmount();
+  });
+
+  it('polls processing files that exist in savedSessions messages after optimistic send', async () => {
+    getFileMetadataApiMock.mockResolvedValue({ state: 'ACTIVE' });
+    const processingFile = createUploadedFile({
+      id: 'file-in-message',
+      name: 'recording.mp4',
+      type: 'video/mp4',
+      uploadState: 'processing_api',
+      isProcessing: true,
+      fileApiName: 'files/rec-123',
+    });
+
+    const updateUploadedFileSpy = vi.fn();
+    useChatStore.setState({
+      savedSessions: [
+        {
+          id: 'session-1',
+          title: 'Test',
+          settings: createChatSettings(),
+          messages: [
+            {
+              id: 'msg-1',
+              role: 'user',
+              content: 'Check this video',
+              files: [processingFile],
+              timestamp: new Date(),
+            },
+          ],
+          timestamp: Date.now(),
+        },
+      ],
+      updateUploadedFile: updateUploadedFileSpy,
+    });
+
+    const { unmount } = renderHookWithProviders(
+      () =>
+        useFilePolling({
+          appSettings: createAppSettings(),
+          selectedFiles: [],
+          setSelectedFiles: vi.fn(),
+          currentChatSettings: createChatSettings(),
+        }),
+      { language: 'en' },
+    );
+
+    await act(async () => {
+      await flushPromises();
+    });
+
+    expect(getFileMetadataApiMock).toHaveBeenCalledWith('api-key', 'files/rec-123');
+    expect(updateUploadedFileSpy).toHaveBeenCalledWith('file-in-message', {
+      uploadState: 'active',
+      isProcessing: false,
+    });
 
     unmount();
   });

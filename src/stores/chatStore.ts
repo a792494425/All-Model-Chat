@@ -113,6 +113,9 @@ interface ChatActions extends ChatUiSliceActions {
   /** 取消消息编辑:清空编辑态与文件选择,重置 editMode。 */
   cancelEdit: () => void;
 
+  /** Updates an uploaded file by ID across composer selectedFiles and session messages */
+  updateUploadedFile: (fileId: string, patch: Partial<UploadedFile>) => void;
+
   setCurrentChatSettings: ChatSettingsUpdater;
 }
 
@@ -458,6 +461,62 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
     const { activeSessionId } = get();
     if (!activeSessionId) return;
     get().appendMessageToSession(activeSessionId, message, options);
+  },
+
+  updateUploadedFile: (fileId, patch) => {
+    set((state) => {
+      let hasInSelected = false;
+      const nextSelected = state.selectedFiles.map((file) => {
+        if (file.id === fileId) {
+          hasInSelected = true;
+          return { ...file, ...patch };
+        }
+        return file;
+      });
+
+      let hasActiveChange = false;
+      const nextActiveMessages = state.activeMessages.map((message) => {
+        if (message.files && message.files.some((f) => f.id === fileId)) {
+          hasActiveChange = true;
+          return {
+            ...message,
+            files: message.files.map((f) => (f.id === fileId ? { ...f, ...patch } : f)),
+          };
+        }
+        return message;
+      });
+
+      let hasSessionChange = false;
+      const nextSessions = state.savedSessions.map((session) => {
+        let hasMsgChange = false;
+        const nextMessages = session.messages.map((message) => {
+          if (message.files && message.files.some((f) => f.id === fileId)) {
+            hasMsgChange = true;
+            return {
+              ...message,
+              files: message.files.map((f) => (f.id === fileId ? { ...f, ...patch } : f)),
+            };
+          }
+          return message;
+        });
+
+        if (hasMsgChange) {
+          hasSessionChange = true;
+          return { ...session, messages: nextMessages };
+        }
+        return session;
+      });
+
+      if (!hasInSelected && !hasActiveChange && !hasSessionChange) {
+        return state;
+      }
+
+      return {
+        selectedFiles: hasInSelected ? nextSelected : state.selectedFiles,
+        activeMessages: hasActiveChange ? nextActiveMessages : state.activeMessages,
+        savedSessions: hasSessionChange ? nextSessions : state.savedSessions,
+      };
+    });
   },
 
   updateAndPersistGroups: (updater) => {

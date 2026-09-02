@@ -529,6 +529,69 @@ describe('chatStore', () => {
     });
   });
 
+  describe('updateUploadedFile', () => {
+    it('updates file in selectedFiles', () => {
+      const file = createUploadedFile({ id: 'f1', uploadState: 'uploading', progress: 10 });
+      useChatStore.setState({ selectedFiles: [file] });
+
+      useChatStore.getState().updateUploadedFile('f1', { progress: 80, uploadState: 'active' });
+
+      expect(useChatStore.getState().selectedFiles[0].progress).toBe(80);
+      expect(useChatStore.getState().selectedFiles[0].uploadState).toBe('active');
+    });
+
+    it('updates file in activeMessages directly without requiring savedSessions to contain messages', () => {
+      const file = createUploadedFile({ id: 'f2', uploadState: 'uploading' });
+      const msg = {
+        id: 'm1',
+        role: 'user' as const,
+        content: 'hello',
+        timestamp: new Date(),
+        files: [file],
+      };
+      useChatStore.setState({
+        activeSessionId: 's1',
+        activeMessages: [msg],
+        savedSessions: [makeSession({ id: 's1', messages: [] })], // stripped in savedSessions
+      });
+
+      useChatStore.getState().updateUploadedFile('f2', { uploadState: 'active', isProcessing: false });
+
+      expect(useChatStore.getState().activeMessages[0].files?.[0].uploadState).toBe('active');
+      expect(useChatStore.getState().activeMessages[0].files?.[0].isProcessing).toBe(false);
+    });
+
+    it('does not wipe out activeMessages when updating file in another session', () => {
+      const file = createUploadedFile({ id: 'f3', uploadState: 'uploading' });
+      const session1Msg = {
+        id: 's1-m1',
+        role: 'user' as const,
+        content: 'session 1',
+        timestamp: new Date(),
+        files: [file],
+      };
+      const activeMsg = {
+        id: 's2-m1',
+        role: 'model' as const,
+        content: 'session 2 streaming answer',
+        timestamp: new Date(),
+      };
+
+      useChatStore.setState({
+        activeSessionId: 's2',
+        activeMessages: [activeMsg],
+        savedSessions: [makeSession({ id: 's1', messages: [session1Msg] }), makeSession({ id: 's2', messages: [] })],
+      });
+
+      useChatStore.getState().updateUploadedFile('f3', { uploadState: 'active' });
+
+      // Active messages in session 2 must remain completely intact
+      expect(useChatStore.getState().activeMessages).toEqual([activeMsg]);
+      // Session 1 messages updated
+      expect(useChatStore.getState().savedSessions[0].messages[0].files?.[0].uploadState).toBe('active');
+    });
+  });
+
   describe('atomic session and message actions', () => {
     it('updates a message in the active session without repeating session/message traversal at call sites', () => {
       const message = { id: 'm1', role: 'model' as const, content: 'draft', timestamp: new Date(), isLoading: true };
