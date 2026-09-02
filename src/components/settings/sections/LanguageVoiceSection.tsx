@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { Languages } from 'lucide-react';
 import {
@@ -11,6 +11,7 @@ import { type AppSettings, type ModelOption, type TranslationTargetLanguage } fr
 import { Select } from '@/components/shared/Select';
 import { VoiceControl } from '@/components/settings/controls/VoiceControl';
 import type { SettingsUpdateHandler } from '@/components/settings/settingsTypes';
+import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
 
 interface LanguageVoiceSectionProps {
   availableModels: ModelOption[];
@@ -36,8 +37,24 @@ export const LanguageVoiceSection: React.FC<LanguageVoiceSectionProps> = (props)
   const thoughtTranslationTargetLanguage =
     currentSettings.thoughtTranslationTargetLanguage || DEFAULT_THOUGHT_TRANSLATION_TARGET_LANGUAGE;
   const thoughtTranslationModelId = currentSettings.thoughtTranslationModelId || DEFAULT_THOUGHT_TRANSLATION_MODEL_ID;
-  const inputTranslationModelOptions = ensureSelectedModelOption(availableModels, inputTranslationModelId);
-  const thoughtTranslationModelOptions = ensureSelectedModelOption(availableModels, thoughtTranslationModelId);
+
+  const eligibleModels = useMemo(
+    () =>
+      availableModels.filter((model) => {
+        const caps = getCachedModelCapabilities(model.id);
+        return (
+          !caps.isTtsModel &&
+          !caps.isTranscribeModel &&
+          !caps.isLiveTranscribe &&
+          !caps.isLiveTranslate &&
+          !caps.isImageGenerationModel
+        );
+      }),
+    [availableModels],
+  );
+
+  const inputTranslationModelOptions = ensureSelectedModelOption(eligibleModels, inputTranslationModelId);
+  const thoughtTranslationModelOptions = ensureSelectedModelOption(eligibleModels, thoughtTranslationModelId);
 
   return (
     <div className="space-y-5">

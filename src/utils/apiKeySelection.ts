@@ -232,10 +232,7 @@ export const getGeminiKeyForRequest = (
   });
 };
 
-export const getLiveApiKey = (
-  appSettings: AppSettings,
-  currentChatSettings?: ChatSettings,
-): string | null => {
+export const getLiveApiKey = (appSettings: AppSettings, currentChatSettings?: ChatSettings): string | null => {
   if (appSettings.liveApiKey && appSettings.liveApiKey.trim()) {
     const parsedKeys = parseApiKeys(appSettings.liveApiKey);
     if (parsedKeys.length > 0) {

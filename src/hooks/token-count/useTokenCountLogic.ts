@@ -112,7 +112,7 @@ export const useTokenCountLogic = ({
       const activeDedicatedKey =
         customKeyOverride !== undefined
           ? customKeyOverride
-          : (dedicatedApiKey.trim() || effectiveAppSettings.tokenCalculatorApiKey);
+          : dedicatedApiKey.trim() || effectiveAppSettings.tokenCalculatorApiKey;
       const keyResult = resolveTokenCountRequestKey(effectiveAppSettings, modelId, activeDedicatedKey);
 
       if ('error' in keyResult) {
@@ -146,13 +146,9 @@ export const useTokenCountLogic = ({
           ? appendFunctionDeclarationsToTools(modelId, generationConfig, [createLocalPythonToolDeclaration()])
           : generationConfig;
 
-        const count = await countTokensApi(
-          keyResult.key,
-          modelId,
-          contentParts,
-          toCountTokensConfig(requestConfig),
-          { directGoogleApi: keyResult.isDirectGoogleApi },
-        );
+        const count = await countTokensApi(keyResult.key, modelId, contentParts, toCountTokensConfig(requestConfig), {
+          directGoogleApi: keyResult.isDirectGoogleApi,
+        });
         setTokenCount(count);
       } catch (tokenCountError) {
         logService.error('Token calculation failed', tokenCountError);

@@ -46,7 +46,10 @@ const optionalWithDefault = <Output>(
   fallback: Output | undefined,
 ): z.ZodType<Output | undefined> => parseUnknownWithDefault(schema, fallback);
 
-const nullableStringWithDefault = (fallback: string | null) => z.string().nullable().default(fallback).catch(fallback);
+const nullableStringWithDefault = (fallback: string | null | undefined) => {
+  const normalizedFallback = fallback ?? null;
+  return z.string().nullable().default(normalizedFallback).catch(normalizedFallback);
+};
 
 const booleanWithDefault = (fallback: boolean) => withDefault(z.boolean(), fallback);
 const optionalBooleanWithDefault = (fallback: boolean | undefined) => optionalWithDefault(z.boolean(), fallback);

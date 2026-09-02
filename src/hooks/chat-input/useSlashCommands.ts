@@ -151,7 +151,10 @@ export const useSlashCommands = ({
       }));
 
     const canAcceptAttachments = capabilities.permissions.canAcceptAttachments;
-    const canUseThinking = capabilities.supportsThinkingLevel && !capabilities.isTtsModel;
+    const canUseThinking =
+      capabilities.supportsThinkingLevel &&
+      !capabilities.isTtsModel &&
+      !capabilities.isImageGenerationModel;
 
     return [
       { name: 'model', description: t('helpCmdModel'), icon: 'bot' },
@@ -164,7 +167,9 @@ export const useSlashCommands = ({
       { name: 'clear', description: t('helpCmdClear'), icon: 'clear' },
       { name: 'new', description: t('helpCmdNew'), icon: 'new' },
       { name: 'settings', description: t('helpCmdSettings'), icon: 'settings' },
-      { name: 'artifacts', description: t('helpCmdArtifacts'), icon: 'artifacts' },
+      ...(capabilities.permissions.canGenerateSuggestions
+        ? [{ name: 'artifacts', description: t('helpCmdArtifacts'), icon: 'artifacts' }]
+        : []),
       { name: 'pip', description: t('helpCmdPip'), icon: 'pip' },
       ...(canUseThinking ? [{ name: 'fast', description: t('helpCmdFast'), icon: 'fast' }] : []),
     ];
@@ -224,7 +229,7 @@ export const useSlashCommands = ({
             return { name, description, icon, action: onTogglePip };
           case 'fast': {
             const capabilities = getCachedModelCapabilities(currentModelId);
-            // gemini-3.7-flash rejects MINIMAL with an API error — fall back to LOW there.
+            // gemini-3.7-flash / gemini-3.8-flash rejects MINIMAL with an API error — fall back to LOW there.
             const targetLevel =
               (capabilities.isGemini3FlashModel || capabilities.isGeminiRoboticsModel) &&
               capabilities.supportsMinimalThinkingLevel

@@ -121,7 +121,7 @@ const modelSettings = {
     de: 'Benutzerdefinierte Zeichenketten, bei deren Auftreten das Modell die Generierung stoppt. Mehrere Sequenzen durch Kommas trennen.',
     es: 'Cadenas personalizadas que hacen que el modelo deje de generar tokens cuando se encuentran. Separa varias con comas.',
     ko: '발견 시 모델이 생성을 중단하게 하는 사용자 지정 문자열입니다. 쉼표로 구분하여 여러 개를 입력하세요.',
-    fr: "Chaînes personnalisées qui arrêtent la génération lorsque le modèle les rencontre. Séparez les séquences par des virgules.",
+    fr: 'Chaînes personnalisées qui arrêtent la génération lorsque le modèle les rencontre. Séparez les séquences par des virgules.',
   },
   settingsStopSequencesPlaceholder: {
     en: 'e.g. Observation:, User:',

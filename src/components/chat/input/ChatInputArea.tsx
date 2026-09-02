@@ -191,11 +191,11 @@ export const ChatInputArea: React.FC = () => {
             isBBoxModeActive={chatInput.isBBoxModeActive}
             onToggleGuide={chatInput.onToggleGuide}
             isGuideModeActive={chatInput.isGuideModeActive}
-            onTogglePdfNav={handleTogglePdfNav}
+            onTogglePdfNav={!capabilities.isGemmaModel ? handleTogglePdfNav : undefined}
             isPdfNavEnabled={isPdfNavEnabled}
-            onToggleVideoNav={handleToggleVideoNav}
+            onToggleVideoNav={!capabilities.isGemmaModel ? handleToggleVideoNav : undefined}
             isVideoNavEnabled={isVideoNavEnabled}
-            onToggleAudioNav={handleToggleAudioNav}
+            onToggleAudioNav={!capabilities.isGemmaModel ? handleToggleAudioNav : undefined}
             isAudioNavEnabled={isAudioNavEnabled}
             isFullscreen={isFullscreen}
           />

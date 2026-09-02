@@ -155,6 +155,42 @@ describe('GenerationSection', () => {
     expect(renderer.container.querySelector('#system-prompt-input')).toBeNull();
   });
 
+  it('renders dedicated speech-to-text info banner for gemini-3.5-transcribe-live without regular sliders', async () => {
+    const onUpdateSetting = vi.fn();
+
+    await act(async () => {
+      renderer.root.render(
+        <GenerationSection
+          modelId="gemini-3.5-transcribe-live"
+          currentSettings={baseSettings}
+          onUpdateSetting={onUpdateSetting}
+        />,
+      );
+    });
+
+    expect(renderer.container.textContent).toContain('Gemini 3.5 Transcribe');
+    expect(renderer.container.querySelector('#temperature-slider')).toBeNull();
+    expect(renderer.container.querySelector('#system-prompt-input')).toBeNull();
+  });
+
+  it('hides media resolution, raw mode, and thinking in context for TTS models', async () => {
+    useSettingsUiStore.setState({ isAdvancedModeEnabled: true });
+
+    await act(async () => {
+      renderer.root.render(
+        <GenerationSection
+          modelId="gemini-3.1-flash-tts-preview"
+          currentSettings={baseSettings}
+          onUpdateSetting={vi.fn()}
+        />,
+      );
+    });
+
+    expect(renderer.container.querySelector('#media-resolution-select')).toBeNull();
+    expect(renderer.container.querySelector('[data-settings-item="models-raw-mode"]')).toBeNull();
+    expect(renderer.container.querySelector('[data-settings-item="models-hide-thinking"]')).toBeNull();
+  });
+
   it('updates advanced generation parameters (maxOutputTokens, stopSequences, penalties, seed)', async () => {
     useSettingsUiStore.setState({ isAdvancedModeEnabled: true });
     const onUpdateSetting = vi.fn();

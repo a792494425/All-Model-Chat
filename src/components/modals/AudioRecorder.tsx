@@ -131,7 +131,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
   };
 
   const handleSaveLiveTranscript = async () => {
-    const textToSave = (liveTranscribe.finalText + (liveTranscribe.interimText ? ` ${liveTranscribe.interimText}` : '')).trim();
+    const textToSave = (
+      liveTranscribe.finalText + (liveTranscribe.interimText ? ` ${liveTranscribe.interimText}` : '')
+    ).trim();
     if (!textToSave) return;
     setIsSaving(true);
     try {
@@ -185,9 +187,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
       noPadding
     >
       <div className="flex items-center justify-between px-5 pt-4 pb-3 bg-[var(--theme-bg-primary)] border-b border-[var(--theme-border-subtle)]/40">
-        <h2 className="sr-only">
-          {viewState === 'review' ? t('audioRecorderPreviewTitle') : t('audioRecorderTitle')}
-        </h2>
+        <h2 className="sr-only">{viewState === 'review' ? t('audioRecorderPreviewTitle') : t('audioRecorderTitle')}</h2>
         <div className="flex items-center gap-1.5 p-0.5 rounded-lg bg-[var(--theme-bg-tertiary)]/50">
           <button
             type="button"
@@ -210,7 +210,10 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
                 : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
             }`}
           >
-            <Radio size={14} className={liveTranscribe.isListening ? 'animate-pulse text-[var(--theme-text-accent)]' : ''} />
+            <Radio
+              size={14}
+              className={liveTranscribe.isListening ? 'animate-pulse text-[var(--theme-text-accent)]' : ''}
+            />
             <span>实时流式听写</span>
           </button>
         </div>
@@ -223,7 +226,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
         <div className="p-5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className={`inline-block h-2 w-2 rounded-full ${liveTranscribe.isListening ? 'bg-[var(--theme-text-success)] animate-ping' : 'bg-[var(--theme-text-tertiary)]'}`} />
+              <span
+                className={`inline-block h-2 w-2 rounded-full ${liveTranscribe.isListening ? 'bg-[var(--theme-text-success)] animate-ping' : 'bg-[var(--theme-text-tertiary)]'}`}
+              />
               <span className="text-xs font-medium text-[var(--theme-text-secondary)]">
                 {liveTranscribe.isListening ? '正在流式识别中...' : '已就绪'}
               </span>

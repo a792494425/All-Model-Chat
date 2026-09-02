@@ -109,7 +109,7 @@ export const ThinkingSpeedControl: React.FC = () => {
   if (isImageThinkingLevelOnly) {
     supportedLevels = ['MINIMAL', 'HIGH'];
   } else if (supportsThinkingLevel) {
-    // gemini-3.7-flash rejects MINIMAL with an API error — only offer it where supported.
+    // gemini-3.7-flash / gemini-3.8-flash rejects MINIMAL with an API error — only offer it where supported.
     supportedLevels =
       (isFlash3 || isRobotics) && activeCapabilities.supportsMinimalThinkingLevel
         ? ['MINIMAL', 'LOW', 'MEDIUM', 'HIGH']
@@ -160,7 +160,7 @@ export const ThinkingSpeedControl: React.FC = () => {
   const settingsThinkingModeLabel = t('settingsThinkingMode');
   const fastAriaLabel = t('thinkingFaster') !== 'thinkingFaster' ? t('thinkingFaster') : '极速';
 
-  const supportsFast = isFlash3 || isRobotics;
+  const supportsFast = (isFlash3 || isRobotics) && activeCapabilities.supportsMinimalThinkingLevel;
   const isFastActive = supportsFast && displayLevel === 'MINIMAL';
   const handleToggleFast = () => {
     setCurrentChatSettings((prev) => ({

@@ -78,14 +78,27 @@ export const useLiveTranscription = ({ appSettings, apiKey, options }: UseLiveTr
       const content = message.serverContent;
       if (!content) return;
 
-      if (content.interimInputTranscription?.text) {
-        const partial = content.interimInputTranscription.text;
+      const extendedContent = content as typeof content & {
+        interimInputTranscription?: { text?: string };
+        inputTranscription?: { text?: string; finished?: boolean };
+      };
+
+      if (extendedContent.interimInputTranscription?.text) {
+        const partial = extendedContent.interimInputTranscription.text;
         setInterimText(partial);
         options?.onInterimTranscript?.(partial);
       }
 
-      if (content.inputTranscription?.text) {
-        const committed = content.inputTranscription.text;
+      if (extendedContent.inputTranscription?.text) {
+        const text = extendedContent.inputTranscription.text;
+        const finished = extendedContent.inputTranscription.finished;
+        // When finished is explicitly false, treat as interim update (newer genai types use finished flag).
+        if (finished === false) {
+          setInterimText(text);
+          options?.onInterimTranscript?.(text);
+          return;
+        }
+        const committed = text;
         accumulatedFinalRef.current = accumulatedFinalRef.current
           ? `${accumulatedFinalRef.current} ${committed}`
           : committed;
@@ -209,9 +222,8 @@ export const useLiveTranscription = ({ appSettings, apiKey, options }: UseLiveTr
         inputAudioTranscription: {
           mode: options?.mode || 'SMART',
           languageCodes: options?.languageCodes || [],
-          customVocabulary: options?.customVocabulary && options.customVocabulary.length > 0
-            ? options.customVocabulary
-            : undefined,
+          customVocabulary:
+            options?.customVocabulary && options.customVocabulary.length > 0 ? options.customVocabulary : undefined,
         },
       };
 
@@ -249,7 +261,16 @@ export const useLiveTranscription = ({ appSettings, apiKey, options }: UseLiveTr
       cleanupAudio();
       return false;
     }
-  }, [apiKey, appSettings, cancelListening, cleanupAudio, handleServerMessage, isListeningRef, options, setIsListening]);
+  }, [
+    apiKey,
+    appSettings,
+    cancelListening,
+    cleanupAudio,
+    handleServerMessage,
+    isListeningRef,
+    options,
+    setIsListening,
+  ]);
 
   useEffect(() => {
     return () => {

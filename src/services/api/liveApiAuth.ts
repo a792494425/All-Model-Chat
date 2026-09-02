@@ -77,4 +77,3 @@ export const getLiveApiClient = async (
 
   return getClient(apiKey, proxyBaseUrl, httpOptions);
 };
-

@@ -51,8 +51,7 @@ export const useLiveFrameCapture = ({
     const sendFrame = () => {
       const isScreenShare = videoSource === 'screen';
       const now = Date.now();
-      const hasRecentAudioActivity =
-        !isMuted && now - lastAudioActivityAtRef.current <= AUDIO_ACTIVITY_WINDOW_MS;
+      const hasRecentAudioActivity = !isMuted && now - lastAudioActivityAtRef.current <= AUDIO_ACTIVITY_WINDOW_MS;
 
       if (!isScreenShare && !hasRecentAudioActivity) {
         return;

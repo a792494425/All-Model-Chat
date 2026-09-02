@@ -211,16 +211,6 @@ export const generateSpeechApi = async (
   }
 };
 
-interface AudioTranscriptionData {
-  text?: string;
-  transcript?: string;
-  [key: string]: unknown;
-}
-
-interface ExtendedResponsePart extends Part {
-  audioTranscription?: AudioTranscriptionData | string;
-}
-
 const extractTranscriptionText = (response: GenerateContentResponse): string => {
   const candidate = response.candidates?.[0];
   if (!candidate?.content?.parts) {
@@ -229,18 +219,11 @@ const extractTranscriptionText = (response: GenerateContentResponse): string => 
 
   const extractedSegments: string[] = [];
 
-  for (const rawPart of candidate.content.parts) {
-    const part = rawPart as ExtendedResponsePart;
+  for (const part of candidate.content.parts) {
     if (typeof part.text === 'string' && part.text.length > 0) {
       extractedSegments.push(part.text);
-    } else if (part.audioTranscription) {
-      if (typeof part.audioTranscription === 'string') {
-        extractedSegments.push(part.audioTranscription);
-      } else if (typeof part.audioTranscription.text === 'string') {
-        extractedSegments.push(part.audioTranscription.text);
-      } else if (typeof part.audioTranscription.transcript === 'string') {
-        extractedSegments.push(part.audioTranscription.transcript);
-      }
+    } else if (typeof part.audioTranscription?.text === 'string' && part.audioTranscription.text.length > 0) {
+      extractedSegments.push(part.audioTranscription.text);
     }
   }
 

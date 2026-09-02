@@ -4,7 +4,7 @@ import {
   buildGenerationConfig as buildGenerationConfigFromSettings,
   toCountTokensConfig,
 } from './generationConfig';
-import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
+import { DEFAULT_APP_SETTINGS, DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { MediaResolution, type ThinkingLevel } from '@/types';
 
 vi.mock('@/utils/model/modelCapabilities', async () => {
@@ -675,6 +675,19 @@ describe('buildGenerationConfig', () => {
 
     const hasUrlContext = config.tools?.some((tool) => 'urlContext' in tool);
     expect(hasUrlContext).toBeFalsy();
+  });
+
+  it('does not add googleMaps for Gemma models', async () => {
+    const config = await buildGenerationConfigFromSettings({
+      settings: {
+        ...DEFAULT_CHAT_SETTINGS,
+        modelId: 'gemma-4-31b-it',
+        isGoogleMapsEnabled: true,
+      },
+    });
+
+    const hasGoogleMaps = config.tools?.some((tool) => 'googleMaps' in tool);
+    expect(hasGoogleMaps).toBeFalsy();
   });
 
   it('sets systemInstruction to undefined when empty', async () => {

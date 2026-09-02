@@ -39,10 +39,12 @@ describe('useLiveTranscription', () => {
   it('connects to Live Transcription with SMART mode and custom vocabulary', async () => {
     let capturedCallbacks: {
       onopen?: () => void;
-      onmessage?: (msg: { serverContent?: { interimInputTranscription?: { text: string }; inputTranscription?: { text: string } } }) => void;
+      onmessage?: (msg: {
+        serverContent?: { interimInputTranscription?: { text: string }; inputTranscription?: { text: string } };
+      }) => void;
     } = {};
 
-    mockLiveConnect.mockImplementation(({ callbacks, model, config }) => {
+    mockLiveConnect.mockImplementation(({ callbacks }: { callbacks: typeof capturedCallbacks }) => {
       capturedCallbacks = callbacks;
       return Promise.resolve({
         sendRealtimeInput: vi.fn(),

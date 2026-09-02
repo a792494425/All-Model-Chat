@@ -149,4 +149,32 @@ describe('useSlashCommands', () => {
     ]);
     unmount();
   });
+
+  it('hides artifacts command on models that cannot generate suggestions', () => {
+    const props = createProps({ currentModelId: 'gemini-3.1-flash-tts-preview' });
+    const { result, unmount } = renderHook(() => useSlashCommands(props));
+
+    act(() => {
+      result.current.handleInputChange('/');
+    });
+
+    const commandNames = result.current.slashCommandState.filteredCommands.map((c) => c.name);
+    expect(commandNames).not.toContain('artifacts');
+    expect(commandNames).not.toContain('fast');
+    unmount();
+  });
+
+  it('hides fast command on gemini-3-pro-image-preview', () => {
+    const props = createProps({ currentModelId: 'gemini-3-pro-image-preview' });
+    const { result, unmount } = renderHook(() => useSlashCommands(props));
+
+    act(() => {
+      result.current.handleInputChange('/');
+    });
+
+    const commandNames = result.current.slashCommandState.filteredCommands.map((c) => c.name);
+    expect(commandNames).not.toContain('fast');
+    expect(commandNames).not.toContain('artifacts');
+    unmount();
+  });
 });

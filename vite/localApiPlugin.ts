@@ -232,9 +232,7 @@ const handleLocalApiRequest = (request: DevServerRequest, response: DevServerRes
         return;
       }
       const apiKey =
-        (typeof request.headers?.['x-goog-api-key'] === 'string'
-          ? request.headers['x-goog-api-key']
-          : undefined) ||
+        (typeof request.headers?.['x-goog-api-key'] === 'string' ? request.headers['x-goog-api-key'] : undefined) ||
         process.env.GEMINI_API_KEY ||
         '';
       if (!apiKey) {

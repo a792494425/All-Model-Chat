@@ -19,12 +19,15 @@ export const isGeminiRoboticsModel = (modelId: string): boolean =>
   !!modelId && modelId.toLowerCase().includes('gemini-robotics-er');
 
 /**
- * gemini-3.7-flash is the only Gemini 3 Flash model whose documented thinking
- * levels are low/medium/high — "minimal is not supported and returns an error"
- * (gemini-3.7-flash model card). 3.5/3.6 Flash and 3.5 Flash-Lite do accept MINIMAL.
+ * gemini-3.7-flash and gemini-3.8-flash have thinking levels low/medium/high
+ * — minimal is not supported and returns an error per their model cards.
+ * 3.5/3.6 Flash and 3.5 Flash-Lite do accept MINIMAL.
  */
-const isGemini37FlashModel = (modelId: string): boolean =>
-  !!modelId && modelId.toLowerCase().includes('gemini-3.7-flash');
+const isGemini37Or38FlashModel = (modelId: string): boolean => {
+  if (!modelId) return false;
+  const lowerId = modelId.toLowerCase();
+  return lowerId.includes('gemini-3.7-flash') || lowerId.includes('gemini-3.8-flash');
+};
 
 export const isLiveTranslateModel = (modelId: string): boolean =>
   !!modelId && modelId.toLowerCase().includes('live-translate');
@@ -97,8 +100,14 @@ const supportsThinkingLevel = (modelId: string): boolean => {
   if (isOpenAIGpt5FamilyModel(modelId) || isKimiK3Model(modelId) || isAnthropicEffortModel(modelId)) {
     return true;
   }
+  if (isGemini31FlashImageModel(modelId)) {
+    return true;
+  }
   return (
-    !isTtsModel(modelId) && !isTranscribeModel(modelId) && (isGemini3Model(modelId) || isGeminiRoboticsModel(modelId))
+    !isTtsModel(modelId) &&
+    !isTranscribeModel(modelId) &&
+    !isImageGenerationModel(modelId) &&
+    (isGemini3Model(modelId) || isGeminiRoboticsModel(modelId))
   );
 };
 
@@ -165,7 +174,11 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
   const gemmaModel = isGemmaModel(modelId);
   // Gemma models on the Gemini API support no tools at all (no grounding, no
   // code execution) — tool toggles for them would only produce API 400s.
-  const canUseSearchFamily = (canUseTextChatTools || nativeAudioModel || gemini3ImageModel) && !gemmaModel;
+  const canUseSearchFamily =
+    (canUseTextChatTools ||
+      (nativeAudioModel && !isLiveTranslateModel(modelId) && !isLiveTranscribeModel(modelId)) ||
+      gemini3ImageModel) &&
+    !gemmaModel;
   const permissions: ModelInteractionPermissions = {
     canAcceptAttachments: !ttsModel && !nativeAudioModel,
     canUseTools: canUseTextChatTools || nativeAudioModel || gemini3ImageModel || imageGenerationModel,
@@ -177,8 +190,10 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
     canUseCodeExecution: canUseTextChatTools && !gemmaModel,
     // Local Python drives a function-declaration round-trip, so it needs the
     // same API function-calling support Gemma lacks. Live (native audio)
-    // supports function calling.
-    canUseLocalPython: (canUseTextChatTools && !gemmaModel) || nativeAudioModel,
+    // supports function calling, except for Live Translate and Transcribe Live.
+    canUseLocalPython:
+      (canUseTextChatTools && !gemmaModel) ||
+      (nativeAudioModel && !isLiveTranslateModel(modelId) && !isLiveTranscribeModel(modelId)),
     canUseUrlContext: canUseTextChatTools && !gemmaModel,
     canUseTokenCount: !nativeAudioModel,
     canUseYouTubeUrl: canUseTextChatTools,
@@ -236,7 +251,7 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
     isGemini31FlashLiveModel: gemini31FlashLiveModel,
     isGemini31FlashImageModel: isGemini31FlashImageModel(modelId),
     isGeminiRoboticsModel: roboticsModel,
-    supportsMinimalThinkingLevel: !isGemini3ProTextModel(modelId) && !isGemini37FlashModel(modelId),
+    supportsMinimalThinkingLevel: !isGemini3ProTextModel(modelId) && !isGemini37Or38FlashModel(modelId),
     isGemini3ImageModel: gemini3ImageModel,
     isImageGenerationModel: imageGenerationModel,
     isTtsModel: ttsModel,
@@ -300,7 +315,7 @@ export const normalizeThinkingLevelForModel = (
   const resolvedLevel = thinkingLevel ?? fallback;
 
   // Both families reject MINIMAL with an API error per their model cards.
-  if (resolvedLevel === 'MINIMAL' && (isGemini3ProTextModel(modelId) || isGemini37FlashModel(modelId))) {
+  if (resolvedLevel === 'MINIMAL' && (isGemini3ProTextModel(modelId) || isGemini37Or38FlashModel(modelId))) {
     return 'LOW';
   }
 

@@ -32,11 +32,7 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
   const systemInstruction = currentChatSettings.transcriptionSystemInstruction ?? '';
 
   const hasAdvancedConfig = Boolean(
-    wordTimestamps ||
-    speakerLabels ||
-    smartMode ||
-    customVocabulary.trim() ||
-    systemInstruction.trim(),
+    wordTimestamps || speakerLabels || smartMode || customVocabulary.trim() || systemInstruction.trim(),
   );
 
   const handleLanguageChange = (newLang: string) => {

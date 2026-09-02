@@ -45,6 +45,7 @@ describe('sortModels', () => {
     const models: ModelOption[] = [
       { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite', isPinned: true },
       { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', isPinned: true },
+      { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', isPinned: true },
       { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview', isPinned: true },
     ];
 
@@ -52,6 +53,7 @@ describe('sortModels', () => {
 
     expect(result.map((model) => model.id)).toEqual([
       'gemini-3.1-pro-preview',
+      'gemini-3.8-flash',
       'gemini-3.7-flash',
       'gemini-3.5-flash-lite',
     ]);

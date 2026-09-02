@@ -18,17 +18,25 @@ import { CHAT_INPUT_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { MENU_ITEM_BUTTON_CLASS, MENU_ITEM_DEFAULT_STATE_CLASS } from '@/constants/menuClasses';
 import { usePortaledMenu } from '@/hooks/ui/usePortaledMenu';
 import { useChatInputActionsContext } from './ChatInputContext';
+import { isGemmaModel } from '@/utils/model/modelCapabilities';
 
 const attachIconSize = 20;
 const menuIconSize = 18;
 
 export const AttachmentMenu: React.FC = () => {
-  const { onAttachmentAction, disabled, isImageGenerationModel, isTranscribeModel, canAddYouTubeVideo } =
-    useChatInputActionsContext();
+  const {
+    onAttachmentAction,
+    disabled,
+    isImageGenerationModel,
+    isTranscribeModel,
+    canAddYouTubeVideo,
+    currentModelId,
+  } = useChatInputActionsContext();
   const { t } = useI18n();
   const { isOpen, menuPosition, containerRef, buttonRef, menuRef, targetWindow, closeMenu, toggleMenu } =
     usePortaledMenu({ constrainHeight: true });
   const isAttachmentDisabled = disabled;
+  const isGemma = isGemmaModel(currentModelId);
 
   const handleAction = (action: AttachmentAction) => {
     closeMenu();
@@ -63,7 +71,9 @@ export const AttachmentMenu: React.FC = () => {
             item.action === 'screenshot' ||
             item.action === 'id',
         )
-      : menuItems;
+      : isGemma
+        ? menuItems.filter((item) => item.action !== 'recorder')
+        : menuItems;
 
   return (
     <div className="relative" ref={containerRef}>

@@ -31,7 +31,17 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
   onUpdateSetting,
 }) => {
   const { t } = useI18n();
-  const { systemInstruction, temperature, topP, mediaResolution, maxOutputTokens, stopSequences, presencePenalty, frequencyPenalty, seed } = currentSettings;
+  const {
+    systemInstruction,
+    temperature,
+    topP,
+    mediaResolution,
+    maxOutputTokens,
+    stopSequences,
+    presencePenalty,
+    frequencyPenalty,
+    seed,
+  } = currentSettings;
   const topK = currentSettings.topK ?? 64;
   const isRawModeEnabled = currentSettings.isRawModeEnabled ?? false;
   const hideThinkingInContext = currentSettings.hideThinkingInContext ?? false;
@@ -84,7 +94,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
   const inputBaseClasses =
     'w-full p-2.5 border rounded-lg transition-all duration-200 focus:ring-2 focus:ring-offset-0 text-sm';
 
-  if (capabilities.isTranscribeModel) {
+  if (capabilities.isTranscribeModel || capabilities.isLiveTranscribe) {
     return (
       <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`} data-settings-item="models-transcribe-info">
         <div className="flex items-start gap-3 text-sm text-[var(--theme-text-secondary)]">
@@ -245,7 +255,10 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
 
           <div data-settings-item="models-max-output-tokens">
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="max-output-tokens-input" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
+              <label
+                htmlFor="max-output-tokens-input"
+                className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}
+              >
                 {t('settingsMaxOutputTokens')}
                 <Tooltip text={t('settingsMaxOutputTokensTooltip')}>
                   <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
@@ -274,7 +287,10 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
 
           <div data-settings-item="models-stop-sequences">
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="stop-sequences-input" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
+              <label
+                htmlFor="stop-sequences-input"
+                className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}
+              >
                 {t('settingsStopSequences')}
                 <Tooltip text={t('settingsStopSequencesTooltip')}>
                   <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
@@ -301,7 +317,10 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
           <div className="grid gap-4 sm:grid-cols-2 pt-1 border-t border-[var(--theme-border-secondary)]/40">
             <div data-settings-item="models-presence-penalty" className="space-y-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="presence-penalty-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
+                <label
+                  htmlFor="presence-penalty-slider"
+                  className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}
+                >
                   {t('settingsPresencePenalty')}
                   <Tooltip text={t('settingsPresencePenaltyTooltip')}>
                     <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
@@ -328,7 +347,10 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
 
             <div data-settings-item="models-frequency-penalty" className="space-y-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="frequency-penalty-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
+                <label
+                  htmlFor="frequency-penalty-slider"
+                  className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}
+                >
                   {t('settingsFrequencyPenalty')}
                   <Tooltip text={t('settingsFrequencyPenaltyTooltip')}>
                     <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
@@ -381,45 +403,53 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
             />
           </div>
 
-          {!isThirdPartyMode && mediaResolution && (
-            <div data-settings-item="models-media-resolution" className="pt-1 border-t border-[var(--theme-border-secondary)]/40">
-              <Select
-                id="media-resolution-select"
-                label=""
-                layout="horizontal"
-                labelContent={
-                  <span className="flex items-center text-sm font-medium text-[var(--theme-text-primary)]">
-                    <ImageIcon size={14} className="mr-2 text-[var(--theme-text-primary)]" />
-                    {t('settingsMediaResolution')}
-                    <Tooltip
-                      text={
-                        isNativeAudio ? t('settingsMediaResolutionLiveTooltip') : t('settingsMediaResolutionTooltip')
-                      }
-                    >
-                      <Info
-                        size={14}
-                        className="ml-2 text-[var(--theme-text-secondary)] cursor-help"
-                        strokeWidth={1.5}
-                      />
-                    </Tooltip>
-                  </span>
-                }
-                value={mediaResolution}
-                onChange={(event) => onUpdateSetting('mediaResolution', event.target.value as MediaResolution)}
+          {!isThirdPartyMode &&
+            mediaResolution &&
+            !capabilities.isTtsModel &&
+            !capabilities.isLiveTranslate &&
+            !capabilities.isLiveTranscribe &&
+            !capabilities.isTranscribeModel && (
+              <div
+                data-settings-item="models-media-resolution"
+                className="pt-1 border-t border-[var(--theme-border-secondary)]/40"
               >
-                <option value={MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED}>{t('mediaResolutionUnspecified')}</option>
-                <option value={MediaResolution.MEDIA_RESOLUTION_LOW}>{t('mediaResolutionLow')}</option>
-                {!isNativeAudio && (
-                  <option value={MediaResolution.MEDIA_RESOLUTION_MEDIUM}>{t('mediaResolutionMedium')}</option>
-                )}
-                {!isNativeAudio && (
-                  <option value={MediaResolution.MEDIA_RESOLUTION_HIGH}>{t('mediaResolutionHigh')}</option>
-                )}
-              </Select>
-            </div>
-          )}
+                <Select
+                  id="media-resolution-select"
+                  label=""
+                  layout="horizontal"
+                  labelContent={
+                    <span className="flex items-center text-sm font-medium text-[var(--theme-text-primary)]">
+                      <ImageIcon size={14} className="mr-2 text-[var(--theme-text-primary)]" />
+                      {t('settingsMediaResolution')}
+                      <Tooltip
+                        text={
+                          isNativeAudio ? t('settingsMediaResolutionLiveTooltip') : t('settingsMediaResolutionTooltip')
+                        }
+                      >
+                        <Info
+                          size={14}
+                          className="ml-2 text-[var(--theme-text-secondary)] cursor-help"
+                          strokeWidth={1.5}
+                        />
+                      </Tooltip>
+                    </span>
+                  }
+                  value={mediaResolution}
+                  onChange={(event) => onUpdateSetting('mediaResolution', event.target.value as MediaResolution)}
+                >
+                  <option value={MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED}>{t('mediaResolutionUnspecified')}</option>
+                  <option value={MediaResolution.MEDIA_RESOLUTION_LOW}>{t('mediaResolutionLow')}</option>
+                  {!isNativeAudio && (
+                    <option value={MediaResolution.MEDIA_RESOLUTION_MEDIUM}>{t('mediaResolutionMedium')}</option>
+                  )}
+                  {!isNativeAudio && (
+                    <option value={MediaResolution.MEDIA_RESOLUTION_HIGH}>{t('mediaResolutionHigh')}</option>
+                  )}
+                </Select>
+              </div>
+            )}
 
-          {!isThirdPartyMode && (
+          {!isThirdPartyMode && capabilities.supportsRawReasoningPrefill && (
             <div className="pt-1 border-t border-[var(--theme-border-secondary)]/40 space-y-1">
               <div data-settings-item="models-raw-mode">
                 <ToggleItem
@@ -429,30 +459,40 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                   tooltip={t('settingsRawModeTooltip')}
                 />
               </div>
-              <div data-settings-item="models-hide-thinking">
-                <ToggleItem
-                  label={t('settingsHideThinkingInContextLabel')}
-                  checked={hideThinkingInContext}
-                  onChange={(value) => {
-                    onUpdateSetting('hideThinkingInContext', value);
-                    if (value) onUpdateSetting('alwaysKeepThinkingInContext', false);
-                  }}
-                  tooltip={t('settingsHideThinkingInContextTooltip')}
-                />
-              </div>
-              <div data-settings-item="models-always-keep-thinking">
-                <ToggleItem
-                  label={t('settingsAlwaysKeepThinkingInContextLabel')}
-                  checked={alwaysKeepThinkingInContext}
-                  onChange={(value) => {
-                    onUpdateSetting('alwaysKeepThinkingInContext', value);
-                    if (value) onUpdateSetting('hideThinkingInContext', false);
-                  }}
-                  tooltip={t('settingsAlwaysKeepThinkingInContextTooltip')}
-                />
-              </div>
             </div>
           )}
+
+          {!isThirdPartyMode &&
+            !capabilities.isTtsModel &&
+            !capabilities.isTranscribeModel &&
+            !capabilities.isLiveTranscribe &&
+            !capabilities.isLiveTranslate &&
+            !capabilities.isImageGenerationModel && (
+              <div className="pt-1 border-t border-[var(--theme-border-secondary)]/40 space-y-1">
+                <div data-settings-item="models-hide-thinking">
+                  <ToggleItem
+                    label={t('settingsHideThinkingInContextLabel')}
+                    checked={hideThinkingInContext}
+                    onChange={(value) => {
+                      onUpdateSetting('hideThinkingInContext', value);
+                      if (value) onUpdateSetting('alwaysKeepThinkingInContext', false);
+                    }}
+                    tooltip={t('settingsHideThinkingInContextTooltip')}
+                  />
+                </div>
+                <div data-settings-item="models-always-keep-thinking">
+                  <ToggleItem
+                    label={t('settingsAlwaysKeepThinkingInContextLabel')}
+                    checked={alwaysKeepThinkingInContext}
+                    onChange={(value) => {
+                      onUpdateSetting('alwaysKeepThinkingInContext', value);
+                      if (value) onUpdateSetting('hideThinkingInContext', false);
+                    }}
+                    tooltip={t('settingsAlwaysKeepThinkingInContextTooltip')}
+                  />
+                </div>
+              </div>
+            )}
         </div>
       )}
 

@@ -59,9 +59,7 @@ export const TokenCountApiKeyConfig: React.FC<TokenCountApiKeyConfigProps> = ({
         )}
       </div>
 
-      <p className="text-xs text-[var(--theme-text-tertiary)] leading-relaxed">
-        {t('tokenModalApiKeyHint')}
-      </p>
+      <p className="text-xs text-[var(--theme-text-tertiary)] leading-relaxed">{t('tokenModalApiKeyHint')}</p>
 
       <div className="flex items-center gap-2">
         <div className="relative flex-grow">

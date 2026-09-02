@@ -147,17 +147,12 @@ describe('countTokensApi', () => {
   });
 
   it('routes to direct Google API baseUrl when directGoogleApi option is enabled', async () => {
-    await countTokensApi(
-      'key',
-      'gemini-3.7-flash',
-      [{ text: 'count me' } as Part],
-      undefined,
-      { directGoogleApi: true },
-    );
+    await countTokensApi('key', 'gemini-3.7-flash', [{ text: 'count me' } as Part], undefined, {
+      directGoogleApi: true,
+    });
 
     expect(mockGetConfiguredApiClient).toHaveBeenCalledWith('key', undefined, {
       directGoogleApi: true,
     });
   });
 });
-

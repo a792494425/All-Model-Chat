@@ -155,4 +155,3 @@ describe('useLiveFrameCapture', () => {
     vi.useRealTimers();
   });
 });
-

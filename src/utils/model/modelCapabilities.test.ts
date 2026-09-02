@@ -26,11 +26,13 @@ describe('isGemini3Model', () => {
     expect(isGemini3Model('gemini-3-flash-preview')).toBe(true);
   });
 
-  it('returns true for gemini-3.6-flash, gemini-3.7-flash and gemini-3.5-flash-lite', () => {
+  it('returns true for gemini-3.6-flash, gemini-3.7-flash, gemini-3.8-flash and gemini-3.5-flash-lite', () => {
     expect(isGemini3Model('gemini-3.6-flash')).toBe(true);
     expect(isGemini3Model('models/gemini-3.6-flash')).toBe(true);
     expect(isGemini3Model('gemini-3.7-flash')).toBe(true);
     expect(isGemini3Model('models/gemini-3.7-flash')).toBe(true);
+    expect(isGemini3Model('gemini-3.8-flash')).toBe(true);
+    expect(isGemini3Model('models/gemini-3.8-flash')).toBe(true);
     expect(isGemini3Model('gemini-3.5-flash-lite')).toBe(true);
     expect(isGemini3Model('models/gemini-3.5-flash-lite')).toBe(true);
   });
@@ -105,6 +107,7 @@ describe('getModelCapabilities', () => {
     expect(getModelCapabilities('gemini-3-flash-preview').supportsRawReasoningPrefill).toBe(true);
     expect(getModelCapabilities('gemini-3.6-flash').supportsRawReasoningPrefill).toBe(true);
     expect(getModelCapabilities('gemini-3.7-flash').supportsRawReasoningPrefill).toBe(true);
+    expect(getModelCapabilities('gemini-3.8-flash').supportsRawReasoningPrefill).toBe(true);
     expect(getModelCapabilities('gemini-3.5-flash-lite').supportsRawReasoningPrefill).toBe(true);
     expect(getModelCapabilities('gemini-2.5-flash').supportsRawReasoningPrefill).toBe(false);
   });
@@ -176,8 +179,9 @@ describe('normalizeThinkingLevelForModel', () => {
     expect(normalizeThinkingLevelForModel('models/gemini-3-pro-preview', 'MINIMAL')).toBe('LOW');
   });
 
-  it('maps MINIMAL to LOW for gemini-3.7-flash, whose model card rejects minimal', () => {
+  it('maps MINIMAL to LOW for gemini-3.7-flash and gemini-3.8-flash, whose model cards reject minimal', () => {
     expect(normalizeThinkingLevelForModel('gemini-3.7-flash', 'MINIMAL')).toBe('LOW');
+    expect(normalizeThinkingLevelForModel('gemini-3.8-flash', 'MINIMAL')).toBe('LOW');
   });
 
   it('keeps MINIMAL for Gemini 3 Flash models', () => {
@@ -250,6 +254,7 @@ describe('Live Translate model capabilities', () => {
 describe('isTranscribeModel', () => {
   it('returns false for empty string or general chat models', () => {
     expect(isTranscribeModel('')).toBe(false);
+    expect(isTranscribeModel('gemini-3.8-flash')).toBe(false);
     expect(isTranscribeModel('gemini-3.7-flash')).toBe(false);
     expect(isTranscribeModel('gemini-3.5-flash-lite')).toBe(false);
   });
@@ -279,5 +284,25 @@ describe('Gemini 3.5 Transcribe model capabilities', () => {
     expect(capabilities.permissions.canAcceptAttachments).toBe(true);
     expect(capabilities.permissions.canUseTokenCount).toBe(true);
     expect(capabilities.permissions.requiresTextPrompt).toBe(false);
+  });
+});
+
+describe('specialized audio and image model capability constraints', () => {
+  it('does not support thinking levels for gemini-3-pro-image-preview but supports them for flash image', () => {
+    expect(getModelCapabilities('gemini-3-pro-image-preview').supportsThinkingLevel).toBe(false);
+    expect(getModelCapabilities('gemini-3.1-flash-image-preview').supportsThinkingLevel).toBe(true);
+    expect(getModelCapabilities('gemini-3.1-flash-lite-image').supportsThinkingLevel).toBe(true);
+  });
+
+  it('restricts local python to live models that support function calling', () => {
+    expect(getModelCapabilities('gemini-3.1-flash-live-preview').permissions.canUseLocalPython).toBe(true);
+    expect(getModelCapabilities('gemini-3.5-live-translate-preview').permissions.canUseLocalPython).toBe(false);
+    expect(getModelCapabilities('gemini-3.5-transcribe-live').permissions.canUseLocalPython).toBe(false);
+  });
+
+  it('restricts Google search to live models that support search grounding', () => {
+    expect(getModelCapabilities('gemini-3.1-flash-live-preview').permissions.canUseGoogleSearch).toBe(true);
+    expect(getModelCapabilities('gemini-3.5-live-translate-preview').permissions.canUseGoogleSearch).toBe(false);
+    expect(getModelCapabilities('gemini-3.5-transcribe-live').permissions.canUseGoogleSearch).toBe(false);
   });
 });

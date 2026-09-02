@@ -220,4 +220,3 @@ describe('AudioRecorder', () => {
     expect(screen.getByText('逐字')).toBeInTheDocument();
   });
 });
-

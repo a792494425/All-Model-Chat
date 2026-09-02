@@ -6,7 +6,7 @@ import { logService } from '@/services/logService';
 import type { AppSettings, LiveTranscriptHandler } from '@/types';
 import type { LiveErrorState } from '@/utils/live-api/liveErrorState';
 import { useStateWithRef } from '@/hooks/useStateWithRef';
-import { isGemini31FlashLiveModel } from '@/utils/model/modelCapabilities';
+import { isGemini31FlashLiveModel, isLiveTranslateModel } from '@/utils/model/modelCapabilities';
 
 const MAX_RECONNECT_RETRIES = 5;
 const RECONNECT_BASE_DELAY_MS = 1000;
@@ -53,6 +53,7 @@ interface UseLiveConnectionProps {
   tools: Tool[];
   initializeAudio: (
     onAudioData: (data: Float32Array) => void,
+    onSpeechEnd?: () => void,
   ) => Promise<void | { outputAudioContext: AudioContext; inputAudioContext: AudioContext }>;
   cleanupAudio: () => void;
   clearBufferedAudio?: () => void;
@@ -229,6 +230,10 @@ export const useLiveConnection = ({
         },
         () => {
           // Hybrid VAD: client-side silence detected after speech, finalize turn early
+          // Live Translate is a continuous-stream model with server-side VAD only:
+          // it kills the session ("Request contains an invalid argument") when audio
+          // resumes after an audioStreamEnd, so never signal it there.
+          if (isLiveTranslateModel(modelId)) return;
           if (!isConnectedRef.current || !sessionRef.current) return;
           sessionRef.current.then((session) => {
             try {

@@ -250,7 +250,7 @@ export const useLiveAudio = () => {
 
     setVolume(0);
     setIsMuted(false);
-  }, [clearOutputAudioTail, setIsMuted, stopAudioPlayback]);
+  }, [clearOutputAudioTail, clearSpeechEndTimer, setIsMuted, stopAudioPlayback]);
 
   return {
     volume,

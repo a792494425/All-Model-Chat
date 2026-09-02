@@ -113,4 +113,26 @@ describe('ChatSuggestions rendering', () => {
       expect(action.querySelector('span.rounded-full.bg-current')).toBeNull();
     }
   });
+
+  it('renders media navigation chips only when the respective toggle handlers are provided', async () => {
+    await act(async () => {
+      renderer.root.render(
+        <ChatSuggestions
+          show
+          isFullscreen={false}
+          onSuggestionClick={vi.fn()}
+          onOrganizeInfoClick={vi.fn()}
+          onToggleBBox={vi.fn()}
+          isBBoxModeActive={false}
+          onToggleGuide={vi.fn()}
+          isGuideModeActive={false}
+          onTogglePdfNav={vi.fn()}
+        />,
+      );
+    });
+
+    expect(renderer.container.querySelector('[data-testid="pdf-nav-chip"]')).not.toBeNull();
+    expect(renderer.container.querySelector('[data-testid="video-nav-chip"]')).toBeNull();
+    expect(renderer.container.querySelector('[data-testid="audio-nav-chip"]')).toBeNull();
+  });
 });

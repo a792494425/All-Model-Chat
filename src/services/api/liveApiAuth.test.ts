@@ -172,4 +172,3 @@ describe('createLiveEphemeralToken', () => {
     vi.unstubAllGlobals();
   });
 });
-

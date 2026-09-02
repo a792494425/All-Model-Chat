@@ -9,7 +9,6 @@ import {
   getNormalizedUpstreamBaseUrl,
   toAbsoluteHttpUrl,
 } from './geminiApiBaseUrl';
-import { getGeminiApiProxyBaseUrl } from '@/runtime/runtimeConfig';
 import { normalizeGeminiApiBaseUrl } from '@/utils/apiProxyUrl';
 import { type GeminiClientHttpOptions, withHttpOptionHeaders } from './geminiApiVersion';
 import type { InternalGeminiApiClient } from './geminiResumableUpload';

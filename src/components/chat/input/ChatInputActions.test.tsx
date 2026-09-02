@@ -250,6 +250,23 @@ describe('ChatInputActions', () => {
     expect(attachmentMenuMock).toHaveBeenCalledWith(expect.objectContaining({ disabled: false }));
   });
 
+  it('hides attachments on live translate and live transcribe models', () => {
+    renderActions({ isLiveTranslate: true });
+    expect(attachmentMenuMock).not.toHaveBeenCalled();
+
+    attachmentMenuMock.mockClear();
+    renderActions({ isLiveTranscribe: true });
+    expect(attachmentMenuMock).not.toHaveBeenCalled();
+  });
+
+  it('hides MCP picker on image generation and native audio models', () => {
+    renderActions({ isImageGenerationModel: true });
+    expect(renderer.container.querySelector('[data-testid="mcp-picker-button"]')).toBeNull();
+
+    renderActions({ isNativeAudioModel: true });
+    expect(renderer.container.querySelector('[data-testid="mcp-picker-button"]')).toBeNull();
+  });
+
   it('forwards Live disconnect and video controls into the live controls', () => {
     mockCapabilities.value = {
       ...mockCapabilities.value,

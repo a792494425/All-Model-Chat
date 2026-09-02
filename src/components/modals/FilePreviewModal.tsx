@@ -316,12 +316,13 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
                     <FileAudio size={44} strokeWidth={1.5} />
                   </div>
                   <div className="text-center max-w-sm px-2">
-                    <p className="text-sm font-semibold text-[var(--theme-text-primary)] truncate" title={previewFile.name}>
+                    <p
+                      className="text-sm font-semibold text-[var(--theme-text-primary)] truncate"
+                      title={previewFile.name}
+                    >
                       {previewFile.name}
                     </p>
-                    <p className="text-xs text-[var(--theme-text-tertiary)] mt-1 font-mono">
-                      {previewFile.type}
-                    </p>
+                    <p className="text-xs text-[var(--theme-text-tertiary)] mt-1 font-mono">{previewFile.type}</p>
                   </div>
                   <audio src={previewFile.dataUrl} controls className="w-full max-w-full sm:w-[400px] outline-none" />
                 </div>

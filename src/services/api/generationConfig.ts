@@ -291,7 +291,7 @@ async function buildGenerationConfigFromOptions({
   const supportsThinkingLevel = isGemini3 || isGeminiRoboticsModel(modelId);
 
   if (supportsThinkingLevel) {
-    // Gemini 3 series (incl. 3.7 Flash / 3.6 Flash / 3.5 Flash-Lite): official API is thinkingLevel + includeThoughts.
+    // Gemini 3 series (incl. 3.8 Flash / 3.7 Flash / 3.6 Flash / 3.5 Flash-Lite): official API is thinkingLevel + includeThoughts.
     // Do not send thinkingBudget alone — it is a 2.5-era parameter and can omit thought summaries on 3.x.
     // includeThoughts stays true so summaries are available; UI visibility is gated by showThoughts.
     generationConfig.thinkingConfig = {
@@ -315,7 +315,7 @@ async function buildGenerationConfigFromOptions({
   if (!isTranscribe && !isGemma && (isGoogleSearchEnabled || isDeepSearchEnabled)) {
     tools.push(googleSearchTool);
   }
-  if (!isTranscribe && isGoogleMapsEnabled) {
+  if (!isTranscribe && !isGemma && isGoogleMapsEnabled) {
     tools.push(buildGoogleMapsTool());
   }
   if (!isTranscribe && !isGemma && isServerCodeExecutionMode({ isCodeExecutionEnabled, isLocalPythonEnabled })) {
