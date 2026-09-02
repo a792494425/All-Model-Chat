@@ -54,11 +54,11 @@ describe('getDefaultModelOptions', () => {
     expect(models.some((model) => model.id === 'gemini-3.5-flash-lite')).toBe(true);
   });
 
-  it('includes Gemini 3.8 Flash, Gemini 3.7 Flash and Gemini 3.5 Transcribe in pinned defaults', () => {
+  it('includes Gemini 3.8 Flash and Gemini 3.5 Transcribe in pinned defaults, and omits Gemini 3.7 Flash by default', () => {
     const models = getDefaultModelOptions();
 
     expect(models.some((model) => model.id === 'gemini-3.8-flash')).toBe(true);
-    expect(models.some((model) => model.id === 'gemini-3.7-flash')).toBe(true);
+    expect(models.some((model) => model.id === 'gemini-3.7-flash')).toBe(false);
     expect(models.some((model) => model.id === 'gemini-3.5-transcribe')).toBe(true);
   });
 

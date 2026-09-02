@@ -36,7 +36,7 @@ const MODEL_REGISTRY: RegisteredModel[] = [
   {
     id: 'gemini-3.7-flash',
     name: 'Gemini 3.7 Flash',
-    groups: ['defaultPinned', 'liveArtifacts', 'connectionTest'],
+    groups: ['liveArtifacts', 'connectionTest'],
     groupLabels: {
       liveArtifacts: 'Gemini 3.7 Flash',
     },

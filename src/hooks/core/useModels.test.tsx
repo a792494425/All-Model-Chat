@@ -99,4 +99,21 @@ describe('useModels', () => {
     expect(result.current.apiModels).toEqual([{ id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview' }]);
     unmount();
   });
+
+  it('omits Gemini 3.7 Flash by default but retains it when manually added by the user', () => {
+    const { result, unmount } = renderHook(() => useModels());
+
+    expect(result.current.apiModels.some((m) => m.id === 'gemini-3.7-flash')).toBe(false);
+    expect(result.current.apiModels.some((m) => m.id === 'gemini-3.8-flash')).toBe(true);
+
+    act(() => {
+      result.current.setApiModels([
+        ...result.current.apiModels,
+        { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', isPinned: true },
+      ]);
+    });
+
+    expect(result.current.apiModels.some((m) => m.id === 'gemini-3.7-flash')).toBe(true);
+    unmount();
+  });
 });
