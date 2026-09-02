@@ -177,6 +177,7 @@ describe('getQuickSwitchModelIds', () => {
 describe('getTabCycleModelIds', () => {
   const models: ModelOption[] = [
     { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview', isPinned: true },
+    { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', isPinned: true },
     { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', isPinned: true },
     { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash', isPinned: true },
     { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', isPinned: true },
@@ -185,7 +186,7 @@ describe('getTabCycleModelIds', () => {
   ];
 
   it('falls back to the default quick-switch order when no manual selection is set', () => {
-    expect(getTabCycleModelIds(models)).toEqual(['gemini-3.1-pro-preview', 'gemini-3.7-flash']);
+    expect(getTabCycleModelIds(models)).toEqual(['gemini-3.1-pro-preview', 'gemini-3.8-flash']);
   });
 
   it('filters the cycle order down to the manually selected models while preserving picker order', () => {
@@ -196,6 +197,6 @@ describe('getTabCycleModelIds', () => {
   });
 
   it('falls back to the default order when the stored selection is fully stale', () => {
-    expect(getTabCycleModelIds(models, ['missing-model'])).toEqual(['gemini-3.1-pro-preview', 'gemini-3.7-flash']);
+    expect(getTabCycleModelIds(models, ['missing-model'])).toEqual(['gemini-3.1-pro-preview', 'gemini-3.8-flash']);
   });
 });
