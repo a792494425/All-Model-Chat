@@ -7,7 +7,7 @@ import { ScenarioList } from './ScenarioList';
 const builtinScenario: SavedScenario = {
   id: 'built-1',
   title: 'Succinct',
-  category: 'assistant',
+  category: 'workplace',
   emoji: '⚡',
   description: 'Terse answers',
   messages: [],
@@ -74,7 +74,7 @@ describe('ScenarioList', () => {
       getByRole('button', { name: 'Built-in' }).click();
     });
 
-    expect(getByRole('button', { name: 'Assistants' })).not.toBeNull();
+    expect(getByRole('button', { name: 'Workplace & Efficiency' })).not.toBeNull();
     expect(container.textContent).not.toContain('🧠');
     expect(container.textContent).not.toContain('⚡');
   });

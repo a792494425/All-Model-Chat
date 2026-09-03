@@ -146,7 +146,8 @@ export interface PreloadedMessage {
  * Semantic category for a scenario. Drives the icon, accent color and the
  * category filter in the scenarios library. Defaults to `'custom'`.
  */
-export type ScenarioCategory = 'assistant' | 'roleplay' | 'creative' | 'system' | 'custom';
+export type ScenarioCategory =
+  'coding' | 'creative' | 'workplace' | 'academic' | 'roleplay' | 'system' | 'custom' | 'assistant';
 
 export interface SavedScenario {
   id: string;

@@ -1,18 +1,26 @@
 import { type ScenarioCategory } from '@/types';
-import { Brain, Heart, Sparkles, Shield, MessageSquare } from 'lucide-react';
+import { Code, Sparkles, Briefcase, GraduationCap, Heart, Shield, MessageSquare, Brain } from 'lucide-react';
 
 export const CATEGORY_META = {
-  assistant: {
-    icon: Brain,
-    labelKey: 'scenariosCategoryAssistant',
-  },
-  roleplay: {
-    icon: Heart,
-    labelKey: 'scenariosCategoryRoleplay',
+  coding: {
+    icon: Code,
+    labelKey: 'scenariosCategoryCoding',
   },
   creative: {
     icon: Sparkles,
     labelKey: 'scenariosCategoryCreative',
+  },
+  workplace: {
+    icon: Briefcase,
+    labelKey: 'scenariosCategoryWorkplace',
+  },
+  academic: {
+    icon: GraduationCap,
+    labelKey: 'scenariosCategoryAcademic',
+  },
+  roleplay: {
+    icon: Heart,
+    labelKey: 'scenariosCategoryRoleplay',
   },
   system: {
     icon: Shield,
@@ -22,10 +30,26 @@ export const CATEGORY_META = {
     icon: MessageSquare,
     labelKey: 'scenariosCategoryCustom',
   },
+  assistant: {
+    icon: Brain,
+    labelKey: 'scenariosCategoryAssistant',
+  },
 };
 
 export const DEFAULT_CATEGORY: ScenarioCategory = 'custom';
 
-export const getCategory = (category?: ScenarioCategory): ScenarioCategory => category ?? DEFAULT_CATEGORY;
+export const getCategory = (category?: ScenarioCategory): ScenarioCategory => {
+  if (!category) return DEFAULT_CATEGORY;
+  if (category === 'assistant') return 'workplace';
+  return category;
+};
 
-export const CATEGORY_ORDER: ScenarioCategory[] = ['assistant', 'roleplay', 'creative', 'system', 'custom'];
+export const CATEGORY_ORDER: ScenarioCategory[] = [
+  'coding',
+  'creative',
+  'workplace',
+  'academic',
+  'roleplay',
+  'system',
+  'custom',
+];
