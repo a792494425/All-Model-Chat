@@ -19,6 +19,7 @@ import {
   spatialRoboticsScenario,
   succinctScenario,
   unrestrictedScenario,
+  videoModerationScenario,
   viralHeadlineArchitectScenario,
   visualPromptScenario,
   voxelScenario,
@@ -81,6 +82,10 @@ const USER_SCENARIO_SEEDS: UserScenarioSeed[] = [
       shortVideoScriptScenario,
       viralHeadlineArchitectScenario,
     ],
+  },
+  {
+    flag: 'hasSeededVideoModerationPresets_v1',
+    scenarios: [videoModerationScenario],
   },
 ];
 

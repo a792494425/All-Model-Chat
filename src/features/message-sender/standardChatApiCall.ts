@@ -64,6 +64,15 @@ import type {
 import type { resolveStandardChatTurn } from './standardChatTurn';
 import { resolveChatApiRoute, isUnavailableThirdPartyRoute } from '@/utils/chatApiRoute';
 import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
+import { useChatStore } from '@/stores/chatStore';
+import { ensureHistoryFilesApiReferences } from './fileApiReference';
+import {
+  invalidateSessionFilesApiReferences,
+  isFilesApiPermissionDeniedError,
+} from '@/utils/chat/geminiFilesApi';
+import { getGeminiKeyForRequest } from '@/utils/apiKeySelection';
+import { getTranslator } from '@/i18n/translations';
+import { logService } from '@/services/logService';
 
 interface StandardChatApiCallContext {
   appSettings: StandardChatProps['appSettings'];
@@ -92,11 +101,14 @@ interface PerformStandardChatApiCallParams extends StandardChatApiCallContext {
   enrichedFiles: UploadedFile[];
 }
 
-const routeThrownStreamError = async (run: () => Promise<void>, streamOnError: (error: Error) => void) => {
+const routeThrownStreamError = async (
+  run: () => Promise<void>,
+  streamOnError: (error: Error) => void | Promise<void>,
+) => {
   try {
     await run();
   } catch (error) {
-    streamOnError(toError(error));
+    await streamOnError(toError(error));
   }
 };
 
@@ -413,27 +425,201 @@ export const performStandardChatApiCall = async ({
   ]);
   const hasFunctionDeclarationsInRequest = !!requestConfig.tools?.some((tool) => 'functionDeclarations' in tool);
 
-  if (hasFunctionDeclarationsInRequest) {
-    // Internal tool-plumbing messages are inserted as the loop progresses so
-    // tool call cards render live (invoking → done) instead of appearing only
-    // after every tool finished. persist:false matches the previous bulk insert;
-    // the session is persisted later by the normal completion path.
-    const insertInternalToolMessages = (messages: ChatMessage[]) => {
-      updateAndPersistSessions(
-        (prev) =>
-          updateSessionById(prev, finalSessionId, (session) => ({
-            ...session,
-            messages: session.messages.flatMap((message) => {
-              if (message.id !== generationId) {
-                return [message];
-              }
-              return [...messages, { ...message }];
-            }),
-          })),
-        { persist: false },
-      );
-    };
+  const insertInternalToolMessages = (messages: ChatMessage[]) => {
+    updateAndPersistSessions(
+      (prev) =>
+        updateSessionById(prev, finalSessionId, (session) => ({
+          ...session,
+          messages: session.messages.flatMap((message) => {
+            if (message.id !== generationId) {
+              return [message];
+            }
+            return [...messages, { ...message }];
+          }),
+        })),
+      { persist: false },
+    );
+  };
 
+  const canJournalStream =
+    !activeProvider && isGeminiProxyRelativePath(appSettings) && finalRole === 'user' && !isContinueMode;
+  const jobSecret = canJournalStream ? generateJobSecret() : undefined;
+  const streamResume = canJournalStream
+    ? {
+        jobId: generationId,
+        jobSecret,
+        lastSeq: 0,
+        onSeq: (seq: number) => advancePendingStreamJobSeq(finalSessionId, seq),
+      }
+    : undefined;
+
+  if (canJournalStream) {
+    recordPendingStreamJob({
+      sessionId: finalSessionId,
+      generationId,
+      jobId: generationId,
+      secret: jobSecret,
+      startedAt: generationStartTime.getTime(),
+    });
+  }
+
+  let autoRetryAttempted = false;
+
+  const handleStreamErrorWithAutoRetry = async (error: Error): Promise<void> => {
+    if (
+      !autoRetryAttempted &&
+      !newAbortController.signal.aborted &&
+      isFilesApiPermissionDeniedError(error)
+    ) {
+      autoRetryAttempted = true;
+      logService.warn('Files API permission error detected during generation. Attempting silent auto-retry.', {
+        sessionId: finalSessionId,
+        error,
+      });
+
+      try {
+        const state = useChatStore.getState();
+        const currentSession = state.savedSessions.find((s) => s.id === finalSessionId);
+        if (currentSession) {
+          const invalidatedSession = invalidateSessionFilesApiReferences(currentSession, error);
+          updateAndPersistSessions((prev) =>
+            updateSessionById(prev, finalSessionId, () => invalidatedSession),
+          );
+
+          const freshKeyResult = getGeminiKeyForRequest(appSettings, sessionToUpdate);
+          const freshKey = 'key' in freshKeyResult ? freshKeyResult.key : keyToUse;
+          const t = getTranslator(appSettings.language);
+
+          const historyRefResult = await ensureHistoryFilesApiReferences({
+            messages: invalidatedSession.messages,
+            apiKey: freshKey,
+            abortSignal: newAbortController.signal,
+            translate: t,
+          });
+
+          if (historyRefResult.ok && historyRefResult.changed && !newAbortController.signal.aborted) {
+            updateAndPersistSessions((prev) =>
+              updateSessionById(prev, finalSessionId, (s) => ({
+                ...s,
+                messages: historyRefResult.messages,
+              })),
+            );
+
+            const { baseMessagesForApi: nextBaseMessages } = resolveTurn({
+              messages: historyRefResult.messages,
+              promptParts,
+              textToUse,
+              enrichedFiles,
+              effectiveEditingId,
+              isContinueMode,
+              isRawMode,
+              apiModelId,
+            });
+
+            const retryHistoryForChat = await createChatHistoryForApi(
+              nextBaseMessages,
+              shouldStripThinking,
+              apiModelId,
+              isServerCodeExecutionMode(sessionToUpdate),
+              alwaysKeepThinking,
+            );
+
+            if (hasFunctionDeclarationsInRequest) {
+              try {
+                const toolLoopResult = await runStandardToolLoop({
+                  initialContents: [...retryHistoryForChat, { role: finalRole, parts: finalParts }],
+                  clientFunctions: combinedClientFunctions,
+                  abortSignal: newAbortController.signal,
+                  onToolCallsStarted: (modelContent) => {
+                    insertInternalToolMessages([
+                      createMessage('model', '', {
+                        apiParts: modelContent.parts,
+                        isInternalToolMessage: true,
+                        toolParentMessageId: generationId,
+                      }),
+                    ]);
+                  },
+                  onToolResponsesSettled: (functionResponseParts) => {
+                    insertInternalToolMessages([
+                      createMessage('user', '', {
+                        apiParts: functionResponseParts,
+                        isInternalToolMessage: true,
+                        toolParentMessageId: generationId,
+                      }),
+                    ]);
+                  },
+                  runTurn: (contents) =>
+                    generateContentTurnApi(freshKey, apiModelId, contents, requestConfig, newAbortController.signal),
+                });
+
+                for (const part of toolLoopResult.finalTurn.parts) {
+                  streamOnPart(part, { recordFirstToken: false });
+                }
+                if (toolLoopResult.finalTurn.thoughts) {
+                  onThoughtChunk(toolLoopResult.finalTurn.thoughts, { recordFirstToken: false });
+                }
+                streamOnComplete(
+                  toolLoopResult.finalTurn.usage,
+                  toolLoopResult.finalTurn.grounding,
+                  toolLoopResult.finalTurn.urlContext,
+                  toolLoopResult.generatedFiles,
+                );
+              } catch (retryErr) {
+                streamOnError(toError(retryErr));
+              }
+              return;
+            }
+
+            if (appSettings.isStreamingEnabled) {
+              await routeThrownStreamError(
+                () =>
+                  sendStatelessMessageStreamApi(
+                    freshKey,
+                    apiModelId,
+                    retryHistoryForChat,
+                    finalParts,
+                    requestConfig,
+                    newAbortController.signal,
+                    streamOnPart,
+                    onThoughtChunk,
+                    streamOnError,
+                    wrappedStreamOnComplete,
+                    finalRole,
+                    undefined,
+                    streamResume,
+                  ),
+                streamOnError,
+              );
+              return;
+            }
+
+            await routeThrownStreamError(
+              () =>
+                sendStatelessMessageNonStreamApi(
+                  freshKey,
+                  apiModelId,
+                  retryHistoryForChat,
+                  finalParts,
+                  requestConfig,
+                  newAbortController.signal,
+                  streamOnError,
+                  nonStreamOnComplete,
+                  finalRole,
+                ),
+              streamOnError,
+            );
+            return;
+          }
+        }
+      } catch (retryError) {
+        logService.error('Silent auto-retry for Files API permission denied failed', { error: retryError });
+      }
+    }
+
+    streamOnError(error);
+  };
+
+  if (hasFunctionDeclarationsInRequest) {
     try {
       const toolLoopResult = await runStandardToolLoop({
         initialContents: [...historyForChat, { role: finalRole, parts: finalParts }],
@@ -474,42 +660,12 @@ export const performStandardChatApiCall = async ({
         toolLoopResult.generatedFiles,
       );
     } catch (error) {
-      streamOnError(toError(error));
+      await handleStreamErrorWithAutoRetry(toError(error));
     }
     return;
   }
 
   if (appSettings.isStreamingEnabled) {
-    // Stream journal: only the Docker default (relative /api/gemini) routes
-    // through our api container where the job buffer lives. Absolute proxy
-    // URLs bypass the container, so journaling is skipped there. Also only
-    // meaningful for a fresh user-driven turn (the common resume case); tool
-    // loops and other internal turns don't carry a stable generation id.
-    const canJournalStream =
-      !activeProvider && isGeminiProxyRelativePath(appSettings) && finalRole === 'user' && !isContinueMode;
-    // One secret shared by the creating request, the persisted record (used by
-    // resume after a refresh), and the abort call; the server binds the job to
-    // it so only this browser can attach to the buffer.
-    const jobSecret = canJournalStream ? generateJobSecret() : undefined;
-    const streamResume = canJournalStream
-      ? {
-          jobId: generationId,
-          jobSecret,
-          lastSeq: 0,
-          onSeq: (seq: number) => advancePendingStreamJobSeq(finalSessionId, seq),
-        }
-      : undefined;
-
-    if (canJournalStream) {
-      recordPendingStreamJob({
-        sessionId: finalSessionId,
-        generationId,
-        jobId: generationId,
-        secret: jobSecret,
-        startedAt: generationStartTime.getTime(),
-      });
-    }
-
     await routeThrownStreamError(
       () =>
         sendStatelessMessageStreamApi(
@@ -521,13 +677,13 @@ export const performStandardChatApiCall = async ({
           newAbortController.signal,
           streamOnPart,
           onThoughtChunk,
-          streamOnError,
+          handleStreamErrorWithAutoRetry,
           wrappedStreamOnComplete,
           finalRole,
           undefined,
           streamResume,
         ),
-      streamOnError,
+      handleStreamErrorWithAutoRetry,
     );
     return;
   }
@@ -541,10 +697,10 @@ export const performStandardChatApiCall = async ({
         finalParts,
         requestConfig,
         newAbortController.signal,
-        streamOnError,
+        handleStreamErrorWithAutoRetry,
         nonStreamOnComplete,
         finalRole,
       ),
-    streamOnError,
+    handleStreamErrorWithAutoRetry,
   );
 };

@@ -8,6 +8,7 @@ import {
   pyriteScenario,
   reasonerScenario,
   unrestrictedScenario,
+  videoModerationScenario,
   voxelScenario,
 } from '@/constants/defaultScenarios';
 import {
@@ -61,6 +62,7 @@ describe('scenarioLibrary', () => {
       annaScenario.id,
       eniManualPasteScenario.id,
       ...CONTENT_AND_ACADEMIC_SCENARIOS.map((s) => s.id),
+      videoModerationScenario.id,
     ]);
     expect(result.savedScenarios.map((scenario) => scenario.id)).toEqual([
       ...SYSTEM_SCENARIO_IDS,
@@ -72,11 +74,13 @@ describe('scenarioLibrary', () => {
       annaScenario.id,
       eniManualPasteScenario.id,
       ...CONTENT_AND_ACADEMIC_SCENARIOS.map((s) => s.id),
+      videoModerationScenario.id,
     ]);
     expect(storage.setItem).toHaveBeenCalledWith('hasSeededFirstTierPresets_v3', 'true');
     expect(storage.setItem).toHaveBeenCalledWith('hasSeededPlayablePresets_v3', 'true');
     expect(storage.setItem).toHaveBeenCalledWith('hasSeededJailbreakPresets_v3', 'true');
     expect(storage.setItem).toHaveBeenCalledWith('hasSeededContentAcademicPresets_v2', 'true');
+    expect(storage.setItem).toHaveBeenCalledWith('hasSeededVideoModerationPresets_v1', 'true');
   });
 
   it('seeds jailbreak and persona override presets by default', () => {
@@ -93,6 +97,7 @@ describe('scenarioLibrary', () => {
       annaScenario.id,
       eniManualPasteScenario.id,
       ...CONTENT_AND_ACADEMIC_SCENARIOS.map((s) => s.id),
+      videoModerationScenario.id,
     ]);
     expect(result.savedScenarios.map((scenario) => scenario.id)).toEqual([
       ...SYSTEM_SCENARIO_IDS,
@@ -104,11 +109,13 @@ describe('scenarioLibrary', () => {
       annaScenario.id,
       eniManualPasteScenario.id,
       ...CONTENT_AND_ACADEMIC_SCENARIOS.map((s) => s.id),
+      videoModerationScenario.id,
     ]);
     expect(storage.setItem).toHaveBeenCalledWith('hasSeededFirstTierPresets_v3', 'true');
     expect(storage.setItem).toHaveBeenCalledWith('hasSeededPlayablePresets_v3', 'true');
     expect(storage.setItem).toHaveBeenCalledWith('hasSeededJailbreakPresets_v3', 'true');
     expect(storage.setItem).toHaveBeenCalledWith('hasSeededContentAcademicPresets_v2', 'true');
+    expect(storage.setItem).toHaveBeenCalledWith('hasSeededVideoModerationPresets_v1', 'true');
   });
 
   it('preserves jailbreak presets that are no longer deprecated', () => {
@@ -126,6 +133,7 @@ describe('scenarioLibrary', () => {
         hasSeededFirstTierPresets_v3: 'true',
         hasSeededJailbreakPresets_v3: 'true',
         hasSeededContentAcademicPresets_v2: 'true',
+        hasSeededVideoModerationPresets_v1: 'true',
       }),
     );
 

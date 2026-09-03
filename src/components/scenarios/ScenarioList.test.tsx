@@ -78,4 +78,25 @@ describe('ScenarioList', () => {
     expect(container.textContent).not.toContain('🧠');
     expect(container.textContent).not.toContain('⚡');
   });
+
+  it('remembers selected tab and category across unmount and remount', () => {
+    const firstRender = renderList();
+
+    act(() => {
+      firstRender.getByRole('button', { name: 'Built-in' }).click();
+    });
+
+    act(() => {
+      firstRender.getByRole('button', { name: 'Workplace & Efficiency' }).click();
+    });
+
+    firstRender.unmount();
+
+    // Remount list (simulating modal close and reopen)
+    const secondRender = renderList();
+
+    // The Workplace & Efficiency category button should still be active/present
+    expect(secondRender.getByRole('button', { name: 'Workplace & Efficiency' })).not.toBeNull();
+    secondRender.unmount();
+  });
 });

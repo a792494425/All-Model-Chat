@@ -5,3 +5,4 @@ export * from './scenarios/nativeTools';
 export * from './scenarios/jailbreak';
 export * from './scenarios/eni';
 export * from './scenarios/contentAndAcademic';
+export * from './scenarios/moderation';

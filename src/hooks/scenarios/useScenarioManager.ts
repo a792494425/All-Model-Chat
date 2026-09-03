@@ -16,6 +16,8 @@ import {
 import { interpolate } from '@/i18n/interpolate';
 import { toastError, toastInfo, toastSuccess } from '@/stores/toastStore';
 
+import { useScenarioUiStore } from '@/stores/scenarioUiStore';
+
 type ModalView = 'list' | 'editor';
 
 interface UseScenarioManagerProps {
@@ -29,7 +31,8 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
   const [scenarios, setScenarios] = useState<SavedScenario[]>(savedScenarios);
   const [view, setView] = useState<ModalView>('list');
   const [editingScenario, setEditingScenario] = useState<SavedScenario | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchQuery = useScenarioUiStore((state) => state.searchQuery);
+  const setSearchQuery = useScenarioUiStore((state) => state.setSearchQuery);
 
   const importInputRef = useRef<HTMLInputElement>(null);
   const scenariosRef = useRef(scenarios);
@@ -42,7 +45,6 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
     setScenarios(savedScenarios);
     setView('list');
     setEditingScenario(null);
-    setSearchQuery('');
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Open-only reset; savedScenarios is read from the opening render.
   }, [isOpen]);
 

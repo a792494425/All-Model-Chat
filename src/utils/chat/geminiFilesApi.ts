@@ -1,4 +1,4 @@
-import type { ChatMessage, UploadedFile } from '@/types';
+import type { ChatMessage, SavedChatSession, UploadedFile } from '@/types';
 import { usesRemoteFileReference } from './fileTransferStrategy';
 
 const FILE_API_REFRESH_LEEWAY_MS = 5 * 60 * 1000;
@@ -120,3 +120,97 @@ export const formatGeminiFileApiProcessingError = (
 
 export const formatHistoryFileApiUnavailablePartText = (fileName: string): string =>
   `[System Note: The previously attached file '${fileName}' is no longer available via the Files API. Content omitted from history.]`;
+
+export const INVALID_FILE_API_KEY_FINGERPRINT = 'invalidated';
+
+const FILES_API_PERMISSION_DENIED_PATTERN =
+  /You do not have permission to access the File|(?:\b403\b|PERMISSION_DENIED).*?\bFile\b|\bFile\b.*?(?:\b403\b|PERMISSION_DENIED)/i;
+
+export const isFilesApiPermissionDeniedError = (error: unknown): boolean => {
+  const message = error instanceof Error ? error.message : String(error ?? '');
+  return FILES_API_PERMISSION_DENIED_PATTERN.test(message);
+};
+
+export const extractFilesApiIdentifierFromError = (error: unknown): string | null => {
+  const message = error instanceof Error ? error.message : String(error ?? '');
+  const match =
+    message.match(/permission to access the File\s+([a-zA-Z0-9_-]+)/i) ||
+    message.match(/files\/([a-zA-Z0-9_-]+)/i);
+  return match ? match[1] : null;
+};
+
+export const invalidateFilesApiReference = (file: UploadedFile): UploadedFile => ({
+  ...file,
+  fileApiKeyFingerprint: INVALID_FILE_API_KEY_FINGERPRINT,
+  fileApiExpirationTime: new Date(0).toISOString(),
+});
+
+export const invalidateSessionFilesApiReferences = (
+  session: SavedChatSession,
+  error: unknown,
+): SavedChatSession => {
+  if (!isFilesApiPermissionDeniedError(error)) {
+    return session;
+  }
+
+  const targetIdentifier = extractFilesApiIdentifierFromError(error);
+
+  const fileMatches = (file: UploadedFile, targetId?: string | null): boolean => {
+    if (!usesGeminiFilesApiReference(file)) {
+      return false;
+    }
+    if (!targetId) {
+      return true;
+    }
+    return Boolean(
+      (file.fileApiName && file.fileApiName.includes(targetId)) ||
+      (file.fileUri && file.fileUri.includes(targetId)) ||
+      file.id === targetId,
+    );
+  };
+
+  const hasSpecificMatch = targetIdentifier
+    ? session.messages.some((msg) => msg.files?.some((file) => fileMatches(file, targetIdentifier)))
+    : false;
+
+  const targetToUse = hasSpecificMatch ? targetIdentifier : null;
+
+  let sessionChanged = false;
+  const nextMessages = session.messages.map((message) => {
+    if (!message.files?.length) {
+      return message;
+    }
+
+    let messageChanged = false;
+    const nextFiles = message.files.map((file) => {
+      if (fileMatches(file, targetToUse)) {
+        messageChanged = true;
+        return invalidateFilesApiReference(file);
+      }
+      return file;
+    });
+
+    if (messageChanged) {
+      sessionChanged = true;
+      return { ...message, files: nextFiles };
+    }
+    return message;
+  });
+
+  const nextSettings = session.settings?.lockedApiKey
+    ? { ...session.settings, lockedApiKey: null }
+    : session.settings;
+
+  if (nextSettings !== session.settings) {
+    sessionChanged = true;
+  }
+
+  return sessionChanged
+    ? {
+        ...session,
+        messages: nextMessages,
+        settings: nextSettings,
+      }
+    : session;
+};
+

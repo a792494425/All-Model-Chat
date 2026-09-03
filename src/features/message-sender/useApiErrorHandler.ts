@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { logService } from '@/services/logService';
 import { type SavedChatSession } from '@/types';
-import { updateMessageInSession } from '@/utils/chat/sessionMutations';
+import { updateMessageInSession, updateSessionById } from '@/utils/chat/sessionMutations';
+import { invalidateSessionFilesApiReferences } from '@/utils/chat/geminiFilesApi';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatMessageSenderText } from './i18nFormat';
 
@@ -80,20 +81,25 @@ export const useApiErrorHandler = (updateAndPersistSessions: SessionsUpdater) =>
       }
 
       updateAndPersistSessions((previousSessions) =>
-        updateMessageInSession(previousSessions, sessionId, modelMessageId, (message) => {
-          const partial = (partialContent !== undefined ? partialContent : message.content || '').trim();
-          const errorBody = quoteAsApiError ? `[${errorMessage}]` : errorMessage;
-          const content = quoteAsApiError || partial ? `${partial}\n\n${errorBody}` : errorBody;
+        updateSessionById(previousSessions, sessionId, (session) => {
+          const sessionsWithMessageUpdated = updateMessageInSession([session], sessionId, modelMessageId, (message) => {
+            const partial = (partialContent !== undefined ? partialContent : message.content || '').trim();
+            const errorBody = quoteAsApiError ? `[${errorMessage}]` : errorMessage;
+            const content = quoteAsApiError || partial ? `${partial}\n\n${errorBody}` : errorBody;
 
-          return {
-            ...message,
-            role: 'error',
-            content,
-            thoughts: partialThoughts !== undefined ? partialThoughts : message.thoughts,
-            isLoading: false,
-            generationEndTime: new Date(),
-            thinkingTimeMs: fallbackThinkingTimeMs(message),
-          };
+            return {
+              ...message,
+              role: 'error',
+              content,
+              thoughts: partialThoughts !== undefined ? partialThoughts : message.thoughts,
+              isLoading: false,
+              generationEndTime: new Date(),
+              thinkingTimeMs: fallbackThinkingTimeMs(message),
+            };
+          });
+
+          const updatedSession = sessionsWithMessageUpdated[0] ?? session;
+          return invalidateSessionFilesApiReferences(updatedSession, error);
         }),
       );
 

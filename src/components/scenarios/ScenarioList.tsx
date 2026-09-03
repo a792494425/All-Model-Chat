@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { type SavedScenario, type ScenarioCategory } from '@/types';
 import { Search, User, Library, Inbox } from 'lucide-react';
 import { ScenarioItem } from './ScenarioItem';
 import { CATEGORY_META, CATEGORY_ORDER, getCategory } from '@/features/scenarios/scenarioCategories';
+import { useScenarioUiStore, type ScenarioOwnerScope } from '@/stores/scenarioUiStore';
 import {
   SETTINGS_NAV_ACTIVE_CLASS,
   SETTINGS_NAV_IDLE_CLASS,
@@ -29,7 +30,7 @@ interface ScenarioListProps {
   onView?: (scenario: SavedScenario) => void;
 }
 
-type OwnerScope = 'mine' | 'builtin';
+type OwnerScope = ScenarioOwnerScope;
 
 export const ScenarioList: React.FC<ScenarioListProps> = ({
   scenarios,
@@ -45,9 +46,61 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
   onView,
 }) => {
   const { t } = useI18n();
-  const hasCustomScenarios = scenarios.some((scenario) => !builtInScenarioIds.includes(scenario.id));
-  const [ownerScope, setOwnerScope] = useState<OwnerScope>(hasCustomScenarios ? 'mine' : 'builtin');
-  const [activeCategory, setActiveCategory] = useState<ScenarioCategory | 'all'>('all');
+  const ownerScope = useScenarioUiStore((state) => state.ownerScope);
+  const setOwnerScope = useScenarioUiStore((state) => state.setOwnerScope);
+  const activeCategory = useScenarioUiStore((state) => state.activeCategory);
+  const setActiveCategory = useScenarioUiStore((state) => state.setActiveCategory);
+  const scrollPositions = useScenarioUiStore((state) => state.scrollPositions);
+  const setScrollPosition = useScenarioUiStore((state) => state.setScrollPosition);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const savedScrollTop = scrollPositions[ownerScope] ?? 0;
+    const rafId = requestAnimationFrame(() => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = savedScrollTop;
+      }
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [ownerScope]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setScrollPosition(ownerScope, e.currentTarget.scrollTop);
+  };
+
+  const handleOwnerScopeChange = (scope: ScenarioOwnerScope) => {
+    if (scope === ownerScope) return;
+    setOwnerScope(scope);
+  };
+
+  const handleCategorySelect = (category: ScenarioCategory | 'all') => {
+    setActiveCategory(category);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+    setScrollPosition(ownerScope, 0);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+    setScrollPosition(ownerScope, 0);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+    setScrollPosition(ownerScope, 0);
+  };
 
   const builtInSet = useMemo(() => new Set(builtInScenarioIds), [builtInScenarioIds]);
   const isBuiltinScope = ownerScope === 'builtin';
@@ -108,7 +161,7 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
           placeholder={t('scenariosSearchPlaceholder')}
           aria-label={t('scenariosSearchPlaceholder')}
           value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
+          onChange={(event) => handleSearchChange(event.target.value)}
           autoComplete="off"
           spellCheck={false}
           className={SETTINGS_SEARCH_INPUT_CLASS}
@@ -124,7 +177,7 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setOwnerScope(tab.id)}
+                onClick={() => handleOwnerScopeChange(tab.id)}
                 className={`flex flex-1 items-center justify-center gap-1.5 sm:flex-none ${
                   isActive ? SETTINGS_SEGMENTED_ACTIVE_CLASS : SETTINGS_SEGMENTED_IDLE_CLASS
                 }`}
@@ -144,14 +197,14 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
           >
             <CategoryChip
               active={effectiveCategory === 'all'}
-              onClick={() => setActiveCategory('all')}
+              onClick={() => handleCategorySelect('all')}
               label={t('scenariosFilterAll')}
             />
             {availableCategories.map((category) => (
               <CategoryChip
                 key={category}
                 active={effectiveCategory === category}
-                onClick={() => setActiveCategory(category)}
+                onClick={() => handleCategorySelect(category)}
                 label={t(CATEGORY_META[category].labelKey)}
               />
             ))}
@@ -159,7 +212,11 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
         )}
       </div>
 
-      <div className="min-h-0 flex-grow overflow-y-auto custom-scrollbar">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="min-h-0 flex-grow overflow-y-auto custom-scrollbar"
+      >
         {filteredScenarios.length === 0 ? (
           <div className="flex h-56 flex-col items-center justify-center text-[var(--theme-text-tertiary)]">
             <Inbox size={28} className="mb-3 opacity-40" strokeWidth={1.5} />
@@ -167,7 +224,7 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={handleClearSearch}
                 className="mt-2 text-sm text-[var(--theme-text-link)] hover:underline"
               >
                 {t('scenariosClearSearch')}

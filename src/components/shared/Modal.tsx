@@ -184,9 +184,24 @@ export const Modal: React.FC<ModalProps> = ({
     }
 
     const targetWindow = targetDocument.defaultView ?? window;
-    const siblingStates = Array.from(targetDocument.body.children)
+    const allBodyChildren = Array.from(targetDocument.body.children);
+    const backdropIndex = allBodyChildren.indexOf(backdropNode);
+
+    const siblingStates = allBodyChildren
       .filter(
-        (element): element is InertElement => element !== backdropNode && element instanceof targetWindow.HTMLElement,
+        (element): element is InertElement => {
+          if (element === backdropNode || !(element instanceof targetWindow.HTMLElement)) {
+            return false;
+          }
+          // Do not mark other modal backdrops as inert if they were mounted after this one (stacked on top)
+          if (element.getAttribute('data-modal-backdrop') === 'true') {
+            const elementIndex = allBodyChildren.indexOf(element);
+            if (elementIndex > backdropIndex) {
+              return false;
+            }
+          }
+          return true;
+        },
       )
       .map((element) => ({
         element,

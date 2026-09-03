@@ -1,12 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { createChatMessage, createUploadedFile } from '@/test/data/factories';
+import { createChatMessage, createChatSettings, createUploadedFile } from '@/test/data/factories';
 import {
+  extractFilesApiIdentifierFromError,
   formatGeminiFileApiProcessingError,
   formatHistoryFileApiUnavailablePartText,
   getApiKeyFingerprint,
   getGeminiFilesApiName,
   getGeminiFilesApiNameFromUri,
+  INVALID_FILE_API_KEY_FINGERPRINT,
+  invalidateFilesApiReference,
+  invalidateSessionFilesApiReferences,
   isFileApiKeyMismatch,
+  isFilesApiPermissionDeniedError,
   isGeminiFilesApiReferenceStillValid,
   sessionHasGeminiFilesApiReferences,
   shouldRefreshGeminiFilesApiReferenceFromExpiration,
@@ -175,4 +180,146 @@ describe('getApiKeyFingerprint', () => {
   it('treats legacy files without a fingerprint as unchanged', () => {
     expect(isFileApiKeyMismatch(createUploadedFile({}), 'any-key')).toBe(false);
   });
+
+  it('treats invalidated fingerprint as mismatch against any valid key', () => {
+    const file = createUploadedFile({ fileApiKeyFingerprint: INVALID_FILE_API_KEY_FINGERPRINT });
+    expect(isFileApiKeyMismatch(file, 'any-key')).toBe(true);
+    expect(isFileApiKeyMismatch(file, 'other-key')).toBe(true);
+  });
 });
+
+describe('isFilesApiPermissionDeniedError', () => {
+  it('detects upstream proxy Google 403 permission denied error with file message', () => {
+    const error =
+      'upstream 403: 403 INTERNAL Proxy browser error: Google API returned error: 403 PERMISSION_DENIED {"error":{"code":403,"message":"You do not have permission to access the File 5aa5e27996bcaf1603af49ec6d30f7c40bac24ab or it may not exist.","status":"PERMISSION_DENIED"}}';
+    expect(isFilesApiPermissionDeniedError(error)).toBe(true);
+    expect(isFilesApiPermissionDeniedError(new Error(error))).toBe(true);
+  });
+
+  it('detects simple permission error on File', () => {
+    expect(isFilesApiPermissionDeniedError('You do not have permission to access the File abc or it may not exist.')).toBe(true);
+    expect(isFilesApiPermissionDeniedError('403 PERMISSION_DENIED: File not accessible')).toBe(true);
+  });
+
+  it('returns false for unrelated errors', () => {
+    expect(isFilesApiPermissionDeniedError('Network error')).toBe(false);
+    expect(isFilesApiPermissionDeniedError('Region not supported')).toBe(false);
+    expect(isFilesApiPermissionDeniedError('500 Internal Server Error')).toBe(false);
+  });
+});
+
+describe('extractFilesApiIdentifierFromError', () => {
+  it('extracts hex/hash file IDs from the permission denied message', () => {
+    const error =
+      'You do not have permission to access the File 5aa5e27996bcaf1603af49ec6d30f7c40bac24ab or it may not exist.';
+    expect(extractFilesApiIdentifierFromError(error)).toBe('5aa5e27996bcaf1603af49ec6d30f7c40bac24ab');
+  });
+
+  it('extracts files/ resource names from error messages', () => {
+    expect(extractFilesApiIdentifierFromError('Google API error: files/my-test-file not found')).toBe('my-test-file');
+  });
+
+  it('returns null when no file identifier is found', () => {
+    expect(extractFilesApiIdentifierFromError('General 403 error')).toBeNull();
+  });
+});
+
+describe('invalidateFilesApiReference', () => {
+  it('stamps invalidated fingerprint and resets expiration time to epoch', () => {
+    const file = createUploadedFile({
+      fileApiKeyFingerprint: getApiKeyFingerprint('old-key'),
+      fileApiExpirationTime: new Date(Date.now() + 86400000).toISOString(),
+    });
+
+    const invalidated = invalidateFilesApiReference(file);
+    expect(invalidated.fileApiKeyFingerprint).toBe(INVALID_FILE_API_KEY_FINGERPRINT);
+    expect(invalidated.fileApiExpirationTime).toBe(new Date(0).toISOString());
+    expect(isFileApiKeyMismatch(invalidated, 'new-key')).toBe(true);
+  });
+});
+
+describe('invalidateSessionFilesApiReferences', () => {
+  it('invalidates matching file and resets lockedApiKey when permission denied error matches', () => {
+    const fileA = createUploadedFile({
+      id: 'f1',
+      fileApiName: 'files/5aa5e27996bcaf1603af49ec6d30f7c40bac24ab',
+      fileUri: 'https://generativelanguage.googleapis.com/v1beta/files/5aa5e27996bcaf1603af49ec6d30f7c40bac24ab',
+      fileApiKeyFingerprint: getApiKeyFingerprint('key-1'),
+      fileApiExpirationTime: new Date(Date.now() + 86400000).toISOString(),
+    });
+    const fileB = createUploadedFile({
+      id: 'f2',
+      fileApiName: 'files/other-file',
+      fileUri: 'https://generativelanguage.googleapis.com/v1beta/files/other-file',
+      fileApiKeyFingerprint: getApiKeyFingerprint('key-1'),
+      fileApiExpirationTime: new Date(Date.now() + 86400000).toISOString(),
+    });
+
+    const session = {
+      id: 's1',
+      title: 'Test',
+      timestamp: 1,
+      settings: createChatSettings({ lockedApiKey: 'key-1' }),
+      messages: [
+        createChatMessage({
+          role: 'user',
+          files: [fileA, fileB],
+        }),
+      ],
+    };
+
+    const error =
+      'You do not have permission to access the File 5aa5e27996bcaf1603af49ec6d30f7c40bac24ab or it may not exist.';
+    const updated = invalidateSessionFilesApiReferences(session, error);
+
+    expect(updated.settings.lockedApiKey).toBeNull();
+    const updatedFileA = updated.messages[0].files![0];
+    const updatedFileB = updated.messages[0].files![1];
+
+    expect(updatedFileA.fileApiKeyFingerprint).toBe(INVALID_FILE_API_KEY_FINGERPRINT);
+    expect(updatedFileA.fileApiExpirationTime).toBe(new Date(0).toISOString());
+
+    // fileB does not match the specific identifier, so it stays untouched
+    expect(updatedFileB.fileApiKeyFingerprint).toBe(getApiKeyFingerprint('key-1'));
+  });
+
+  it('invalidates all Files API files if error has no specific file identifier', () => {
+    const fileA = createUploadedFile({
+      id: 'f1',
+      fileApiName: 'files/file-1',
+      fileApiKeyFingerprint: getApiKeyFingerprint('key-1'),
+    });
+    const session = {
+      id: 's1',
+      title: 'Test',
+      timestamp: 1,
+      settings: createChatSettings({ lockedApiKey: 'key-1' }),
+      messages: [
+        createChatMessage({
+          role: 'user',
+          files: [fileA],
+        }),
+      ],
+    };
+
+    const error = '403 PERMISSION_DENIED: File cannot be accessed by caller';
+    const updated = invalidateSessionFilesApiReferences(session, error);
+
+    expect(updated.settings.lockedApiKey).toBeNull();
+    expect(updated.messages[0].files![0].fileApiKeyFingerprint).toBe(INVALID_FILE_API_KEY_FINGERPRINT);
+  });
+
+  it('returns original session when error is not permission denied', () => {
+    const session = {
+      id: 's1',
+      title: 'Test',
+      timestamp: 1,
+      settings: createChatSettings({ lockedApiKey: 'key-1' }),
+      messages: [],
+    };
+
+    const updated = invalidateSessionFilesApiReferences(session, new Error('Network timeout'));
+    expect(updated).toBe(session);
+  });
+});
+

@@ -1,7 +1,8 @@
 import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '@/test/render/providerRenderer';
-import { createChatSettings } from '@/test/data/factories';
+import { createChatSettings, createUploadedFile } from '@/test/data/factories';
+import { INVALID_FILE_API_KEY_FINGERPRINT } from '@/utils/chat/geminiFilesApi';
 import type { SavedChatSession } from '@/types';
 import { useApiErrorHandler } from './useApiErrorHandler';
 
@@ -134,5 +135,43 @@ describe('useApiErrorHandler', () => {
     const updater = updateAndPersistSessions.mock.calls[0]?.[0];
     const finalState = updater([createSession()]);
     expect(finalState[0].messages[0].thinkingTimeMs).toBeUndefined();
+  });
+
+  it('invalidates matching file references and clears lockedApiKey on Files API permission denied errors', () => {
+    const updateAndPersistSessions = vi.fn();
+    const { result } = renderHookWithProviders(() => useApiErrorHandler(updateAndPersistSessions), { language: 'zh' });
+    const session = createSession();
+    session.settings = createChatSettings({ lockedApiKey: 'old-key' });
+    session.messages.unshift({
+      id: 'user-1',
+      role: 'user',
+      content: 'Analyze this file',
+      timestamp: new Date('2026-04-20T00:00:00.000Z'),
+      files: [
+        createUploadedFile({
+          id: 'file-1',
+          name: 'doc.pdf',
+          fileApiName: 'files/5aa5e27996bcaf1603af49ec6d30f7c40bac24ab',
+          fileUri: 'https://generativelanguage.googleapis.com/v1beta/files/5aa5e27996bcaf1603af49ec6d30f7c40bac24ab',
+          fileApiKeyFingerprint: 'fnv1a-123-7',
+          fileApiExpirationTime: new Date(Date.now() + 86400000).toISOString(),
+        }),
+      ],
+    });
+
+    const error = new Error(
+      'upstream 403: 403 INTERNAL Proxy browser error: Google API returned error: 403 PERMISSION_DENIED {"error":{"code":403,"message":"You do not have permission to access the File 5aa5e27996bcaf1603af49ec6d30f7c40bac24ab or it may not exist.","status":"PERMISSION_DENIED"}}',
+    );
+
+    act(() => {
+      result.current.handleApiError(error, 'session-1', 'generation-1');
+    });
+
+    const updater = updateAndPersistSessions.mock.calls[0]?.[0];
+    const finalState = updater([session]);
+    expect(finalState[0].settings.lockedApiKey).toBeNull();
+    const userFile = finalState[0].messages[0].files![0];
+    expect(userFile.fileApiKeyFingerprint).toBe(INVALID_FILE_API_KEY_FINGERPRINT);
+    expect(userFile.fileApiExpirationTime).toBe(new Date(0).toISOString());
   });
 });

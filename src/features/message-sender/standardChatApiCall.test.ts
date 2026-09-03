@@ -22,8 +22,22 @@ const mocks = vi.hoisted(() => ({
   recordPendingStreamJob: vi.fn(),
   advancePendingStreamJobSeq: vi.fn(),
   clearPendingStreamJob: vi.fn(),
+  ensureHistoryFilesApiReferences: vi.fn(),
+  getGeminiKeyForRequest: vi.fn(),
+  useChatStoreGetState: vi.fn(),
 }));
 
+vi.mock('@/stores/chatStore', () => ({
+  useChatStore: {
+    getState: mocks.useChatStoreGetState,
+  },
+}));
+vi.mock('./fileApiReference', () => ({
+  ensureHistoryFilesApiReferences: mocks.ensureHistoryFilesApiReferences,
+}));
+vi.mock('@/utils/apiKeySelection', () => ({
+  getGeminiKeyForRequest: mocks.getGeminiKeyForRequest,
+}));
 vi.mock('@/utils/chatApiRoute', () => ({
   resolveChatApiRoute: mocks.resolveChatApiRoute,
   isUnavailableThirdPartyRoute: (route: { unavailable?: string }) => route.unavailable !== undefined,
@@ -114,6 +128,15 @@ describe('performStandardChatApiCall', () => {
     mocks.createStandardClientFunctions.mockReturnValue({});
     mocks.createMcpClientFunctions.mockResolvedValue({});
     mocks.isGeminiProxyRelativePath.mockReturnValue(false);
+    mocks.ensureHistoryFilesApiReferences.mockResolvedValue({
+      ok: true,
+      changed: false,
+      messages: [],
+    });
+    mocks.getGeminiKeyForRequest.mockReturnValue({ key: 'test-key' });
+    mocks.useChatStoreGetState.mockReturnValue({
+      savedSessions: [],
+    });
   });
 
   it('skips every API call when the resolved turn says to skip', async () => {
@@ -266,5 +289,59 @@ describe('performStandardChatApiCall', () => {
     );
     expect(handlers.onThoughtChunk).toHaveBeenCalledWith('thoughts', { recordFirstToken: false, source: 'gemini' });
     expect(handlers.streamOnComplete).toHaveBeenCalledWith({ totalTokenCount: 3 }, undefined, undefined);
+  });
+
+  it('silently auto-retries when Files API permission denied error is encountered', async () => {
+    let callCount = 0;
+    mocks.sendStatelessMessageStreamApi.mockImplementation(
+      async (_key, _model, _history, _parts, _config, _signal, _part, _thought, onError, onComplete) => {
+        callCount += 1;
+        if (callCount === 1) {
+          onError(
+            new Error(
+              'upstream 403: Google API returned error: 403 PERMISSION_DENIED {"error":{"message":"You do not have permission to access the File 5aa5e27996bcaf1603af49ec6d30f7c40bac24ab"}}',
+            ),
+          );
+        } else {
+          onComplete();
+        }
+      },
+    );
+
+    mocks.useChatStoreGetState.mockReturnValue({
+      savedSessions: [
+        {
+          id: 'session-1',
+          settings: {},
+          messages: [
+            {
+              id: 'm1',
+              role: 'user',
+              files: [{ id: 'f1', fileApiName: 'files/5aa5e27996bcaf1603af49ec6d30f7c40bac24ab' }],
+            },
+          ],
+        },
+      ],
+    });
+
+    mocks.ensureHistoryFilesApiReferences.mockResolvedValue({
+      ok: true,
+      changed: true,
+      messages: [
+        {
+          id: 'm1',
+          role: 'user',
+          files: [{ id: 'f1', fileApiName: 'files/new-file-id' }],
+        },
+      ],
+    });
+
+    const params = baseParams();
+    await performStandardChatApiCall(params as never);
+
+    expect(callCount).toBe(2);
+    expect(mocks.ensureHistoryFilesApiReferences).toHaveBeenCalledTimes(1);
+    expect(handlers.streamOnError).not.toHaveBeenCalled();
+    expect(handlers.streamOnComplete).toHaveBeenCalledTimes(1);
   });
 });

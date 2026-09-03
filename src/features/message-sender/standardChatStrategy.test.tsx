@@ -875,7 +875,7 @@ describe('standardChatStrategy', () => {
       [{ text: '<thinking>' }],
       expect.any(Object),
       expect.any(AbortSignal),
-      streamOnError,
+      expect.any(Function),
       expect.any(Function),
       'model',
     );

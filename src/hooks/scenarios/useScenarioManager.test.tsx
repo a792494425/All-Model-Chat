@@ -146,6 +146,36 @@ describe('useScenarioManager', () => {
     unmount();
   });
 
+  it('preserves search query across modal close and reopen', () => {
+    const props = createHookProps();
+    let isOpen = true;
+    const { result, rerender, unmount } = renderHook(() =>
+      useScenarioManager({
+        isOpen,
+        savedScenarios: props.savedScenarios,
+        onSaveAllScenarios: props.onSaveAllScenarios,
+        t: props.t,
+      }),
+    );
+
+    act(() => {
+      result.current.setSearchQuery('girlfriend');
+    });
+
+    expect(result.current.searchQuery).toBe('girlfriend');
+
+    // Close modal
+    isOpen = false;
+    rerender();
+
+    // Reopen modal
+    isOpen = true;
+    rerender();
+
+    expect(result.current.searchQuery).toBe('girlfriend');
+    unmount();
+  });
+
   it('does not expose a deferred save-all action', () => {
     const { result, unmount } = renderHook(() => useScenarioManager(createHookProps()));
 

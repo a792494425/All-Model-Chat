@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Image as ImageIcon, Info, SquarePen, X } from 'lucide-react';
+import { Eraser, Image as ImageIcon, Info, SquarePen, X } from 'lucide-react';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { SMALL_ICON_BUTTON_CLASS } from '@/constants/buttonClasses';
 import {
@@ -133,7 +133,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                 title={t('settingsClearSystemPrompt')}
                 aria-label={t('settingsClearSystemPrompt')}
               >
-                <X size={14} />
+                <Eraser size={14} />
               </button>
             )}
             <button
@@ -170,10 +170,10 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
 
       <TextEditorModal
         isOpen={isSystemPromptExpanded}
-        onClose={() => setIsSystemPromptExpanded(false)}
+        onClose={handleCloseExpand}
         title={t('settingsSystemPrompt')}
-        value={systemInstruction}
-        onChange={(value) => onUpdateSetting('systemInstruction', value)}
+        value={localPrompt}
+        onChange={handleSaveExpanded}
         placeholder={t('chatBehaviorSystemPromptPlaceholder')}
         confirmLabel={t('settingsSaveAndClose')}
       />
@@ -497,14 +497,6 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
             )}
         </div>
       )}
-
-      <TextEditorModal
-        isOpen={isSystemPromptExpanded}
-        onClose={handleCloseExpand}
-        onChange={handleSaveExpanded}
-        value={localPrompt}
-        title={t('settingsSystemPrompt')}
-      />
     </div>
   );
 };
