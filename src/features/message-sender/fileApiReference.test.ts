@@ -727,4 +727,45 @@ describe('ensureFilesApiReferences', () => {
       }),
     );
   });
+
+  it('reports upload progress via onFileUpdate when refreshing Files API reference', async () => {
+    mockGetFileMetadataApi.mockRejectedValue(new Error('403 PERMISSION_DENIED: caller lacks access'));
+    mockUploadFileApi.mockImplementation(async (_key, _file, _mime, _name, _sig, onProgress) => {
+      onProgress?.(50, 100);
+      return {
+        name: 'files/refreshed-with-progress',
+        uri: 'https://files/refreshed-with-progress',
+        state: 'ACTIVE',
+      };
+    });
+
+    const rawFile = new File(['pdf-bytes'], 'notes.pdf', { type: 'application/pdf' });
+    const file = createUploadedFile({
+      name: 'notes.pdf',
+      type: 'application/pdf',
+      rawFile,
+      fileApiName: 'files/expired',
+      fileUri: 'https://files/expired',
+      uploadState: 'active',
+      transferStrategy: 'files-api',
+    });
+
+    const updates: Array<{ fileId: string; patch: unknown }> = [];
+    const result = await ensureFilesApiReferences({
+      files: [file],
+      apiKey: 'api-key',
+      abortSignal: new AbortController().signal,
+      onFileUpdate: (fileId, patch) => {
+        updates.push({ fileId, patch });
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(updates).toContainEqual(
+      expect.objectContaining({
+        fileId: file.id,
+        patch: expect.objectContaining({ progress: 50 }),
+      }),
+    );
+  });
 });

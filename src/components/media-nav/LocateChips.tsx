@@ -1,12 +1,20 @@
 import React from 'react';
-import { MapPin, Play } from 'lucide-react';
+import { MapPin, Play, ScanSearch } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
 import { useChatStore } from '@/stores/chatStore';
 import { useMediaNavStore } from '@/stores/mediaNavStore';
-import { toPdfNavHighlight, type AudioLocate, type PdfLocate, type VideoLocate } from '@/utils/media-nav/locateMarker';
-import { collectSessionAudioFiles, collectSessionMediaFiles } from '@/utils/media-nav/sessionMediaFiles';
+import {
+  toPdfNavHighlight,
+  type AudioLocate,
+  type ImageLocate,
+  type PdfLocate,
+  type VideoLocate,
+} from '@/utils/media-nav/locateMarker';
+import { collectSessionMediaFiles } from '@/utils/media-nav/sessionMediaFiles';
 import { formatTimestamp } from '@/utils/media-nav/timestamp';
+import { seekSessionImage } from '@/utils/media-nav/seekImage';
+import { seekSessionAudio } from '@/utils/media-nav/seekAudio';
 
 const CHIP_CLASS =
   'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors duration-150 bg-[var(--theme-bg-accent)]/10 text-[var(--theme-text-link)] border-[var(--theme-border-secondary)] hover:border-[var(--theme-border-focus)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)]';
@@ -24,17 +32,27 @@ interface LocateChipsProps {
   pdfLocates: PdfLocate[];
   videoLocates: VideoLocate[];
   audioLocates: AudioLocate[];
+  imageLocates?: ImageLocate[];
 }
 
 /**
  * Locate chips rendered under a model message. PDF chips open the navigation
  * panel on the referenced page (with visual-grounding highlight); video chips
- * seek the referenced moment and optionally loop the referenced segment.
+ * seek the referenced moment and optionally loop the referenced segment;
+ * image chips highlight regions or points on the image.
  */
-export const LocateChips: React.FC<LocateChipsProps> = ({ messageId, pdfLocates, videoLocates, audioLocates }) => {
+export const LocateChips: React.FC<LocateChipsProps> = ({
+  messageId,
+  pdfLocates,
+  videoLocates,
+  audioLocates,
+  imageLocates = [],
+}) => {
   const { t } = useI18n();
 
-  if (pdfLocates.length === 0 && videoLocates.length === 0 && audioLocates.length === 0) return null;
+  if (pdfLocates.length === 0 && videoLocates.length === 0 && audioLocates.length === 0 && imageLocates.length === 0) {
+    return null;
+  }
 
   const handlePdfLocate = (locate: PdfLocate) => {
     const { selectedFiles, activeMessages } = useChatStore.getState();
@@ -60,20 +78,33 @@ export const LocateChips: React.FC<LocateChipsProps> = ({ messageId, pdfLocates,
     const store = useMediaNavStore.getState();
     store.openAs('video');
     store.setActiveFile(target.id);
-    store.jumpToTime(locate.startSeconds, locate.endSeconds);
+    store.jumpToTime(locate.startSeconds, locate.endSeconds, {
+      box2d: locate.box2d,
+      point: locate.point,
+      snippet: locate.snippet,
+    });
   };
 
   const handleAudioLocate = (locate: AudioLocate) => {
-    const { selectedFiles, activeMessages } = useChatStore.getState();
-    const audios = collectSessionAudioFiles(selectedFiles, activeMessages);
-    if (audios.length === 0) return;
-    const target = resolveNamedFile(audios, locate.audioName);
-    if (!target) return;
+    seekSessionAudio({
+      startSeconds: locate.startSeconds,
+      endSeconds: locate.endSeconds,
+      audioName: locate.audioName,
+      messageId,
+      snippet: locate.snippet,
+    });
+  };
 
-    const store = useMediaNavStore.getState();
-    store.openAs('audio');
-    store.setActiveFile(target.id);
-    store.jumpToTime(locate.startSeconds, locate.endSeconds);
+  const handleImageLocate = (locate: ImageLocate) => {
+    seekSessionImage({
+      fileName: locate.imageName,
+      box2d: locate.box2d,
+      point: locate.point,
+      arrow: locate.arrow,
+      label: locate.label,
+      snippet: locate.snippet,
+      messageId,
+    });
   };
 
   return (
@@ -137,6 +168,22 @@ export const LocateChips: React.FC<LocateChipsProps> = ({ messageId, pdfLocates,
           </span>
         </button>
       ))}
+      {imageLocates.map((locate, index) => {
+        const text = locate.label || locate.snippet || t('imageNavLocateButton');
+        return (
+          <button
+            key={`image:${locate.imageName ?? ''}:${locate.label ?? ''}:${locate.snippet ?? ''}:${index}`}
+            type="button"
+            onClick={() => handleImageLocate(locate)}
+            className={CHIP_CLASS}
+            title={locate.snippet || text}
+            data-testid={`image-locate-chip-${index}`}
+          >
+            <ScanSearch size={13} strokeWidth={2} />
+            <span>{text}</span>
+          </button>
+        );
+      })}
     </div>
   );
 };

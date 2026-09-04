@@ -188,21 +188,19 @@ export const Modal: React.FC<ModalProps> = ({
     const backdropIndex = allBodyChildren.indexOf(backdropNode);
 
     const siblingStates = allBodyChildren
-      .filter(
-        (element): element is InertElement => {
-          if (element === backdropNode || !(element instanceof targetWindow.HTMLElement)) {
+      .filter((element): element is InertElement => {
+        if (element === backdropNode || !(element instanceof targetWindow.HTMLElement)) {
+          return false;
+        }
+        // Do not mark other modal backdrops as inert if they were mounted after this one (stacked on top)
+        if (element.getAttribute('data-modal-backdrop') === 'true') {
+          const elementIndex = allBodyChildren.indexOf(element);
+          if (elementIndex > backdropIndex) {
             return false;
           }
-          // Do not mark other modal backdrops as inert if they were mounted after this one (stacked on top)
-          if (element.getAttribute('data-modal-backdrop') === 'true') {
-            const elementIndex = allBodyChildren.indexOf(element);
-            if (elementIndex > backdropIndex) {
-              return false;
-            }
-          }
-          return true;
-        },
-      )
+        }
+        return true;
+      })
       .map((element) => ({
         element,
         inert: element.inert,

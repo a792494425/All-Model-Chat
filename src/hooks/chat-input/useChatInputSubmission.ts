@@ -38,7 +38,7 @@ interface UseChatInputSubmissionParams {
   submissionState: ChatInputSubmissionState;
   isNativeAudioModel: boolean;
   liveApi: LiveModeApi;
-  onUpdateMessageContent: (messageId: string, content: string) => void;
+  onUpdateMessageContent: (messageId: string, content: string, files?: UploadedFile[]) => void;
   setEditingMessageId: (id: string | null) => void;
   onMessageSent: () => void;
   onAddUserMessage?: (text: string, files?: UploadedFile[]) => void;
@@ -110,15 +110,24 @@ export const useChatInputSubmission = ({
   useEffect(() => clearSendAnimationTimer, [clearSendAnimationTimer]);
 
   const completeEditSubmission = useCallback(
-    (messageId: string, content: string) => {
-      onUpdateMessageContent(messageId, content);
+    (messageId: string, content: string, files?: UploadedFile[]) => {
+      onUpdateMessageContent(messageId, content, files);
       setEditingMessageId(null);
+      setSelectedFiles([]);
       clearCurrentDraft();
       setInputText('');
       setQuotes([]);
       onMessageSent();
     },
-    [clearCurrentDraft, onMessageSent, onUpdateMessageContent, setEditingMessageId, setInputText, setQuotes],
+    [
+      clearCurrentDraft,
+      onMessageSent,
+      onUpdateMessageContent,
+      setEditingMessageId,
+      setInputText,
+      setQuotes,
+      setSelectedFiles,
+    ],
   );
 
   const completeSendSubmission = useCallback(
@@ -215,6 +224,7 @@ export const useChatInputSubmission = ({
         editMode,
         editingMessageId,
         isFastMode,
+        files: selectedFiles,
       });
 
       if (
@@ -225,7 +235,7 @@ export const useChatInputSubmission = ({
       }
 
       if (submission.kind === 'edit') {
-        completeEditSubmission(submission.messageId, submission.content);
+        completeEditSubmission(submission.messageId, submission.content, submission.files);
         return;
       }
 

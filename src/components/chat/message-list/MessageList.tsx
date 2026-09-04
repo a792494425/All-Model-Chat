@@ -14,7 +14,6 @@ import { MessageListModals } from './MessageListModals';
 import { isGemini3Model } from '@/utils/model/modelCapabilities';
 import { getMcpToolPairs, getVisibleChatMessages } from '@/utils/chat/visibility';
 import { McpToolCallGroup } from '@/components/mcp/McpToolCallGroup';
-import { isMarkdownFile } from '@/utils/file/fileTypeClassification';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -127,8 +126,6 @@ const MessageListComponent: React.FC = () => {
   } = useMessageListScroll({ messages: visibleMessages, setScrollContainerRef, activeSessionId });
 
   const isGemini3 = useMemo(() => isGemini3Model(currentChatSettings.modelId), [currentChatSettings.modelId]);
-  const markdownPreviewFile = previewFile && isMarkdownFile(previewFile) ? previewFile : null;
-  const genericPreviewFile = previewFile && !isMarkdownFile(previewFile) ? previewFile : null;
   const followOutput = React.useCallback((isAtBottom: boolean) => (isAtBottom ? 'auto' : false), []);
   const VirtuosoFooter = React.useCallback(
     () => <MessageListFooter messages={visibleMessages} chatInputHeight={chatInputHeight} />,
@@ -252,8 +249,7 @@ const MessageListComponent: React.FC = () => {
       </div>
 
       <MessageListModals
-        genericPreviewFile={genericPreviewFile}
-        markdownPreviewFile={markdownPreviewFile}
+        previewFile={previewFile}
         closeFilePreviewModal={closeFilePreviewModal}
         handlePrevImage={handlePrevImage}
         handleNextImage={handleNextImage}

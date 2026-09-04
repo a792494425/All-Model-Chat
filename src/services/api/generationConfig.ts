@@ -32,10 +32,13 @@ import { isServerCodeExecutionMode } from '@/utils/codeExecution';
 const IMAGE_TEXT_MODALITIES = ['TEXT', 'IMAGE'];
 const IMAGE_ONLY_MODALITIES = ['IMAGE'];
 const THINKING_LEVEL_FOR_SDK = {
+  NONE: GenAIThinkingLevel.MINIMAL,
   MINIMAL: GenAIThinkingLevel.MINIMAL,
   LOW: GenAIThinkingLevel.LOW,
   MEDIUM: GenAIThinkingLevel.MEDIUM,
   HIGH: GenAIThinkingLevel.HIGH,
+  XHIGH: GenAIThinkingLevel.HIGH,
+  MAX: GenAIThinkingLevel.HIGH,
 } as const;
 
 type GenerationConfig = Omit<GenerateContentConfig, 'mediaResolution' | 'safetySettings'> & {

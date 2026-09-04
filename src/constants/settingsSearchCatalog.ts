@@ -91,6 +91,13 @@ const interfaceEntries: SettingsSearchEntry[] = [
     groupKey: 'settingsChatBehavior',
   },
   {
+    id: 'interface-token-stats',
+    tab: 'interface',
+    labelKey: 'settingsShowMessageTokenStatsLabel',
+    descriptionKey: 'settingsShowMessageTokenStatsTooltip',
+    groupKey: 'settingsChatBehavior',
+  },
+  {
     id: 'interface-clipboard',
     tab: 'interface',
     labelKey: 'settingsClipboardInput',

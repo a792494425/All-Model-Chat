@@ -131,4 +131,11 @@ describe('ChatInputArea default spacing', () => {
     expect(designTokensSource).toContain("pill: 'rounded-[20px]'");
     expect(designTokensSource).toContain('COMPOSER_SHELL_RADIUS_CLASS = RADIUS_CLASS.pill');
   });
+
+  it('deactivates Live Artifacts when media navigation is toggled on', () => {
+    const source = fs.readFileSync(chatInputAreaPath, 'utf8');
+
+    expect(source).toContain('chatInput.onDeactivateLiveArtifactsPrompt?.()');
+    expect(source).toContain('applyMediaNavKindToSettings');
+  });
 });

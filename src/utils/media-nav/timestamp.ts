@@ -4,13 +4,18 @@ export const parseTimestamp = (raw: string | number | undefined | null): number 
   if (typeof raw === 'number') return Number.isFinite(raw) && raw >= 0 ? Math.floor(raw) : null;
 
   const value = raw.trim();
-  if (!/^\d{1,2}(:\d{1,2}){0,2}$/.test(value)) return null;
-  const parts = value.split(':').map((segment) => Number.parseInt(segment, 10));
+  if (/^\d+(?:\.\d+)?$/.test(value)) {
+    const num = Number.parseFloat(value);
+    return Number.isFinite(num) && num >= 0 ? Math.floor(num) : null;
+  }
+
+  if (!/^\d{1,4}(?::\d{1,2}){1,2}(?:\.\d+)?$/.test(value)) return null;
+  const parts = value.split(':').map((segment) => Number.parseFloat(segment));
   if (parts.some((segment) => Number.isNaN(segment))) return null;
 
   const [seconds, minutes = 0, hours = 0] = [...parts].reverse();
   const total = hours * 3600 + minutes * 60 + seconds;
-  return total;
+  return Math.floor(total);
 };
 
 /** Format seconds as "mm:ss" (below an hour) or "hh:mm:ss". */

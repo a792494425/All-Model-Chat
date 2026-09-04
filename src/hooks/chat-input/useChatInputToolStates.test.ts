@@ -49,6 +49,48 @@ describe('getNextSettingsForToolToggle — keep thinking', () => {
   });
 });
 
+describe('getNextSettingsForToolToggle — search tools mutual exclusion', () => {
+  it('enabling googleSearch disables deepSearch and googleMaps', () => {
+    const next = getNextSettingsForToolToggle(
+      settings({ isGoogleSearchEnabled: false, isDeepSearchEnabled: true, isGoogleMapsEnabled: true }),
+      'googleSearch',
+    );
+    expect(next.isGoogleSearchEnabled).toBe(true);
+    expect(next.isDeepSearchEnabled).toBe(false);
+    expect(next.isGoogleMapsEnabled).toBe(false);
+  });
+
+  it('enabling deepSearch disables googleSearch and googleMaps', () => {
+    const next = getNextSettingsForToolToggle(
+      settings({ isDeepSearchEnabled: false, isGoogleSearchEnabled: true, isGoogleMapsEnabled: true }),
+      'deepSearch',
+    );
+    expect(next.isDeepSearchEnabled).toBe(true);
+    expect(next.isGoogleSearchEnabled).toBe(false);
+    expect(next.isGoogleMapsEnabled).toBe(false);
+  });
+
+  it('enabling googleMaps disables googleSearch and deepSearch', () => {
+    const next = getNextSettingsForToolToggle(
+      settings({ isGoogleMapsEnabled: false, isGoogleSearchEnabled: true, isDeepSearchEnabled: true }),
+      'googleMaps',
+    );
+    expect(next.isGoogleMapsEnabled).toBe(true);
+    expect(next.isGoogleSearchEnabled).toBe(false);
+    expect(next.isDeepSearchEnabled).toBe(false);
+  });
+
+  it('disabling googleSearch does not modify deepSearch or googleMaps', () => {
+    const next = getNextSettingsForToolToggle(
+      settings({ isGoogleSearchEnabled: true, isDeepSearchEnabled: false, isGoogleMapsEnabled: false }),
+      'googleSearch',
+    );
+    expect(next.isGoogleSearchEnabled).toBe(false);
+    expect(next.isDeepSearchEnabled).toBe(false);
+    expect(next.isGoogleMapsEnabled).toBe(false);
+  });
+});
+
 // Regression: the tool gates must mirror the ACTIVE SESSION's routing key
 // (providerId), not a global appSettings mode. When a chat switch leaves a
 // global mode stale, a global-based gate would hide badges on sessions that

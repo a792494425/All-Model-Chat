@@ -1,10 +1,11 @@
 import React, { type RefObject } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { Search, X } from 'lucide-react';
+import { Search, X, Library } from 'lucide-react';
 import { IconNewChat, IconNewGroup } from '@/components/icons';
 import { DESKTOP_BREAKPOINT_PX } from '@/constants/layout';
 import { buildNewTabHref } from '@/utils/chat/lastActiveSession';
 import { SIDEBAR_ACTION_LINK_CLASS, SIDEBAR_ACTION_ROW_CLASS } from './sidebarStyles';
+import { useUIStore } from '@/stores/uiStore';
 
 interface SidebarActionsProps {
   onNewChat: () => void;
@@ -99,6 +100,9 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
   activeSessionId,
 }) => {
   const { t } = useI18n();
+  const activeView = useUIStore((state) => state.activeView);
+  const setActiveView = useUIStore((state) => state.setActiveView);
+
   const closeSearch = () => {
     setIsSearching(false);
     setSearchQuery('');
@@ -107,10 +111,18 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
   const handleNewChatClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
       e.preventDefault();
+      setActiveView('chat');
       onNewChat();
       if (window.innerWidth < DESKTOP_BREAKPOINT_PX) {
         onCloseSidebar?.();
       }
+    }
+  };
+
+  const handleLibraryClick = () => {
+    setActiveView('library');
+    if (window.innerWidth < DESKTOP_BREAKPOINT_PX) {
+      onCloseSidebar?.();
     }
   };
 
@@ -127,6 +139,18 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
           <span className="min-w-0 flex-1 truncate font-medium text-[var(--theme-text-primary)]">{t('newChat')}</span>
           <ShortcutHint shortcut={newChatShortcut} />
         </a>
+      </div>
+      <div>
+        <button
+          onClick={handleLibraryClick}
+          className={`${SIDEBAR_ACTION_ROW_CLASS} ${activeView === 'library' ? 'bg-[var(--theme-bg-tertiary)]' : ''}`}
+          aria-label={t('libraryTitle')}
+        >
+          <Library size={18} className="text-[var(--theme-text-primary)]" strokeWidth={2.2} />
+          <span className="min-w-0 flex-1 truncate font-medium text-[var(--theme-text-primary)]">
+            {t('libraryTitle')}
+          </span>
+        </button>
       </div>
       <div>
         {isSearching ? (

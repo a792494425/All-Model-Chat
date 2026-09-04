@@ -70,6 +70,7 @@ export interface ChatInputRuntimeValue {
   onNewChat: () => void;
   onOpenSettings: () => void;
   onToggleLiveArtifactsPrompt: () => void;
+  onDeactivateLiveArtifactsPrompt?: () => void;
   onTogglePinCurrentSession: () => void;
   onRetryLastTurn: () => void;
   onSelectModel: (modelId: string, providerId?: ChatProviderId) => void;
@@ -92,7 +93,7 @@ export interface ChatInputRuntimeValue {
     apiPart?: Part,
   ) => void;
   liveClientFunctions?: LiveClientFunctions;
-  onEditMessageContent: (messageId: string, content: string) => void;
+  onEditMessageContent: (messageId: string, content: string, files?: UploadedFile[]) => void;
   onToggleBBox: () => void;
   onToggleGuide: () => void;
 }

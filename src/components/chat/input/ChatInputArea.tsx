@@ -10,8 +10,9 @@ import { LiveStatusBanner } from './LiveStatusBanner';
 import { QueuedSubmissionList } from './QueuedSubmissionList';
 import { HiddenFileInputs } from './files/HiddenFileInputs';
 import { getChatInputAreaLayout } from './chatInputAreaLayout';
-import { closeMediaNavPanel, openAudioNavPanel, openPdfNavPanel, openVideoNavPanel } from '@/stores/mediaNavStore';
+import { closeMediaNavPanel, useMediaNavStore, type MediaNavKind } from '@/stores/mediaNavStore';
 import { CHAT_INPUT_MAX_WIDTH_CLASS, FOCUS_BLOCKING_SELECTOR } from '@/constants/layout';
+import { applyMediaNavKindToSettings } from '@/utils/media-nav/mediaNavSettings';
 import { useI18n } from '@/contexts/I18nContext';
 import { useChatInputContext } from './ChatInputContext';
 import { ChatInputExpandCorner } from './ChatInputExpandCorner';
@@ -37,36 +38,40 @@ export const ChatInputArea: React.FC = () => {
   const isFullscreen = inputState.isFullscreen;
   const isPipActive = chatInput.isPipActive;
   const { setCurrentChatSettings } = chatInput;
-  const isPdfNavEnabled = !!chatInput.currentChatSettings.isPdfNavEnabled;
-  const isVideoNavEnabled = !!chatInput.currentChatSettings.isVideoNavEnabled;
-  const isAudioNavEnabled = !!chatInput.currentChatSettings.isAudioNavEnabled;
-  const handleTogglePdfNav = useCallback(() => {
-    const next = !isPdfNavEnabled;
-    setCurrentChatSettings((prev) => ({ ...prev, isPdfNavEnabled: next }));
-    if (next) {
-      openPdfNavPanel();
-    } else {
-      closeMediaNavPanel();
-    }
-  }, [isPdfNavEnabled, setCurrentChatSettings]);
-  const handleToggleVideoNav = useCallback(() => {
-    const next = !isVideoNavEnabled;
-    setCurrentChatSettings((prev) => ({ ...prev, isVideoNavEnabled: next }));
-    if (next) {
-      openVideoNavPanel();
-    } else {
-      closeMediaNavPanel();
-    }
-  }, [isVideoNavEnabled, setCurrentChatSettings]);
-  const handleToggleAudioNav = useCallback(() => {
-    const next = !isAudioNavEnabled;
-    setCurrentChatSettings((prev) => ({ ...prev, isAudioNavEnabled: next }));
-    if (next) {
-      openAudioNavPanel();
-    } else {
-      closeMediaNavPanel();
-    }
-  }, [isAudioNavEnabled, setCurrentChatSettings]);
+  const isMediaNavOpen = useMediaNavStore((state) => state.isOpen);
+  const mediaNavOpenKind = useMediaNavStore((state) => state.openKind);
+  const isPdfNavOpen = isMediaNavOpen && mediaNavOpenKind === 'pdf';
+  const isVideoNavOpen = isMediaNavOpen && mediaNavOpenKind === 'video';
+  const isAudioNavOpen = isMediaNavOpen && mediaNavOpenKind === 'audio';
+  const isImageNavOpen = isMediaNavOpen && mediaNavOpenKind === 'image';
+
+  const toggleMediaNav = useCallback(
+    (kind: MediaNavKind, isOpen: boolean) => {
+      const next = !isOpen;
+      if (next) {
+        chatInput.onDeactivateLiveArtifactsPrompt?.();
+        useMediaNavStore.getState().openAs(kind);
+      } else {
+        closeMediaNavPanel();
+      }
+      setCurrentChatSettings((prev) => applyMediaNavKindToSettings(prev, next ? kind : null));
+    },
+    [chatInput, setCurrentChatSettings],
+  );
+
+  const handleToggleImageNav = useCallback(
+    () => toggleMediaNav('image', isImageNavOpen),
+    [toggleMediaNav, isImageNavOpen],
+  );
+  const handleTogglePdfNav = useCallback(() => toggleMediaNav('pdf', isPdfNavOpen), [toggleMediaNav, isPdfNavOpen]);
+  const handleToggleVideoNav = useCallback(
+    () => toggleMediaNav('video', isVideoNavOpen),
+    [toggleMediaNav, isVideoNavOpen],
+  );
+  const handleToggleAudioNav = useCallback(
+    () => toggleMediaNav('audio', isAudioNavOpen),
+    [toggleMediaNav, isAudioNavOpen],
+  );
   const isAnimatingSend = inputState.isAnimatingSend;
   const isMobile = inputState.isMobile;
   const isConverting = localFileState.isConverting;
@@ -191,12 +196,14 @@ export const ChatInputArea: React.FC = () => {
             isBBoxModeActive={chatInput.isBBoxModeActive}
             onToggleGuide={chatInput.onToggleGuide}
             isGuideModeActive={chatInput.isGuideModeActive}
+            onToggleImageNav={!capabilities.isGemmaModel ? handleToggleImageNav : undefined}
+            isImageNavEnabled={isImageNavOpen}
             onTogglePdfNav={!capabilities.isGemmaModel ? handleTogglePdfNav : undefined}
-            isPdfNavEnabled={isPdfNavEnabled}
+            isPdfNavEnabled={isPdfNavOpen}
             onToggleVideoNav={!capabilities.isGemmaModel ? handleToggleVideoNav : undefined}
-            isVideoNavEnabled={isVideoNavEnabled}
+            isVideoNavEnabled={isVideoNavOpen}
             onToggleAudioNav={!capabilities.isGemmaModel ? handleToggleAudioNav : undefined}
-            isAudioNavEnabled={isAudioNavEnabled}
+            isAudioNavEnabled={isAudioNavOpen}
             isFullscreen={isFullscreen}
           />
         )}

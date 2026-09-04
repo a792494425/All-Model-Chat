@@ -47,6 +47,10 @@ const ChatInputContent: React.FC = () => {
         setConfiguringFile={localFileState.setConfiguringFile}
         showTokenModal={localFileState.showTokenModal}
         setShowTokenModal={localFileState.setShowTokenModal}
+        showLibraryPicker={modalsState.showLibraryPicker}
+        setShowLibraryPicker={modalsState.setShowLibraryPicker}
+        onImportFromLibrary={modalsState.handleImportFromLibrary}
+        isImageGenerationModel={capabilities.isImageGenerationModel}
         previewFile={localFileState.previewFile}
         onClosePreview={localFileState.closePreviewFile}
         inputText={inputState.inputText}

@@ -7,14 +7,12 @@ settings:
 overrides:
   dompurify: 3.4.13
   protobufjs: ^7.6.5
-  hono: ^4.12.34
   ws: ^8.20.2
   uuid: ^14.0.0
   serialize-javascript: ^7.0.5
   postcss: ^8.5.25
   fast-uri: ^3.1.5
   body-parser: ^2.3.0
-  '@hono/node-server': ^2.0.12
   pdfjs-dist: 4.8.69
 
 importers:
@@ -47,9 +45,6 @@ importers:
       highlight.js:
         specifier: ^11.9.0
         version: 11.12.0
-      hono:
-        specifier: ^4.12.34
-        version: 4.12.34
       html2canvas:
         specifier: ^1.4.1
         version: 1.4.1
@@ -1233,7 +1228,7 @@ packages:
       { integrity: sha512-ELuehkj5VCBdgEw9zs+ivkKwyzzUCSQuE96YmiPvn1ECBoZCczbFXJLeEGMTYjphP6gydh4pHMqEYPVMYUVgQg== }
     engines: { node: '>=20' }
     peerDependencies:
-      hono: ^4.12.34
+      hono: ^4
 
   '@humanfs/core@0.19.2':
     resolution:

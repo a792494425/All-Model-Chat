@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, PanelLeft } from 'lucide-react';
-import { ToolbarButton, ToolbarDivider, ToolbarLabel } from '@/components/shared/file-preview/FloatingToolbar';
+import { ToolbarButton, ToolbarDivider } from '@/components/shared/file-preview/FloatingToolbar';
 import { useI18n } from '@/contexts/I18nContext';
 
 interface PdfToolbarProps {
@@ -15,6 +15,8 @@ interface PdfToolbarProps {
   onZoomOut: () => void;
   onRotate: () => void;
   onToggleSidebar: () => void;
+  isFitToWidth?: boolean;
+  onFitToWidth?: () => void;
 }
 
 export const PdfToolbar: React.FC<PdfToolbarProps> = ({
@@ -29,6 +31,8 @@ export const PdfToolbar: React.FC<PdfToolbarProps> = ({
   onZoomOut,
   onRotate,
   onToggleSidebar,
+  isFitToWidth,
+  onFitToWidth,
 }) => {
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -103,7 +107,19 @@ export const PdfToolbar: React.FC<PdfToolbarProps> = ({
         <ToolbarButton onClick={onZoomOut} disabled={scale <= 0.4} title={t('filePreviewZoomOut')}>
           <ZoomOut size={18} />
         </ToolbarButton>
-        <ToolbarLabel className="min-w-[40px] text-center px-1">{Math.round(scale * 100)}%</ToolbarLabel>
+        <button
+          type="button"
+          onClick={onFitToWidth}
+          title={isFitToWidth ? t('filePreviewResetView') : t('pdfFitWidth')}
+          aria-label={isFitToWidth ? t('filePreviewResetView') : t('pdfFitWidth')}
+          className={`min-w-[48px] text-center px-1.5 py-0.5 rounded font-mono text-xs transition-colors cursor-pointer select-none ${
+            isFitToWidth
+              ? 'text-sky-400 font-semibold bg-sky-500/15 border border-sky-500/30'
+              : 'text-white/90 hover:text-white hover:bg-white/10'
+          }`}
+        >
+          {Math.round(scale * 100)}%
+        </button>
         <ToolbarButton onClick={onZoomIn} disabled={scale >= 3.0} title={t('filePreviewZoomIn')}>
           <ZoomIn size={18} />
         </ToolbarButton>

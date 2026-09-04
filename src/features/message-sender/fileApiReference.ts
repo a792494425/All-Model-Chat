@@ -305,6 +305,7 @@ const resolveRemoteFileReference = async (
   file: UploadedFile,
   apiKey: string,
   abortSignal: AbortSignal,
+  onFileUpdate?: (fileId: string, patch: FilePatch) => void,
 ): Promise<ResolvedRemoteFile> => {
   const fileApiName = getGeminiFilesApiName(file);
   if (!fileApiName) {
@@ -370,13 +371,31 @@ const resolveRemoteFileReference = async (
   }
 
   try {
-    const uploadedFile = await uploadFileApi(
-      apiKey,
-      uploadableFile,
-      file.type || uploadableFile.type || 'application/octet-stream',
-      file.name,
-      abortSignal,
-    );
+    onFileUpdate?.(file.id, {
+      uploadState: 'uploading',
+      isProcessing: true,
+      progress: 0,
+    });
+    const uploadedFile = onFileUpdate
+      ? await uploadFileApi(
+          apiKey,
+          uploadableFile,
+          file.type || uploadableFile.type || 'application/octet-stream',
+          file.name,
+          abortSignal,
+          (loaded: number, total: number) => {
+            if (total <= 0) return;
+            const progressPercent = Math.min(99, Math.max(0, Math.round((loaded / total) * 100)));
+            onFileUpdate(file.id, { progress: progressPercent });
+          },
+        )
+      : await uploadFileApi(
+          apiKey,
+          uploadableFile,
+          file.type || uploadableFile.type || 'application/octet-stream',
+          file.name,
+          abortSignal,
+        );
     const lifecycle = getUploadLifecycleForGeminiState(uploadedFile.state);
     const error =
       lifecycle.uploadState === 'failed'
@@ -448,7 +467,7 @@ export const ensureFilesApiReferences = async ({
     }
 
     const currentFile = nextFiles.find((candidate) => candidate.id === file.id) ?? file;
-    const resolved = await resolveRemoteFileReference(currentFile, apiKey, abortSignal);
+    const resolved = await resolveRemoteFileReference(currentFile, apiKey, abortSignal, onFileUpdate);
 
     if (resolved.kind === 'active' || resolved.kind === 'uploaded') {
       if (Object.keys(resolved.patch).length > 0) {

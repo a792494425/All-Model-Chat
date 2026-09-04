@@ -403,6 +403,7 @@ export const createChatRuntimeApp = (value: ChatAreaProviderValue): AppViewModel
     handleSaveSettings: vi.fn(),
     handleSaveCurrentChatSettings: vi.fn(),
     handleLoadLiveArtifactsPromptAndSave: async () => value.input.onToggleLiveArtifactsPrompt(),
+    handleDeactivateLiveArtifactsPrompt: vi.fn(),
     handleToggleBBoxMode: async () => value.input.onToggleBBox(),
     handleToggleGuideMode: async () => value.input.onToggleGuide(),
     handleSuggestionClick: vi.fn(),

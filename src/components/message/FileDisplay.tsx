@@ -146,12 +146,16 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
             {isUploading && file.uploadSpeed && (
               <span className="text-[10px] text-white/80 mt-0.5">{file.uploadSpeed}</span>
             )}
-            {isUploading && (
+            {(isUploading || file.uploadState === 'processing_api') && (
               <div className="w-3/4 h-1.5 bg-black/30 rounded-full mt-2 overflow-hidden">
-                <div
-                  className="h-full bg-[var(--theme-text-link)] transition-all duration-300 rounded-full"
-                  style={{ width: `${uploadPercent}%` }}
-                />
+                {file.uploadState === 'processing_api' ? (
+                  <div className="h-full w-full bg-[var(--theme-text-link)]/80 animate-pulse rounded-full" />
+                ) : (
+                  <div
+                    className="h-full bg-[var(--theme-text-link)] transition-all duration-300 rounded-full"
+                    style={{ width: `${uploadPercent}%` }}
+                  />
+                )}
               </div>
             )}
             {isProcessing && (
@@ -285,12 +289,16 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
             </span>
           )}
         </div>
-        {isUploading && (
+        {(isUploading || file.uploadState === 'processing_api') && (
           <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-[var(--theme-border-secondary)]">
-            <div
-              className="h-full rounded-full bg-[var(--theme-text-link)] transition-[width] duration-200"
-              style={{ width: `${uploadPercent}%` }}
-            />
+            {file.uploadState === 'processing_api' ? (
+              <div className="h-full w-full rounded-full bg-[var(--theme-text-link)]/75 animate-pulse" />
+            ) : (
+              <div
+                className="h-full rounded-full bg-[var(--theme-text-link)] transition-[width] duration-200"
+                style={{ width: `${uploadPercent}%` }}
+              />
+            )}
           </div>
         )}
       </div>

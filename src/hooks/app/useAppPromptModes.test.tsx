@@ -26,6 +26,7 @@ vi.mock('@/utils/chat-input/focus', () => ({
 
 import { useAppPromptModes } from './useAppPromptModes';
 import { createDeferred, renderHook } from '@/test/render/renderer';
+import { useMediaNavStore } from '@/stores/mediaNavStore';
 
 const LIVE_ARTIFACTS_PROMPT = '[Live Artifacts Protocol - zh]\nLive Artifacts prompt';
 const LIVE_ARTIFACTS_PROMPT_EN = '[Live Artifacts Protocol - en]\nLive Artifacts prompt';
@@ -61,6 +62,11 @@ describe('useAppPromptModes', () => {
     vi.clearAllMocks();
     mockLoadLiveArtifactsSystemPrompt.mockReset();
     mockLoadLiveArtifactsSystemPrompt.mockResolvedValue(LIVE_ARTIFACTS_PROMPT);
+    useMediaNavStore.setState({
+      isOpen: false,
+      openKind: null,
+      activeFileId: null,
+    });
   });
 
   afterEach(() => {
@@ -550,6 +556,199 @@ describe('useAppPromptModes', () => {
     expect(setAppSettings).not.toHaveBeenCalled();
     expect(setCurrentChatSettings).not.toHaveBeenCalled();
     expect(result.current.isLiveArtifactsPromptActive).toBe(true);
+
+    unmount();
+  });
+
+  it('keeps Live Artifacts active when toggled on the homepage and then a new session is activated', async () => {
+    mockLoadLiveArtifactsSystemPrompt.mockResolvedValue(LIVE_ARTIFACTS_PROMPT);
+
+    const setAppSettings = vi.fn((updater) => {
+      const next = typeof updater === 'function' ? updater(options.appSettings) : updater;
+      options.appSettings = next;
+    });
+    const setCurrentChatSettings = vi.fn((updater) => {
+      const next = typeof updater === 'function' ? updater(options.currentChatSettings) : updater;
+      options.currentChatSettings = next;
+    });
+    const options = {
+      appSettings: createAppSettings({ systemInstruction: '' }),
+      setAppSettings,
+      activeChat: undefined as any,
+      activeSessionId: null as string | null,
+      currentChatSettings: createLiveArtifactsChatSettings({ systemInstruction: '' }),
+      setCurrentChatSettings,
+      handleSendMessage: vi.fn(),
+      setCommandedInput: createSetCommandedInputMock(),
+    };
+
+    const { result, rerender, unmount } = renderHook(() => useAppPromptModesWithDefaultTheme(options));
+
+    // Initially inactive on homepage
+    expect(result.current.isLiveArtifactsPromptActive).toBe(false);
+
+    // Toggle on homepage
+    await act(async () => {
+      await result.current.handleLoadLiveArtifactsPromptAndSave();
+    });
+    rerender();
+
+    expect(result.current.isLiveArtifactsPromptActive).toBe(true);
+    expect(setCurrentChatSettings).toHaveBeenCalled();
+
+    // Now user sends a message / file, creating a new session
+    options.activeSessionId = 'new-session-id';
+    options.activeChat = createLiveArtifactsSession(
+      { id: 'new-session-id', title: 'New Chat' },
+      { systemInstruction: LIVE_ARTIFACTS_PROMPT },
+    );
+    options.currentChatSettings = createLiveArtifactsChatSettings({ systemInstruction: LIVE_ARTIFACTS_PROMPT });
+    rerender();
+
+    // Live Artifacts must remain active!
+    expect(result.current.isLiveArtifactsPromptActive).toBe(true);
+
+    unmount();
+  });
+
+  it('automatically deactivates Live Artifacts when PDF navigation is enabled', async () => {
+    const setAppSettings = vi.fn();
+    const setCurrentChatSettings = vi.fn();
+    const options = {
+      appSettings: createAppSettings({ systemInstruction: LIVE_ARTIFACTS_PROMPT }),
+      setAppSettings,
+      activeChat: createLiveArtifactsSession({ title: 'Session 1' }, { systemInstruction: LIVE_ARTIFACTS_PROMPT }),
+      activeSessionId: 'session-1' as string | null,
+      currentChatSettings: createLiveArtifactsChatSettings({
+        systemInstruction: LIVE_ARTIFACTS_PROMPT,
+        isPdfNavEnabled: false,
+      }),
+      setCurrentChatSettings,
+      handleSendMessage: vi.fn(),
+      setCommandedInput: createSetCommandedInputMock(),
+    };
+
+    const { result, rerender, unmount } = renderHook(() => useAppPromptModesWithDefaultTheme(options));
+
+    expect(result.current.isLiveArtifactsPromptActive).toBe(true);
+
+    // User enables PDF navigation
+    options.currentChatSettings = createLiveArtifactsChatSettings({
+      systemInstruction: LIVE_ARTIFACTS_PROMPT,
+      isPdfNavEnabled: true,
+    });
+    rerender();
+
+    expect(result.current.isLiveArtifactsPromptActive).toBe(false);
+    expect(setAppSettings).toHaveBeenCalledWith(expect.any(Function));
+    expect(setCurrentChatSettings).toHaveBeenCalledWith(expect.any(Function));
+
+    const chatSettingsUpdater = setCurrentChatSettings.mock.calls.at(-1)?.[0] as (prev: ChatSettings) => ChatSettings;
+    expect(chatSettingsUpdater(options.currentChatSettings).systemInstruction).toBe('');
+
+    unmount();
+  });
+
+  it('automatically deactivates Live Artifacts when image, video, or audio navigation is enabled', async () => {
+    for (const kind of ['isImageNavEnabled', 'isVideoNavEnabled', 'isAudioNavEnabled'] as const) {
+      const setAppSettings = vi.fn();
+      const setCurrentChatSettings = vi.fn();
+      const options = {
+        appSettings: createAppSettings({ systemInstruction: LIVE_ARTIFACTS_PROMPT }),
+        setAppSettings,
+        activeChat: createLiveArtifactsSession({ title: 'Session 1' }, { systemInstruction: LIVE_ARTIFACTS_PROMPT }),
+        activeSessionId: 'session-1' as string | null,
+        currentChatSettings: createLiveArtifactsChatSettings({
+          systemInstruction: LIVE_ARTIFACTS_PROMPT,
+          [kind]: false,
+        }),
+        setCurrentChatSettings,
+        handleSendMessage: vi.fn(),
+        setCommandedInput: createSetCommandedInputMock(),
+      };
+
+      const { result, rerender, unmount } = renderHook(() => useAppPromptModesWithDefaultTheme(options));
+
+      expect(result.current.isLiveArtifactsPromptActive).toBe(true);
+
+      options.currentChatSettings = createLiveArtifactsChatSettings({
+        systemInstruction: LIVE_ARTIFACTS_PROMPT,
+        [kind]: true,
+      });
+      rerender();
+
+      expect(result.current.isLiveArtifactsPromptActive).toBe(false);
+      unmount();
+    }
+  });
+
+  it('automatically deactivates Live Artifacts when the media navigation panel is opened', async () => {
+    const setAppSettings = vi.fn();
+    const setCurrentChatSettings = vi.fn();
+    const options = {
+      appSettings: createAppSettings({ systemInstruction: LIVE_ARTIFACTS_PROMPT }),
+      setAppSettings,
+      activeChat: createLiveArtifactsSession({ title: 'Session 1' }, { systemInstruction: LIVE_ARTIFACTS_PROMPT }),
+      activeSessionId: 'session-1' as string | null,
+      currentChatSettings: createLiveArtifactsChatSettings({
+        systemInstruction: LIVE_ARTIFACTS_PROMPT,
+      }),
+      setCurrentChatSettings,
+      handleSendMessage: vi.fn(),
+      setCommandedInput: createSetCommandedInputMock(),
+    };
+
+    const { result, rerender, unmount } = renderHook(() => useAppPromptModesWithDefaultTheme(options));
+
+    expect(result.current.isLiveArtifactsPromptActive).toBe(true);
+
+    act(() => {
+      useMediaNavStore.getState().openAs('pdf');
+    });
+    rerender();
+
+    expect(result.current.isLiveArtifactsPromptActive).toBe(false);
+
+    unmount();
+  });
+
+  it('closes media navigation panel and resets navigation flags when activating Live Artifacts', async () => {
+    act(() => {
+      useMediaNavStore.getState().openAs('pdf');
+    });
+
+    const setAppSettings = vi.fn();
+    const setCurrentChatSettings = vi.fn();
+    const options = {
+      appSettings: createAppSettings({ systemInstruction: '' }),
+      setAppSettings,
+      activeChat: createLiveArtifactsSession({ title: 'Session 1' }, { isPdfNavEnabled: true }),
+      activeSessionId: 'session-1' as string | null,
+      currentChatSettings: createLiveArtifactsChatSettings({
+        systemInstruction: '',
+        isPdfNavEnabled: true,
+      }),
+      setCurrentChatSettings,
+      handleSendMessage: vi.fn(),
+      setCommandedInput: createSetCommandedInputMock(),
+    };
+
+    const { result, unmount } = renderHook(() => useAppPromptModesWithDefaultTheme(options));
+
+    expect(useMediaNavStore.getState().isOpen).toBe(true);
+
+    await act(async () => {
+      await result.current.handleLoadLiveArtifactsPromptAndSave();
+    });
+
+    expect(useMediaNavStore.getState().isOpen).toBe(false);
+    expect(setCurrentChatSettings).toHaveBeenCalledWith(expect.any(Function));
+    const updater = setCurrentChatSettings.mock.calls[0][0] as (prev: ChatSettings) => ChatSettings;
+    const nextSettings = updater(options.currentChatSettings);
+    expect(nextSettings.isPdfNavEnabled).toBe(false);
+    expect(nextSettings.isVideoNavEnabled).toBe(false);
+    expect(nextSettings.isAudioNavEnabled).toBe(false);
+    expect(nextSettings.isImageNavEnabled).toBe(false);
 
     unmount();
   });

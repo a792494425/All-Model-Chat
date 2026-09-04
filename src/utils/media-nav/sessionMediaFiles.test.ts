@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 import type { ChatMessage, UploadedFile } from '@/types';
 import {
   collectSessionAudioFiles,
+  collectSessionImageFiles,
   collectSessionMediaFiles,
   isAudioFile,
+  isImageFile,
   isPdfFile,
   isVideoFile,
   partsContainAudio,
+  partsContainImage,
   partsContainPdf,
   partsContainVideo,
 } from './sessionMediaFiles';
@@ -37,8 +40,14 @@ describe('file kind detection', () => {
   it('detects videos and audios by mime type', () => {
     expect(isVideoFile(makeFile({ type: 'video/mp4', name: 'clip' }))).toBe(true);
     expect(isVideoFile(makeFile({ type: 'application/pdf' }))).toBe(false);
+    expect(isVideoFile(makeFile({ type: 'application/octet-stream', name: 'clip.mp4' }))).toBe(true);
+    expect(isVideoFile(makeFile({ type: '', name: 'clip.mkv' }))).toBe(true);
     expect(isAudioFile(makeFile({ type: 'audio/mpeg', name: 'track' }))).toBe(true);
-    expect(isAudioFile(makeFile({ type: 'video/mp4' }))).toBe(false);
+    expect(isAudioFile(makeFile({ type: 'application/octet-stream', name: 'voice.m4a' }))).toBe(true);
+    expect(isAudioFile(makeFile({ type: 'image/png' }))).toBe(false);
+    expect(isImageFile(makeFile({ type: 'image/png', name: 'photo' }))).toBe(true);
+    expect(isImageFile(makeFile({ type: 'application/octet-stream', name: 'photo.JPG' }))).toBe(true);
+    expect(isImageFile(makeFile({ type: 'video/mp4' }))).toBe(false);
   });
 });
 
@@ -50,15 +59,17 @@ describe('collectSessionMediaFiles', () => {
     const audio = makeFile({ id: 'm', name: 'take.mp3', type: 'audio/mpeg' });
     const image = makeFile({ id: 'c', name: 'pic.png', type: 'image/png' });
     const messages = [makeMessage([historyPdf, draftPdf, video, audio, image])];
-    const { pdfs, videos, audios } = collectSessionMediaFiles([draftPdf], messages);
+    const { pdfs, videos, audios, images } = collectSessionMediaFiles([draftPdf], messages);
     expect(pdfs.map((file) => file.id)).toEqual(['a', 'b']);
     expect(videos.map((file) => file.id)).toEqual(['v']);
     expect(audios.map((file) => file.id)).toEqual(['m']);
+    expect(images.map((file) => file.id)).toEqual(['c']);
     expect(collectSessionAudioFiles([], messages)).toHaveLength(1);
+    expect(collectSessionImageFiles([], messages)).toHaveLength(1);
   });
 
   it('returns empty for a session without media', () => {
-    expect(collectSessionMediaFiles([], [makeMessage([])])).toEqual({ pdfs: [], videos: [], audios: [] });
+    expect(collectSessionMediaFiles([], [makeMessage([])])).toEqual({ pdfs: [], videos: [], audios: [], images: [] });
   });
 });
 
@@ -82,5 +93,12 @@ describe('partsContain', () => {
     expect(partsContainAudio([{ fileData: { mimeType: 'audio/wav', fileUri: 'uri' } } as never])).toBe(true);
     expect(partsContainAudio([{ inlineData: { mimeType: 'video/mp4', data: 'x' } }])).toBe(false);
     expect(partsContainAudio(undefined)).toBe(false);
+  });
+
+  it('detects image parts', () => {
+    expect(partsContainImage([{ inlineData: { mimeType: 'image/png', data: 'x' } }])).toBe(true);
+    expect(partsContainImage([{ fileData: { mimeType: 'image/jpeg', fileUri: 'uri' } } as never])).toBe(true);
+    expect(partsContainImage([{ inlineData: { mimeType: 'application/pdf', data: 'x' } }])).toBe(false);
+    expect(partsContainImage(undefined)).toBe(false);
   });
 });

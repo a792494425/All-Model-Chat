@@ -40,6 +40,8 @@ interface ChatSuggestionsProps {
   isBBoxModeActive?: boolean;
   onToggleGuide?: () => void;
   isGuideModeActive?: boolean;
+  onToggleImageNav?: () => void;
+  isImageNavEnabled?: boolean;
   onTogglePdfNav?: () => void;
   isPdfNavEnabled?: boolean;
   onToggleVideoNav?: () => void;
@@ -57,6 +59,8 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
   isBBoxModeActive,
   onToggleGuide,
   isGuideModeActive,
+  onToggleImageNav,
+  isImageNavEnabled,
   onTogglePdfNav,
   isPdfNavEnabled,
   onToggleVideoNav,
@@ -128,33 +132,47 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
 
             {suggestion.specialAction === 'organize' && (
               <>
-                {onToggleBBox && (
-                  <button
-                    type="button"
-                    onClick={onToggleBBox}
-                    className={isBBoxModeActive ? SUGGESTION_CHIP_ACTIVE_CLASS : SUGGESTION_CHIP_CLASS}
-                    aria-label={t('bboxButtonTitle')}
-                    aria-pressed={!!isBBoxModeActive}
-                    title={t('bboxButtonTitle')}
-                  >
-                    <SuggestionIcon iconName="BoxSelect" />
-                    <span>{t('bboxButtonShort')}</span>
-                    <SuggestionToggleDot />
-                  </button>
-                )}
-                {onToggleGuide && (
-                  <button
-                    type="button"
-                    onClick={onToggleGuide}
-                    className={isGuideModeActive ? SUGGESTION_CHIP_ACTIVE_CLASS : SUGGESTION_CHIP_CLASS}
-                    aria-label={t('guideButtonTitle')}
-                    aria-pressed={!!isGuideModeActive}
-                    title={t('guideButtonTitle')}
-                  >
-                    <SuggestionIcon iconName="MousePointer2" />
-                    <span>{t('guideButtonShort')}</span>
-                    <SuggestionToggleDot />
-                  </button>
+                {onToggleImageNav ? (
+                  <NavChip
+                    iconName="MousePointer2"
+                    labelKey="imageNavChipLabel"
+                    missingHintKey="imageNavNoImageHint"
+                    mediaKind="image"
+                    isEnabled={!!isImageNavEnabled}
+                    onToggle={onToggleImageNav}
+                    testId="image-nav-chip"
+                  />
+                ) : (
+                  <>
+                    {onToggleBBox && (
+                      <button
+                        type="button"
+                        onClick={onToggleBBox}
+                        className={isBBoxModeActive ? SUGGESTION_CHIP_ACTIVE_CLASS : SUGGESTION_CHIP_CLASS}
+                        aria-label={t('bboxButtonTitle')}
+                        aria-pressed={!!isBBoxModeActive}
+                        title={t('bboxButtonTitle')}
+                      >
+                        <SuggestionIcon iconName="BoxSelect" />
+                        <span>{t('bboxButtonShort')}</span>
+                        <SuggestionToggleDot />
+                      </button>
+                    )}
+                    {onToggleGuide && (
+                      <button
+                        type="button"
+                        onClick={onToggleGuide}
+                        className={isGuideModeActive ? SUGGESTION_CHIP_ACTIVE_CLASS : SUGGESTION_CHIP_CLASS}
+                        aria-label={t('guideButtonTitle')}
+                        aria-pressed={!!isGuideModeActive}
+                        title={t('guideButtonTitle')}
+                      >
+                        <SuggestionIcon iconName="MousePointer2" />
+                        <span>{t('guideButtonShort')}</span>
+                        <SuggestionToggleDot />
+                      </button>
+                    )}
+                  </>
                 )}
                 {onTogglePdfNav && (
                   <NavChip

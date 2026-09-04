@@ -14,9 +14,11 @@ import {
   buildOpenAICompatibleChatCompletionsUrl,
   buildOpenAICompatibleUpstreamChatCompletionsUrl,
 } from '@/services/api/openaiCompatibleUrls';
+import { buildOpenAIResponsesUrl, buildOpenAIResponsesUpstreamUrl } from '@/services/api/openaiResponsesUrls';
 import { buildAnthropicMessagesUrl, buildAnthropicUpstreamMessagesUrl } from '@/services/api/anthropicUrls';
 import { sendAnthropicMessageNonStream } from '@/services/api/anthropicApi';
 import { fetchOpenAICompatibleModels, sendOpenAICompatibleMessageNonStream } from '@/services/api/openaiCompatibleApi';
+import { fetchOpenAIResponsesModels, sendOpenAIResponsesNonStream } from '@/services/api/openaiResponsesApi';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { parseApiKeys } from '@/utils/apiKeySelection';
 import { getProxyProviderHeader, getThirdPartyTemplateLinks } from '@/utils/thirdPartyApiProviders';
@@ -92,12 +94,16 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
   const browserRequestUrl =
     connection.protocol === 'anthropic'
       ? buildAnthropicMessagesUrl(connection.baseUrl)
-      : buildOpenAICompatibleChatCompletionsUrl(connection.baseUrl);
+      : connection.protocol === 'openai-responses'
+        ? buildOpenAIResponsesUrl(connection.baseUrl)
+        : buildOpenAICompatibleChatCompletionsUrl(connection.baseUrl);
   const hasBaseUrl = Boolean(connection.baseUrl?.trim());
   const upstreamRequestUrl = hasBaseUrl
     ? connection.protocol === 'anthropic'
       ? buildAnthropicUpstreamMessagesUrl(connection.baseUrl)
-      : buildOpenAICompatibleUpstreamChatCompletionsUrl(connection.baseUrl)
+      : connection.protocol === 'openai-responses'
+        ? buildOpenAIResponsesUpstreamUrl(connection.baseUrl)
+        : buildOpenAICompatibleUpstreamChatCompletionsUrl(connection.baseUrl)
     : null;
   const extraHeaderCount = Object.keys(connection.extraHeaders).length;
 
@@ -133,6 +139,19 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
 
       if (connection.protocol === 'anthropic') {
         await sendAnthropicMessageNonStream(
+          firstKey,
+          connection.modelId,
+          [],
+          [{ text: 'Hello' }],
+          providerConfig,
+          new AbortController().signal,
+          onError,
+          () => undefined,
+          'user',
+          proxyProviderId,
+        );
+      } else if (connection.protocol === 'openai-responses') {
+        await sendOpenAIResponsesNonStream(
           firstKey,
           connection.modelId,
           [],
@@ -182,7 +201,9 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
     setFetchStatus('idle');
     setFetchMessage(null);
     try {
-      const models = await fetchOpenAICompatibleModels(
+      const fetchModelsFn =
+        connection.protocol === 'openai-responses' ? fetchOpenAIResponsesModels : fetchOpenAICompatibleModels;
+      const models = await fetchModelsFn(
         firstKey,
         connection.baseUrl,
         new AbortController().signal,
@@ -308,17 +329,47 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
             }
             return null;
           })()}
-        <p className="text-xs text-[var(--theme-text-secondary)]">{t('settingsOpenAICompatibleRequestUrlPreview')}</p>
-        <div className="space-y-1">
-          <p className="text-[11px] uppercase tracking-wide text-[var(--theme-text-secondary)]">
-            {t('settingsOpenAICompatibleBrowserRequestUrl')}
-          </p>
-          <p className="text-xs font-mono break-all text-[var(--theme-text-secondary)]">{browserRequestUrl}</p>
-          <p className="text-[11px] uppercase tracking-wide text-[var(--theme-text-secondary)]">
-            {t('settingsOpenAICompatibleUpstreamUrl')}
-          </p>
-          <p className="text-xs font-mono break-all text-[var(--theme-text-secondary)]">{upstreamRequestUrl ?? '—'}</p>
-        </div>
+        <details
+          className="group rounded-md border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-tertiary)]/20 p-2 text-xs transition-all"
+          open={Boolean(
+            connection.protocol === 'openai-compatible' && getOpenAICompatibleBaseUrlWarning(connection.baseUrl),
+          )}
+        >
+          <summary className="flex cursor-pointer items-center justify-between font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] select-none list-none [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center gap-1.5">
+              <ChevronRight
+                size={13}
+                className="transition-transform duration-200 group-open:rotate-90 text-[var(--theme-text-secondary)] flex-shrink-0"
+              />
+              <span>{t('settingsOpenAICompatibleRequestUrlPreview')}</span>
+            </span>
+            <span className="text-[11px] font-mono text-[var(--theme-text-secondary)]/70 truncate max-w-[180px] sm:max-w-[260px]">
+              {connection.protocol === 'anthropic'
+                ? '/v1/messages'
+                : connection.protocol === 'openai-responses'
+                  ? '/v1/responses'
+                  : '/v1/chat/completions'}
+            </span>
+          </summary>
+          <div className="space-y-2 pt-2 mt-1.5 border-t border-[var(--theme-border-secondary)]/30">
+            <div>
+              <p className="text-[10px] uppercase tracking-wide font-medium text-[var(--theme-text-secondary)]">
+                {t('settingsOpenAICompatibleBrowserRequestUrl')}
+              </p>
+              <p className="text-xs font-mono break-all text-[var(--theme-text-secondary)] bg-[var(--theme-bg-primary)]/40 p-1.5 rounded mt-0.5 border border-[var(--theme-border-secondary)]/20">
+                {browserRequestUrl}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wide font-medium text-[var(--theme-text-secondary)]">
+                {t('settingsOpenAICompatibleUpstreamUrl')}
+              </p>
+              <p className="text-xs font-mono break-all text-[var(--theme-text-secondary)] bg-[var(--theme-bg-primary)]/40 p-1.5 rounded mt-0.5 border border-[var(--theme-border-secondary)]/20">
+                {upstreamRequestUrl ?? '—'}
+              </p>
+            </div>
+          </div>
+        </details>
       </div>
 
       <Select
@@ -328,6 +379,7 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
         onChange={(event) => updateField('protocol', event.target.value as ThirdPartyApiProtocol)}
       >
         <option value="openai-compatible">{t('thirdPartyProtocolOpenAI')}</option>
+        <option value="openai-responses">{t('thirdPartyProtocolOpenAIResponses')}</option>
         <option value="anthropic">{t('thirdPartyProtocolAnthropic')}</option>
       </Select>
 
@@ -336,7 +388,7 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
         selectedModelId={connection.modelId}
         onModelsChange={(models) => updateField('models', models)}
         onSelectedModelChange={(modelId) => updateField('modelId', modelId)}
-        onFetchModelsForImportPreview={connection.protocol === 'openai-compatible' ? handleFetchModels : undefined}
+        onFetchModelsForImportPreview={connection.protocol !== 'anthropic' ? handleFetchModels : undefined}
         isFetchModelsDisabled={!connection.apiKey || !connection.baseUrl}
         fetchModelsStatus={fetchStatus}
         fetchModelsMessage={fetchMessage}
@@ -440,31 +492,40 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
         testModelSelectId={`connection-${connection.id}-api-test-model`}
       />
 
-      {confirmingRemove ? (
-        <div className="space-y-2 rounded-lg border border-[var(--theme-text-danger)]/25 bg-[var(--theme-bg-danger)]/5 p-2.5">
-          <p className="text-sm text-[var(--theme-text-primary)]">{t('thirdPartyRemoveConnectionConfirm')}</p>
-          {isInUse && (
-            <p className="text-xs text-[var(--theme-text-secondary)]">{t('thirdPartyRemoveConnectionInUse')}</p>
-          )}
-          <div className="flex items-center gap-2">
-            <button type="button" className={SETTINGS_DANGER_OUTLINE_BUTTON_CLASS} onClick={onRemove}>
-              {t('delete')}
-            </button>
-            <button
-              type="button"
-              className={SETTINGS_SECONDARY_ACTION_BUTTON_CLASS}
-              onClick={() => setConfirmingRemove(false)}
-            >
-              {t('cancel')}
-            </button>
+      <div className="pt-2 border-t border-[var(--theme-border-secondary)]/30 flex items-center justify-end">
+        {confirmingRemove ? (
+          <div className="w-full space-y-2 rounded-lg border border-[var(--theme-text-danger)]/25 bg-[var(--theme-bg-danger)]/5 p-2.5">
+            <p className="text-sm font-medium text-[var(--theme-text-primary)]">
+              {t('thirdPartyRemoveConnectionConfirm')}
+            </p>
+            {isInUse && (
+              <p className="text-xs text-[var(--theme-text-secondary)]">{t('thirdPartyRemoveConnectionInUse')}</p>
+            )}
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                className={SETTINGS_SECONDARY_ACTION_BUTTON_CLASS}
+                onClick={() => setConfirmingRemove(false)}
+              >
+                {t('cancel')}
+              </button>
+              <button type="button" className={SETTINGS_DANGER_OUTLINE_BUTTON_CLASS} onClick={onRemove}>
+                <Trash2 size={13} />
+                <span>{t('delete')}</span>
+              </button>
+            </div>
           </div>
-        </div>
-      ) : (
-        <button type="button" className={SMALL_ICON_DANGER_BUTTON_CLASS} onClick={() => setConfirmingRemove(true)}>
-          <Trash2 size={14} />
-          {t('thirdPartyRemoveConnection')}
-        </button>
-      )}
+        ) : (
+          <button
+            type="button"
+            className={SETTINGS_DANGER_OUTLINE_BUTTON_CLASS}
+            onClick={() => setConfirmingRemove(true)}
+          >
+            <Trash2 size={13} />
+            <span>{t('thirdPartyRemoveConnection')}</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 };

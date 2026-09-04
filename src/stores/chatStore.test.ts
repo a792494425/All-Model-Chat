@@ -691,6 +691,19 @@ describe('chatStore', () => {
       }));
       expect(dbService.saveSession).not.toHaveBeenCalled();
     });
+
+    it('stashes pendingChatSettings when there is no active session and clears them on session change', () => {
+      useChatStore.getState().setCurrentChatSettings((prev) => ({
+        ...prev,
+        systemInstruction: 'test-instruction',
+        modelId: 'custom-model',
+      }));
+      expect(useChatStore.getState().pendingChatSettings?.systemInstruction).toBe('test-instruction');
+      expect(useChatStore.getState().pendingChatSettings?.modelId).toBe('custom-model');
+
+      useChatStore.getState().setActiveSessionId('s1');
+      expect(useChatStore.getState().pendingChatSettings).toBeNull();
+    });
   });
 
   // ── stopGenerating ──

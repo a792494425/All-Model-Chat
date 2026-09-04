@@ -71,7 +71,7 @@ export const normalizeModelApiModeTag = (value: unknown): ApiMode | undefined =>
 export type { McpServerAuthType, McpServerConfig, McpServerTransport };
 
 /** Wire protocol supported by a third-party API provider. */
-export type ThirdPartyApiProtocol = 'openai-compatible' | 'anthropic';
+export type ThirdPartyApiProtocol = 'openai-compatible' | 'anthropic' | 'openai-responses';
 
 /** Legacy persisted provider map keys (pre-connection-list settings). */
 export const LEGACY_THIRD_PARTY_PROVIDER_IDS = [
@@ -128,7 +128,7 @@ export interface ThirdPartyApiSettings {
 }
 
 /** All valid thinking levels — used for both type checking and runtime validation. */
-export const THINKING_LEVELS = ['MINIMAL', 'LOW', 'MEDIUM', 'HIGH'] as const;
+export const THINKING_LEVELS = ['NONE', 'MINIMAL', 'LOW', 'MEDIUM', 'HIGH', 'XHIGH', 'MAX'] as const;
 export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
 /** All valid live artifacts prompt modes — used for both type checking and runtime validation. */
 export const LIVE_ARTIFACTS_PROMPT_MODES = ['inline'] as const;
@@ -189,8 +189,8 @@ export interface ChatSettings {
   isVideoNavEnabled?: boolean;
   /** Audio navigation preset (AI timestamp-locate + side player). */
   isAudioNavEnabled?: boolean;
-  /** Unified media navigation preset (PDF + Video). */
-  isMediaNavEnabled?: boolean;
+  /** Image navigation preset (AI visual grounding, BBox & guide arrow). */
+  isImageNavEnabled?: boolean;
   /** Maximum output tokens to generate (optional; unset = model default). */
   maxOutputTokens?: number;
   /** Stop sequences to halt generation (optional). */
@@ -263,6 +263,7 @@ export interface AppSettings extends ChatSettings {
   isCompletionSoundBackgroundOnly?: boolean;
   isLoggingEnabled?: boolean;
   isSuggestionsEnabled: boolean;
+  showMessageTokenStats?: boolean;
   isAutoScrollOnSendEnabled?: boolean;
   isAutoSendOnSuggestionClick?: boolean;
   generateQuadImages?: boolean;

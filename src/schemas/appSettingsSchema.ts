@@ -323,6 +323,7 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
   isCompletionSoundBackgroundOnly: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isCompletionSoundBackgroundOnly),
   isLoggingEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isLoggingEnabled),
   isSuggestionsEnabled: booleanWithDefault(DEFAULT_APP_SETTINGS.isSuggestionsEnabled),
+  showMessageTokenStats: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.showMessageTokenStats),
   isAutoScrollOnSendEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isAutoScrollOnSendEnabled),
   isAutoSendOnSuggestionClick: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isAutoSendOnSuggestionClick),
   generateQuadImages: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.generateQuadImages),
@@ -344,6 +345,7 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
   isPasteAsTextFileEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isPasteAsTextFileEnabled),
   showInputPasteButton: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.showInputPasteButton),
   showInputClearButton: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.showInputClearButton),
+  showVoiceInputButton: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.showVoiceInputButton),
   isCopySelectionFormattingEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isCopySelectionFormattingEnabled),
   isSystemAudioRecordingEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isSystemAudioRecordingEnabled),
   mcpServers: z

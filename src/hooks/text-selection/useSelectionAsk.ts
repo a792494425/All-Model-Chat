@@ -5,6 +5,7 @@ import { getKeyForRequest, formatApiKeyErrorMessage } from '@/utils/apiKeySelect
 import { buildGenerationConfig } from '@/services/api/generationConfig';
 import { sendStatelessMessageStreamApi } from '@/services/api/chatApi';
 import { sendOpenAICompatibleMessageStream } from '@/services/api/openaiCompatibleApi';
+import { sendOpenAIResponsesStream } from '@/services/api/openaiResponsesApi';
 import { sendAnthropicMessageStream } from '@/services/api/anthropicApi';
 import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
 import { useI18n } from '@/contexts/I18nContext';
@@ -161,8 +162,24 @@ export function useSelectionAsk() {
           };
           const providerId = getProxyProviderHeader(provider.templateId);
           const isAnthropic = provider.protocol === 'anthropic';
+          const isOpenAIResponses = provider.protocol === 'openai-responses';
           if (isAnthropic) {
             await sendAnthropicMessageStream(
+              keyResult.key,
+              apiModelId,
+              history as never,
+              parts as never,
+              providerConfig,
+              abortController.signal,
+              onPart as never,
+              onThoughtChunk as never,
+              onError,
+              onComplete,
+              'user',
+              providerId,
+            );
+          } else if (isOpenAIResponses) {
+            await sendOpenAIResponsesStream(
               keyResult.key,
               apiModelId,
               history as never,

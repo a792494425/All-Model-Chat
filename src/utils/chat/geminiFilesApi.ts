@@ -134,8 +134,7 @@ export const isFilesApiPermissionDeniedError = (error: unknown): boolean => {
 export const extractFilesApiIdentifierFromError = (error: unknown): string | null => {
   const message = error instanceof Error ? error.message : String(error ?? '');
   const match =
-    message.match(/permission to access the File\s+([a-zA-Z0-9_-]+)/i) ||
-    message.match(/files\/([a-zA-Z0-9_-]+)/i);
+    message.match(/permission to access the File\s+([a-zA-Z0-9_-]+)/i) || message.match(/files\/([a-zA-Z0-9_-]+)/i);
   return match ? match[1] : null;
 };
 
@@ -145,10 +144,7 @@ export const invalidateFilesApiReference = (file: UploadedFile): UploadedFile =>
   fileApiExpirationTime: new Date(0).toISOString(),
 });
 
-export const invalidateSessionFilesApiReferences = (
-  session: SavedChatSession,
-  error: unknown,
-): SavedChatSession => {
+export const invalidateSessionFilesApiReferences = (session: SavedChatSession, error: unknown): SavedChatSession => {
   if (!isFilesApiPermissionDeniedError(error)) {
     return session;
   }
@@ -197,9 +193,7 @@ export const invalidateSessionFilesApiReferences = (
     return message;
   });
 
-  const nextSettings = session.settings?.lockedApiKey
-    ? { ...session.settings, lockedApiKey: null }
-    : session.settings;
+  const nextSettings = session.settings?.lockedApiKey ? { ...session.settings, lockedApiKey: null } : session.settings;
 
   if (nextSettings !== session.settings) {
     sessionChanged = true;
@@ -213,4 +207,3 @@ export const invalidateSessionFilesApiReferences = (
       }
     : session;
 };
-

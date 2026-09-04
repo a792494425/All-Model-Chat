@@ -89,7 +89,19 @@ describe('openaiCompatibleMessages', () => {
     expect(
       buildOpenAICompatibleRequestBody('gpt-5.6-sol', [], [{ text: 'hi' }], { thinkingLevel: 'MINIMAL' }, 'user', false)
         .reasoning_effort,
+    ).toBe('minimal');
+    expect(
+      buildOpenAICompatibleRequestBody('gpt-5.6-sol', [], [{ text: 'hi' }], { thinkingLevel: 'NONE' }, 'user', false)
+        .reasoning_effort,
     ).toBe('none');
+    expect(
+      buildOpenAICompatibleRequestBody('gpt-5.6-sol', [], [{ text: 'hi' }], { thinkingLevel: 'XHIGH' }, 'user', false)
+        .reasoning_effort,
+    ).toBe('xhigh');
+    expect(
+      buildOpenAICompatibleRequestBody('gpt-5.6-sol', [], [{ text: 'hi' }], { thinkingLevel: 'MAX' }, 'user', false)
+        .reasoning_effort,
+    ).toBe('max');
   });
 
   it('defaults GPT-5 reasoning_effort to high when thinkingLevel is omitted', () => {

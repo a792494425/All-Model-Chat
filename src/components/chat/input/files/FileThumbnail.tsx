@@ -54,16 +54,6 @@ const isCodeExtension = (filename: string): boolean => {
   return extension ? CODE_EXTENSIONS.has(extension) : false;
 };
 
-const getDisplayExtension = (file: UploadedFile) => {
-  const extension = file.name.split('.').pop()?.trim();
-  if (extension && extension !== file.name) {
-    return extension.slice(0, 4).toUpperCase();
-  }
-
-  const mimeSuffix = file.type.split('/').pop()?.split(/[+;]/)[0];
-  return (mimeSuffix || 'FILE').slice(0, 4).toUpperCase();
-};
-
 const useVisibleThumbnailGate = (enabled: boolean) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isVisible, setIsVisible] = useState(() => !enabled || typeof IntersectionObserver === 'undefined');
@@ -146,7 +136,6 @@ const CoverThumbnail = ({
   bgClass: defaultBgClass,
 }: FileThumbnailProps) => {
   const category = getFileTypeCategory(file.type, file.error);
-  const extension = getDisplayExtension(file);
 
   let Icon = defaultIcon;
   let colorClass = defaultColorClass;
@@ -161,14 +150,11 @@ const CoverThumbnail = ({
   return (
     <div
       data-thumbnail-kind={category}
-      className={`relative h-full w-full overflow-hidden ${bgClass} p-2 flex flex-col items-center justify-center gap-1`}
+      className={`relative h-full w-full overflow-hidden ${bgClass} flex items-center justify-center`}
     >
       <div className="rounded-lg bg-[var(--theme-bg-primary)]/90 p-1.5 shadow-sm border border-[var(--theme-border-secondary)]/50">
         <Icon size={19} className={colorClass} strokeWidth={1.6} />
       </div>
-      <span className="max-w-full truncate rounded bg-[var(--theme-bg-primary)]/90 px-1.5 py-0.5 text-[10px] font-bold leading-none tracking-wide text-[var(--theme-text-secondary)] shadow-xs border border-[var(--theme-border-secondary)]/40">
-        {extension}
-      </span>
     </div>
   );
 };

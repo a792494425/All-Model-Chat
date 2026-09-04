@@ -67,6 +67,29 @@ export const isOpenAIGpt5FamilyModel = (modelId: string): boolean => {
   return lowerId.startsWith('gpt-5') || lowerId.includes('/gpt-5');
 };
 
+export const isOpenAIReasoningModel = (modelId: string): boolean => {
+  if (!modelId) return false;
+  const lowerId = modelId.toLowerCase();
+  if (lowerId.startsWith('gpt-4') || lowerId.startsWith('gpt-3') || lowerId.includes('turbo')) {
+    return false;
+  }
+  return (
+    lowerId.startsWith('o1') ||
+    lowerId.includes('/o1') ||
+    lowerId.startsWith('o3') ||
+    lowerId.includes('/o3') ||
+    lowerId.startsWith('o4') ||
+    lowerId.includes('/o4') ||
+    lowerId.startsWith('gpt-5') ||
+    lowerId.includes('/gpt-5') ||
+    lowerId.startsWith('muse-') ||
+    lowerId.includes('muse-') ||
+    lowerId.includes('deepseek-r1') ||
+    lowerId.includes('reasoner') ||
+    lowerId.includes('thinking')
+  );
+};
+
 export const isKimiK3Model = (modelId: string): boolean => {
   const lowerId = modelId.toLowerCase();
   return lowerId === 'kimi-k3' || lowerId.startsWith('kimi-k3-') || lowerId.includes('kimi-k3');
@@ -88,6 +111,12 @@ export const isAnthropicEffortModel = (modelId: string): boolean => {
   );
 };
 
+export const isAnthropicThinkingModel = (modelId: string): boolean => {
+  if (!modelId) return false;
+  const id = modelId.toLowerCase();
+  return isAnthropicEffortModel(id) || /claude-3-7|claude-3\.7/.test(id);
+};
+
 /** GLM-5 series models use the OpenAI-compatible thinking parameter. */
 export const isGlmModel = (modelId: string): boolean => modelId.toLowerCase().startsWith('glm-');
 
@@ -96,8 +125,14 @@ const supportsThinkingLevel = (modelId: string): boolean => {
   if (isGlmModel(modelId)) {
     return true;
   }
-  // Third-party reasoning controls mapped in openaiCompatibleMessages / anthropicMessages.
-  if (isOpenAIGpt5FamilyModel(modelId) || isKimiK3Model(modelId) || isAnthropicEffortModel(modelId)) {
+  // Third-party reasoning controls mapped in openaiCompatibleMessages / openaiResponsesMessages / anthropicMessages.
+  if (
+    isOpenAIReasoningModel(modelId) ||
+    isOpenAIGpt5FamilyModel(modelId) ||
+    isKimiK3Model(modelId) ||
+    isAnthropicEffortModel(modelId) ||
+    isAnthropicThinkingModel(modelId)
+  ) {
     return true;
   }
   if (isGemini31FlashImageModel(modelId)) {
@@ -315,8 +350,20 @@ export const normalizeThinkingLevelForModel = (
   const resolvedLevel = thinkingLevel ?? fallback;
 
   // Both families reject MINIMAL with an API error per their model cards.
-  if (resolvedLevel === 'MINIMAL' && (isGemini3ProTextModel(modelId) || isGemini37Or38FlashModel(modelId))) {
+  if (
+    (resolvedLevel === 'MINIMAL' || resolvedLevel === 'NONE') &&
+    (isGemini3ProTextModel(modelId) || isGemini37Or38FlashModel(modelId))
+  ) {
     return 'LOW';
+  }
+
+  if (isGemini3Model(modelId) || isGeminiRoboticsModel(modelId)) {
+    if (resolvedLevel === 'NONE') {
+      return 'MINIMAL';
+    }
+    if (resolvedLevel === 'XHIGH' || resolvedLevel === 'MAX') {
+      return 'HIGH';
+    }
   }
 
   return resolvedLevel;

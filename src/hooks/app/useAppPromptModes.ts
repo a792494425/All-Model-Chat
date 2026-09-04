@@ -13,6 +13,8 @@ import { DEFAULT_SYSTEM_INSTRUCTION } from '@/constants/settingsDefaults';
 import { logService } from '@/services/logService';
 import { focusChatInput } from '@/utils/chat-input/focus';
 import { getLiveArtifactsSystemPromptOverride } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
+import { closeMediaNavPanel, useMediaNavStore } from '@/stores/mediaNavStore';
+import { applyMediaNavKindToSettings, hasActiveMediaNavSettings } from '@/utils/media-nav/mediaNavSettings';
 import type { AppSettings, ChatSettings, InputCommand, SavedChatSession } from '@/types';
 
 interface PendingLiveArtifactsPromptActivation {
@@ -55,7 +57,9 @@ export const useAppPromptModes = ({
 }: UseAppPromptModesOptions) => {
   const [pendingLiveArtifactsPromptActivation, setPendingLiveArtifactsPromptActivation] =
     useState<PendingLiveArtifactsPromptActivation | null>(null);
-  const [liveArtifactsPromptBusySessionId, setLiveArtifactsPromptBusySessionId] = useState<string | null>(null);
+  const [liveArtifactsPromptBusySessionId, setLiveArtifactsPromptBusySessionId] = useState<string | null | undefined>(
+    undefined,
+  );
   const [liveArtifactsPromptOverrideState, setLiveArtifactsPromptOverrideState] =
     useState<LiveArtifactsPromptOverrideState | null>(null);
   // The session/app system prompt captured when Live Artifacts was enabled, so
@@ -81,7 +85,9 @@ export const useAppPromptModes = ({
     liveArtifactsPromptOverrideState?.targetSessionId === currentLiveArtifactsPromptTargetSessionId
       ? liveArtifactsPromptOverrideState.active
       : null;
-  const liveArtifactsPromptBusy = liveArtifactsPromptBusySessionId === currentLiveArtifactsPromptTargetSessionId;
+  const liveArtifactsPromptBusy =
+    liveArtifactsPromptBusySessionId !== undefined &&
+    liveArtifactsPromptBusySessionId === currentLiveArtifactsPromptTargetSessionId;
   // Button reflects the active session only. Global appSettings.systemInstruction is still
   // written on toggle so newly created chats inherit Live Artifacts via createSettingsForNewChat.
   const persistedLiveArtifactsPromptActive = isConfiguredLiveArtifactsSystemInstruction(
@@ -95,16 +101,47 @@ export const useAppPromptModes = ({
   );
 
   useEffect(() => {
+    if (
+      liveArtifactsPromptOverrideState &&
+      liveArtifactsPromptOverrideState.targetSessionId === null &&
+      activeSessionId
+    ) {
+      setLiveArtifactsPromptOverrideState((current) =>
+        current && current.targetSessionId === null ? { ...current, targetSessionId: activeSessionId } : current,
+      );
+      setLiveArtifactsPromptBusySessionId((current) => (current === null ? activeSessionId : current));
+    }
+  }, [activeSessionId, liveArtifactsPromptOverrideState]);
+
+  useEffect(() => {
     if (!pendingLiveArtifactsPromptActivation) {
       return;
     }
 
     const { systemInstruction, targetSessionId } = pendingLiveArtifactsPromptActivation;
-    // A null target (homepage toggle) only mirrors the app-level prompt for new
-    // chats; it must NOT write into whatever session happens to be active when
-    // the effect fires later. An explicit session target requires an exact match
-    // so a pending activation cannot leak into an unrelated session.
+    // A null target (homepage toggle) mirrors the app-level prompt for new chats.
+    // If on an unpersisted session, write to the draft chat settings.
+    // If a new session was created while activation was in-flight, update it as well.
     if (targetSessionId === null) {
+      if (!activeSessionId) {
+        setCurrentChatSettings((prev) =>
+          isConfiguredLiveArtifactsSystemInstruction(prev.systemInstruction)
+            ? prev
+            : {
+                ...prev,
+                systemInstruction,
+              },
+        );
+      } else if (activeChat && !isConfiguredLiveArtifactsSystemInstruction(activeChat.settings.systemInstruction)) {
+        setCurrentChatSettings((prev) =>
+          isConfiguredLiveArtifactsSystemInstruction(prev.systemInstruction)
+            ? prev
+            : {
+                ...prev,
+                systemInstruction,
+              },
+        );
+      }
       queueMicrotask(() => {
         setPendingLiveArtifactsPromptActivation((current) =>
           current === pendingLiveArtifactsPromptActivation ? null : current,
@@ -170,7 +207,7 @@ export const useAppPromptModes = ({
             : current,
         );
         setLiveArtifactsPromptBusySessionId((current) =>
-          current === liveArtifactsPromptOverrideState.targetSessionId ? null : current,
+          current === liveArtifactsPromptOverrideState.targetSessionId ? undefined : current,
         );
       });
     }
@@ -196,6 +233,57 @@ export const useAppPromptModes = ({
     [configuredLiveArtifactsSystemPrompt, loadBuiltInLiveArtifactsPrompt, setAppSettings],
   );
 
+  const handleDeactivateLiveArtifactsPrompt = useCallback(() => {
+    const targetSessionId = activeSessionId ?? null;
+    const isCurrentlyLiveArtifactsPrompt = liveArtifactsPromptOverrideActive ?? persistedLiveArtifactsPromptActive;
+    const isAppLiveArtifacts = isConfiguredLiveArtifactsSystemInstruction(appSettings.systemInstruction);
+    const isSessionLiveArtifacts = isConfiguredLiveArtifactsSystemInstruction(currentChatSettings.systemInstruction);
+
+    if (!isCurrentlyLiveArtifactsPrompt && !isAppLiveArtifacts && !isSessionLiveArtifacts) {
+      return;
+    }
+
+    const safeAppPrompt =
+      previousAppSystemInstructionRef.current &&
+      !isConfiguredLiveArtifactsSystemInstruction(previousAppSystemInstructionRef.current)
+        ? previousAppSystemInstructionRef.current
+        : DEFAULT_SYSTEM_INSTRUCTION;
+
+    const safeSessionPrompt =
+      previousSessionSystemInstructionRef.current &&
+      !isConfiguredLiveArtifactsSystemInstruction(previousSessionSystemInstructionRef.current)
+        ? previousSessionSystemInstructionRef.current
+        : DEFAULT_SYSTEM_INSTRUCTION;
+
+    previousAppSystemInstructionRef.current = safeAppPrompt;
+    previousSessionSystemInstructionRef.current = safeSessionPrompt;
+
+    setPendingLiveArtifactsPromptActivation(null);
+    setLiveArtifactsPromptBusySessionId(undefined);
+    setLiveArtifactsPromptOverrideState({
+      active: false,
+      targetSessionId,
+    });
+
+    setAppSettings((prev) => ({
+      ...prev,
+      systemInstruction: safeAppPrompt,
+    }));
+    setCurrentChatSettings((prev) => ({
+      ...prev,
+      systemInstruction: safeSessionPrompt,
+    }));
+  }, [
+    activeSessionId,
+    appSettings.systemInstruction,
+    currentChatSettings.systemInstruction,
+    isConfiguredLiveArtifactsSystemInstruction,
+    liveArtifactsPromptOverrideActive,
+    persistedLiveArtifactsPromptActive,
+    setAppSettings,
+    setCurrentChatSettings,
+  ]);
+
   const handleLoadLiveArtifactsPromptAndSave = useCallback(async () => {
     const targetSessionId = activeSessionId ?? null;
 
@@ -210,6 +298,10 @@ export const useAppPromptModes = ({
     if (!isCurrentlyLiveArtifactsPrompt) {
       previousAppSystemInstructionRef.current = appSettings.systemInstruction ?? null;
       previousSessionSystemInstructionRef.current = currentChatSettings.systemInstruction ?? null;
+      closeMediaNavPanel();
+      if (hasActiveMediaNavSettings(currentChatSettings)) {
+        setCurrentChatSettings((prev) => applyMediaNavKindToSettings(prev, null));
+      }
     }
 
     setLiveArtifactsPromptBusySessionId(targetSessionId);
@@ -219,17 +311,7 @@ export const useAppPromptModes = ({
     });
 
     if (isCurrentlyLiveArtifactsPrompt) {
-      setPendingLiveArtifactsPromptActivation(null);
-      setAppSettings((prev) => ({
-        ...prev,
-        systemInstruction: previousAppSystemInstructionRef.current ?? DEFAULT_SYSTEM_INSTRUCTION,
-      }));
-      if (activeSessionId) {
-        setCurrentChatSettings((prev) => ({
-          ...prev,
-          systemInstruction: previousSessionSystemInstructionRef.current ?? DEFAULT_SYSTEM_INSTRUCTION,
-        }));
-      }
+      handleDeactivateLiveArtifactsPrompt();
     } else {
       try {
         await activateLiveArtifactsPrompt(targetSessionId);
@@ -243,7 +325,7 @@ export const useAppPromptModes = ({
             ? { active: isCurrentlyLiveArtifactsPrompt, targetSessionId }
             : current,
         );
-        setLiveArtifactsPromptBusySessionId((current) => (current === targetSessionId ? null : current));
+        setLiveArtifactsPromptBusySessionId((current) => (current === targetSessionId ? undefined : current));
         logService.error('Failed to activate Live Artifacts prompt:', error);
       }
     }
@@ -253,11 +335,15 @@ export const useAppPromptModes = ({
     activateLiveArtifactsPrompt,
     activeSessionId,
     appSettings.systemInstruction,
+    currentChatSettings.isAudioNavEnabled,
+    currentChatSettings.isImageNavEnabled,
+    currentChatSettings.isPdfNavEnabled,
+    currentChatSettings.isVideoNavEnabled,
     currentChatSettings.systemInstruction,
+    handleDeactivateLiveArtifactsPrompt,
     liveArtifactsPromptBusy,
     liveArtifactsPromptOverrideActive,
     persistedLiveArtifactsPromptActive,
-    setAppSettings,
     setCurrentChatSettings,
   ]);
 
@@ -305,6 +391,10 @@ export const useAppPromptModes = ({
   const handleSuggestionClick = useCallback(
     async (type: 'homepage' | 'organize' | 'follow-up' | 'follow-up-fill', text: string) => {
       if (type === 'organize') {
+        closeMediaNavPanel();
+        if (hasActiveMediaNavSettings(currentChatSettings)) {
+          setCurrentChatSettings((prev) => applyMediaNavKindToSettings(prev, null));
+        }
         setLiveArtifactsPromptOverrideState({
           active: true,
           targetSessionId: currentLiveArtifactsPromptTargetSessionId,
@@ -332,15 +422,59 @@ export const useAppPromptModes = ({
       activeSessionId,
       activateLiveArtifactsPrompt,
       currentLiveArtifactsPromptTargetSessionId,
+      currentChatSettings.isAudioNavEnabled,
+      currentChatSettings.isImageNavEnabled,
+      currentChatSettings.isPdfNavEnabled,
+      currentChatSettings.isVideoNavEnabled,
       currentChatSettings.systemInstruction,
       handleSendMessage,
       isConfiguredLiveArtifactsSystemInstruction,
       setCommandedInput,
+      setCurrentChatSettings,
     ],
   );
 
+  const isAnyNavSettingActive = Boolean(
+    currentChatSettings.isPdfNavEnabled ||
+    currentChatSettings.isVideoNavEnabled ||
+    currentChatSettings.isAudioNavEnabled ||
+    currentChatSettings.isImageNavEnabled,
+  );
+  const isMediaNavOpen = useMediaNavStore((state) => state.isOpen);
+  const mediaNavOpenKind = useMediaNavStore((state) => state.openKind);
+  const isAnyMediaNavOpen =
+    isMediaNavOpen &&
+    (mediaNavOpenKind === 'pdf' ||
+      mediaNavOpenKind === 'video' ||
+      mediaNavOpenKind === 'audio' ||
+      mediaNavOpenKind === 'image');
+  const isAnyNavigationInUse = isAnyNavSettingActive || isAnyMediaNavOpen;
+
+  useEffect(() => {
+    if (!isAnyNavigationInUse) {
+      return;
+    }
+
+    const hasLiveArtifactsActive =
+      isLiveArtifactsPromptActive ||
+      isConfiguredLiveArtifactsSystemInstruction(currentChatSettings.systemInstruction) ||
+      isConfiguredLiveArtifactsSystemInstruction(appSettings.systemInstruction);
+
+    if (hasLiveArtifactsActive) {
+      handleDeactivateLiveArtifactsPrompt();
+    }
+  }, [
+    isAnyNavigationInUse,
+    isLiveArtifactsPromptActive,
+    isConfiguredLiveArtifactsSystemInstruction,
+    currentChatSettings.systemInstruction,
+    appSettings.systemInstruction,
+    handleDeactivateLiveArtifactsPrompt,
+  ]);
+
   return {
     handleLoadLiveArtifactsPromptAndSave,
+    handleDeactivateLiveArtifactsPrompt,
     handleToggleBBoxMode,
     handleToggleGuideMode,
     handleSuggestionClick,

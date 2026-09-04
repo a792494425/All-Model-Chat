@@ -9,6 +9,7 @@ import { updateSessionById } from '@/utils/chat/sessionMutations';
 import { releaseSessionLoadingForGenerationHandoff } from '@/features/message-sender/activeGenerationJobs';
 import { isGenerationLeaseHeldByOther } from '@/features/message-sender/generationLease';
 import { useChatStore } from '@/stores/chatStore';
+import { toastError } from '@/stores/toastStore';
 import { useI18n } from '@/contexts/I18nContext';
 
 type CommandedInputSetter = Dispatch<SetStateAction<InputCommand | null>>;
@@ -166,12 +167,16 @@ export const useMessageActions = ({
             sessionId: activeSessionId,
             stopResult,
           });
-          setAppFileError(t('chatGeneratingInOtherTab'));
+          const errorMsg = t('chatGeneratingInOtherTab');
+          setAppFileError(errorMsg);
+          toastError(errorMsg);
           return;
         }
       } else if (isGenerationLeaseHeldByOther(activeSessionId)) {
         logService.warn('Retry blocked: generation lease held by another tab', { sessionId: activeSessionId });
-        setAppFileError('This chat is generating in another tab. Stop it there first, or wait for it to finish.');
+        const errorMsg = 'This chat is generating in another tab. Stop it there first, or wait for it to finish.';
+        setAppFileError(errorMsg);
+        toastError(errorMsg);
         return;
       }
 

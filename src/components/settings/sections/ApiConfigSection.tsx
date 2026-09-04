@@ -61,6 +61,16 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
     apiProxyUrl,
   });
 
+  const [showDedicatedLiveKey, setShowDedicatedLiveKey] = useState(() =>
+    Boolean(settings.liveApiKey && settings.liveApiKey.trim().length > 0),
+  );
+
+  useEffect(() => {
+    if (settings.liveApiKey && settings.liveApiKey.trim().length > 0) {
+      setShowDedicatedLiveKey(true);
+    }
+  }, [settings.liveApiKey]);
+
   useEffect(() => {
     return () => {
       if (overflowTimerRef.current !== null) {
@@ -201,14 +211,43 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
                 </div>
 
                 <div className="pt-2 border-t border-[var(--theme-border-secondary)]/40">
-                  <ApiKeyInput
-                    inputId="live-api-key-input"
-                    label={t('settingsLiveApiKey')}
-                    apiKey={settings.liveApiKey ?? null}
-                    setApiKey={(nextKey) => onUpdate('liveApiKey', nextKey)}
-                    placeholder={t('settingsLiveApiKeyPlaceholder')}
-                    helpText={t('settingsLiveApiKeyHelp')}
-                  />
+                  {showDedicatedLiveKey ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
+                          {t('settingsLiveApiKey')}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDedicatedLiveKey(false);
+                            onUpdate('liveApiKey', null);
+                          }}
+                          className="text-xs text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:underline"
+                        >
+                          {t('cancel')}
+                        </button>
+                      </div>
+                      <ApiKeyInput
+                        inputId="live-api-key-input"
+                        apiKey={settings.liveApiKey ?? null}
+                        setApiKey={(nextKey) => onUpdate('liveApiKey', nextKey)}
+                        placeholder={t('settingsLiveApiKeyPlaceholder')}
+                        helpText={t('settingsLiveApiKeyHelp')}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2 text-xs text-[var(--theme-text-secondary)]">
+                      <span>{t('settingsLiveDefaultKeyNotice')}</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowDedicatedLiveKey(true)}
+                        className="text-xs font-medium text-[var(--theme-text-link)] hover:underline flex-shrink-0"
+                      >
+                        {t('settingsLiveUseDedicatedKey')}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -34,7 +34,7 @@ interface UseMessageQueueParams {
   setSelectedFiles: SetSelectedFiles;
   setAppFileError: (error: string | null) => void;
   uploadFailureMessage: string;
-  completeEditSubmission: (messageId: string, content: string) => void;
+  completeEditSubmission: (messageId: string, content: string, files?: UploadedFile[]) => void;
   completeSendSubmission: (
     textToSend: string,
     isFastMode: boolean,
@@ -105,7 +105,7 @@ export const useMessageQueue = ({
       setWaitingForUpload(false);
 
       if (submission.kind === 'edit') {
-        completeEditSubmission(submission.messageId, submission.content);
+        completeEditSubmission(submission.messageId, submission.content, submission.files);
         return;
       }
 

@@ -539,6 +539,24 @@ const apiSettings = {
     fr: 'Saisissez la clé API Gemini officielle dédiée (AIzaSy...)',
     de: 'Dedizierten offiziellen Gemini-API-Schlüssel eingeben (AIzaSy...)',
   },
+  settingsLiveUseDedicatedKey: {
+    en: 'Configure dedicated Live API key',
+    zh: '配置独立 Live API 密钥',
+    ja: '専用の Live API キーを設定',
+    ko: '전용 Live API 키 설정',
+    es: 'Configurar clave dedicada para Live API',
+    fr: 'Configurer une clé dédiée Live API',
+    de: 'Dedizierten Live API-Schlüssel konfigurieren',
+  },
+  settingsLiveDefaultKeyNotice: {
+    en: 'Currently using the general Gemini API key above by default.',
+    zh: '当前默认沿用上方的通用 Gemini API 密钥。',
+    ja: '現在はデフォルトで上記の一般 Gemini API キーを使用しています。',
+    ko: '현재 기본적으로 위의 일반 Gemini API 키를 사용하고 있습니다.',
+    es: 'Actualmente se utiliza la clave general de Gemini anterior por defecto.',
+    fr: 'Utilise actuellement la clé générale Gemini ci-dessus par défaut.',
+    de: 'Verwendet derzeit standardmäßig den obigen allgemeinen Gemini-API-Schlüssel.',
+  },
 
   // Third-party API provider
   thirdPartyApiKey: {
@@ -658,6 +676,15 @@ const apiSettings = {
     es: 'Compatible con OpenAI',
     fr: 'Compatible OpenAI',
     de: 'OpenAI-kompatibel',
+  },
+  thirdPartyProtocolOpenAIResponses: {
+    en: 'OpenAI Responses (/v1/responses)',
+    zh: 'OpenAI Responses (/v1/responses)',
+    ja: 'OpenAI Responses (/v1/responses)',
+    ko: 'OpenAI Responses (/v1/responses)',
+    es: 'OpenAI Responses (/v1/responses)',
+    fr: 'OpenAI Responses (/v1/responses)',
+    de: 'OpenAI Responses (/v1/responses)',
   },
   thirdPartyProtocolAnthropic: {
     en: 'Anthropic',

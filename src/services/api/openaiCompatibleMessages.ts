@@ -1,7 +1,12 @@
 import type { Part } from '@google/genai';
 import type { ChatHistoryItem, ThinkingLevel } from '@/types';
 import { isAudioMimeType, isImageMimeType } from '@/utils/file/fileTypeClassification';
-import { isGlmModel, isKimiK3Model, isOpenAIGpt5FamilyModel } from '@/utils/model/modelCapabilities';
+import {
+  isGlmModel,
+  isKimiK3Model,
+  isOpenAIGpt5FamilyModel,
+  isOpenAIReasoningModel,
+} from '@/utils/model/modelCapabilities';
 import type { OpenAICompatibleChatConfig, OpenAIMessage, OpenAIMessageContent } from './openaiCompatibleTypes';
 import { appendSamplingParameters } from './requestFactory';
 
@@ -9,13 +14,20 @@ const OPENAI_COMPATIBLE_FILE_DATA_ERROR = 'OpenAI-compatible mode cannot send Ge
 
 const mapThinkingLevelToOpenAIReasoningEffort = (level: ThinkingLevel | undefined): string => {
   switch (level) {
-    case 'MINIMAL':
+    case 'NONE':
       return 'none';
+    case 'MINIMAL':
+      return 'minimal';
     case 'LOW':
       return 'low';
     case 'MEDIUM':
       return 'medium';
     case 'HIGH':
+      return 'high';
+    case 'XHIGH':
+      return 'xhigh';
+    case 'MAX':
+      return 'max';
     default:
       return 'high';
   }
@@ -23,12 +35,15 @@ const mapThinkingLevelToOpenAIReasoningEffort = (level: ThinkingLevel | undefine
 
 const mapThinkingLevelToKimiReasoningEffort = (level: ThinkingLevel | undefined): 'low' | 'high' | 'max' => {
   switch (level) {
+    case 'NONE':
     case 'MINIMAL':
     case 'LOW':
       return 'low';
     case 'MEDIUM':
       return 'high';
     case 'HIGH':
+    case 'XHIGH':
+    case 'MAX':
     default:
       return 'max';
   }
@@ -186,8 +201,8 @@ export const buildOpenAICompatibleRequestBody = (
     body.thinking = { type: thinkingEnabled ? 'enabled' : 'disabled' };
   }
 
-  // OpenAI GPT-5.x: map UI thinkingLevel → reasoning_effort (none/low/medium/high).
-  if (isOpenAIGpt5FamilyModel(modelId)) {
+  // OpenAI reasoning models (o1, o3, o4, gpt-5, muse, deepseek-r1, etc.): map UI thinkingLevel → reasoning_effort.
+  if (isOpenAIReasoningModel(modelId) || isOpenAIGpt5FamilyModel(modelId)) {
     body.reasoning_effort = mapThinkingLevelToOpenAIReasoningEffort(config.thinkingLevel);
   }
 

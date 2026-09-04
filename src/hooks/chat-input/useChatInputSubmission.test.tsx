@@ -18,9 +18,9 @@ const createSubmissionParams = () => {
     setAppFileError: vi.fn(),
     uploadFailureMessage: 'Attachment upload failed.',
     isLoading: false,
-    isEditing: false,
-    editMode: 'resend',
-    editingMessageId: null,
+    isEditing: false as boolean,
+    editMode: 'resend' as 'resend' | 'update',
+    editingMessageId: null as string | null,
     canSend: true,
     canQueueMessageBase: true,
     submissionState: {
@@ -100,5 +100,28 @@ describe('useChatInputSubmission', () => {
     expect(params.submissionState.setInputText).toHaveBeenCalledWith('');
 
     useChatStore.setState({ selectedFiles: [] });
+  });
+
+  it('completes edit submission in update mode by passing content and files and clearing files', () => {
+    const params = createSubmissionParams();
+    const attachedFile = createUploadedFile({ id: 'file-1', name: 'photo.png' });
+    params.isEditing = true;
+    params.editMode = 'update';
+    params.editingMessageId = 'msg-1';
+    params.selectedFiles = [attachedFile];
+    params.submissionState.inputText = 'Updated text content';
+
+    const { result } = renderHook(() => useChatInputSubmission(params));
+
+    act(() => {
+      result.current.handleSubmit();
+    });
+
+    expect(params.onUpdateMessageContent).toHaveBeenCalledWith('msg-1', 'Updated text content', [attachedFile]);
+    expect(params.setEditingMessageId).toHaveBeenCalledWith(null);
+    expect(params.setSelectedFiles).toHaveBeenCalledWith([]);
+    expect(params.submissionState.clearCurrentDraft).toHaveBeenCalled();
+    expect(params.submissionState.setInputText).toHaveBeenCalledWith('');
+    expect(params.onSendMessage).not.toHaveBeenCalled();
   });
 });

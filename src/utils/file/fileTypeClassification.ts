@@ -9,6 +9,7 @@ import {
   SUPPORTED_TEXT_MIME_TYPES,
   SUPPORTED_VIDEO_MIME_TYPES,
   TEXT_BASED_EXTENSIONS,
+  EXTENSION_TO_MIME,
 } from '@/constants/fileTypeSupport';
 
 export type FileCategory =
@@ -89,6 +90,24 @@ export const isPdfMimeType = (mimeType?: string): boolean =>
 const isPdfFile = (file: FileKindInput): boolean =>
   isPdfMimeType(file.type) || normalizeFileName(file.name).endsWith('.pdf');
 
+const isVideoFile = (file: FileKindInput): boolean => {
+  if (isVideoMimeType(file.type)) return true;
+  const ext = getFileExtension(file.name);
+  return Boolean(ext && EXTENSION_TO_MIME[ext] && isVideoMimeType(EXTENSION_TO_MIME[ext]));
+};
+
+const isImageFile = (file: FileKindInput): boolean => {
+  if (isImageMimeType(file.type)) return true;
+  const ext = getFileExtension(file.name);
+  return Boolean(ext && EXTENSION_TO_MIME[ext] && isImageMimeType(EXTENSION_TO_MIME[ext]));
+};
+
+const isAudioFile = (file: FileKindInput): boolean => {
+  if (isAudioMimeType(file.type)) return true;
+  const ext = getFileExtension(file.name);
+  return Boolean(ext && EXTENSION_TO_MIME[ext] && isAudioMimeType(EXTENSION_TO_MIME[ext]));
+};
+
 const isKnownNonTextMimeType = (mimeType?: string): boolean => {
   const normalized = normalizeMimeType(mimeType);
   if (!normalized) return false;
@@ -154,9 +173,9 @@ export const getFileKindFlags = (file: FileKindInput): FileKindFlags => {
   const category = getFileTypeCategory(file.type || '', file.error || undefined);
   const isPdf = category === 'pdf' || isPdfFile(file);
   const isYoutube = category === 'youtube';
-  const isVideo = category === 'video';
-  const isAudio = category === 'audio';
-  const isImage = category === 'image';
+  const isVideo = category === 'video' || isVideoFile(file);
+  const isAudio = category === 'audio' || isAudioFile(file);
+  const isImage = category === 'image' || isImageFile(file);
 
   return {
     category,

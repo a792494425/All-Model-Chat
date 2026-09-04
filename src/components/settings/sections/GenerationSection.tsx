@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Eraser, Image as ImageIcon, Info, SquarePen, X } from 'lucide-react';
+import { Eraser, Image as ImageIcon, Info, SquarePen } from 'lucide-react';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { SMALL_ICON_BUTTON_CLASS } from '@/constants/buttonClasses';
 import {

@@ -363,7 +363,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           searchActiveOptionId={activeSearchOptionId}
         />
 
-        <main className="flex-1 flex flex-col min-w-0 bg-[var(--theme-bg-primary)] relative overflow-hidden">
+        <main
+          data-settings-main-container="true"
+          className="flex-1 flex flex-col min-w-0 bg-[var(--theme-bg-primary)] relative overflow-hidden"
+        >
           <div
             ref={scrollContainerRef}
             onScroll={handleContentScroll}

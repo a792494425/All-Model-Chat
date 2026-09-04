@@ -142,13 +142,17 @@ export const SelectedFileDisplay: React.FC<SelectedFileDisplayProps> = ({
             </div>
           )}
 
-          {isUploading && (
+          {(isUploading || file.uploadState === 'processing_api') && (
             <div className="absolute inset-x-2 bottom-2 z-20">
               <div className="h-1.5 overflow-hidden rounded-full bg-black/25">
-                <div
-                  className="h-full rounded-full bg-[var(--theme-text-link)] transition-[width] duration-300"
-                  style={{ width: `${uploadPercent}%` }}
-                />
+                {file.uploadState === 'processing_api' ? (
+                  <div className="h-full w-full rounded-full bg-[var(--theme-text-link)]/75 animate-pulse" />
+                ) : (
+                  <div
+                    className="h-full rounded-full bg-[var(--theme-text-link)] transition-[width] duration-300"
+                    style={{ width: `${uploadPercent}%` }}
+                  />
+                )}
               </div>
             </div>
           )}

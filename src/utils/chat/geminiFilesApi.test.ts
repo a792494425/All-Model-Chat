@@ -197,7 +197,9 @@ describe('isFilesApiPermissionDeniedError', () => {
   });
 
   it('detects simple permission error on File', () => {
-    expect(isFilesApiPermissionDeniedError('You do not have permission to access the File abc or it may not exist.')).toBe(true);
+    expect(
+      isFilesApiPermissionDeniedError('You do not have permission to access the File abc or it may not exist.'),
+    ).toBe(true);
     expect(isFilesApiPermissionDeniedError('403 PERMISSION_DENIED: File not accessible')).toBe(true);
   });
 
@@ -322,4 +324,3 @@ describe('invalidateSessionFilesApiReferences', () => {
     expect(updated).toBe(session);
   });
 });
-

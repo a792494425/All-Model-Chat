@@ -3,6 +3,7 @@ import { headerTranslations } from './translations/header';
 import { chatInputTranslations } from './translations/chatInput';
 import { messagesTranslations } from './translations/messages';
 import { historyTranslations } from './translations/history';
+import { libraryTranslations } from './translations/library';
 import { commonTranslations } from './translations/common';
 import { chatTranslations } from './translations/chat';
 import { ttsStyleTranslations } from './voiceStyleTranslations';
@@ -133,6 +134,7 @@ export const translations: TranslationMap = {
   ...chatInputTranslations,
   ...messagesTranslations,
   ...historyTranslations,
+  ...libraryTranslations,
   ...commonTranslations,
   ...chatTranslations,
   ...shellFeatureTranslations,

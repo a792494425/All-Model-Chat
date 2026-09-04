@@ -131,8 +131,34 @@ describe('ChatSuggestions rendering', () => {
       );
     });
 
+    expect(renderer.container.querySelector('[data-testid="image-nav-chip"]')).toBeNull();
     expect(renderer.container.querySelector('[data-testid="pdf-nav-chip"]')).not.toBeNull();
     expect(renderer.container.querySelector('[data-testid="video-nav-chip"]')).toBeNull();
     expect(renderer.container.querySelector('[data-testid="audio-nav-chip"]')).toBeNull();
+  });
+
+  it('renders image nav chip and hides legacy bbox/guide buttons when onToggleImageNav is provided', async () => {
+    const handleToggleImageNav = vi.fn();
+    await act(async () => {
+      renderer.root.render(
+        <ChatSuggestions
+          show
+          isFullscreen={false}
+          onSuggestionClick={vi.fn()}
+          onOrganizeInfoClick={vi.fn()}
+          onToggleBBox={vi.fn()}
+          isBBoxModeActive={false}
+          onToggleGuide={vi.fn()}
+          isGuideModeActive={false}
+          onToggleImageNav={handleToggleImageNav}
+        />,
+      );
+    });
+
+    const imageChip = renderer.container.querySelector('[data-testid="image-nav-chip"]');
+    expect(imageChip).not.toBeNull();
+    // Legacy bbox and guide buttons should not be rendered
+    expect(renderer.container.querySelector('button[aria-label*="BBox" i]')).toBeNull();
+    expect(renderer.container.querySelector('button[aria-label*="Guide" i]')).toBeNull();
   });
 });

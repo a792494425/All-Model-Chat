@@ -15,6 +15,8 @@ describe('parseTimestamp', () => {
   it('passes raw seconds through', () => {
     expect(parseTimestamp(90)).toBe(90);
     expect(parseTimestamp(90.7)).toBe(90);
+    expect(parseTimestamp('120')).toBe(120);
+    expect(parseTimestamp('120.5')).toBe(120);
   });
 
   it('rejects unparsable values', () => {

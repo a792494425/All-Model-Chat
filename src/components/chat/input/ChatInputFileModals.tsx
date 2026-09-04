@@ -5,8 +5,8 @@ import {
   type ModelOption,
   type VideoMetadata,
   type MediaResolution,
+  type LibraryItem,
 } from '@/types';
-import { isMarkdownFile } from '@/utils/file/fileTypeClassification';
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';
 
 const LazyFileConfigModal = lazyNamedComponent(() => import('@/components/modals/FileConfigModal'), 'FileConfigModal');
@@ -15,9 +15,9 @@ const LazyFilePreviewModal = lazyNamedComponent(
   () => import('@/components/modals/FilePreviewModal'),
   'FilePreviewModal',
 );
-const LazyMarkdownPreviewModal = lazyNamedComponent(
-  () => import('@/components/modals/MarkdownPreviewModal'),
-  'MarkdownPreviewModal',
+const LazyLibraryPickerModal = lazyNamedComponent(
+  () => import('@/components/modals/LibraryPickerModal'),
+  'LibraryPickerModal',
 );
 
 interface ChatInputFileModalsProps {
@@ -25,6 +25,10 @@ interface ChatInputFileModalsProps {
   setConfiguringFile: (file: UploadedFile | null) => void;
   showTokenModal: boolean;
   setShowTokenModal: (show: boolean) => void;
+  showLibraryPicker?: boolean;
+  setShowLibraryPicker?: (show: boolean) => void;
+  onImportFromLibrary?: (items: LibraryItem[]) => Promise<void>;
+  isImageGenerationModel?: boolean;
   previewFile: UploadedFile | null;
   onClosePreview: () => void;
   inputText: string;
@@ -52,6 +56,10 @@ export const ChatInputFileModals: React.FC<ChatInputFileModalsProps> = ({
   setConfiguringFile,
   showTokenModal,
   setShowTokenModal,
+  showLibraryPicker,
+  setShowLibraryPicker,
+  onImportFromLibrary,
+  isImageGenerationModel,
   previewFile,
   onClosePreview,
   inputText,
@@ -65,9 +73,6 @@ export const ChatInputFileModals: React.FC<ChatInputFileModalsProps> = ({
   onSaveFileConfig,
   previewNavigation,
 }) => {
-  const markdownPreviewFile = previewFile && isMarkdownFile(previewFile) ? previewFile : null;
-  const genericPreviewFile = previewFile && !isMarkdownFile(previewFile) ? previewFile : null;
-
   return (
     <>
       {configuringFile && (
@@ -95,9 +100,20 @@ export const ChatInputFileModals: React.FC<ChatInputFileModalsProps> = ({
         />
       </Suspense>
 
+      {showLibraryPicker && setShowLibraryPicker && onImportFromLibrary && (
+        <Suspense fallback={null}>
+          <LazyLibraryPickerModal
+            isOpen={showLibraryPicker}
+            onClose={() => setShowLibraryPicker(false)}
+            onConfirm={onImportFromLibrary}
+            initialCategory={isImageGenerationModel ? 'image' : 'all'}
+          />
+        </Suspense>
+      )}
+
       <Suspense fallback={null}>
         <LazyFilePreviewModal
-          file={genericPreviewFile}
+          file={previewFile}
           onClose={onClosePreview}
           onPrev={previewNavigation.handlePrevImage}
           onNext={previewNavigation.handleNextImage}
@@ -106,15 +122,6 @@ export const ChatInputFileModals: React.FC<ChatInputFileModalsProps> = ({
             previewNavigation.currentImageIndex !== -1 &&
             previewNavigation.currentImageIndex < previewNavigation.inputImages.length - 1
           }
-          onSaveText={onSaveTextFile}
-          initialEditMode={isPreviewEditable}
-        />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <LazyMarkdownPreviewModal
-          file={markdownPreviewFile}
-          onClose={onClosePreview}
           onSaveText={onSaveTextFile}
           initialEditMode={isPreviewEditable}
         />

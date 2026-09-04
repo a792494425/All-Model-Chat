@@ -60,6 +60,11 @@ export const sendStandardMessage = async ({
   const settingsForPersistence = { ...currentChatSettings };
   const settingsForApi = { ...currentChatSettings };
 
+  if (!settingsForApi.systemInstruction?.trim() && appSettings.systemInstruction) {
+    settingsForApi.systemInstruction = appSettings.systemInstruction;
+    settingsForPersistence.systemInstruction = appSettings.systemInstruction;
+  }
+
   if (isFastMode) {
     const capabilities = getModelCapabilities(effectiveActiveModelId);
     // gemini-3.7-flash / gemini-3.8-flash rejects MINIMAL with an API error — fall back to LOW there.

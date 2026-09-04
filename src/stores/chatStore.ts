@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import {
   type SavedChatSession,
+  type ChatSettings,
   type ChatGroup,
   type ChatMessage,
   type UploadedFile,
@@ -58,6 +59,7 @@ interface ChatState extends ChatUiSliceState {
   activeSessionId: string | null;
   activeMessages: ChatMessage[];
   pendingLockedApiKey: string | null;
+  pendingChatSettings: Partial<ChatSettings> | null;
 
   _activeJobs: { current: Map<string, AbortController> };
   _userScrolledUp: { current: boolean };
@@ -125,6 +127,7 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
   activeSessionId: null,
   activeMessages: [],
   pendingLockedApiKey: null,
+  pendingChatSettings: null,
 
   ...createChatUiSlice<ChatState & ChatActions>(set),
 
@@ -146,7 +149,7 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
     const nextValue = resolveUpdaterOrValue(value, get().activeSessionId);
     set({
       activeSessionId: nextValue,
-      ...(nextValue !== get().activeSessionId ? { pendingLockedApiKey: null } : {}),
+      ...(nextValue !== get().activeSessionId ? { pendingLockedApiKey: null, pendingChatSettings: null } : {}),
     });
     syncActiveSessionRoute(nextValue, options?.history ?? 'auto');
   },
@@ -530,13 +533,18 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
   },
 
   setCurrentChatSettings: (updater) => {
-    const { activeSessionId, pendingLockedApiKey } = get();
+    const { activeSessionId, pendingChatSettings, pendingLockedApiKey } = get();
     if (!activeSessionId) {
-      const nextSettings = updater({
+      const currentBase: ChatSettings = {
         ...DEFAULT_CHAT_SETTINGS,
+        ...(pendingChatSettings ?? {}),
         lockedApiKey: pendingLockedApiKey,
+      };
+      const nextSettings = updater(currentBase);
+      set({
+        pendingLockedApiKey: nextSettings.lockedApiKey ?? null,
+        pendingChatSettings: nextSettings,
       });
-      set({ pendingLockedApiKey: nextSettings.lockedApiKey ?? null });
       return;
     }
     get().updateAndPersistSessions((prevSessions) =>

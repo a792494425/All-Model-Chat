@@ -9,7 +9,9 @@ import {
   useState,
 } from 'react';
 
-import type { UploadedFile } from '@/types';
+import type { UploadedFile, AttachmentAction, LibraryItem } from '@/types';
+import { dbService } from '@/services/db/dbService';
+import { resolveLibraryItemToUploadedFile } from '@/utils/library/libraryFiles';
 import { EXTENSION_TO_MIME } from '@/constants/fileTypeSupport';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { cleanupFilePreviewUrl, cleanupReplacedFilePreviewUrl } from '@/utils/file/filePreviewUrls';
@@ -64,6 +66,7 @@ export const useChatInputFileUi = ({
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [showTtsContextEditor, setShowTtsContextEditor] = useState(false);
   const [showTokenModal, setShowTokenModal] = useState(false);
+  const [showLibraryPicker, setShowLibraryPicker] = useState(false);
 
   const {
     previewFile,
@@ -80,15 +83,16 @@ export const useChatInputFileUi = ({
   } = useFileModalState<UploadedFile>(selectedFiles);
 
   const handleAttachmentAction = useCallback(
-    (
-      action: 'upload' | 'gallery' | 'folder' | 'zip' | 'camera' | 'recorder' | 'id' | 'url' | 'text' | 'screenshot',
-    ) => {
+    (action: AttachmentAction) => {
       setShowAddByIdInput(false);
       setShowAddByUrlInput(false);
 
       switch (action) {
         case 'upload':
           fileInputRef.current?.click();
+          break;
+        case 'library':
+          setShowLibraryPicker(true);
           break;
         case 'gallery':
           imageInputRef.current?.click();
@@ -125,6 +129,26 @@ export const useChatInputFileUi = ({
       }
     },
     [cameraInputRef, fileInputRef, folderInputRef, imageInputRef, onOpenFolderPicker, onScreenshot, zipInputRef],
+  );
+
+  const handleImportFromLibrary = useCallback(
+    async (items: LibraryItem[]) => {
+      if (!items.length) return;
+
+      const newUploadedFiles: UploadedFile[] = await Promise.all(
+        items.map((item) => resolveLibraryItemToUploadedFile(item, (i) => dbService.fetchLibraryFileBlob(i))),
+      );
+
+      setSelectedFiles((prev) => {
+        const existingIds = new Set(prev.map((f) => f.id));
+        const nonDuplicates = newUploadedFiles.filter((f) => !existingIds.has(f.id));
+        return [...prev, ...nonDuplicates];
+      });
+
+      setShowLibraryPicker(false);
+      textareaRef.current?.focus();
+    },
+    [setSelectedFiles, textareaRef],
   );
 
   const handleConfirmCreateTextFile = useCallback(
@@ -291,6 +315,9 @@ export const useChatInputFileUi = ({
       setIsHelpModalOpen,
       showTtsContextEditor,
       setShowTtsContextEditor,
+      showLibraryPicker,
+      setShowLibraryPicker,
+      handleImportFromLibrary,
       fileInputRef,
       imageInputRef,
       folderInputRef,
@@ -310,11 +337,13 @@ export const useChatInputFileUi = ({
       handleAudioRecord,
       handleConfirmCreateTextFile,
       handleEditFile,
+      handleImportFromLibrary,
       imageInputRef,
       isHelpModalOpen,
       showAddByIdInput,
       showAddByUrlInput,
       showCreateTextFileEditor,
+      showLibraryPicker,
       showRecorder,
       showTtsContextEditor,
       zipInputRef,

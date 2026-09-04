@@ -27,6 +27,13 @@ type MockDbService = MockRecord & {
   getLogs: MockFn;
   clearLogs: MockFn;
   pruneLogs: MockFn;
+  getStandaloneLibraryFiles: MockFn;
+  saveStandaloneLibraryFiles: MockFn;
+  addStandaloneLibraryFiles: MockFn;
+  deleteStandaloneLibraryFiles: MockFn;
+  renameStandaloneLibraryFile: MockFn;
+  fetchLibraryFileBlob: MockFn;
+  getAllHistoricalSessionFiles: MockFn;
   addApiUsageRecord: MockFn;
   getApiUsageByTimeRange: MockFn;
   clearApiUsage: MockFn;
@@ -77,6 +84,13 @@ export const createMockDbService = (overrides: Partial<MockDbService> = {}): Moc
   getLogs: asyncMockFn([]),
   clearLogs: asyncMockFn(undefined),
   pruneLogs: asyncMockFn(undefined),
+  getStandaloneLibraryFiles: asyncMockFn([]),
+  saveStandaloneLibraryFiles: asyncMockFn(undefined),
+  addStandaloneLibraryFiles: asyncMockFn(undefined),
+  deleteStandaloneLibraryFiles: asyncMockFn(undefined),
+  renameStandaloneLibraryFile: asyncMockFn(undefined),
+  fetchLibraryFileBlob: asyncMockFn(null),
+  getAllHistoricalSessionFiles: asyncMockFn([]),
   addApiUsageRecord: asyncMockFn(undefined),
   getApiUsageByTimeRange: asyncMockFn([]),
   clearApiUsage: asyncMockFn(undefined),

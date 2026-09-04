@@ -1,15 +1,19 @@
 import { createChatHistoryForApi } from '@/utils/chat/builder';
 import {
   buildAudioLocateDirective,
+  buildImageLocateDirective,
   buildPdfLocateDirective,
   buildVideoLocateDirective,
 } from '@/utils/media-nav/locateMarker';
+import { isLiveArtifactsSystemInstruction } from '@/features/prompts/promptRegistry';
 import {
   collectSessionMediaFiles,
   isAudioFile,
+  isImageFile,
   isPdfFile,
   isVideoFile,
   partsContainAudio,
+  partsContainImage,
   partsContainPdf,
   partsContainVideo,
 } from '@/utils/media-nav/sessionMediaFiles';
@@ -31,6 +35,7 @@ import {
   sendOpenAICompatibleMessageNonStream,
   sendOpenAICompatibleMessageStream,
 } from '@/services/api/openaiCompatibleApi';
+import { sendOpenAIResponsesNonStream, sendOpenAIResponsesStream } from '@/services/api/openaiResponsesApi';
 import { sendAnthropicMessageNonStream, sendAnthropicMessageStream } from '@/services/api/anthropicApi';
 import { createMcpClientFunctions } from '@/features/mcp/mcpClientFunctions';
 import { requestToolApproval } from '@/stores/mcpApprovalStore';
@@ -66,12 +71,10 @@ import { resolveChatApiRoute, isUnavailableThirdPartyRoute } from '@/utils/chatA
 import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
 import { useChatStore } from '@/stores/chatStore';
 import { ensureHistoryFilesApiReferences } from './fileApiReference';
-import {
-  invalidateSessionFilesApiReferences,
-  isFilesApiPermissionDeniedError,
-} from '@/utils/chat/geminiFilesApi';
+import { invalidateSessionFilesApiReferences, isFilesApiPermissionDeniedError } from '@/utils/chat/geminiFilesApi';
 import { getGeminiKeyForRequest } from '@/utils/apiKeySelection';
 import { getTranslator } from '@/i18n/translations';
+import { resolveAppLanguage } from '@/i18n/languageRegistry';
 import { logService } from '@/services/logService';
 
 interface StandardChatApiCallContext {
@@ -203,7 +206,11 @@ export const performStandardChatApiCall = async ({
     enrichedFiles.some(isAudioFile) ||
     partsContainAudio(finalParts) ||
     baseMessagesForApi.some((message) => message.files?.some(isAudioFile));
-  const { pdfs, videos, audios } = collectSessionMediaFiles(enrichedFiles, baseMessagesForApi);
+  const hasImageMedia =
+    enrichedFiles.some(isImageFile) ||
+    partsContainImage(finalParts) ||
+    baseMessagesForApi.some((message) => message.files?.some(isImageFile));
+  const { pdfs, videos, audios, images } = collectSessionMediaFiles(enrichedFiles, baseMessagesForApi);
   const locateDirectives = [
     sessionToUpdate.isPdfNavEnabled && hasPdfMedia ? buildPdfLocateDirective(pdfs.map((file) => file.name)) : '',
     sessionToUpdate.isVideoNavEnabled && hasVideoMedia
@@ -212,11 +219,18 @@ export const performStandardChatApiCall = async ({
     sessionToUpdate.isAudioNavEnabled && hasAudioMedia
       ? buildAudioLocateDirective(audios.map((file) => file.name))
       : '',
+    sessionToUpdate.isImageNavEnabled && hasImageMedia
+      ? buildImageLocateDirective(images.map((file) => file.name))
+      : '',
   ].filter(Boolean);
+  const baseInstruction =
+    locateDirectives.length > 0 && isLiveArtifactsSystemInstruction(sessionToUpdate.systemInstruction)
+      ? ''
+      : sessionToUpdate.systemInstruction;
   const effectiveSystemInstruction =
     locateDirectives.length > 0
-      ? sessionToUpdate.systemInstruction
-        ? `${sessionToUpdate.systemInstruction}\n\n${locateDirectives.join('\n\n')}`
+      ? baseInstruction
+        ? `${baseInstruction}\n\n${locateDirectives.join('\n\n')}`
         : locateDirectives.join('\n\n')
       : sessionToUpdate.systemInstruction;
 
@@ -267,6 +281,7 @@ export const performStandardChatApiCall = async ({
       extraHeaders: activeProvider.extraHeaders,
     };
     const isAnthropic = activeProvider.protocol === 'anthropic';
+    const isOpenAIResponses = activeProvider.protocol === 'openai-responses';
     // Docker THIRD_PARTY_ROUTES is keyed by template, not connection UUID.
     const providerId = getProxyProviderHeader(activeProvider.templateId);
 
@@ -293,20 +308,35 @@ export const performStandardChatApiCall = async ({
                 finalRole,
                 providerId,
               )
-            : sendOpenAICompatibleMessageStream(
-                keyToUse,
-                apiModelId,
-                historyForChat,
-                finalParts,
-                providerConfig,
-                newAbortController.signal,
-                thirdPartyOnPart,
-                thirdPartyOnThoughtChunk,
-                streamOnError,
-                streamOnComplete,
-                finalRole,
-                providerId,
-              ),
+            : isOpenAIResponses
+              ? sendOpenAIResponsesStream(
+                  keyToUse,
+                  apiModelId,
+                  historyForChat,
+                  finalParts,
+                  providerConfig,
+                  newAbortController.signal,
+                  thirdPartyOnPart,
+                  thirdPartyOnThoughtChunk,
+                  streamOnError,
+                  streamOnComplete,
+                  finalRole,
+                  providerId,
+                )
+              : sendOpenAICompatibleMessageStream(
+                  keyToUse,
+                  apiModelId,
+                  historyForChat,
+                  finalParts,
+                  providerConfig,
+                  newAbortController.signal,
+                  thirdPartyOnPart,
+                  thirdPartyOnThoughtChunk,
+                  streamOnError,
+                  streamOnComplete,
+                  finalRole,
+                  providerId,
+                ),
         streamOnError,
       );
       return;
@@ -327,18 +357,31 @@ export const performStandardChatApiCall = async ({
               finalRole,
               providerId,
             )
-          : sendOpenAICompatibleMessageNonStream(
-              keyToUse,
-              apiModelId,
-              historyForChat,
-              finalParts,
-              providerConfig,
-              newAbortController.signal,
-              streamOnError,
-              nonStreamOnComplete,
-              finalRole,
-              providerId,
-            ),
+          : isOpenAIResponses
+            ? sendOpenAIResponsesNonStream(
+                keyToUse,
+                apiModelId,
+                historyForChat,
+                finalParts,
+                providerConfig,
+                newAbortController.signal,
+                streamOnError,
+                nonStreamOnComplete,
+                finalRole,
+                providerId,
+              )
+            : sendOpenAICompatibleMessageNonStream(
+                keyToUse,
+                apiModelId,
+                historyForChat,
+                finalParts,
+                providerConfig,
+                newAbortController.signal,
+                streamOnError,
+                nonStreamOnComplete,
+                finalRole,
+                providerId,
+              ),
       streamOnError,
     );
     return;
@@ -466,11 +509,7 @@ export const performStandardChatApiCall = async ({
   let autoRetryAttempted = false;
 
   const handleStreamErrorWithAutoRetry = async (error: Error): Promise<void> => {
-    if (
-      !autoRetryAttempted &&
-      !newAbortController.signal.aborted &&
-      isFilesApiPermissionDeniedError(error)
-    ) {
+    if (!autoRetryAttempted && !newAbortController.signal.aborted && isFilesApiPermissionDeniedError(error)) {
       autoRetryAttempted = true;
       logService.warn('Files API permission error detected during generation. Attempting silent auto-retry.', {
         sessionId: finalSessionId,
@@ -482,13 +521,11 @@ export const performStandardChatApiCall = async ({
         const currentSession = state.savedSessions.find((s) => s.id === finalSessionId);
         if (currentSession) {
           const invalidatedSession = invalidateSessionFilesApiReferences(currentSession, error);
-          updateAndPersistSessions((prev) =>
-            updateSessionById(prev, finalSessionId, () => invalidatedSession),
-          );
+          updateAndPersistSessions((prev) => updateSessionById(prev, finalSessionId, () => invalidatedSession));
 
           const freshKeyResult = getGeminiKeyForRequest(appSettings, sessionToUpdate);
           const freshKey = 'key' in freshKeyResult ? freshKeyResult.key : keyToUse;
-          const t = getTranslator(appSettings.language);
+          const t = getTranslator(resolveAppLanguage(appSettings.language));
 
           const historyRefResult = await ensureHistoryFilesApiReferences({
             messages: invalidatedSession.messages,

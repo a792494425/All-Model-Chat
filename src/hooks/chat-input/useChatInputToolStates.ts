@@ -36,21 +36,35 @@ export const getNextSettingsForToolToggle = (settings: ChatSettings, toolId: Tog
     };
   }
 
-  // googleSearch and googleMaps are mutually exclusive (SDK rejects a request that
-  // carries both tools), so enabling one disables the other.
+  // googleSearch, deepSearch, and googleMaps are mutually exclusive:
+  // enabling any of them disables the other search/grounding tools.
   if (toolId === 'googleSearch') {
+    const willEnable = !settings.isGoogleSearchEnabled;
     return {
       ...settings,
-      isGoogleSearchEnabled: !settings.isGoogleSearchEnabled,
-      isGoogleMapsEnabled: !settings.isGoogleSearchEnabled ? false : settings.isGoogleMapsEnabled,
+      isGoogleSearchEnabled: willEnable,
+      isGoogleMapsEnabled: willEnable ? false : settings.isGoogleMapsEnabled,
+      isDeepSearchEnabled: willEnable ? false : settings.isDeepSearchEnabled,
+    };
+  }
+
+  if (toolId === 'deepSearch') {
+    const willEnable = !settings.isDeepSearchEnabled;
+    return {
+      ...settings,
+      isDeepSearchEnabled: willEnable,
+      isGoogleSearchEnabled: willEnable ? false : settings.isGoogleSearchEnabled,
+      isGoogleMapsEnabled: willEnable ? false : settings.isGoogleMapsEnabled,
     };
   }
 
   if (toolId === 'googleMaps') {
+    const willEnable = !settings.isGoogleMapsEnabled;
     return {
       ...settings,
-      isGoogleMapsEnabled: !settings.isGoogleMapsEnabled,
-      isGoogleSearchEnabled: !settings.isGoogleMapsEnabled ? false : settings.isGoogleSearchEnabled,
+      isGoogleMapsEnabled: willEnable,
+      isGoogleSearchEnabled: willEnable ? false : settings.isGoogleSearchEnabled,
+      isDeepSearchEnabled: willEnable ? false : settings.isDeepSearchEnabled,
     };
   }
 

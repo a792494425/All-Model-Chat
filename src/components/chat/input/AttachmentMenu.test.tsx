@@ -60,4 +60,41 @@ describe('AttachmentMenu', () => {
     const hasRecorder = itemLabels.some((text) => text.includes('录音') || text.toLowerCase().includes('record'));
     expect(hasRecorder).toBe(true);
   });
+
+  it('shows library option and triggers library action when clicked', () => {
+    const value = createChatInputActionsContextValue({
+      currentModelId: 'gemini-3.7-flash',
+    });
+
+    act(() => {
+      renderer.render(
+        <ChatInputActionsContext.Provider value={value}>
+          <AttachmentMenu />
+        </ChatInputActionsContext.Provider>,
+      );
+    });
+
+    const trigger = renderer.container.querySelector<HTMLButtonElement>('button[aria-haspopup="true"]')!;
+    expect(trigger).not.toBeNull();
+
+    act(() => {
+      trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    const menuItems = Array.from(document.querySelectorAll<HTMLButtonElement>('button[role="menuitem"]'));
+    const libraryBtn = menuItems.find(
+      (b) =>
+        b.textContent?.includes('从资料库添加') ||
+        b.textContent?.toLowerCase().includes('library') ||
+        b.textContent?.includes('资料库') ||
+        b.textContent?.includes('資料庫'),
+    );
+    expect(libraryBtn).toBeDefined();
+
+    act(() => {
+      libraryBtn!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(value.onAttachmentAction).toHaveBeenCalledWith('library');
+  });
 });

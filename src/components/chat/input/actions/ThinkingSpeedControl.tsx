@@ -5,20 +5,29 @@ import { useI18n } from '@/contexts/I18nContext';
 import { useChatInputContext } from '@/components/chat/input/ChatInputContext';
 import { usePortaledMenu } from '@/hooks/ui/usePortaledMenu';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
+import { isAnthropicThinkingModel, isOpenAIReasoningModel } from '@/utils/model/modelCapabilities';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { resolveChatApiRoute } from '@/utils/chatApiRoute';
 import type { ThinkingLevel } from '@/types';
 
 const LEVEL_LABEL_KEYS: Record<ThinkingLevel, string> = {
+  NONE: 'thinkingLevelNone',
   MINIMAL: 'thinkingLevelMinimal',
   LOW: 'thinkingLevelLow',
   MEDIUM: 'thinkingLevelMedium',
   HIGH: 'thinkingLevelHigh',
+  XHIGH: 'thinkingLevelXHigh',
+  MAX: 'thinkingLevelMax',
 };
 
 const LEVEL_FALLBACK: Record<ThinkingLevel, string> = {
-  MINIMAL: '最小',
+  NONE: '关闭',
+  MINIMAL: '极简',
   LOW: '低',
   MEDIUM: '中',
   HIGH: '高',
+  XHIGH: '极高',
+  MAX: '最大',
 };
 
 const WHEEL_STEP_THRESHOLD = 40;
@@ -96,7 +105,16 @@ export const ThinkingSpeedControl: React.FC = () => {
 
   const caps = getCachedModelCapabilities(modelId);
   const isGemma = caps.isGemmaModel;
-  const supportsThinkingLevel = caps.supportsThinkingLevel || isGemma;
+  const appSettings = useSettingsStore((state) => state.appSettings);
+  const route = resolveChatApiRoute(appSettings, currentChatSettings);
+  const isThirdPartyResponses = route.apiMode === 'third-party' && route.provider?.protocol === 'openai-responses';
+  const isThirdPartyAnthropic = route.apiMode === 'third-party' && route.provider?.protocol === 'anthropic';
+  const isReasoning =
+    isThirdPartyResponses ||
+    isThirdPartyAnthropic ||
+    isOpenAIReasoningModel(modelId) ||
+    isAnthropicThinkingModel(modelId);
+  const supportsThinkingLevel = caps.supportsThinkingLevel || isGemma || isReasoning;
   const activeCapabilities = caps;
 
   if (!supportsThinkingLevel || activeCapabilities.isTtsModel) return null;
@@ -108,6 +126,8 @@ export const ThinkingSpeedControl: React.FC = () => {
   let supportedLevels: ThinkingLevel[];
   if (isImageThinkingLevelOnly) {
     supportedLevels = ['MINIMAL', 'HIGH'];
+  } else if (isReasoning) {
+    supportedLevels = ['MINIMAL', 'LOW', 'MEDIUM', 'HIGH', 'XHIGH', 'MAX'];
   } else if (supportsThinkingLevel) {
     // gemini-3.7-flash / gemini-3.8-flash rejects MINIMAL with an API error — only offer it where supported.
     supportedLevels =

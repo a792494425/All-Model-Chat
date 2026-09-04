@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Paperclip, FolderOpen } from 'lucide-react';
+import { Paperclip, FolderOpen, Library } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import type { AttachmentAction } from '@/types';
 import {
@@ -57,15 +57,20 @@ export const AttachmentMenu: React.FC = () => {
     { labelKey: 'attachMenuScreenshot', icon: <IconScreenshot size={menuIconSize} />, action: 'screenshot' },
     { labelKey: 'attachMenuTakePhoto', icon: <IconCamera size={menuIconSize} />, action: 'camera' },
     { labelKey: 'attachMenuGallery', icon: <IconGallery size={menuIconSize} />, action: 'gallery' },
+    { labelKey: 'attachMenuLibrary', icon: <Library size={menuIconSize} />, action: 'library' },
     { labelKey: 'attachMenuUpload', icon: <IconUpload size={menuIconSize} />, action: 'upload' },
   ] as const;
 
   const filteredMenuItems = isTranscribeModel
-    ? menuItems.filter((item) => item.action === 'upload' || item.action === 'recorder' || item.action === 'id')
+    ? menuItems.filter(
+        (item) =>
+          item.action === 'upload' || item.action === 'library' || item.action === 'recorder' || item.action === 'id',
+      )
     : isImageGenerationModel
       ? menuItems.filter(
           (item) =>
             item.action === 'upload' ||
+            item.action === 'library' ||
             item.action === 'gallery' ||
             item.action === 'camera' ||
             item.action === 'screenshot' ||

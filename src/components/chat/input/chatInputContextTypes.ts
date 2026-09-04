@@ -21,6 +21,7 @@ import type {
   ModelOption,
   UploadedFile,
   VideoMetadata,
+  LibraryItem,
 } from '@/types';
 import type { ChatToolToggleStates } from '@/types/chatTools';
 import type { SlashCommand } from '@/types/slashCommands';
@@ -59,6 +60,7 @@ export interface ChatInputRuntimeState {
   onNewChat: () => void;
   onOpenSettings: () => void;
   onToggleLiveArtifactsPrompt: () => void;
+  onDeactivateLiveArtifactsPrompt?: () => void;
   onSelectModel: (modelId: string) => void;
   availableModels: ModelOption[];
   onTogglePinCurrentSession: () => void;
@@ -154,6 +156,9 @@ export interface ChatInputModalsState {
   setIsHelpModalOpen: Dispatch<SetStateAction<boolean>>;
   showTtsContextEditor: boolean;
   setShowTtsContextEditor: Dispatch<SetStateAction<boolean>>;
+  showLibraryPicker: boolean;
+  setShowLibraryPicker: Dispatch<SetStateAction<boolean>>;
+  handleImportFromLibrary: (items: LibraryItem[]) => Promise<void>;
   fileInputRef: RefObject<HTMLInputElement>;
   imageInputRef: RefObject<HTMLInputElement>;
   folderInputRef: RefObject<HTMLInputElement>;

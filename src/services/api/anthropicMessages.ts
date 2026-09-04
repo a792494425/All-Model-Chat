@@ -1,7 +1,7 @@
 import type { Part } from '@google/genai';
 import type { ChatHistoryItem, ThinkingLevel } from '@/types';
 import { isImageMimeType } from '@/utils/file/fileTypeClassification';
-import { isAnthropicEffortModel } from '@/utils/model/modelCapabilities';
+import { isAnthropicEffortModel, isAnthropicThinkingModel } from '@/utils/model/modelCapabilities';
 import type { AnthropicChatConfig, AnthropicContentBlock, AnthropicMessage } from './anthropicTypes';
 import { appendSamplingParameters } from './requestFactory';
 
@@ -75,16 +75,41 @@ const buildAnthropicMessages = (
 const ANTHROPIC_OUTPUT_TOKENS = 8192;
 const ANTHROPIC_MIN_THINKING_BUDGET = 1024;
 
-const mapThinkingLevelToAnthropicEffort = (level: ThinkingLevel | undefined): 'low' | 'medium' | 'high' => {
+const mapThinkingLevelToAnthropicEffort = (level: ThinkingLevel | undefined): 'low' | 'medium' | 'high' | 'max' => {
   switch (level) {
+    case 'NONE':
     case 'MINIMAL':
     case 'LOW':
       return 'low';
     case 'MEDIUM':
       return 'medium';
     case 'HIGH':
+      return 'high';
+    case 'XHIGH':
+    case 'MAX':
+      return 'max';
     default:
       return 'high';
+  }
+};
+
+const mapThinkingLevelToAnthropicBudgetTokens = (level: ThinkingLevel | undefined): number => {
+  switch (level) {
+    case 'NONE':
+      return 0;
+    case 'MINIMAL':
+    case 'LOW':
+      return 2048;
+    case 'MEDIUM':
+      return 8192;
+    case 'HIGH':
+      return 16384;
+    case 'XHIGH':
+      return 32768;
+    case 'MAX':
+      return 64000;
+    default:
+      return 16384;
   }
 };
 
@@ -125,7 +150,7 @@ export const buildAnthropicRequestBody = (
     // Adaptive models: control thoroughness via output_config.effort; never send budget_tokens.
     body.output_config = { effort: mapThinkingLevelToAnthropicEffort(config.thinkingLevel) };
   } else if (typeof config.thinkingBudget === 'number' && config.thinkingBudget > 0) {
-    // Legacy extended thinking for models that still accept budget_tokens (e.g. Haiku).
+    // Extended thinking with explicit budget_tokens (e.g. Haiku / Claude 3.7).
     const budgetTokens = Math.max(ANTHROPIC_MIN_THINKING_BUDGET, config.thinkingBudget);
     body.thinking = { type: 'enabled', budget_tokens: budgetTokens };
     body.max_tokens = budgetTokens + ANTHROPIC_OUTPUT_TOKENS;
@@ -133,6 +158,15 @@ export const buildAnthropicRequestBody = (
     // must stay 1, top_p must be omitted) — drop both instead of failing the request.
     delete body.temperature;
     delete body.top_p;
+  } else if (config.thinkingLevel && config.thinkingLevel !== 'NONE' && isAnthropicThinkingModel(modelId)) {
+    // Extended thinking mapped from UI thinkingLevel slider for budget-based models.
+    const budgetTokens = mapThinkingLevelToAnthropicBudgetTokens(config.thinkingLevel);
+    if (budgetTokens > 0) {
+      body.thinking = { type: 'enabled', budget_tokens: budgetTokens };
+      body.max_tokens = budgetTokens + ANTHROPIC_OUTPUT_TOKENS;
+      delete body.temperature;
+      delete body.top_p;
+    }
   }
 
   return body;

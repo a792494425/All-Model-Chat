@@ -1,0 +1,78 @@
+import { render, screen, fireEvent } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useChatStore } from '@/stores/chatStore';
+import { useMediaNavStore } from '@/stores/mediaNavStore';
+import type { ChatMessage, UploadedFile } from '@/types';
+import { InlinePdfLocateButton } from './InlinePdfLocateButton';
+
+const makePdf = (id: string, name: string): UploadedFile => ({
+  id,
+  name,
+  type: 'application/pdf',
+  size: 100,
+});
+
+describe('InlinePdfLocateButton', () => {
+  beforeEach(() => {
+    useMediaNavStore.setState({
+      isOpen: false,
+      openKind: null,
+      activeFileId: null,
+      targetPage: null,
+      currentPage: 1,
+      highlight: null,
+      videoTarget: null,
+    });
+    useChatStore.setState({ selectedFiles: [], activeMessages: [] });
+  });
+
+  it('renders button with pin icon and children text', () => {
+    render(
+      <InlinePdfLocateButton pageNumber={3} docName="test.pdf">
+        第 3 页 · 利润表
+      </InlinePdfLocateButton>,
+    );
+
+    const btn = screen.getByTestId('inline-pdf-locate-btn');
+    expect(btn.textContent).toContain('第 3 页 · 利润表');
+  });
+
+  it('triggers seekSessionPdf on click', () => {
+    const pdf = makePdf('p-1', 'doc.pdf');
+    const msg: ChatMessage = {
+      id: 'm1',
+      role: 'user',
+      content: '',
+      timestamp: new Date(),
+      files: [pdf],
+    };
+    useChatStore.setState({ selectedFiles: [], activeMessages: [msg] });
+
+    render(
+      <InlinePdfLocateButton pageNumber={4} docName="doc.pdf" box2d={[10, 20, 30, 40]} snippet="示例">
+        第 4 页
+      </InlinePdfLocateButton>,
+    );
+
+    fireEvent.click(screen.getByTestId('inline-pdf-locate-btn'));
+    const state = useMediaNavStore.getState();
+    expect(state.isOpen).toBe(true);
+    expect(state.openKind).toBe('pdf');
+    expect(state.activeFileId).toBe('p-1');
+    expect(state.targetPage).toBe(4);
+    expect(state.highlight?.box2d).toEqual([10, 20, 30, 40]);
+  });
+
+  it('does not trigger seek when user is selecting text', () => {
+    const spy = vi.spyOn(window, 'getSelection').mockReturnValue({
+      isCollapsed: false,
+      toString: () => 'selected text',
+    } as unknown as Selection);
+
+    render(<InlinePdfLocateButton pageNumber={2}>第 2 页</InlinePdfLocateButton>);
+
+    fireEvent.click(screen.getByTestId('inline-pdf-locate-btn'));
+    expect(useMediaNavStore.getState().isOpen).toBe(false);
+    spy.mockRestore();
+  });
+});

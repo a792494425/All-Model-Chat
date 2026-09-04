@@ -173,7 +173,9 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
                     <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)]">
                       {connection.protocol === 'anthropic'
                         ? t('thirdPartyProtocolAnthropic')
-                        : t('thirdPartyProtocolOpenAI')}
+                        : connection.protocol === 'openai-responses'
+                          ? t('thirdPartyProtocolOpenAIResponses')
+                          : t('thirdPartyProtocolOpenAI')}
                     </span>
                     <span className={`text-xs px-1.5 py-0.5 rounded ${status.className}`}>{status.label}</span>
                   </button>

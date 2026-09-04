@@ -6,13 +6,14 @@ import { SidebarHeader } from './SidebarHeader';
 import { SidebarActions } from './SidebarActions';
 import type { SessionItemPassedProps } from './sidebarTypes';
 import { CollapsedRecentChatsButton } from './CollapsedRecentChatsButton';
-import { Search, Settings } from 'lucide-react';
+import { Search, Settings, Library } from 'lucide-react';
 import { IconNewChat, IconSidebarToggle } from '@/components/icons';
 import { useHistorySidebarLogic, type HistoryDisplayMode } from './useHistorySidebarLogic';
 import { SIDEBAR_CLICKABLE_ICON_BUTTON_CLASS, SIDEBAR_ICON_LINK_BUTTON_CLASS } from './sidebarStyles';
 import { LimitedSessionList } from './LimitedSessionList';
 import { DESKTOP_BREAKPOINT_PX } from '@/constants/layout';
 import { isDarkThemeId } from '@/utils/themeMode';
+import { useUIStore } from '@/stores/uiStore';
 import { isGroupDrag, isSessionDrag } from './sidebarDragTypes';
 import {
   closestCenter,
@@ -131,6 +132,8 @@ const SessionListGroup = ({
 
 export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
   const { t } = useI18n();
+  const activeView = useUIStore((state) => state.activeView);
+  const setActiveView = useUIStore((state) => state.setActiveView);
   const {
     isOpen,
     onToggle,
@@ -557,6 +560,12 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
           onClick={onNewChat}
           icon={IconNewChat}
           title={t('newChat') + (newChatShortcut ? ` (${newChatShortcut})` : '')}
+        />
+        <MiniSidebarButton
+          onClick={() => setActiveView('library')}
+          icon={Library}
+          title={t('libraryTitle')}
+          className={activeView === 'library' ? 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-primary)]' : ''}
         />
         <MiniSidebarButton onClick={handleMiniSearchClick} icon={Search} title={searchTitle} />
         <CollapsedRecentChatsButton

@@ -62,6 +62,7 @@ interface UIState {
   isLogViewerOpen: boolean;
   chatInputHeight: number;
   historyDisplayMode: HistoryDisplayMode;
+  activeView: 'chat' | 'library';
 }
 
 interface UIActions {
@@ -74,6 +75,7 @@ interface UIActions {
   toggleHistorySidebar: () => void;
   setChatInputHeight: (height: number) => void;
   setHistoryDisplayMode: (mode: HistoryDisplayMode) => void;
+  setActiveView: (view: 'chat' | 'library') => void;
 }
 
 type PersistedUiPreferences = Pick<
@@ -117,6 +119,7 @@ export const useUIStore = create<UIState & UIActions>()(
       historyDisplayMode: 'group' as HistoryDisplayMode,
       isLogViewerOpen: false,
       chatInputHeight: 160,
+      activeView: 'chat',
 
       setIsSettingsModalOpen: (value) =>
         set((state) => ({
@@ -156,6 +159,7 @@ export const useUIStore = create<UIState & UIActions>()(
       toggleHistorySidebar: () => get().setIsHistorySidebarOpen((isOpen) => !isOpen),
       setChatInputHeight: (height) => set({ chatInputHeight: height }),
       setHistoryDisplayMode: (mode) => set({ historyDisplayMode: mode }),
+      setActiveView: (view) => set({ activeView: view }),
     }),
     {
       name: UI_PREFERENCES_STORAGE_KEY,

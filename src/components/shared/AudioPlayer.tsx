@@ -9,9 +9,15 @@ interface AudioPlayerProps {
   src: string;
   autoPlay?: boolean;
   className?: string;
+  audioClassName?: string;
 }
 
-export const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, autoPlay = false, className = '' }) => {
+export const AudioPlayer: React.FC<AudioPlayerProps> = ({
+  src,
+  autoPlay = false,
+  className = '',
+  audioClassName = 'max-w-full',
+}) => {
   const { t } = useI18n();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -90,6 +96,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, autoPlay = false,
       <audio
         ref={audioRef}
         src={src}
+        className={audioClassName}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleEnded}

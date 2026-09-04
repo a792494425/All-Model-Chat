@@ -15,6 +15,8 @@ interface PdfViewerProps {
   onTargetPageConsumed?: () => void;
   /** Notified whenever scroll tracking lands on a different page. */
   onCurrentPageChange?: (page: number) => void;
+  defaultShowSidebar?: boolean;
+  isCompact?: boolean;
 }
 
 const PdfViewerContent: React.FC<PdfViewerProps> = ({
@@ -23,6 +25,8 @@ const PdfViewerContent: React.FC<PdfViewerProps> = ({
   targetPage,
   onTargetPageConsumed,
   onCurrentPageChange,
+  defaultShowSidebar = false,
+  isCompact = true,
 }) => {
   const {
     numPages,
@@ -32,6 +36,9 @@ const PdfViewerContent: React.FC<PdfViewerProps> = ({
     isLoading,
     error,
     showSidebar,
+    isFitToWidth,
+    pageNaturalWidth,
+    pageNaturalHeight,
     containerRef,
     sidebarRef,
     setPageRef,
@@ -44,8 +51,13 @@ const PdfViewerContent: React.FC<PdfViewerProps> = ({
     handleZoomIn,
     handleZoomOut,
     handleRotate,
+    handleFitToWidth,
     toggleSidebar,
-  } = usePdfViewer(file);
+    closeSidebar,
+  } = usePdfViewer(file, {
+    defaultShowSidebar,
+    defaultFitToWidth: true,
+  });
 
   useEffect(() => {
     if (targetPage == null || !numPages) return;
@@ -68,6 +80,8 @@ const PdfViewerContent: React.FC<PdfViewerProps> = ({
         showSidebar={showSidebar}
         onPageClick={scrollToPage}
         sidebarRef={sidebarRef}
+        isOverlay={isCompact}
+        onClose={closeSidebar}
       />
 
       <div className="flex-grow h-full relative flex flex-col min-w-0">
@@ -83,6 +97,8 @@ const PdfViewerContent: React.FC<PdfViewerProps> = ({
           setPageRef={setPageRef}
           containerRef={containerRef}
           highlight={highlight}
+          pageNaturalWidth={pageNaturalWidth}
+          pageNaturalHeight={pageNaturalHeight}
         />
 
         <PdfToolbar
@@ -90,6 +106,7 @@ const PdfViewerContent: React.FC<PdfViewerProps> = ({
           numPages={numPages}
           scale={scale}
           showSidebar={showSidebar}
+          isFitToWidth={isFitToWidth}
           onPageInputCommit={handlePageInputCommit}
           onPrevPage={previousPage}
           onNextPage={nextPage}
@@ -97,6 +114,7 @@ const PdfViewerContent: React.FC<PdfViewerProps> = ({
           onZoomOut={handleZoomOut}
           onRotate={handleRotate}
           onToggleSidebar={toggleSidebar}
+          onFitToWidth={handleFitToWidth}
         />
       </div>
     </div>

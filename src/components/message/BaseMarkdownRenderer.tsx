@@ -16,6 +16,9 @@ import { stripGemmaThoughtMarkup, wrapReasoningMarkup } from '@/utils/chat/reaso
 import { normalizePreviewableMarkdownContent } from '@/utils/previewableMarkdown';
 import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
 import { loadNamedComponent } from '@/utils/lazyNamedComponent';
+import { InlineTimestampSeekButton } from '@/components/media-nav/InlineTimestampSeekButton';
+import { InlinePdfLocateButton } from '@/components/media-nav/InlinePdfLocateButton';
+import { InlineImageLocateButton } from '@/components/media-nav/InlineImageLocateButton';
 
 const loadMermaidBlock = () => loadNamedComponent(() => import('./blocks/MermaidBlock'), 'MermaidBlock');
 const loadGraphvizBlock = () => loadNamedComponent(() => import('./blocks/GraphvizBlock'), 'GraphvizBlock');
@@ -212,6 +215,153 @@ export const BaseMarkdownRenderer: React.FC<BaseMarkdownRendererProps> = React.m
         table: (props: MarkdownTableProps) => <TableBlock {...props} />,
         a: (props: MarkdownAnchorProps) => {
           const { href, children, ...rest } = props;
+          if (href?.startsWith('#video-seek')) {
+            const queryIndex = href.indexOf('?');
+            const queryStr = queryIndex !== -1 ? href.slice(queryIndex + 1) : '';
+            const searchParams = new URLSearchParams(queryStr);
+            const start = Number.parseFloat(searchParams.get('start') || '0');
+            const endParam = searchParams.get('end');
+            const end = endParam ? Number.parseFloat(endParam) : undefined;
+            const pointParam = searchParams.get('point');
+            const boxParam = searchParams.get('box');
+            const videoParam = searchParams.get('video') || undefined;
+            const snippetParam = searchParams.get('snippet') || undefined;
+
+            let annotation:
+              { point?: [number, number]; box2d?: [number, number, number, number]; snippet?: string } | undefined;
+            if (pointParam || boxParam || snippetParam) {
+              const pointParts = pointParam
+                ? pointParam
+                    .replace(/[()[\]]/g, '')
+                    .split(',')
+                    .map((v) => Number.parseFloat(v.trim()))
+                    .filter(Number.isFinite)
+                : [];
+              const boxParts = boxParam
+                ? boxParam
+                    .replace(/[()[\]]/g, '')
+                    .split(',')
+                    .map((v) => Number.parseFloat(v.trim()))
+                    .filter(Number.isFinite)
+                : [];
+              annotation = {
+                point: pointParts.length === 2 ? (pointParts as [number, number]) : undefined,
+                box2d: boxParts.length === 4 ? (boxParts as [number, number, number, number]) : undefined,
+                snippet: snippetParam,
+              };
+            }
+
+            return (
+              <InlineTimestampSeekButton
+                startSeconds={start}
+                endSeconds={end}
+                videoName={videoParam}
+                annotation={annotation}
+                messageId={messageId}
+              >
+                {children}
+              </InlineTimestampSeekButton>
+            );
+          }
+
+          if (href?.startsWith('#pdf-seek')) {
+            const queryIndex = href.indexOf('?');
+            const queryStr = queryIndex !== -1 ? href.slice(queryIndex + 1) : '';
+            const searchParams = new URLSearchParams(queryStr);
+            const page = Number.parseInt(searchParams.get('page') || '1', 10);
+            const docParam = searchParams.get('doc') || undefined;
+            const boxParam = searchParams.get('box');
+            const pointParam = searchParams.get('point');
+            const snippetParam = searchParams.get('snippet') || undefined;
+
+            let box2d: [number, number, number, number] | undefined;
+            if (boxParam) {
+              const boxParts = boxParam
+                .replace(/[()[\]]/g, '')
+                .split(',')
+                .map((v) => Number.parseInt(v.trim(), 10))
+                .filter(Number.isFinite);
+              if (boxParts.length === 4) {
+                box2d = boxParts as [number, number, number, number];
+              }
+            }
+
+            let point: [number, number] | undefined;
+            if (pointParam) {
+              const pointParts = pointParam
+                .replace(/[()[\]]/g, '')
+                .split(',')
+                .map((v) => Number.parseInt(v.trim(), 10))
+                .filter(Number.isFinite);
+              if (pointParts.length === 2) {
+                point = pointParts as [number, number];
+              }
+            }
+
+            return (
+              <InlinePdfLocateButton
+                pageNumber={page}
+                docName={docParam}
+                box2d={box2d}
+                point={point}
+                snippet={snippetParam}
+                messageId={messageId}
+              >
+                {children}
+              </InlinePdfLocateButton>
+            );
+          }
+
+          if (href?.startsWith('#image-seek')) {
+            const queryIndex = href.indexOf('?');
+            const queryStr = queryIndex !== -1 ? href.slice(queryIndex + 1) : '';
+            const searchParams = new URLSearchParams(queryStr);
+            const fileParam = searchParams.get('file') || undefined;
+            const boxParam = searchParams.get('box');
+            const pointParam = searchParams.get('point');
+            const arrowParam = searchParams.get('arrow') || undefined;
+            const labelParam = searchParams.get('label') || undefined;
+            const snippetParam = searchParams.get('snippet') || undefined;
+
+            let box2d: [number, number, number, number] | undefined;
+            if (boxParam) {
+              const boxParts = boxParam
+                .replace(/[()[\]]/g, '')
+                .split(',')
+                .map((v) => Number.parseInt(v.trim(), 10))
+                .filter(Number.isFinite);
+              if (boxParts.length === 4) {
+                box2d = boxParts as [number, number, number, number];
+              }
+            }
+
+            let point: [number, number] | undefined;
+            if (pointParam) {
+              const pointParts = pointParam
+                .replace(/[()[\]]/g, '')
+                .split(',')
+                .map((v) => Number.parseInt(v.trim(), 10))
+                .filter(Number.isFinite);
+              if (pointParts.length === 2) {
+                point = pointParts as [number, number];
+              }
+            }
+
+            return (
+              <InlineImageLocateButton
+                fileName={fileParam}
+                box2d={box2d}
+                point={point}
+                arrow={arrowParam}
+                label={labelParam}
+                snippet={snippetParam}
+                messageId={messageId}
+              >
+                {children}
+              </InlineImageLocateButton>
+            );
+          }
+
           const isInternal = href && (href.startsWith('#') || href.startsWith('/'));
 
           return (

@@ -94,6 +94,9 @@ describe('getModelCapabilities', () => {
 
   it('marks third-party reasoning models as supporting thinking levels', () => {
     expect(getModelCapabilities('gpt-5.6-sol').supportsThinkingLevel).toBe(true);
+    expect(getModelCapabilities('o1').supportsThinkingLevel).toBe(true);
+    expect(getModelCapabilities('o3-mini').supportsThinkingLevel).toBe(true);
+    expect(getModelCapabilities('muse-spark-1.3-contributor').supportsThinkingLevel).toBe(true);
     expect(getModelCapabilities('kimi-k3').supportsThinkingLevel).toBe(true);
     expect(getModelCapabilities('claude-sonnet-5').supportsThinkingLevel).toBe(true);
     expect(getModelCapabilities('claude-opus-5').supportsThinkingLevel).toBe(true);

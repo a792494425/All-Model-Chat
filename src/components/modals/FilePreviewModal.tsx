@@ -7,6 +7,8 @@ import { Modal } from '@/components/shared/Modal';
 import { FilePreviewHeader, type FilePreviewHeaderHandle } from '@/components/shared/file-preview/FilePreviewHeader';
 import { ImageViewer } from '@/components/shared/file-preview/ImageViewer';
 import { TextFileViewer } from '@/components/shared/file-preview/TextFileViewer';
+import { VideoPlayer } from '@/components/shared/file-preview/VideoPlayer';
+import { AudioPlayer } from '@/components/shared/AudioPlayer';
 import { IconYoutube } from '@/components/icons';
 import { copyFileToClipboard } from '@/utils/file/fileClipboard';
 import { cleanupFilePreviewUrl, fileToBlobUrl } from '@/utils/file/filePreviewUrls';
@@ -280,14 +282,16 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               <LazyPdfViewer file={previewFile} />
             </Suspense>
           ) : isVideo ? (
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
               {previewFile.dataUrl && (
-                <video
-                  src={previewFile.dataUrl}
-                  controls
-                  className="max-w-[90%] max-h-[80%] rounded-lg shadow-2xl outline-none"
-                  playsInline
-                />
+                <div className="w-full h-full max-w-5xl max-h-[85vh] rounded-xl shadow-2xl overflow-hidden bg-black flex items-center justify-center">
+                  <VideoPlayer
+                    src={previewFile.dataUrl}
+                    file={previewFile}
+                    testId="file-preview-video"
+                    showSegmentBar={false}
+                  />
+                </div>
               )}
             </div>
           ) : isYoutube ? (
@@ -324,7 +328,11 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
                     </p>
                     <p className="text-xs text-[var(--theme-text-tertiary)] mt-1 font-mono">{previewFile.type}</p>
                   </div>
-                  <audio src={previewFile.dataUrl} controls className="w-full max-w-full sm:w-[400px] outline-none" />
+                  <AudioPlayer
+                    src={previewFile.dataUrl}
+                    className="w-full max-w-full max-w-[calc(100vw-2rem)] sm:w-[400px]"
+                    audioClassName="max-w-full"
+                  />
                 </div>
               )}
             </div>

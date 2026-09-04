@@ -40,7 +40,7 @@ export const THIRD_PARTY_TEMPLATE_LABELS: Record<ThirdPartyTemplateId, string> =
 };
 
 const isThirdPartyProtocol = (value: unknown): value is ThirdPartyApiProtocol =>
-  value === 'openai-compatible' || value === 'anthropic';
+  value === 'openai-compatible' || value === 'anthropic' || value === 'openai-responses';
 
 const isThirdPartyTemplateId = (value: unknown): value is ThirdPartyTemplateId =>
   typeof value === 'string' && (THIRD_PARTY_TEMPLATE_IDS as readonly string[]).includes(value);
@@ -223,6 +223,12 @@ export const getThirdPartyTemplateLinks = (
 export const getConnectionDisplayTemplateId = (
   connection: Pick<ThirdPartyConnection, 'templateId' | 'protocol'>,
 ): ThirdPartyTemplateId => {
+  if (
+    connection.templateId === 'openai' &&
+    (connection.protocol === 'openai-compatible' || connection.protocol === 'openai-responses')
+  ) {
+    return 'openai';
+  }
   const defaultProtocol = TEMPLATE_DEFAULTS[connection.templateId]?.protocol;
   if (!defaultProtocol || connection.protocol === defaultProtocol) {
     return connection.templateId;

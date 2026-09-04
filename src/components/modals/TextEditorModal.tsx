@@ -5,6 +5,7 @@ import { TextEditorModalShell } from './TextEditorModalShell';
 import { FOCUS_VISIBLE_RING_SECONDARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { countLines, estimateTokens } from '@/utils/import-context/textStats';
 import { LazyMarkdownRenderer } from '@/components/message/LazyMarkdownRenderer';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 interface TextEditorModalProps {
   isOpen: boolean;
@@ -38,12 +39,14 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
   const [isCopied, setIsCopied] = useState(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const themeId = useSettingsStore((state) => state.appSettings.themeId);
 
   useEffect(() => {
     if (viewMode === 'edit') {
       const focusTimeout = setTimeout(() => textareaRef.current?.focus(), TEXT_EDITOR_AUTO_FOCUS_DELAY_MS);
       return () => clearTimeout(focusTimeout);
     }
+    return undefined;
   }, [viewMode]);
 
   useEffect(() => {
@@ -191,6 +194,13 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
                     isLoading={false}
                     interactiveMode="disabled"
                     fallbackMode="raw"
+                    onImageClick={() => {}}
+                    onOpenHtmlPreview={() => {}}
+                    onOpenSidePanel={() => {}}
+                    expandCodeBlocksByDefault={true}
+                    isMermaidRenderingEnabled={true}
+                    isGraphvizRenderingEnabled={true}
+                    themeId={themeId}
                   />
                 </div>
               ) : (
@@ -206,15 +216,19 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
         <div className="px-4 sm:px-6 py-2.5 sm:py-3 border-t border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)]/40 backdrop-blur-sm flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 text-xs font-mono text-[var(--theme-text-tertiary)] select-none">
             <span title="字符数">
-              <span className="text-[var(--theme-text-secondary)] font-semibold">{stats.chars.toLocaleString()}</span> 字符
+              <span className="text-[var(--theme-text-secondary)] font-semibold">{stats.chars.toLocaleString()}</span>{' '}
+              字符
             </span>
             <span className="w-1 h-1 rounded-full bg-[var(--theme-border-secondary)]" />
             <span title="行数">
-              <span className="text-[var(--theme-text-secondary)] font-semibold">{stats.lines.toLocaleString()}</span> 行
+              <span className="text-[var(--theme-text-secondary)] font-semibold">{stats.lines.toLocaleString()}</span>{' '}
+              行
             </span>
             <span className="w-1 h-1 rounded-full bg-[var(--theme-border-secondary)]" />
             <span title="估算 Token 消耗 (基于字符/分词启发式)">
-              约 <span className="text-[var(--theme-text-secondary)] font-semibold">{stats.tokens.toLocaleString()}</span> Tokens
+              约{' '}
+              <span className="text-[var(--theme-text-secondary)] font-semibold">{stats.tokens.toLocaleString()}</span>{' '}
+              Tokens
             </span>
           </div>
 
@@ -244,7 +258,11 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
             )}
 
             <span className="hidden md:inline-block text-[11px] text-[var(--theme-text-tertiary)] select-none mr-1">
-              按 <kbd className="px-1.5 py-0.5 text-[10px] rounded bg-[var(--theme-bg-tertiary)] border border-[var(--theme-border-secondary)] font-mono">Ctrl+Enter</kbd> 保存
+              按{' '}
+              <kbd className="px-1.5 py-0.5 text-[10px] rounded bg-[var(--theme-bg-tertiary)] border border-[var(--theme-border-secondary)] font-mono">
+                Ctrl+Enter
+              </kbd>{' '}
+              保存
             </span>
 
             <button

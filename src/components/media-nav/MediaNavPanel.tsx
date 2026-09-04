@@ -9,18 +9,20 @@ import { Z_INDEX_SIDE_PANEL_MOBILE, Z_INDEX_TOPMOST_OVERLAY } from '@/constants/
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';
 import type { UploadedFile } from '@/types';
+import { applyMediaNavKindToSettings } from '@/utils/media-nav/mediaNavSettings';
 import { MediaNavView } from './MediaNavView';
+import { ImageViewer } from '@/components/shared/file-preview/ImageViewer';
 
 const LazyPdfViewer = lazyNamedComponent(() => import('@/components/shared/file-preview/PdfViewerEntry'), 'PdfViewer');
 
 interface MediaEntry {
   file: UploadedFile;
-  kind: Exclude<MediaNavKind, 'pdf'> | 'pdf';
+  kind: MediaNavKind;
 }
 
 /**
- * Resizable right-hand panel hosting the media navigation viewers (PDF and
- * video). Sits next to the chat area in MainContent's flex row; the chat
+ * Resizable right-hand panel hosting the media navigation viewers (PDF, video, audio, and image).
+ * Sits next to the chat area in MainContent's flex row; the chat
  * shrinks while it is open. On mobile it takes over the full screen.
  */
 const MediaNavPanelComponent: React.FC = () => {
@@ -33,14 +35,20 @@ const MediaNavPanelComponent: React.FC = () => {
   const openKind = useMediaNavStore((state) => state.openKind);
   const targetPage = useMediaNavStore((state) => state.targetPage);
   const highlight = useMediaNavStore((state) => state.highlight);
+  const imageHighlight = useMediaNavStore((state) => state.imageHighlight);
   const consumeTargetPage = useMediaNavStore((state) => state.consumeTargetPage);
   const setPage = useMediaNavStore((state) => state.setPage);
   const setActiveFile = useMediaNavStore((state) => state.setActiveFile);
   const setWidth = useMediaNavStore((state) => state.setWidth);
   const close = useMediaNavStore((state) => state.close);
-
   const selectedFiles = useChatStore((state) => state.selectedFiles);
   const activeMessages = useChatStore((state) => state.activeMessages);
+  const setCurrentChatSettings = useChatStore((state) => state.setCurrentChatSettings);
+
+  const handleClose = useCallback(() => {
+    close();
+    setCurrentChatSettings((prev) => applyMediaNavKindToSettings(prev, null));
+  }, [close, setCurrentChatSettings]);
 
   const media = useMemo(() => collectSessionMediaFiles(selectedFiles, activeMessages), [selectedFiles, activeMessages]);
   const entries: MediaEntry[] = useMemo(
@@ -48,6 +56,7 @@ const MediaNavPanelComponent: React.FC = () => {
       ...media.pdfs.map((file) => ({ file, kind: 'pdf' as const })),
       ...media.videos.map((file) => ({ file, kind: 'video' as const })),
       ...media.audios.map((file) => ({ file, kind: 'audio' as const })),
+      ...media.images.map((file) => ({ file, kind: 'image' as const })),
     ],
     [media],
   );
@@ -158,9 +167,10 @@ const MediaNavPanelComponent: React.FC = () => {
                   if (entry) {
                     setActiveFile(entry.file.id);
                     useMediaNavStore.setState({ openKind: entry.kind });
+                    setCurrentChatSettings((prev) => applyMediaNavKindToSettings(prev, entry.kind));
                   }
                 }}
-                aria-label={t('pdfNavDocument')}
+                aria-label={t('mediaNavPanelTitle')}
                 className="min-w-0 max-w-[220px] truncate text-xs rounded-md border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] text-[var(--theme-text-primary)] px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)]"
               >
                 {media.pdfs.length > 0 && (
@@ -190,6 +200,15 @@ const MediaNavPanelComponent: React.FC = () => {
                     ))}
                   </optgroup>
                 )}
+                {media.images.length > 0 && (
+                  <optgroup label={t('imageNavLabel')}>
+                    {media.images.map((file) => (
+                      <option key={file.id} value={file.id}>
+                        {file.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             )}
             {entries.length === 1 && (
@@ -204,7 +223,7 @@ const MediaNavPanelComponent: React.FC = () => {
 
           <button
             type="button"
-            onClick={close}
+            onClick={handleClose}
             className={`p-2 text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] rounded-lg transition-colors flex-shrink-0 ${FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS}`}
             aria-label={t('close')}
             title={t('close')}
@@ -222,9 +241,17 @@ const MediaNavPanelComponent: React.FC = () => {
               targetPage={targetPage}
               onTargetPageConsumed={consumeTargetPage}
               onCurrentPageChange={setPage}
+              defaultShowSidebar={false}
+              isCompact={true}
             />
+          ) : activeEntry && activeEntry.kind === 'image' ? (
+            <ImageViewer key={activeEntry.file.id} file={activeEntry.file} highlight={imageHighlight} />
           ) : activeEntry ? (
-            <MediaNavView file={activeEntry.file} kind={activeEntry.kind === 'audio' ? 'audio' : 'video'} />
+            <MediaNavView
+              key={activeEntry.file.id}
+              file={activeEntry.file}
+              kind={activeEntry.kind === 'audio' ? 'audio' : 'video'}
+            />
           ) : (
             <div className="h-full flex flex-col items-center justify-center gap-3 p-8 text-center">
               <p className="text-sm text-[var(--theme-text-secondary)]">{t('mediaNavEmptyHint')}</p>

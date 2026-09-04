@@ -87,6 +87,7 @@ interface UseChatInputClipboardParams {
   isAddingById: boolean;
   showCreateTextFileEditor: boolean;
   showRecorder: boolean;
+  showLibraryPicker?: boolean;
   justInitiatedFileOpRef: MutableRefObject<boolean>;
   textareaRef: RefObject<HTMLTextAreaElement>;
   setInputText: React.Dispatch<React.SetStateAction<string>>;
@@ -103,6 +104,7 @@ export const useChatInputClipboard = ({
   isAddingById,
   showCreateTextFileEditor,
   showRecorder,
+  showLibraryPicker = false,
   justInitiatedFileOpRef,
   textareaRef,
   setInputText,
@@ -143,7 +145,7 @@ export const useChatInputClipboard = ({
 
   const handlePasteAction = useCallback(
     async (clipboardData: DataTransfer | null, options: { forceTextInsertion?: boolean } = {}): Promise<boolean> => {
-      const inputModalOpen = showCreateTextFileEditor || showRecorder;
+      const inputModalOpen = showCreateTextFileEditor || showRecorder || showLibraryPicker;
 
       if (isAddingById || inputModalOpen) {
         return false;
@@ -195,6 +197,7 @@ export const useChatInputClipboard = ({
       justInitiatedFileOpRef,
       onProcessFiles,
       showCreateTextFileEditor,
+      showLibraryPicker,
       showRecorder,
       textareaRef,
     ],
@@ -202,7 +205,7 @@ export const useChatInputClipboard = ({
 
   const handlePaste = useCallback(
     async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
-      const canHandlePaste = !isAddingById && !showCreateTextFileEditor && !showRecorder;
+      const canHandlePaste = !isAddingById && !showCreateTextFileEditor && !showRecorder && !showLibraryPicker;
       const clipboardOptions = {
         isPasteRichTextAsMarkdownEnabled: appSettings.isPasteRichTextAsMarkdownEnabled ?? true,
         isPasteAsTextFileEnabled: appSettings.isPasteAsTextFileEnabled ?? true,
@@ -226,6 +229,7 @@ export const useChatInputClipboard = ({
       handlePasteAction,
       isAddingById,
       showCreateTextFileEditor,
+      showLibraryPicker,
       showRecorder,
     ],
   );

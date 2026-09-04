@@ -47,7 +47,7 @@ const notifyPersistedStateUpdate = (storageKey: string) => {
 };
 
 // Re-export for syncedPersist reuse (single origin + single channel)
-export { broadcastSyncMessage, getChatSyncChannel, CHAT_SYNC_CHANNEL_NAME };
+export { getChatSyncChannel, CHAT_SYNC_CHANNEL_NAME };
 
 // --- Centralized flush registry (fixes leak per factory) -----------------
 const globalFlushRegistry = new Set<() => void>();

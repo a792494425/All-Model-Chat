@@ -22,8 +22,11 @@ import {
 import { resolveLiveArtifactsFontSize } from '@/utils/live-artifacts/liveArtifactsFontSize';
 import { isLiveArtifactsModeFromSettings } from '@/utils/live-artifacts/liveArtifactsMode';
 import { parseLocateMarkers } from '@/utils/media-nav/locateMarker';
-import { LocateChips } from '@/components/media-nav/LocateChips';
 import { useChatStore } from '@/stores/chatStore';
+import { linkifyTimestamps } from '@/utils/media-nav/timestampLinks';
+import { linkifyPdfLocates } from '@/utils/media-nav/pdfLinks';
+import { linkifyImageLocates } from '@/utils/media-nav/imageLinks';
+import { collectSessionMediaFiles } from '@/utils/media-nav/sessionMediaFiles';
 
 interface MessageTextProps {
   message: ChatMessage;
@@ -74,10 +77,44 @@ export const MessageText: React.FC<MessageTextProps> = ({
     () =>
       message.role === 'model'
         ? parseLocateMarkers(rawThinkingExtraction.content)
-        : { cleanContent: rawThinkingExtraction.content, pdfLocates: [], videoLocates: [], audioLocates: [] },
+        : {
+            cleanContent: rawThinkingExtraction.content,
+            pdfLocates: [],
+            videoLocates: [],
+            audioLocates: [],
+            imageLocates: [],
+          },
     [rawThinkingExtraction.content, message.role],
   );
-  const effectiveContent = locateExtraction.cleanContent;
+  const hasMediaInSession = useMemo(() => {
+    if (message.role !== 'model') return false;
+    if (
+      locateExtraction.videoLocates.length > 0 ||
+      locateExtraction.audioLocates.length > 0 ||
+      locateExtraction.pdfLocates.length > 0 ||
+      locateExtraction.imageLocates.length > 0
+    ) {
+      return true;
+    }
+    const { selectedFiles, activeMessages } = useChatStore.getState();
+    const { videos, audios, pdfs, images } = collectSessionMediaFiles(selectedFiles, activeMessages);
+    return videos.length > 0 || audios.length > 0 || pdfs.length > 0 || images.length > 0;
+  }, [
+    locateExtraction.videoLocates.length,
+    locateExtraction.audioLocates.length,
+    locateExtraction.pdfLocates.length,
+    locateExtraction.imageLocates.length,
+    message.role,
+  ]);
+
+  const effectiveContent = useMemo(() => {
+    if (!hasMediaInSession) {
+      return locateExtraction.cleanContent;
+    }
+    const withPdfLinks = linkifyPdfLocates(rawThinkingExtraction.content);
+    const withImageLinks = linkifyImageLocates(withPdfLinks);
+    return linkifyTimestamps(withImageLinks);
+  }, [hasMediaInSession, locateExtraction.cleanContent, rawThinkingExtraction.content]);
   const effectiveThoughts = useMemo(
     () => [thoughts, streamThoughts, rawThinkingExtraction.thoughts].filter(Boolean).join('\n\n'),
     [thoughts, streamThoughts, rawThinkingExtraction.thoughts],
@@ -263,15 +300,6 @@ export const MessageText: React.FC<MessageTextProps> = ({
           )}
         </div>
       ) : null}
-
-      {message.role === 'model' && (
-        <LocateChips
-          messageId={message.id}
-          pdfLocates={locateExtraction.pdfLocates}
-          videoLocates={locateExtraction.videoLocates}
-          audioLocates={locateExtraction.audioLocates}
-        />
-      )}
     </>
   );
 };
