@@ -1,5 +1,5 @@
 import type { DragEvent, ReactNode } from 'react';
-import type { Part } from '@google/genai';
+import type { File as GeminiFile, Part } from '@google/genai';
 
 import type { AppViewModel } from '@/hooks/app/useApp';
 import type { QuickTtsResult } from '@/hooks/chat/message/useTextToSpeechHandler';
@@ -64,6 +64,7 @@ export interface ChatInputRuntimeValue {
   onCancelEdit: () => void;
   onProcessFiles: (files: FileList | File[]) => Promise<void>;
   onAddFileById: (fileId: string) => Promise<void>;
+  onAddFilesFromCloud?: (files: GeminiFile[]) => void;
   onCancelUpload: (fileId: string) => void;
   onTranscribeAudio: (file: File) => Promise<string | null>;
   onClearChat: () => void;

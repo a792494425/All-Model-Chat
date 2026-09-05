@@ -12,7 +12,17 @@ async function loadPyodideAndPackages() {
     pyodide = await loadPyodide({
       indexURL: PYODIDE_BASE_URL,
     });
-    await pyodide.loadPackage(['micropip', 'pandas', 'numpy', 'matplotlib']);
+    // Non-blocking stdin: raises EOFError immediately on interactive input() instead of hanging
+    pyodide.setStdin({
+      isatty: false,
+      read: () => '',
+    });
+    // Best-effort micropip preload for dynamic package installation without blocking offline starts
+    try {
+      await pyodide.loadPackage(['micropip']);
+    } catch (micropipError) {
+      // Allow execution to proceed offline with standard library
+    }
   }
   return pyodide;
 }
@@ -38,9 +48,6 @@ function getMimeType(filename) {
   return mimeMap[ext] || 'application/octet-stream';
 }
 
-// FS.readFile returns a Uint8Array view that may share a larger backing buffer;
-// copy the bytes into an exact-sized standalone ArrayBuffer so it can be
-// transferred back to the main thread without dragging unrelated bytes along.
 function ensureArrayBuffer(data) {
     const u8 = data instanceof Uint8Array ? data : new Uint8Array(data);
     return u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength);
@@ -51,6 +58,12 @@ function normalizeErrorMessage(error) {
     if (typeof error === 'string') return error;
     if (error && typeof error.message === 'string') return error.message;
     return String(error);
+}
+
+function sanitizeRelativePath(name) {
+    const clean = String(name || '').replace(/^[/\\]+/, '').replace(/^[a-zA-Z]:[/\\]+/, '');
+    const parts = clean.split(/[/\\]+/).filter((p) => p && p !== '.' && p !== '..');
+    return parts.join('/') || 'file';
 }
 
 function ensureDir(path) {
@@ -87,18 +100,28 @@ function removePath(path) {
     }
 }
 
-function listFilesRecursively(currentPath) {
+function listFilesRecursively(targetDir, subPath = '') {
     const files = [];
-    const entries = pyodide.FS.readdir(currentPath);
+    const dirToRead = subPath ? targetDir + '/' + subPath : targetDir;
+    let entries = [];
+    try {
+        entries = pyodide.FS.readdir(dirToRead);
+    } catch (e) {
+        return files;
+    }
     for (const entry of entries) {
         if (entry === '.' || entry === '..') continue;
-        const absolutePath = currentPath === '.' ? './' + entry : currentPath + '/' + entry;
-        const stat = pyodide.FS.stat(absolutePath);
-        if (pyodide.FS.isDir(stat.mode)) {
-            files.push(...listFilesRecursively(absolutePath));
-        } else if (pyodide.FS.isFile(stat.mode)) {
-            const relativePath = absolutePath.replace(/^\\.\\//, '');
-            files.push(relativePath);
+        const relativePath = subPath ? subPath + '/' + entry : entry;
+        const fullPath = targetDir + '/' + relativePath;
+        try {
+            const stat = pyodide.FS.stat(fullPath);
+            if (pyodide.FS.isDir(stat.mode)) {
+                files.push(...listFilesRecursively(targetDir, relativePath));
+            } else if (pyodide.FS.isFile(stat.mode)) {
+                files.push(relativePath);
+            }
+        } catch (e) {
+            // best-effort
         }
     }
     return files;
@@ -106,10 +129,6 @@ function listFilesRecursively(currentPath) {
 
 async function installDependencies(code) {
     try {
-        // loadPackagesFromImports parses the code's import statements (AST-level,
-        // not substring matching) and loads every importable package from the
-        // Pyodide lock file. Pyodide de-dupes packages already loaded at init,
-        // so this is a no-op for the preloaded set.
         await pyodide.loadPackagesFromImports(code);
     } catch (dependencyError) {
         const message = normalizeErrorMessage(dependencyError);
@@ -122,6 +141,7 @@ async function installDependencies(code) {
 
 self.onmessage = async (event) => {
   const { type, id, code, files } = event.data;
+  let stdout = [];
 
   try {
     if (!pyodideReadyPromise) {
@@ -130,8 +150,6 @@ self.onmessage = async (event) => {
     await pyodideReadyPromise;
 
     if (type === 'WARMUP') {
-      // No code to run; just ensure the runtime + packages are loaded so the
-      // next real execution skips the cold load.
       self.postMessage({ status: 'success', type: 'WARMUP_READY' });
       return;
     }
@@ -148,13 +166,12 @@ self.onmessage = async (event) => {
     try {
       if (files && Array.isArray(files)) {
           for (const file of files) {
-              const normalizedName = String(file.name || '').replace(/^\\/+/, '');
-              if (!normalizedName) continue;
-              const parentDir = normalizedName.includes('/')
-                  ? runDir + '/' + normalizedName.split('/').slice(0, -1).join('/')
+              const safeName = sanitizeRelativePath(file.name);
+              const parentDir = safeName.includes('/')
+                  ? runDir + '/' + safeName.split('/').slice(0, -1).join('/')
                   : runDir;
               ensureDir(parentDir);
-              pyodide.FS.writeFile(runDir + '/' + normalizedName, new Uint8Array(file.data));
+              pyodide.FS.writeFile(runDir + '/' + safeName, new Uint8Array(file.data));
           }
       }
 
@@ -168,7 +185,6 @@ self.onmessage = async (event) => {
         // Listing the starting file set is best-effort; an empty dir is fine.
       }
 
-      let stdout = [];
       pyodide.setStdout({ batched: (msg) => stdout.push(msg) });
       pyodide.setStderr({ batched: (msg) => stdout.push(msg) });
 
@@ -181,18 +197,27 @@ self.onmessage = async (event) => {
           matplotlib.use("Agg")
           import matplotlib.pyplot as plt
           plt.close('all')
-        except ImportError:
+        except Exception:
           pass
       \`);
 
-      result = await pyodide.runPythonAsync(code);
+      const executionGlobals = pyodide.globals.get('dict')();
+      try {
+        result = await pyodide.runPythonAsync(code, { globals: executionGlobals });
+      } finally {
+        try {
+          executionGlobals.destroy();
+        } catch (globalsCleanupError) {
+          // best-effort cleanup
+        }
+      }
 
       const generatedOutputFiles = [];
       try {
           const finalFiles = listFilesRecursively(runDir);
           for (const filePath of finalFiles) {
               if (!initialFiles.has(filePath)) {
-                   const content = pyodide.FS.readFile(filePath);
+                   const content = pyodide.FS.readFile(runDir + '/' + filePath);
                    const fileBuffer = ensureArrayBuffer(content);
                    generatedOutputFiles.push({
                        name: filePath,
@@ -267,7 +292,12 @@ self.onmessage = async (event) => {
     }
 
   } catch (executionError) {
-    self.postMessage({ id, status: 'error', error: normalizeErrorMessage(executionError) });
+    self.postMessage({
+      id,
+      status: 'error',
+      output: stdout && stdout.length > 0 ? stdout.join('\\n') : undefined,
+      error: normalizeErrorMessage(executionError)
+    });
   }
 };
 `;

@@ -11,6 +11,7 @@ interface CodeHeaderProps {
   isOverflowing: boolean;
   isExpanded: boolean;
   isCopied: boolean;
+  isDownloaded?: boolean;
   onToggleExpand: () => void;
   onCopy: () => void;
   onDownload: () => void;
@@ -27,6 +28,7 @@ export const CodeHeader: React.FC<CodeHeaderProps> = ({
   isOverflowing,
   isExpanded,
   isCopied,
+  isDownloaded,
   onToggleExpand,
   onCopy,
   onDownload,
@@ -69,10 +71,18 @@ export const CodeHeader: React.FC<CodeHeaderProps> = ({
         )}
         <button
           className={headerButtonClass}
-          title={interpolate(t('codeDownloadLanguage'), { language: language.toUpperCase() })}
+          title={
+            isDownloaded
+              ? t('downloaded')
+              : interpolate(t('codeDownloadLanguage'), { language: language.toUpperCase() })
+          }
           onClick={onDownload}
         >
-          <Download size={16} strokeWidth={2} />
+          {isDownloaded ? (
+            <Check size={16} className="text-[var(--theme-text-success)] icon-animate-pop" strokeWidth={2} />
+          ) : (
+            <Download size={16} strokeWidth={2} />
+          )}
         </button>
         <button
           className={headerButtonClass}

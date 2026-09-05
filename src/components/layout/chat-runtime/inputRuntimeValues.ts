@@ -42,6 +42,7 @@ export const useChatInputRuntimeValues = ({
     handleCancelEdit,
     handleProcessAndAddFiles,
     handleAddFileById,
+    handleAddFilesFromCloud,
     handleCancelFileUpload,
     handleTranscribeAudio,
     handleClearCurrentChat,
@@ -96,6 +97,7 @@ export const useChatInputRuntimeValues = ({
       onCancelEdit: handleCancelEdit,
       onProcessFiles: handleProcessAndAddFiles,
       onAddFileById: handleAddFileById,
+      onAddFilesFromCloud: handleAddFilesFromCloud,
       onCancelUpload: handleCancelFileUpload,
       onTranscribeAudio: handleTranscribeAudio,
       onClearChat: handleClearCurrentChat,
@@ -124,6 +126,7 @@ export const useChatInputRuntimeValues = ({
     [
       availableModels,
       handleAddFileById,
+      handleAddFilesFromCloud,
       handleAddUserMessage,
       handleCancelEdit,
       handleCancelFileUpload,

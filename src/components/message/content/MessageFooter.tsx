@@ -5,26 +5,12 @@ import { PerformanceMetrics } from '@/components/message/PerformanceMetrics';
 import { AudioPlayer } from '@/components/shared/AudioPlayer';
 import { useI18n } from '@/contexts/I18nContext';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { formatCompactTokens } from '@/components/message/tokenStats';
 
 interface MessageFooterProps {
   message: ChatMessage;
   onSuggestionClick?: (suggestion: string) => void;
   onSuggestionFill?: (suggestion: string) => void;
 }
-
-/** user 消息轻量水位：只显示会话累计（user 消息本身无分项数据）。title 由父组件传入，保持单文件单 useI18n。 */
-const UserTokenHint: React.FC<{ message: ChatMessage; title: string }> = ({ message, title }) => {
-  const cumulative = message.cumulativeTotalTokens;
-  if (typeof cumulative !== 'number' || cumulative <= 0) return null;
-  return (
-    <div className="mt-2 flex justify-end items-center text-xs text-[var(--theme-text-tertiary)] font-mono select-none">
-      <span className="tabular-nums opacity-70 hover:opacity-100 transition-opacity cursor-default" title={title}>
-        Σ {formatCompactTokens(cumulative)}
-      </span>
-    </div>
-  );
-};
 
 export const MessageFooter: React.FC<MessageFooterProps> = ({ message, onSuggestionClick, onSuggestionFill }) => {
   const { t } = useI18n();
@@ -42,8 +28,6 @@ export const MessageFooter: React.FC<MessageFooterProps> = ({ message, onSuggest
       {showTokenStats && (role === 'model' || (role === 'error' && generationStartTime)) && (
         <PerformanceMetrics message={message} hideTimer={message.isLoading} />
       )}
-
-      {showTokenStats && role === 'user' && <UserTokenHint message={message} title={t('metricsUserContext')} />}
 
       {suggestions && suggestions.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300">

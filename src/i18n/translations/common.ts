@@ -84,6 +84,15 @@ export const commonTranslations = {
     fr: 'Télécharger',
     de: 'Herunterladen',
   },
+  downloaded: {
+    en: 'Downloaded',
+    zh: '已下载',
+    ja: 'ダウンロードしました',
+    ko: '다운로드됨',
+    es: 'Descargado',
+    fr: 'Téléchargé',
+    de: 'Heruntergeladen',
+  },
   unknown: {
     en: 'Unknown',
     zh: '未知',

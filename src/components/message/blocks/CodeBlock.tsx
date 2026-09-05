@@ -25,6 +25,10 @@ import {
 import { LiveArtifactInteractionFrame } from './LiveArtifactInteractionFrame';
 import { LiveArtifactInteractionDiagnostic } from './LiveArtifactInteractionDiagnostic';
 
+import { useChatStore } from '@/stores/chatStore';
+import { collectLocalPythonInputFiles } from '@/features/local-python/executionFiles';
+import type { UploadedFile } from '@/types';
+
 interface CodeBlockProps {
   children: React.ReactNode;
   cacheKey?: string;
@@ -40,6 +44,8 @@ interface CodeBlockProps {
   liveArtifactsMode?: boolean;
   /** Hides the local Pyodide run button — used for server-executed code blocks. */
   disableRun?: boolean;
+  files?: UploadedFile[];
+  messageId?: string;
 }
 
 type GeneratedFileEntry = {
@@ -80,6 +86,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
     isExpanded,
     isOverflowing,
     isCopied,
+    isDownloaded,
     sourceLanguage,
     finalLanguage,
     showPreview,
@@ -109,7 +116,23 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
   );
 
   const handleRun = () => {
-    if (rawCode) runCode(rawCode);
+    if (!rawCode) return;
+
+    let executionFiles: UploadedFile[] = [];
+    if (props.messageId) {
+      const state = useChatStore.getState();
+      const currentSession = state.savedSessions.find((s) => s.id === state.activeSessionId);
+      if (currentSession?.messages) {
+        executionFiles = collectLocalPythonInputFiles(currentSession.messages, props.messageId);
+      }
+    }
+    if (executionFiles.length === 0 && props.files?.length) {
+      executionFiles = props.files.filter(
+        (f) => f.rawFile && (f.uploadState === undefined || f.uploadState === 'active') && !f.error,
+      );
+    }
+
+    runCode(rawCode, { files: executionFiles });
   };
 
   // Object URLs are external resources — create/release only in effects so Strict
@@ -150,7 +173,8 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
     };
   }, [image]);
 
-  const displayInlineImage = imageUrl && !generatedFiles.some((file) => isImageMimeType(file.type)) ? imageUrl : null;
+  const generatedImageFile = generatedFiles.find((file) => isImageMimeType(file.type));
+  const displayInlineImage = imageUrl || (generatedImageFile ? generatedImageFile.dataUrl : null);
   const isInteractive = props.showPreviewControls ?? true;
   const showPreviewControls = isInteractive && showPreview;
   const isInteractionFence = isLiveArtifactInteractionLanguage(sourceLanguage);
@@ -250,6 +274,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
         isOverflowing={isOverflowing}
         isExpanded={isExpanded}
         isCopied={isCopied}
+        isDownloaded={isDownloaded}
         onToggleExpand={handleToggleExpand}
         onCopy={handleCopy}
         onDownload={handleDownload}

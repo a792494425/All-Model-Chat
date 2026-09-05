@@ -9,7 +9,7 @@ import {
   IconCamera,
   IconScreenshot,
   IconMicrophone,
-  IconLink,
+  IconCloud,
   IconFileEdit,
   IconZip,
   IconYoutube,
@@ -50,7 +50,7 @@ export const AttachmentMenu: React.FC = () => {
     ...(canAddYouTubeVideo
       ? [{ labelKey: 'attachMenuAddByUrl', icon: <IconYoutube size={menuIconSize} />, action: 'url' } as const]
       : []),
-    { labelKey: 'attachMenuAddById', icon: <IconLink size={menuIconSize} />, action: 'id' },
+    { labelKey: 'attachMenuAddById', icon: <IconCloud size={menuIconSize} />, action: 'id' },
     { labelKey: 'attachMenuImportFolder', icon: <FolderOpen size={menuIconSize} />, action: 'folder' },
     { labelKey: 'attachMenuImportZip', icon: <IconZip size={menuIconSize} />, action: 'zip' },
     { labelKey: 'attachMenuRecordAudio', icon: <IconMicrophone size={menuIconSize} />, action: 'recorder' },

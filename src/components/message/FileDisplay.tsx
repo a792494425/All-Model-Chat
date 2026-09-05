@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { type UploadedFile } from '@/types';
 import { Check, Copy, Download, SlidersHorizontal, Scissors, Loader2, X } from 'lucide-react';
 import { triggerDownload } from '@/utils/export/core';
+import { getExtensionFromMimeType } from '@/utils/file/fileMime';
 import { CATEGORY_STYLES, getResolutionColor } from '@/utils/file/fileDisplayStyles';
 import { formatFileSize } from '@/utils/file/fileSize';
 import { getFileCardMeta } from '@/components/shared/file-preview/fileCardMeta';
@@ -110,7 +111,13 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
     event.stopPropagation();
     if (!file.dataUrl) return;
 
-    const filename = file.name || 'download';
+    let filename = file.name || 'download';
+    if (!filename.includes('.') && file.type) {
+      const ext = getExtensionFromMimeType(file.type);
+      if (ext && ext !== '.file') {
+        filename = `${filename}${ext}`;
+      }
+    }
     triggerDownload(file.dataUrl, filename, false);
   };
 

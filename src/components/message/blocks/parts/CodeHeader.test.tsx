@@ -83,4 +83,29 @@ describe('CodeHeader', () => {
     expect(meta?.textContent?.trim()).toBe('TSX');
     expect(badge?.textContent).not.toContain('TypeScript React');
   });
+
+  it('renders a checkmark and downloaded title when isDownloaded is true', () => {
+    act(() => {
+      renderer.root.render(
+        <CodeHeader
+          language="python"
+          showPreview={false}
+          isOverflowing={false}
+          isExpanded={false}
+          isCopied={false}
+          isDownloaded={true}
+          onToggleExpand={vi.fn()}
+          onCopy={vi.fn()}
+          onDownload={vi.fn()}
+          onOpenSide={vi.fn()}
+          onOpenPreview={vi.fn()}
+        />,
+      );
+    });
+
+    const downloadedBtn = renderer.container.querySelector('[title="Downloaded"]');
+    expect(downloadedBtn).not.toBeNull();
+    expect(downloadedBtn?.querySelector('svg')?.getAttribute('width')).toBe('16');
+    expect(downloadedBtn?.querySelector('.text-\\[var\\(--theme-text-success\\)\\]')).not.toBeNull();
+  });
 });

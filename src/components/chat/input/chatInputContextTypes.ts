@@ -23,6 +23,7 @@ import type {
   VideoMetadata,
   LibraryItem,
 } from '@/types';
+import type { File as GeminiFile } from '@google/genai';
 import type { ChatToolToggleStates } from '@/types/chatTools';
 import type { SlashCommand } from '@/types/slashCommands';
 import type { ChatInputBooleanUpdate, ChatInputMachineState } from '@/utils/chat-input/chatInputStateMachine';
@@ -52,6 +53,7 @@ export interface ChatInputRuntimeState {
   onCancelEdit: () => void;
   onProcessFiles: (files: FileList | File[]) => Promise<void>;
   onAddFileById: (fileId: string) => Promise<void>;
+  onAddFilesFromCloud?: (files: GeminiFile[]) => void;
   onCancelUpload: (fileId: string) => void;
   onTranscribeAudio: (file: File) => Promise<string | null>;
   isProcessingFile: boolean;
@@ -150,6 +152,8 @@ export interface ChatInputModalsState {
   setShowRecorder: Dispatch<SetStateAction<boolean>>;
   showAddByIdInput: boolean;
   setShowAddByIdInput: Dispatch<SetStateAction<boolean>>;
+  showCloudFilesModal: boolean;
+  setShowCloudFilesModal: Dispatch<SetStateAction<boolean>>;
   showAddByUrlInput: boolean;
   setShowAddByUrlInput: Dispatch<SetStateAction<boolean>>;
   isHelpModalOpen: boolean;

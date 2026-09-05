@@ -177,4 +177,20 @@ describe('ThirdPartyApiSettingsPanel', () => {
     });
     expect(onUpdateSettings).toHaveBeenCalledTimes(1);
   });
+
+  it('renders quick test button and test all button when connections exist', () => {
+    const settings: AppSettings = {
+      ...useSettingsStore.getState().appSettings,
+      thirdPartyApi: {
+        connections: [createThirdPartyConnection({ id: 'openai', enabled: true, apiKey: 'sk', baseUrl: 'https://api.openai.com/v1' })],
+      },
+    };
+
+    act(() => {
+      renderer.root.render(<ThirdPartyApiSettingsPanel {...createPanelProps({ settings })} />);
+    });
+
+    expect(queryDoc('[data-testid="third-party-test-all-btn"]')).not.toBeNull();
+    expect(queryDoc('[data-testid="quick-test-openai-btn"]')).not.toBeNull();
+  });
 });

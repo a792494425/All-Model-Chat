@@ -97,4 +97,38 @@ describe('AttachmentMenu', () => {
 
     expect(value.onAttachmentAction).toHaveBeenCalledWith('library');
   });
+
+  it('renders cloud icon for add by id option and triggers id action when clicked', () => {
+    const value = createChatInputActionsContextValue({
+      currentModelId: 'gemini-3.7-flash',
+    });
+
+    act(() => {
+      renderer.render(
+        <ChatInputActionsContext.Provider value={value}>
+          <AttachmentMenu />
+        </ChatInputActionsContext.Provider>,
+      );
+    });
+
+    const trigger = renderer.container.querySelector<HTMLButtonElement>('button[aria-haspopup="true"]')!;
+    expect(trigger).not.toBeNull();
+
+    act(() => {
+      trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    const menuItems = Array.from(document.querySelectorAll<HTMLButtonElement>('button[role="menuitem"]'));
+    const addByIdBtn = menuItems.find(
+      (b) => b.textContent?.includes('通过文件 ID 添加') || b.textContent?.toLowerCase().includes('id'),
+    );
+    expect(addByIdBtn).toBeDefined();
+    expect(addByIdBtn?.querySelector('svg.lucide-cloud')).not.toBeNull();
+
+    act(() => {
+      addByIdBtn!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(value.onAttachmentAction).toHaveBeenCalledWith('id');
+  });
 });

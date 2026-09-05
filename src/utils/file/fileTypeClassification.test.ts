@@ -40,6 +40,12 @@ describe('fileTypeClassification', () => {
       isPdf: false,
       isInlineData: true,
     });
+
+    const nonStandardSvgFlags = getFileKindFlags({ name: 'icon.svg', type: 'text/xml' });
+    expect(nonStandardSvgFlags.isImage).toBe(true);
+
+    const emptyMimeSvgFlags = getFileKindFlags({ name: 'vector.svg', type: '' });
+    expect(emptyMimeSvgFlags.isImage).toBe(true);
   });
 
   it('keeps getFileTypeCategory compatible with existing UI categories', () => {

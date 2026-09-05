@@ -1,78 +1,21 @@
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { extractTextFromNode } from '@/utils/reactNodeText';
 import { getCodeBlockPreviewType } from '@/utils/previewableMarkdown';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
-import { triggerDownload, sanitizeFilename } from '@/utils/export/core';
+import { triggerDownload } from '@/utils/export/core';
+import {
+  LANGUAGE_EXTENSION_MAP,
+  detectSnippetFilename,
+  getSnippetMimeType,
+  repairIncompleteSvg,
+} from '@/utils/codeSnippet';
 import { type SideViewContent } from '@/types';
 import { type OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { useI18n } from '@/contexts/I18nContext';
 
 const COLLAPSE_THRESHOLD_PX = 320;
-
-const LANGUAGE_EXTENSION_MAP: Record<string, string> = {
-  javascript: 'js',
-  js: 'js',
-  node: 'js',
-  typescript: 'ts',
-  ts: 'ts',
-  python: 'py',
-  py: 'py',
-  py3: 'py',
-  java: 'java',
-  c: 'c',
-  cpp: 'cpp',
-  'c++': 'cpp',
-  csharp: 'cs',
-  cs: 'cs',
-  'c#': 'cs',
-  go: 'go',
-  golang: 'go',
-  rust: 'rs',
-  rs: 'rs',
-  php: 'php',
-  ruby: 'rb',
-  rb: 'rb',
-  swift: 'swift',
-  kotlin: 'kt',
-  kt: 'kt',
-  html: 'html',
-  htm: 'html',
-  css: 'css',
-  scss: 'scss',
-  sass: 'sass',
-  less: 'less',
-  json: 'json',
-  xml: 'xml',
-  svg: 'svg',
-  yaml: 'yaml',
-  yml: 'yaml',
-  sql: 'sql',
-  shell: 'sh',
-  bash: 'sh',
-  sh: 'sh',
-  zsh: 'sh',
-  markdown: 'md',
-  md: 'md',
-  react: 'jsx',
-  jsx: 'jsx',
-  tsx: 'tsx',
-  vue: 'vue',
-  lua: 'lua',
-  r: 'r',
-  dart: 'dart',
-  perl: 'pl',
-  pl: 'pl',
-  powershell: 'ps1',
-  ps1: 'ps1',
-  dockerfile: 'dockerfile',
-  docker: 'dockerfile',
-  batch: 'bat',
-  bat: 'bat',
-  text: 'txt',
-  txt: 'txt',
-  plaintext: 'txt',
-};
+const DOWNLOAD_FEEDBACK_MS = 2000;
 
 interface UseCodeBlockProps {
   children: React.ReactNode;
@@ -100,6 +43,16 @@ export const useCodeBlock = ({
   const [expandedOverride, setExpandedOverride] = useState<boolean | null>(null);
 
   const { isCopied, copyToClipboard } = useCopyToClipboard();
+  const [isDownloaded, setIsDownloaded] = useState(false);
+  const downloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (downloadTimerRef.current) {
+        clearTimeout(downloadTimerRef.current);
+      }
+    };
+  }, []);
 
   // Tracks the length from the previous layout pass. A code block only auto-follows
   // to its bottom while its text is actively growing (i.e. streaming). Static blocks
@@ -170,67 +123,77 @@ export const useCodeBlock = ({
   };
 
   const langMatch = className?.match(/language-(\S+)/);
-  const language = langMatch ? langMatch[1].toLowerCase() : 'txt';
+  let rawLang = langMatch ? langMatch[1] : 'txt';
+  let fenceFilename: string | undefined;
+
+  const colonIdx = rawLang.indexOf(':');
+  if (colonIdx > 0) {
+    fenceFilename = rawLang.slice(colonIdx + 1);
+    rawLang = rawLang.slice(0, colonIdx);
+  }
+
+  const language = rawLang.toLowerCase();
 
   const previewMarkupType = getCodeBlockPreviewType(resolvedCodeText, language);
-
-  let mimeType = 'text/plain';
-  if (language === 'svg' || previewMarkupType === 'svg') mimeType = 'image/svg+xml';
-  else if (['html', 'xml'].includes(language) || previewMarkupType === 'html') mimeType = 'text/html';
-  else if (['javascript', 'js', 'typescript', 'ts'].includes(language)) mimeType = 'application/javascript';
-  else if (language === 'css') mimeType = 'text/css';
-  else if (language === 'json') mimeType = 'application/json';
-  else if (['markdown', 'md'].includes(language)) mimeType = 'text/markdown';
-
-  const showPreview = previewMarkupType !== null;
-  const downloadMimeType =
-    mimeType !== 'text/plain'
-      ? mimeType
-      : previewMarkupType === 'svg'
-        ? 'image/svg+xml'
-        : showPreview
-          ? 'text/html'
-          : 'text/plain';
 
   let finalLanguage = language;
   if (previewMarkupType === 'html') finalLanguage = 'html';
   else if (previewMarkupType === 'svg') finalLanguage = 'svg';
 
+  const showPreview = previewMarkupType !== null;
+  const downloadMimeType = getSnippetMimeType(finalLanguage, previewMarkupType);
+
   const handleOpenSide = () => {
     let displayTitle = t('htmlPreviewTitle');
-    if (finalLanguage === 'html') {
-      const titleMatch = resolvedCodeText.match(/<title[^>]*>([^<]+)<\/title>/i);
-      if (titleMatch && titleMatch[1]) {
-        displayTitle = titleMatch[1];
+    if (finalLanguage === 'html' || finalLanguage === 'svg') {
+      const ext = LANGUAGE_EXTENSION_MAP[finalLanguage.toLowerCase()] || finalLanguage;
+      const detected = detectSnippetFilename(resolvedCodeText, finalLanguage, ext, fenceFilename);
+      if (detected) {
+        displayTitle = detected.replace(/\.[^.]+$/, '');
       }
+    }
+
+    let contentToPreview = resolvedCodeText;
+    if (finalLanguage === 'svg') {
+      contentToPreview = repairIncompleteSvg(contentToPreview);
     }
 
     onOpenSidePanel({
       type: 'html',
-      content: resolvedCodeText,
+      content: contentToPreview,
       language: finalLanguage,
       title: displayTitle,
     });
   };
 
   const handleOpenPreview = () => {
-    onOpenHtmlPreview(resolvedCodeText, { privilege: 'unrestricted' });
+    let contentToPreview = resolvedCodeText;
+    if (finalLanguage === 'svg') {
+      contentToPreview = repairIncompleteSvg(contentToPreview);
+    }
+    onOpenHtmlPreview(contentToPreview, { privilege: 'unrestricted' });
   };
 
   const handleDownload = () => {
     const ext = LANGUAGE_EXTENSION_MAP[finalLanguage.toLowerCase()] || finalLanguage;
-    let filename = `snippet.${ext}`;
+    const filename = detectSnippetFilename(resolvedCodeText, finalLanguage, ext, fenceFilename);
 
-    if (downloadMimeType === 'text/html' || ext === 'html') {
-      const titleMatch = resolvedCodeText.match(/<title[^>]*>([^<]+)<\/title>/i);
-      if (titleMatch && titleMatch[1]) {
-        const saneTitle = sanitizeFilename(titleMatch[1].trim());
-        if (saneTitle) filename = `${saneTitle}.html`;
-      }
+    let codeToDownload = resolvedCodeText;
+    if (finalLanguage === 'svg' || ext === 'svg') {
+      codeToDownload = repairIncompleteSvg(codeToDownload);
     }
-    const blob = new Blob([resolvedCodeText], { type: downloadMimeType });
+
+    const blob = new Blob([codeToDownload], { type: downloadMimeType });
     const url = createManagedObjectUrl(blob);
     triggerDownload(url, filename);
+
+    setIsDownloaded(true);
+    if (downloadTimerRef.current) {
+      clearTimeout(downloadTimerRef.current);
+    }
+    downloadTimerRef.current = setTimeout(() => {
+      setIsDownloaded(false);
+    }, DOWNLOAD_FEEDBACK_MS);
   };
 
   return {
@@ -238,6 +201,7 @@ export const useCodeBlock = ({
     isExpanded,
     isOverflowing,
     isCopied,
+    isDownloaded,
     sourceLanguage: language,
     finalLanguage,
     showPreview,

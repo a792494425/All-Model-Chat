@@ -1490,15 +1490,6 @@ export const messagesTranslations = {
     es: 'Estadísticas de tokens copiadas',
     ko: '토큰 통계가 복사됨',
   },
-  metricsUserContext: {
-    en: 'Session tokens up to here',
-    zh: '截至此处的会话 Token',
-    ja: 'ここまでのセッショントークン',
-    de: 'Sitzungs-Token bis hierher',
-    fr: 'Jetons de session jusqu’ici',
-    es: 'Tokens de sesión hasta aquí',
-    ko: '여기까지의 세션 토큰',
-  },
   generatingSuggestions: {
     en: 'Generating suggestions...',
     zh: '正在生成建议…',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { HardDriveUpload, Crop } from 'lucide-react';
+import { HardDriveUpload, Crop, Cloud } from 'lucide-react';
 import {
   type IconProps,
   StrokeIcon,
@@ -46,6 +46,14 @@ export const IconMicrophone: React.FC<IconProps> = (props) => (
     <line x1="8" x2="16" y1="23" y2="23" />
   </StrokeIcon>
 );
+
+// 借鉴 Cherry Studio SettingsPage.tsx: icon={<Cloud />} (模型服务 / 通过文件 ID 添加)
+export const IconCloud: React.FC<IconProps> = ({
+  size = defaultSize,
+  strokeWidth = defaultStroke,
+  className,
+  color = defaultColor,
+}) => <Cloud size={size} strokeWidth={strokeWidth} className={className} color={color} />;
 
 export const IconLink: React.FC<IconProps> = (props) => (
   <StrokeIcon {...props}>

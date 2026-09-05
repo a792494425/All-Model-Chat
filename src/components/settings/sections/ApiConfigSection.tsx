@@ -17,6 +17,7 @@ import { ApiProxySettings } from './api-config/ApiProxySettings';
 import { ApiConnectionTester } from './api-config/ApiConnectionTester';
 import { ThirdPartyApiSettingsPanel } from './api-config/ThirdPartyApiSettingsPanel';
 import { FileStrategyControl } from './appearance/FileStrategyControl';
+import { getLatencyGrade, type LatencyGrade } from '@/utils/thirdPartyDiagnostics';
 
 interface ApiConfigSectionProps {
   useCustomApiConfig: boolean;
@@ -48,6 +49,8 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
   const { t } = useI18n();
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState<string | null>(null);
+  const [testLatencyMs, setTestLatencyMs] = useState<number | null>(null);
+  const [testGrade, setTestGrade] = useState<LatencyGrade | null>(null);
   const [testModelId, setTestModelId] = useState<string>(DEFAULT_LIVE_ARTIFACTS_MODEL_ID);
   const [allowOverflow, setAllowOverflow] = useState(useCustomApiConfig);
   const overflowTimerRef = useRef<number | null>(null);
@@ -136,7 +139,10 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
 
     setTestStatus('testing');
     setTestMessage(null);
+    setTestLatencyMs(null);
+    setTestGrade(null);
 
+    const startTime = performance.now();
     try {
       const ai = await getClient(firstKey, effectiveUrl);
 
@@ -145,8 +151,14 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
         contents: 'Hello',
       });
 
+      const latency = Math.round(performance.now() - startTime);
+      setTestLatencyMs(latency);
+      setTestGrade(getLatencyGrade(latency, true));
       setTestStatus('success');
     } catch (error) {
+      const latency = Math.round(performance.now() - startTime);
+      setTestLatencyMs(latency);
+      setTestGrade('error');
       setTestStatus('error');
       setTestMessage(getErrorMessage(error));
     }
@@ -256,6 +268,8 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
               onTest={handleTestConnection}
               testStatus={testStatus}
               testMessage={testMessage}
+              latencyMs={testLatencyMs}
+              latencyGrade={testGrade}
               isTestDisabled={
                 testStatus === 'testing' || (!apiKey && useCustomApiConfig && !canUseServerManagedTestKey)
               }

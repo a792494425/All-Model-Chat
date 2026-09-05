@@ -3,6 +3,15 @@ import { setupTestRenderer } from '@/test/render/renderer';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useCodeBlock } from './useCodeBlock';
 
+const triggerDownloadMock = vi.hoisted(() => vi.fn());
+vi.mock('@/utils/export/core', async () => {
+  const actual = await vi.importActual<typeof import('@/utils/export/core')>('@/utils/export/core');
+  return {
+    ...actual,
+    triggerDownload: triggerDownloadMock,
+  };
+});
+
 interface Measurements {
   scrollTop: number;
   scrollHeight: number;
@@ -13,12 +22,14 @@ const TestCodeBlock = ({
   text,
   measurements,
   className = 'language-ts',
+  onDownloadRef,
 }: {
   text: string;
   measurements: Measurements;
   className?: string;
+  onDownloadRef?: MutableRefObject<(() => void) | null>;
 }) => {
-  const { preRef, showPreview, finalLanguage } = useCodeBlock({
+  const { preRef, showPreview, finalLanguage, handleDownload, isDownloaded } = useCodeBlock({
     children: <code>{text}</code>,
     className,
     expandCodeBlocksByDefault: false,
@@ -26,10 +37,15 @@ const TestCodeBlock = ({
     onOpenSidePanel: () => {},
   });
 
+  if (onDownloadRef) {
+    onDownloadRef.current = handleDownload;
+  }
+
   return (
     <pre
       data-show-preview={String(showPreview)}
       data-language={finalLanguage}
+      data-downloaded={String(isDownloaded)}
       ref={(node) => {
         (preRef as MutableRefObject<HTMLPreElement | null>).current = node;
 
@@ -160,5 +176,87 @@ describe('useCodeBlock', () => {
     const pre = renderer.container.querySelector('pre');
     expect(pre?.dataset.showPreview).toBe('false');
     expect(pre?.dataset.language).toBe('xml');
+  });
+
+  it('downloads SVG with detected title and sets isDownloaded feedback', () => {
+    triggerDownloadMock.mockClear();
+    const downloadRef = { current: null as (() => void) | null };
+
+    act(() => {
+      renderer.root.render(
+        <TestCodeBlock
+          text={'<svg viewBox="0 0 100 100"><title>Network Diagram</title><circle cx="50" cy="50" r="10" /></svg>'}
+          measurements={measurements}
+          className="language-svg"
+          onDownloadRef={downloadRef}
+        />,
+      );
+    });
+
+    expect(downloadRef.current).toBeTypeOf('function');
+
+    act(() => {
+      downloadRef.current?.();
+    });
+
+    expect(triggerDownloadMock).toHaveBeenCalledTimes(1);
+    const [downloadUrl, filename] = triggerDownloadMock.mock.calls[0];
+    expect(filename).toBe('Network Diagram.svg');
+    expect(downloadUrl).toMatch(/^blob:/);
+
+    const pre = renderer.container.querySelector('pre');
+    expect(pre?.dataset.downloaded).toBe('true');
+
+    act(() => {
+      vi.advanceTimersByTime(2100);
+    });
+
+    expect(pre?.dataset.downloaded).toBe('false');
+  });
+
+  it('repairs incomplete SVG during download', () => {
+    triggerDownloadMock.mockClear();
+    const downloadRef = { current: null as (() => void) | null };
+
+    act(() => {
+      renderer.root.render(
+        <TestCodeBlock
+          text={'<svg viewBox="0 0 100 100"><defs><linearGradient id="g1"><stop offset="0%" stop-color="#fff" />'}
+          measurements={measurements}
+          className="language-svg"
+          onDownloadRef={downloadRef}
+        />,
+      );
+    });
+
+    act(() => {
+      downloadRef.current?.();
+    });
+
+    expect(triggerDownloadMock).toHaveBeenCalledTimes(1);
+    const [, filename] = triggerDownloadMock.mock.calls[0];
+    expect(filename).toBe('vector-graphic.svg');
+  });
+
+  it('detects filename from comment in python script', () => {
+    triggerDownloadMock.mockClear();
+    const downloadRef = { current: null as (() => void) | null };
+
+    act(() => {
+      renderer.root.render(
+        <TestCodeBlock
+          text={'# filename: process_data.py\ndef run(): pass'}
+          measurements={measurements}
+          className="language-python"
+          onDownloadRef={downloadRef}
+        />,
+      );
+    });
+
+    act(() => {
+      downloadRef.current?.();
+    });
+
+    expect(triggerDownloadMock).toHaveBeenCalledWith(expect.any(String), 'process_data.py');
   });
 });

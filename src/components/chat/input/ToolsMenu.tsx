@@ -2,7 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { Globe, Check, Terminal, Link, X, Telescope, Calculator, AlertTriangle, MapPin, Wrench } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
-import { IconPython, IconThinking } from '@/components/icons';
+import { IconPyodide, IconThinking } from '@/components/icons';
 import { CHAT_INPUT_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { usePortaledMenu } from '@/hooks/ui/usePortaledMenu';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
@@ -75,8 +75,9 @@ const renderToolIcon = (icon: ChatToolIconKey, size: number) => {
       return <MapPin size={size} strokeWidth={2} />;
     case 'terminal':
       return <Terminal size={size} strokeWidth={2} />;
+    case 'pyodide':
     case 'python':
-      return <IconPython size={size} strokeWidth={2} />;
+      return <IconPyodide size={size} />;
     case 'link':
       return <Link size={size} strokeWidth={2} />;
     case 'calculator':

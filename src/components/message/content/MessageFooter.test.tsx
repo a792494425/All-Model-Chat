@@ -92,7 +92,7 @@ describe('MessageFooter', () => {
     expect(renderer.container.textContent).not.toContain('t/s');
   });
 
-  it('shows a cumulative hint under user messages that carry session totals', () => {
+  it('shows nothing under user messages even with session totals', () => {
     renderer.render(
       <MessageFooter
         message={createChatMessage({
@@ -102,7 +102,7 @@ describe('MessageFooter', () => {
       />,
     );
 
-    expect(renderer.container.textContent).toContain('Σ');
+    expect(renderer.container.textContent).toBe('');
   });
 
   it('shows nothing under user messages without session totals', () => {

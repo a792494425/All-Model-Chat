@@ -193,6 +193,7 @@ export const EXTENSION_TO_MIME: Record<string, string> = {
   '.png': 'image/png',
   '.webp': 'image/webp',
   '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
   '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   '.doc': 'application/msword',
   // Code/Text Extensions
@@ -250,6 +251,7 @@ export const MIME_TO_EXTENSION_MAP: Record<string, string> = {
   'image/png': '.png',
   'image/webp': '.webp',
   'image/gif': '.gif',
+  'image/svg+xml': '.svg',
   'audio/mpeg': '.mp3',
   'audio/wav': '.wav',
   'video/mp4': '.mp4',

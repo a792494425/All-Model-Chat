@@ -6,7 +6,9 @@ import {
   type VideoMetadata,
   type MediaResolution,
   type LibraryItem,
+  type ChatSettings,
 } from '@/types';
+import type { File as GeminiFile } from '@google/genai';
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';
 
 const LazyFileConfigModal = lazyNamedComponent(() => import('@/components/modals/FileConfigModal'), 'FileConfigModal');
@@ -19,6 +21,10 @@ const LazyLibraryPickerModal = lazyNamedComponent(
   () => import('@/components/modals/LibraryPickerModal'),
   'LibraryPickerModal',
 );
+const LazyCloudFilesModal = lazyNamedComponent(
+  () => import('@/components/modals/cloud-files/CloudFilesModal'),
+  'CloudFilesModal',
+);
 
 interface ChatInputFileModalsProps {
   configuringFile: UploadedFile | null;
@@ -28,6 +34,12 @@ interface ChatInputFileModalsProps {
   showLibraryPicker?: boolean;
   setShowLibraryPicker?: (show: boolean) => void;
   onImportFromLibrary?: (items: LibraryItem[]) => Promise<void>;
+  showCloudFilesModal?: boolean;
+  setShowCloudFilesModal?: (show: boolean) => void;
+  onAddFilesFromCloud?: (files: GeminiFile[]) => void;
+  onAddFileById?: (fileId: string) => Promise<void>;
+  rawAppSettings?: AppSettings;
+  currentChatSettings?: ChatSettings;
   isImageGenerationModel?: boolean;
   previewFile: UploadedFile | null;
   onClosePreview: () => void;
@@ -59,6 +71,12 @@ export const ChatInputFileModals: React.FC<ChatInputFileModalsProps> = ({
   showLibraryPicker,
   setShowLibraryPicker,
   onImportFromLibrary,
+  showCloudFilesModal,
+  setShowCloudFilesModal,
+  onAddFilesFromCloud,
+  onAddFileById,
+  rawAppSettings,
+  currentChatSettings,
   isImageGenerationModel,
   previewFile,
   onClosePreview,
@@ -107,6 +125,19 @@ export const ChatInputFileModals: React.FC<ChatInputFileModalsProps> = ({
             onClose={() => setShowLibraryPicker(false)}
             onConfirm={onImportFromLibrary}
             initialCategory={isImageGenerationModel ? 'image' : 'all'}
+          />
+        </Suspense>
+      )}
+
+      {showCloudFilesModal && setShowCloudFilesModal && (
+        <Suspense fallback={null}>
+          <LazyCloudFilesModal
+            isOpen={showCloudFilesModal}
+            onClose={() => setShowCloudFilesModal(false)}
+            onAddFiles={onAddFilesFromCloud}
+            onAddFileById={onAddFileById}
+            appSettings={rawAppSettings ?? appSettings}
+            currentChatSettings={currentChatSettings ?? ({} as ChatSettings)}
           />
         </Suspense>
       )}

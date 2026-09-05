@@ -16,12 +16,16 @@ import {
 } from '@/services/api/openaiCompatibleUrls';
 import { buildOpenAIResponsesUrl, buildOpenAIResponsesUpstreamUrl } from '@/services/api/openaiResponsesUrls';
 import { buildAnthropicMessagesUrl, buildAnthropicUpstreamMessagesUrl } from '@/services/api/anthropicUrls';
-import { sendAnthropicMessageNonStream } from '@/services/api/anthropicApi';
-import { fetchOpenAICompatibleModels, sendOpenAICompatibleMessageNonStream } from '@/services/api/openaiCompatibleApi';
-import { fetchOpenAIResponsesModels, sendOpenAIResponsesNonStream } from '@/services/api/openaiResponsesApi';
+import { fetchOpenAICompatibleModels } from '@/services/api/openaiCompatibleApi';
+import { fetchOpenAIResponsesModels } from '@/services/api/openaiResponsesApi';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { parseApiKeys } from '@/utils/apiKeySelection';
 import { getProxyProviderHeader, getThirdPartyTemplateLinks } from '@/utils/thirdPartyApiProviders';
+import {
+  probeThirdPartyConnection,
+  type ConnectionHealthProbeResult,
+  type LatencyGrade,
+} from '@/utils/thirdPartyDiagnostics';
 import type { ThirdPartyApiProtocol, ThirdPartyConnection } from '@/types';
 import { ApiKeyInput } from './ApiKeyInput';
 import { ApiConnectionTester } from './ApiConnectionTester';
@@ -32,6 +36,8 @@ interface ThirdPartyConnectionEditorProps {
   onChange: (updates: Partial<ThirdPartyConnection>) => void;
   onRemove: () => void;
   isInUse?: boolean;
+  healthResult?: ConnectionHealthProbeResult | null;
+  onHealthResult?: (result: ConnectionHealthProbeResult) => void;
 }
 
 type HeaderRow = { rowId: string; name: string; value: string };
@@ -61,15 +67,30 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
   onChange,
   onRemove,
   isInUse = false,
+  healthResult = null,
+  onHealthResult,
 }) => {
   const { t } = useI18n();
-  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
-  const [testMessage, setTestMessage] = useState<string | null>(null);
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>(() => healthResult?.status ?? 'idle');
+  const [testMessage, setTestMessage] = useState<string | null>(() => healthResult?.errorMessage ?? null);
+  const [testLatencyMs, setTestLatencyMs] = useState<number | null>(() => healthResult?.latencyMs ?? null);
+  const [testGrade, setTestGrade] = useState<LatencyGrade | null>(() => healthResult?.grade ?? null);
+  const [diagnosticTip, setDiagnosticTip] = useState<string | null>(() => healthResult?.diagnosticTip ?? null);
   const [fetchStatus, setFetchStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [fetchMessage, setFetchMessage] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(Object.keys(connection.extraHeaders).length > 0);
   const [headerRows, setHeaderRows] = useState<HeaderRow[]>(() => toHeaderRows(connection.extraHeaders));
   const [confirmingRemove, setConfirmingRemove] = useState(false);
+
+  useEffect(() => {
+    if (healthResult) {
+      setTestStatus(healthResult.status);
+      setTestMessage(healthResult.errorMessage ?? null);
+      setTestLatencyMs(healthResult.latencyMs);
+      setTestGrade(healthResult.grade);
+      setDiagnosticTip(healthResult.diagnosticTip ?? null);
+    }
+  }, [healthResult]);
 
   useEffect(() => {
     setHeaderRows(toHeaderRows(connection.extraHeaders));
@@ -84,6 +105,9 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
     onChange({ [key]: value });
     setTestStatus('idle');
     setTestMessage(null);
+    setTestLatencyMs(null);
+    setTestGrade(null);
+    setDiagnosticTip(null);
   };
 
   const commitHeaderRows = (nextRows: HeaderRow[]) => {
@@ -108,86 +132,26 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
   const extraHeaderCount = Object.keys(connection.extraHeaders).length;
 
   const handleTestConnection = async () => {
-    const keyToTest = connection.apiKey;
-    if (!keyToTest && !connection.authOptional) {
-      setTestStatus('error');
-      setTestMessage(t('apiConfigNoKeyAvailable'));
-      return;
-    }
-
-    const firstKey = keyToTest ? parseApiKeys(keyToTest)[0] : '';
-    if (!firstKey && !connection.authOptional) {
-      setTestStatus('error');
-      setTestMessage(t('apiConfigInvalidKeyFormat'));
-      return;
-    }
-
     setTestStatus('testing');
     setTestMessage(null);
+    setDiagnosticTip(null);
+    setTestLatencyMs(null);
+    setTestGrade(null);
 
-    try {
-      const providerConfig = {
-        baseUrl: connection.baseUrl,
-        temperature: 0,
-        extraHeaders: connection.extraHeaders,
-      };
-      let providerError: Error | null = null;
-      const onError = (error: Error) => {
-        providerError = error;
-      };
-      const proxyProviderId = getProxyProviderHeader(connection.templateId);
-      const effectiveKey = firstKey || 'auth-optional';
+    const result = await probeThirdPartyConnection(connection, {
+      modelId: connection.modelId,
+    });
 
-      if (connection.protocol === 'anthropic') {
-        await sendAnthropicMessageNonStream(
-          effectiveKey,
-          connection.modelId,
-          [],
-          [{ text: 'Hello' }],
-          providerConfig,
-          new AbortController().signal,
-          onError,
-          () => undefined,
-          'user',
-          proxyProviderId,
-        );
-      } else if (connection.protocol === 'openai-responses') {
-        await sendOpenAIResponsesNonStream(
-          effectiveKey,
-          connection.modelId,
-          [],
-          [{ text: 'Hello' }],
-          providerConfig,
-          new AbortController().signal,
-          onError,
-          () => undefined,
-          'user',
-          proxyProviderId,
-        );
-      } else {
-        await sendOpenAICompatibleMessageNonStream(
-          effectiveKey,
-          connection.modelId,
-          [],
-          [{ text: 'Hello' }],
-          providerConfig,
-          new AbortController().signal,
-          onError,
-          () => undefined,
-          'user',
-          proxyProviderId,
-        );
-      }
-
-      if (providerError) {
-        throw providerError;
-      }
-
-      setTestStatus('success');
-    } catch (error) {
-      setTestStatus('error');
-      setTestMessage(getErrorMessage(error));
+    setTestStatus(result.status);
+    setTestLatencyMs(result.latencyMs);
+    setTestGrade(result.grade);
+    if (result.status === 'error') {
+      setTestMessage(result.errorMessage ?? t('apiConfigTestFailed'));
+      setDiagnosticTip(result.diagnosticTip ?? null);
+    } else {
+      setTestMessage(null);
     }
+    onHealthResult?.(result);
   };
 
   const handleFetchModels = async () => {
@@ -495,6 +459,9 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
         onTest={handleTestConnection}
         testStatus={testStatus}
         testMessage={testMessage}
+        latencyMs={testLatencyMs}
+        latencyGrade={testGrade}
+        diagnosticTip={diagnosticTip}
         isTestDisabled={testStatus === 'testing' || (!connection.authOptional && !connection.apiKey) || !connection.baseUrl}
         availableModels={connection.models}
         testModelId={connection.modelId}

@@ -50,6 +50,12 @@ const ChatInputContent: React.FC = () => {
         showLibraryPicker={modalsState.showLibraryPicker}
         setShowLibraryPicker={modalsState.setShowLibraryPicker}
         onImportFromLibrary={modalsState.handleImportFromLibrary}
+        showCloudFilesModal={modalsState.showCloudFilesModal}
+        setShowCloudFilesModal={modalsState.setShowCloudFilesModal}
+        onAddFilesFromCloud={chatInput.onAddFilesFromCloud}
+        onAddFileById={chatInput.onAddFileById}
+        rawAppSettings={chatInput.appSettings}
+        currentChatSettings={chatInput.currentChatSettings}
         isImageGenerationModel={capabilities.isImageGenerationModel}
         previewFile={localFileState.previewFile}
         onClosePreview={localFileState.closePreviewFile}

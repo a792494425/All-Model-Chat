@@ -3,6 +3,7 @@ import { X, Code, Eye, Download, FileCode2, type LucideIcon } from 'lucide-react
 import { type SideViewContent } from '@/types';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { triggerDownload, sanitizeFilename } from '@/utils/export/core';
+import { repairIncompleteSvg } from '@/utils/codeSnippet';
 import { useIsMobile } from '@/hooks/useDevice';
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { Z_INDEX_SIDE_PANEL_MOBILE, Z_INDEX_TOPMOST_OVERLAY } from '@/constants/layout';
@@ -117,10 +118,21 @@ export const SidePanel: React.FC<SidePanelProps> = ({ content, onClose, themeId 
   if (!content) return null;
 
   const handleDownload = () => {
-    const ext = content.type === 'html' ? 'html' : content.type === 'mermaid' ? 'mmd' : 'txt';
-    const blob = new Blob([localCode], { type: 'text/plain' });
+    const isSvg = content.language === 'svg' || content.content.trim().startsWith('<svg');
+    const ext = isSvg ? 'svg' : content.type === 'html' ? 'html' : content.type === 'mermaid' ? 'mmd' : 'txt';
+    const mimeType = isSvg
+      ? 'image/svg+xml;charset=utf-8'
+      : content.type === 'html'
+        ? 'text/html;charset=utf-8'
+        : 'text/plain;charset=utf-8';
+
+    let codeToDownload = localCode;
+    if (isSvg) {
+      codeToDownload = repairIncompleteSvg(codeToDownload);
+    }
+    const blob = new Blob([codeToDownload], { type: mimeType });
     const url = createManagedObjectUrl(blob);
-    triggerDownload(url, `${sanitizeFilename(content.title || 'snippet')}.${ext}`);
+    triggerDownload(url, `${sanitizeFilename(content.title || (isSvg ? 'vector-graphic' : 'snippet'))}.${ext}`);
   };
 
   const previewFallback = (

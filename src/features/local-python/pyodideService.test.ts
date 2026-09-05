@@ -721,4 +721,69 @@ describe('PyodideService', () => {
       vi.unstubAllGlobals();
     }
   });
+
+  it('halts automatic warmup when the worker repeatedly crashes (circuit breaker)', async () => {
+    const { service, workers, createWorker } = createService();
+    const [w1, w2, w3] = workers;
+
+    const run = service.runPython('print("crash")');
+    await flushMicrotasks();
+
+    // Crash 1: replacement worker w2 is spawned and warmup is sent
+    w1.emitError('crash 1');
+    await flushMicrotasks();
+    expect(createWorker).toHaveBeenCalledTimes(2);
+
+    // Crash 2: replacement worker w3 is spawned and warmup is sent
+    w2.emitError('crash 2');
+    await flushMicrotasks();
+    expect(createWorker).toHaveBeenCalledTimes(3);
+
+    // Crash 3: circuit breaker trips, no further worker is created
+    w3.emitError('crash 3');
+    await flushMicrotasks();
+    expect(createWorker).toHaveBeenCalledTimes(3);
+
+    await expect(run).rejects.toThrow('crash 1');
+  });
+
+  it('preserves partial stdout when worker rejects with output and error', async () => {
+    const { service, workers } = createService();
+    const [worker] = workers;
+
+    const run = service.runPython('print("progress"); 1/0');
+    await flushMicrotasks();
+
+    worker.emit({
+      id: 'mount-1',
+      status: 'error',
+      output: 'progress',
+      error: 'ZeroDivisionError',
+    });
+
+    await expect(run).rejects.toMatchObject({
+      message: 'ZeroDivisionError',
+      output: 'progress',
+    });
+  });
+
+  it('terminates the active worker on terminateWorker() without permanently disposing the service', async () => {
+    const { service, workers, createWorker } = createService();
+    const [w1, w2] = workers;
+
+    const run1 = service.runPython('print("1")');
+    await flushMicrotasks();
+    w1.emit({ id: 'mount-1', status: 'success', output: '1' });
+    await expect(run1).resolves.toMatchObject({ output: '1' });
+
+    service.terminateWorker();
+    expect(w1.terminate).toHaveBeenCalledTimes(1);
+
+    // Service is not disposed; a subsequent run spawns a fresh worker on demand
+    const run2 = service.runPython('print("2")');
+    await flushMicrotasks();
+    expect(createWorker).toHaveBeenCalledTimes(2);
+    w2.emit({ id: 'run-1', status: 'success', output: '2' });
+    await expect(run2).resolves.toMatchObject({ output: '2' });
+  });
 });

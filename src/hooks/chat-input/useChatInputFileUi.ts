@@ -62,6 +62,7 @@ export const useChatInputFileUi = ({
   const [editingFile, setEditingFile] = useState<UploadedFile | null>(null);
   const [showRecorder, setShowRecorder] = useState(false);
   const [showAddByIdInput, setShowAddByIdInput] = useState(false);
+  const [showCloudFilesModal, setShowCloudFilesModal] = useState(false);
   const [showAddByUrlInput, setShowAddByUrlInput] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [showTtsContextEditor, setShowTtsContextEditor] = useState(false);
@@ -114,7 +115,7 @@ export const useChatInputFileUi = ({
           setShowRecorder(true);
           break;
         case 'id':
-          setShowAddByIdInput(true);
+          setShowCloudFilesModal(true);
           break;
         case 'url':
           setShowAddByUrlInput(true);
@@ -309,6 +310,8 @@ export const useChatInputFileUi = ({
       setShowRecorder,
       showAddByIdInput,
       setShowAddByIdInput,
+      showCloudFilesModal,
+      setShowCloudFilesModal,
       showAddByUrlInput,
       setShowAddByUrlInput,
       isHelpModalOpen,
@@ -341,6 +344,7 @@ export const useChatInputFileUi = ({
       imageInputRef,
       isHelpModalOpen,
       showAddByIdInput,
+      showCloudFilesModal,
       showAddByUrlInput,
       showCreateTextFileEditor,
       showLibraryPicker,

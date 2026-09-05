@@ -421,6 +421,8 @@ export const BaseMarkdownRenderer: React.FC<BaseMarkdownRendererProps> = React.m
           const codeBlock = (
             <CodeBlock
               {...rest}
+              files={files}
+              messageId={messageId}
               cacheKey={
                 messageId && node?.position?.start?.offset !== undefined
                   ? `${messageId}:${node.position.start.offset}`
@@ -530,6 +532,8 @@ export const BaseMarkdownRenderer: React.FC<BaseMarkdownRendererProps> = React.m
         <div className={isLoading ? 'is-loading' : ''}>
           <CodeBlock
             cacheKey={messageId ? `${messageId}:direct-live-artifact` : undefined}
+            files={files}
+            messageId={messageId}
             className={`language-${singleLiveArtifact.language}`}
             onOpenHtmlPreview={onOpenHtmlPreview}
             onLiveArtifactFollowUp={onLiveArtifactFollowUp}

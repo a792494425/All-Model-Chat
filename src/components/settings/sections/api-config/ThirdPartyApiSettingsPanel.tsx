@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ChevronDown, ChevronRight, Download, Plus, Upload } from 'lucide-react';
+import { Activity, ChevronDown, ChevronRight, Download, Loader2, Plus, Upload } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { Toggle } from '@/components/shared/Toggle';
 import {
@@ -30,6 +30,12 @@ import {
   parseProvidersBackupText,
   type ImportMode,
 } from '@/utils/thirdPartyBackup';
+import {
+  formatLatency,
+  getLatencyBadgeStyles,
+  probeThirdPartyConnection,
+  type ConnectionHealthProbeResult,
+} from '@/utils/thirdPartyDiagnostics';
 import { toastError, toastSuccess, toastWarning } from '@/stores/toastStore';
 import { interpolate } from '@/i18n/interpolate';
 import { getThirdPartyTemplateLogo } from '@/components/shared/ModelIcon';
@@ -55,6 +61,9 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
   const [isBackupOpen, setIsBackupOpen] = useState(false);
   const [backupDialogMode, setBackupDialogMode] = useState<ThirdPartyBackupDialogMode>('export');
   const [pendingImportedConnections, setPendingImportedConnections] = useState<ThirdPartyConnection[]>([]);
+  const [healthResults, setHealthResults] = useState<Record<string, ConnectionHealthProbeResult>>({});
+  const [probingConnectionIds, setProbingConnectionIds] = useState<Set<string>>(new Set());
+  const [isTestingAll, setIsTestingAll] = useState(false);
 
   const updateThirdPartyApi = (next: ThirdPartyApiSettings) => {
     onUpdateSettings({ thirdPartyApi: next });
@@ -124,6 +133,72 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
     }
   };
 
+  const handleProbeConnection = async (connection: ThirdPartyConnection) => {
+    if (probingConnectionIds.has(connection.id)) return;
+    setProbingConnectionIds((prev) => new Set(prev).add(connection.id));
+    try {
+      const result = await probeThirdPartyConnection(connection);
+      setHealthResults((prev) => ({ ...prev, [connection.id]: result }));
+      if (result.status === 'success') {
+        toastSuccess(`${connection.name}: ${t('apiConfigTestSuccess')} (${formatLatency(result.latencyMs)})`);
+      } else {
+        toastError(
+          `${connection.name}: ${t('apiConfigTestFailed')}${result.errorMessage ? ` - ${result.errorMessage}` : ''}`,
+        );
+      }
+    } finally {
+      setProbingConnectionIds((prev) => {
+        const next = new Set(prev);
+        next.delete(connection.id);
+        return next;
+      });
+    }
+  };
+
+  const handleTestAllConnections = async () => {
+    const targetConnections = connections.filter((c) => c.enabled && Boolean(c.baseUrl));
+    if (targetConnections.length === 0) {
+      toastWarning(t('thirdPartyExportEmpty'));
+      return;
+    }
+
+    setIsTestingAll(true);
+    setProbingConnectionIds((prev) => {
+      const next = new Set(prev);
+      targetConnections.forEach((c) => next.add(c.id));
+      return next;
+    });
+
+    try {
+      const results = await Promise.allSettled(
+        targetConnections.map(async (conn) => {
+          const result = await probeThirdPartyConnection(conn);
+          setHealthResults((prev) => ({ ...prev, [conn.id]: result }));
+          setProbingConnectionIds((prev) => {
+            const next = new Set(prev);
+            next.delete(conn.id);
+            return next;
+          });
+          return result;
+        }),
+      );
+
+      const successCount = results.filter(
+        (r) => r.status === 'fulfilled' && r.value.status === 'success',
+      ).length;
+      const failCount = targetConnections.length - successCount;
+
+      if (failCount === 0) {
+        toastSuccess(`${t('apiConfigTestSuccess')}: ${successCount}/${targetConnections.length}`);
+      } else {
+        toastWarning(`${t('apiConfigTestSuccess')}: ${successCount}, ${t('apiConfigTestFailed')}: ${failCount}`);
+      }
+    } finally {
+      setIsTestingAll(false);
+      setProbingConnectionIds(new Set());
+    }
+  };
+
   const connectionStatus = (connection: ThirdPartyConnection) => {
     const status = getThirdPartyConnectionStatus(connection);
     if (status === 'disabled') {
@@ -172,6 +247,17 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
                 }
               }}
             />
+            <button
+              type="button"
+              data-testid="third-party-test-all-btn"
+              className={SETTINGS_OUTLINE_BUTTON_CLASS}
+              onClick={handleTestAllConnections}
+              disabled={connections.length === 0 || isTestingAll}
+              title={t('apiConfigTestAllConnections')}
+            >
+              {isTestingAll ? <Loader2 size={13} className="animate-spin" /> : <Activity size={13} />}
+              {isTestingAll ? t('apiConfigTestingAll') : t('apiConfigTestAllConnections')}
+            </button>
             <button
               type="button"
               data-testid="third-party-import-btn"
@@ -242,6 +328,8 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
             const isExpanded = expandedConnectionId === connection.id;
             const status = connectionStatus(connection);
             const displayTemplateId = getConnectionDisplayTemplateId(connection);
+            const health = healthResults[connection.id];
+            const isProbing = probingConnectionIds.has(connection.id);
 
             return (
               <div
@@ -253,45 +341,88 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
                     : 'border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-tertiary)]/10'
                 }`}
               >
-                <div className="flex items-center gap-2 p-2.5">
-                  <div className="flex-shrink-0">
-                    <Toggle
-                      checked={connection.enabled}
-                      onChange={() => handleToggleEnabled(connection)}
-                      ariaLabel={`${connection.name} ${t('enable')}`}
-                    />
+                <div className="flex items-center justify-between gap-2 p-2.5">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="flex-shrink-0">
+                      <Toggle
+                        checked={connection.enabled}
+                        onChange={() => handleToggleEnabled(connection)}
+                        ariaLabel={`${connection.name} ${t('enable')}`}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedConnectionId(isExpanded ? null : connection.id)}
+                      className="flex items-center gap-1.5 flex-1 min-w-0 cursor-pointer text-left"
+                    >
+                      {isExpanded ? (
+                        <ChevronDown size={14} className="text-[var(--theme-text-secondary)] flex-shrink-0" strokeWidth={2} />
+                      ) : (
+                        <ChevronRight size={14} className="text-[var(--theme-text-secondary)] flex-shrink-0" strokeWidth={2} />
+                      )}
+                      <img
+                        src={getThirdPartyTemplateLogo(displayTemplateId)}
+                        alt=""
+                        width={18}
+                        height={18}
+                        draggable={false}
+                        className="flex-shrink-0 object-contain"
+                        style={{ width: 18, height: 18 }}
+                      />
+                      <span className="text-sm font-medium text-[var(--theme-text-primary)] truncate">
+                        {connection.name}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] flex-shrink-0">
+                        {connection.protocol === 'anthropic'
+                          ? t('thirdPartyProtocolAnthropic')
+                          : connection.protocol === 'openai-responses'
+                            ? t('thirdPartyProtocolOpenAIResponses')
+                            : t('thirdPartyProtocolOpenAI')}
+                      </span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded flex-shrink-0 ${status.className}`}>{status.label}</span>
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedConnectionId(isExpanded ? null : connection.id)}
-                    className="flex items-center gap-1.5 flex-1 min-w-0 cursor-pointer"
-                  >
-                    {isExpanded ? (
-                      <ChevronDown size={14} className="text-[var(--theme-text-secondary)]" strokeWidth={2} />
-                    ) : (
-                      <ChevronRight size={14} className="text-[var(--theme-text-secondary)]" strokeWidth={2} />
+
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {health && (
+                      <span
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono font-medium transition-all ${
+                          getLatencyBadgeStyles(health.grade).badge
+                        }`}
+                        title={
+                          health.status === 'success'
+                            ? `${t('apiConfigTestSuccess')}: ${formatLatency(health.latencyMs)} (${health.modelId})`
+                            : `${t('apiConfigTestFailed')}${health.errorMessage ? `: ${health.errorMessage}` : ''}`
+                        }
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${getLatencyBadgeStyles(health.grade).dot}`} />
+                        <span>
+                          {health.status === 'success'
+                            ? formatLatency(health.latencyMs)
+                            : t('apiConfigTestFailed')}
+                        </span>
+                      </span>
                     )}
-                    <img
-                      src={getThirdPartyTemplateLogo(displayTemplateId)}
-                      alt=""
-                      width={18}
-                      height={18}
-                      draggable={false}
-                      className="flex-shrink-0 object-contain"
-                      style={{ width: 18, height: 18 }}
-                    />
-                    <span className="text-sm font-medium text-[var(--theme-text-primary)] truncate">
-                      {connection.name}
-                    </span>
-                    <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)]">
-                      {connection.protocol === 'anthropic'
-                        ? t('thirdPartyProtocolAnthropic')
-                        : connection.protocol === 'openai-responses'
-                          ? t('thirdPartyProtocolOpenAIResponses')
-                          : t('thirdPartyProtocolOpenAI')}
-                    </span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded ${status.className}`}>{status.label}</span>
-                  </button>
+
+                    <button
+                      type="button"
+                      data-testid={`quick-test-${connection.id}-btn`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleProbeConnection(connection);
+                      }}
+                      disabled={isProbing}
+                      className="p-1.5 rounded-md text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--theme-border-focus)] disabled:opacity-50"
+                      title={t('apiConfigQuickTestTooltip')}
+                      aria-label={`${t('apiConfigQuickTestTooltip')}: ${connection.name}`}
+                    >
+                      {isProbing ? (
+                        <Loader2 size={13} className="animate-spin text-[var(--theme-text-primary)]" />
+                      ) : (
+                        <Activity size={13} />
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {isExpanded && (
@@ -302,6 +433,8 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
                       useChatStore.getState().savedSessions,
                       settings.providerId,
                     )}
+                    healthResult={health}
+                    onHealthResult={(res) => setHealthResults((prev) => ({ ...prev, [connection.id]: res }))}
                     onChange={(updates) =>
                       updateThirdPartyApi(updateThirdPartyConnection(currentSettings, connection.id, updates))
                     }
