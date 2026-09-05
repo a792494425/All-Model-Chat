@@ -160,3 +160,12 @@ export const createWavBlobFromPCMChunks = (chunks: string[], sampleRate = 24000)
   const blob = new Blob([wavBuffer], { type: 'audio/wav' });
   return createManagedObjectUrl(blob);
 };
+
+/**
+ * Extracts the audio subtype/format from a MIME type (e.g. 'audio/wav' -> 'wav', 'audio/mp3' -> 'mp3').
+ * Defaults to 'wav' if no valid subtype is found.
+ */
+export const getInlineAudioFormat = (mimeType: string): string => {
+  const subtype = mimeType.split('/')[1]?.split(';')[0]?.trim();
+  return subtype || 'wav';
+};

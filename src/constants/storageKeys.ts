@@ -8,3 +8,4 @@ export const MARKDOWN_VIEW_MODE_STORAGE_PREFIX = 'markdown-preview-mode:';
 export const MARKDOWN_TOC_STORAGE_PREFIX = 'markdown-preview-toc:';
 export const API_USAGE_STORAGE_KEY = 'chatApiUsageData';
 export const TOKEN_USAGE_STORAGE_KEY = 'chatTokenUsageData';
+export const CHAT_SCROLL_POS_STORAGE_PREFIX = 'chat_scroll_pos_';

@@ -20,6 +20,10 @@ export const isVideoFileType = (type: string, name: string): boolean => {
   return flags.isVideo || flags.isYoutube;
 };
 
+export const isAudioFileType = (type: string, name: string): boolean => {
+  return getFileKindFlags({ type, name }).isAudio;
+};
+
 export const isDocumentFileType = (type: string, name: string): boolean => {
   return !isImageFileType(type, name);
 };

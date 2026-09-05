@@ -1,6 +1,7 @@
 import type { Part } from '@google/genai';
 import type { ChatHistoryItem, ThinkingLevel } from '@/types';
 import { isAudioMimeType, isImageMimeType } from '@/utils/file/fileTypeClassification';
+import { getInlineAudioFormat } from '@/features/audio/audioProcessing';
 import {
   isGlmModel,
   isKimiK3Model,
@@ -52,11 +53,6 @@ const mapThinkingLevelToKimiReasoningEffort = (level: ThinkingLevel | undefined)
     default:
       return 'max';
   }
-};
-
-const getInlineAudioFormat = (mimeType: string): string => {
-  const subtype = mimeType.split('/')[1]?.split(';')[0]?.trim();
-  return subtype || 'wav';
 };
 
 const partToOpenAIContentItems = (part: Part): Exclude<OpenAIMessageContent, string> => {

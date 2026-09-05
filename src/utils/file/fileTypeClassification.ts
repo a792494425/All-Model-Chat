@@ -87,22 +87,22 @@ export const isVideoMimeType = (mimeType?: string): boolean => {
 export const isPdfMimeType = (mimeType?: string): boolean =>
   SUPPORTED_PDF_MIME_TYPES.includes(normalizeMimeType(mimeType));
 
-const isPdfFile = (file: FileKindInput): boolean =>
+export const isPdfFile = (file: FileKindInput): boolean =>
   isPdfMimeType(file.type) || normalizeFileName(file.name).endsWith('.pdf');
 
-const isVideoFile = (file: FileKindInput): boolean => {
+export const isVideoFile = (file: FileKindInput): boolean => {
   if (isVideoMimeType(file.type)) return true;
   const ext = getFileExtension(file.name);
   return Boolean(ext && EXTENSION_TO_MIME[ext] && isVideoMimeType(EXTENSION_TO_MIME[ext]));
 };
 
-const isImageFile = (file: FileKindInput): boolean => {
+export const isImageFile = (file: FileKindInput): boolean => {
   if (isImageMimeType(file.type)) return true;
   const ext = getFileExtension(file.name);
   return Boolean(ext && EXTENSION_TO_MIME[ext] && isImageMimeType(EXTENSION_TO_MIME[ext]));
 };
 
-const isAudioFile = (file: FileKindInput): boolean => {
+export const isAudioFile = (file: FileKindInput): boolean => {
   if (isAudioMimeType(file.type)) return true;
   const ext = getFileExtension(file.name);
   return Boolean(ext && EXTENSION_TO_MIME[ext] && isAudioMimeType(EXTENSION_TO_MIME[ext]));

@@ -1,20 +1,16 @@
-import { isImageMimeType, isVideoMimeType } from '@/utils/file/fileTypeClassification';
+import {
+  isAudioFile,
+  isAudioMimeType,
+  isImageFile,
+  isImageMimeType,
+  isPdfFile,
+  isPdfMimeType,
+  isVideoFile,
+  isVideoMimeType,
+} from '@/utils/file/fileTypeClassification';
 import type { ChatMessage, ContentPart, UploadedFile } from '@/types';
 
-export const isPdfFile = (file: UploadedFile): boolean =>
-  file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-
-const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v', '.flv', '.wmv', '.3gp'];
-export const isVideoFile = (file: UploadedFile): boolean =>
-  isVideoMimeType(file.type) || VIDEO_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext));
-
-const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac', '.aiff', '.wma'];
-export const isAudioFile = (file: UploadedFile): boolean =>
-  file.type.startsWith('audio/') || AUDIO_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext));
-
-const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.svg', '.tiff', '.ico', '.avif'];
-export const isImageFile = (file: UploadedFile): boolean =>
-  isImageMimeType(file.type) || IMAGE_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext));
+export { isAudioFile, isImageFile, isPdfFile, isVideoFile };
 
 const partMimeType = (part: ContentPart): string | undefined =>
   'inlineData' in part ? part.inlineData?.mimeType : 'fileData' in part ? part.fileData?.mimeType : undefined;
@@ -69,15 +65,15 @@ export const collectSessionMediaFiles = (
 
 /** True when any API part carries a PDF payload (inline or Files-API reference). */
 export const partsContainPdf = (parts: ContentPart[] | undefined): boolean =>
-  !!parts?.some((part) => partMimeType(part) === 'application/pdf');
+  !!parts?.some((part) => isPdfMimeType(partMimeType(part)));
 
 /** True when any API part carries a video payload (inline or Files-API reference). */
 export const partsContainVideo = (parts: ContentPart[] | undefined): boolean =>
-  !!parts?.some((part) => partMimeType(part)?.startsWith('video/'));
+  !!parts?.some((part) => isVideoMimeType(partMimeType(part)));
 
 /** True when any API part carries an audio payload (inline or Files-API reference). */
 export const partsContainAudio = (parts: ContentPart[] | undefined): boolean =>
-  !!parts?.some((part) => partMimeType(part)?.startsWith('audio/'));
+  !!parts?.some((part) => isAudioMimeType(partMimeType(part)));
 
 /** True when any API part carries an image payload (inline or Files-API reference). */
 export const partsContainImage = (parts: ContentPart[] | undefined): boolean =>

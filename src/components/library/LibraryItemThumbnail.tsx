@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FileText, FileSpreadsheet, Presentation, Music, Video, Image as ImageIcon } from 'lucide-react';
 import type { LibraryItem } from '@/types';
-import { isImageFileType, isVideoFileType, getLibraryFileType } from '@/utils/library/libraryFiles';
+import { isImageFileType, isVideoFileType, isAudioFileType, getLibraryFileType } from '@/utils/library/libraryFiles';
 import { fileToBlobUrl, cleanupFilePreviewUrl } from '@/utils/file/filePreviewUrls';
 import { dbService } from '@/services/db/dbService';
 
@@ -14,6 +14,7 @@ interface LibraryItemThumbnailProps {
 export const LibraryItemThumbnail: React.FC<LibraryItemThumbnailProps> = ({ item, size = 'sm', className = '' }) => {
   const isImage = isImageFileType(item.type, item.name);
   const isVideo = isVideoFileType(item.type, item.name);
+  const isAudio = isAudioFileType(item.type, item.name);
   const canPreview = isImage || isVideo;
   const [blobUrl, setBlobUrl] = useState<string | null>(item.dataUrl ?? null);
   const [hasError, setHasError] = useState(false);
@@ -160,7 +161,7 @@ export const LibraryItemThumbnail: React.FC<LibraryItemThumbnailProps> = ({ item
     );
   }
 
-  if (isVideo || item.type.startsWith('video/')) {
+  if (isVideo) {
     return (
       <div
         className={`${sizeContainerClasses} flex flex-col items-center justify-center bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 font-semibold flex-shrink-0 ${className}`}
@@ -170,7 +171,7 @@ export const LibraryItemThumbnail: React.FC<LibraryItemThumbnailProps> = ({ item
     );
   }
 
-  if (item.type.startsWith('audio/')) {
+  if (isAudio) {
     return (
       <div
         className={`${sizeContainerClasses} flex flex-col items-center justify-center bg-purple-500/10 text-purple-500 border border-purple-500/20 font-semibold flex-shrink-0 ${className}`}

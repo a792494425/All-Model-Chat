@@ -1,6 +1,7 @@
 import type { Part } from '@google/genai';
 import type { ChatHistoryItem, ThinkingLevel } from '@/types';
 import { isAudioMimeType, isImageMimeType } from '@/utils/file/fileTypeClassification';
+import { getInlineAudioFormat } from '@/features/audio/audioProcessing';
 import type {
   OpenAIResponsesChatConfig,
   OpenAIResponsesContentPart,
@@ -28,11 +29,6 @@ const mapThinkingLevelToOpenAIReasoningEffort = (level: ThinkingLevel | undefine
     default:
       return 'medium';
   }
-};
-
-const getInlineAudioFormat = (mimeType: string): string => {
-  const subtype = mimeType.split('/')[1]?.split(';')[0]?.trim();
-  return subtype || 'wav';
 };
 
 const partToOpenAIResponsesContentItems = (part: Part): OpenAIResponsesContentPart[] => {

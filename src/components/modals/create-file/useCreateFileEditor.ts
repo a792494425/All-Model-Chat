@@ -11,6 +11,7 @@ import {
 import { isImageMimeType } from '@/utils/file/fileTypeClassification';
 import { blobToDataUrl } from '@/utils/file/fileEncoding';
 import { CREATE_TEXT_FILE_EDITOR_LAST_EXTENSION_KEY } from '@/constants/storageKeys';
+import { readPersistentStorageItem, writePersistentStorageItem } from '@/stores/persistentStorage';
 import { useI18n } from '@/contexts/I18nContext';
 import { CREATE_FILE_EXTENSION_OPTIONS } from './createFileExtensionOptions';
 import { composeCreateFileName } from './composeCreateFileName';
@@ -29,26 +30,15 @@ const EDITOR_CONTENT_DEBOUNCE_MS = 300;
 const EDITOR_FOCUS_DELAY_MS = 100;
 
 const readStoredCreateFileExtension = (): string | null => {
-  try {
-    if (typeof window === 'undefined') return null;
-    const storedExtension = window.localStorage.getItem(CREATE_TEXT_FILE_EDITOR_LAST_EXTENSION_KEY);
-    if (storedExtension && CREATE_FILE_EXTENSION_OPTIONS.includes(storedExtension)) {
-      return storedExtension;
-    }
-  } catch {
-    return null;
+  const storedExtension = readPersistentStorageItem(CREATE_TEXT_FILE_EDITOR_LAST_EXTENSION_KEY);
+  if (storedExtension && CREATE_FILE_EXTENSION_OPTIONS.includes(storedExtension)) {
+    return storedExtension;
   }
-
   return null;
 };
 
 const writeStoredCreateFileExtension = (nextExtension: string) => {
-  try {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(CREATE_TEXT_FILE_EDITOR_LAST_EXTENSION_KEY, nextExtension);
-  } catch {
-    // Ignore quota / private-mode failures; the in-memory selection still applies.
-  }
+  writePersistentStorageItem(CREATE_TEXT_FILE_EDITOR_LAST_EXTENSION_KEY, nextExtension);
 };
 
 export const useCreateFileEditor = ({
