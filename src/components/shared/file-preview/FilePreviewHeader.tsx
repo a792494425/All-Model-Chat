@@ -194,7 +194,7 @@ export const FilePreviewHeader = React.forwardRef<FilePreviewHeaderHandle, FileP
             danger
             className="!text-white/90 hover:!bg-red-500/30 hover:!text-red-200"
             aria-label={isEditable ? t('filePreviewCancelEdit') : t('imageZoomCloseAria')}
-            title={isEditable ? t('filePreviewCancelEdit') : t('imageZoomCloseTitle')}
+            title={isEditable ? t('filePreviewCancelEdit') : `${t('imageZoomCloseTitle')} (Esc)`}
           >
             <X size={18} strokeWidth={2} />
           </ToolbarButton>

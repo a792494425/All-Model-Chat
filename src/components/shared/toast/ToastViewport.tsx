@@ -9,6 +9,10 @@ const TOAST_TYPE_PRESENTATION: Record<ToastType, { icon: React.ReactNode; iconWr
     icon: <AlertTriangle size={16} strokeWidth={2} />,
     iconWrapClass: 'bg-[var(--theme-bg-danger)]/10 text-[var(--theme-icon-error)]',
   },
+  warning: {
+    icon: <AlertTriangle size={16} strokeWidth={2} />,
+    iconWrapClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  },
   success: {
     icon: <CheckCircle2 size={16} strokeWidth={2} />,
     iconWrapClass: 'bg-[var(--theme-bg-success)] text-[var(--theme-text-success)]',
@@ -32,7 +36,7 @@ const ToastCard: React.FC<{ toast: ToastEntry }> = ({ toast }) => {
   return (
     <div
       data-toast
-      role={toast.type === 'error' ? 'alert' : 'status'}
+      role={toast.type === 'error' || toast.type === 'warning' ? 'alert' : 'status'}
       className="pointer-events-auto flex w-full items-start gap-3 rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] px-4 py-3 shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200"
     >
       <span

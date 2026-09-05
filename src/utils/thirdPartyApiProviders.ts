@@ -324,7 +324,7 @@ const sanitizeExtraHeaders = (value: unknown): Record<string, string> => {
   return headers;
 };
 
-const sanitizeThirdPartyConnection = (
+export const sanitizeThirdPartyConnection = (
   value: Partial<ThirdPartyConnection> | undefined,
   fallbackTemplateId: ThirdPartyTemplateId = 'custom-openai',
 ): ThirdPartyConnection | null => {

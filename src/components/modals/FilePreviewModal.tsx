@@ -7,7 +7,7 @@ import { Modal } from '@/components/shared/Modal';
 import { FilePreviewHeader, type FilePreviewHeaderHandle } from '@/components/shared/file-preview/FilePreviewHeader';
 import { ImageViewer } from '@/components/shared/file-preview/ImageViewer';
 import { TextFileViewer } from '@/components/shared/file-preview/TextFileViewer';
-import { VideoPlayer } from '@/components/shared/file-preview/VideoPlayer';
+import { VideoPlayer, type VideoPlayerHandle } from '@/components/shared/file-preview/VideoPlayer';
 import { AudioPlayer } from '@/components/shared/AudioPlayer';
 import { IconYoutube } from '@/components/icons';
 import { copyFileToClipboard } from '@/utils/file/fileClipboard';
@@ -62,7 +62,9 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   const [isDocxPreviewLoading, setIsDocxPreviewLoading] = useState(false);
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
   const [videoAspect, setVideoAspect] = useState<number | null>(null);
+  const [areControlsVisible, setAreControlsVisible] = useState(true);
   const filePreviewHeaderRef = useRef<FilePreviewHeaderHandle>(null);
+  const videoPlayerRef = useRef<VideoPlayerHandle>(null);
   const previewFile = useMemo(
     () => (localPreviewUrl ? { ...file, dataUrl: localPreviewUrl } : file),
     [file, localPreviewUrl],
@@ -196,23 +198,36 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
     return match && match[2].length === 11 ? `https://www.youtube.com/embed/${match[2]}` : null;
   };
 
+  const handleModalMouseMove = useCallback(() => {
+    if (!areControlsVisible) {
+      setAreControlsVisible(true);
+    }
+    videoPlayerRef.current?.wakeControls?.();
+  }, [areControlsVisible]);
+
   return (
     <Modal isOpen={true} onClose={onClose} noPadding backdropClassName="bg-black/90 backdrop-blur-2xl" contentClassName="w-full h-full">
-      <div className="w-full h-full relative flex flex-col">
+      <div className="w-full h-full relative flex flex-col" onMouseMove={handleModalMouseMove}>
         <h2 id="file-preview-modal-title" className="sr-only">
           {interpolate(t('imageZoomTitle'), { filename: file.name })}
         </h2>
 
-        <FilePreviewHeader
-          ref={filePreviewHeaderRef}
-          file={previewFile}
-          onClose={onClose}
-          isEditable={isEditing}
-          onToggleEdit={isText && onSaveText ? handleToggleEdit : undefined}
-          onSave={handleSave}
-          editedName={editedName}
-          onNameChange={setEditedName}
-        />
+        <div
+          className={`transition-opacity duration-300 pointer-events-none z-50 ${
+            isVideo && !areControlsVisible ? 'opacity-0' : 'opacity-100'
+          }`}
+        >
+          <FilePreviewHeader
+            ref={filePreviewHeaderRef}
+            file={previewFile}
+            onClose={onClose}
+            isEditable={isEditing}
+            onToggleEdit={isText && onSaveText ? handleToggleEdit : undefined}
+            onSave={handleSave}
+            editedName={editedName}
+            onNameChange={setEditedName}
+          />
+        </div>
 
         {!isEditing && hasPrev && onPrev && (
           <button
@@ -220,7 +235,9 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               event.stopPropagation();
               onPrev();
             }}
-            className={`${navButtonClass} left-2`}
+            className={`${navButtonClass} left-2 transition-opacity duration-300 ${
+              isVideo && !areControlsVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'
+            }`}
             aria-label={t('filePreviewPrevious')}
           >
             <ChevronLeft size={24} />
@@ -232,7 +249,9 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               event.stopPropagation();
               onNext();
             }}
-            className={`${navButtonClass} right-2`}
+            className={`${navButtonClass} right-2 transition-opacity duration-300 ${
+              isVideo && !areControlsVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'
+            }`}
             aria-label={t('filePreviewNext')}
           >
             <ChevronRight size={24} />
@@ -287,14 +306,16 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
             <div className="w-full h-full flex items-center justify-center p-2 sm:p-6 lg:p-8">
               {previewFile.dataUrl && (
                 <div
-                  className="relative w-full max-w-6xl max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden bg-black/95 ring-1 ring-white/15 flex items-center justify-center transition-all duration-300"
+                  className="relative w-full max-w-7xl max-h-[88vh] rounded-2xl shadow-2xl overflow-hidden bg-black/95 ring-1 ring-white/15 flex items-center justify-center transition-all duration-300"
                   style={videoAspect ? { aspectRatio: `${videoAspect}` } : undefined}
                 >
                   <VideoPlayer
+                    ref={videoPlayerRef}
                     src={previewFile.dataUrl}
                     file={previewFile}
                     testId="file-preview-video"
                     showSegmentBar={false}
+                    onControlsVisibilityChange={setAreControlsVisible}
                     onLoadedMetadata={(e) => {
                       const v = e.currentTarget;
                       if (v.videoWidth && v.videoHeight) {
@@ -314,7 +335,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  className="w-full max-w-6xl max-h-[85vh] aspect-video rounded-2xl shadow-2xl ring-1 ring-white/15 bg-black"
+                  className="w-full max-w-7xl max-h-[88vh] aspect-video rounded-2xl shadow-2xl ring-1 ring-white/15 bg-black"
                 />
               ) : (
                 <div className="text-center text-white/50">

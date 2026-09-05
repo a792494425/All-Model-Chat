@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { ChevronDown, ChevronRight, Download, Plus, Upload } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { Toggle } from '@/components/shared/Toggle';
-import { SETTINGS_PRIMARY_ACTION_BUTTON_CLASS } from '@/constants/buttonClasses';
+import {
+  SETTINGS_OUTLINE_BUTTON_CLASS,
+  SETTINGS_PRIMARY_ACTION_BUTTON_CLASS,
+} from '@/constants/buttonClasses';
 import {
   THIRD_PARTY_TEMPLATE_IDS,
   type AppSettings,
@@ -21,9 +24,18 @@ import {
   removeThirdPartyConnection,
   updateThirdPartyConnection,
 } from '@/utils/thirdPartyApiProviders';
+import {
+  applyImportedProviders,
+  exportProvidersBackupFile,
+  parseProvidersBackupText,
+  type ImportMode,
+} from '@/utils/thirdPartyBackup';
+import { toastError, toastSuccess, toastWarning } from '@/stores/toastStore';
+import { interpolate } from '@/i18n/interpolate';
 import { getThirdPartyTemplateLogo } from '@/components/shared/ModelIcon';
 import { useChatStore } from '@/stores/chatStore';
 import { ThirdPartyAddConnectionDialog } from './ThirdPartyAddConnectionDialog';
+import { ThirdPartyBackupDialog, type ThirdPartyBackupDialogMode } from './ThirdPartyBackupDialog';
 import { ThirdPartyConnectionEditor } from './ThirdPartyConnectionEditor';
 
 interface ThirdPartyApiSettingsPanelProps {
@@ -39,6 +51,10 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
   const connections = settings.thirdPartyApi?.connections ?? [];
   const [expandedConnectionId, setExpandedConnectionId] = useState<string | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isBackupOpen, setIsBackupOpen] = useState(false);
+  const [backupDialogMode, setBackupDialogMode] = useState<ThirdPartyBackupDialogMode>('export');
+  const [pendingImportedConnections, setPendingImportedConnections] = useState<ThirdPartyConnection[]>([]);
 
   const updateThirdPartyApi = (next: ThirdPartyApiSettings) => {
     onUpdateSettings({ thirdPartyApi: next });
@@ -55,6 +71,57 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
     updateThirdPartyApi(addThirdPartyConnection(currentSettings, connection));
     setExpandedConnectionId(connection.id);
     setIsAddOpen(false);
+  };
+
+  const handleExportClick = () => {
+    if (connections.length === 0) {
+      toastWarning(t('thirdPartyExportEmpty'));
+      return;
+    }
+    setBackupDialogMode('export');
+    setIsBackupOpen(true);
+  };
+
+  const handleConfirmExport = (includeApiKeys: boolean) => {
+    exportProvidersBackupFile(connections, { includeApiKeys });
+  };
+
+  const handleFileSelected = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = (reader.result ?? e.target?.result) as string;
+      const parsed = parseProvidersBackupText(text);
+      if (parsed.validCount === 0) {
+        toastError(t('thirdPartyImportError'));
+        return;
+      }
+
+      if (connections.length === 0) {
+        const next = applyImportedProviders([], parsed.connections, 'overwrite');
+        updateThirdPartyApi({ ...currentSettings, connections: next });
+        toastSuccess(interpolate(t('thirdPartyImportSuccess'), { count: parsed.validCount }));
+        if (next.length > 0) {
+          setExpandedConnectionId(next[0].id);
+        }
+      } else {
+        setPendingImportedConnections(parsed.connections);
+        setBackupDialogMode('import-confirm');
+        setIsBackupOpen(true);
+      }
+    };
+    reader.onerror = () => {
+      toastError(t('thirdPartyImportError'));
+    };
+    reader.readAsText(file);
+  };
+
+  const handleConfirmImport = (mode: ImportMode) => {
+    const next = applyImportedProviders(connections, pendingImportedConnections, mode);
+    updateThirdPartyApi({ ...currentSettings, connections: next });
+    toastSuccess(interpolate(t('thirdPartyImportSuccess'), { count: pendingImportedConnections.length }));
+    if (next.length > 0 && !expandedConnectionId) {
+      setExpandedConnectionId(next[0].id);
+    }
   };
 
   const connectionStatus = (connection: ThirdPartyConnection) => {
@@ -85,21 +152,57 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
 
   return (
     <div className="space-y-3" data-settings-item="api-provider">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-[var(--theme-text-primary)]">{t('settingsApiModeThirdParty')}</h3>
           <p className="text-xs text-[var(--theme-text-secondary)] mt-0.5">{t('settingsOpenAICompatibleToggleHelp')}</p>
         </div>
         {connections.length > 0 && (
-          <button
-            type="button"
-            data-testid="third-party-add-connection"
-            className={SETTINGS_PRIMARY_ACTION_BUTTON_CLASS}
-            onClick={() => setIsAddOpen(true)}
-          >
-            <Plus size={14} />
-            {t('thirdPartyAddConnection')}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".json,application/json"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleFileSelected(file);
+                  e.target.value = '';
+                }
+              }}
+            />
+            <button
+              type="button"
+              data-testid="third-party-import-btn"
+              className={SETTINGS_OUTLINE_BUTTON_CLASS}
+              onClick={() => fileInputRef.current?.click()}
+              title={t('thirdPartyImport')}
+            >
+              <Upload size={13} />
+              {t('thirdPartyImport')}
+            </button>
+            <button
+              type="button"
+              data-testid="third-party-export-btn"
+              className={SETTINGS_OUTLINE_BUTTON_CLASS}
+              onClick={handleExportClick}
+              disabled={connections.length === 0}
+              title={t('thirdPartyExport')}
+            >
+              <Download size={13} />
+              {t('thirdPartyExport')}
+            </button>
+            <button
+              type="button"
+              data-testid="third-party-add-connection"
+              className={SETTINGS_PRIMARY_ACTION_BUTTON_CLASS}
+              onClick={() => setIsAddOpen(true)}
+            >
+              <Plus size={14} />
+              {t('thirdPartyAddConnection')}
+            </button>
+          </div>
         )}
       </div>
 
@@ -109,6 +212,16 @@ export const ThirdPartyApiSettingsPanel: React.FC<ThirdPartyApiSettingsPanelProp
           onClose={() => setIsAddOpen(false)}
           onSelectTemplate={handleAddTemplate}
           templates={THIRD_PARTY_TEMPLATE_IDS}
+        />
+
+        <ThirdPartyBackupDialog
+          isOpen={isBackupOpen}
+          onClose={() => setIsBackupOpen(false)}
+          dialogMode={backupDialogMode}
+          connectionsCount={connections.length}
+          importedConnections={pendingImportedConnections}
+          onConfirmExport={handleConfirmExport}
+          onConfirmImport={handleConfirmImport}
         />
 
         {connections.length === 0 && !isAddOpen ? (

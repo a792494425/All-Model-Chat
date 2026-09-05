@@ -15,6 +15,7 @@ export interface VideoPlayerHandle {
   getVideoElement: () => HTMLVideoElement | null;
   getCurrentTime: () => number;
   getDuration: () => number;
+  wakeControls?: () => void;
 }
 
 export interface VideoPlayerProps {
@@ -33,6 +34,7 @@ export interface VideoPlayerProps {
   onSegmentChange?: (segment: { start: number; end: number } | null) => void;
   isSegmentLoopEnabled?: boolean;
   onSegmentLoopChange?: (enabled: boolean) => void;
+  onControlsVisibilityChange?: (visible: boolean) => void;
   annotation?: VideoAnnotation | null;
   annotationTargetTime?: number | null;
   isAnnotationVisible?: boolean;
@@ -65,6 +67,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
     onSegmentChange,
     isSegmentLoopEnabled: controlledIsSegmentLoopEnabled,
     onSegmentLoopChange,
+    onControlsVisibilityChange,
     annotation = null,
     annotationTargetTime = null,
     isAnnotationVisible: controlledIsAnnotationVisible,
@@ -332,22 +335,6 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
     }
   }, []);
 
-  // Expose imperative handle
-  useImperativeHandle(
-    ref,
-    () => ({
-      seekTo,
-      stepFrame,
-      togglePlay,
-      toggleFullscreen,
-      toggleMute,
-      getVideoElement: () => videoRef.current,
-      getCurrentTime: () => videoRef.current?.currentTime ?? currentTime,
-      getDuration: () => videoRef.current?.duration ?? duration,
-    }),
-    [currentTime, duration, seekTo, stepFrame, toggleFullscreen, toggleMute, togglePlay],
-  );
-
   // Controls auto-hide
   const wakeControls = useCallback(() => {
     setControlsVisible(true);
@@ -367,6 +354,27 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
       if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     }
   }, [isPlaying]);
+
+  useEffect(() => {
+    onControlsVisibilityChange?.(controlsVisible);
+  }, [controlsVisible, onControlsVisibilityChange]);
+
+  // Expose imperative handle
+  useImperativeHandle(
+    ref,
+    () => ({
+      seekTo,
+      stepFrame,
+      togglePlay,
+      toggleFullscreen,
+      toggleMute,
+      getVideoElement: () => videoRef.current,
+      getCurrentTime: () => videoRef.current?.currentTime ?? currentTime,
+      getDuration: () => videoRef.current?.duration ?? duration,
+      wakeControls,
+    }),
+    [currentTime, duration, seekTo, stepFrame, toggleFullscreen, toggleMute, togglePlay, wakeControls],
+  );
 
   // Video event handlers
   const handleLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
@@ -449,8 +457,27 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
       if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
         togglePlay();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        wakeControls();
+        setVolume((prev) => {
+          const next = Math.min(1, Math.round((prev + 0.05) * 100) / 100);
+          if (videoRef.current) videoRef.current.volume = next;
+          return next;
+        });
+        setIsMuted(false);
+        if (videoRef.current) videoRef.current.muted = false;
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        wakeControls();
+        setVolume((prev) => {
+          const next = Math.max(0, Math.round((prev - 0.05) * 100) / 100);
+          if (videoRef.current) videoRef.current.volume = next;
+          return next;
+        });
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
+        wakeControls();
         if (e.shiftKey) {
           stepFrame('back');
         } else {
@@ -460,6 +487,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
         }
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
+        wakeControls();
         if (e.shiftKey) {
           stepFrame('forward');
         } else {
@@ -490,7 +518,31 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
     toggleFullscreen,
     toggleMute,
     togglePlay,
+    wakeControls,
   ]);
+
+  const clickTimerRef = useRef<number | null>(null);
+
+  const handleVideoClick = useCallback(() => {
+    if (clickTimerRef.current !== null) {
+      window.clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+      void toggleFullscreen();
+    } else {
+      clickTimerRef.current = window.setTimeout(() => {
+        clickTimerRef.current = null;
+        togglePlay();
+      }, 220);
+    }
+  }, [toggleFullscreen, togglePlay]);
+
+  useEffect(() => {
+    return () => {
+      if (clickTimerRef.current !== null) {
+        window.clearTimeout(clickTimerRef.current);
+      }
+    };
+  }, []);
 
   const controlsStyle = useMemo<React.CSSProperties>(() => {
     if (!displayRect || displayRect.width <= 0) {
@@ -551,7 +603,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
           tabIndex={0}
           onMouseMove={wakeControls}
           onMouseLeave={() => isPlaying && setControlsVisible(false)}
-          className={className}
+          className={`${className} ${isPlaying && !controlsVisible ? '!cursor-none' : ''}`}
           style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <video
@@ -560,7 +612,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
             autoPlay={autoPlay}
             loop={loop}
             playsInline
-            onClick={togglePlay}
+            onClick={handleVideoClick}
             onSeeking={handleSeeking}
             onTimeUpdate={handleTimeUpdateInternal}
             onLoadedMetadata={handleLoadedMetadata}
@@ -576,7 +628,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
               setIsPlaying(false);
               onEnded?.();
             }}
-            className={videoClassName}
+            className={`${videoClassName} ${isPlaying && !controlsVisible ? '!cursor-none' : ''}`}
             data-testid={testId}
           />
 
@@ -629,6 +681,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                   }}
                   className="relative z-20 w-full h-1 group-hover/timeline:h-1.5 appearance-none bg-transparent outline-none cursor-pointer accent-white transition-all"
                   aria-label="Seek timeline"
+                  title="Seek (← / →)"
                 />
               </div>
 
@@ -639,7 +692,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                     onClick={togglePlay}
                     className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 text-white transition-all active:scale-95 cursor-pointer"
                     aria-label={isPlaying ? t('videoPause') : t('videoPlay')}
-                    title={isPlaying ? t('videoPause') : t('videoPlay')}
+                    title={`${isPlaying ? t('videoPause') : t('videoPlay')} (Space)`}
                   >
                     {isPlaying ? <Pause size={17} className="fill-current" /> : <Play size={17} className="fill-current ml-0.5" />}
                   </button>
@@ -649,7 +702,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                     onClick={() => stepFrame('back')}
                     className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/15 active:bg-white/25 transition-all active:scale-95 cursor-pointer"
                     aria-label={t('videoStepBack')}
-                    title={t('videoStepBack')}
+                    title={`${t('videoStepBack')} (Shift+←)`}
                   >
                     <StepBack size={14} />
                   </button>
@@ -659,7 +712,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                     onClick={() => stepFrame('forward')}
                     className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/15 active:bg-white/25 transition-all active:scale-95 cursor-pointer"
                     aria-label={t('videoStepForward')}
-                    title={t('videoStepForward')}
+                    title={`${t('videoStepForward')} (Shift+→)`}
                   >
                     <StepForward size={14} />
                   </button>
@@ -688,7 +741,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                       onClick={toggleMute}
                       className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 text-white transition-all active:scale-95 cursor-pointer"
                       aria-label={isMuted ? t('videoUnmute') : t('videoMute')}
-                      title={isMuted ? t('videoUnmute') : t('videoMute')}
+                      title={`${isMuted ? t('videoUnmute') : t('videoMute')} (M)`}
                     >
                       {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
                     </button>
@@ -705,6 +758,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                         onChange={handleVolumeChange}
                         className="relative z-10 w-full h-1 appearance-none bg-transparent accent-white cursor-pointer"
                         aria-label="Volume"
+                        title="Volume (↑ / ↓)"
                       />
                     </div>
                   </div>
@@ -714,7 +768,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                     onClick={() => void toggleFullscreen()}
                     className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 text-white transition-all active:scale-95 cursor-pointer"
                     aria-label={isFullscreen ? t('videoExitFullscreen') : t('videoFullscreen')}
-                    title={isFullscreen ? t('videoExitFullscreen') : t('videoFullscreen')}
+                    title={`${isFullscreen ? t('videoExitFullscreen') : t('videoFullscreen')} (F)`}
                   >
                     {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
                   </button>
