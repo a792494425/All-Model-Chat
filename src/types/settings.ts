@@ -100,6 +100,8 @@ export const THIRD_PARTY_TEMPLATE_IDS = [
   'nvidia',
   'minimax',
   'grok',
+  'ollama',
+  'lmstudio',
   'custom-openai',
   'custom-anthropic',
 ] as const;
@@ -120,6 +122,7 @@ export interface ThirdPartyConnection {
   modelId: string;
   models: ModelOption[];
   enabled: boolean;
+  authOptional?: boolean;
 }
 
 /** Third-party connections. Sessions route by stored (providerId, modelId). */

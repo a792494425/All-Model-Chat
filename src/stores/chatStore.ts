@@ -38,6 +38,7 @@ import { setupChatStoreSync } from './chatStoreSync';
 import { setupLastActiveSessionSync } from './lastActiveSessionSync';
 import { createChatUiSlice, type ChatUiSliceActions, type ChatUiSliceState } from './chatStoreSlices';
 import { resolveUpdaterOrValue, type UpdaterOrValue } from './stateUpdaters';
+import { useChatDraftStore } from './chatDraftStore';
 
 type SessionUpdateOptions = { persist?: boolean };
 type MessagePatchOrUpdater = Partial<ChatMessage> | ((message: ChatMessage) => ChatMessage);
@@ -347,8 +348,10 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
 
   cancelEdit: () => {
     logService.info('User cancelled message edit.');
-    const { setCommandedInput, setSelectedFiles, setEditingMessageId, setEditMode, setAppFileError } = get();
-    setCommandedInput({ text: '', id: Date.now() });
+    const { setCommandedInput, setSelectedFiles, setEditingMessageId, setEditMode, setAppFileError, activeSessionId } =
+      get();
+    const savedDraft = activeSessionId ? useChatDraftStore.getState().drafts[activeSessionId]?.inputText ?? '' : '';
+    setCommandedInput({ text: savedDraft, id: Date.now() });
     setSelectedFiles([]);
     setEditingMessageId(null);
     setEditMode('resend'); // Reset to default

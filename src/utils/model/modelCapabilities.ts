@@ -67,6 +67,30 @@ export const isOpenAIGpt5FamilyModel = (modelId: string): boolean => {
   return lowerId.startsWith('gpt-5') || lowerId.includes('/gpt-5');
 };
 
+export const isDeepSeekReasoningModel = (modelId: string): boolean => {
+  if (!modelId) return false;
+  const lowerId = modelId.toLowerCase();
+  return (
+    lowerId.includes('deepseek-r1') ||
+    lowerId.includes('deepseek-reasoner') ||
+    lowerId.includes('r1-distill') ||
+    lowerId.includes('r1-zero') ||
+    lowerId.includes('deepseek-v4') ||
+    lowerId.includes('deepseek/r1') ||
+    lowerId.includes('deepseek-ai/deepseek-r1')
+  );
+};
+
+export const isQwenReasoningModel = (modelId: string): boolean => {
+  if (!modelId) return false;
+  const lowerId = modelId.toLowerCase();
+  return (
+    lowerId.includes('qwq') ||
+    lowerId.includes('qvq') ||
+    (lowerId.includes('qwen') && (lowerId.includes('thinking') || lowerId.includes('reasoning')))
+  );
+};
+
 export const isOpenAIReasoningModel = (modelId: string): boolean => {
   if (!modelId) return false;
   const lowerId = modelId.toLowerCase();
@@ -84,9 +108,24 @@ export const isOpenAIReasoningModel = (modelId: string): boolean => {
     lowerId.includes('/gpt-5') ||
     lowerId.startsWith('muse-') ||
     lowerId.includes('muse-') ||
-    lowerId.includes('deepseek-r1') ||
     lowerId.includes('reasoner') ||
-    lowerId.includes('thinking')
+    lowerId.includes('thinking') ||
+    isDeepSeekReasoningModel(modelId) ||
+    isQwenReasoningModel(modelId)
+  );
+};
+
+export const isReasoningModel = (modelId: string): boolean => {
+  if (!modelId) return false;
+  return (
+    isOpenAIReasoningModel(modelId) ||
+    isOpenAIGpt5FamilyModel(modelId) ||
+    isDeepSeekReasoningModel(modelId) ||
+    isQwenReasoningModel(modelId) ||
+    isGlmModel(modelId) ||
+    isKimiK3Model(modelId) ||
+    isAnthropicEffortModel(modelId) ||
+    isAnthropicThinkingModel(modelId)
   );
 };
 
@@ -121,8 +160,8 @@ export const isAnthropicThinkingModel = (modelId: string): boolean => {
 export const isGlmModel = (modelId: string): boolean => modelId.toLowerCase().startsWith('glm-');
 
 const supportsThinkingLevel = (modelId: string): boolean => {
-  // GLM-5 series supports thinking via the OpenAI-compatible thinking parameter.
-  if (isGlmModel(modelId)) {
+  // GLM-5 series and specialized reasoning models support thinking.
+  if (isGlmModel(modelId) || isQwenReasoningModel(modelId) || isDeepSeekReasoningModel(modelId)) {
     return true;
   }
   // Third-party reasoning controls mapped in openaiCompatibleMessages / openaiResponsesMessages / anthropicMessages.

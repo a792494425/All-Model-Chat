@@ -5,7 +5,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { useChatInputContext } from '@/components/chat/input/ChatInputContext';
 import { usePortaledMenu } from '@/hooks/ui/usePortaledMenu';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
-import { isAnthropicThinkingModel, isOpenAIReasoningModel } from '@/utils/model/modelCapabilities';
+import { isReasoningModel } from '@/utils/model/modelCapabilities';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
 import type { ThinkingLevel } from '@/types';
@@ -112,8 +112,7 @@ export const ThinkingSpeedControl: React.FC = () => {
   const isReasoning =
     isThirdPartyResponses ||
     isThirdPartyAnthropic ||
-    isOpenAIReasoningModel(modelId) ||
-    isAnthropicThinkingModel(modelId);
+    isReasoningModel(modelId);
   const supportsThinkingLevel = caps.supportsThinkingLevel || isGemma || isReasoning;
   const activeCapabilities = caps;
 

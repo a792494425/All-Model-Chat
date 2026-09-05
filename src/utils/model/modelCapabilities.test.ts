@@ -3,9 +3,12 @@ import { MODELS_SUPPORTING_RAW_MODE } from '@/constants/modelConfiguration';
 import {
   getDefaultThinkingLevelForModel,
   getModelCapabilities,
+  isDeepSeekReasoningModel,
   isGemini3Model,
   isLiveTranslateModel,
   isLiveTranscribeModel,
+  isQwenReasoningModel,
+  isReasoningModel,
   isTranscribeModel,
   normalizeThinkingLevelForModel,
   shouldStripThinkingFromContext,
@@ -102,8 +105,52 @@ describe('getModelCapabilities', () => {
     expect(getModelCapabilities('claude-opus-5').supportsThinkingLevel).toBe(true);
     expect(getModelCapabilities('claude-fable-5').supportsThinkingLevel).toBe(true);
     expect(getModelCapabilities('glm-5.2').supportsThinkingLevel).toBe(true);
+    expect(getModelCapabilities('qwq-32b').supportsThinkingLevel).toBe(true);
+    expect(getModelCapabilities('qvq-72b-preview').supportsThinkingLevel).toBe(true);
+    expect(getModelCapabilities('deepseek-reasoner').supportsThinkingLevel).toBe(true);
+    expect(getModelCapabilities('deepseek-ai/DeepSeek-R1').supportsThinkingLevel).toBe(true);
+    expect(getModelCapabilities('deepseek-r1-distill-qwen-32b').supportsThinkingLevel).toBe(true);
+    expect(getModelCapabilities('r1-distill-llama-70b').supportsThinkingLevel).toBe(true);
+    expect(getModelCapabilities('deepseek-v4-pro').supportsThinkingLevel).toBe(true);
     expect(getModelCapabilities('gpt-4o-mini').supportsThinkingLevel).toBe(false);
     expect(getModelCapabilities('claude-haiku-4-5').supportsThinkingLevel).toBe(false);
+    expect(getModelCapabilities('qwen2.5-72b-instruct').supportsThinkingLevel).toBe(false);
+  });
+
+  describe('reasoning model identification', () => {
+    it('identifies DeepSeek reasoning model families', () => {
+      expect(isDeepSeekReasoningModel('deepseek-reasoner')).toBe(true);
+      expect(isDeepSeekReasoningModel('deepseek-r1')).toBe(true);
+      expect(isDeepSeekReasoningModel('deepseek-ai/DeepSeek-R1')).toBe(true);
+      expect(isDeepSeekReasoningModel('deepseek-r1-distill-qwen-32b')).toBe(true);
+      expect(isDeepSeekReasoningModel('r1-distill-llama-70b')).toBe(true);
+      expect(isDeepSeekReasoningModel('deepseek-v4-flash')).toBe(true);
+      expect(isDeepSeekReasoningModel('deepseek-chat')).toBe(false);
+      expect(isDeepSeekReasoningModel('deepseek-coder')).toBe(false);
+    });
+
+    it('identifies Qwen reasoning models', () => {
+      expect(isQwenReasoningModel('qwq-32b')).toBe(true);
+      expect(isQwenReasoningModel('qwq-32b-preview')).toBe(true);
+      expect(isQwenReasoningModel('qwen/qwq-32b')).toBe(true);
+      expect(isQwenReasoningModel('qvq-72b-preview')).toBe(true);
+      expect(isQwenReasoningModel('qwen-qwq-32b')).toBe(true);
+      expect(isQwenReasoningModel('qwen2.5-72b-thinking')).toBe(true);
+      expect(isQwenReasoningModel('qwen2.5-72b-instruct')).toBe(false);
+      expect(isQwenReasoningModel('qwen-plus')).toBe(false);
+    });
+
+    it('unifies reasoning model detection with isReasoningModel', () => {
+      expect(isReasoningModel('o1')).toBe(true);
+      expect(isReasoningModel('o3-mini')).toBe(true);
+      expect(isReasoningModel('gpt-5.6-sol')).toBe(true);
+      expect(isReasoningModel('deepseek-reasoner')).toBe(true);
+      expect(isReasoningModel('qwq-32b')).toBe(true);
+      expect(isReasoningModel('glm-5.2')).toBe(true);
+      expect(isReasoningModel('kimi-k3')).toBe(true);
+      expect(isReasoningModel('claude-sonnet-5')).toBe(true);
+      expect(isReasoningModel('gpt-4o-mini')).toBe(false);
+    });
   });
 
   it('exposes raw reasoning prefill support as a model capability', () => {

@@ -30,6 +30,21 @@ export const readPersistentStorageItem = (key: string, storageArea = getDefaultS
   }
 };
 
+export const writePersistentStorageItem = (
+  key: string,
+  value: string,
+  storageArea = getDefaultStorageArea(),
+): boolean => {
+  try {
+    if (!storageArea) return false;
+    storageArea.setItem(key, value);
+    return true;
+  } catch {
+    // Ignore storage failures in restricted browser contexts.
+    return false;
+  }
+};
+
 export const removePersistentStorageItem = (key: string, storageArea = getDefaultStorageArea()) => {
   try {
     storageArea?.removeItem(key);

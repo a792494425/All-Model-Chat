@@ -35,6 +35,8 @@ export const THIRD_PARTY_TEMPLATE_LABELS: Record<ThirdPartyTemplateId, string> =
   nvidia: 'Nvidia',
   minimax: 'MiniMax',
   grok: 'Grok',
+  ollama: 'Ollama',
+  lmstudio: 'LM Studio',
   'custom-openai': 'Custom (OpenAI compatible)',
   'custom-anthropic': 'Custom (Anthropic)',
 };
@@ -55,6 +57,7 @@ interface ThirdPartyTemplateDefaults {
   protocol: ThirdPartyApiProtocol;
   apiKeyUrl?: string;
   docUrl?: string;
+  authOptional?: boolean;
 }
 
 const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults> = {
@@ -168,6 +171,24 @@ const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateDefaults
     apiKeyUrl: 'https://console.x.ai',
     docUrl: 'https://docs.x.ai',
   },
+  ollama: {
+    name: 'Ollama',
+    baseUrl: 'http://localhost:11434/v1',
+    modelId: 'llama3.2',
+    models: [{ id: 'llama3.2', name: 'Llama 3.2', isPinned: true }],
+    protocol: 'openai-compatible',
+    docUrl: 'https://ollama.com',
+    authOptional: true,
+  },
+  lmstudio: {
+    name: 'LM Studio',
+    baseUrl: 'http://localhost:1234/v1',
+    modelId: 'local-model',
+    models: [{ id: 'local-model', name: 'Local Model', isPinned: true }],
+    protocol: 'openai-compatible',
+    docUrl: 'https://lmstudio.ai',
+    authOptional: true,
+  },
   'custom-openai': {
     name: 'Custom',
     baseUrl: null,
@@ -239,12 +260,12 @@ export const getConnectionDisplayTemplateId = (
 type ThirdPartyConnectionStatusKind = 'disabled' | 'missing-key' | 'missing-url' | 'ready';
 
 export const getThirdPartyConnectionStatus = (
-  connection: Pick<ThirdPartyConnection, 'enabled' | 'apiKey' | 'baseUrl'>,
+  connection: Pick<ThirdPartyConnection, 'enabled' | 'apiKey' | 'baseUrl'> & { authOptional?: boolean },
 ): ThirdPartyConnectionStatusKind => {
   if (!connection.enabled) {
     return 'disabled';
   }
-  if (!connection.apiKey?.trim()) {
+  if (!connection.authOptional && !connection.apiKey?.trim()) {
     return 'missing-key';
   }
   if (!connection.baseUrl?.trim()) {
@@ -332,6 +353,7 @@ const sanitizeThirdPartyConnection = (
     models,
     protocol: isThirdPartyProtocol(value?.protocol) ? value.protocol : defaults.protocol,
     enabled: value?.enabled === true,
+    authOptional: typeof value?.authOptional === 'boolean' ? value.authOptional : defaults.authOptional,
   };
 };
 
@@ -457,7 +479,7 @@ export const buildProviderAwareModelList = (
       providerId: id,
       templateId: getConnectionDisplayTemplateId(config),
       connectionName: config.name,
-      ...(config.apiKey?.trim() ? {} : { missingApiKey: true as const }),
+      ...(config.authOptional || config.apiKey?.trim() ? {} : { missingApiKey: true as const }),
     })),
   );
 
@@ -517,6 +539,7 @@ export const createConnectionFromTemplate = (
     modelId: defaults.modelId,
     models: defaults.models,
     enabled: true,
+    authOptional: defaults.authOptional,
   };
 };
 
@@ -549,3 +572,37 @@ export const removeThirdPartyConnection = (
 ): ThirdPartyApiSettings => ({
   connections: thirdPartyApi.connections.filter((connection) => connection.id !== connectionId),
 });
+
+export const isDeepSeekOfficialEndpoint = (
+  templateId?: string | null,
+  baseUrl?: string | null,
+): boolean => {
+  if (templateId === 'deepseek') return true;
+  if (!baseUrl) return false;
+  return baseUrl.toLowerCase().includes('api.deepseek.com');
+};
+
+export const isDashScopeOfficialEndpoint = (
+  templateId?: string | null,
+  baseUrl?: string | null,
+): boolean => {
+  if (templateId === 'dashscope') return true;
+  if (!baseUrl) return false;
+  return baseUrl.toLowerCase().includes('dashscope.aliyuncs.com');
+};
+
+export const isLocalEngineEndpoint = (
+  templateId?: string | null,
+  baseUrl?: string | null,
+): boolean => {
+  if (templateId === 'ollama' || templateId === 'lmstudio') return true;
+  if (!baseUrl) return false;
+  const lower = baseUrl.toLowerCase();
+  return (
+    lower.includes('localhost:11434') ||
+    lower.includes('127.0.0.1:11434') ||
+    lower.includes('localhost:1234') ||
+    lower.includes('127.0.0.1:1234')
+  );
+};
+

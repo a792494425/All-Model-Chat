@@ -43,6 +43,7 @@ vi.mock('@/utils/model/modelSorting', () => ({
 }));
 
 import { useChatStore } from './chatStore';
+import { useChatDraftStore } from './chatDraftStore';
 import { dbService } from '@/services/db/dbService';
 import { type SavedChatSession, type ChatGroup } from '@/types';
 import { createChatSettings, createSavedChatSessionMetadata, createUploadedFile } from '@/test/data/factories';
@@ -793,6 +794,30 @@ describe('chatStore', () => {
       expect(state.selectedFiles).toEqual([]);
       expect(state.appFileError).toBeNull();
       expect(state.commandedInput).toEqual({ text: '', id: expect.any(Number) });
+    });
+
+    it('restores draft from chatDraftStore for activeSessionId when cancelled', () => {
+      useChatStore.setState({ activeSessionId: 'sess-draft-test' });
+      useChatDraftStore.setState({
+        drafts: {
+          'sess-draft-test': {
+            inputText: 'Preserved user draft',
+            quotes: [],
+            ttsContext: '',
+          },
+        },
+      });
+
+      useChatStore.getState().setEditingMessageId('m2');
+      useChatStore.getState().setEditMode('update');
+
+      useChatStore.getState().cancelEdit();
+
+      const state = useChatStore.getState();
+      expect(state.editingMessageId).toBeNull();
+      expect(state.commandedInput).toEqual({ text: 'Preserved user draft', id: expect.any(Number) });
+
+      useChatDraftStore.setState({ drafts: {} });
     });
   });
 });

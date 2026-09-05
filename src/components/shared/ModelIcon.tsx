@@ -163,6 +163,8 @@ const THIRD_PARTY_TEMPLATE_LOGO: Record<ThirdPartyTemplateId, string> = {
   nvidia: nvidiaCherryUrl,
   minimax: minimaxCherryUrl,
   grok: grokCherryUrl,
+  ollama: ollamaCherryUrl,
+  lmstudio: lmstudioCherryUrl,
   'custom-openai': customLogoUrl,
   'custom-anthropic': customLogoUrl,
 };

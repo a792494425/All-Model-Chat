@@ -4,6 +4,7 @@ import { DESKTOP_BREAKPOINT_PX } from '@/constants/layout';
 import { readPersistentStorageItem } from './persistentStorage';
 import { createSyncedPersist } from './syncedPersist';
 import { resolveUpdaterOrValue, type UpdaterOrValue } from './stateUpdaters';
+import { safeJsonParse } from '@/utils/safeJsonParse';
 
 const UI_PREFERENCES_STORAGE_KEY = 'all_model_chat_ui_preferences_v1';
 const { storage: uiSyncedStorage } = createSyncedPersist(UI_PREFERENCES_STORAGE_KEY, {
@@ -24,22 +25,14 @@ const DEFAULT_HISTORY_SIDEBAR_PREFERENCES: HistorySidebarPreferences = {
 const isDesktopViewport = () => (typeof window !== 'undefined' ? window.innerWidth >= DESKTOP_BREAKPOINT_PX : true);
 
 const readHistorySidebarPreferences = (): HistorySidebarPreferences => {
-  try {
-    const raw = readPersistentStorageItem(LEGACY_HISTORY_SIDEBAR_STORAGE_KEY);
-    if (!raw) {
-      return DEFAULT_HISTORY_SIDEBAR_PREFERENCES;
-    }
-
-    const parsed = JSON.parse(raw) as Partial<HistorySidebarPreferences>;
-    return {
-      desktopOpen:
-        typeof parsed.desktopOpen === 'boolean' ? parsed.desktopOpen : DEFAULT_HISTORY_SIDEBAR_PREFERENCES.desktopOpen,
-      mobileOpen:
-        typeof parsed.mobileOpen === 'boolean' ? parsed.mobileOpen : DEFAULT_HISTORY_SIDEBAR_PREFERENCES.mobileOpen,
-    };
-  } catch {
-    return DEFAULT_HISTORY_SIDEBAR_PREFERENCES;
-  }
+  const raw = readPersistentStorageItem(LEGACY_HISTORY_SIDEBAR_STORAGE_KEY);
+  const parsed = safeJsonParse<Partial<HistorySidebarPreferences>>(raw, {});
+  return {
+    desktopOpen:
+      typeof parsed.desktopOpen === 'boolean' ? parsed.desktopOpen : DEFAULT_HISTORY_SIDEBAR_PREFERENCES.desktopOpen,
+    mobileOpen:
+      typeof parsed.mobileOpen === 'boolean' ? parsed.mobileOpen : DEFAULT_HISTORY_SIDEBAR_PREFERENCES.mobileOpen,
+  };
 };
 
 const buildInitialHistorySidebarState = () => {

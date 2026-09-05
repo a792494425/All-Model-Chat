@@ -1,4 +1,4 @@
-import { logService } from '@/services/logService';
+import { copyTextToClipboard } from '@/utils/clipboard';
 import React, { useState } from 'react';
 import { type UploadedFile } from '@/types';
 import { Check, Copy, Download, SlidersHorizontal, Scissors, Loader2, X } from 'lucide-react';
@@ -96,16 +96,14 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
     canConfigure: !!onConfigure,
   });
 
-  const handleCopyId = (event: React.MouseEvent) => {
+  const handleCopyId = async (event: React.MouseEvent) => {
     event.stopPropagation();
     if (!file.fileApiName) return;
-    navigator.clipboard
-      .writeText(file.fileApiName)
-      .then(() => {
-        setIdCopied(true);
-        setTimeout(() => setIdCopied(false), COPIED_STATE_DURATION_MS);
-      })
-      .catch((error) => logService.error('Failed to copy file ID:', error));
+    const ok = await copyTextToClipboard(file.fileApiName);
+    if (ok) {
+      setIdCopied(true);
+      setTimeout(() => setIdCopied(false), COPIED_STATE_DURATION_MS);
+    }
   };
 
   const handleDownloadFile = (event: React.MouseEvent) => {

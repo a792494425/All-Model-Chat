@@ -109,14 +109,14 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
 
   const handleTestConnection = async () => {
     const keyToTest = connection.apiKey;
-    if (!keyToTest) {
+    if (!keyToTest && !connection.authOptional) {
       setTestStatus('error');
       setTestMessage(t('apiConfigNoKeyAvailable'));
       return;
     }
 
-    const firstKey = parseApiKeys(keyToTest)[0];
-    if (!firstKey) {
+    const firstKey = keyToTest ? parseApiKeys(keyToTest)[0] : '';
+    if (!firstKey && !connection.authOptional) {
       setTestStatus('error');
       setTestMessage(t('apiConfigInvalidKeyFormat'));
       return;
@@ -136,10 +136,11 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
         providerError = error;
       };
       const proxyProviderId = getProxyProviderHeader(connection.templateId);
+      const effectiveKey = firstKey || 'auth-optional';
 
       if (connection.protocol === 'anthropic') {
         await sendAnthropicMessageNonStream(
-          firstKey,
+          effectiveKey,
           connection.modelId,
           [],
           [{ text: 'Hello' }],
@@ -152,7 +153,7 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
         );
       } else if (connection.protocol === 'openai-responses') {
         await sendOpenAIResponsesNonStream(
-          firstKey,
+          effectiveKey,
           connection.modelId,
           [],
           [{ text: 'Hello' }],
@@ -165,7 +166,7 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
         );
       } else {
         await sendOpenAICompatibleMessageNonStream(
-          firstKey,
+          effectiveKey,
           connection.modelId,
           [],
           [{ text: 'Hello' }],
@@ -190,9 +191,10 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
   };
 
   const handleFetchModels = async () => {
-    const firstKey = parseApiKeys(connection.apiKey)[0];
-    if (!firstKey || !connection.baseUrl) {
-      const message = t('apiConfigNoKeyAvailable');
+    const parsedKey = parseApiKeys(connection.apiKey)[0];
+    const effectiveKey = parsedKey || (connection.authOptional ? 'auth-optional' : '');
+    if (!effectiveKey || !connection.baseUrl) {
+      const message = !connection.baseUrl ? t('thirdPartyApiUrlMissing') : t('apiConfigNoKeyAvailable');
       setFetchStatus('error');
       setFetchMessage(message);
       throw new Error(message);
@@ -204,7 +206,7 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
       const fetchModelsFn =
         connection.protocol === 'openai-responses' ? fetchOpenAIResponsesModels : fetchOpenAICompatibleModels;
       const models = await fetchModelsFn(
-        firstKey,
+        effectiveKey,
         connection.baseUrl,
         new AbortController().signal,
         getProxyProviderHeader(connection.templateId),
@@ -293,8 +295,16 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
         apiKey={connection.apiKey}
         setApiKey={(value) => updateField('apiKey', value)}
         label={t('thirdPartyApiKey')}
-        placeholder={t('apiConfigOpenaiKeyPlaceholder')}
-        helpText={t('thirdPartyApiKeyHelp')}
+        placeholder={
+          connection.authOptional
+            ? t('thirdPartyApiKeyOptionalPlaceholder')
+            : t('apiConfigOpenaiKeyPlaceholder')
+        }
+        helpText={
+          connection.authOptional
+            ? t('thirdPartyApiKeyOptionalHelp')
+            : t('thirdPartyApiKeyHelp')
+        }
       />
 
       <div className="space-y-2">
@@ -389,7 +399,7 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
         onModelsChange={(models) => updateField('models', models)}
         onSelectedModelChange={(modelId) => updateField('modelId', modelId)}
         onFetchModelsForImportPreview={connection.protocol !== 'anthropic' ? handleFetchModels : undefined}
-        isFetchModelsDisabled={!connection.apiKey || !connection.baseUrl}
+        isFetchModelsDisabled={(!connection.authOptional && !connection.apiKey) || !connection.baseUrl}
         fetchModelsStatus={fetchStatus}
         fetchModelsMessage={fetchMessage}
       />
@@ -485,7 +495,7 @@ export const ThirdPartyConnectionEditor: React.FC<ThirdPartyConnectionEditorProp
         onTest={handleTestConnection}
         testStatus={testStatus}
         testMessage={testMessage}
-        isTestDisabled={testStatus === 'testing' || !connection.apiKey || !connection.baseUrl}
+        isTestDisabled={testStatus === 'testing' || (!connection.authOptional && !connection.apiKey) || !connection.baseUrl}
         availableModels={connection.models}
         testModelId={connection.modelId}
         onModelChange={(modelId) => updateField('modelId', modelId)}

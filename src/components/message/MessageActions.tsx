@@ -90,7 +90,8 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
   const showRetryButton = message.role === 'model' || (message.role === 'error' && message.generationStartTime);
   const showContinueGenerationAction = message.role === 'model' && !message.isLoading;
   const showForkAction = message.role === 'model' && !message.isLoading;
-  const showOverflowActions = showContinueGenerationAction || showForkAction;
+  const showEditModelAction = message.role === 'model' && !message.isLoading;
+  const showOverflowActions = showContinueGenerationAction || showForkAction || showEditModelAction;
 
   const handleRetryClick = async () => {
     if (isRetrying) return;
@@ -223,6 +224,23 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
                   >
                     <CirclePlay size={14} strokeWidth={2} />
                     <span>{t('continueGenerationTitle')}</span>
+                  </button>
+                )}
+
+                {showEditModelAction && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setIsOverflowOpen(false);
+                      onEditMessage(message.id, 'update');
+                    }}
+                    title={t('edit')}
+                    aria-label={t('edit')}
+                    className={menuItemClasses}
+                  >
+                    <Pencil size={14} strokeWidth={2} />
+                    <span>{t('edit')}</span>
                   </button>
                 )}
 

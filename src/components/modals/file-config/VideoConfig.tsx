@@ -2,6 +2,7 @@ import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { Clock, MonitorPlay, Info, CheckCircle2, RotateCcw, Zap } from 'lucide-react';
 import { interpolate } from '@/i18n/interpolate';
+import { formatTimestamp } from '@/utils/media-nav/timestamp';
 
 interface VideoConfigProps {
   startOffset: string;
@@ -34,17 +35,7 @@ const FPS_PRESETS = [
   { value: '5', labelKey: 'videoSettingsFpsPresetAction' },
 ] as const;
 
-const formatDisplayDuration = (seconds: number): string => {
-  const rounded = Math.round(seconds);
-  const m = Math.floor(rounded / 60);
-  const s = rounded % 60;
-  const h = Math.floor(m / 60);
-  const remM = m % 60;
-  if (h > 0) {
-    return `${h}:${String(remM).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-  }
-  return `${String(remM).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-};
+const formatDisplayDuration = (seconds: number): string => formatTimestamp(Math.round(seconds));
 
 export const VideoConfig: React.FC<VideoConfigProps> = ({
   startOffset,
