@@ -117,10 +117,8 @@ const buildActivePatchFromMetadata = (metadata: GeminiFile, fallbackFile: Upload
 
 const FILES_API_ACCESS_DENIED_PATTERN = /403|PERMISSION_DENIED|permission/i;
 
-const isFilesApiAccessDeniedError = (error: unknown): boolean => {
-  const message = error instanceof Error ? error.message : String(error ?? '');
-  return FILES_API_ACCESS_DENIED_PATTERN.test(message);
-};
+const isFilesApiAccessDeniedError = (error: unknown): boolean =>
+  FILES_API_ACCESS_DENIED_PATTERN.test(getErrorMessage(error));
 
 const createSyntheticHistoryFile = (fileApiName: string): UploadedFile => ({
   id: fileApiName,

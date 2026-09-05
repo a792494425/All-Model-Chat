@@ -1,4 +1,5 @@
 import type { ChatMessage, SavedChatSession, UploadedFile } from '@/types';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { usesRemoteFileReference } from './fileTransferStrategy';
 
 const FILE_API_REFRESH_LEEWAY_MS = 5 * 60 * 1000;
@@ -126,13 +127,11 @@ export const INVALID_FILE_API_KEY_FINGERPRINT = 'invalidated';
 const FILES_API_PERMISSION_DENIED_PATTERN =
   /You do not have permission to access the File|(?:\b403\b|PERMISSION_DENIED).*?\bFile\b|\bFile\b.*?(?:\b403\b|PERMISSION_DENIED)/i;
 
-export const isFilesApiPermissionDeniedError = (error: unknown): boolean => {
-  const message = error instanceof Error ? error.message : String(error ?? '');
-  return FILES_API_PERMISSION_DENIED_PATTERN.test(message);
-};
+export const isFilesApiPermissionDeniedError = (error: unknown): boolean =>
+  FILES_API_PERMISSION_DENIED_PATTERN.test(getErrorMessage(error));
 
 export const extractFilesApiIdentifierFromError = (error: unknown): string | null => {
-  const message = error instanceof Error ? error.message : String(error ?? '');
+  const message = getErrorMessage(error);
   const match =
     message.match(/permission to access the File\s+([a-zA-Z0-9_-]+)/i) || message.match(/files\/([a-zA-Z0-9_-]+)/i);
   return match ? match[1] : null;

@@ -2,6 +2,7 @@ import DOMPurify from 'dompurify';
 import { logService } from '@/services/logService';
 import { AVAILABLE_THEMES, DEFAULT_THEME_ID } from '@/constants/themeRegistry';
 import type { Theme } from '@/types/theme';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { DOT_MAX_CHARS, DOT_MAX_EDGES, DOT_MAX_NODES, countDotEdges, countDotNodes } from './graphvizLimits';
 
 /**
@@ -488,7 +489,7 @@ export const renderDotToSvg = async (dot: string, options: DotRenderOptions = {}
 
     return { ok: true, svg: sanitizeSvg(svgElement.outerHTML) };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Graphviz render failed';
+    const message = getErrorMessage(error, 'Graphviz render failed');
     logService.error('Failed to render Graphviz diagram', error);
     return { ok: false, error: 'render-failed', message };
   }

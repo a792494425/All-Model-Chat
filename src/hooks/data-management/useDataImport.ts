@@ -95,7 +95,7 @@ export const useDataImport = ({
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
-          const text = event.target?.result as string;
+          const text = (reader.result ?? (event?.target as FileReader | null)?.result) as string;
           const importPayload = JSON.parse(text);
           if (importPayload && importPayload.type === expectedType) {
             onValid(importPayload);

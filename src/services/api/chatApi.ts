@@ -2,6 +2,7 @@ import type { GenerateContentResponse, Part, UsageMetadata } from '@google/genai
 import { type ChatHistoryItem, type StreamMessageSender, type NonStreamMessageSender } from '@/types';
 import { logService } from '@/services/logService';
 import { executeConfiguredApiRequest } from './apiExecutor';
+import { toError } from '@/utils/errorMessage';
 import { adaptGenAiResponse, mergeGroundingMetadata, type MetadataWithCitations } from './chatResponseAdapter';
 import { getHttpOptionsForContents, withHttpOptionHeaders } from './geminiApiVersion';
 import { createStreamIdleTimeoutError, hasStreamIdleTimeoutElapsed } from './streamIdleTimeout';
@@ -304,7 +305,7 @@ export const sendStatelessMessageStreamApi: StreamMessageSender = async (
       },
     });
   } catch (error) {
-    onError(error instanceof Error ? error : new Error(String(error) || 'Unknown error during streaming.'));
+    onError(toError(error, 'Unknown error during streaming.'));
     return;
   } finally {
     logService.info('Streaming complete.', { usage: finalUsageMetadata, hasGrounding: !!finalGroundingMetadata });
@@ -365,8 +366,6 @@ export const sendStatelessMessageNonStreamApi: NonStreamMessageSender = async (
       },
     });
   } catch (error) {
-    onError(
-      error instanceof Error ? error : new Error(String(error) || 'Unknown error during stateless non-streaming call.'),
-    );
+    onError(toError(error, 'Unknown error during stateless non-streaming call.'));
   }
 };

@@ -7,6 +7,11 @@ import {
   isOpenAIGpt5FamilyModel,
   isOpenAIReasoningModel,
 } from '@/utils/model/modelCapabilities';
+import {
+  isDashScopeOfficialEndpoint,
+  isDeepSeekOfficialEndpoint,
+  isLocalEngineEndpoint,
+} from '@/utils/thirdPartyApiProviders';
 import type { OpenAICompatibleChatConfig, OpenAIMessage, OpenAIMessageContent } from './openaiCompatibleTypes';
 import { appendSamplingParameters } from './requestFactory';
 
@@ -194,21 +199,53 @@ export const buildOpenAICompatibleRequestBody = (
     body.seed = config.seed;
   }
 
-  // GLM-5 series supports a thinking parameter for chain-of-thought reasoning.
-  // Map HIGH/MEDIUM to enabled, LOW/MINIMAL to disabled (controlled via ThinkingSpeedControl slider).
+  const isDeepSeekOfficial = isDeepSeekOfficialEndpoint(config.templateId, config.baseUrl);
+  const isDashScopeOfficial = isDashScopeOfficialEndpoint(config.templateId, config.baseUrl);
+  const isLocalEngine = isLocalEngineEndpoint(config.templateId, config.baseUrl);
+
+  // 1. GLM series models: use thinking parameter { type: "enabled" | "disabled" }
   if (isGlmModel(modelId)) {
-    const thinkingEnabled = config.thinkingLevel === 'HIGH' || config.thinkingLevel === 'MEDIUM';
+    const thinkingEnabled =
+      config.thinkingLevel === 'HIGH' ||
+      config.thinkingLevel === 'MEDIUM' ||
+      config.thinkingLevel === 'XHIGH' ||
+      config.thinkingLevel === 'MAX';
     body.thinking = { type: thinkingEnabled ? 'enabled' : 'disabled' };
   }
-
-  // OpenAI reasoning models (o1, o3, o4, gpt-5, muse, deepseek-r1, etc.): map UI thinkingLevel → reasoning_effort.
-  if (isOpenAIReasoningModel(modelId) || isOpenAIGpt5FamilyModel(modelId)) {
-    body.reasoning_effort = mapThinkingLevelToOpenAIReasoningEffort(config.thinkingLevel);
+  // 2. DeepSeek official endpoint:
+  // - deepseek-reasoner / deepseek-chat handle reasoning server-side; NEVER send reasoning_effort (causes HTTP 400).
+  // - DeepSeek V4 models accept { thinking: { type: "enabled" | "disabled" } }.
+  else if (isDeepSeekOfficial) {
+    if (modelId.toLowerCase().includes('v4')) {
+      const thinkingEnabled = config.thinkingLevel !== 'NONE' && config.thinkingLevel !== 'MINIMAL';
+      body.thinking = { type: thinkingEnabled ? 'enabled' : 'disabled' };
+    }
+    // Deliberately omit reasoning_effort to prevent DeepSeek official 400 Bad Request.
   }
-
-  // Kimi K3: always-on reasoning; top-level reasoning_effort is low/high/max (default max).
-  if (isKimiK3Model(modelId)) {
+  // 3. DashScope (Qwen official):
+  // - Chat completions uses enable_thinking: boolean (and optional thinking_budget).
+  // - NEVER send reasoning_effort on DashScope chat completions.
+  else if (isDashScopeOfficial) {
+    if (config.thinkingLevel !== undefined) {
+      const thinkingEnabled = config.thinkingLevel !== 'NONE' && config.thinkingLevel !== 'MINIMAL';
+      body.enable_thinking = thinkingEnabled;
+      if (typeof config.thinkingBudget === 'number' && config.thinkingBudget > 0 && thinkingEnabled) {
+        body.thinking_budget = config.thinkingBudget;
+      }
+    }
+  }
+  // 4. Local engines (Ollama / LM Studio):
+  // - Local models output reasoning natively (<think> tags); do NOT attach reasoning_effort.
+  else if (isLocalEngine) {
+    // Deliberately omit reasoning_effort for local engines.
+  }
+  // 5. Kimi K3: always-on reasoning; top-level reasoning_effort is low/high/max (default max).
+  else if (isKimiK3Model(modelId)) {
     body.reasoning_effort = mapThinkingLevelToKimiReasoningEffort(config.thinkingLevel);
+  }
+  // 6. OpenAI reasoning models (o1, o3, o4, gpt-5, etc.) and third-party reasoning proxies (OpenRouter, SiliconFlow, Together, etc.):
+  else if (isOpenAIReasoningModel(modelId) || isOpenAIGpt5FamilyModel(modelId)) {
+    body.reasoning_effort = mapThinkingLevelToOpenAIReasoningEffort(config.thinkingLevel);
   }
 
   if (stream) {

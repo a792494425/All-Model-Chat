@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Zap } from 'lucide-react';
 import { type ChatMessage } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { TokenDetailsCard } from './TokenDetailsCard';
 import { buildMessageTokenStatsView, buildTokenStatsCopyText, formatCompactTokens } from './tokenStats';
 
@@ -23,8 +24,7 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ message,
     if (!generationStartTime) return 0;
     return (Date.now() - new Date(generationStartTime).getTime()) / 1000;
   });
-  const [copied, setCopied] = useState(false);
-  const copyTimerRef = useRef<number | undefined>(undefined);
+  const { isCopied: copied, copyToClipboard } = useCopyToClipboard(COPY_FEEDBACK_MS);
 
   useEffect(() => {
     if (!generationStartTime || !isLoading) return;
@@ -33,8 +33,6 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ message,
     const intervalId = setInterval(updateTimer, LIVE_TIMER_REFRESH_MS);
     return () => clearInterval(intervalId);
   }, [generationStartTime, isLoading]);
-
-  useEffect(() => () => window.clearTimeout(copyTimerRef.current), []);
 
   const elapsedTime = (() => {
     if (!generationStartTime) return 0;
@@ -78,18 +76,7 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ message,
       endToEndTps: endToEndTps > 0 ? endToEndTps : undefined,
       elapsedSeconds: showTimer ? elapsedTime : undefined,
     });
-    try {
-      void navigator.clipboard?.writeText(text)?.then?.(
-        () => {
-          setCopied(true);
-          window.clearTimeout(copyTimerRef.current);
-          copyTimerRef.current = window.setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
-        },
-        () => undefined,
-      );
-    } catch {
-      // 剪贴板不可用（如非安全上下文）时静默忽略，hover 明细仍可手动复制。
-    }
+    void copyToClipboard(text);
   };
 
   // Token hover 卡片：意图延迟 200ms（对标 Cherry openDelay），划过不误弹；

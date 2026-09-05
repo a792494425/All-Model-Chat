@@ -3,6 +3,7 @@ import { AlertTriangle, Ban, Check, ChevronDown, Copy, Hourglass, Loader2, Shiel
 import { useI18n } from '@/contexts/I18nContext';
 import { extractMcpResultSegments } from '@/features/mcp/mcpResultSummary';
 import { resolveToolDisplay } from '@/features/mcp/toolDisplayNames';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { useMcpApprovalStore } from '@/stores/mcpApprovalStore';
 import { useMcpToolRun, type McpToolRunEvent } from '@/stores/mcpToolRuntimeStore';
 
@@ -53,7 +54,7 @@ export const McpToolCallBlock: React.FC<{
   // expanded, finished ones collapse so tool output never floods the transcript.
   const [manualExpanded, setManualExpanded] = useState<boolean | null>(null);
   const expanded = manualExpanded ?? status === 'invoking';
-  const [copied, setCopied] = useState(false);
+  const { isCopied: copied, copyToClipboard } = useCopyToClipboard(2000);
 
   // Live elapsed time while running; freezes at the last tick once settled.
   const [liveMs, setLiveMs] = useState<number | null>(null);
@@ -252,12 +253,10 @@ export const McpToolCallBlock: React.FC<{
             )}
           </div>
           <button
-            onClick={async () => {
-              await navigator.clipboard.writeText(
+            onClick={() => {
+              void copyToClipboard(
                 JSON.stringify({ params: call.args, response: responsePart?.functionResponse?.response }, null, 2),
               );
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
             }}
             className="mt-2 flex items-center gap-1 text-[11px]"
           >

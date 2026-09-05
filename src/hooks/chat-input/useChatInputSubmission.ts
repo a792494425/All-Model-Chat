@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { type AppSettings, type UploadedFile, type ChatSettings } from '@/types';
 import { buildPendingChatInputSubmission } from '@/utils/chat-input/pendingSubmission';
+import { useChatDraftStore } from '@/stores/chatDraftStore';
 import { useLiveModeHandler, type LiveModeApi } from './useLiveModeHandler';
 import { useMessageQueue } from './useMessageQueue';
 
@@ -114,13 +115,13 @@ export const useChatInputSubmission = ({
       onUpdateMessageContent(messageId, content, files);
       setEditingMessageId(null);
       setSelectedFiles([]);
-      clearCurrentDraft();
-      setInputText('');
-      setQuotes([]);
+      const savedDraft = activeSessionId ? useChatDraftStore.getState().drafts[activeSessionId]?.inputText ?? '' : '';
+      setInputText(savedDraft);
+      setQuotes(activeSessionId ? useChatDraftStore.getState().drafts[activeSessionId]?.quotes ?? [] : []);
       onMessageSent();
     },
     [
-      clearCurrentDraft,
+      activeSessionId,
       onMessageSent,
       onUpdateMessageContent,
       setEditingMessageId,

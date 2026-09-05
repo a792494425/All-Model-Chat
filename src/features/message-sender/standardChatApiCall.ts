@@ -267,6 +267,7 @@ export const performStandardChatApiCall = async ({
   if (activeProvider) {
     const providerConfig = {
       baseUrl: activeProvider.baseUrl,
+      templateId: activeProvider.templateId,
       systemInstruction: effectiveSystemInstruction,
       temperature: sessionToUpdate.temperature,
       topP: sessionToUpdate.topP,
