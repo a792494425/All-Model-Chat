@@ -7,6 +7,7 @@ import { useWindowContext } from '@/contexts/WindowContext';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { triggerDownload } from '@/utils/export/core';
 import { useClickOutside } from '@/hooks/useClickOutside';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { Z_INDEX_TABLE_FULLSCREEN } from '@/constants/layout';
@@ -49,7 +50,7 @@ export const TableBlock: React.FC<TableBlockProps> = ({ children, className, nod
   const { t } = useI18n();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
+  const { isCopied, copyToClipboard } = useCopyToClipboard(COPY_FEEDBACK_MS);
   const { document: targetDocument } = useWindowContext();
   const tableRef = useRef<HTMLTableElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -106,16 +107,12 @@ export const TableBlock: React.FC<TableBlockProps> = ({ children, className, nod
       // placeholders and the structure is lost. Fall back to raw HTML so a copy
       // always round-trips the actual table content.
       if (tableRef.current.querySelector('[rowspan],[colspan]')) {
-        await navigator.clipboard.writeText(tableRef.current.outerHTML);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), COPY_FEEDBACK_MS);
+        await copyToClipboard(tableRef.current.outerHTML);
         return;
       }
       const { convertHtmlToMarkdown } = await import('@/utils/htmlToMarkdown');
       const markdown = convertHtmlToMarkdown(tableRef.current.outerHTML);
-      await navigator.clipboard.writeText(markdown);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), COPY_FEEDBACK_MS);
+      await copyToClipboard(markdown);
     } catch (error) {
       logService.error('Failed to copy markdown table', error);
     }

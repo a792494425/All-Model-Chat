@@ -115,8 +115,8 @@ export const FilePreviewHeader = React.forwardRef<FilePreviewHeaderHandle, FileP
     }, [file, isDownloading, isMermaidDiagram]);
 
     return (
-      <div className="absolute top-0 left-0 right-0 p-4 sm:p-6 flex flex-row items-start justify-between gap-3 z-50 pointer-events-none">
-        <FloatingToolbar className="pointer-events-auto pl-2 pr-4 py-1.5 max-w-[calc(100%-140px)] sm:max-w-md group/info">
+      <div className="absolute top-0 left-0 right-0 p-4 sm:p-6 flex flex-row items-start justify-between gap-3 z-50 pointer-events-none bg-gradient-to-b from-black/80 via-black/40 to-transparent pb-10 sm:pb-14">
+        <FloatingToolbar className="pointer-events-auto pl-2 pr-4 py-1.5 max-w-[calc(100%-140px)] sm:max-w-xl md:max-w-2xl group/info">
           <div className="bg-white/10 p-1.5 rounded-full text-white/90 group-hover/info:bg-white/20 transition-colors flex-shrink-0">
             <FileIcon size={16} strokeWidth={1.5} />
           </div>
@@ -131,22 +131,22 @@ export const FilePreviewHeader = React.forwardRef<FilePreviewHeaderHandle, FileP
                 autoFocus
               />
             ) : (
-              <span className="text-xs sm:text-sm font-medium text-white/90 truncate leading-tight" title={file.name}>
+              <span className="text-xs sm:text-sm font-medium text-white/95 truncate leading-tight tracking-tight" title={file.name}>
                 {file.name}
               </span>
             )}
 
             {!isEditable && (
-              <div className="flex items-center gap-1.5 text-xs font-mono text-white/50 leading-none mt-0.5">
-                <span className="truncate max-w-[60px]">{file.type.split('/').pop()?.toUpperCase()}</span>
-                <span className="w-0.5 h-0.5 rounded-full bg-white/30 flex-shrink-0"></span>
+              <div className="flex items-center gap-1.5 text-[11px] font-mono text-white/60 leading-none mt-0.5">
+                <span className="truncate max-w-[80px]">{file.type.split('/').pop()?.toUpperCase()}</span>
+                <span className="w-0.5 h-0.5 rounded-full bg-white/40 flex-shrink-0"></span>
                 <span className="whitespace-nowrap">{formatFileSize(file.size)}</span>
               </div>
             )}
           </div>
         </FloatingToolbar>
 
-        <FloatingToolbar className="pointer-events-auto p-1">
+        <FloatingToolbar className="pointer-events-auto p-1 sm:p-1.5 gap-1">
           {isEditable ? (
             <ToolbarButton
               onClick={onSave}
@@ -192,10 +192,11 @@ export const FilePreviewHeader = React.forwardRef<FilePreviewHeaderHandle, FileP
           <ToolbarButton
             onClick={isEditable && onToggleEdit ? onToggleEdit : onClose}
             danger
+            className="!text-white/90 hover:!bg-red-500/30 hover:!text-red-200"
             aria-label={isEditable ? t('filePreviewCancelEdit') : t('imageZoomCloseAria')}
             title={isEditable ? t('filePreviewCancelEdit') : t('imageZoomCloseTitle')}
           >
-            <X size={18} strokeWidth={1.5} />
+            <X size={18} strokeWidth={2} />
           </ToolbarButton>
         </FloatingToolbar>
       </div>

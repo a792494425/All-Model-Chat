@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Maximize, Minimize, Pause, Play, Repeat, StepBack, StepForward, Volume2, VolumeX, X } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import type { UploadedFile } from '@/types';
@@ -492,6 +492,22 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
     togglePlay,
   ]);
 
+  const controlsStyle = useMemo<React.CSSProperties>(() => {
+    if (!displayRect || displayRect.width <= 0) {
+      return {};
+    }
+    const containerHeight = containerRef.current?.clientHeight ?? 0;
+    const bottomOffset = Math.max(0, containerHeight - (displayRect.top + displayRect.height));
+    return {
+      left: `${displayRect.left}px`,
+      width: `${displayRect.width}px`,
+      bottom: `${bottomOffset}px`,
+    };
+  }, [displayRect]);
+
+  const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0;
+  const volumePercent = isMuted ? 0 : Math.min(100, Math.max(0, volume * 100));
+
   return (
     <div className="h-full w-full flex flex-col bg-black select-none relative">
       {showSegmentBar && activeSegment && (
@@ -573,11 +589,29 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
 
           {showControls && (
             <div
-              className={`absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-3 py-2 pt-6 flex flex-col gap-1.5 transition-opacity duration-300 z-30 pointer-events-auto ${
+              className={`absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent px-3 sm:px-4 py-2.5 pt-8 flex flex-col gap-2 transition-opacity duration-300 z-30 pointer-events-auto rounded-b-xl ${
                 controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
+              style={controlsStyle}
             >
-              <div className="relative w-full flex items-center group/timeline py-1 cursor-pointer">
+              <div className="relative w-full flex items-center group/timeline py-1.5 cursor-pointer">
+                <div className="absolute inset-x-0 h-1 group-hover/timeline:h-1.5 bg-white/25 rounded-full overflow-hidden transition-all pointer-events-none">
+                  <div
+                    className="h-full bg-white transition-[width] duration-75"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+
+                {activeSegment && duration > 0 && (
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-emerald-400/80 rounded-full pointer-events-none border border-emerald-300 shadow-[0_0_8px_rgba(52,211,153,0.6)] z-10"
+                    style={{
+                      left: `${Math.max(0, Math.min(100, (activeSegment.start / duration) * 100))}%`,
+                      width: `${Math.max(0.5, Math.min(100, ((activeSegment.end - activeSegment.start) / duration) * 100))}%`,
+                    }}
+                  />
+                )}
+
                 <input
                   type="range"
                   min={0}
@@ -593,37 +627,27 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                   onChange={(e) => {
                     seekTo(Number.parseFloat(e.target.value), false, true);
                   }}
-                  className="w-full h-1 group-hover/timeline:h-1.5 appearance-none bg-white/25 rounded-full outline-none cursor-pointer accent-white transition-all"
+                  className="relative z-20 w-full h-1 group-hover/timeline:h-1.5 appearance-none bg-transparent outline-none cursor-pointer accent-white transition-all"
                   aria-label="Seek timeline"
                 />
-
-                {activeSegment && duration > 0 && (
-                  <div
-                    className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-emerald-400/60 rounded-full pointer-events-none border border-emerald-300/80 shadow-[0_0_6px_rgba(52,211,153,0.5)]"
-                    style={{
-                      left: `${Math.max(0, Math.min(100, (activeSegment.start / duration) * 100))}%`,
-                      width: `${Math.max(0.5, Math.min(100, ((activeSegment.end - activeSegment.start) / duration) * 100))}%`,
-                    }}
-                  />
-                )}
               </div>
 
-              <div className="flex items-center justify-between text-white/90 text-xs">
-                <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-between text-white/95 text-xs select-none">
+                <div className="flex items-center gap-1 sm:gap-1.5">
                   <button
                     type="button"
                     onClick={togglePlay}
-                    className="p-1.5 rounded-lg hover:bg-white/15 text-white transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 text-white transition-all active:scale-95 cursor-pointer"
                     aria-label={isPlaying ? t('videoPause') : t('videoPlay')}
                     title={isPlaying ? t('videoPause') : t('videoPlay')}
                   >
-                    {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                    {isPlaying ? <Pause size={17} className="fill-current" /> : <Play size={17} className="fill-current ml-0.5" />}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => stepFrame('back')}
-                    className="p-1 rounded-md text-white/75 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/15 active:bg-white/25 transition-all active:scale-95 cursor-pointer"
                     aria-label={t('videoStepBack')}
                     title={t('videoStepBack')}
                   >
@@ -633,61 +657,66 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
                   <button
                     type="button"
                     onClick={() => stepFrame('forward')}
-                    className="p-1 rounded-md text-white/75 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/15 active:bg-white/25 transition-all active:scale-95 cursor-pointer"
                     aria-label={t('videoStepForward')}
                     title={t('videoStepForward')}
                   >
                     <StepForward size={14} />
                   </button>
 
-                  <div className="ml-1 font-mono text-[11px] text-white/80 select-none">
+                  <div className="ml-1.5 font-mono text-xs tabular-nums text-white/90 select-none tracking-tight">
                     <span>{formatTimestamp(currentTime)}</span>
-                    <span className="opacity-50 mx-1">/</span>
-                    <span>{formatTimestamp(duration)}</span>
+                    <span className="opacity-40 mx-1">/</span>
+                    <span className="opacity-70">{formatTimestamp(duration)}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 sm:gap-1.5">
+                <div className="flex items-center gap-1 sm:gap-2">
                   <button
                     type="button"
                     onClick={cyclePlaybackRate}
-                    className="px-1.5 py-0.5 rounded font-mono text-[11px] font-medium bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                    className="px-2 py-0.5 rounded font-mono text-xs font-medium bg-white/10 hover:bg-white/20 active:bg-white/30 text-white transition-all active:scale-95 cursor-pointer shadow-sm"
                     aria-label={t('videoSpeed')}
                     title={t('videoSpeed')}
                   >
                     {playbackRate}x
                   </button>
 
-                  <div className="flex items-center gap-1 group/volume relative">
+                  <div className="flex items-center gap-1.5 group/volume relative">
                     <button
                       type="button"
                       onClick={toggleMute}
-                      className="p-1.5 rounded-lg hover:bg-white/15 text-white transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 text-white transition-all active:scale-95 cursor-pointer"
                       aria-label={isMuted ? t('videoUnmute') : t('videoMute')}
                       title={isMuted ? t('videoUnmute') : t('videoMute')}
                     >
-                      {isMuted || volume === 0 ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                      {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
                     </button>
-                    <input
-                      type="range"
-                      min={0}
-                      max={1}
-                      step={0.05}
-                      value={isMuted ? 0 : volume}
-                      onChange={handleVolumeChange}
-                      className="w-12 h-1 accent-white appearance-none bg-white/25 rounded-full cursor-pointer hidden sm:block"
-                      aria-label="Volume"
-                    />
+                    <div className="relative w-14 sm:w-16 hidden sm:flex items-center py-1 cursor-pointer">
+                      <div className="absolute inset-x-0 h-1 bg-white/25 rounded-full overflow-hidden pointer-events-none">
+                        <div className="h-full bg-white transition-[width] duration-75" style={{ width: `${volumePercent}%` }} />
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={isMuted ? 0 : volume}
+                        onChange={handleVolumeChange}
+                        className="relative z-10 w-full h-1 appearance-none bg-transparent accent-white cursor-pointer"
+                        aria-label="Volume"
+                      />
+                    </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => void toggleFullscreen()}
-                    className="p-1.5 rounded-lg hover:bg-white/15 text-white transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 text-white transition-all active:scale-95 cursor-pointer"
                     aria-label={isFullscreen ? t('videoExitFullscreen') : t('videoFullscreen')}
                     title={isFullscreen ? t('videoExitFullscreen') : t('videoFullscreen')}
                   >
-                    {isFullscreen ? <Minimize size={15} /> : <Maximize size={15} />}
+                    {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
                   </button>
                 </div>
               </div>

@@ -41,4 +41,19 @@ describe('formatTimestamp', () => {
   it('floors fractional seconds', () => {
     expect(formatTimestamp(59.9)).toBe('00:59');
   });
+
+  it('supports unpadded minutes when padMinutes is false', () => {
+    expect(formatTimestamp(205, { padMinutes: false })).toBe('3:25');
+    expect(formatTimestamp(0, { padMinutes: false })).toBe('0:00');
+    expect(formatTimestamp(59, { padMinutes: false })).toBe('0:59');
+    expect(formatTimestamp(3723, { padMinutes: false })).toBe('1:02:03');
+  });
+
+  it('handles negative or invalid values gracefully', () => {
+    expect(formatTimestamp(-10)).toBe('00:00');
+    expect(formatTimestamp(-10, { padMinutes: false })).toBe('0:00');
+    expect(formatTimestamp(NaN)).toBe('00:00');
+    expect(formatTimestamp(undefined)).toBe('00:00');
+    expect(formatTimestamp(null)).toBe('00:00');
+  });
 });

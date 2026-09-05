@@ -7,6 +7,7 @@ import { CreateFileFooter } from './CreateFileFooter';
 import { PROSE_EDITING_EXTENSIONS } from './createFileExtensionOptions';
 import { TextEditorModalShell } from '@/components/modals/TextEditorModalShell';
 import { ConfirmationModal } from '@/components/modals/ConfirmationModal';
+import { getSaveShortcutHint } from '@/utils/platform';
 
 interface CreateTextFileEditorProps {
   onConfirm: (content: string | Blob, filename: string) => void;
@@ -20,11 +21,6 @@ interface CreateTextFileEditorProps {
 }
 
 const CREATE_FILE_TITLE_ID = 'create-file-editor-title';
-
-const getSaveShortcutHint = () => {
-  const platform = typeof navigator === 'undefined' ? '' : navigator.platform || navigator.userAgent;
-  return /Mac|iPhone|iPad/.test(platform) ? '⌘ Enter' : 'Ctrl+Enter';
-};
 
 export const CreateTextFileEditor: React.FC<CreateTextFileEditorProps> = (props) => {
   const {

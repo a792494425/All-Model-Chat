@@ -61,6 +61,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   );
   const [isDocxPreviewLoading, setIsDocxPreviewLoading] = useState(false);
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
+  const [videoAspect, setVideoAspect] = useState<number | null>(null);
   const filePreviewHeaderRef = useRef<FilePreviewHeaderHandle>(null);
   const previewFile = useMemo(
     () => (localPreviewUrl ? { ...file, dataUrl: localPreviewUrl } : file),
@@ -68,6 +69,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   );
 
   useEffect(() => {
+    setVideoAspect(null);
     if (file.dataUrl || !(file.rawFile instanceof Blob)) {
       setLocalPreviewUrl(null);
       return;
@@ -185,7 +187,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   }, [file, isDocx, t]);
 
   const navButtonClass =
-    'absolute top-1/2 -translate-y-1/2 p-2 bg-black/45 hover:bg-black/70 text-white/70 hover:text-white rounded-full transition-colors z-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70';
+    'absolute top-1/2 -translate-y-1/2 p-2.5 sm:p-3 bg-black/70 hover:bg-black/90 text-white/80 hover:text-white rounded-full transition-all duration-200 z-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 shadow-xl hover:scale-105 border border-white/10';
 
   const getYoutubeEmbedUrl = (url: string) => {
     if (!url) return null;
@@ -195,7 +197,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   };
 
   return (
-    <Modal isOpen={true} onClose={onClose} noPadding backdropClassName="bg-black/95" contentClassName="w-full h-full">
+    <Modal isOpen={true} onClose={onClose} noPadding backdropClassName="bg-black/90 backdrop-blur-2xl" contentClassName="w-full h-full">
       <div className="w-full h-full relative flex flex-col">
         <h2 id="file-preview-modal-title" className="sr-only">
           {interpolate(t('imageZoomTitle'), { filename: file.name })}
@@ -282,14 +284,23 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               <LazyPdfViewer file={previewFile} />
             </Suspense>
           ) : isVideo ? (
-            <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
+            <div className="w-full h-full flex items-center justify-center p-2 sm:p-6 lg:p-8">
               {previewFile.dataUrl && (
-                <div className="w-full h-full max-w-5xl max-h-[85vh] rounded-xl shadow-2xl overflow-hidden bg-black flex items-center justify-center">
+                <div
+                  className="relative w-full max-w-6xl max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden bg-black/95 ring-1 ring-white/15 flex items-center justify-center transition-all duration-300"
+                  style={videoAspect ? { aspectRatio: `${videoAspect}` } : undefined}
+                >
                   <VideoPlayer
                     src={previewFile.dataUrl}
                     file={previewFile}
                     testId="file-preview-video"
                     showSegmentBar={false}
+                    onLoadedMetadata={(e) => {
+                      const v = e.currentTarget;
+                      if (v.videoWidth && v.videoHeight) {
+                        setVideoAspect(v.videoWidth / v.videoHeight);
+                      }
+                    }}
                   />
                 </div>
               )}
@@ -303,7 +314,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  className="w-full h-full max-w-5xl max-h-[80vh] rounded-xl shadow-2xl bg-black"
+                  className="w-full max-w-6xl max-h-[85vh] aspect-video rounded-2xl shadow-2xl ring-1 ring-white/15 bg-black"
                 />
               ) : (
                 <div className="text-center text-white/50">

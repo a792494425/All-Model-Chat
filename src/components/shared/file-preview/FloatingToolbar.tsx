@@ -8,7 +8,7 @@ interface FloatingToolbarProps {
 export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({ children, className = '' }) => {
   return (
     <div
-      className={`bg-[#101113] border border-white/15 shadow-xl transition-all duration-200 rounded-full p-1.5 flex items-center gap-1 ${className}`}
+      className={`bg-[#121316] border border-white/15 shadow-2xl shadow-black/60 transition-all duration-200 rounded-full p-1.5 flex items-center gap-1 ${className}`}
     >
       {children}
     </div>
@@ -29,14 +29,14 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   ...props
 }) => {
   const baseClass =
-    'p-1.5 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center';
+    'p-1.5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center';
 
-  let colorClass = 'text-white/80 hover:text-white hover:bg-white/10';
+  let colorClass = 'text-white/80 hover:text-white hover:bg-white/15 active:scale-95';
 
   if (active) {
     colorClass = 'bg-white/20 text-white';
   } else if (danger) {
-    colorClass = 'text-white/80 hover:bg-red-500/20 hover:text-red-400';
+    colorClass = 'text-white/80 hover:bg-red-500/25 hover:text-red-300 active:scale-95';
   }
 
   return (

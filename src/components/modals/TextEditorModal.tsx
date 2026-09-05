@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from '@/contexts/I18nContext';
 import { X, Check, Copy, CheckCheck, Eye, Edit3, RotateCcw, Eraser } from 'lucide-react';
 import { TextEditorModalShell } from './TextEditorModalShell';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { FOCUS_VISIBLE_RING_SECONDARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { countLines, estimateTokens } from '@/utils/import-context/textStats';
 import { LazyMarkdownRenderer } from '@/components/message/LazyMarkdownRenderer';
@@ -37,8 +38,7 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
 
   const [draftValue, setDraftValue] = useState(value);
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
-  const [isCopied, setIsCopied] = useState(false);
-  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { isCopied, copyToClipboard } = useCopyToClipboard(COPY_FEEDBACK_MS);
   const themeId = useSettingsStore((state) => state.appSettings.themeId);
 
   useEffect(() => {
@@ -48,14 +48,6 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
     }
     return undefined;
   }, [viewMode]);
-
-  useEffect(() => {
-    return () => {
-      if (copyTimerRef.current) {
-        clearTimeout(copyTimerRef.current);
-      }
-    };
-  }, []);
 
   const stats = useMemo(
     () => ({
@@ -85,19 +77,10 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
     }
   };
 
-  const handleCopy = useCallback(async () => {
+  const handleCopy = useCallback(() => {
     if (!draftValue) return;
-    try {
-      await navigator.clipboard.writeText(draftValue);
-      setIsCopied(true);
-      if (copyTimerRef.current) {
-        clearTimeout(copyTimerRef.current);
-      }
-      copyTimerRef.current = setTimeout(() => setIsCopied(false), COPY_FEEDBACK_MS);
-    } catch {
-      // ignore clipboard error
-    }
-  }, [draftValue]);
+    void copyToClipboard(draftValue);
+  }, [copyToClipboard, draftValue]);
 
   const handleReset = () => {
     setDraftValue(value);

@@ -6,6 +6,7 @@ import { DESKTOP_BREAKPOINT_PX } from '@/constants/layout';
 import { buildNewTabHref } from '@/utils/chat/lastActiveSession';
 import { SIDEBAR_ACTION_LINK_CLASS, SIDEBAR_ACTION_ROW_CLASS } from './sidebarStyles';
 import { useUIStore } from '@/stores/uiStore';
+import { isMacPlatform } from '@/utils/platform';
 
 interface SidebarActionsProps {
   onNewChat: () => void;
@@ -34,7 +35,7 @@ const COMPACT_SHORTCUT_ORDER: Record<string, number> = {
 };
 
 const getCompactShortcutParts = (shortcut: string): string[] => {
-  const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().includes('MAC');
+  const isMac = isMacPlatform();
   const parts = shortcut
     .split('+')
     .map((part) => part.trim())

@@ -1,4 +1,4 @@
-import { parseTimestamp } from './timestamp';
+import { formatTimestamp, parseTimestamp } from './timestamp';
 import { transformMarkdownTextSegments } from '@/utils/markdownSegments';
 
 // Matches mm:ss or hh:mm:ss, with optional range separator (- ~ – — 至 到 to)
@@ -46,18 +46,6 @@ const parseTagAttributes = (attributeString: string): Record<string, string> => 
   return attributes;
 };
 
-const formatSeconds = (seconds: number): string => {
-  if (seconds >= 3600) {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-};
-
 const buildVideoSeekMarkdownLink = (attrs: Record<string, string>, inner: string): string | null => {
   const rawStart = attrs.start ?? attrs.ts ?? attrs.time;
   const startSeconds = parseTimestamp(rawStart);
@@ -77,8 +65,8 @@ const buildVideoSeekMarkdownLink = (attrs: Record<string, string>, inner: string
   if (cleanSnippet) query.set('snippet', cleanSnippet);
 
   const timeStr = hasValidEnd
-    ? `${formatSeconds(startSeconds)}-${formatSeconds(endSeconds!)}`
-    : formatSeconds(startSeconds);
+    ? `${formatTimestamp(startSeconds)}-${formatTimestamp(endSeconds!)}`
+    : formatTimestamp(startSeconds);
 
   let label: string;
   if (!cleanSnippet) {

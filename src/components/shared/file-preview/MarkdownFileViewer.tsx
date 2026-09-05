@@ -10,6 +10,11 @@ import { VirtualSourceViewer } from './VirtualSourceViewer';
 import { interpolate } from '@/i18n/interpolate';
 import { isEditableElement } from '@/utils/chat-input/focus';
 import { useTextFileContent } from './useTextFileContent';
+import {
+  MARKDOWN_VIEW_MODE_STORAGE_PREFIX,
+  MARKDOWN_TOC_STORAGE_PREFIX,
+} from '@/constants/storageKeys';
+import { readPersistentStorageItem, writePersistentStorageItem } from '@/stores/persistentStorage';
 
 const TOGGLE_BUTTON_BASE_CLASS =
   'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors';
@@ -26,25 +31,14 @@ interface MarkdownFileViewerProps {
   onLoad?: (content: string) => void;
 }
 
-const MARKDOWN_VIEW_MODE_STORAGE_PREFIX = 'markdown-preview-mode:';
-const MARKDOWN_TOC_STORAGE_PREFIX = 'markdown-preview-toc:';
-
 type MarkdownViewMode = 'preview' | 'source';
 
 const readStoredMarkdownViewMode = (storageKey: string): MarkdownViewMode => {
-  try {
-    return localStorage.getItem(storageKey) === 'source' ? 'source' : 'preview';
-  } catch {
-    return 'preview';
-  }
+  return readPersistentStorageItem(storageKey) === 'source' ? 'source' : 'preview';
 };
 
 const readStoredTocVisibility = (storageKey: string): boolean => {
-  try {
-    return localStorage.getItem(storageKey) === 'open';
-  } catch {
-    return false;
-  }
+  return readPersistentStorageItem(storageKey) === 'open';
 };
 
 const scrollPreviewToHeading = (container: HTMLElement, headingIndex: number) => {
@@ -127,11 +121,7 @@ export const MarkdownFileViewer: React.FC<MarkdownFileViewerProps> = ({
   const updateMode = useCallback(
     (nextMode: MarkdownViewMode) => {
       setModeState({ storageKey, mode: nextMode });
-      try {
-        localStorage.setItem(storageKey, nextMode);
-      } catch {
-        // localStorage may be unavailable; keep the in-memory mode change.
-      }
+      writePersistentStorageItem(storageKey, nextMode);
     },
     [storageKey],
   );
@@ -139,11 +129,7 @@ export const MarkdownFileViewer: React.FC<MarkdownFileViewerProps> = ({
   const updateTocVisibility = useCallback(
     (nextVisible: boolean) => {
       setTocVisibleState({ storageKey: tocStorageKey, value: nextVisible });
-      try {
-        localStorage.setItem(tocStorageKey, nextVisible ? 'open' : 'closed');
-      } catch {
-        // localStorage may be unavailable; keep the in-memory visibility change.
-      }
+      writePersistentStorageItem(tocStorageKey, nextVisible ? 'open' : 'closed');
     },
     [tocStorageKey],
   );
