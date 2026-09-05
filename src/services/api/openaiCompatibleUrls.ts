@@ -1,13 +1,13 @@
-import { DEFAULT_OPENAI_COMPATIBLE_BASE_URL } from '@/utils/apiProxyUrl';
+import { DEFAULT_OPENAI_COMPATIBLE_BASE_URL, trimTrailingSlashes } from '@/utils/apiProxyUrl';
 import { getThirdPartyProxyBaseUrl } from '@/runtime/runtimeConfig';
 
 type OpenAICompatibleBaseUrlWarning = 'chat-completions-endpoint' | 'models-endpoint';
 
 const normalizeOpenAICompatibleBaseUrl = (baseUrl?: string | null): string =>
-  (baseUrl?.trim() || DEFAULT_OPENAI_COMPATIBLE_BASE_URL).replace(/\/+$/, '');
+  trimTrailingSlashes(baseUrl?.trim() || DEFAULT_OPENAI_COMPATIBLE_BASE_URL);
 
 const getOpenAICompatibleBaseUrlPath = (baseUrl?: string | null): string =>
-  normalizeOpenAICompatibleBaseUrl(baseUrl).split(/[?#]/, 1)[0].replace(/\/+$/, '').toLowerCase();
+  trimTrailingSlashes(normalizeOpenAICompatibleBaseUrl(baseUrl).split(/[?#]/, 1)[0]).toLowerCase();
 
 export const getOpenAICompatibleBaseUrlWarning = (baseUrl?: string | null): OpenAICompatibleBaseUrlWarning | null => {
   const baseUrlPath = getOpenAICompatibleBaseUrlPath(baseUrl);
@@ -40,7 +40,7 @@ export const buildOpenAICompatibleChatCompletionsUrl = (baseUrl?: string | null)
   if (resolved) {
     // Relative proxy path: keep it relative so the browser posts same-origin.
     if (!/^https?:\/\//i.test(resolved)) {
-      return `${resolved.replace(/\/+$/, '')}/chat/completions`;
+      return `${trimTrailingSlashes(resolved)}/chat/completions`;
     }
   }
   return `${normalizeOpenAICompatibleBaseUrl(resolved)}/chat/completions`;
@@ -53,7 +53,7 @@ export const buildOpenAICompatibleModelsUrl = (baseUrl?: string | null): string 
   const resolved = resolveOpenAICompatibleBaseUrl(baseUrl);
   if (resolved) {
     if (!/^https?:\/\//i.test(resolved)) {
-      return `${resolved.replace(/\/+$/, '')}/models`;
+      return `${trimTrailingSlashes(resolved)}/models`;
     }
   }
   return `${normalizeOpenAICompatibleBaseUrl(resolved)}/models`;

@@ -9,6 +9,7 @@ import {
   resolveInlineImagePlaceholders,
 } from '@/utils/inlineImagePlaceholders';
 import { isImageMimeType } from '@/utils/file/fileTypeClassification';
+import { blobToDataUrl } from '@/utils/file/fileEncoding';
 import { CREATE_TEXT_FILE_EDITOR_LAST_EXTENSION_KEY } from '@/constants/storageKeys';
 import { useI18n } from '@/contexts/I18nContext';
 import { CREATE_FILE_EXTENSION_OPTIONS } from './createFileExtensionOptions';
@@ -178,10 +179,8 @@ export const useCreateFileEditor = ({
 
   const insertImageFile = useCallback((file: File, startPos: number, endPos: number = startPos) => {
     const placeholder = createInlineImagePlaceholder(nextImageIndexRef.current++);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
+    void blobToDataUrl(file)
+      .then((dataUrl) => {
         imagePlaceholdersRef.current.set(placeholder, dataUrl);
         const imageName = file.name || `image-${Date.now()}.png`;
         const markdownImage = `\n![${imageName}](${placeholder})\n`;
@@ -199,12 +198,10 @@ export const useCreateFileEditor = ({
             textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
           }
         }, 50);
-      }
-    };
-    reader.onerror = () => {
-      logService.error('Failed to read pasted image.');
-    };
-    reader.readAsDataURL(file);
+      })
+      .catch(() => {
+        logService.error('Failed to read pasted image.');
+      });
   }, []);
 
   const handlePaste = useCallback(

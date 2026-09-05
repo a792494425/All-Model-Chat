@@ -5,6 +5,7 @@ import { useLibraryStore } from '@/stores/libraryStore';
 import type { LibraryItem } from '@/types';
 import { formatLibraryDate } from '@/utils/library/libraryFiles';
 import { formatFileSize } from '@/utils/file/fileSize';
+import { copyTextToClipboard } from '@/utils/clipboard';
 import { LibraryItemThumbnail } from './LibraryItemThumbnail';
 
 interface LibraryGridViewProps {
@@ -107,9 +108,11 @@ export const LibraryGridView: React.FC<LibraryGridViewProps> = ({
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigator.clipboard.writeText(item.fileApiName!).then(() => {
-                          setCopiedId(item.id);
-                          setTimeout(() => setCopiedId(null), 2000);
+                        void copyTextToClipboard(item.fileApiName!).then((ok) => {
+                          if (ok) {
+                            setCopiedId(item.id);
+                            setTimeout(() => setCopiedId(null), 2000);
+                          }
                         });
                       }}
                       title={copiedId === item.id ? t('selectedFileIdCopied') : t('selectedFileCopyFileId')}

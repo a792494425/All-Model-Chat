@@ -1,4 +1,4 @@
-import { decodeBase64ToArrayBuffer } from '@/utils/file/fileEncoding';
+import { arrayBufferToBase64, decodeBase64ToArrayBuffer } from '@/utils/file/fileEncoding';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 
 export { decodeBase64ToArrayBuffer };
@@ -36,13 +36,7 @@ export const float32ToPCM16Base64 = (data: Float32Array): string => {
     // wrapping Int16 to -32768. Matches float32ToPcm16Bytes below.
     int16[i] = Math.max(-1, Math.min(1, data[i])) * 0x7fff;
   }
-  let binary = '';
-  const bytes = new Uint8Array(int16.buffer);
-  const byteLength = bytes.byteLength;
-  for (let i = 0; i < byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
+  return arrayBufferToBase64(int16);
 };
 
 const createWavBuffer = (pcmData: Uint8Array, sampleRate: number, numChannels: number): ArrayBuffer => {

@@ -219,7 +219,7 @@ export const resolveLibraryItemToUploadedFile = async (
   }
 
   let dataUrl = item.dataUrl;
-  if (!dataUrl && blob && (item.type.startsWith('image/') || isImageFileType(item.type, item.name))) {
+  if (!dataUrl && blob && isImageFileType(item.type, item.name)) {
     dataUrl = fileToBlobUrl(blob);
   }
 

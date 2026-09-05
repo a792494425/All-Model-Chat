@@ -1,10 +1,10 @@
-import { DEFAULT_OPENAI_COMPATIBLE_BASE_URL } from '@/utils/apiProxyUrl';
+import { DEFAULT_OPENAI_COMPATIBLE_BASE_URL, trimTrailingSlashes } from '@/utils/apiProxyUrl';
 import { getThirdPartyProxyBaseUrl } from '@/runtime/runtimeConfig';
 
 export type OpenAIResponsesBaseUrlWarning = 'responses-endpoint' | 'chat-completions-endpoint' | 'models-endpoint';
 
 const getRawBaseUrlPath = (baseUrl?: string | null): string =>
-  (baseUrl?.trim() || DEFAULT_OPENAI_COMPATIBLE_BASE_URL).split(/[?#]/, 1)[0].replace(/\/+$/, '').toLowerCase();
+  trimTrailingSlashes((baseUrl?.trim() || DEFAULT_OPENAI_COMPATIBLE_BASE_URL).split(/[?#]/, 1)[0]).toLowerCase();
 
 export const getOpenAIResponsesBaseUrlWarning = (baseUrl?: string | null): OpenAIResponsesBaseUrlWarning | null => {
   const baseUrlPath = getRawBaseUrlPath(baseUrl);
@@ -25,9 +25,9 @@ export const getOpenAIResponsesBaseUrlWarning = (baseUrl?: string | null): OpenA
 };
 
 const normalizeOpenAIResponsesBaseUrl = (baseUrl?: string | null): string => {
-  const raw = (baseUrl?.trim() || DEFAULT_OPENAI_COMPATIBLE_BASE_URL).replace(/\/+$/, '');
+  const raw = trimTrailingSlashes(baseUrl?.trim() || DEFAULT_OPENAI_COMPATIBLE_BASE_URL);
   if (raw.toLowerCase().endsWith('/responses')) {
-    return raw.slice(0, -'/responses'.length).replace(/\/+$/, '');
+    return trimTrailingSlashes(raw.slice(0, -'/responses'.length));
   }
   return raw;
 };
@@ -44,7 +44,7 @@ export const buildOpenAIResponsesUrl = (baseUrl?: string | null): string => {
   const resolved = resolveOpenAIResponsesBaseUrl(baseUrl);
   if (resolved) {
     if (!/^https?:\/\//i.test(resolved)) {
-      return `${resolved.replace(/\/+$/, '')}/responses`;
+      return `${trimTrailingSlashes(resolved)}/responses`;
     }
   }
   return `${normalizeOpenAIResponsesBaseUrl(resolved)}/responses`;
@@ -57,7 +57,7 @@ export const buildOpenAIResponsesModelsUrl = (baseUrl?: string | null): string =
   const resolved = resolveOpenAIResponsesBaseUrl(baseUrl);
   if (resolved) {
     if (!/^https?:\/\//i.test(resolved)) {
-      return `${resolved.replace(/\/+$/, '')}/models`;
+      return `${trimTrailingSlashes(resolved)}/models`;
     }
   }
   return `${normalizeOpenAIResponsesBaseUrl(resolved)}/models`;

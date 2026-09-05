@@ -2,6 +2,7 @@ import { logService } from '@/services/logService';
 import { sanitizeCssColorFunctionsForPngExport } from './cssColorSanitizer';
 import { isDarkThemeId } from '@/utils/themeMode';
 import { createStaticPreviewSnapshotContainer } from '@/utils/html-preview/previewDocument';
+import { blobToDataUrl } from '@/utils/file/fileEncoding';
 
 const DEFAULT_EXPORT_WIDTH = '800px';
 
@@ -84,19 +85,9 @@ const embedImagesInClone = async (clone: HTMLElement): Promise<void> => {
 
         const response = await fetch(img.src);
         const blob = await response.blob();
-        const reader = new FileReader();
-        await new Promise<void>((resolve) => {
-          reader.onloadend = () => {
-            if (typeof reader.result === 'string') {
-              img.src = reader.result;
-              img.removeAttribute('srcset');
-              img.removeAttribute('loading');
-            }
-            resolve();
-          };
-          reader.onerror = () => resolve();
-          reader.readAsDataURL(blob);
-        });
+        img.src = await blobToDataUrl(blob);
+        img.removeAttribute('srcset');
+        img.removeAttribute('loading');
       } catch (embedError) {
         logService.warn('Failed to embed image for export:', embedError);
       }
