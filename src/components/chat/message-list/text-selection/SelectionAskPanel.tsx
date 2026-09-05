@@ -22,6 +22,9 @@ import { useSelectionAsk } from '@/hooks/text-selection/useSelectionAsk';
 import { resolveAskPanelDockSide, type AskPanelDockSide } from '@/utils/text-selection/askPanelDocking';
 import { formatSelectionAskModelLabel } from '@/utils/text-selection/selectionAskDisplay';
 import { MathMarkdownRenderer } from '@/components/message/MathMarkdownRenderer';
+import { copyTextToClipboard } from '@/utils/clipboard';
+import { SELECTION_ASK_PANEL_SIZE_KEY } from '@/constants/storageKeys';
+import { readPersistentStorageItem, writePersistentStorageItem } from '@/stores/persistentStorage';
 
 interface SelectionAskPanelProps {
   selectedText: string;
@@ -42,7 +45,7 @@ const DOCK_HANDLE_HEIGHT = 56;
 /** 指针位移小于该值视为单击而非拖拽，不触发贴边吸附 */
 const DOCK_DRAG_MIN_MOVE = 6;
 const PANEL_Z_INDEX = 'z-[10000]';
-const STORAGE_KEY = 'amc-selection-ask-panel-size';
+const STORAGE_KEY = SELECTION_ASK_PANEL_SIZE_KEY;
 
 type PanelSize = { width: number; height: number };
 type ResizeDir = 'e' | 'w' | 'n' | 's' | 'se' | 'sw' | 'ne' | 'nw';
@@ -57,7 +60,7 @@ const clampSizeToViewport = (size: PanelSize, vw: number, vh: number): PanelSize
 
 const readPersistedSize = (vw: number, vh: number): PanelSize | null => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = readPersistentStorageItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<PanelSize>;
     if (typeof parsed.width !== 'number' || typeof parsed.height !== 'number') return null;
@@ -127,11 +130,7 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
 
   // 持久化尺寸
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(size));
-    } catch {
-      // ignore quota
-    }
+    writePersistentStorageItem(STORAGE_KEY, JSON.stringify(size));
   }, [size]);
 
   // 视口变化时 clamp 已持久化的尺寸
@@ -334,27 +333,9 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
 
   const handleCopyAnswer = useCallback(async () => {
     if (!answer) return;
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(answer);
-        setIsCopied(true);
-        return;
-      }
-    } catch {
-      // fallback
-    }
-    try {
-      const ta = targetDocument.createElement('textarea');
-      ta.value = answer;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      targetDocument.body.appendChild(ta);
-      ta.select();
-      targetDocument.execCommand('copy');
-      ta.remove();
+    const ok = await copyTextToClipboard(answer, targetDocument);
+    if (ok) {
       setIsCopied(true);
-    } catch {
-      // ignore
     }
   }, [answer, targetDocument]);
 

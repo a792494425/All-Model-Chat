@@ -8,6 +8,7 @@ import { sendOpenAICompatibleMessageStream } from '@/services/api/openaiCompatib
 import { sendOpenAIResponsesStream } from '@/services/api/openaiResponsesApi';
 import { sendAnthropicMessageStream } from '@/services/api/anthropicApi';
 import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { useI18n } from '@/contexts/I18nContext';
 import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 
@@ -153,6 +154,7 @@ export function useSelectionAsk() {
         if (provider) {
           const providerConfig = {
             baseUrl: provider.baseUrl,
+            templateId: provider.templateId,
             systemInstruction: selectionAskSettings.systemInstruction,
             temperature: selectionAskSettings.temperature,
             topP: selectionAskSettings.topP,
@@ -228,7 +230,7 @@ export function useSelectionAsk() {
         }
       } catch (streamError) {
         if (!abortController.signal.aborted) {
-          setError(streamError instanceof Error ? streamError.message : String(streamError));
+          setError(getErrorMessage(streamError));
           setIsLoading(false);
         }
       }

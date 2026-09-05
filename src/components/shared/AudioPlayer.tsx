@@ -1,9 +1,9 @@
-import { logService } from '@/services/logService';
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { Play, Pause, Download } from 'lucide-react';
 import { triggerDownload } from '@/utils/export/core';
 import { formatClockTime } from '@/utils/formatClockTime';
 import { useI18n } from '@/contexts/I18nContext';
+import { useAudioPlayback } from '@/features/audio/useAudioPlayback';
 
 interface AudioPlayerProps {
   src: string;
@@ -19,75 +19,26 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   audioClassName = 'max-w-full',
 }) => {
   const { t } = useI18n();
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    if (autoPlay && audioRef.current) {
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
-          logService.warn('Auto-play prevented:', error);
-          setIsPlaying(false);
-        });
-      }
-    }
-  }, [autoPlay, src]);
-
-  const togglePlay = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-      setIsLoaded(true);
-    }
-  };
-
-  const handleEnded = () => {
-    setIsPlaying(false);
-    setCurrentTime(0);
-    if (audioRef.current) audioRef.current.currentTime = 0;
-  };
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value);
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-      setCurrentTime(time);
-    }
-  };
-
-  const toggleSpeed = () => {
-    const speeds = [1, 1.25, 1.5, 2];
-    const nextIndex = (speeds.indexOf(playbackRate) + 1) % speeds.length;
-    const newRate = speeds[nextIndex];
-    setPlaybackRate(newRate);
-    if (audioRef.current) audioRef.current.playbackRate = newRate;
-  };
+  const {
+    audioRef,
+    isPlaying,
+    duration,
+    currentTime,
+    progressPercent,
+    playbackRate,
+    isLoaded,
+    togglePlay,
+    handleSeek,
+    toggleSpeed,
+    audioProps,
+  } = useAudioPlayback({
+    src,
+    autoPlay,
+  });
 
   const handleDownload = () => {
     triggerDownload(src, `audio-${Date.now()}.wav`);
   };
-
-  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div
@@ -97,11 +48,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         ref={audioRef}
         src={src}
         className={audioClassName}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onEnded={handleEnded}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
+        {...audioProps}
       />
 
       <div className="flex items-center justify-between p-3 gap-3">

@@ -1,4 +1,5 @@
-import { logService } from '@/services/logService';
+import { copyTextToClipboard } from '@/utils/clipboard';
+
 export const copySelectionTextToClipboardEvent = (event: ClipboardEvent, text: string): boolean => {
   if (!text || !event.clipboardData) {
     return false;
@@ -10,15 +11,5 @@ export const copySelectionTextToClipboardEvent = (event: ClipboardEvent, text: s
 };
 
 export const writeSelectionTextToClipboard = async (text: string): Promise<boolean> => {
-  if (!text) {
-    return false;
-  }
-
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch (clipboardError) {
-    logService.error('Failed to copy selected text:', clipboardError);
-    return false;
-  }
+  return copyTextToClipboard(text);
 };
