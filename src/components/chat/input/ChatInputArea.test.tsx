@@ -159,10 +159,12 @@ describe('ChatInputArea default spacing', () => {
     expect(source).toContain('activeMediaNavKind,');
   });
 
-  it('renders ChatSuggestions above input area on empty session', () => {
+  it('renders ChatSuggestions above input area based on shouldShowChatSuggestions', () => {
     const source = fs.readFileSync(chatInputAreaPath, 'utf8');
 
-    expect(source).toContain('{capabilities.permissions.canGenerateSuggestions && !isExpanded && isSessionEmpty && (');
+    expect(source).toContain('shouldShowChatSuggestions');
+    expect(source).toContain('{showSuggestions && (');
+    expect(source).toContain('isSessionEmpty={isSessionEmpty}');
     expect(source).toContain('<ChatSuggestions');
     expect(source).not.toContain('<ActiveModeCapsules');
   });

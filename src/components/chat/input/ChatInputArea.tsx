@@ -21,6 +21,7 @@ import { ChatInputExpandCorner } from './ChatInputExpandCorner';
 import { useChatInputExpandSizing } from './useChatInputExpandSizing';
 import { useCompactChatInputPresentation } from './useCompactChatInputPresentation';
 import { getChatInputPlaceholder } from '@/utils/chat-input/chatInputPlaceholder';
+import { shouldShowChatSuggestions } from '@/utils/chat-input/chatInputSuggestionsVisibility';
 import { GEMINI_PROVIDER_ID } from '@/types';
 
 export const ChatInputArea: React.FC = () => {
@@ -102,8 +103,16 @@ export const ChatInputArea: React.FC = () => {
   const isConverting = localFileState.isConverting;
   const isExpanded = isFullscreen;
 
-  const activeMessagesCount = useChatStore((state) => state.activeMessages.length);
-  const isSessionEmpty = activeMessagesCount === 0;
+  const activeMessages = useChatStore((state) => state.activeMessages);
+  const isSessionEmpty = activeMessages.length === 0;
+  const firstUserMessage = activeMessages.find((m) => m.role === 'user');
+  const showSuggestions = shouldShowChatSuggestions({
+    canGenerateSuggestions: capabilities.permissions.canGenerateSuggestions,
+    isExpanded,
+    isSessionEmpty,
+    firstUserMessage,
+    currentChatSettings: chatInput.currentChatSettings,
+  });
 
   const {
     wrapperClass,
@@ -215,9 +224,10 @@ export const ChatInputArea: React.FC = () => {
         />
       )}
       <div className={`mx-auto w-full ${CHAT_INPUT_MAX_WIDTH_CLASS} px-2 sm:px-3`}>
-        {capabilities.permissions.canGenerateSuggestions && !isExpanded && isSessionEmpty && (
+        {showSuggestions && (
           <ChatSuggestions
-            show={isSessionEmpty}
+            show={showSuggestions}
+            isSessionEmpty={isSessionEmpty}
             onSuggestionClick={chatInput.onSuggestionClick}
             onOrganizeInfoClick={chatInput.onOrganizeInfoClick}
             isLiveArtifactsPromptActive={chatInput.isLiveArtifactsPromptActive}

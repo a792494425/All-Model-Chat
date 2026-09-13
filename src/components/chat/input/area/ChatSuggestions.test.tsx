@@ -286,4 +286,44 @@ describe('ChatSuggestions rendering', () => {
     expect(summarizeChip?.className).toContain(SUGGESTION_CHIP_ACTIVE_CLASS);
     expect(summarizeChip?.getAttribute('aria-pressed')).toBe('true');
   });
+
+  it('renders both core toggle chips and text suggestion chips when isSessionEmpty is true', async () => {
+    await act(async () => {
+      renderer.root.render(
+        <ChatSuggestions
+          show
+          isFullscreen={false}
+          isSessionEmpty={true}
+          onSuggestionClick={vi.fn()}
+          onOrganizeInfoClick={vi.fn()}
+          onTogglePdfNav={vi.fn()}
+        />,
+      );
+    });
+
+    expect(renderer.container.querySelector('[data-testid="organize-info-chip"]')).not.toBeNull();
+    expect(renderer.container.querySelector('[data-testid="pdf-nav-chip"]')).not.toBeNull();
+    expect(renderer.container.querySelector('[data-testid="suggestion-chip-translate"]')).not.toBeNull();
+    expect(renderer.container.querySelector('[data-testid="suggestion-chip-summarize"]')).not.toBeNull();
+  });
+
+  it('renders only core toggle chips and hides text suggestion chips when isSessionEmpty is false', async () => {
+    await act(async () => {
+      renderer.root.render(
+        <ChatSuggestions
+          show
+          isFullscreen={false}
+          isSessionEmpty={false}
+          onSuggestionClick={vi.fn()}
+          onOrganizeInfoClick={vi.fn()}
+          onTogglePdfNav={vi.fn()}
+        />,
+      );
+    });
+
+    expect(renderer.container.querySelector('[data-testid="organize-info-chip"]')).not.toBeNull();
+    expect(renderer.container.querySelector('[data-testid="pdf-nav-chip"]')).not.toBeNull();
+    expect(renderer.container.querySelector('[data-testid="suggestion-chip-translate"]')).toBeNull();
+    expect(renderer.container.querySelector('[data-testid="suggestion-chip-summarize"]')).toBeNull();
+  });
 });

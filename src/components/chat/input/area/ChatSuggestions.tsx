@@ -36,6 +36,7 @@ const suggestionFadeClass = (fadeLeft: boolean, fadeRight: boolean): string => {
 
 interface ChatSuggestionsProps {
   show: boolean;
+  isSessionEmpty?: boolean;
   onSuggestionClick?: (suggestion: string) => void;
   onOrganizeInfoClick?: (suggestion: string) => void;
   activeTaskSuggestion?: TaskSuggestionMode | null;
@@ -59,6 +60,7 @@ interface ChatSuggestionsProps {
 
 const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
   show,
+  isSessionEmpty = true,
   onSuggestionClick,
   onOrganizeInfoClick,
   activeTaskSuggestion,
@@ -111,6 +113,10 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
 
   if (!show || isFullscreen) return null;
 
+  const displayedSuggestions = isSessionEmpty
+    ? SUGGESTIONS_KEYS
+    : SUGGESTIONS_KEYS.filter((s) => s.specialAction === 'organize');
+
   return (
     <div
       className="relative group/suggestions mb-1.5 sm:mb-2"
@@ -122,7 +128,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
         onScroll={checkScroll}
         className={`flex gap-2 overflow-x-auto pb-1 px-1 no-scrollbar scroll-smooth ${suggestionFadeClass(showLeftArrow, showRightArrow)}`}
       >
-        {SUGGESTIONS_KEYS.map((suggestion, index) => {
+        {displayedSuggestions.map((suggestion, index) => {
           const isOrganize = suggestion.specialAction === 'organize';
           const taskMode = suggestion.taskMode;
           const isChipActive = isOrganize
