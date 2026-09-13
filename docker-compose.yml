@@ -17,6 +17,12 @@ services:
       THIRD_PARTY_ROUTES: ${THIRD_PARTY_ROUTES:-}
     expose:
       - '3001'
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     restart: unless-stopped
 
   web:
@@ -24,7 +30,8 @@ services:
       context: .
       dockerfile: Dockerfile.web
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     environment:
       RUNTIME_SERVER_MANAGED_API: ${RUNTIME_SERVER_MANAGED_API:-true}
       RUNTIME_USE_CUSTOM_API_CONFIG: ${RUNTIME_USE_CUSTOM_API_CONFIG:-true}
@@ -35,4 +42,10 @@ services:
       RUNTIME_PYODIDE_BASE_URL: ${RUNTIME_PYODIDE_BASE_URL:-}
     ports:
       - '${WEB_PORT:-8080}:80'
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:80/healthz').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     restart: unless-stopped

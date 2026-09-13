@@ -24,7 +24,7 @@ afterEach(async () => {
 });
 
 describe('createServer', () => {
-  it('returns health details from GET /health', async () => {
+  it('returns health details from GET /health and GET /api/health', async () => {
     const app = createServer({
       geminiApiBase: 'https://generativelanguage.googleapis.com',
       geminiApiKey: 'server-key',
@@ -43,6 +43,11 @@ describe('createServer', () => {
       mcpPrivateHttp: false,
     });
     expect(typeof body.timestamp).toBe('string');
+
+    const apiHealthResponse = await fetch(`${started.baseUrl}/api/health`);
+    const apiHealthBody = (await apiHealthResponse.json()) as Record<string, unknown>;
+    expect(apiHealthResponse.status).toBe(200);
+    expect(apiHealthBody.status).toBe('ok');
   });
 
   it('logs the error before returning 500 when a handler throws unexpectedly', async () => {

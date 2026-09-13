@@ -13,3 +13,18 @@ server.listen(config.port, '0.0.0.0', () => {
     );
   }
 });
+
+const handleShutdown = (signal: string) => {
+  console.log(`API server received ${signal}, closing gracefully...`);
+  server.close(() => {
+    console.log('API server closed cleanly');
+    process.exit(0);
+  });
+  setTimeout(() => {
+    console.error('API server forced exit after timeout');
+    process.exit(1);
+  }, 10000).unref();
+};
+
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+process.on('SIGINT', () => handleShutdown('SIGINT'));

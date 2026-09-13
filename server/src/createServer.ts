@@ -105,7 +105,7 @@ export function createServer(config: CreateServerConfig, dependencies: CreateSer
         return;
       }
 
-      if (method === 'GET' && path === '/health') {
+      if (method === 'GET' && (path === '/health' || path === '/api/health')) {
         sendJson(
           request,
           response,

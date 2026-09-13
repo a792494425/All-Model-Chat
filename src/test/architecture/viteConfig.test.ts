@@ -73,6 +73,7 @@ describe('vite.config runtime ownership', () => {
     expect(chunks).toContain("'pdfjs-vendor'");
     expect(chunks).toContain("'highlight-vendor'");
     expect(chunks).toContain("'graphviz-vendor'");
+    expect(chunks).toContain("'model-icons'");
     expect(chunks).toContain("'vite-preload-helper'");
     expect(chunks).toContain('vite/preload-helper');
     expect(chunks).not.toContain("'html-export-vendor'");

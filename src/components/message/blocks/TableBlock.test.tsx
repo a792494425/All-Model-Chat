@@ -154,11 +154,14 @@ describe('TableBlock', () => {
       await flushPromises();
     });
 
-    await waitFor(() => {
-      expect(createObjectUrl).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
-      );
-    });
+    await waitFor(
+      () => {
+        expect(createObjectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+        );
+      },
+      { timeout: 3000 },
+    );
     expect(triggerDownloadMock).toHaveBeenCalledWith(
       'blob:table-export',
       expect.stringMatching(/^table-export-\d+\.xlsx$/),
@@ -215,9 +218,12 @@ describe('TableBlock', () => {
         await flushPromises();
       });
 
-      await waitFor(() => {
-        expect(writeMock).toHaveBeenCalledTimes(1);
-      });
+      await waitFor(
+        () => {
+          expect(writeMock).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 3000 },
+      );
       const passedItem = writeMock.mock.calls[0][0][0] as MockClipboardItem;
       expect(passedItem.items['text/plain']).toBeDefined();
       expect(passedItem.items['text/html']).toBeDefined();

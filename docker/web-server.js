@@ -153,6 +153,11 @@ function serveStatic(req, res) {
 
 const server = http.createServer((req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
+  if (req.method === 'GET' && (pathname === '/healthz' || pathname === '/health')) {
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    res.end(JSON.stringify({ status: 'ok', service: 'web' }));
+    return;
+  }
   if (pathname === '/api' || pathname.startsWith('/api/')) {
     return proxyApi(req, res);
   }
@@ -227,3 +232,18 @@ writeRuntimeConfig();
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`[web] serving ${ROOT} on :${PORT} (api upstream: ${API_UPSTREAM})`);
 });
+
+const handleShutdown = (signal) => {
+  console.log(`[web] received ${signal}, closing gracefully...`);
+  server.close(() => {
+    console.log('[web] server closed cleanly');
+    process.exit(0);
+  });
+  setTimeout(() => {
+    console.error('[web] forced exit after timeout');
+    process.exit(1);
+  }, 10000).unref();
+};
+
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+process.on('SIGINT', () => handleShutdown('SIGINT'));

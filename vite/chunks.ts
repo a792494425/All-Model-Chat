@@ -84,6 +84,14 @@ export const getManualChunk = (id: string) => {
     return 'html-preview-runtime';
   }
 
+  if (
+    id.includes('/src/assets/model-icons/') ||
+    id.includes('\\src\\assets\\model-icons\\') ||
+    isSourcePath(id, '/src/components/shared/modelIconRegistry.ts')
+  ) {
+    return 'model-icons';
+  }
+
   if (!id.includes('node_modules')) return undefined;
 
   if (isPackagePath(id, REACT_PACKAGES)) {
