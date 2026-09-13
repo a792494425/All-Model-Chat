@@ -12,6 +12,7 @@ import { isLiveArtifactsSystemInstruction } from '@/features/prompts/promptRegis
  */
 export function isLiveArtifactsModeFromSettings(args: {
   isLiveArtifactsEnabled?: boolean | null;
+  isVisualFormattingActive?: boolean | null;
   systemInstruction?: string | null;
   promptMode?: LiveArtifactsPromptMode | null;
   liveArtifactsSystemPrompt?: string | null;
@@ -19,17 +20,22 @@ export function isLiveArtifactsModeFromSettings(args: {
 }): boolean {
   const {
     isLiveArtifactsEnabled,
+    isVisualFormattingActive,
     systemInstruction,
     promptMode,
     liveArtifactsSystemPrompt,
     liveArtifactsSystemPrompts,
   } = args;
 
+  if (isVisualFormattingActive === true) {
+    return true;
+  }
+
   if (isLiveArtifactsEnabled === true) {
     return true;
   }
 
-  if (isLiveArtifactsEnabled === false) {
+  if (isLiveArtifactsEnabled === false && !isVisualFormattingActive) {
     return false;
   }
 

@@ -436,9 +436,9 @@ export const MarkdownFileViewer: React.FC<MarkdownFileViewerProps> = ({
                             ? 'bg-[var(--theme-bg-primary)] font-medium text-[var(--theme-text-primary)] shadow-2xs'
                             : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)]'
                         }`}
-                        title="仅显示主章节与核心条目"
+                        title={t('markdownTocCompactTitle')}
                       >
-                        精简
+                        {t('markdownTocCompact')}
                       </button>
                       <button
                         type="button"
@@ -448,9 +448,9 @@ export const MarkdownFileViewer: React.FC<MarkdownFileViewerProps> = ({
                             ? 'bg-[var(--theme-bg-primary)] font-medium text-[var(--theme-text-primary)] shadow-2xs'
                             : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)]'
                         }`}
-                        title="显示所有层级完整标题"
+                        title={t('markdownTocAllTitle')}
                       >
-                        全部
+                        {t('markdownTocAll')}
                       </button>
                     </div>
                   )}

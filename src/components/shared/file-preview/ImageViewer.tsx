@@ -273,7 +273,7 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
 
   const handleConfirmVisualSelection = useCallback(
     (box2d: [number, number, number, number]) => {
-      const tag = `<image-locate file="${file.name}" box="[${box2d.join(',')}]">请问这里的具体情况是？</image-locate>`;
+      const tag = `<image-locate file="${file.name}" box="[${box2d.join(',')}]">${t('imageLocatePromptQuery')}</image-locate>`;
       useChatStore.getState().setCommandedInput({
         id: Date.now(),
         text: tag,
@@ -281,7 +281,7 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
       });
       setIsVisualCropActive(false);
     },
-    [file.name],
+    [file.name, t],
   );
 
   useEffect(() => {

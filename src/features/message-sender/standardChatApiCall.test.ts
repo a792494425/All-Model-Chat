@@ -602,7 +602,12 @@ describe('performStandardChatApiCall', () => {
 
     expect(mocks.buildGenerationConfig).toHaveBeenCalledWith(
       expect.objectContaining({
-        systemInstruction: 'Custom system prompt',
+        systemInstruction: expect.stringContaining('Custom system prompt'),
+      }),
+    );
+    expect(mocks.buildGenerationConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        systemInstruction: expect.stringContaining('[Live Artifacts Inline Protocol]'),
       }),
     );
 
@@ -610,6 +615,50 @@ describe('performStandardChatApiCall', () => {
     const sentParts = mocks.sendStatelessMessageStreamApi.mock.calls[0][3];
     expect(sentParts[0].text).toContain(getLiveArtifactsUserDirective('zh'));
     expect(sentParts[0].text).toContain('帮我设计一个看板');
+  });
+
+  it('includes Live Artifacts in system instruction when isVisualFormattingActive is true even if isLiveArtifactsEnabled is false', async () => {
+    mocks.sendStatelessMessageStreamApi.mockImplementation(
+      async (_key, _model, _history, _parts, _config, _signal, _part, _thought, _error, onComplete) => {
+        onComplete();
+      },
+    );
+
+    const params = baseParams({
+      appSettings: {
+        ...DEFAULT_APP_SETTINGS,
+        language: 'zh',
+      },
+      sessionToUpdate: {
+        ...DEFAULT_CHAT_SETTINGS,
+        isLiveArtifactsEnabled: false,
+        isVisualFormattingActive: true,
+        systemInstruction: 'Base system prompt',
+      },
+      resolveTurn: () => ({
+        baseMessagesForApi: [],
+        finalRole: 'user' as const,
+        finalParts: [{ text: '帮我设计一个看板' }],
+        shouldSkipApiCall: false,
+      }),
+    });
+
+    await performStandardChatApiCall(params as never);
+
+    expect(mocks.buildGenerationConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        systemInstruction: expect.stringContaining('Base system prompt'),
+      }),
+    );
+    expect(mocks.buildGenerationConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        systemInstruction: expect.stringContaining('[Live Artifacts Inline Protocol]'),
+      }),
+    );
+
+    expect(mocks.sendStatelessMessageStreamApi).toHaveBeenCalledTimes(1);
+    const sentParts = mocks.sendStatelessMessageStreamApi.mock.calls[0][3];
+    expect(sentParts[0].text).toContain(getLiveArtifactsUserDirective('zh'));
   });
 
   it('does not prepend Live Artifacts layout directive when isLiveArtifactsEnabled is true but isVisualFormattingActive is false', async () => {

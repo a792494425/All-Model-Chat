@@ -36,7 +36,8 @@ export interface ProviderModelListSectionProps {
 export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> = ({
   providerId,
   providerName,
-  protocol = 'openai-compatible',
+  protocol = providerId === 'gemini' ? undefined : 'openai-compatible',
+
   templateId,
   models,
   onUpdateModels,
@@ -434,6 +435,7 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
         isOpen={Boolean(configModalModel)}
         model={configModalModel}
         protocol={protocol}
+        existingModelIds={models.map((m) => m.id)}
         onClose={() => setConfigModalModel(null)}
         onSave={(updates) => {
           if (configModalModel) {
@@ -441,6 +443,7 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
           }
         }}
       />
+
     </div>
   );
 };

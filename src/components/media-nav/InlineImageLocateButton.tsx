@@ -106,7 +106,7 @@ export const InlineImageLocateButton: React.FC<InlineImageLocateButtonProps> = (
     <div className="flex flex-col gap-1.5 max-w-[240px] text-xs select-none">
       <div className="flex items-center gap-1.5 font-semibold text-[var(--theme-text-primary)]">
         <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-        <span className="truncate">{label || snippet || '目标定位'}</span>
+        <span className="truncate">{label || snippet || t('imageNavDefaultTarget')}</span>
       </div>
 
       {imageFile?.dataUrl ? (
@@ -154,7 +154,7 @@ export const InlineImageLocateButton: React.FC<InlineImageLocateButtonProps> = (
                 }}
               />
             </div>
-            <span className="text-[10px] text-[var(--theme-text-tertiary)] opacity-80">精准视觉框选</span>
+            <span className="text-[10px] text-[var(--theme-text-tertiary)] opacity-80">{t('imageNavPreciseBox')}</span>
           </div>
         )
       )}
@@ -164,7 +164,7 @@ export const InlineImageLocateButton: React.FC<InlineImageLocateButtonProps> = (
           {snippet}
         </div>
       )}
-      <div className="text-[10px] text-[var(--theme-text-tertiary)] opacity-80">点击展开大图定位</div>
+      <div className="text-[10px] text-[var(--theme-text-tertiary)] opacity-80">{t('imageNavClickToExpand')}</div>
     </div>
   );
 

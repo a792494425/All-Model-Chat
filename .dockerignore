@@ -1,0 +1,33 @@
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# Git
+.git/
+.github/
+
+# IDE
+.vscode/
+.idea/
+
+# Testing & Coverage
+coverage/
+playwright-report/
+test-results/
+.playwright-visible-demo-profile/
+tmp-live-artifact-demo/
+
+# Docs
+docs-site/.astro/
+docs-site/dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dev artifacts
+.codex-dev-*
+.worktrees/

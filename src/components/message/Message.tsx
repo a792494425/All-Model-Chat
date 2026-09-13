@@ -47,6 +47,7 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
       liveArtifactsCustomFontSize: state.appSettings.liveArtifactsCustomFontSize,
       systemInstruction: state.appSettings.systemInstruction,
       isLiveArtifactsEnabled: state.appSettings.isLiveArtifactsEnabled,
+      isVisualFormattingActive: state.appSettings.isVisualFormattingActive,
       liveArtifactsPromptMode: state.appSettings.liveArtifactsPromptMode,
       liveArtifactsSystemPrompt: state.appSettings.liveArtifactsSystemPrompt,
       liveArtifactsSystemPrompts: state.appSettings.liveArtifactsSystemPrompts,

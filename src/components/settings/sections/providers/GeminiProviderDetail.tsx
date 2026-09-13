@@ -167,9 +167,9 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
           <ProviderModelListSection
             providerId="gemini"
             providerName="Gemini"
-            protocol="openai-compatible"
             models={effectiveModels}
             onUpdateModels={handleUpdateModels}
+
             onProbeSingleModel={handleSingleModelProbe}
             onProbeBatchModels={handleBatchHealthCheck}
             isProbingBatch={isCheckingBatch}

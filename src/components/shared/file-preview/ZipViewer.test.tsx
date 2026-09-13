@@ -198,7 +198,9 @@ describe('ZipViewer', () => {
     });
 
     // Check toggle buttons for Markdown
-    const sourceBtn = Array.from(document.querySelectorAll('button')).find((btn) => btn.textContent?.includes('源码'));
+    const sourceBtn = Array.from(document.querySelectorAll('button')).find(
+      (btn) => btn.textContent?.includes('源码') || btn.textContent?.includes('Source'),
+    );
     expect(sourceBtn).toBeDefined();
 
     await act(async () => {

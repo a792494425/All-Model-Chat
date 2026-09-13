@@ -78,7 +78,7 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
   onInsert,
   onQuote,
 }) => {
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   const { document: targetDocument, window: targetWindow } = useWindowContext();
   const themeId = useSettingsStore((state) => state.currentTheme.id);
   const selectionAskModelId = useSettingsStore((state) => state.appSettings.selectionAskModelId);
@@ -304,18 +304,17 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
 
   const handleQuick = useCallback(
     (type: 'explain' | 'translate' | 'summarize') => {
-      const isZh = language === 'zh';
       const map: Record<string, string> = {
-        explain: isZh ? '请解释这段内容' : 'Explain this selection',
-        translate: isZh ? '请翻译这段内容' : 'Translate this selection',
-        summarize: isZh ? '请总结这段内容' : 'Summarize this selection',
+        explain: t('selectionAskPromptExplain'),
+        translate: t('selectionAskPromptTranslate'),
+        summarize: t('selectionAskPromptSummarize'),
       };
       const q = map[type];
       setQuestion(q);
       handleAsk(q);
       targetWindow.setTimeout(() => textareaRef.current?.focus(), 0);
     },
-    [handleAsk, language, targetWindow],
+    [handleAsk, t, targetWindow],
   );
 
   const handleKeyDown = useCallback(

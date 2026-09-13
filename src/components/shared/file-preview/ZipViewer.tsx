@@ -8,6 +8,7 @@ import { getFileDisplayMeta } from '@/utils/file/fileDisplayStyles';
 import { formatFileSize } from '@/utils/file/fileSize';
 import { sanitizeZipEntryPath } from '@/utils/import-context/zipSafety';
 import { useI18n } from '@/contexts/I18nContext';
+import { interpolate } from '@/i18n/interpolate';
 import { isMarkdownFile } from '@/utils/file/fileTypeClassification';
 import { LazyMarkdownRenderer } from '@/components/message/LazyMarkdownRenderer';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -202,7 +203,7 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
     return (
       <div className="w-full h-full flex flex-col items-center justify-center text-[var(--theme-text-secondary)] gap-3 bg-transparent">
         <GoogleSpinner size={36} />
-        <p className="text-sm font-medium">正在解包压缩文件...</p>
+        <p className="text-sm font-medium">{t('zipUnpacking')}</p>
       </div>
     );
   }
@@ -222,10 +223,10 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
         <div className="flex items-center gap-2 text-xs text-[var(--theme-text-secondary)]">
           <Archive size={16} className="text-[var(--theme-text-accent)] shrink-0" />
           <span className="font-medium text-[var(--theme-text-primary)]">
-            {stats.fileCount} 个文件 · {stats.dirCount} 个文件夹
+            {interpolate(t('zipStats'), { files: stats.fileCount, dirs: stats.dirCount })}
           </span>
           <span className="text-[var(--theme-text-tertiary)] font-mono text-[11px] hidden sm:inline">
-            (解压后约 {formatFileSize(stats.totalBytes) || '0 B'})
+            ({interpolate(t('zipApproxUnpackedSize'), { size: formatFileSize(stats.totalBytes) || '0 B' })})
           </span>
         </div>
 
@@ -256,7 +257,7 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索压缩包文件..."
+              placeholder={t('zipSearchPlaceholder')}
               className="pl-8 pr-7 py-1.5 text-xs rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] text-[var(--theme-text-primary)] placeholder-[var(--theme-text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-border-focus)] w-36 sm:w-52 transition-all"
             />
             {searchQuery && (
@@ -264,7 +265,7 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
                 type="button"
                 onClick={() => setSearchQuery('')}
                 className="absolute right-2 text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] cursor-pointer"
-                title="清除搜索"
+                title={t('clear')}
               >
                 <X size={12} />
               </button>
@@ -337,7 +338,7 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
                           void handleDownloadEntry(item);
                         }}
                         className="p-1 rounded hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] transition-colors opacity-0 group-hover:opacity-100"
-                        title="下载此文件"
+                        title={t('zipDownloadFile')}
                       >
                         <Download size={13} />
                       </button>
@@ -375,7 +376,7 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
                       }`}
                     >
                       <Eye size={12} />
-                      <span>预览</span>
+                      <span>{t('preview')}</span>
                     </button>
                     <button
                       type="button"
@@ -387,7 +388,7 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
                       }`}
                     >
                       <Code2 size={12} />
-                      <span>源码</span>
+                      <span>{t('zipSource')}</span>
                     </button>
                   </div>
                 )}
@@ -396,10 +397,10 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
                   type="button"
                   onClick={() => setPreviewItem(null)}
                   className="flex items-center gap-1 px-2 py-1 rounded-md text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-secondary)] transition-colors"
-                  title="关闭预览"
+                  title={t('zipClosePreview')}
                 >
                   <X size={14} />
-                  <span className="hidden sm:inline">关闭预览</span>
+                  <span className="hidden sm:inline">{t('zipClosePreview')}</span>
                 </button>
               </div>
             </div>

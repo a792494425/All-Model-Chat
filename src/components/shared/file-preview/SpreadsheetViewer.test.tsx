@@ -74,7 +74,8 @@ describe('SpreadsheetViewer', () => {
       renderer.root.render(<SpreadsheetViewer file={file} />);
     });
 
-    const searchInput = renderer.container.querySelector('input[placeholder*="搜索表格内容"]') as HTMLInputElement;
+    const searchInput = (renderer.container.querySelector('input[placeholder*="搜索表格内容"]') ||
+      renderer.container.querySelector('input[placeholder*="Search sheet"]')) as HTMLInputElement;
     expect(searchInput).not.toBeNull();
 
     await act(async () => {

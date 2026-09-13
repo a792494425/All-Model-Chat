@@ -471,7 +471,7 @@ describe('promptRegistry', () => {
   it('generates concise Live Artifacts user directives for zh and en', () => {
     const zhDirective = getLiveArtifactsUserDirective('zh');
     expect(zhDirective).toBe(
-      '请使用 Live Artifacts，将以下内容呈现为结构化、响应式的精美 HTML 卡片，并保留所有重要信息：',
+      '请使用 Live Artifacts，将提供的信息整理成结构化、响应式的 HTML 作品。请保留所有重要信息：',
     );
 
     const enDirective = getLiveArtifactsUserDirective('en');
@@ -485,12 +485,12 @@ describe('promptRegistry', () => {
     const result = applyLiveArtifactsUserDirective(parts, 'zh');
 
     expect(result[0].text).toContain(
-      '请使用 Live Artifacts，将以下内容呈现为结构化、响应式的精美 HTML 卡片，并保留所有重要信息：',
+      '请使用 Live Artifacts，将提供的信息整理成结构化、响应式的 HTML 作品。请保留所有重要信息：',
     );
     expect(result[0].text).toContain('帮我分析这份报告');
     expect(
       result[0].text?.startsWith(
-        '请使用 Live Artifacts，将以下内容呈现为结构化、响应式的精美 HTML 卡片，并保留所有重要信息：',
+        '请使用 Live Artifacts，将提供的信息整理成结构化、响应式的 HTML 作品。请保留所有重要信息：',
       ),
     ).toBe(true);
 
@@ -507,7 +507,7 @@ describe('promptRegistry', () => {
 
     expect(result.length).toBe(2);
     expect(result[0].text).toContain(
-      '请使用 Live Artifacts，将以下内容呈现为结构化、响应式的精美 HTML 卡片，并保留所有重要信息：',
+      '请使用 Live Artifacts，将提供的信息整理成结构化、响应式的 HTML 作品。请保留所有重要信息：',
     );
     expect(result[1].inlineData?.mimeType).toBe('image/png');
   });

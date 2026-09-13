@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { useI18n } from '@/contexts/I18nContext';
 import type { ImageNavHighlight } from '@/stores/mediaNavStore';
 
 export interface ImageMinimapProps {
@@ -27,6 +28,7 @@ export const ImageMinimap: React.FC<ImageMinimapProps> = ({
   highlights = [],
   onPanTo,
 }) => {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Only show when sufficiently zoomed in
@@ -77,8 +79,8 @@ export const ImageMinimap: React.FC<ImageMinimapProps> = ({
       onClick={handleClick}
       className="absolute bottom-6 right-6 z-40 w-32 sm:w-40 rounded-lg overflow-hidden border border-white/25 bg-black/85 backdrop-blur-md shadow-2xl cursor-crosshair select-none transition-all duration-200 hover:border-white/50"
       style={{ aspectRatio }}
-      title="缩略导航地图：点击快速平移"
-      aria-label="图片缩略导航地图"
+      title={t('imageMinimapTitle')}
+      aria-label={t('imageMinimapAriaLabel')}
     >
       <img
         src={src}

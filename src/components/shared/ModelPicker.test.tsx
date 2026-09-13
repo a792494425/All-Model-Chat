@@ -62,3 +62,72 @@ describe('getModelIcon', () => {
     expect(liteMarkup).toContain('data-model-brand-icon="nanobanana"');
   });
 });
+
+describe('ModelCatalogList', () => {
+  it('renders a pin icon for pinned models in both picker and settings variants', async () => {
+    const { render, screen } = await import('@testing-library/react');
+    const { ModelCatalogList } = await import('./ModelCatalogList');
+
+    const sections = [
+      {
+        key: 'default',
+        entries: [
+          {
+            id: 'pinned-model',
+            name: 'Pinned Gemini Model',
+            category: 'text' as const,
+            group: 'pinned' as const,
+            badgeKeys: [],
+            searchText: 'pinned',
+            model: {
+              id: 'pinned-model',
+              name: 'Pinned Gemini Model',
+              isPinned: true,
+            },
+          },
+          {
+            id: 'unpinned-model',
+            name: 'Unpinned Model',
+            category: 'text' as const,
+            group: 'standard' as const,
+            badgeKeys: [],
+            searchText: 'unpinned',
+            model: {
+              id: 'unpinned-model',
+              name: 'Unpinned Model',
+              isPinned: false,
+            },
+          },
+        ],
+      },
+    ];
+
+    // 1. Picker variant
+    const { unmount } = render(
+      <ModelCatalogList
+        sections={sections}
+        variant="picker"
+        renderModelIcon={() => <span data-testid="test-icon" />}
+        isEntrySelected={() => false}
+        onSelectEntry={() => {}}
+      />,
+    );
+
+    expect(screen.getByTestId('model-pinned-icon')).toBeInTheDocument();
+    unmount();
+
+    // 2. Settings variant
+    render(
+      <ModelCatalogList
+        sections={sections}
+        variant="settings"
+        renderModelIcon={() => <span data-testid="test-icon" />}
+        isEntrySelected={() => false}
+        onSelectEntry={() => {}}
+      />,
+    );
+
+    expect(screen.getByTestId('model-pinned-icon')).toBeInTheDocument();
+  });
+});
+

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
+import { interpolate } from '@/i18n/interpolate';
 import { X, Check, Copy, CheckCheck, Eye, Edit3, RotateCcw, Eraser } from 'lucide-react';
 import { TextEditorModalShell } from './TextEditorModalShell';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
@@ -188,7 +189,7 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
                 </div>
               ) : (
                 <div className="flex h-full min-h-[240px] items-center justify-center text-sm text-[var(--theme-text-tertiary)] italic">
-                  {placeholder || '暂无内容可供预览'}
+                  {placeholder || t('textEditorNoPreview')}
                 </div>
               )}
             </div>
@@ -198,20 +199,19 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
       footer={
         <div className="px-4 sm:px-6 py-2.5 sm:py-3 border-t border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)]/40 backdrop-blur-sm flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 text-xs font-mono text-[var(--theme-text-tertiary)] select-none">
-            <span title="字符数">
+            <span title={t('textEditorChars')}>
               <span className="text-[var(--theme-text-secondary)] font-semibold">{stats.chars.toLocaleString()}</span>{' '}
-              字符
+              {t('textEditorChars')}
             </span>
             <span className="w-1 h-1 rounded-full bg-[var(--theme-border-secondary)]" />
-            <span title="行数">
+            <span title={t('textEditorLines')}>
               <span className="text-[var(--theme-text-secondary)] font-semibold">{stats.lines.toLocaleString()}</span>{' '}
-              行
+              {t('textEditorLines')}
             </span>
             <span className="w-1 h-1 rounded-full bg-[var(--theme-border-secondary)]" />
-            <span title="估算 Token 消耗 (基于字符/分词启发式)">
-              约{' '}
+            <span title={t('textEditorEstTokens')}>
               <span className="text-[var(--theme-text-secondary)] font-semibold">{stats.tokens.toLocaleString()}</span>{' '}
-              Tokens
+              {t('textEditorEstTokens')}
             </span>
           </div>
 
@@ -221,10 +221,10 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
                 type="button"
                 onClick={handleReset}
                 className={`px-3 py-1.5 text-xs font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] rounded-lg transition-colors flex items-center gap-1.5 ${FOCUS_VISIBLE_RING_SECONDARY_OFFSET_CLASS}`}
-                title="还原到初始内容"
+                title={t('textEditorReset')}
               >
                 <RotateCcw size={13} />
-                <span className="hidden sm:inline">还原</span>
+                <span className="hidden sm:inline">{t('textEditorReset')}</span>
               </button>
             )}
 
@@ -233,19 +233,29 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
                 type="button"
                 onClick={handleClear}
                 className={`px-3 py-1.5 text-xs font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-danger)] hover:bg-[var(--theme-bg-tertiary)] rounded-lg transition-colors flex items-center gap-1.5 ${FOCUS_VISIBLE_RING_SECONDARY_OFFSET_CLASS}`}
-                title="清空所有内容"
+                title={t('textEditorClear')}
               >
                 <Eraser size={13} />
-                <span className="hidden sm:inline">清空</span>
+                <span className="hidden sm:inline">{t('textEditorClear')}</span>
               </button>
             )}
 
             <span className="hidden md:inline-block text-[11px] text-[var(--theme-text-tertiary)] select-none mr-1">
-              按{' '}
-              <kbd className="px-1.5 py-0.5 text-[10px] rounded bg-[var(--theme-bg-tertiary)] border border-[var(--theme-border-secondary)] font-mono">
-                Ctrl+Enter
-              </kbd>{' '}
-              保存
+              {(() => {
+                const parts = t('textEditorPressToSave').split('{shortcut}');
+                if (parts.length === 2) {
+                  return (
+                    <>
+                      {parts[0]}
+                      <kbd className="px-1.5 py-0.5 text-[10px] rounded bg-[var(--theme-bg-tertiary)] border border-[var(--theme-border-secondary)] font-mono">
+                        Ctrl+Enter
+                      </kbd>
+                      {parts[1]}
+                    </>
+                  );
+                }
+                return interpolate(t('textEditorPressToSave'), { shortcut: 'Ctrl+Enter' });
+              })()}
             </span>
 
             <button

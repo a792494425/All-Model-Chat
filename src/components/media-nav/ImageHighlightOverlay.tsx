@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMediaNavStore, type ImageNavHighlight } from '@/stores/mediaNavStore';
+import { useI18n } from '@/contexts/I18nContext';
 
 export interface ImageHighlightOverlayProps {
   highlight?: ImageNavHighlight | null;
@@ -26,6 +27,7 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
   onClose,
   onSelectHighlight,
 }) => {
+  const { t } = useI18n();
   const storeHighlights = useMediaNavStore((state) => state.imageHighlights);
   const highlights = propHighlights || (storeHighlights.length > 0 ? storeHighlights : highlight ? [highlight] : []);
   const activeHighlight = highlight || highlights.find((h) => h.isActive) || highlights[0] || null;
@@ -153,7 +155,7 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
   };
 
   const arrowConfig = showPoint ? getArrowTransform() : null;
-  const baseText = label || snippet || '目标定位';
+  const baseText = label || snippet || t('imageNavDefaultTarget');
   const displayText = highlights.length > 1 ? `[${activeItemIndex}] ${baseText}` : baseText;
 
   // Badge positioning anchor: prefer target point when point is displayed, otherwise top center of bounding box
@@ -172,7 +174,7 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
           className="absolute top-3 right-3 z-30 pointer-events-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900/90 backdrop-blur-md border border-white/20 text-white text-xs font-mono shadow-2xl select-none"
           style={{ transform: `scale(${counterScale})`, transformOrigin: 'top right' }}
         >
-          <span className="text-[10px] text-zinc-400 font-sans">目标</span>
+          <span className="text-[10px] text-zinc-400 font-sans">{t('imageNavTargetLabel')}</span>
           <span className="font-bold text-red-400">{activeItemIndex}</span>
           <span className="text-zinc-500">/</span>
           <span className="text-zinc-300">{highlights.length}</span>
@@ -183,8 +185,8 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
               handleStep(-1);
             }}
             className="p-0.5 rounded hover:bg-white/20 text-zinc-300 hover:text-white transition-colors cursor-pointer"
-            aria-label="上一个目标"
-            title="上一个目标"
+            aria-label={t('imageNavPrevTarget')}
+            title={t('imageNavPrevTarget')}
             data-testid="image-highlight-prev"
           >
             <ChevronLeft size={13} />
@@ -196,8 +198,8 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
               handleStep(1);
             }}
             className="p-0.5 rounded hover:bg-white/20 text-zinc-300 hover:text-white transition-colors cursor-pointer"
-            aria-label="下一个目标"
-            title="下一个目标"
+            aria-label={t('imageNavNextTarget')}
+            title={t('imageNavNextTarget')}
             data-testid="image-highlight-next"
           >
             <ChevronRight size={13} />
@@ -228,7 +230,7 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
               }}
               className="absolute rounded border border-dashed border-red-400/60 bg-red-500/[0.04] hover:bg-red-500/[0.16] hover:border-red-500 cursor-pointer pointer-events-auto transition-all group/box shadow-sm"
               style={{ top: `${top}%`, left: `${left}%`, width: `${width}%`, height: `${height}%` }}
-              title={`目标 [${itemIdx}]: ${h.label || h.snippet || ''}`}
+              title={`${t('imageNavTargetLabel')} [${itemIdx}]: ${h.label || h.snippet || ''}`}
             >
               <div
                 className="absolute -top-2 -left-2 w-4 h-4 rounded-full bg-red-600/90 text-white text-[9px] font-bold flex items-center justify-center shadow-md border border-white/40 group-hover/box:scale-110 group-hover/box:bg-red-500 transition-all"
@@ -254,7 +256,7 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
               }}
               className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto group/pt"
               style={{ top: `${top}%`, left: `${left}%` }}
-              title={`目标 [${itemIdx}]: ${h.label || h.snippet || ''}`}
+              title={`${t('imageNavTargetLabel')} [${itemIdx}]: ${h.label || h.snippet || ''}`}
             >
               <div
                 className="w-4 h-4 rounded-full bg-red-600/80 hover:bg-red-500 text-white text-[9px] font-bold flex items-center justify-center shadow-md border border-white/40 group-hover/pt:scale-125 transition-all"
@@ -365,8 +367,8 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
             type="button"
             onClick={handleClose}
             className="ml-1 p-0.5 rounded text-white/50 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
-            title="关闭标注"
-            aria-label="关闭标注"
+            title={t('imageNavCloseHighlight')}
+            aria-label={t('imageNavCloseHighlight')}
             data-testid="image-highlight-close"
           >
             <X size={11} strokeWidth={2} />

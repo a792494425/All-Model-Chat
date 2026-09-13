@@ -3,7 +3,6 @@ import { buildContentParts } from '@/utils/chat/builder';
 import { isServerCodeExecutionMode } from '@/utils/codeExecution';
 import { getModelCapabilities, bansModelTurnPrefill } from '@/utils/model/modelCapabilities';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
-import { getLiveArtifactsSystemPromptOverride } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
 import { getLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
 import { resolveAppLanguage } from '@/i18n/languageRegistry';
 import type { UploadedFile } from '@/types';
@@ -87,11 +86,7 @@ export const sendStandardMessage = async ({
   const preferCodeExecutionFileInputs = isServerCodeExecutionMode(settingsForApi);
 
   const appLanguage = resolveAppLanguage(appSettings.language);
-  const customLiveArtifactsPrompt = getLiveArtifactsSystemPromptOverride(
-    appSettings,
-    appSettings.liveArtifactsPromptMode,
-  );
-  const directive = customLiveArtifactsPrompt?.trim() || getLiveArtifactsUserDirective(appLanguage);
+  const directive = getLiveArtifactsUserDirective(appLanguage);
 
   const isVisualFormattingActive = Boolean(settingsForApi.isVisualFormattingActive);
   let effectiveUserText = textToUse.trim();

@@ -500,9 +500,9 @@ describe('ProviderDetail', () => {
       });
 
       // Check badges exist
-      expect(renderer.container.textContent).toContain('Thinking');
-      expect(renderer.container.textContent).toContain('Free');
-      expect(renderer.container.textContent).toContain('Image');
+      expect(renderer.container.textContent).toMatch(/Thinking|思考/);
+      expect(renderer.container.textContent).toMatch(/Free|免费/);
+      expect(renderer.container.textContent).toMatch(/Image|生图/);
 
       // Check capability filter buttons exist
       const buttons = Array.from(renderer.container.querySelectorAll('button'));

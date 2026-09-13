@@ -245,12 +245,12 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
           </div>
 
           {onTogglePictureInPicture && (
-            <Tooltip variant="dark" text="画中画 (P)" asChild>
+            <Tooltip variant="dark" text={`${t('videoPictureInPicture')} (P)`} asChild>
               <button
                 type="button"
                 onClick={onTogglePictureInPicture}
                 className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 text-white transition-all active:scale-95 cursor-pointer"
-                aria-label="画中画"
+                aria-label={t('videoPictureInPicture')}
               >
                 <PictureInPicture size={16} />
               </button>

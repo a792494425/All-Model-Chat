@@ -211,17 +211,18 @@ export const performStandardChatApiCall = async ({
   const isVisualFormattingActive = Boolean(sessionToUpdate.isVisualFormattingActive);
   const finalParts =
     isVisualFormattingActive && finalRole === 'user' && !isContinueMode
-      ? applyLiveArtifactsUserDirective(turnFinalParts, appLanguage, customLiveArtifactsPrompt)
+      ? applyLiveArtifactsUserDirective(turnFinalParts, appLanguage)
       : turnFinalParts;
 
   const isLiveArtifactsActive = isLiveArtifactsModeFromSettings({
     isLiveArtifactsEnabled: sessionToUpdate.isLiveArtifactsEnabled,
+    isVisualFormattingActive,
     systemInstruction: sessionToUpdate.systemInstruction,
     promptMode: appSettings.liveArtifactsPromptMode,
     liveArtifactsSystemPrompt: appSettings.liveArtifactsSystemPrompt,
     liveArtifactsSystemPrompts: appSettings.liveArtifactsSystemPrompts,
   });
-  const shouldIncludeLiveArtifactsInSystemInstruction = isLiveArtifactsActive && !isVisualFormattingActive;
+  const shouldIncludeLiveArtifactsInSystemInstruction = isLiveArtifactsActive || isVisualFormattingActive;
 
   const alwaysKeepThinking =
     sessionToUpdate.alwaysKeepThinkingInContext ?? appSettings.alwaysKeepThinkingInContext ?? false;
@@ -704,7 +705,7 @@ export const performStandardChatApiCall = async ({
             });
             const turnFinalParts =
               isVisualFormattingActive && finalRole === 'user' && !isContinueMode
-                ? applyLiveArtifactsUserDirective(rawRetryParts, appLanguage, customLiveArtifactsPrompt)
+                ? applyLiveArtifactsUserDirective(rawRetryParts, appLanguage)
                 : rawRetryParts;
 
             const targetIdentifier = extractFilesApiIdentifierFromError(error);

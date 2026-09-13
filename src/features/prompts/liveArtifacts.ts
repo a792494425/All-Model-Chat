@@ -206,7 +206,7 @@ Example (branch + lanes):
 - No hex/rgb or penwidth/arrowsize/fontname/margin; shape only box/ellipse/diamond; style only dashed; parallel branches use cluster_*
 `;
 
-const LIVE_ARTIFACTS_USER_DIRECTIVE_ZH = `请使用 Live Artifacts，将以下内容呈现为结构化、响应式的精美 HTML 卡片，并保留所有重要信息：`;
+const LIVE_ARTIFACTS_USER_DIRECTIVE_ZH = `请使用 Live Artifacts，将提供的信息整理成结构化、响应式的 HTML 作品。请保留所有重要信息：`;
 
 const LIVE_ARTIFACTS_USER_DIRECTIVE_EN = `Please use Live Artifacts to present the following content as a structured, responsive, and elegant HTML card, while preserving all important information:`;
 
@@ -219,6 +219,7 @@ export const stripLiveArtifactsUserDirective = (text: string): string => {
   const knownDirectives = [
     LIVE_ARTIFACTS_USER_DIRECTIVE_ZH,
     LIVE_ARTIFACTS_USER_DIRECTIVE_EN,
+    '请使用 Live Artifacts，将以下内容呈现为结构化、响应式的精美 HTML 卡片，并保留所有重要信息：',
     '请使用 Live Artifacts，将提供的信息整理成结构化、响应式的 HTML 作品。请保留所有重要信息：',
     '请使用 Live Artifacts，将提供的信息整理成结构化、响应式的 HTML 产物。请保留所有重要信息：',
     '请使用 Live Artifacts，将提供的信息整理成结构化、响应式的 HTML 作品：',

@@ -23,14 +23,15 @@ import {
 } from '@/constants/buttonClasses';
 import { Toggle } from '@/components/shared/Toggle';
 import { copyTextToClipboard } from '@/utils/clipboard';
-import { toastSuccess } from '@/stores/toastStore';
+import { toastError, toastSuccess } from '@/stores/toastStore';
 import { ProviderAvatar } from './ProviderAvatar';
 import { getOrInferModelCapabilities } from '@/utils/model/knownModelsCatalog';
 
 export interface ModelConfigModalProps {
   isOpen: boolean;
   model: ModelOption | null;
-  protocol?: ThirdPartyApiProtocol;
+  protocol?: ThirdPartyApiProtocol | 'gemini';
+  existingModelIds?: string[];
   onClose: () => void;
   onSave: (updates: Partial<ModelOption>) => void;
 }
@@ -47,10 +48,12 @@ const CONTEXT_WINDOW_PRESETS = [
 export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
   isOpen,
   model,
-  protocol = 'openai-compatible',
+  protocol,
+  existingModelIds = [],
   onClose,
   onSave,
 }) => {
+
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabType>('info');
   const [copiedId, setCopiedId] = useState(false);
@@ -131,10 +134,22 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
   };
 
   const handleSave = () => {
+    const trimmedId = id.trim();
+    if (!trimmedId) {
+      toastError(t('settingsModelConfigIdRequired') || 'Model ID is required');
+      return;
+    }
+
+    if (trimmedId !== model.id && existingModelIds.includes(trimmedId)) {
+      toastError(t('settingsModelConfigIdConflict') || 'A model with this ID already exists');
+      return;
+    }
+
     const trimmedStops = stopSequencesStr
       .split(/[,，\n]+/)
       .map((s) => s.trim())
       .filter(Boolean);
+
 
     const params: ModelParameters = {};
     if (typeof temperature === 'number' && !isNaN(temperature)) params.temperature = temperature;
@@ -333,12 +348,12 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 select-none">
                   {[
-                    { key: 'vision', label: 'Vision', icon: Eye },
-                    { key: 'tools', label: 'Tools (MCP)', icon: Wrench },
-                    { key: 'thinking', label: 'Thinking', icon: Lightbulb },
-                    { key: 'audio', label: 'Audio', icon: Headphones },
-                    { key: 'image', label: 'Image Gen', icon: ImageIcon },
-                    { key: 'webSearch', label: 'Web Search', icon: Globe },
+                    { key: 'vision', label: t('thirdPartyCapabilityVision') || 'Vision', icon: Eye },
+                    { key: 'tools', label: t('thirdPartyCapabilityTools') || 'Tools (MCP)', icon: Wrench },
+                    { key: 'thinking', label: t('thirdPartyCapabilityThinking') || 'Thinking', icon: Lightbulb },
+                    { key: 'audio', label: t('thirdPartyCapabilityAudio') || 'Audio', icon: Headphones },
+                    { key: 'image', label: t('thirdPartyCapabilityImage') || 'Image Gen', icon: ImageIcon },
+                    { key: 'webSearch', label: t('thirdPartyCapabilityWebSearch') || 'Web Search', icon: Globe },
                   ].map(({ key, label, icon: Icon }) => {
                     const isChecked = Boolean(capabilities[key as keyof ModelCapabilities]);
                     return (
@@ -474,7 +489,11 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 font-semibold text-[var(--theme-text-primary)]">
                     <Sparkles size={14} className="text-amber-500" />
-                    <span>{isOpenAI ? 'Reasoning Effort' : 'Thinking Budget Tokens'}</span>
+                    <span>
+                      {isOpenAI
+                        ? (t('settingsModelConfigReasoningEffort') || 'Reasoning Effort')
+                        : (t('settingsModelConfigThinkingBudget') || 'Thinking Budget Tokens')}
+                    </span>
                   </div>
                   <span className="text-[11px] font-mono text-[var(--theme-text-secondary)]">
                     {isOpenAI
@@ -488,10 +507,10 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                 {isOpenAI ? (
                   <div className="grid grid-cols-4 gap-1.5">
                     {[
-                      { id: undefined, label: 'Default' },
-                      { id: 'low' as const, label: 'Low' },
-                      { id: 'medium' as const, label: 'Medium' },
-                      { id: 'high' as const, label: 'High' },
+                      { id: undefined, label: t('settingsModelConfigEffortDefault') || 'Default' },
+                      { id: 'low' as const, label: t('settingsModelConfigEffortLow') || 'Low' },
+                      { id: 'medium' as const, label: t('settingsModelConfigEffortMedium') || 'Medium' },
+                      { id: 'high' as const, label: t('settingsModelConfigEffortHigh') || 'High' },
                     ].map((item) => {
                       const isSelected = reasoningEffort === item.id;
                       return (

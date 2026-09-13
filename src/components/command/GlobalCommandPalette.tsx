@@ -1,6 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useUIStore } from '@/stores/uiStore';
 import { useChatStore } from '@/stores/chatStore';
+import { useModelPreferencesStore } from '@/stores/modelPreferencesStore';
+import { useI18n } from '@/contexts/I18nContext';
+import { interpolate } from '@/i18n/interpolate';
 import { sortSessionsByRecency } from './sessionRecency';
 import { toast } from 'sonner';
 import {
@@ -51,6 +54,7 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
   onOpenExportModal,
   onClearCurrentChat,
 }) => {
+  const { t } = useI18n();
   const isMac = isMacPlatform();
   const modKey = isMac ? '⌘' : 'Ctrl';
 
@@ -65,6 +69,23 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
   const activeSessionId = useChatStore((state) => state.activeSessionId);
   const setActiveSessionId = useChatStore((state) => state.setActiveSessionId);
   const setCurrentChatSettings = useChatStore((state) => state.setCurrentChatSettings);
+  const customModels = useModelPreferencesStore((state) => state.customModels);
+
+  const availableModels = useMemo(() => {
+    if (customModels && customModels.length > 0) {
+      const visibleModels = customModels.filter((m) => m.visibleInSelector !== false);
+      const pinned = visibleModels.filter((m) => m.isPinned);
+      const unpinned = visibleModels.filter((m) => !m.isPinned);
+      const combined = [...pinned, ...unpinned];
+      return combined.slice(0, 8).map((m) => ({
+        id: m.id,
+        name: m.name || m.id,
+        provider: m.connectionName || m.providerId || (m as { provider?: string }).provider || 'AI',
+        badge: m.isPinned ? 'Pinned' : (m.capabilities?.thinking ? 'Reasoning' : 'Model'),
+      }));
+    }
+    return COMMON_MODELS;
+  }, [customModels]);
 
   // Global keyboard shortcuts listener
   useEffect(() => {
@@ -99,7 +120,7 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
     runCommand(() => {
       setActiveSessionId(sessionId);
       const session = savedSessions.find((s) => s.id === sessionId);
-      toast.success(session?.title || '已切换至该会话');
+      toast.success(session?.title || t('commandSwitchedSession'));
     });
   };
 
@@ -108,7 +129,7 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
       if (typeof setCurrentChatSettings === 'function') {
         setCurrentChatSettings((prev) => ({ ...prev, modelId }));
       }
-      toast.success(`已切换模型: ${modelName}`);
+      toast.success(interpolate(t('commandSwitchedModel'), { name: modelName }));
     });
   };
 
@@ -118,44 +139,44 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
 
   return (
     <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
-      <CommandInput placeholder={`搜索会话、切换模型或输入指令 (${modKey}K / ${modKey}⇧P)...`} />
+      <CommandInput placeholder={interpolate(t('commandPalettePlaceholder'), { key: modKey })} />
       <CommandList>
-        <CommandEmpty>未找到匹配项</CommandEmpty>
+        <CommandEmpty>{t('commandPaletteEmpty')}</CommandEmpty>
 
-        <CommandGroup heading="常用操作">
+        <CommandGroup heading={t('commandGroupCommon')}>
           <CommandItem
-            value="new chat 新建聊天"
+            value={`new chat ${t('commandNewChat')}`}
             onSelect={() =>
               runCommand(() => {
                 if (onNewChat) onNewChat();
                 else setActiveSessionId(null);
-                toast.success('已新建会话');
+                toast.success(t('commandCreatedSession'));
               })
             }
           >
             <Plus className="text-[var(--theme-text-link)]" />
-            <span>新建聊天</span>
+            <span>{t('commandNewChat')}</span>
             <CommandShortcut>{modKey}⇧O</CommandShortcut>
           </CommandItem>
 
-          <CommandItem value="toggle sidebar 切换侧边栏" onSelect={() => runCommand(() => toggleHistorySidebar())}>
+          <CommandItem value={`toggle sidebar ${t('commandToggleSidebar')}`} onSelect={() => runCommand(() => toggleHistorySidebar())}>
             <FolderKanban className="text-[var(--theme-text-secondary)]" />
-            <span>展开/收起侧边栏</span>
+            <span>{t('commandToggleSidebar')}</span>
             <CommandShortcut>{modKey}B</CommandShortcut>
           </CommandItem>
 
           {onOpenExportModal && (
-            <CommandItem value="export chat 导出对话 markdown" onSelect={() => runCommand(onOpenExportModal)}>
+            <CommandItem value={`export chat ${t('commandExportChat')}`} onSelect={() => runCommand(onOpenExportModal)}>
               <Download className="text-[var(--theme-text-secondary)]" />
-              <span>导出当前对话</span>
+              <span>{t('commandExportChat')}</span>
               <CommandShortcut>{modKey}E</CommandShortcut>
             </CommandItem>
           )}
 
           {onClearCurrentChat && (
-            <CommandItem value="clear current chat 清空上下文" onSelect={() => runCommand(onClearCurrentChat)}>
+            <CommandItem value={`clear current chat ${t('commandClearChat')}`} onSelect={() => runCommand(onClearCurrentChat)}>
               <Trash2 className="text-[var(--theme-icon-error)]" />
-              <span>清空当前上下文</span>
+              <span>{t('commandClearChat')}</span>
               <CommandShortcut>/clear</CommandShortcut>
             </CommandItem>
           )}
@@ -165,11 +186,11 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
 
         {recentSessions.length > 0 && (
           <>
-            <CommandGroup heading="历史会话快速跳转">
+            <CommandGroup heading={t('commandGroupRecent')}>
               {recentSessions.map((s) => (
                 <CommandItem key={s.id} value={`session ${s.title} ${s.id}`} onSelect={() => handleSelectSession(s.id)}>
                   <MessageSquare className="text-[var(--theme-text-secondary)] shrink-0" />
-                  <span className="truncate flex-1">{s.title || '新会话'}</span>
+                  <span className="truncate flex-1">{s.title || t('newChat')}</span>
                   {s.id === activeSessionId && (
                     <Check className="ml-auto h-3.5 w-3.5 text-[var(--theme-text-link)] shrink-0" />
                   )}
@@ -181,8 +202,8 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
           </>
         )}
 
-        <CommandGroup heading="切换 AI 模型">
-          {COMMON_MODELS.map((model) => {
+        <CommandGroup heading={t('commandGroupModels')}>
+          {availableModels.map((model) => {
             const isSelected = activeModelId.includes(model.id) || activeModelId.includes(model.name.toLowerCase());
             return (
               <CommandItem
@@ -205,78 +226,78 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
 
         <CommandSeparator />
 
-        <CommandGroup heading="工具与增强能力">
+        <CommandGroup heading={t('commandGroupTools')}>
           <CommandItem
-            value="web search online 实时联网搜索"
+            value={`web search online ${t('commandWebSearch')}`}
             onSelect={() =>
               runCommand(() => {
-                toast.info('可通过输入框底栏或 /online 快捷开关联网搜索');
+                toast.info(t('commandWebSearchTip'));
               })
             }
           >
             <Globe className="text-[var(--theme-text-secondary)]" />
-            <span>联网搜索增强</span>
+            <span>{t('commandWebSearch')}</span>
             <CommandShortcut>/online</CommandShortcut>
           </CommandItem>
 
           <CommandItem
-            value="deep thinking reasoning 深度思考模式"
+            value={`deep thinking reasoning ${t('commandDeepThinking')}`}
             onSelect={() =>
               runCommand(() => {
-                toast.info('可通过输入框底栏或 /deep 快捷切换深度思考');
+                toast.info(t('commandDeepThinkingTip'));
               })
             }
           >
             <Brain className="text-[var(--theme-text-secondary)]" />
-            <span>深度思考推理模式</span>
+            <span>{t('commandDeepThinking')}</span>
             <CommandShortcut>/deep</CommandShortcut>
           </CommandItem>
 
           <CommandItem
-            value="code execution python 代码执行器"
+            value={`code execution python ${t('commandCodeExecution')}`}
             onSelect={() =>
               runCommand(() => {
-                toast.info('可通过输入框底栏或 /code 开启代码沙箱');
+                toast.info(t('commandCodeExecutionTip'));
               })
             }
           >
             <Code2 className="text-[var(--theme-text-secondary)]" />
-            <span>代码执行器 (Python 沙箱)</span>
+            <span>{t('commandCodeExecution')}</span>
             <CommandShortcut>/code</CommandShortcut>
           </CommandItem>
 
           <CommandItem
-            value="google maps location 地图定位"
+            value={`google maps location ${t('commandMapsLocation')}`}
             onSelect={() =>
               runCommand(() => {
-                toast.info('可通过输入框底栏或 /maps 配置地理位置');
+                toast.info(t('commandMapsLocationTip'));
               })
             }
           >
             <MapPinned className="text-[var(--theme-text-secondary)]" />
-            <span>Google 地图位置检索</span>
+            <span>{t('commandMapsLocation')}</span>
             <CommandShortcut>/maps</CommandShortcut>
           </CommandItem>
 
           <CommandItem
-            value="url context web extract 网页抓取提取"
+            value={`url context web extract ${t('commandUrlContext')}`}
             onSelect={() =>
               runCommand(() => {
-                toast.info('可通过输入框底栏或 /url 批量抓取网页内容');
+                toast.info(t('commandUrlContextTip'));
               })
             }
           >
             <LinkIcon className="text-[var(--theme-text-secondary)]" />
-            <span>网页 URL 深度提取</span>
+            <span>{t('commandUrlContext')}</span>
             <CommandShortcut>/url</CommandShortcut>
           </CommandItem>
         </CommandGroup>
 
         <CommandSeparator />
 
-        <CommandGroup heading="系统导航与设置">
+        <CommandGroup heading={t('commandGroupNav')}>
           <CommandItem
-            value="open settings 打开设置"
+            value={`open settings ${t('commandOpenSettings')}`}
             onSelect={() =>
               runCommand(() => {
                 setIsSettingsModalOpen(true);
@@ -284,25 +305,25 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
             }
           >
             <Settings className="text-[var(--theme-text-secondary)]" />
-            <span>打开设置面板</span>
+            <span>{t('commandOpenSettings')}</span>
             <CommandShortcut>{modKey},</CommandShortcut>
           </CommandItem>
 
           <CommandItem
-            value="switch to library 知识库 媒体库"
+            value={`switch to library ${t('commandOpenLibrary')}`}
             onSelect={() =>
               runCommand(() => {
                 setActiveView('library');
-                toast.success('已切换至媒体库');
+                toast.success(t('commandSwitchedLibrary'));
               })
             }
           >
             <FolderKanban className="text-[var(--theme-text-secondary)]" />
-            <span>打开知识库与媒体库</span>
+            <span>{t('commandOpenLibrary')}</span>
           </CommandItem>
 
           <CommandItem
-            value="open log viewer 查看日志 token 统计"
+            value={`open log viewer ${t('commandOpenLogViewer')}`}
             onSelect={() =>
               runCommand(() => {
                 setIsLogViewerOpen(true);
@@ -310,7 +331,7 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
             }
           >
             <BarChart2 className="text-[var(--theme-text-secondary)]" />
-            <span>查看 API 与 Token 统计日志</span>
+            <span>{t('commandOpenLogViewer')}</span>
             <CommandShortcut>{modKey}⌥L</CommandShortcut>
           </CommandItem>
         </CommandGroup>

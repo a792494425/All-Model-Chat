@@ -135,7 +135,7 @@ describe('VideoPlayer', () => {
     renderer.render(<VideoPlayer ref={playerRef} src="blob:mock-video-url" />);
 
     expect(typeof playerRef.current?.togglePictureInPicture).toBe('function');
-    const pipBtn = renderer.container.querySelector('button[aria-label="画中画"]');
+    const pipBtn = renderer.container.querySelector('button[aria-label="画中画"], button[aria-label="Picture in Picture"]');
     expect(pipBtn).not.toBeNull();
 
     act(() => {

@@ -331,7 +331,7 @@ export const messagesTranslations = {
   },
   suggestionHtmlDesc: {
     en: 'Please use Live Artifacts to present the following content as a structured, responsive, and elegant HTML card, while preserving all important information:',
-    zh: '请使用 Live Artifacts，将以下内容呈现为结构化、响应式的精美 HTML 卡片，并保留所有重要信息：',
+    zh: '请使用 Live Artifacts，将提供的信息整理成结构化、响应式的 HTML 作品。请保留所有重要信息：',
     ja: 'Live Artifacts を使用して、以下の内容を構造化されたレスポンシブで洗練された HTML カードとして提示し、すべての重要な情報を保持してください：',
     de: 'Bitte verwende Live Artifacts, um die folgenden Inhalte als strukturierte, responsive und ansprechende HTML-Karte darzustellen und alle wichtigen Informationen beizubehalten:',
     fr: 'Veuillez utiliser Live Artifacts pour présenter le contenu suivant sous forme de carte HTML structurée, réactive et élégante, tout en conservant toutes les informations importantes :',

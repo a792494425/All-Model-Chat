@@ -46,4 +46,31 @@ describe('GeminiProviderDetail', () => {
       expect.arrayContaining([expect.objectContaining({ id: 'gemini-2.5-flash', visibleInSelector: false })]),
     );
   });
+
+  it('allows configuring thinking budget tokens instead of reasoning effort', () => {
+    render(
+      <GeminiProviderDetail
+        settings={{ apiKey: 'test-key', useCustomApiConfig: true } as any}
+        onUpdateSettings={vi.fn()}
+      />,
+    );
+
+    const configButtons = screen.getAllByTitle(/model configuration|settingsmodelconfigtitle/i);
+    fireEvent.click(configButtons[0]);
+
+
+
+
+    const paramTab = screen.getByRole('tab', { name: /params|generation|reasoning/i });
+    fireEvent.click(paramTab);
+
+    expect(screen.getByText(/Thinking Budget Tokens|思考预算/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Reasoning Effort/i)).not.toBeInTheDocument();
+  });
 });
+
+
+
+
+
+

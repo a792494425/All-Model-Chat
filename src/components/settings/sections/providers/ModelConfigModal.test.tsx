@@ -68,4 +68,46 @@ describe('ModelConfigModal', () => {
       }),
     );
   });
+
+  it('prevents saving when model ID conflicts with another existing model ID', () => {
+    const handleSave = vi.fn();
+    render(
+      <ModelConfigModal
+        isOpen={true}
+        model={mockModel}
+        existingModelIds={['gpt-4o', 'existing-model-2']}
+        onClose={vi.fn()}
+        onSave={handleSave}
+      />,
+    );
+
+    const idInput = screen.getByDisplayValue('gpt-4o');
+    fireEvent.change(idInput, { target: { value: 'existing-model-2' } });
+
+    const saveBtn = screen.getByRole('button', { name: /save|保存/i });
+    fireEvent.click(saveBtn);
+
+    expect(handleSave).not.toHaveBeenCalled();
+  });
+
+  it('prevents saving when model ID is blank', () => {
+    const handleSave = vi.fn();
+    render(
+      <ModelConfigModal
+        isOpen={true}
+        model={mockModel}
+        existingModelIds={['gpt-4o']}
+        onClose={vi.fn()}
+        onSave={handleSave}
+      />,
+    );
+
+    const idInput = screen.getByDisplayValue('gpt-4o');
+    fireEvent.change(idInput, { target: { value: '   ' } });
+
+    const saveBtn = screen.getByRole('button', { name: /save|保存/i });
+    fireEvent.click(saveBtn);
+
+    expect(handleSave).not.toHaveBeenCalled();
+  });
 });

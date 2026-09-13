@@ -376,6 +376,7 @@ export type MessageAppSettings = Pick<
   | 'liveArtifactsCustomFontSize'
   | 'systemInstruction'
   | 'isLiveArtifactsEnabled'
+  | 'isVisualFormattingActive'
   | 'liveArtifactsPromptMode'
   | 'liveArtifactsSystemPrompt'
   | 'liveArtifactsSystemPrompts'

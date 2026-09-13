@@ -195,7 +195,7 @@ export const ImageVisualCropper: React.FC<ImageVisualCropperProps> = ({
   const handleCopyTag = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirmedBox) return;
-    const tag = `<image-locate file="${fileName}" box="[${confirmedBox.join(',')}]">请问这里的具体情况是？</image-locate>`;
+    const tag = `<image-locate file="${fileName}" box="[${confirmedBox.join(',')}]">${t('imageLocatePromptQuery')}</image-locate>`;
     void copyTextToClipboard(tag);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

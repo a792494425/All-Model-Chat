@@ -103,7 +103,7 @@ export const ProviderModelRow: React.FC<ProviderModelRowProps> = ({
 
             {caps.free && (
               <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
-                Free
+                {t('thirdPartyCapabilityFree') || 'Free'}
               </span>
             )}
             {model.contextWindow && (
@@ -113,22 +113,22 @@ export const ProviderModelRow: React.FC<ProviderModelRowProps> = ({
             )}
             {(caps.thinking || isThinking) && (
               <span className="px-1.5 py-0.2 rounded text-[9px] font-medium bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/25">
-                Thinking
+                {t('thirdPartyCapabilityThinking') || 'Thinking'}
               </span>
             )}
             {caps.vision && (
               <span className="px-1 py-0.2 rounded text-[9px] font-medium bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
-                Vision
+                {t('thirdPartyCapabilityVision') || 'Vision'}
               </span>
             )}
             {caps.image && (
               <span className="px-1 py-0.2 rounded text-[9px] font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25">
-                Image
+                {t('thirdPartyCapabilityImage') || 'Image'}
               </span>
             )}
             {caps.audio && (
               <span className="px-1 py-0.2 rounded text-[9px] font-medium bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">
-                Audio
+                {t('thirdPartyCapabilityAudio') || 'Audio'}
               </span>
             )}
 

@@ -140,14 +140,16 @@ export const InlineTimestampSeekButton: React.FC<InlineTimestampSeekButtonProps>
           {formatTimestamp(startSeconds)}
           {endSeconds ? ` - ${formatTimestamp(endSeconds)}` : ''}
         </span>
-        <span className="text-[10px] text-[var(--theme-text-tertiary)] font-sans">({isAudio ? '音频' : '视频'})</span>
+        <span className="text-[10px] text-[var(--theme-text-tertiary)] font-sans">
+          ({isAudio ? t('audioNavLabel') : t('videoNavLabel')})
+        </span>
       </div>
       {annotation?.snippet && (
         <div className="text-[var(--theme-text-primary)] text-[11px] leading-tight font-normal line-clamp-2">
           {annotation.snippet}
         </div>
       )}
-      <div className="text-[10px] text-[var(--theme-text-tertiary)] mt-0.5">点击跳转播放</div>
+      <div className="text-[10px] text-[var(--theme-text-tertiary)] mt-0.5">{t('mediaNavClickToSeek')}</div>
     </div>
   );
 

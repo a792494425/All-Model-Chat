@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { MapPin } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
+import { interpolate } from '@/i18n/interpolate';
 import { seekSessionPdf } from '@/utils/media-nav/seekPdf';
 import { extractTextFromNode } from '@/utils/reactNodeText';
 import { useMediaNavStore } from '@/stores/mediaNavStore';
@@ -93,7 +94,7 @@ export const InlinePdfLocateButton: React.FC<InlinePdfLocateButtonProps> = ({
     <div className="flex flex-col gap-1 max-w-[220px] text-xs select-none">
       <div className="flex items-center gap-1.5 font-semibold text-[var(--theme-text-primary)]">
         <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-        <span>第 {pageNumber} 页</span>
+        <span>{interpolate(t('pdfNavPageLabel'), { page: pageNumber })}</span>
         {docName && (
           <span className="text-[10px] text-[var(--theme-text-tertiary)] truncate font-normal">({docName})</span>
         )}
@@ -116,10 +117,10 @@ export const InlinePdfLocateButton: React.FC<InlinePdfLocateButtonProps> = ({
               }}
             />
           </div>
-          <span className="text-[10px] text-[var(--theme-text-tertiary)] opacity-80">区域定位 · 点击展开</span>
+          <span className="text-[10px] text-[var(--theme-text-tertiary)] opacity-80">{t('pdfNavRegionLocate')}</span>
         </div>
       )}
-      {!box2d && <div className="text-[10px] text-[var(--theme-text-tertiary)] opacity-80 mt-0.5">点击跳转阅读</div>}
+      {!box2d && <div className="text-[10px] text-[var(--theme-text-tertiary)] opacity-80 mt-0.5">{t('pdfNavClickToJump')}</div>}
     </div>
   );
 

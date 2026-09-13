@@ -110,6 +110,8 @@ export const MessageText: React.FC<MessageTextProps> = ({
     () =>
       isLiveArtifactsModeFromSettings({
         isLiveArtifactsEnabled: activeSession?.settings.isLiveArtifactsEnabled ?? appSettings.isLiveArtifactsEnabled,
+        isVisualFormattingActive:
+          activeSession?.settings.isVisualFormattingActive ?? appSettings.isVisualFormattingActive,
         systemInstruction: currentChatSettingsSystemInstruction,
         promptMode: appSettings.liveArtifactsPromptMode,
         liveArtifactsSystemPrompt: appSettings.liveArtifactsSystemPrompt,
@@ -117,7 +119,9 @@ export const MessageText: React.FC<MessageTextProps> = ({
       }),
     [
       activeSession?.settings.isLiveArtifactsEnabled,
+      activeSession?.settings.isVisualFormattingActive,
       appSettings.isLiveArtifactsEnabled,
+      appSettings.isVisualFormattingActive,
       appSettings.liveArtifactsPromptMode,
       appSettings.liveArtifactsSystemPrompt,
       appSettings.liveArtifactsSystemPrompts,

@@ -4,6 +4,8 @@ import type { UploadedFile } from '@/types';
 import * as XLSX from 'xlsx';
 import { copyTextToClipboard } from '@/utils/clipboard';
 import { GoogleSpinner } from '@/components/icons/GoogleSpinner';
+import { useI18n } from '@/contexts/I18nContext';
+import { interpolate } from '@/i18n/interpolate';
 import {
   AlertCircle,
   FileSpreadsheet,
@@ -22,6 +24,7 @@ interface SpreadsheetViewerProps {
 }
 
 export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) => {
+  const { t } = useI18n();
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
   const [activeSheetName, setActiveSheetName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
@@ -241,7 +244,7 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
                 key={colIdx}
                 onClick={() => handleSort(colIdx)}
                 className="px-3 py-1 border-r border-[var(--theme-border-secondary)] font-normal text-center select-none bg-[var(--theme-bg-tertiary)]/20 hover:bg-[var(--theme-bg-tertiary)]/50 cursor-pointer transition-colors group min-w-[120px]"
-                title={`点击按列 ${getColLabel(colIdx)} 排序`}
+                title={interpolate(t('spreadsheetSortByColumn'), { column: getColLabel(colIdx) })}
               >
                 <div className="flex items-center justify-center gap-1">
                   <span>{getColLabel(colIdx)}</span>
@@ -278,7 +281,7 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
         )}
       </>
     );
-  }, [maxCols, sortCol, sortAsc, headerRow, handleSort]);
+  }, [maxCols, sortCol, sortAsc, headerRow, handleSort, t]);
 
   const itemContent = useCallback(
     (rowIdx: number, row: (string | number | boolean | null)[]) => {
@@ -311,7 +314,7 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
     return (
       <div className="w-full h-full flex flex-col items-center justify-center text-[var(--theme-text-secondary)] gap-3 bg-transparent">
         <GoogleSpinner size={36} />
-        <p className="text-sm font-medium">正在解析电子表格...</p>
+        <p className="text-sm font-medium">{t('spreadsheetParsing')}</p>
       </div>
     );
   }
@@ -320,7 +323,7 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
     return (
       <div className="w-full h-full flex flex-col items-center justify-center p-6 text-[var(--theme-text-danger)] gap-3 bg-transparent">
         <AlertCircle size={44} />
-        <p className="text-sm font-medium">{error || '无法读取该表格文件'}</p>
+        <p className="text-sm font-medium">{error || t('spreadsheetError')}</p>
       </div>
     );
   }
@@ -358,8 +361,8 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
         <div className="flex items-center gap-2.5 sm:gap-3 ml-auto">
           <span className="text-xs text-[var(--theme-text-tertiary)] font-mono whitespace-nowrap hidden sm:inline">
             {searchQuery.trim()
-              ? `已匹配 ${filteredBodyRows.length} / ${bodyRows.length} 行`
-              : `${bodyRows.length} 行 · ${maxCols} 列`}
+              ? interpolate(t('spreadsheetMatchedRows'), { count: filteredBodyRows.length, total: bodyRows.length })
+              : interpolate(t('spreadsheetDimensions'), { rows: bodyRows.length, cols: maxCols })}
           </span>
 
           <div className="relative flex items-center">
@@ -368,7 +371,7 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索表格内容..."
+              placeholder={t('spreadsheetSearchPlaceholder')}
               className="pl-8 pr-7 py-1 text-xs rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] text-[var(--theme-text-primary)] placeholder-[var(--theme-text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-border-focus)] w-32 sm:w-48 transition-all"
             />
             {searchQuery && (
@@ -376,7 +379,7 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
                 type="button"
                 onClick={() => setSearchQuery('')}
                 className="absolute right-2 text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] cursor-pointer"
-                title="清除搜索"
+                title={t('spreadsheetClearSearch')}
               >
                 <X size={12} />
               </button>
@@ -387,10 +390,10 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
             type="button"
             onClick={handleCopyAsCsv}
             className="px-2.5 py-1 text-xs rounded-lg border border-[var(--theme-border-secondary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-secondary)] transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
-            title="复制当前工作表为 CSV"
+            title={t('exportToCSV')}
           >
             {isCopiedCsv ? <Check size={13} className="text-green-500" /> : <Copy size={13} />}
-            <span className="hidden sm:inline">{isCopiedCsv ? '已复制' : '复制 CSV'}</span>
+            <span className="hidden sm:inline">{isCopiedCsv ? t('spreadsheetCopied') : t('spreadsheetCopyCsv')}</span>
           </button>
         </div>
       </div>
@@ -399,18 +402,18 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
         {rawRows.length === 0 ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-[var(--theme-text-tertiary)] gap-2">
             <FileSpreadsheet size={36} className="opacity-40" />
-            <p className="text-sm">当前工作表为空</p>
+            <p className="text-sm">{t('spreadsheetEmpty')}</p>
           </div>
         ) : filteredBodyRows.length === 0 && searchQuery.trim() ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-[var(--theme-text-tertiary)] gap-2 p-6">
             <Search size={32} className="opacity-40" />
-            <p className="text-sm">未找到与 &quot;{searchQuery}&quot; 相关的表格数据</p>
+            <p className="text-sm">{interpolate(t('spreadsheetNoMatch'), { query: searchQuery })}</p>
             <button
               type="button"
               onClick={() => setSearchQuery('')}
               className="mt-2 text-xs text-[var(--theme-text-accent)] hover:underline cursor-pointer"
             >
-              清除搜索条件
+              {t('spreadsheetClearSearch')}
             </button>
           </div>
         ) : (

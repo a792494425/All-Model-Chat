@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check } from 'lucide-react';
+import { Check, Pin } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { type ApiMode, type ModelOption } from '@/types';
 import { getModelProviderSectionLabelKey, type ModelCatalogEntry } from '@/utils/model/modelCatalog';
@@ -126,6 +126,13 @@ export const ModelCatalogList: React.FC<ModelCatalogListProps> = ({
                         >
                           {entry.name}
                         </span>
+                        {entry.model.isPinned && (
+                          <Pin
+                            size={11}
+                            className="text-[var(--theme-border-focus)] fill-current shrink-0"
+                            data-testid="model-pinned-icon"
+                          />
+                        )}
                         {entry.model.missingApiKey && (
                           <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--theme-bg-warning)] text-[var(--theme-text-warning)]">
                             {t('thirdPartyApiKeyMissing')}
@@ -177,6 +184,13 @@ export const ModelCatalogList: React.FC<ModelCatalogListProps> = ({
                     <span className={`font-medium truncate ${isSelected ? 'text-[var(--theme-text-link)]' : ''}`}>
                       {entry.name}
                     </span>
+                    {entry.model.isPinned && (
+                      <Pin
+                        size={11}
+                        className="text-[var(--theme-border-focus)] fill-current shrink-0"
+                        data-testid="model-pinned-icon"
+                      />
+                    )}
                     {entry.model.missingApiKey && (
                       <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--theme-bg-warning)] text-[var(--theme-text-warning)]">
                         {t('thirdPartyApiKeyMissing')}

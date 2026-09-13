@@ -214,7 +214,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
               size={14}
               className={liveTranscribe.isListening ? 'animate-pulse text-[var(--theme-text-accent)]' : ''}
             />
-            <span>实时流式听写</span>
+            <span>{t('audioRecorderLiveTab')}</span>
           </button>
         </div>
         <button onClick={requestClose} aria-label={t('close')} className={MODAL_CLOSE_BUTTON_CLASS}>
@@ -230,7 +230,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
                 className={`inline-block h-2 w-2 rounded-full ${liveTranscribe.isListening ? 'bg-[var(--theme-text-success)] animate-ping' : 'bg-[var(--theme-text-tertiary)]'}`}
               />
               <span className="text-xs font-medium text-[var(--theme-text-secondary)]">
-                {liveTranscribe.isListening ? '正在流式识别中...' : '已就绪'}
+                {liveTranscribe.isListening ? t('audioRecorderLiveRecognizing') : t('audioRecorderLiveReady')}
               </span>
             </div>
             <div className="flex items-center gap-1.5 bg-[var(--theme-bg-tertiary)]/40 p-0.5 rounded-md text-xs">
@@ -244,7 +244,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
                 }`}
               >
                 <Sparkles size={11} className="text-[var(--theme-text-warning)]" />
-                <span>Smart 智能</span>
+                <span>{t('audioRecorderSmartMode')}</span>
               </button>
               <button
                 type="button"
@@ -255,7 +255,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
                     : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)]'
                 }`}
               >
-                逐字
+                {t('audioRecorderVerbatimMode')}
               </button>
             </div>
           </div>
@@ -272,7 +272,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
               </p>
             ) : (
               <p className="text-[var(--theme-text-tertiary)] text-center pt-8">
-                {liveTranscribe.isListening ? '请开始说话，实时文字将呈现在这里…' : '点击开始启动听写'}
+                {liveTranscribe.isListening ? t('audioRecorderLivePrompt') : t('audioRecorderLiveStartHint')}
               </p>
             )}
           </div>
@@ -294,7 +294,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] rounded-md hover:bg-[var(--theme-bg-tertiary)]/50 transition-colors"
             >
               <RefreshCw size={13} />
-              <span>重新开始</span>
+              <span>{t('audioRecorderRestart')}</span>
             </button>
 
             <div className="flex items-center gap-2">
@@ -312,7 +312,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecord, onCancel
                 className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-[var(--theme-bg-accent)] hover:brightness-110 disabled:opacity-50 rounded-lg shadow-sm transition-all"
               >
                 {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Check size={14} />}
-                <span>完成并填入</span>
+                <span>{t('audioRecorderInsert')}</span>
               </button>
             </div>
           </div>
