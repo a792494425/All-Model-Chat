@@ -57,7 +57,7 @@ describe('ModelConfigModal', () => {
     );
 
     // Switch tab
-    const paramTab = screen.getByRole('tab', { name: /settingsModelConfigTabParams|parameters|参数|生成/i });
+    const paramTab = screen.getByRole('tab', { name: /generation|reasoning|parameters|参数|生成/i });
     fireEvent.click(paramTab);
 
     // Click high effort
