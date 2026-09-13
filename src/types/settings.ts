@@ -9,6 +9,23 @@ export interface ModelCapabilities {
   thinking?: boolean;
   tools?: boolean;
   webSearch?: boolean;
+  image?: boolean;
+  embedding?: boolean;
+  audio?: boolean;
+  free?: boolean;
+}
+
+export interface ModelParameters {
+  temperature?: number;
+  maxOutputTokens?: number;
+  topP?: number;
+  topK?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  stopSequences?: string[];
+  seed?: number;
+  reasoningEffort?: 'none' | 'low' | 'medium' | 'high';
+  thinkingBudget?: number;
 }
 
 export interface ModelOption {
@@ -41,11 +58,7 @@ export interface ModelOption {
   /** Creator or vendor who owns the model architecture. */
   ownedBy?: string;
   /** Custom model parameters overriding session defaults. */
-  parameters?: {
-    temperature?: number;
-    maxOutputTokens?: number;
-    topP?: number;
-  };
+  parameters?: ModelParameters;
 }
 
 export enum HarmCategory {
@@ -131,14 +144,13 @@ export const THIRD_PARTY_TEMPLATE_IDS = [
   'grok',
   'ollama',
   'lmstudio',
-  'baichuan',
-  'stepfun',
-  'yi',
   'doubao',
   'mistral',
-  'perplexity',
   'cerebras',
   'fireworks',
+  'opencode',
+  'hunyuan',
+  'huggingface',
   'custom-openai',
   'custom-anthropic',
 ] as const;
