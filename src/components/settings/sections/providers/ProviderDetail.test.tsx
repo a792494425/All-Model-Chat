@@ -477,5 +477,47 @@ describe('ProviderDetail', () => {
 
       expect(renderer.container.textContent).toContain('142ms');
     });
+
+    it('filters models by capability tabs and displays Free/Thinking badges', () => {
+      const connWithMultiCaps = createThirdPartyConnection({
+        id: 'conn-caps',
+        name: 'Multi Capability Provider',
+        baseUrl: 'https://api.example.com',
+        apiKey: 'sk-test',
+        models: [
+          { id: 'chat-model', name: 'Chat Standard', visibleInSelector: true },
+          { id: 'deepseek-r1', name: 'DeepSeek R1', visibleInSelector: true },
+          { id: 'meta-llama/llama-3-8b:free', name: 'Llama 3 Free', visibleInSelector: true },
+          { id: 'dall-e-3', name: 'DALL-E 3', visibleInSelector: true },
+        ],
+        enabled: true,
+      });
+
+      act(() => {
+        renderer.root.render(
+          <ProviderDetail connection={connWithMultiCaps} onUpdateConnection={vi.fn()} onDeleteConnection={vi.fn()} />,
+        );
+      });
+
+      // Check badges exist
+      expect(renderer.container.textContent).toContain('Thinking');
+      expect(renderer.container.textContent).toContain('Free');
+      expect(renderer.container.textContent).toContain('Image');
+
+      // Check capability filter buttons exist
+      const buttons = Array.from(renderer.container.querySelectorAll('button'));
+      const freeTabBtn = buttons.find((b) => b.textContent?.includes('免费'));
+      expect(freeTabBtn).toBeDefined();
+
+      // Click Free filter tab
+      act(() => {
+        freeTabBtn?.click();
+      });
+
+      // After filtering by Free, only Llama 3 Free should be displayed
+      expect(renderer.container.textContent).toContain('Llama 3 Free');
+      expect(renderer.container.textContent).not.toContain('Chat Standard');
+      expect(renderer.container.textContent).not.toContain('DALL-E 3');
+    });
   });
 });
