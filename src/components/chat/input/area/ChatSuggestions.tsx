@@ -7,6 +7,7 @@ import { SuggestionIcon } from './SuggestionIcon';
 import { NavChip } from './NavChip';
 import { type translations } from '@/i18n/translations';
 import { focusChatInput } from '@/utils/chat-input/focus';
+import type { TaskSuggestionMode } from '@/types';
 
 /** Scroll-arrow chrome shared by both directions. */
 const SUGGESTION_SCROLL_ARROW_CLASSES =
@@ -37,6 +38,8 @@ interface ChatSuggestionsProps {
   show: boolean;
   onSuggestionClick?: (suggestion: string) => void;
   onOrganizeInfoClick?: (suggestion: string) => void;
+  activeTaskSuggestion?: TaskSuggestionMode | null;
+  onToggleTaskSuggestion?: (mode: TaskSuggestionMode) => void;
   onToggleBBox?: () => void;
   isBBoxModeActive?: boolean;
   onToggleGuide?: () => void;
@@ -50,12 +53,16 @@ interface ChatSuggestionsProps {
   onToggleAudioNav?: () => void;
   isAudioNavEnabled?: boolean;
   isFullscreen: boolean;
+  isLiveArtifactsPromptActive?: boolean;
+  onToggleLiveArtifactsPrompt?: () => void;
 }
 
 const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
   show,
   onSuggestionClick,
   onOrganizeInfoClick,
+  activeTaskSuggestion,
+  onToggleTaskSuggestion,
   onToggleBBox,
   isBBoxModeActive,
   onToggleGuide,
@@ -69,6 +76,8 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
   onToggleAudioNav,
   isAudioNavEnabled,
   isFullscreen,
+  isLiveArtifactsPromptActive,
+  onToggleLiveArtifactsPrompt,
 }) => {
   const { t } = useI18n();
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -115,6 +124,30 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
       >
         {SUGGESTIONS_KEYS.map((suggestion, index) => {
           const isOrganize = suggestion.specialAction === 'organize';
+          const taskMode = suggestion.taskMode;
+          const isChipActive = isOrganize
+            ? Boolean(isLiveArtifactsPromptActive)
+            : taskMode
+              ? activeTaskSuggestion === taskMode
+              : false;
+          const chipLabel = t(suggestion.titleKey as keyof typeof translations);
+          const chipTitle = isOrganize
+            ? isLiveArtifactsPromptActive
+              ? t(suggestion.tooltipActiveKey as keyof typeof translations)
+              : t(suggestion.tooltipInactiveKey as keyof typeof translations)
+            : taskMode
+              ? isChipActive
+                ? t(suggestion.tooltipActiveKey as keyof typeof translations)
+                : t(suggestion.tooltipInactiveKey as keyof typeof translations)
+              : chipLabel;
+
+          const ariaPressed = isOrganize
+            ? isLiveArtifactsPromptActive !== undefined
+              ? Boolean(isLiveArtifactsPromptActive)
+              : undefined
+            : taskMode && (activeTaskSuggestion !== undefined || onToggleTaskSuggestion !== undefined)
+              ? Boolean(isChipActive)
+              : undefined;
 
           return (
             <React.Fragment key={index}>
@@ -122,19 +155,29 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
-                  const text = t(suggestion.descKey as keyof typeof translations);
-                  if (isOrganize && onOrganizeInfoClick) {
-                    onOrganizeInfoClick(text);
+                  if (isOrganize) {
+                    if (onToggleLiveArtifactsPrompt) {
+                      onToggleLiveArtifactsPrompt();
+                    } else if (onOrganizeInfoClick) {
+                      const text = t(suggestion.descKey as keyof typeof translations);
+                      onOrganizeInfoClick(text);
+                    }
+                  } else if (taskMode && onToggleTaskSuggestion) {
+                    onToggleTaskSuggestion(taskMode);
                   } else if (onSuggestionClick) {
+                    const text = t(suggestion.descKey as keyof typeof translations);
                     onSuggestionClick(text);
                   }
                   focusChatInput(0, { caret: 'end', retries: 4 });
                 }}
-                className={SUGGESTION_CHIP_CLASS}
-                data-testid={isOrganize ? 'organize-info-chip' : undefined}
+                className={isChipActive ? SUGGESTION_CHIP_ACTIVE_CLASS : SUGGESTION_CHIP_CLASS}
+                aria-label={chipTitle}
+                aria-pressed={ariaPressed}
+                title={chipTitle}
+                data-testid={isOrganize ? 'organize-info-chip' : `suggestion-chip-${suggestion.id}`}
               >
                 <SuggestionIcon iconName={suggestion.icon} />
-                <span>{t(suggestion.titleKey as keyof typeof translations)}</span>
+                <span>{chipLabel}</span>
               </button>
 
               {suggestion.specialAction === 'organize' && (

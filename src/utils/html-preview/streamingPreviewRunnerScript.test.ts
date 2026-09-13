@@ -64,4 +64,148 @@ describe('streaming preview runner chart guard', () => {
     expect(chartNode!.querySelector('svg')).not.toBeNull();
     expect(chartNode!.querySelectorAll('svg path')).toHaveLength(1);
   });
+
+  it('never cross-patches a chart node with a normal div when indices shift', () => {
+    document.body.innerHTML = '<div data-amc-stream-preview-root="true"></div>';
+    runStreamingRunner();
+
+    // First chunk: root has a chart node
+    dispatchStream(`<div data-amc-chart='${CHART_BAR}'></div>`);
+    const root = document.querySelector('[data-amc-stream-preview-root]')!;
+    const chartNode = root.querySelector<HTMLElement>('[data-amc-chart]')!;
+    expect(chartNode).not.toBeNull();
+
+    runChartRenderer();
+    expect(chartNode.querySelector('svg')).not.toBeNull();
+
+    // Second chunk: index 0 is now a normal div (card)
+    dispatchStream(`<div class="card"><h3>Title</h3><p>Text</p></div>`);
+    const cardNode = root.querySelector<HTMLElement>('.card');
+    expect(cardNode).not.toBeNull();
+    // Must be completely replaced — not patched into the chart node with residual SVG
+    expect(cardNode!.hasAttribute('data-amc-chart')).toBe(false);
+    expect(cardNode!.querySelector('svg')).toBeNull();
+    expect(cardNode!.querySelector('h3')?.textContent).toBe('Title');
+    expect(cardNode!.querySelector('p')?.textContent).toBe('Text');
+  });
+
+  it('ignores dangling incomplete tag openers at the end of streaming HTML', () => {
+    document.body.innerHTML = '<div data-amc-stream-preview-root="true"></div>';
+    runStreamingRunner();
+
+    dispatchStream(`<div><p>Complete</p></div><div style="display:`);
+    const root = document.querySelector('[data-amc-stream-preview-root]')!;
+    expect(root.querySelector('p')?.textContent).toBe('Complete');
+    expect(root.querySelectorAll('div')).toHaveLength(1);
+  });
+
+  it('never strips _echarts_instance_ or data-amc-chart-sig on unchanged chart patches', () => {
+    document.body.innerHTML = '<div data-amc-stream-preview-root="true"></div>';
+    runStreamingRunner();
+
+    dispatchStream(`<div data-amc-chart='${CHART_BAR}'></div>`);
+    const root = document.querySelector('[data-amc-stream-preview-root]')!;
+    const chartNode = root.querySelector<HTMLElement>('[data-amc-chart]')!;
+    expect(chartNode).not.toBeNull();
+
+    // Simulate ECharts stamping runtime attributes
+    chartNode.setAttribute('_echarts_instance_', 'ec_test_123');
+    chartNode.setAttribute('data-amc-chart-sig', 'sig_test_456');
+    chartNode.setAttribute('data-amc-chart-rendered', '1');
+
+    // Re-dispatch identical stream patch
+    dispatchStream(`<div data-amc-chart='${CHART_BAR}'></div>`);
+
+    // All runtime attributes must survive
+    expect(chartNode.getAttribute('_echarts_instance_')).toBe('ec_test_123');
+    expect(chartNode.getAttribute('data-amc-chart-sig')).toBe('sig_test_456');
+    expect(chartNode.getAttribute('data-amc-chart-rendered')).toBe('1');
+  });
+
+  it('disposes and wipes nested descendant charts when a parent card is replaced', () => {
+    document.body.innerHTML = '<div data-amc-stream-preview-root="true"></div>';
+    runStreamingRunner();
+
+    let disposedId: string | null = null;
+    (window as any).echarts = {
+      getInstanceByDom(el: HTMLElement) {
+        if (el.getAttribute('_echarts_instance_') === 'ec_nested') {
+          return {
+            dispose() {
+              disposedId = 'ec_nested';
+            },
+          };
+        }
+        return undefined;
+      },
+    };
+
+    dispatchStream(`<div class="card"><div data-amc-chart='${CHART_BAR}'></div></div>`);
+    const root = document.querySelector('[data-amc-stream-preview-root]')!;
+    const chartNode = root.querySelector<HTMLElement>('[data-amc-chart]')!;
+    chartNode.setAttribute('_echarts_instance_', 'ec_nested');
+    const mockSvg = document.createElement('svg');
+    chartNode.appendChild(mockSvg);
+
+    // Now card is replaced by a table
+    dispatchStream(`<div class="table-container"><table><tbody><tr><td>Data</td></tr></tbody></table></div>`);
+
+    expect(disposedId).toBe('ec_nested');
+    expect(root.querySelector('[data-amc-chart]')).toBeNull();
+    expect(root.querySelector('svg')).toBeNull();
+    expect(root.querySelector('td')?.textContent).toBe('Data');
+  });
+
+  it('guarantees single ECharts instance and no SVG stacking across incremental stream chunks', () => {
+    document.body.innerHTML = '<div data-amc-stream-preview-root="true"></div>';
+    runStreamingRunner();
+
+    let ecInitCount = 0;
+    const instances = new Map<string, any>();
+    (window as any).echarts = {
+      getInstanceByDom(el: HTMLElement) {
+        const id = el.getAttribute('_echarts_instance_');
+        return id ? instances.get(id) : undefined;
+      },
+      init(el: HTMLElement) {
+        ecInitCount += 1;
+        const id = `ec_${ecInitCount}`;
+        el.setAttribute('_echarts_instance_', id);
+        const svg = document.createElement('svg');
+        el.appendChild(svg);
+        const inst = {
+          dispose() {
+            instances.delete(id);
+            el.removeAttribute('_echarts_instance_');
+          },
+        };
+        instances.set(id, inst);
+        return inst;
+      },
+    };
+
+    // Dispatch chart chunk
+    dispatchStream(`<div><div data-amc-chart='${CHART_BAR}'></div></div>`);
+    const root = document.querySelector('[data-amc-stream-preview-root]')!;
+    const chartNode = root.querySelector<HTMLElement>('[data-amc-chart]')!;
+
+    // Trigger initial render
+    (window as any).echarts.init(chartNode);
+    chartNode.setAttribute('data-amc-chart-sig', 'sig_bar');
+    expect(ecInitCount).toBe(1);
+    expect(chartNode.querySelectorAll('svg')).toHaveLength(1);
+
+    // Stream subsequent chunks that append tables and paragraphs
+    dispatchStream(`<div><div data-amc-chart='${CHART_BAR}'></div><h3>Section 2</h3></div>`);
+    dispatchStream(`<div><div data-amc-chart='${CHART_BAR}'></div><h3>Section 2</h3><p>Table chunk</p></div>`);
+    dispatchStream(
+      `<div><div data-amc-chart='${CHART_BAR}'></div><h3>Section 2</h3><p>Table chunk</p><div>Footer</div></div>`,
+    );
+
+    // The chart node was never re-initialized and SVG was not duplicated
+    expect(ecInitCount).toBe(1);
+    expect(root.querySelectorAll('svg')).toHaveLength(1);
+    expect(chartNode.getAttribute('_echarts_instance_')).toBe('ec_1');
+    expect(chartNode.getAttribute('data-amc-chart-sig')).toBe('sig_bar');
+  });
 });

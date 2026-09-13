@@ -1,7 +1,7 @@
 import { useEffect, useRef, type Dispatch, type MutableRefObject, type RefObject, type SetStateAction } from 'react';
 import type { AppSettings, InputCommand } from '@/types';
 import { isShortcutPressed } from '@/utils/keyboardShortcuts';
-import { isEditableElement } from '@/utils/chat-input/focus';
+import { isEditableElement, placeCaretAtEnd } from '@/utils/chat-input/focus';
 
 interface UseChatInputGlobalEffectsParams {
   appSettings: AppSettings;
@@ -72,7 +72,7 @@ export const useChatInputGlobalEffects = ({
     let cancelled = false;
     let retryTimeoutId: number | null = null;
 
-    const placeCaretAtEnd = (): boolean => {
+    const tryPlaceCaretAtEnd = (): boolean => {
       const textarea = textareaRef.current;
       if (!textarea || cancelled) {
         return false;
@@ -87,9 +87,7 @@ export const useChatInputGlobalEffects = ({
       }
 
       textarea.focus();
-      const textLength = textarea.value.length;
-      textarea.setSelectionRange(textLength, textLength);
-      textarea.scrollTop = textarea.scrollHeight;
+      placeCaretAtEnd(textarea);
       return true;
     };
 
@@ -98,7 +96,7 @@ export const useChatInputGlobalEffects = ({
         return;
       }
 
-      if (placeCaretAtEnd()) {
+      if (tryPlaceCaretAtEnd()) {
         return;
       }
 
@@ -107,7 +105,7 @@ export const useChatInputGlobalEffects = ({
           return;
         }
 
-        if (placeCaretAtEnd()) {
+        if (tryPlaceCaretAtEnd()) {
           return;
         }
 
@@ -123,9 +121,7 @@ export const useChatInputGlobalEffects = ({
           }
 
           textarea.focus();
-          const textLength = textarea.value.length;
-          textarea.setSelectionRange(textLength, textLength);
-          textarea.scrollTop = textarea.scrollHeight;
+          placeCaretAtEnd(textarea);
         }, 0);
       });
     };

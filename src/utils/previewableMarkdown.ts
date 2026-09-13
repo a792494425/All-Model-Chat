@@ -441,6 +441,142 @@ const isPromotableBareArtifact = (artifact: string): boolean => {
   return LIVE_ARTIFACT_MARKER_REGEX.test(artifact) && isStandaloneHtmlFragment(artifact);
 };
 
+const VOID_HTML_ELEMENTS = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+]);
+
+/**
+ * Parses balanced HTML tags starting at `startIndex` to find the exact end of an
+ * HTML fragment. When tag depth returns to 0 and is followed by prose (or EOF),
+ * this returns the offset immediately after the last closed element.
+ */
+const findHtmlFragmentEnd = (text: string, startIndex: number): number | null => {
+  const stack: string[] = [];
+  let i = startIndex;
+  let lastValidEnd: number | null = null;
+  const len = text.length;
+
+  while (i < len) {
+    if (stack.length === 0 && lastValidEnd !== null) {
+      let nextCharIndex = i;
+      while (nextCharIndex < len && /\s/.test(text[nextCharIndex])) {
+        nextCharIndex += 1;
+      }
+      if (nextCharIndex >= len) {
+        return lastValidEnd;
+      }
+      // If the next non-whitespace character does not start an HTML tag or comment, stop.
+      if (text[nextCharIndex] !== '<' || text.startsWith('```', nextCharIndex)) {
+        return lastValidEnd;
+      }
+      i = nextCharIndex;
+    }
+
+    if (text.startsWith('<!--', i)) {
+      const commentEnd = text.indexOf('-->', i + 4);
+      if (commentEnd === -1) {
+        break;
+      }
+      i = commentEnd + 3;
+      if (stack.length === 0) {
+        lastValidEnd = i;
+      }
+      continue;
+    }
+
+    const tagStartMatch = text.slice(i).match(/^<(\/)?([a-zA-Z][a-zA-Z0-9:-]*)/);
+    if (tagStartMatch) {
+      const isClosing = Boolean(tagStartMatch[1]);
+      const tagName = tagStartMatch[2].toLowerCase();
+
+      let tagEnd = -1;
+      let quote: string | null = null;
+      let j = i + 1;
+      while (j < len) {
+        const char = text[j];
+        if (quote) {
+          if (char === quote) {
+            quote = null;
+          }
+        } else if (char === '"' || char === "'") {
+          quote = char;
+        } else if (char === '>') {
+          tagEnd = j;
+          break;
+        }
+        j += 1;
+      }
+
+      if (tagEnd === -1) {
+        break;
+      }
+
+      const tagContent = text.slice(i + 1, tagEnd).trim();
+      const isSelfClosing = tagContent.endsWith('/');
+
+      if (tagName === 'script' || tagName === 'style') {
+        const closeTag = `</${tagName}>`;
+        const closeIdx = text.toLowerCase().indexOf(closeTag, tagEnd + 1);
+        if (closeIdx !== -1) {
+          i = closeIdx + closeTag.length;
+          if (stack.length === 0) {
+            lastValidEnd = i;
+          }
+          continue;
+        }
+      }
+
+      if (isClosing) {
+        if (stack.length > 0 && stack[stack.length - 1] === tagName) {
+          stack.pop();
+        } else {
+          const lastIdx = stack.lastIndexOf(tagName);
+          if (lastIdx !== -1) {
+            stack.length = lastIdx;
+          }
+        }
+      } else if (!isSelfClosing && !VOID_HTML_ELEMENTS.has(tagName)) {
+        stack.push(tagName);
+      }
+
+      if (stack.length === 0) {
+        lastValidEnd = tagEnd + 1;
+      }
+
+      i = tagEnd + 1;
+      continue;
+    }
+
+    if (stack.length === 0 && /\S/.test(text[i])) {
+      if (lastValidEnd !== null) {
+        return lastValidEnd;
+      }
+      return null;
+    }
+
+    i += 1;
+  }
+
+  if (stack.length === 0 && lastValidEnd !== null) {
+    return lastValidEnd;
+  }
+
+  return null;
+};
+
 const findBareArtifactRegion = (text: string): { start: number; end: number } | null => {
   const lines = text.split('\n');
   const fencedRegions = getFencedRegionOffsets(text);
@@ -482,9 +618,62 @@ const findBareArtifactRegion = (text: string): { start: number; end: number } | 
       .filter((region) => region.start > candidateStart)
       .reduce((min, region) => Math.min(min, region.start), Number.POSITIVE_INFINITY);
 
-    // Longest suffix-delimited region first: prefer the most complete artifact
-    // so a partially-closed fragment never wins over the full run of markup.
-    for (let j = lines.length - 1; j >= i; j -= 1) {
+    // 1. Try finding complete HTML document
+    const candidateText = text.slice(candidateStart);
+    if (/^(?:<!doctype\s+html\b[^>]*>\s*)?<html\b/i.test(candidateText)) {
+      const closeIndex = candidateText.toLowerCase().indexOf('</html>');
+      if (closeIndex !== -1) {
+        let end = candidateStart + closeIndex + '</html>'.length;
+        const trailingCommentMatch = text.slice(end).match(/^\s*(?:<!--[\s\S]*?-->\s*)*/);
+        if (trailingCommentMatch) {
+          end += trailingCommentMatch[0].trimEnd().length;
+        }
+        if (!Number.isFinite(followingFenceStart) || end <= followingFenceStart) {
+          const candidate = text.slice(candidateStart, end);
+          if (isPromotableBareArtifact(candidate)) {
+            return { start: candidateStart, end };
+          }
+        }
+      }
+    }
+
+    // 2. Try finding complete SVG
+    if (/^<svg\b/i.test(candidateText)) {
+      const closeIndex = candidateText.toLowerCase().indexOf('</svg>');
+      if (closeIndex !== -1) {
+        const end = candidateStart + closeIndex + '</svg>'.length;
+        if (!Number.isFinite(followingFenceStart) || end <= followingFenceStart) {
+          const candidate = text.slice(candidateStart, end);
+          if (isPromotableBareArtifact(candidate)) {
+            return { start: candidateStart, end };
+          }
+        }
+      }
+    }
+
+    // 3. Try finding HTML fragment via balanced tag parsing
+    const fragmentEnd = findHtmlFragmentEnd(text, candidateStart);
+    if (fragmentEnd !== null) {
+      if (!Number.isFinite(followingFenceStart) || fragmentEnd <= followingFenceStart) {
+        const candidate = text.slice(candidateStart, fragmentEnd);
+        if (isPromotableBareArtifact(candidate)) {
+          return { start: candidateStart, end: fragmentEnd };
+        }
+      }
+    }
+
+    // 4. Fallback line-by-line check (bounded by the first prose block after candidate)
+    let maxLineIdx = lines.length - 1;
+    for (let k = i + 1; k < lines.length; k += 1) {
+      const prevLine = lines[k - 1];
+      const curLine = lines[k];
+      if (prevLine.trim() === '' && curLine.trim() !== '' && !curLine.trimStart().startsWith('<')) {
+        maxLineIdx = k - 1;
+        break;
+      }
+    }
+
+    for (let j = maxLineIdx; j >= i; j -= 1) {
       const end = j === lines.length - 1 ? text.length : lineOffsets[j + 1] - 1;
       if (end <= candidateStart) {
         continue;
@@ -522,24 +711,34 @@ const wrapBarePreviewableArtifact = (
     return `${fence}${suffix}`;
   }
 
-  // Prose-wrapped artifact: splice the fence in place, keeping the prose as-is.
-  const region = findBareArtifactRegion(content);
-  if (!region) {
-    return markdownContent;
+  // Prose-wrapped artifacts: loop to wrap ALL bare artifact regions in the content.
+  let remaining = content;
+  const parts: string[] = [];
+
+  while (remaining) {
+    const region = findBareArtifactRegion(remaining);
+    if (!region) {
+      parts.push(remaining);
+      break;
+    }
+
+    const artifact = remaining.slice(region.start, region.end).trim();
+    const markupType = getPreviewMarkupType(artifact);
+    if (!markupType) {
+      parts.push(remaining);
+      break;
+    }
+
+    const artifactLanguage = markupType === 'html' ? LIVE_ARTIFACT_HTML_LANGUAGE : markupType;
+    const before = remaining.slice(0, region.start).trimEnd();
+    if (before) {
+      parts.push(before);
+    }
+    parts.push(`\`\`\`${artifactLanguage}\n${artifact}\n\`\`\``);
+    remaining = remaining.slice(region.end).trimStart();
   }
 
-  const artifact = content.slice(region.start, region.end).trim();
-  const markupType = getPreviewMarkupType(artifact);
-  if (!markupType) {
-    return markdownContent;
-  }
-
-  const artifactLanguage = markupType === 'html' ? LIVE_ARTIFACT_HTML_LANGUAGE : markupType;
-  const before = content.slice(0, region.start).trimEnd();
-  const after = content.slice(region.end).trimStart();
-  const fence = `\`\`\`${artifactLanguage}\n${artifact}\n\`\`\``;
-
-  return [before, fence, after].filter(Boolean).join('\n\n');
+  return parts.filter(Boolean).join('\n\n');
 };
 
 const wrapBareLiveArtifactInteraction = (

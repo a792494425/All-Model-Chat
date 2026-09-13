@@ -377,6 +377,7 @@ export const useAppPromptModes = ({
       return {
         ...prev,
         isLiveArtifactsEnabled: false,
+        isVisualFormattingActive: false,
         systemInstruction: isLegacyPrompt ? strippedPrompt || safeSessionPrompt : prev.systemInstruction,
       };
     });
@@ -522,49 +523,51 @@ export const useAppPromptModes = ({
           return;
         }
 
-        if (!isLiveArtifactsPromptActive) {
-          if (
-            appSettings.systemInstruction &&
-            !isConfiguredLiveArtifactsSystemInstruction(appSettings.systemInstruction)
-          ) {
-            previousAppSystemInstructionRef.current = appSettings.systemInstruction;
+        if (isLiveArtifactsPromptActive) {
+          handleDeactivateLiveArtifactsPrompt();
+          focusChatInput(50, { caret: 'end' });
+          return;
+        }
+
+        if (
+          appSettings.systemInstruction &&
+          !isConfiguredLiveArtifactsSystemInstruction(appSettings.systemInstruction)
+        ) {
+          previousAppSystemInstructionRef.current = appSettings.systemInstruction;
+        }
+        if (
+          targetSessionId &&
+          currentChatSettings.systemInstruction &&
+          !isConfiguredLiveArtifactsSystemInstruction(currentChatSettings.systemInstruction)
+        ) {
+          previousSessionSystemInstructionsRef.current.set(targetSessionId, currentChatSettings.systemInstruction);
+        }
+
+        closeMediaNavPanel();
+
+        activatingSessionIdRef.current = targetSessionId;
+        setLiveArtifactsPromptBusySessionId(targetSessionId);
+        setLiveArtifactsPromptOverrideState({
+          active: true,
+          targetSessionId,
+        });
+
+        try {
+          await activateLiveArtifactsPrompt(targetSessionId);
+        } catch (error) {
+          if (isMountedRef.current) {
+            setLiveArtifactsPromptOverrideState(null);
           }
-          if (
-            targetSessionId &&
-            currentChatSettings.systemInstruction &&
-            !isConfiguredLiveArtifactsSystemInstruction(currentChatSettings.systemInstruction)
-          ) {
-            previousSessionSystemInstructionsRef.current.set(targetSessionId, currentChatSettings.systemInstruction);
+          logService.error('Failed to activate Live Artifacts prompt from suggestion:', error);
+        } finally {
+          if (activatingSessionIdRef.current === targetSessionId) {
+            activatingSessionIdRef.current = undefined;
           }
-
-          closeMediaNavPanel();
-
-          activatingSessionIdRef.current = targetSessionId;
-          setLiveArtifactsPromptBusySessionId(targetSessionId);
-          setLiveArtifactsPromptOverrideState({
-            active: true,
-            targetSessionId,
-          });
-
-          try {
-            await activateLiveArtifactsPrompt(targetSessionId);
-          } catch (error) {
-            if (isMountedRef.current) {
-              setLiveArtifactsPromptOverrideState(null);
-            }
-            logService.error('Failed to activate Live Artifacts prompt from suggestion:', error);
-          } finally {
-            if (activatingSessionIdRef.current === targetSessionId) {
-              activatingSessionIdRef.current = undefined;
-            }
-            if (isMountedRef.current) {
-              setLiveArtifactsPromptBusySessionId(undefined);
-            }
+          if (isMountedRef.current) {
+            setLiveArtifactsPromptBusySessionId(undefined);
           }
         }
 
-        setCommandedInput({ text: `${text}\n`, id: Date.now(), mode: 'replace' });
-        // Keep the caret on the trailing blank line so the user can continue typing.
         focusChatInput(50, { caret: 'end' });
         return;
       }
@@ -582,6 +585,7 @@ export const useAppPromptModes = ({
       activeSessionId,
       appSettings.systemInstruction,
       currentChatSettings.systemInstruction,
+      handleDeactivateLiveArtifactsPrompt,
       handleSendMessage,
       isConfiguredLiveArtifactsSystemInstruction,
       isLiveArtifactsPromptActive,

@@ -47,6 +47,14 @@ describe('htmlPreview utilities', () => {
     expect(srcDoc).toContain('max-height:none!important');
   });
 
+  it('injects modern subtle scrollbar styles into preview documents', () => {
+    const srcDoc = buildHtmlPreviewSrcDoc('<section>Content</section>');
+
+    expect(srcDoc).toContain('scrollbar-width:thin');
+    expect(srcDoc).toContain('*::-webkit-scrollbar');
+    expect(srcDoc).toContain('*::-webkit-scrollbar-thumb');
+  });
+
   it('injects a sandboxed preview CSP while allowing inline scripts and HTTPS assets', () => {
     const srcDoc = buildHtmlPreviewSrcDoc(
       '<html><head><title>Demo</title><script src="https://cdn.example/app.js"></script></head><body><img src="https://example.com/demo.png" alt="Demo"></body></html>',

@@ -24,7 +24,7 @@ describe('ProviderModelListSection', () => {
         onUpdateModels={handleUpdate}
         onProbeSingleModel={vi.fn()}
         onProbeBatchModels={vi.fn()}
-      />
+      />,
     );
 
     expect(screen.getByText('Model One')).toBeInTheDocument();
@@ -35,9 +35,7 @@ describe('ProviderModelListSection', () => {
     fireEvent.click(eyeButtons[0]);
 
     expect(handleUpdate).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({ id: 'm1', visibleInSelector: false }),
-      ])
+      expect.arrayContaining([expect.objectContaining({ id: 'm1', visibleInSelector: false })]),
     );
   });
 
@@ -50,7 +48,7 @@ describe('ProviderModelListSection', () => {
         onUpdateModels={vi.fn()}
         onProbeSingleModel={vi.fn()}
         onProbeBatchModels={vi.fn()}
-      />
+      />,
     );
 
     // Open search
@@ -73,7 +71,7 @@ describe('ProviderModelListSection', () => {
         onUpdateModels={vi.fn()}
         onProbeSingleModel={vi.fn()}
         onProbeBatchModels={vi.fn()}
-      />
+      />,
     );
 
     const configBtns = screen.getAllByTitle(/model configuration|settingsmodelconfigtitle/i);
@@ -83,4 +81,3 @@ describe('ProviderModelListSection', () => {
     expect(screen.getByDisplayValue('Model One')).toBeInTheDocument();
   });
 });
-

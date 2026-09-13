@@ -851,8 +851,7 @@ describe('translation coverage for protected UI surfaces', () => {
       }
     });
 
-    usedKeys.forEach((key) => {
-      expect(translations).toHaveProperty(key);
-    });
+    const missingKeys = [...usedKeys].filter((key) => !(key in translations));
+    expect(missingKeys).toEqual([]);
   });
 });

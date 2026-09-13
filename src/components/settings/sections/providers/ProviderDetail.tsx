@@ -1,15 +1,5 @@
 import React, { useState, useRef } from 'react';
-import {
-  Settings,
-  Eye,
-  EyeOff,
-  KeyRound,
-  Activity,
-  ExternalLink,
-  Loader2,
-  AlertCircle,
-  X,
-} from 'lucide-react';
+import { Settings, Eye, EyeOff, KeyRound, Activity, ExternalLink, Loader2, AlertCircle, X } from 'lucide-react';
 import type { ModelOption, ThirdPartyConnection } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { Toggle } from '@/components/shared/Toggle';
@@ -198,17 +188,17 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
       } else {
         toastError(t('thirdPartyToastConnFailed', { error: result.errorMessage ?? t('thirdPartyFailed') }));
       }
-    } catch (err) {
+    } catch (connError) {
       setConnectionHealthResult(connection.id, {
         connectionId: connection.id,
         modelId: connection.modelId || connection.models[0]?.id || '',
         status: 'error',
         latencyMs: 0,
         grade: 'error',
-        errorMessage: getErrorMessage(err),
+        errorMessage: getErrorMessage(connError),
         timestamp: Date.now(),
       });
-      toastError(t('thirdPartyToastConnFailed', { error: getErrorMessage(err) }));
+      toastError(t('thirdPartyToastConnFailed', { error: getErrorMessage(connError) }));
     } finally {
       setIsTestingHealth(false);
     }
@@ -255,8 +245,8 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
 
       setSyncRemoteModels(fetchedModels);
       setIsSyncModalOpen(true);
-    } catch (err) {
-      toastError(t('thirdPartyToastFetchModelsFailed', { error: getErrorMessage(err) }));
+    } catch (fetchError) {
+      toastError(t('thirdPartyToastFetchModelsFailed', { error: getErrorMessage(fetchError) }));
     } finally {
       setIsSyncingModels(false);
     }
@@ -294,7 +284,6 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full min-w-0 bg-[var(--theme-bg-primary)] overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between gap-3 px-6 py-3.5 border-b border-[var(--theme-border-secondary)]/30 flex-shrink-0 bg-[var(--theme-bg-primary)]">
         <div className="flex items-center gap-3 min-w-0">
           <ProviderAvatar name={connection.name} templateId={connection.templateId} size={28} />
@@ -313,14 +302,12 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
           <Toggle
             checked={connection.enabled}
             onChange={(checked) => onUpdateConnection({ enabled: checked })}
-            ariaLabel={connection.enabled ? t('thirdPartyEnabled') : t('thirdPartyDisabled')}
+            ariaLabel={connection.enabled ? t('enabled') : t('disabled')}
           />
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5">
-        {/* API Key Credentials */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-[var(--theme-text-primary)]">{t('thirdPartyApiKeyLabel')}</span>
@@ -397,7 +384,6 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
           </div>
         </div>
 
-        {/* Base URL */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
@@ -436,7 +422,6 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
           <ProviderEndpointPreview protocol={connection.protocol} baseUrl={connection.baseUrl} />
         </div>
 
-        {/* Health Check Error Banner */}
         {batchSummary && batchSummary.errorCount > 0 && (
           <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs text-amber-700 dark:text-amber-300 animate-in fade-in duration-150">
             <div className="flex items-center gap-2">
@@ -468,7 +453,6 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
           </div>
         )}
 
-        {/* Modular Model List Section */}
         <ProviderModelListSection
           providerId={connection.id}
           providerName={connection.name}
@@ -488,7 +472,6 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
         />
       </div>
 
-      {/* Edit Provider Modal */}
       <ProviderEditDialog
         isOpen={isEditOpen}
         connection={connection}
@@ -497,7 +480,6 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
         onDelete={onDeleteConnection}
       />
 
-      {/* Sync Models Modal */}
       <ModelSyncModal
         isOpen={isSyncModalOpen}
         onClose={() => setIsSyncModalOpen(false)}

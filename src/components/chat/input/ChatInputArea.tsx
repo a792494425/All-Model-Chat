@@ -11,6 +11,7 @@ import { QueuedSubmissionList } from './QueuedSubmissionList';
 import { HiddenFileInputs } from './files/HiddenFileInputs';
 import { getChatInputAreaLayout } from './chatInputAreaLayout';
 import { closeMediaNavPanel, useMediaNavStore, type MediaNavKind } from '@/stores/mediaNavStore';
+import { useChatStore } from '@/stores/chatStore';
 import { CHAT_INPUT_MAX_WIDTH_CLASS, FOCUS_BLOCKING_SELECTOR } from '@/constants/layout';
 import { applyMediaNavKindToSettings } from '@/utils/media-nav/mediaNavSettings';
 import { focusChatInput } from '@/utils/chat-input/focus';
@@ -19,6 +20,7 @@ import { useChatInputContext } from './ChatInputContext';
 import { ChatInputExpandCorner } from './ChatInputExpandCorner';
 import { useChatInputExpandSizing } from './useChatInputExpandSizing';
 import { useCompactChatInputPresentation } from './useCompactChatInputPresentation';
+import { getChatInputPlaceholder } from '@/utils/chat-input/chatInputPlaceholder';
 import { GEMINI_PROVIDER_ID } from '@/types';
 
 export const ChatInputArea: React.FC = () => {
@@ -54,6 +56,18 @@ export const ChatInputArea: React.FC = () => {
   const isAudioNavActive = Boolean(chatInput.currentChatSettings?.isAudioNavEnabled) || isAudioNavOpen;
   const isImageNavActive = Boolean(chatInput.currentChatSettings?.isImageNavEnabled) || isImageNavOpen;
 
+  const activeMediaNavKind: MediaNavKind | null =
+    mediaNavOpenKind ??
+    (isVideoNavActive
+      ? 'video'
+      : isPdfNavActive
+        ? 'pdf'
+        : isAudioNavActive
+          ? 'audio'
+          : isImageNavActive
+            ? 'image'
+            : null);
+
   const toggleMediaNav = useCallback(
     (kind: MediaNavKind, isActive: boolean) => {
       const next = !isActive;
@@ -87,6 +101,9 @@ export const ChatInputArea: React.FC = () => {
   const isMobile = inputState.isMobile;
   const isConverting = localFileState.isConverting;
   const isExpanded = isFullscreen;
+
+  const activeMessagesCount = useChatStore((state) => state.activeMessages.length);
+  const isSessionEmpty = activeMessagesCount === 0;
 
   const {
     wrapperClass,
@@ -198,11 +215,15 @@ export const ChatInputArea: React.FC = () => {
         />
       )}
       <div className={`mx-auto w-full ${CHAT_INPUT_MAX_WIDTH_CLASS} px-2 sm:px-3`}>
-        {chatInput.showEmptyStateSuggestions && capabilities.permissions.canGenerateSuggestions && !isExpanded && (
+        {capabilities.permissions.canGenerateSuggestions && !isExpanded && isSessionEmpty && (
           <ChatSuggestions
-            show={chatInput.showEmptyStateSuggestions}
+            show={isSessionEmpty}
             onSuggestionClick={chatInput.onSuggestionClick}
             onOrganizeInfoClick={chatInput.onOrganizeInfoClick}
+            isLiveArtifactsPromptActive={chatInput.isLiveArtifactsPromptActive}
+            onToggleLiveArtifactsPrompt={chatInput.onToggleLiveArtifactsPrompt}
+            activeTaskSuggestion={chatInput.taskSuggestionMode}
+            onToggleTaskSuggestion={chatInput.onToggleTaskSuggestion}
             onToggleBBox={isGeminiNative ? chatInput.onToggleBBox : undefined}
             isBBoxModeActive={chatInput.isBBoxModeActive}
             onToggleGuide={isGeminiNative ? chatInput.onToggleGuide : undefined}
@@ -312,9 +333,13 @@ export const ChatInputArea: React.FC = () => {
                 onPaste={handlers.handlePaste}
                 onCompositionStart={handleCompositionStart}
                 onCompositionEnd={handleCompositionEnd}
-                placeholder={
-                  capabilities.isTranscribeModel ? t('chatInputPlaceholderTranscribe') : t('chatInputPlaceholder')
-                }
+                placeholder={getChatInputPlaceholder({
+                  isTranscribeModel: capabilities.isTranscribeModel,
+                  taskSuggestionMode: chatInput.taskSuggestionMode,
+                  activeMediaNavKind,
+                  isLiveArtifactsPromptActive: chatInput.isLiveArtifactsPromptActive,
+                  t,
+                })}
                 disabled={inputDisabled}
                 isFullscreen={isFullscreen}
                 hasCustomHeight={hasCustomHeight}

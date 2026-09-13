@@ -2,8 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { X, Search, Check, Eye, Wrench, Lightbulb, Trash2, RefreshCw, AlertTriangle } from 'lucide-react';
 import type { ModelOption } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
-import { formatContextWindow } from '@/utils/model/knownModelsCatalog';
+import { formatContextWindow, getOrInferModelCapabilities } from '@/utils/model/knownModelsCatalog';
 import { reconcileModels, applyModelReconcile } from '@/utils/model/modelReconcile';
+import { Virtuoso } from 'react-virtuoso';
 import { ProviderAvatar } from './ProviderAvatar';
 
 export interface ModelSyncModalProps {
@@ -289,174 +290,215 @@ export const ModelSyncModal: React.FC<ModelSyncModalProps> = ({
           <span className="text-[11px] opacity-75">{t('thirdPartyDisplayItems', { count: displayItems.length })}</span>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-2 divide-y divide-[var(--theme-border-primary)]/40">
+        <div className="flex-1 min-h-[420px] px-6 py-2">
           {displayItems.length === 0 ? (
             <div className="py-14 text-center text-[var(--theme-text-secondary)] flex flex-col items-center gap-2">
               <Search size={28} className="opacity-30" />
               <p className="text-sm">{t('thirdPartyNoMatchingModels')}</p>
             </div>
           ) : (
-            displayItems.map(({ model, status }) => {
-              const isNew = status === 'new';
-              const isStale = status === 'stale';
-              const isExisting = status === 'existing';
+            <Virtuoso
+              style={{ height: '100%', minHeight: '400px' }}
+              className="custom-scrollbar"
+              data={displayItems}
+              initialItemCount={Math.min(displayItems.length, 50)}
+              computeItemKey={(_index, item) => `${item.status}-${item.model.id}`}
+              itemContent={(_index, { model, status }) => {
+                const isNew = status === 'new';
+                const isStale = status === 'stale';
+                const isExisting = status === 'existing';
 
-              const isNewChecked = isNew && selectedNewIds.has(model.id);
-              const isStaleChecked = isStale && selectedStaleRemoveIds.has(model.id);
+                const isNewChecked = isNew && selectedNewIds.has(model.id);
+                const isStaleChecked = isStale && selectedStaleRemoveIds.has(model.id);
 
-              const contextLabel = formatContextWindow(model.contextWindow);
+                const caps = getOrInferModelCapabilities(model);
+                const contextLabel = formatContextWindow(model.contextWindow);
 
-              return (
-                <div
-                  key={`${status}-${model.id}`}
-                  onClick={() => {
-                    if (isNew) toggleNewModel(model.id);
-                    if (isStale) toggleStaleModel(model.id);
-                  }}
-                  className={`group flex items-center justify-between gap-3 py-2.5 px-2 rounded-xl transition-colors cursor-pointer select-none ${
-                    isNewChecked
-                      ? 'bg-emerald-500/5 hover:bg-emerald-500/10'
-                      : isStaleChecked
-                        ? 'bg-rose-500/5 hover:bg-rose-500/10'
-                        : 'hover:bg-[var(--theme-bg-secondary)]/40'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="shrink-0 flex items-center">
-                      {isNew && (
-                        <input
-                          type="checkbox"
-                          checked={isNewChecked}
-                          onChange={() => toggleNewModel(model.id)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-4 h-4 rounded text-emerald-600 focus:ring-0 cursor-pointer"
-                        />
-                      )}
-                      {isStale && (
-                        <input
-                          type="checkbox"
-                          checked={isStaleChecked}
-                          onChange={() => toggleStaleModel(model.id)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-4 h-4 rounded text-rose-600 focus:ring-0 cursor-pointer"
-                        />
-                      )}
-                      {isExisting && (
-                        <div className="w-4 h-4 flex items-center justify-center text-[var(--theme-text-secondary)]/50">
-                          <Check size={14} />
-                        </div>
-                      )}
-                    </div>
-
-                    <ProviderAvatar
-                      modelId={model.id}
-                      modelName={model.name}
-                      templateId={templateId}
-                      name={model.name || model.id}
-                      size={24}
-                      className="text-[11px]"
-                    />
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-semibold text-[var(--theme-text-primary)] truncate">
-                          {model.name}
-                        </span>
-
+                return (
+                  <div
+                    key={`${status}-${model.id}`}
+                    onClick={() => {
+                      if (isNew) toggleNewModel(model.id);
+                      if (isStale) toggleStaleModel(model.id);
+                    }}
+                    className={`group flex items-center justify-between gap-3 py-2.5 px-3 my-1 rounded-xl transition-colors cursor-pointer select-none border border-[var(--theme-border-primary)]/40 ${
+                      isNewChecked
+                        ? 'bg-emerald-500/5 hover:bg-emerald-500/10 border-emerald-500/25'
+                        : isStaleChecked
+                          ? 'bg-rose-500/5 hover:bg-rose-500/10 border-rose-500/25'
+                          : 'hover:bg-[var(--theme-bg-secondary)]/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="shrink-0 flex items-center">
                         {isNew && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/20">
-                            {t('thirdPartyNew')}
-                          </span>
+                          <input
+                            type="checkbox"
+                            checked={isNewChecked}
+                            onChange={() => toggleNewModel(model.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-4 h-4 rounded text-emerald-600 focus:ring-0 cursor-pointer"
+                          />
                         )}
                         {isStale && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-500 border border-rose-500/20">
-                            {t('thirdPartyStale')}
-                          </span>
+                          <input
+                            type="checkbox"
+                            checked={isStaleChecked}
+                            onChange={() => toggleStaleModel(model.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-4 h-4 rounded text-rose-600 focus:ring-0 cursor-pointer"
+                          />
                         )}
                         {isExisting && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)]">
-                            {t('thirdPartyConfigured')}
-                          </span>
-                        )}
-
-                        {contextLabel && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-primary)]">
-                            {contextLabel}
-                          </span>
-                        )}
-
-                        {model.capabilities?.thinking && (
-                          <span
-                            className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/20"
-                            title={t('thirdPartyThinkingSupported')}
-                          >
-                            <Lightbulb size={10} />
-                            <span>Thinking</span>
-                          </span>
-                        )}
-                        {model.capabilities?.vision && (
-                          <span
-                            className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-teal-500/15 text-teal-400 border border-teal-500/20"
-                            title={t('thirdPartyVisionSupported')}
-                          >
-                            <Eye size={10} />
-                            <span>Vision</span>
-                          </span>
-                        )}
-                        {model.capabilities?.tools && (
-                          <span
-                            className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/15 text-blue-400 border border-blue-500/20"
-                            title={t('thirdPartyToolsSupported')}
-                          >
-                            <Wrench size={10} />
-                            <span>Tools</span>
-                          </span>
+                          <div className="w-4 h-4 flex items-center justify-center text-[var(--theme-text-secondary)]/50">
+                            <Check size={14} />
+                          </div>
                         )}
                       </div>
 
-                      <div className="text-[11px] text-[var(--theme-text-secondary)] font-mono truncate mt-0.5">
-                        {model.id}
+                      <ProviderAvatar
+                        modelId={model.id}
+                        modelName={model.name}
+                        templateId={templateId}
+                        name={model.name || model.id}
+                        size={24}
+                        className="text-[11px]"
+                      />
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-semibold text-[var(--theme-text-primary)] truncate">
+                            {model.name}
+                          </span>
+
+                          {isNew && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/20">
+                              {t('thirdPartyNew')}
+                            </span>
+                          )}
+                          {isStale && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-500 border border-rose-500/20">
+                              {t('thirdPartyStale')}
+                            </span>
+                          )}
+                          {isExisting && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)]">
+                              {t('thirdPartyConfigured')}
+                            </span>
+                          )}
+
+                          {caps.free && (
+                            <span
+                              className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/20"
+                              title={t('thirdPartyFreeTooltip')}
+                            >
+                              Free
+                            </span>
+                          )}
+
+                          {contextLabel && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-primary)]">
+                              {contextLabel}
+                            </span>
+                          )}
+
+                          {caps.thinking && (
+                            <span
+                              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/20"
+                              title={t('thirdPartyThinkingSupported')}
+                            >
+                              <Lightbulb size={10} />
+                              <span>Thinking</span>
+                            </span>
+                          )}
+                          {caps.vision && (
+                            <span
+                              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-teal-500/15 text-teal-400 border border-teal-500/20"
+                              title={t('thirdPartyVisionSupported')}
+                            >
+                              <Eye size={10} />
+                              <span>Vision</span>
+                            </span>
+                          )}
+                          {caps.image && (
+                            <span
+                              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/15 text-amber-400 border border-amber-500/20"
+                              title={t('thirdPartyImageSupported')}
+                            >
+                              <span>Image</span>
+                            </span>
+                          )}
+                          {caps.embedding && (
+                            <span
+                              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/15 text-blue-400 border border-blue-500/20"
+                              title={t('thirdPartyEmbeddingSupported')}
+                            >
+                              <span>Embedding</span>
+                            </span>
+                          )}
+                          {caps.audio && (
+                            <span
+                              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-500/15 text-rose-400 border border-rose-500/20"
+                              title={t('thirdPartyAudioSupported')}
+                            >
+                              <span>Audio</span>
+                            </span>
+                          )}
+                          {model.capabilities?.tools !== false && !caps.image && !caps.embedding && !caps.audio && (
+                            <span
+                              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/15 text-blue-400 border border-blue-500/20"
+                              title={t('thirdPartyToolsSupported')}
+                            >
+                              <Wrench size={10} />
+                              <span>Tools</span>
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="text-[11px] text-[var(--theme-text-secondary)] font-mono truncate mt-0.5">
+                          {model.id}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="shrink-0 text-xs">
-                    {isNew && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleNewModel(model.id);
-                        }}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                          isNewChecked
-                            ? 'bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/25'
-                            : 'bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
-                        }`}
-                      >
-                        {isNewChecked ? t('thirdPartyWillImport') : t('thirdPartyIgnore')}
-                      </button>
-                    )}
-                    {isStale && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleStaleModel(model.id);
-                        }}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                          isStaleChecked
-                            ? 'bg-rose-500/15 text-rose-500 hover:bg-rose-500/25'
-                            : 'bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
-                        }`}
-                      >
-                        {isStaleChecked ? t('thirdPartyWillRemove') : t('thirdPartyKeep')}
-                      </button>
-                    )}
+                    <div className="shrink-0 text-xs">
+                      {isNew && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleNewModel(model.id);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                            isNewChecked
+                              ? 'bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/25'
+                              : 'bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
+                          }`}
+                        >
+                          {isNewChecked ? t('thirdPartyWillImport') : t('thirdPartyIgnore')}
+                        </button>
+                      )}
+                      {isStale && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleStaleModel(model.id);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                            isStaleChecked
+                              ? 'bg-rose-500/15 text-rose-500 hover:bg-rose-500/25'
+                              : 'bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
+                          }`}
+                        >
+                          {isStaleChecked ? t('thirdPartyWillRemove') : t('thirdPartyKeep')}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              }}
+            />
           )}
         </div>
 

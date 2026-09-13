@@ -162,7 +162,7 @@ describe('ChatSuggestions rendering', () => {
     expect(renderer.container.querySelector('button[aria-label*="Guide" i]')).toBeNull();
   });
 
-  it('renders organize chip as a standard suggestion action chip without toggle dot or aria-pressed', async () => {
+  it('renders organize chip without aria-pressed when isLiveArtifactsPromptActive is undefined', async () => {
     await act(async () => {
       renderer.root.render(
         <ChatSuggestions show isFullscreen={false} onSuggestionClick={vi.fn()} onOrganizeInfoClick={vi.fn()} />,
@@ -174,5 +174,116 @@ describe('ChatSuggestions rendering', () => {
     expect(organizeChip?.className).toContain(SUGGESTION_CHIP_CLASS);
     expect(organizeChip?.hasAttribute('aria-pressed')).toBe(false);
     expect(organizeChip?.querySelector('span.rounded-full.bg-current')).toBeNull();
+  });
+
+  it('renders organize chip as an active toggle chip when isLiveArtifactsPromptActive is true', async () => {
+    await act(async () => {
+      renderer.root.render(
+        <ChatSuggestions
+          show
+          isFullscreen={false}
+          onSuggestionClick={vi.fn()}
+          onOrganizeInfoClick={vi.fn()}
+          isLiveArtifactsPromptActive={true}
+        />,
+      );
+    });
+
+    const organizeChip = renderer.container.querySelector('[data-testid="organize-info-chip"]');
+    expect(organizeChip).not.toBeNull();
+    expect(organizeChip?.className).toContain(SUGGESTION_CHIP_ACTIVE_CLASS);
+    expect(organizeChip?.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('renders organize chip as an inactive toggle chip when isLiveArtifactsPromptActive is false', async () => {
+    await act(async () => {
+      renderer.root.render(
+        <ChatSuggestions
+          show
+          isFullscreen={false}
+          onSuggestionClick={vi.fn()}
+          onOrganizeInfoClick={vi.fn()}
+          isLiveArtifactsPromptActive={false}
+        />,
+      );
+    });
+
+    const organizeChip = renderer.container.querySelector('[data-testid="organize-info-chip"]');
+    expect(organizeChip).not.toBeNull();
+    expect(organizeChip?.className).toContain(SUGGESTION_CHIP_CLASS);
+    expect(organizeChip?.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('renders task suggestion chips as toggle chips with active state when activeTaskSuggestion matches', async () => {
+    await act(async () => {
+      renderer.root.render(
+        <ChatSuggestions show isFullscreen={false} activeTaskSuggestion="translate" onToggleTaskSuggestion={vi.fn()} />,
+      );
+    });
+
+    const translateChip = renderer.container.querySelector('[data-testid="suggestion-chip-translate"]');
+    expect(translateChip).not.toBeNull();
+    expect(translateChip?.className).toContain(SUGGESTION_CHIP_ACTIVE_CLASS);
+    expect(translateChip?.getAttribute('aria-pressed')).toBe('true');
+    expect(translateChip?.getAttribute('title')).toContain('Bilingual translation active');
+
+    const ocrChip = renderer.container.querySelector('[data-testid="suggestion-chip-ocr"]');
+    expect(ocrChip).not.toBeNull();
+    expect(ocrChip?.className).toContain(SUGGESTION_CHIP_CLASS);
+    expect(ocrChip?.getAttribute('aria-pressed')).toBe('false');
+    expect(ocrChip?.getAttribute('title')).toContain('Enable OCR');
+  });
+
+  it('calls onToggleTaskSuggestion when clicking a task suggestion chip without calling onSuggestionClick', async () => {
+    const onToggleTaskSuggestion = vi.fn();
+    const onSuggestionClick = vi.fn();
+
+    await act(async () => {
+      renderer.root.render(
+        <ChatSuggestions
+          show
+          isFullscreen={false}
+          activeTaskSuggestion={null}
+          onToggleTaskSuggestion={onToggleTaskSuggestion}
+          onSuggestionClick={onSuggestionClick}
+        />,
+      );
+    });
+
+    const translateChip = renderer.container.querySelector(
+      '[data-testid="suggestion-chip-translate"]',
+    ) as HTMLButtonElement;
+    expect(translateChip).not.toBeNull();
+
+    await act(async () => {
+      translateChip.click();
+    });
+
+    expect(onToggleTaskSuggestion).toHaveBeenCalledWith('translate');
+    expect(onSuggestionClick).not.toHaveBeenCalled();
+  });
+
+  it('allows Live Artifacts presentation chip and task suggestion chip to be active simultaneously', async () => {
+    await act(async () => {
+      renderer.root.render(
+        <ChatSuggestions
+          show
+          isFullscreen={false}
+          isLiveArtifactsPromptActive={true}
+          activeTaskSuggestion="summarize"
+          onToggleTaskSuggestion={vi.fn()}
+          onToggleLiveArtifactsPrompt={vi.fn()}
+        />,
+      );
+    });
+
+    const organizeChip = renderer.container.querySelector('[data-testid="organize-info-chip"]');
+    const summarizeChip = renderer.container.querySelector('[data-testid="suggestion-chip-summarize"]');
+
+    expect(organizeChip?.className).toContain(SUGGESTION_CHIP_ACTIVE_CLASS);
+    expect(organizeChip?.getAttribute('aria-pressed')).toBe('true');
+
+    expect(summarizeChip?.className).toContain(SUGGESTION_CHIP_ACTIVE_CLASS);
+    expect(summarizeChip?.getAttribute('aria-pressed')).toBe('true');
   });
 });

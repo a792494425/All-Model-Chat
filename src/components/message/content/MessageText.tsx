@@ -181,6 +181,7 @@ export const MessageText: React.FC<MessageTextProps> = ({
 
   const shouldSmooth = isLoading && message.role === 'model';
   const displayedContent = useSmoothStreaming(effectiveContent, shouldSmooth);
+
   const markdownContent = useMemo(
     () =>
       normalizePreviewableMarkdownContent(displayedContent, {

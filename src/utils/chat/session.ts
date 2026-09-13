@@ -11,6 +11,7 @@ import { getVisibleChatMessages } from './visibility';
 import { createManagedObjectUrl, releaseManagedObjectUrlsByOwner } from '@/services/objectUrlManager';
 import { TAB_ID } from '@/stores/tabIdentity';
 import { redactExportedSessionSettings } from '@/utils/secretRedaction';
+import { stripLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
 
 const logSessionWarning = (message: string, data?: unknown) => {
   console.warn(`[session] ${message}`, data);
@@ -98,7 +99,10 @@ export const generateSessionTitle = (messages: ChatMessage[]): string => {
   const visibleMessages = getVisibleChatMessages(messages);
   const firstUserMessage = visibleMessages.find((message) => message.role === 'user' && message.content.trim() !== '');
   if (firstUserMessage) {
-    return truncateTitleText(firstUserMessage.content);
+    const cleanContent = stripLiveArtifactsUserDirective(firstUserMessage.content);
+    if (cleanContent.trim()) {
+      return truncateTitleText(cleanContent);
+    }
   }
   const firstModelMessage = visibleMessages.find(
     (message) => message.role === 'model' && message.content.trim() !== '',

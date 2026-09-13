@@ -10,7 +10,7 @@ import { useProviderUiStore } from '@/stores/providerUiStore';
 import { ProviderModelToolbar, type ModelCapabilityTab } from './ProviderModelToolbar';
 import { ProviderBatchActionBar } from './ProviderBatchActionBar';
 import { ProviderModelRow } from './ProviderModelRow';
-import { ModelConfigModal } from '../ModelConfigModal';
+import { ModelConfigModal } from '@/components/settings/sections/providers/ModelConfigModal';
 
 const EMPTY_GROUPS_COLLAPSED: Record<string, boolean> = {};
 const EMPTY_PROBE_RESULTS: Record<string, ConnectionHealthProbeResult> = {};
@@ -192,10 +192,8 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
   };
 
   // Batch actions
-  const isAllVisibleSelected =
-    filteredModels.length > 0 && filteredModels.every((m) => selectedModelIds.has(m.id));
-  const isPartialSelected =
-    !isAllVisibleSelected && filteredModels.some((m) => selectedModelIds.has(m.id));
+  const isAllVisibleSelected = filteredModels.length > 0 && filteredModels.every((m) => selectedModelIds.has(m.id));
+  const isPartialSelected = !isAllVisibleSelected && filteredModels.some((m) => selectedModelIds.has(m.id));
 
   const handleToggleSelectAll = () => {
     if (isAllVisibleSelected) {
@@ -229,9 +227,7 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
 
   const handleBatchSetVisible = (visible: boolean) => {
     if (selectedModelIds.size === 0) return;
-    const updated = models.map((m) =>
-      selectedModelIds.has(m.id) ? { ...m, visibleInSelector: visible } : m,
-    );
+    const updated = models.map((m) => (selectedModelIds.has(m.id) ? { ...m, visibleInSelector: visible } : m));
     onUpdateModels(updated);
     toastSuccess(
       visible
@@ -282,7 +278,6 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
 
   return (
     <div className="space-y-3 pt-2" data-settings-item="providers-models">
-      {/* Toolbar */}
       <ProviderModelToolbar
         modelsCount={models.length}
         activeCapabilityTab={activeCapabilityTab}
@@ -309,7 +304,6 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
         onOpenAddModel={() => setIsAddingModel(true)}
       />
 
-      {/* Batch Action Bar */}
       {(isBatchMode || selectedModelIds.size > 0) && (
         <ProviderBatchActionBar
           selectedCount={selectedModelIds.size}
@@ -329,7 +323,6 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
         />
       )}
 
-      {/* Inline Add Model Panel */}
       {isAddingModel && (
         <div className="p-3 rounded-xl border border-[var(--theme-border-focus)]/50 bg-[var(--theme-bg-secondary)]/30 space-y-2.5 animate-in fade-in duration-150">
           <div className="flex items-center justify-between text-xs font-semibold text-[var(--theme-text-primary)]">
@@ -379,7 +372,6 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
         </div>
       )}
 
-      {/* Grouped Model List */}
       <div className="rounded-2xl border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-secondary)]/10 p-2 space-y-3">
         {Object.keys(groupedModels).length === 0 ? (
           <div className="py-8 text-center text-xs text-[var(--theme-text-secondary)]">
@@ -438,7 +430,6 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
         )}
       </div>
 
-      {/* Model Configuration Modal */}
       <ModelConfigModal
         isOpen={Boolean(configModalModel)}
         model={configModalModel}

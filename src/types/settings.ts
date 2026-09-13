@@ -224,6 +224,9 @@ export interface GeoLocationCoordinates {
 
 export type VisionPromptMode = 'bbox' | 'hdGuide' | null;
 
+export const TASK_SUGGESTION_MODES = ['translate', 'ocr', 'asr', 'srt', 'explain', 'summarize'] as const;
+export type TaskSuggestionMode = (typeof TASK_SUGGESTION_MODES)[number];
+
 export interface ChatSettings {
   modelId: string;
   /** Which provider this session's modelId belongs to. Absent = gemini-native. */
@@ -234,7 +237,9 @@ export interface ChatSettings {
   showThoughts: boolean;
   systemInstruction: string;
   isLiveArtifactsEnabled?: boolean;
+  isVisualFormattingActive?: boolean;
   visionPromptMode?: VisionPromptMode;
+  taskSuggestionMode?: TaskSuggestionMode | null;
   ttsVoice: string;
   thinkingBudget: number;
   thinkingLevel?: ThinkingLevel;

@@ -377,7 +377,8 @@ const buildPreviewThemeStyle = (
   // line instead of vanishing. Set on descendants only, so the artifact's own
   // root keeps whatever display/width contract the model declared.
   const overflowGuard = `body :where(div,section,article,main,aside,header,footer,li,td,th,p,h1,h2,h3,h4,h5,h6,span,strong,em,small,code){min-width:0;}body{overflow-wrap:anywhere;}`;
-  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};}html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}body{overflow-x:auto;}${overflowGuard}[data-amc-graphviz][data-amc-graphviz-state="rendered"]{cursor:zoom-in;}</style>`;
+  const scrollbarStyles = `*{scrollbar-width:thin;scrollbar-color:var(--amc-live-artifact-border) transparent;}*::-webkit-scrollbar{width:5px;height:5px;}*::-webkit-scrollbar-track{background:transparent;}*::-webkit-scrollbar-thumb{background:var(--amc-live-artifact-border);border-radius:9999px;}*::-webkit-scrollbar-thumb:hover{background:var(--amc-live-artifact-muted);}`;
+  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};}html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}body{overflow-x:auto;}${overflowGuard}${scrollbarStyles}[data-amc-graphviz][data-amc-graphviz-state="rendered"]{cursor:zoom-in;}</style>`;
 };
 
 const injectPreviewTheme = (srcDoc: string, themeId?: string): string => {

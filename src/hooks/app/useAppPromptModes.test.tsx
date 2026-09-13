@@ -455,11 +455,7 @@ describe('useAppPromptModes', () => {
     });
 
     expect(handleSendMessage).not.toHaveBeenCalled();
-    expect(setCommandedInput).toHaveBeenCalledWith({
-      text: 'Create interactive HTML board.\n',
-      id: expect.any(Number),
-      mode: 'replace',
-    });
+    expect(setCommandedInput).not.toHaveBeenCalled();
     expect(mockFocusChatInput).toHaveBeenCalledWith(50, { caret: 'end' });
     expect(setAppSettings).toHaveBeenCalledWith(expect.any(Function));
     expect(result.current.isLiveArtifactsPromptActive).toBe(true);
@@ -561,12 +557,8 @@ describe('useAppPromptModes', () => {
     });
 
     expect(handleSendMessage).not.toHaveBeenCalled();
-    expect(setCommandedInput).toHaveBeenCalledWith({
-      text: 'Create interactive HTML board.\n',
-      id: expect.any(Number),
-      mode: 'replace',
-    });
-    expect(result.current.isLiveArtifactsPromptActive).toBe(true);
+    expect(result.current.isLiveArtifactsPromptActive).toBe(false);
+    expect(mockFocusChatInput).toHaveBeenCalledWith(50, { caret: 'end' });
 
     unmount();
   });

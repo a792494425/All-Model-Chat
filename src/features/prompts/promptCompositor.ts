@@ -1,14 +1,16 @@
-import type { LiveArtifactsPromptMode, VisionPromptMode } from '@/types';
+import type { LiveArtifactsPromptMode, TaskSuggestionMode, VisionPromptMode } from '@/types';
 import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import {
   BBOX_PROMPT_MARKER,
   HD_GUIDE_PROMPT_MARKER,
   LIVE_ARTIFACTS_PROMPT_MARKERS,
+  TASK_SUGGESTION_PROMPT_MARKER,
   loadBboxSystemPrompt,
   loadDeepSearchSystemPrompt,
   loadHdGuideSystemPrompt,
   loadLiveArtifactsSystemPrompt,
   loadLocalPythonSystemPrompt,
+  loadTaskSuggestionSystemPrompt,
 } from './promptRegistry';
 
 export interface PromptCompositorContext {
@@ -20,6 +22,7 @@ export interface PromptCompositorContext {
   liveArtifactsPromptMode?: LiveArtifactsPromptMode;
   customLiveArtifactsPrompt?: string | null;
   visionPromptMode?: VisionPromptMode;
+  taskSuggestionMode?: TaskSuggestionMode | null;
 
   /** Tool call behavior directives */
   isDeepSearchEnabled?: boolean;
@@ -42,7 +45,12 @@ export const stripLegacyFeatureMarkers = (instruction?: string | null): string =
   if (!instruction) return '';
   const trimmed = instruction.trim();
 
-  const allMarkers = [...LIVE_ARTIFACTS_PROMPT_MARKERS, BBOX_PROMPT_MARKER, HD_GUIDE_PROMPT_MARKER];
+  const allMarkers = [
+    ...LIVE_ARTIFACTS_PROMPT_MARKERS,
+    BBOX_PROMPT_MARKER,
+    HD_GUIDE_PROMPT_MARKER,
+    TASK_SUGGESTION_PROMPT_MARKER,
+  ];
 
   let earliestIndex = -1;
   for (const marker of allMarkers) {
@@ -69,7 +77,7 @@ export const stripLegacyFeatureMarkers = (instruction?: string | null): string =
  * Composes a multi-layered system instruction string for model generation.
  *
  * Layer 1: User-defined instruction (custom persona / scenario)
- * Layer 2: Feature protocols (Live Artifacts, BBox, HD Guide)
+ * Layer 2: Feature protocols (Live Artifacts, BBox, HD Guide, Task Directives)
  * Layer 3: Tool directives (Deep Search, Local Python)
  * Layer 4: Media locate directives (PDF pages, video timestamps)
  */
@@ -109,6 +117,13 @@ export const composeSystemInstruction = async (context: PromptCompositorContext)
     const hdGuidePrompt = await loadHdGuideSystemPrompt();
     if (hdGuidePrompt?.trim()) {
       segments.push(hdGuidePrompt.trim());
+    }
+  }
+
+  if (context.taskSuggestionMode) {
+    const taskPrompt = await loadTaskSuggestionSystemPrompt(context.taskSuggestionMode, context.language ?? 'zh');
+    if (taskPrompt?.trim()) {
+      segments.push(taskPrompt.trim());
     }
   }
 

@@ -136,3 +136,92 @@ describe('chat-runtime message list values reference stability', () => {
     expect(result.current).toBe(first);
   });
 });
+
+describe('chat-runtime input visual formatting mode decoupling', () => {
+  it('reflects isVisualFormattingActive and not isLiveArtifactsEnabled alone', () => {
+    const appMembers = stableAppMembers();
+    const chatState = {
+      ...stableChatState(),
+      currentChatSettings: {
+        isLiveArtifactsEnabled: true,
+        isVisualFormattingActive: false,
+      },
+    };
+    const app = makeApp(appMembers, chatState);
+
+    const { result } = renderHook(() =>
+      useChatInputRuntimeValues({
+        app: app as unknown as AppViewModel,
+        availableModels: EMPTY_MODELS,
+        onOpenSettings: vi.fn(),
+        onSelectModel: vi.fn(),
+      }),
+    );
+
+    expect(result.current.isLiveArtifactsPromptActive).toBe(false);
+  });
+
+  it('toggles isVisualFormattingActive and enables isLiveArtifactsEnabled when activating', () => {
+    const setCurrentChatSettings = vi.fn();
+    const appMembers = stableAppMembers();
+    const chatState = {
+      ...stableChatState(),
+      currentChatSettings: {
+        isLiveArtifactsEnabled: false,
+        isVisualFormattingActive: false,
+      },
+      setCurrentChatSettings,
+    };
+    const app = makeApp(appMembers, chatState);
+
+    const { result } = renderHook(() =>
+      useChatInputRuntimeValues({
+        app: app as unknown as AppViewModel,
+        availableModels: EMPTY_MODELS,
+        onOpenSettings: vi.fn(),
+        onSelectModel: vi.fn(),
+      }),
+    );
+
+    result.current.onToggleLiveArtifactsPrompt();
+    expect(setCurrentChatSettings).toHaveBeenCalled();
+
+    const updater = setCurrentChatSettings.mock.calls[0][0];
+    const nextState = updater({ isVisualFormattingActive: false, isLiveArtifactsEnabled: false });
+    expect(nextState.isVisualFormattingActive).toBe(true);
+    expect(nextState.isLiveArtifactsEnabled).toBe(true);
+  });
+
+  it('deactivates isVisualFormattingActive via onDeactivateLiveArtifactsPrompt while retaining engine state', () => {
+    const setCurrentChatSettings = vi.fn();
+    const appMembers = stableAppMembers();
+    const chatState = {
+      ...stableChatState(),
+      currentChatSettings: {
+        isLiveArtifactsEnabled: true,
+        isVisualFormattingActive: true,
+      },
+      setCurrentChatSettings,
+    };
+    const app = makeApp(appMembers, chatState);
+
+    const { result } = renderHook(() =>
+      useChatInputRuntimeValues({
+        app: app as unknown as AppViewModel,
+        availableModels: EMPTY_MODELS,
+        onOpenSettings: vi.fn(),
+        onSelectModel: vi.fn(),
+      }),
+    );
+
+    expect(result.current.isLiveArtifactsPromptActive).toBe(true);
+    expect(result.current.onDeactivateLiveArtifactsPrompt).toBeDefined();
+    result.current.onDeactivateLiveArtifactsPrompt?.();
+    expect(setCurrentChatSettings).toHaveBeenCalled();
+
+    const updater = setCurrentChatSettings.mock.calls[0][0];
+    const nextState = updater({ isVisualFormattingActive: true, isLiveArtifactsEnabled: true });
+    expect(nextState.isVisualFormattingActive).toBe(false);
+    expect(nextState.isLiveArtifactsEnabled).toBe(true);
+  });
+});

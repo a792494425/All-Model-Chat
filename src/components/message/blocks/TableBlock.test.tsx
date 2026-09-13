@@ -1,4 +1,5 @@
 import { act } from 'react';
+import { waitFor } from '@testing-library/react';
 import { setupTestRenderer, flushPromises } from '@/test/render/renderer';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WindowProvider } from '@/contexts/WindowContext';
@@ -151,13 +152,13 @@ describe('TableBlock', () => {
     await act(async () => {
       excelButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await flushPromises();
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      await flushPromises();
     });
 
-    expect(createObjectUrl).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
-    );
+    await waitFor(() => {
+      expect(createObjectUrl).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      );
+    });
     expect(triggerDownloadMock).toHaveBeenCalledWith(
       'blob:table-export',
       expect.stringMatching(/^table-export-\d+\.xlsx$/),
@@ -212,11 +213,11 @@ describe('TableBlock', () => {
       await act(async () => {
         copyButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await flushPromises();
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        await flushPromises();
       });
 
-      expect(writeMock).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(writeMock).toHaveBeenCalledTimes(1);
+      });
       const passedItem = writeMock.mock.calls[0][0][0] as MockClipboardItem;
       expect(passedItem.items['text/plain']).toBeDefined();
       expect(passedItem.items['text/html']).toBeDefined();
@@ -342,11 +343,11 @@ describe('TableBlock', () => {
       copyButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       // The handler awaits a dynamic import before writing; let it resolve.
       await flushPromises();
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      await flushPromises();
     });
 
-    expect(writeText).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledTimes(1);
+    });
     const written = writeText.mock.calls[0][0] as string;
     expect(written).toContain('|');
     expect(written).not.toContain('<td');
@@ -383,13 +384,12 @@ describe('TableBlock', () => {
     await act(async () => {
       copyButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await flushPromises();
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      await flushPromises();
     });
 
+    await waitFor(() => {
+      expect(renderer.container.querySelector('.text-\\[var\\(--theme-text-success\\)\\]')).not.toBeNull();
+    });
     expect(renderer.container.querySelector('.text-green-500')).toBeNull();
-    const successIcon = renderer.container.querySelector('.text-\\[var\\(--theme-text-success\\)\\]');
-    expect(successIcon).not.toBeNull();
   });
 
   it('prefixes the CSV export with a UTF-8 BOM so Excel reads CJK correctly', async () => {

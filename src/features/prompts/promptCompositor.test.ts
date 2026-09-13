@@ -10,6 +10,7 @@ vi.mock('./promptRegistry', async () => {
     loadHdGuideSystemPrompt: vi.fn(async () => '[MOCK_HD_GUIDE]'),
     loadDeepSearchSystemPrompt: vi.fn(async () => '[MOCK_DEEP_SEARCH]'),
     loadLocalPythonSystemPrompt: vi.fn(async () => '[MOCK_LOCAL_PYTHON]'),
+    loadTaskSuggestionSystemPrompt: vi.fn(async (mode: string) => `[MOCK_TASK_${mode.toUpperCase()}]`),
   };
 });
 
@@ -120,5 +121,28 @@ describe('composeSystemInstruction', () => {
       visionPromptMode: 'hdGuide',
     });
     expect(result).toBe('[MOCK_HD_GUIDE]');
+  });
+
+  it('layers task suggestion directive when taskSuggestionMode is active', async () => {
+    const result = await composeSystemInstruction({
+      userInstruction: 'You are an AI assistant.',
+      taskSuggestionMode: 'translate',
+    });
+    expect(result).toBe('You are an AI assistant.\n\n[MOCK_TASK_TRANSLATE]');
+  });
+
+  it('layers both Live Artifacts and Task Suggestion directive concurrently', async () => {
+    const result = await composeSystemInstruction({
+      userInstruction: 'You are an AI assistant.',
+      isLiveArtifactsEnabled: true,
+      taskSuggestionMode: 'translate',
+    });
+    expect(result).toBe('You are an AI assistant.\n\n[MOCK_LA_INLINE]\n\n[MOCK_TASK_TRANSLATE]');
+  });
+
+  it('strips legacy task directive marker from user instruction if present', () => {
+    expect(
+      stripLegacyFeatureMarkers('You are an assistant.\n\n[Task Directive - translate]\n### Bilingual Translation'),
+    ).toBe('You are an assistant.');
   });
 });

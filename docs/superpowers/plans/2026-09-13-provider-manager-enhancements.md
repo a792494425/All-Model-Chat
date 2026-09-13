@@ -4,7 +4,8 @@
 
 **Goal:** 增强 Provider Manager，支持模型显示名称/ID编辑、手动能力纠偏与置顶、进阶采样与自适应推理参数覆写、拆解抽离通用模型列表模块，并在 Provider Manager 中统一集成 Gemini 官方模型管理。
 
-**Architecture:** 
+**Architecture:**
+
 1. 扩展 `ModelOption` 与 `ModelParameters` 类型定义；
 2. 在 `standardChatApiCall` 与 API 请求构造层注入模型级进阶参数；
 3. 开发双 Tab 统一弹窗 `ModelConfigModal` 替代原有的简单参数弹窗；
@@ -27,10 +28,12 @@
 ### Task 1: 扩展模型参数与元数据类型定义 (Types & Schemas)
 
 **Files:**
+
 - Modify: `src/types/settings.ts:47-54`
 - Test: `src/test/architecture/modelTypes.test.ts` (新建测试)
 
 **Interfaces:**
+
 - Consumes: `ModelOption`, `ModelCapabilities`, `ChatSettings`
 - Produces: `ModelParameters` 接口扩展（`topK`, `presencePenalty`, `frequencyPenalty`, `stopSequences`, `seed`, `reasoningEffort`, `thinkingBudget`）；`ModelOption` 扩展（`isPinned`, `contextWindow`, `capabilities`, `parameters`）
 
@@ -137,12 +140,14 @@ git commit -m "feat(types): expand ModelParameters and ModelOption interfaces"
 ### Task 2: 运行时参数下发链路贯通 (Runtime Parameter Propagation)
 
 **Files:**
+
 - Modify: `src/features/message-sender/standardChatApiCall.ts:376-445`
 - Modify: `src/services/api/openaiCompatibleMessages.ts:215-260`
 - Test: `src/services/api/openaiCompatibleMessages.test.ts`
 - Test: `src/features/message-sender/standardChatApiCall.test.ts`
 
 **Interfaces:**
+
 - Consumes: `activeModel.parameters`
 - Produces: `OpenAICompatibleChatConfig` 注入 `reasoningEffort`；请求体 `reasoning_effort` 映射；`topK`、`presencePenalty`、`frequencyPenalty`、`stopSequences`、`seed` 从 `activeModel.parameters` 优先取值
 
@@ -222,11 +227,13 @@ git commit -m "feat(api): support model-level reasoningEffort and advanced param
 ### Task 3: 实现统一模型配置中心弹窗 (`ModelConfigModal.tsx`)
 
 **Files:**
+
 - Create: `src/components/settings/sections/providers/ModelConfigModal.tsx`
 - Create: `src/components/settings/sections/providers/ModelConfigModal.test.tsx`
 - Modify: `src/i18n/translations/` (增加对应多语言键值)
 
 **Interfaces:**
+
 - Consumes: `model: ModelOption`, `protocol?: ThirdPartyApiProtocol`, `onSave: (updated: Partial<ModelOption>) => void`, `onClose: () => void`
 - Produces: 完整的模型元数据（`name`, `id`, `isPinned`, `contextWindow`, `capabilities`）与参数（`parameters`）统一编辑保存
 
@@ -257,14 +264,7 @@ const mockModel: ModelOption = {
 describe('ModelConfigModal', () => {
   it('renders info tab and allows editing name and toggling pin', () => {
     const handleSave = vi.fn();
-    render(
-      <ModelConfigModal
-        isOpen={true}
-        model={mockModel}
-        onClose={vi.fn()}
-        onSave={handleSave}
-      />
-    );
+    render(<ModelConfigModal isOpen={true} model={mockModel} onClose={vi.fn()} onSave={handleSave} />);
 
     expect(screen.getByDisplayValue('GPT-4o Original')).toBeInTheDocument();
     const nameInput = screen.getByDisplayValue('GPT-4o Original');
@@ -277,7 +277,7 @@ describe('ModelConfigModal', () => {
     expect(handleSave).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'GPT-4o Renamed',
-      })
+      }),
     );
   });
 
@@ -290,7 +290,7 @@ describe('ModelConfigModal', () => {
         protocol="openai-compatible"
         onClose={vi.fn()}
         onSave={handleSave}
-      />
+      />,
     );
 
     // Switch tab
@@ -309,7 +309,7 @@ describe('ModelConfigModal', () => {
         parameters: expect.objectContaining({
           reasoningEffort: 'high',
         }),
-      })
+      }),
     );
   });
 });
@@ -323,6 +323,7 @@ Expected: FAIL with module not found
 - [ ] **Step 3: 实现 `ModelConfigModal.tsx`**
 
 实现完整包含双 Tab 的模态窗组件：
+
 - Tab 切换（`info` | `parameters`）。
 - Tab 1: Name 输入、ID 输入、Pin Toggle、Context Window（带 32k/128k/200k/1M 快速点击标签）、Capabilities 多项 Checkbox（vision, tools, thinking, audio, image, webSearch）。
 - Tab 2: Temperature, Top-P, Top-K, MaxOutputTokens, PresencePenalty, FrequencyPenalty, StopSequences, Seed；协议自适应（OpenAI 渲染 reasoningEffort，Anthropic/Gemini 渲染 thinkingBudget 滑块）。
@@ -345,6 +346,7 @@ git commit -m "feat(ui): add ModelConfigModal for editing metadata and parameter
 ### Task 4: 拆离通用模型列表子模块 (`models/ProviderModelListSection.tsx`)
 
 **Files:**
+
 - Create: `src/components/settings/sections/providers/models/ProviderModelRow.tsx`
 - Create: `src/components/settings/sections/providers/models/ProviderModelToolbar.tsx`
 - Create: `src/components/settings/sections/providers/models/ProviderBatchActionBar.tsx`
@@ -352,6 +354,7 @@ git commit -m "feat(ui): add ModelConfigModal for editing metadata and parameter
 - Create: `src/components/settings/sections/providers/models/ProviderModelListSection.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `ProviderModelListSectionProps`（`providerId`, `providerName`, `protocol`, `models`, `onUpdateModels`, `onProbeSingleModel`, `onProbeBatchModels`, `onSyncRemoteModels`）
 - Produces: 可在第三方 Provider 和 Gemini 中无缝复用的模型列表管理模块
 
@@ -381,7 +384,7 @@ describe('ProviderModelListSection', () => {
         onUpdateModels={handleUpdate}
         onProbeSingleModel={vi.fn()}
         onProbeBatchModels={vi.fn()}
-      />
+      />,
     );
 
     expect(screen.getByText('Model One')).toBeInTheDocument();
@@ -392,9 +395,7 @@ describe('ProviderModelListSection', () => {
     fireEvent.click(eyeButtons[0]);
 
     expect(handleUpdate).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({ id: 'm1', visibleInSelector: false }),
-      ])
+      expect.arrayContaining([expect.objectContaining({ id: 'm1', visibleInSelector: false })]),
     );
   });
 });
@@ -429,10 +430,12 @@ git commit -m "refactor(ui): extract reusable ProviderModelListSection and subco
 ### Task 5: 重构轻量化 `ProviderDetail.tsx`
 
 **Files:**
+
 - Modify: `src/components/settings/sections/providers/ProviderDetail.tsx`
 - Modify: `src/components/settings/sections/providers/ProviderDetail.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `connection: ThirdPartyConnection`, `onUpdateConnection`, `onDeleteConnection`
 - Produces: 极度轻量（~200 行）的第三方 Provider 详情页，底层模型列表全部委托给 `ProviderModelListSection`
 
@@ -444,6 +447,7 @@ Expected: PASS（当前状态）
 - [ ] **Step 2: 重构 `ProviderDetail.tsx`**
 
 移除 `ProviderDetail.tsx` 中重复的搜索、过滤、批量选择、卡片渲染代码，仅保留：
+
 1. 顶部连接 Header（头像、名称、启用 Toggle、设置按钮）；
 2. API Key 与 Base URL 凭据区（含测速探测按钮、端点预览）；
 3. 接入 `<ProviderModelListSection />` 承接所有模型管理。
@@ -465,12 +469,14 @@ git commit -m "refactor(ui): slim down ProviderDetail using ProviderModelListSec
 ### Task 6: 构建 Gemini 统一管理详情 (`GeminiProviderDetail.tsx`) 与路由接入
 
 **Files:**
+
 - Create: `src/components/settings/sections/providers/GeminiProviderDetail.tsx`
 - Create: `src/components/settings/sections/providers/GeminiProviderDetail.test.tsx`
 - Modify: `src/components/settings/sections/providers/ProviderSettingsSection.tsx:197-225`
 - Modify: `src/components/settings/sections/providers/ProviderSettingsSection.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `settings: AppSettings`, `onUpdateSettings`, `useModelPreferencesStore`
 - Produces: Gemini 在 Provider 页面展现与第三方完全一致的“API 凭据 + 模型管理列表”
 
@@ -489,7 +495,7 @@ describe('GeminiProviderDetail', () => {
       <GeminiProviderDetail
         settings={{ apiKey: 'test-key', useCustomApiConfig: true } as any}
         onUpdateSettings={vi.fn()}
-      />
+      />,
     );
 
     // Checks presence of API Key section and Models section
@@ -529,12 +535,14 @@ git commit -m "feat(ui): add GeminiProviderDetail unifying Gemini and third-part
 ### Task 7: 补全多语言字典与全局集成回归 (i18n & Global Verification)
 
 **Files:**
+
 - Modify: `src/i18n/translations/` (所有包含 settings/provider 相关翻译的语言字典)
 - Test: 全量测试套件与打包检查
 
 - [ ] **Step 1: 扫描并补齐新增词条**
 
 补充 `ModelConfigModal` 和 Gemini 整合新增的多语言词条：
+
 - `modelConfigTitle`: "模型配置" / "Model Configuration"
 - `modelConfigTabInfo`: "基本信息与能力" / "Info & Capabilities"
 - `modelConfigTabParams`: "生成与推理参数" / "Generation & Reasoning"

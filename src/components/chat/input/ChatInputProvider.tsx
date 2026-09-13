@@ -209,6 +209,8 @@ export const ChatInputProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       showInputPasteButton: logic.chatInput.appSettings.showInputPasteButton ?? true,
       showInputClearButton: logic.chatInput.appSettings.showInputClearButton ?? true,
       showVoiceInputButton: logic.chatInput.appSettings.showVoiceInputButton ?? false,
+      isLiveArtifactsPromptActive: logic.chatInput.isLiveArtifactsPromptActive,
+      onToggleLiveArtifactsPrompt: logic.chatInput.onToggleLiveArtifactsPrompt,
     };
   }, [
     actionDisabled,
@@ -233,6 +235,8 @@ export const ChatInputProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     logic.chatInput.currentChatSettings.providerId,
     logic.chatInput.isEditing,
     logic.chatInput.isLoading,
+    logic.chatInput.isLiveArtifactsPromptActive,
+    logic.chatInput.onToggleLiveArtifactsPrompt,
     logic.chatInput.toolStates,
     onAttachmentAction,
     onNewChat,

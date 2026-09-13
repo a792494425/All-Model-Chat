@@ -133,6 +133,24 @@ describe('generateSessionTitle', () => {
 
     expect(generateSessionTitle(msgs)).toBe('Plot sales by month for this CSV');
   });
+
+  it('strips Live Artifacts directive when deriving session title', () => {
+    const msgs = [
+      makeMessage(
+        'user',
+        '【Live Artifacts 现代化可视化排版指令】\n你必须直接使用现代化的 Live Artifacts 内联 HTML 片段...\n\n用户需求如下：\n\n帮我写一个 Python 贪吃蛇',
+      ),
+    ];
+    expect(generateSessionTitle(msgs)).toBe('帮我写一个 Python 贪吃蛇');
+
+    const msgsWithNewDirective = [
+      makeMessage(
+        'user',
+        '请使用 Live Artifacts，将以下内容呈现为结构化、响应式的精美 HTML 卡片，并保留所有重要信息：\n\n帮我写一个 Python 贪吃蛇',
+      ),
+    ];
+    expect(generateSessionTitle(msgsWithNewDirective)).toBe('帮我写一个 Python 贪吃蛇');
+  });
 });
 
 // ── performOptimisticSessionUpdate ──

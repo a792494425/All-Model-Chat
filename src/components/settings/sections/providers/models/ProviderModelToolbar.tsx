@@ -1,15 +1,5 @@
 import React from 'react';
-import {
-  ChevronsUpDown,
-  Search,
-  ListChecks,
-  Activity,
-  RefreshCw,
-  Plus,
-  Loader2,
-  Square,
-  X,
-} from 'lucide-react';
+import { ChevronsUpDown, Search, ListChecks, Activity, RefreshCw, Plus, Loader2, Square, X } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 
 export type ModelCapabilityTab = 'all' | 'text' | 'vision' | 'thinking' | 'image' | 'embedding' | 'audio' | 'free';
@@ -171,7 +161,6 @@ export const ProviderModelToolbar: React.FC<ProviderModelToolbarProps> = ({
         </div>
       </div>
 
-      {/* Capability Tabs */}
       {modelsCount > 0 && (
         <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 text-xs select-none">
           {CAPABILITY_TABS.filter((tab) => tab.id === 'all' || (capabilityCounts[tab.id] ?? 0) > 0).map((tab) => {
@@ -204,7 +193,6 @@ export const ProviderModelToolbar: React.FC<ProviderModelToolbarProps> = ({
         </div>
       )}
 
-      {/* Search Bar (if open or searching) */}
       {isSearchOpen && (
         <div className="relative animate-in fade-in duration-100">
           <Search

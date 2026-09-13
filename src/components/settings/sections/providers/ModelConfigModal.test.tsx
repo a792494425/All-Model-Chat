@@ -20,14 +20,7 @@ const mockModel: ModelOption = {
 describe('ModelConfigModal', () => {
   it('renders info tab and allows editing name and toggling pin', () => {
     const handleSave = vi.fn();
-    render(
-      <ModelConfigModal
-        isOpen={true}
-        model={mockModel}
-        onClose={vi.fn()}
-        onSave={handleSave}
-      />
-    );
+    render(<ModelConfigModal isOpen={true} model={mockModel} onClose={vi.fn()} onSave={handleSave} />);
 
     expect(screen.getByDisplayValue('GPT-4o Original')).toBeInTheDocument();
     const nameInput = screen.getByDisplayValue('GPT-4o Original');
@@ -40,7 +33,7 @@ describe('ModelConfigModal', () => {
     expect(handleSave).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'GPT-4o Renamed',
-      })
+      }),
     );
   });
 
@@ -53,7 +46,7 @@ describe('ModelConfigModal', () => {
         protocol="openai-compatible"
         onClose={vi.fn()}
         onSave={handleSave}
-      />
+      />,
     );
 
     // Switch tab
@@ -72,7 +65,7 @@ describe('ModelConfigModal', () => {
         parameters: expect.objectContaining({
           reasoningEffort: 'high',
         }),
-      })
+      }),
     );
   });
 });

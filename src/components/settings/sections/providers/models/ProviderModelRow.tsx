@@ -1,19 +1,8 @@
 import React from 'react';
-import {
-  Square,
-  CheckSquare,
-  Pin,
-  Eye,
-  Lightbulb,
-  Wrench,
-  Settings,
-  Trash2,
-  Activity,
-  Loader2,
-} from 'lucide-react';
+import { Square, CheckSquare, Pin, Eye, Lightbulb, Wrench, Settings, Trash2, Activity, Loader2 } from 'lucide-react';
 import type { ModelOption, ThirdPartyApiProtocol, ThirdPartyTemplateId } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
-import { ProviderAvatar } from '../ProviderAvatar';
+import { ProviderAvatar } from '@/components/settings/sections/providers/ProviderAvatar';
 import { formatContextWindow, getOrInferModelCapabilities } from '@/utils/model/knownModelsCatalog';
 import { formatLatency, getLatencyBadgeStyles, type ConnectionHealthProbeResult } from '@/utils/thirdPartyDiagnostics';
 
@@ -71,16 +60,17 @@ export const ProviderModelRow: React.FC<ProviderModelRowProps> = ({
             onToggleSelect(model.id);
           }}
           className={`p-0.5 rounded cursor-pointer transition-all ${
-            isBatchMode || isSelected
-              ? 'opacity-100'
-              : 'opacity-0 group-hover:opacity-100 focus:opacity-100'
+            isBatchMode || isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'
           }`}
           title={isSelected ? t('thirdPartyDeselectModel') || 'Deselect' : t('thirdPartySelectModel') || 'Select'}
         >
           {isSelected ? (
             <CheckSquare size={14} className="text-[var(--theme-border-focus)]" />
           ) : (
-            <Square size={14} className="text-[var(--theme-text-secondary)]/50 hover:text-[var(--theme-text-secondary)]" />
+            <Square
+              size={14}
+              className="text-[var(--theme-text-secondary)]/50 hover:text-[var(--theme-text-secondary)]"
+            />
           )}
         </button>
 
@@ -153,7 +143,9 @@ export const ProviderModelRow: React.FC<ProviderModelRowProps> = ({
                   className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-mono font-medium ${
                     getLatencyBadgeStyles(probeResult.grade).badge
                   }`}
-                  title={t('thirdPartyLatencyTooltip', { latency: probeResult.latencyMs }) || `${probeResult.latencyMs}ms`}
+                  title={
+                    t('thirdPartyLatencyTooltip', { latency: probeResult.latencyMs }) || `${probeResult.latencyMs}ms`
+                  }
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${getLatencyBadgeStyles(probeResult.grade).dot}`} />
                   <span>{formatLatency(probeResult.latencyMs)}</span>
@@ -179,9 +171,7 @@ export const ProviderModelRow: React.FC<ProviderModelRowProps> = ({
           </div>
 
           {model.name && model.name !== model.id && (
-            <div className="text-[10px] font-mono text-[var(--theme-text-secondary)]/70 truncate">
-              {model.id}
-            </div>
+            <div className="text-[10px] font-mono text-[var(--theme-text-secondary)]/70 truncate">{model.id}</div>
           )}
         </div>
       </div>
@@ -211,7 +201,11 @@ export const ProviderModelRow: React.FC<ProviderModelRowProps> = ({
               ? 'text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20'
               : 'text-[var(--theme-text-secondary)]/40 hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]'
           }`}
-          title={isVisible ? t('thirdPartyModelVisibleTooltip') || 'Visible in picker' : t('thirdPartyModelHiddenTooltip') || 'Hidden in picker'}
+          title={
+            isVisible
+              ? t('thirdPartyModelVisibleTooltip') || 'Visible in picker'
+              : t('thirdPartyModelHiddenTooltip') || 'Hidden in picker'
+          }
         >
           <Eye size={13} />
         </button>
@@ -224,7 +218,11 @@ export const ProviderModelRow: React.FC<ProviderModelRowProps> = ({
               ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500/20'
               : 'text-[var(--theme-text-secondary)]/40 hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]'
           }`}
-          title={isThinking ? t('thirdPartyThinkingEnabledTooltip') || 'Thinking enabled' : t('thirdPartyThinkingDisabledTooltip') || 'Thinking disabled'}
+          title={
+            isThinking
+              ? t('thirdPartyThinkingEnabledTooltip') || 'Thinking enabled'
+              : t('thirdPartyThinkingDisabledTooltip') || 'Thinking disabled'
+          }
         >
           <Lightbulb size={13} />
         </button>
@@ -237,7 +235,11 @@ export const ProviderModelRow: React.FC<ProviderModelRowProps> = ({
               ? 'text-sky-500 bg-sky-500/10 hover:bg-sky-500/20'
               : 'text-[var(--theme-text-secondary)]/40 hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]'
           }`}
-          title={isTools ? t('thirdPartyToolsEnabledTooltip') || 'Tools enabled' : t('thirdPartyToolsDisabledTooltip') || 'Tools disabled'}
+          title={
+            isTools
+              ? t('thirdPartyToolsEnabledTooltip') || 'Tools enabled'
+              : t('thirdPartyToolsDisabledTooltip') || 'Tools disabled'
+          }
         >
           <Wrench size={13} />
         </button>

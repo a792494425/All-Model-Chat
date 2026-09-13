@@ -2,6 +2,7 @@
 
 日期：2026-09-13  
 范围：
+
 - `src/types/settings.ts`（类型扩展）
 - `src/components/settings/sections/providers/ModelConfigModal.tsx`（新增，替代原 `ModelParameterModal`）
 - `src/components/settings/sections/providers/models/`（新增目录，拆解通用模型管理容器）
@@ -42,6 +43,7 @@ AMC-WebUI 目前的 Provider Manager 已支持多连接配置、24+ 预设模板
    - `ProviderDetail.tsx` 代码量已近 1400 行（66KB），杂糅了 Header、凭据、模型工具栏、能力过滤 Tab、批量操作条、分组逻辑与模型卡片渲染。
 
 **本次增强目标**：
+
 - 抽取可复用的模型管理容器 `ProviderModelListSection`，将 `ProviderDetail.tsx` 拆解轻量化。
 - 构建 `GeminiProviderDetail.tsx`，让 Gemini 在 Provider Manager 中拥有与第三方连接完全一致的模型列表管理体验。
 - 构建一体化的 `ModelConfigModal.tsx`（包含“基本信息与能力纠偏”和“生成与推理参数”两大 Tab）。
@@ -105,6 +107,7 @@ export interface ModelOption {
 弹窗设计为双 Tab 结构：
 
 #### Tab 1: 基本信息与能力纠偏 (Info & Capabilities)
+
 1. **基础标识**：
    - **显示名称 (`name`)**：可自由编辑别名（如将 `ep-xxx` 重命名为更友好的名字）。
    - **模型 ID (`id`)**：展示模型底层标识，支持复制，支持修改（修改时提供小提示防手误）。
@@ -121,6 +124,7 @@ export interface ModelOption {
      - `webSearch`（原生联网搜索）
 
 #### Tab 2: 生成与推理参数 (Generation & Reasoning)
+
 1. **基础采样**：
    - `temperature`：0.00 ~ 2.00 滑块 + 精确数字输入框。
    - `topP`：0.00 ~ 1.00 滑块 + 精确数字输入框。
@@ -167,6 +171,7 @@ interface ProviderModelListSectionProps {
 ```
 
 内部子组件拆分：
+
 - `ProviderModelToolbar.tsx`：搜索栏、折叠/展开全部、能力过滤 Tabs（All/Text/Vision/Thinking/Image/Audio/Free）、批量管理开关、探活按钮、同步按钮、添加模型按钮。
 - `ProviderBatchActionBar.tsx`：批量管理激活时的浮条（全选/反选、批量显隐、批量探活、批量删除）。
 - `ProviderModelRow.tsx`：单个模型的卡片展示、能力 Badges、置顶星标、显隐开关、Thinking 开关、Tools 开关、齿轮打开 `ModelConfigModal`、删除。
@@ -176,6 +181,7 @@ interface ProviderModelListSectionProps {
 ### 2.4 Gemini 统一视图集成 (`GeminiProviderDetail.tsx`)
 
 在 `src/components/settings/sections/providers/GeminiProviderDetail.tsx` 中：
+
 1. **上半部分**：嵌入 [ApiConfigSection](file:///Volumes/WD_BLACK/Code/AMC-WebUI/src/components/settings/sections/ApiConfigSection.tsx)（API Key、代理端点、Docker 托管状态、连通性测试）。
 2. **下半部分**：直接挂载 `<ProviderModelListSection />`！
    - 数据源直接绑定 `useModelPreferencesStore` 中的 `customModels`（若无则展示 `defaultModels`）。
@@ -194,7 +200,7 @@ interface ProviderModelListSectionProps {
      ```typescript
      const activeModel = activeProvider.models?.find((m) => m.id === apiModelId);
      const params = activeModel?.parameters;
-     
+
      const providerConfig = {
        // ... 基础配置
        temperature: params?.temperature ?? sessionToUpdate.temperature,

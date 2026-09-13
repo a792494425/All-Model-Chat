@@ -50,6 +50,9 @@ export const THIRD_PARTY_PROVIDER_LOGO: Record<string, string> = {
   doubao: CHERRY_PROVIDER_LOGOS['doubao'] || CHERRY_PROVIDER_LOGOS['volcengine'] || customLogoUrl,
   stepfun: CHERRY_PROVIDER_LOGOS['step'] || customLogoUrl,
   yi: CHERRY_PROVIDER_LOGOS['zero-one'] || customLogoUrl,
+  opencode: CHERRY_PROVIDER_LOGOS['opencode'] || customLogoUrl,
+  hunyuan: CHERRY_PROVIDER_LOGOS['hunyuan'] || customLogoUrl,
+  huggingface: CHERRY_PROVIDER_LOGOS['huggingface'] || customLogoUrl,
 };
 
 type ModelBrandIconKey = 'gemini' | 'gemma' | 'nanobanana';

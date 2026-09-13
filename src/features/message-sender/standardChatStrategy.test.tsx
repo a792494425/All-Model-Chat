@@ -6,6 +6,7 @@ import { MediaResolution } from '@/types';
 import { createThirdPartyConnection } from '@/test/data/factories';
 import { createMessage } from '@/utils/chat/session';
 import { useMcpRuntimeStore } from '@/stores/mcpRuntimeStore';
+import { getLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
 import type { PreparedModelRequest } from './useModelRequestRunner';
 
 const {
@@ -299,6 +300,133 @@ describe('standardChatStrategy', () => {
     expect(createMessage).toHaveBeenCalledWith(
       'user',
       'analyze the csv',
+      expect.objectContaining({
+        apiParts: promptParts,
+      }),
+    );
+
+    unmount();
+  });
+
+  it('visibly prepends Live Artifacts directive to user message and protocol parts when active', async () => {
+    const promptParts = [{ text: '帮我设计架构' }];
+    mockBuildContentParts.mockResolvedValue({
+      contentParts: promptParts,
+      enrichedFiles: [],
+    });
+
+    const { result, unmount } = renderStandardChat({
+      appSettings: {
+        language: 'zh',
+      },
+      currentChatSettings: {
+        isLiveArtifactsEnabled: true,
+        isVisualFormattingActive: true,
+      },
+    });
+
+    await act(async () => {
+      await result.current.sendStandardMessage({
+        text: '帮我设计架构',
+        files: [],
+        editingMessageId: null,
+        activeModelId: 'gemini-3-flash-preview',
+        request: createPreparedRequest(),
+      });
+    });
+
+    expect(createMessage).toHaveBeenCalledWith(
+      'user',
+      expect.stringContaining(getLiveArtifactsUserDirective('zh')),
+      expect.objectContaining({
+        apiParts: promptParts,
+      }),
+    );
+    expect(mockBuildContentParts).toHaveBeenCalledWith(
+      expect.stringContaining(getLiveArtifactsUserDirective('zh')),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    );
+
+    unmount();
+  });
+
+  it('does not prepend Live Artifacts directive when isLiveArtifactsEnabled is true but isVisualFormattingActive is false', async () => {
+    const promptParts = [{ text: '帮我设计架构' }];
+    mockBuildContentParts.mockResolvedValue({
+      contentParts: promptParts,
+      enrichedFiles: [],
+    });
+
+    const { result, unmount } = renderStandardChat({
+      appSettings: {
+        language: 'zh',
+      },
+      currentChatSettings: {
+        isLiveArtifactsEnabled: true,
+        isVisualFormattingActive: false,
+      },
+    });
+
+    await act(async () => {
+      await result.current.sendStandardMessage({
+        text: '帮我设计架构',
+        files: [],
+        editingMessageId: null,
+        activeModelId: 'gemini-3-flash-preview',
+        request: createPreparedRequest(),
+      });
+    });
+
+    expect(createMessage).toHaveBeenCalledWith(
+      'user',
+      '帮我设计架构',
+      expect.objectContaining({
+        apiParts: promptParts,
+      }),
+    );
+    expect(mockBuildContentParts).toHaveBeenCalledWith(
+      '帮我设计架构',
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    );
+
+    unmount();
+  });
+
+  it('does not prepend Live Artifacts directive when isLiveArtifactsEnabled is true and isVisualFormattingActive is undefined', async () => {
+    const promptParts = [{ text: '帮我设计架构' }];
+    mockBuildContentParts.mockResolvedValue({
+      contentParts: promptParts,
+      enrichedFiles: [],
+    });
+
+    const { result, unmount } = renderStandardChat({
+      appSettings: {
+        language: 'zh',
+      },
+      currentChatSettings: {
+        isLiveArtifactsEnabled: true,
+      },
+    });
+
+    await act(async () => {
+      await result.current.sendStandardMessage({
+        text: '帮我设计架构',
+        files: [],
+        editingMessageId: null,
+        activeModelId: 'gemini-3-flash-preview',
+        request: createPreparedRequest(),
+      });
+    });
+
+    expect(createMessage).toHaveBeenCalledWith(
+      'user',
+      '帮我设计架构',
       expect.objectContaining({
         apiParts: promptParts,
       }),

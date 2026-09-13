@@ -101,7 +101,7 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
     setIsMobileDetailOpen(false);
   };
 
-  const handleSelectAddTemplate = (templateId: ThirdPartyTemplateId) => {
+  const handleAddTemplate = (templateId: ThirdPartyTemplateId) => {
     setIsAddOpen(false);
     setWizardTemplateId(templateId);
   };
@@ -242,11 +242,7 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
           )}
         </div>
       </div>
-      <ProviderAddModal
-        isOpen={isAddOpen}
-        onClose={() => setIsAddOpen(false)}
-        onSelectTemplate={handleSelectAddTemplate}
-      />
+      <ProviderAddModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} onSelectTemplate={handleAddTemplate} />
       <ProviderSetupWizardModal
         isOpen={wizardTemplateId !== null}
         onClose={() => setWizardTemplateId(null)}

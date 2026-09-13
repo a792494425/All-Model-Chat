@@ -6,7 +6,6 @@ import { useChatInputRuntime } from '@/components/layout/chat-runtime/ChatRuntim
 import { useChatStore } from '@/stores/chatStore';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { getVisibleChatMessages } from '@/utils/chat/visibility';
 import { useChatState } from '@/hooks/chat/useChatState';
 import { useLiveApi } from '@/hooks/live-api/useLiveApi';
 import { useTextAreaInsert } from '@/hooks/useTextAreaInsert';
@@ -25,7 +24,6 @@ export const useChatInputCore = () => {
   const setEditingMessageId = useChatStore((state) => state.setEditingMessageId);
   const editMode = useChatStore((state) => state.editMode);
   const isProcessingFile = useChatStore((state) => state.isAppProcessingFile);
-  const activeMessages = useChatStore((state) => state.activeMessages);
   const {
     onMessageSent,
     onSendMessage,
@@ -59,6 +57,8 @@ export const useChatInputCore = () => {
     onToggleGuide,
     onToggleQuadImages,
     isLiveArtifactsPromptActive,
+    onToggleTaskSuggestion,
+    taskSuggestionMode,
   } = useChatInputRuntime();
   const { activeSessionId, currentChatSettings, isLoading } = useChatState(appSettings);
   const isEditing = !!editingMessageId;
@@ -121,7 +121,7 @@ export const useChatInputCore = () => {
       setCurrentChatSettings,
       onSuggestionClick,
       onOrganizeInfoClick,
-      showEmptyStateSuggestions: getVisibleChatMessages(activeMessages).length === 0,
+      showEmptyStateSuggestions: true,
       onUpdateMessageContent,
       onAddUserMessage,
       onLiveTranscript,
@@ -138,6 +138,8 @@ export const useChatInputCore = () => {
           isHdGuideSystemInstruction(currentChatSettings.systemInstruction)),
       isLiveArtifactsPromptActive: Boolean(isLiveArtifactsPromptActive),
       onToggleQuadImages,
+      onToggleTaskSuggestion,
+      taskSuggestionMode,
       themeId,
     }),
     [
@@ -180,6 +182,8 @@ export const useChatInputCore = () => {
       onTogglePip,
       onTogglePinCurrentSession,
       onToggleQuadImages,
+      onToggleTaskSuggestion,
+      taskSuggestionMode,
       onTranscribeAudio,
       onUpdateMessageContent,
       selectedFiles,
@@ -189,7 +193,6 @@ export const useChatInputCore = () => {
       setSelectedFiles,
       themeId,
       toolStates,
-      activeMessages,
     ],
   );
 

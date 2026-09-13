@@ -833,4 +833,37 @@ describe('MessageText', () => {
     expect(renderer.container.textContent).toContain('Thinking...');
     expect(renderer.container.querySelector('[data-testid="google-spinner"]')).toBeNull();
   });
+
+  it('renders raw text directly without directive badge for user message', () => {
+    const directiveContent =
+      '【Live Artifacts 现代化可视化排版指令】\n请为以下内容应用设计：\n用户需求如下：\n帮我分析一下这个项目';
+    act(() => {
+      renderer.render(
+        <MessageText
+          message={{
+            id: 'user-la-message',
+            role: 'user',
+            content: directiveContent,
+            isLoading: false,
+            timestamp: new Date('2026-04-21T00:00:00.000Z'),
+          }}
+          showThoughts={false}
+          appSettings={createAppSettings()}
+          themeId="pearl"
+          baseFontSize={16}
+          onImageClick={vi.fn()}
+          onOpenHtmlPreview={vi.fn()}
+          expandCodeBlocksByDefault={false}
+          isMermaidRenderingEnabled={true}
+          isGraphvizRenderingEnabled={true}
+          onOpenSidePanel={vi.fn()}
+        />,
+      );
+    });
+
+    const badge = renderer.container.querySelector('[data-testid="live-artifacts-directive-badge"]');
+    expect(badge).toBeNull();
+    expect(renderer.container.textContent).toContain('【Live Artifacts 现代化可视化排版指令】');
+    expect(renderer.container.textContent).toContain('帮我分析一下这个项目');
+  });
 });

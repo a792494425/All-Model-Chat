@@ -3,6 +3,9 @@ import { buildContentParts } from '@/utils/chat/builder';
 import { isServerCodeExecutionMode } from '@/utils/codeExecution';
 import { getModelCapabilities, bansModelTurnPrefill } from '@/utils/model/modelCapabilities';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
+import { getLiveArtifactsSystemPromptOverride } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
+import { getLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
+import { resolveAppLanguage } from '@/i18n/languageRegistry';
 import type { UploadedFile } from '@/types';
 import { runOptimisticMessagePipeline, type MessageLifecycleRunner } from './messagePipeline';
 import { resolveStandardChatTurn } from './standardChatTurn';
@@ -83,8 +86,34 @@ export const sendStandardMessage = async ({
   );
   const preferCodeExecutionFileInputs = isServerCodeExecutionMode(settingsForApi);
 
+  const appLanguage = resolveAppLanguage(appSettings.language);
+  const customLiveArtifactsPrompt = getLiveArtifactsSystemPromptOverride(
+    appSettings,
+    appSettings.liveArtifactsPromptMode,
+  );
+  const directive = customLiveArtifactsPrompt?.trim() || getLiveArtifactsUserDirective(appLanguage);
+
+  const isVisualFormattingActive = Boolean(settingsForApi.isVisualFormattingActive);
+  let effectiveUserText = textToUse.trim();
+  if (
+    isVisualFormattingActive &&
+    !isContinueMode &&
+    !(
+      (directive && effectiveUserText.startsWith(directive)) ||
+      (effectiveUserText.includes('Live Artifacts') &&
+        (effectiveUserText.includes('排版指令') ||
+          effectiveUserText.includes('Layout Directive') ||
+          effectiveUserText.includes('HTML 卡片') ||
+          effectiveUserText.includes('HTML 作品') ||
+          effectiveUserText.includes('HTML 产物') ||
+          effectiveUserText.includes('HTML artifact')))
+    )
+  ) {
+    effectiveUserText = effectiveUserText ? `${directive}\n\n${effectiveUserText}` : directive;
+  }
+
   const { contentParts: promptParts, enrichedFiles } = await buildContentParts(
-    textToUse.trim(),
+    effectiveUserText,
     successfullyProcessedFiles,
     effectiveActiveModelId,
     settingsForApi.mediaResolution,
@@ -113,7 +142,7 @@ export const sendStandardMessage = async ({
     currentChatSettings: settingsForPersistence,
     updateAndPersistSessions,
     setActiveSessionId,
-    text: textToUse.trim(),
+    text: effectiveUserText,
     files: filesToUse.length ? filesToUse : undefined,
     generationId,
     generationStartTime,
@@ -216,7 +245,7 @@ export const sendStandardMessage = async ({
         }
 
         const built = await buildContentParts(
-          textToUse.trim(),
+          effectiveUserText,
           filesReadyForSend,
           effectiveActiveModelId,
           settingsForApi.mediaResolution,
@@ -256,7 +285,7 @@ export const sendStandardMessage = async ({
         isRawMode,
         sessionToUpdate: settingsForApi,
         newAbortController,
-        textToUse,
+        textToUse: effectiveUserText,
         enrichedFiles: effectiveEnrichedFiles,
       });
 

@@ -10,7 +10,7 @@ export type FocusChatInputOptions = {
   retries?: number;
 };
 
-const placeCaretAtEnd = (textarea: HTMLTextAreaElement) => {
+export const placeCaretAtEnd = (textarea: HTMLTextAreaElement) => {
   const textLength = textarea.value.length;
   textarea.setSelectionRange(textLength, textLength);
   textarea.scrollTop = textarea.scrollHeight;

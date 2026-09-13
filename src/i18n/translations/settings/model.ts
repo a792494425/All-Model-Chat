@@ -902,8 +902,8 @@ const modelSettings = {
   },
   settingsModelConfigContextWindow: {
     en: 'Context Window Limit (Tokens)',
-    zh: '上下文窗口限制 (Tokens)',
-    ja: 'コンテキストウィンドウ制限 (Tokens)',
+    zh: '上下文窗口限制（Tokens）',
+    ja: 'コンテキストウィンドウ制限（Tokens）',
     ko: '컨텍스트 창 제한 (Tokens)',
     es: 'Límite de ventana de contexto (Tokens)',
     fr: 'Limite de la fenêtre de contexte (Tokens)',

@@ -53,7 +53,7 @@ export interface ProviderUiActions {
   resetProviderUiState: () => void;
 }
 
-export const DEFAULT_PROVIDER_UI_STATE: ProviderUiState = {
+const DEFAULT_PROVIDER_UI_STATE: ProviderUiState = {
   selectedConnectionId: null,
   listFilterMode: 'all',
   listSearchQuery: '',

@@ -170,7 +170,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
         role="dialog"
         aria-modal="true"
       >
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--theme-border-secondary)]/40 pb-3 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Sliders size={18} className="text-[var(--theme-border-focus)]" />
@@ -187,7 +186,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
           </button>
         </div>
 
-        {/* Model Identity Card */}
         <div className="text-xs text-[var(--theme-text-secondary)] bg-[var(--theme-bg-secondary)]/60 px-3 py-2 rounded-xl border border-[var(--theme-border-secondary)]/30 flex items-center gap-2.5 flex-shrink-0">
           <ProviderAvatar
             modelId={model.id}
@@ -202,7 +200,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
           </div>
         </div>
 
-        {/* Tab Navigation */}
         <div className="flex border-b border-[var(--theme-border-secondary)]/30 text-xs font-medium flex-shrink-0">
           <button
             type="button"
@@ -234,11 +231,9 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
           </button>
         </div>
 
-        {/* Tab Contents */}
         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-4">
           {activeTab === 'info' ? (
             <div className="space-y-4 text-xs">
-              {/* Name */}
               <div className="space-y-1.5">
                 <label className="font-semibold text-[var(--theme-text-primary)]">
                   {t('settingsModelConfigName') || 'Display Name'}
@@ -252,7 +247,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                 />
               </div>
 
-              {/* ID with copy */}
               <div className="space-y-1.5">
                 <label className="font-semibold text-[var(--theme-text-primary)]">
                   {t('settingsModelConfigId') || 'Model ID'}
@@ -276,7 +270,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                 </div>
               </div>
 
-              {/* Pin toggle */}
               <div className="flex items-center justify-between p-3 rounded-xl border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-secondary)]/30">
                 <div className="flex items-center gap-2">
                   <Pin size={15} className="text-[var(--theme-border-focus)]" />
@@ -289,14 +282,9 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                     </div>
                   </div>
                 </div>
-                <Toggle
-                  checked={isPinned}
-                  onChange={setIsPinned}
-                  ariaLabel="Pin model"
-                />
+                <Toggle checked={isPinned} onChange={setIsPinned} ariaLabel="Pin model" />
               </div>
 
-              {/* Context Window */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="font-semibold text-[var(--theme-text-primary)]">
@@ -339,7 +327,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                 </div>
               </div>
 
-              {/* Capabilities Override */}
               <div className="space-y-2 pt-1 border-t border-[var(--theme-border-secondary)]/30">
                 <label className="font-semibold text-[var(--theme-text-primary)]">
                   {t('settingsModelConfigCapabilities') || 'Capabilities Override'}
@@ -375,7 +362,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
             </div>
           ) : (
             <div className="space-y-4 text-xs">
-              {/* Temperature */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="font-medium text-[var(--theme-text-primary)]">{t('settingsTemperature')}</label>
@@ -409,7 +395,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                 </div>
               </div>
 
-              {/* Top-P */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="font-medium text-[var(--theme-text-primary)]">{t('settingsTopP')}</label>
@@ -443,7 +428,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                 </div>
               </div>
 
-              {/* Max Output Tokens & Top-K */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
@@ -486,7 +470,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                 </div>
               </div>
 
-              {/* Adaptive Reasoning / Thinking Control */}
               <div className="p-3 rounded-xl border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-secondary)]/20 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 font-semibold text-[var(--theme-text-primary)]">
@@ -495,7 +478,7 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                   </div>
                   <span className="text-[11px] font-mono text-[var(--theme-text-secondary)]">
                     {isOpenAI
-                      ? reasoningEffort ?? t('settingsModelConfigEffortDefault') ?? 'Default'
+                      ? (reasoningEffort ?? t('settingsModelConfigEffortDefault') ?? 'Default')
                       : thinkingBudget
                         ? `${thinkingBudget} tokens`
                         : t('settingsDefault')}
@@ -558,7 +541,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                 )}
               </div>
 
-              {/* Penalties */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
@@ -601,12 +583,9 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                 </div>
               </div>
 
-              {/* Stop Sequences & Seed */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="font-medium text-[var(--theme-text-primary)]">
-                    {t('settingsStopSequences')}
-                  </label>
+                  <label className="font-medium text-[var(--theme-text-primary)]">{t('settingsStopSequences')}</label>
                   <input
                     type="text"
                     value={stopSequencesStr}
@@ -634,7 +613,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
           )}
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between pt-3 border-t border-[var(--theme-border-secondary)]/40 flex-shrink-0">
           <button
             type="button"

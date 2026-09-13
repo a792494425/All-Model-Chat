@@ -5,14 +5,13 @@ import { getDefaultModelOptions } from '@/utils/defaultModelOptions';
 import { useModelPreferencesStore } from '@/stores/modelPreferencesStore';
 import { useProviderUiStore } from '@/stores/providerUiStore';
 import { ProviderAvatar } from './ProviderAvatar';
-import { ApiConfigSection } from '../ApiConfigSection';
+import { ApiConfigSection } from '@/components/settings/sections/ApiConfigSection';
 import { ProviderModelListSection } from './models/ProviderModelListSection';
 import { getClient } from '@/services/api/apiClient';
 import { parseApiKeys } from '@/utils/apiKeySelection';
-import { getLatencyGrade, type ConnectionHealthProbeResult } from '@/utils/thirdPartyDiagnostics';
+import { formatLatency, getLatencyGrade, type ConnectionHealthProbeResult } from '@/utils/thirdPartyDiagnostics';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { toastError, toastSuccess, toastWarning } from '@/stores/toastStore';
-import { formatLatency } from '@/utils/thirdPartyDiagnostics';
 
 const EMPTY_PROBE_RESULTS: Record<string, ConnectionHealthProbeResult> = {};
 
@@ -37,9 +36,7 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
   );
 
   // Model probe results and probing state
-  const modelProbeResults = useProviderUiStore(
-    (s) => s.modelProbeResultsByConnection['gemini'] ?? EMPTY_PROBE_RESULTS,
-  );
+  const modelProbeResults = useProviderUiStore((s) => s.modelProbeResultsByConnection['gemini'] ?? EMPTY_PROBE_RESULTS);
   const [probingModelIds, setProbingModelIds] = useState<Set<string>>(new Set());
   const [isCheckingBatch, setIsCheckingBatch] = useState(false);
   const [batchProgress, setBatchProgress] = useState<{ completed: number; total: number } | null>(null);
@@ -62,9 +59,7 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
       }
 
       const effectiveUrl =
-        settings.useCustomApiConfig && settings.useApiProxy && settings.apiProxyUrl
-          ? settings.apiProxyUrl
-          : null;
+        settings.useCustomApiConfig && settings.useApiProxy && settings.apiProxyUrl ? settings.apiProxyUrl : null;
 
       const ai = await getClient(firstKey || 'default', effectiveUrl);
       await ai.models.generateContent({
@@ -83,7 +78,7 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
       };
       useProviderUiStore.getState().setModelProbeResult('gemini', modelId, res);
       toastSuccess(t('thirdPartyToastSingleProbeSuccess', { modelId, latency: formatLatency(latency) }));
-    } catch (err) {
+    } catch (probeError) {
       const latency = Math.round(performance.now() - startTime);
       const res: ConnectionHealthProbeResult = {
         connectionId: 'gemini',
@@ -91,11 +86,11 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
         status: 'error',
         latencyMs: latency,
         grade: 'error',
-        errorMessage: getErrorMessage(err),
+        errorMessage: getErrorMessage(probeError),
         timestamp: Date.now(),
       };
       useProviderUiStore.getState().setModelProbeResult('gemini', modelId, res);
-      toastError(t('thirdPartyToastSingleProbeFailed', { modelId, error: getErrorMessage(err) }));
+      toastError(t('thirdPartyToastSingleProbeFailed', { modelId, error: getErrorMessage(probeError) }));
     } finally {
       setProbingModelIds((prev) => {
         const next = new Set(prev);
@@ -141,7 +136,6 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full min-w-0 bg-[var(--theme-bg-primary)] overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between gap-3 px-6 py-3.5 border-b border-[var(--theme-border-secondary)]/30 flex-shrink-0 bg-[var(--theme-bg-primary)]">
         <div className="flex items-center gap-3 min-w-0">
           <ProviderAvatar name="Google Gemini" templateId="gemini" size={28} />
@@ -151,9 +145,7 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-        {/* API Configuration */}
         <div className="rounded-2xl border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-secondary)]/10 p-4">
           <ApiConfigSection
             useCustomApiConfig={settings.useCustomApiConfig}
@@ -171,7 +163,6 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
           />
         </div>
 
-        {/* Unified Model List Section */}
         <div className="space-y-2">
           <ProviderModelListSection
             providerId="gemini"

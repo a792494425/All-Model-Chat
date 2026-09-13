@@ -7,6 +7,7 @@ import { useMessageActions } from './useMessageActions';
 import { finishActiveGenerationJob, startActiveGenerationJob } from '@/features/message-sender/activeGenerationJobs';
 import { useChatStore } from '@/stores/chatStore';
 import { createDeferred, renderHook } from '@/test/render/renderer';
+import { getLiveArtifactsUserDirective } from '@/features/prompts/promptRegistry';
 
 type MessageActionsOptions = Parameters<typeof useMessageActions>[0];
 
@@ -496,5 +497,45 @@ describe('useMessageActions', () => {
     } finally {
       globalThis.fetch = originalFetch;
     }
+  });
+
+  it('strips live artifacts user directive from message content when editing', () => {
+    const setCommandedInput = vi.fn();
+    const setEditingMessageId = vi.fn();
+    const setEditMode = vi.fn();
+    const rawContentWithDirective = `${getLiveArtifactsUserDirective('zh')}\n\n请帮我分析2026年Q1的财报数据`;
+
+    const messages: ChatMessage[] = [
+      {
+        id: 'user-edit-target',
+        role: 'user',
+        content: rawContentWithDirective,
+        timestamp: new Date('2026-05-01T00:00:00.000Z'),
+      },
+    ];
+
+    const { result, unmount } = renderHook(() =>
+      useMessageActions(
+        createStoreWiredOptions({
+          messages,
+          setCommandedInput,
+          setEditingMessageId,
+          setEditMode,
+        }),
+      ),
+    );
+
+    act(() => {
+      result.current.handleEditMessage('user-edit-target', 'update');
+    });
+
+    expect(setCommandedInput).toHaveBeenCalledWith({
+      text: '请帮我分析2026年Q1的财报数据',
+      id: expect.any(Number),
+    });
+    expect(setEditingMessageId).toHaveBeenCalledWith('user-edit-target');
+    expect(setEditMode).toHaveBeenCalledWith('update');
+
+    unmount();
   });
 });

@@ -6,6 +6,7 @@ import { generateSessionTitle } from '@/utils/chat/session';
 import { getVisibleChatMessages } from '@/utils/chat/visibility';
 import { dbService } from '@/services/db/dbService';
 import { logService } from '@/services/logService';
+import { stripLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
 
 const TITLE_SOURCE_MAX_CHARS = 2000;
 const clampForTitle = (text: string) =>
@@ -98,7 +99,8 @@ const generateLegacySessionTitle = (messages: ChatMessage[]): string => {
     (message) => message.role === 'user' && message.content.trim() !== '',
   );
   if (firstUserMessage) {
-    const words = firstUserMessage.content.split(/\s+/);
+    const cleanContent = stripLiveArtifactsUserDirective(firstUserMessage.content);
+    const words = (cleanContent.trim() || firstUserMessage.content).split(/\s+/);
     return words.slice(0, 7).join(' ') + (words.length > 7 ? '...' : '');
   }
   const firstModelMessage = getVisibleChatMessages(messages).find(
@@ -200,10 +202,11 @@ export const autoTitleSession = async ({
 
   let newTitle = '';
   try {
+    const userContentForTitle = stripLiveArtifactsUserDirective(exchange.userContent).trim() || exchange.userContent;
     newTitle = (
       await generateTitleApi(
         keyToUse,
-        clampForTitle(exchange.userContent),
+        clampForTitle(userContentForTitle),
         clampForTitle(exchange.modelContent),
         language,
       )

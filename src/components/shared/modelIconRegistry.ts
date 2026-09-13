@@ -352,9 +352,13 @@ const PROVIDER_ID_ALIASES: Record<string, string> = {
   spark: 'spark',
   xinghuo: 'xinghuo',
   xunfei: 'xinghuo',
+  opencode: 'opencode',
+  hunyuan: 'hunyuan',
+  huggingface: 'huggingface',
 };
 
 export const CHERRY_PROVIDER_LABELS: Record<string, string> = {
+  opencode: 'OpenCode Go',
   ai21: 'AI21',
   aionlabs: 'AionLabs',
   alayanew: 'AlayaNew',

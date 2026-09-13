@@ -466,4 +466,14 @@ describe('bare artifact fragments surrounded by prose', () => {
 
     expect(normalizePreviewableMarkdownContent(`说明文字。\n\n${plain}`)).toBe(`说明文字。\n\n${plain}`);
   });
+
+  it('wraps multiple bare artifact fragments separated by prose', () => {
+    const fragment2 = '<div style="display:block"><h3 style="color:var(--amc-live-artifact-text)">Second</h3></div>';
+    const input = `第一部分说明：\n\n${fragment}\n\n中间过渡分析：\n\n${fragment2}\n\n最后总结。`;
+    const expected =
+      `第一部分说明：\n\n\`\`\`amc-live-artifact-html\n${fragment}\n\`\`\`\n\n` +
+      `中间过渡分析：\n\n\`\`\`amc-live-artifact-html\n${fragment2}\n\`\`\`\n\n最后总结。`;
+
+    expect(normalizePreviewableMarkdownContent(input)).toBe(expected);
+  });
 });

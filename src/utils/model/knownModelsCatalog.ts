@@ -478,6 +478,14 @@ export const inferModelCapabilities = (
   const thinking = /r1|o1|o3|claude-3-7|thinking|reasoner|reasoning|qwq|zero/i.test(lower);
   const vision = /vision|vl|-v-|4v|4o|pixtral|claude-3|gemini|multimodal/i.test(lower);
   const tools = !/embed|rerank|moderation|tts|whisper|dall-e/i.test(lower);
+  const image = /dall-e|midjourney|flux|stable-diffusion|sdxl|imagen|cogview/i.test(lower);
+  const embedding = /embed|bge|text-embedding/i.test(lower);
+  const audio = /tts|whisper|speech|audio|cosyvoice/i.test(lower);
+  const free =
+    /:free($|[:/])|(\/free$)/i.test(lower) ||
+    lower.includes(':free') ||
+    lower.includes('gemini-2.0-flash') ||
+    lower.includes('ollama');
 
   // Guess context window if present in string (e.g. 128k, 32k, 1m)
   let contextWindow: number | undefined;
@@ -507,9 +515,30 @@ export const inferModelCapabilities = (
   else if (lower.includes('glm')) ownedBy = 'zhipu';
 
   return {
-    capabilities: { vision, thinking, tools },
+    capabilities: { vision, thinking, tools, image, embedding, audio, free },
     contextWindow,
     ownedBy,
+  };
+};
+
+/**
+ * Helper to resolve or infer capabilities for an existing or incoming model option.
+ */
+export const getOrInferModelCapabilities = (model: {
+  id: string;
+  name?: string;
+  capabilities?: ModelCapabilities;
+  enableThinking?: boolean;
+}): ModelCapabilities => {
+  const inferred = inferModelCapabilities(model.id).capabilities;
+  return {
+    ...inferred,
+    ...(model.capabilities || {}),
+    thinking: model.capabilities?.thinking ?? model.enableThinking ?? inferred.thinking,
+    free: model.capabilities?.free ?? inferred.free,
+    image: model.capabilities?.image ?? inferred.image,
+    embedding: model.capabilities?.embedding ?? inferred.embedding,
+    audio: model.capabilities?.audio ?? inferred.audio,
   };
 };
 
@@ -519,6 +548,7 @@ export const inferModelCapabilities = (
 export const enrichModelMetadata = (remote: { id: string; name?: string; owned_by?: string }): ModelOption => {
   const normalizedId = normalizeModelId(remote.id);
   const catalogEntry = KNOWN_MODELS_CATALOG[normalizedId] || KNOWN_MODELS_CATALOG[remote.id.toLowerCase()];
+  const inferred = inferModelCapabilities(remote.id);
 
   if (catalogEntry) {
     return {
@@ -526,16 +556,15 @@ export const enrichModelMetadata = (remote: { id: string; name?: string; owned_b
       name: remote.name && remote.name !== remote.id ? remote.name : catalogEntry.name,
       contextWindow: catalogEntry.contextWindow,
       maxOutputTokens: catalogEntry.maxOutputTokens,
-      capabilities: { ...catalogEntry.capabilities },
+      capabilities: { ...inferred.capabilities, ...catalogEntry.capabilities },
       ownedBy: catalogEntry.ownedBy,
-      enableThinking: catalogEntry.capabilities.thinking ?? false,
-      enableTools: catalogEntry.capabilities.tools ?? true,
+      enableThinking: catalogEntry.capabilities.thinking ?? inferred.capabilities.thinking ?? false,
+      enableTools: catalogEntry.capabilities.tools ?? inferred.capabilities.tools ?? true,
       visibleInSelector: true,
     };
   }
 
   // Fallback to heuristics
-  const inferred = inferModelCapabilities(remote.id);
   return {
     id: remote.id,
     name: remote.name || remote.id,

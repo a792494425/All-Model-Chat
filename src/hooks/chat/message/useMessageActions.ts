@@ -14,6 +14,7 @@ import { isGenerationLeaseHeldByOther } from '@/features/message-sender/generati
 import { useChatStore } from '@/stores/chatStore';
 import { toastError } from '@/stores/toastStore';
 import { useI18n } from '@/contexts/I18nContext';
+import { stripLiveArtifactsUserDirective } from '@/features/prompts/promptRegistry';
 
 type ActiveSessionSetter = (id: string | null, options?: { history?: 'push' | 'replace' | 'none' | 'auto' }) => void;
 type SendMessageFunc = (overrideOptions?: {
@@ -83,7 +84,8 @@ export const useMessageActions = ({
       const messageToEdit = messages.find((message) => message.id === messageId);
       if (messageToEdit) {
         if (isLoading) handleStopGenerating();
-        setCommandedInput({ text: messageToEdit.content || '', id: Date.now() });
+        const textToEdit = stripLiveArtifactsUserDirective(messageToEdit.content || '');
+        setCommandedInput({ text: textToEdit, id: Date.now() });
         setSelectedFiles(messageToEdit.files || []);
         setEditingMessageId(messageId);
         setEditMode(mode);

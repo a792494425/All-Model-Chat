@@ -1,14 +1,5 @@
 import React from 'react';
-import {
-  Square,
-  CheckSquare,
-  MinusSquare,
-  Eye,
-  EyeOff,
-  Activity,
-  Trash2,
-  X,
-} from 'lucide-react';
+import { Square, CheckSquare, MinusSquare, Eye, EyeOff, Activity, Trash2, X } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 
 export interface ProviderBatchActionBarProps {
@@ -58,7 +49,9 @@ export const ProviderBatchActionBar: React.FC<ProviderBatchActionBarProps> = ({
           ) : (
             <Square size={13} className="text-[var(--theme-text-secondary)]" />
           )}
-          <span>{isAllSelected ? t('thirdPartyDeselectAll') || 'Deselect All' : t('thirdPartySelectAll') || 'Select All'}</span>
+          <span>
+            {isAllSelected ? t('thirdPartyDeselectAll') || 'Deselect All' : t('thirdPartySelectAll') || 'Select All'}
+          </span>
         </button>
 
         <button

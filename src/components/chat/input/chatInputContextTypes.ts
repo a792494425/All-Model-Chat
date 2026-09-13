@@ -19,6 +19,7 @@ import type {
   LiveTranscriptHandler,
   MediaResolution,
   ModelOption,
+  TaskSuggestionMode,
   UploadedFile,
   VideoMetadata,
   LibraryItem,
@@ -87,6 +88,8 @@ export interface ChatInputRuntimeState {
   isGuideModeActive: boolean;
   isLiveArtifactsPromptActive?: boolean;
   onToggleQuadImages: () => void;
+  onToggleTaskSuggestion?: (mode: TaskSuggestionMode) => void;
+  taskSuggestionMode?: TaskSuggestionMode | null;
   themeId: string;
 }
 
@@ -366,6 +369,8 @@ export interface ChatInputActionsContextValue {
   showInputPasteButton: boolean;
   showInputClearButton: boolean;
   showVoiceInputButton: boolean;
+  isLiveArtifactsPromptActive?: boolean;
+  onToggleLiveArtifactsPrompt?: () => void;
 }
 
 export interface ChatInputComposerStatusContextValue {

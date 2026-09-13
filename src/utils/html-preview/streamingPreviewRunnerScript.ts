@@ -7,8 +7,16 @@ export const STREAMING_PREVIEW_RUNNER_SCRIPT = `<script>
   const streamRenderEvent = ${JSON.stringify(HTML_PREVIEW_STREAM_RENDER_EVENT)};
   const root = document.querySelector('[data-amc-stream-preview-root]');
 ${STREAM_SANITIZER_SCRIPT}
+  const PROTECTED_ATTRIBUTES = new Set(['_echarts_instance_']);
+  const isProtectedAttribute = (name) =>
+    PROTECTED_ATTRIBUTES.has(name) ||
+    name.startsWith('data-amc-chart-') ||
+    name.startsWith('data-amc-graphviz-') ||
+    name === 'data-amc-followup-bound';
+
   const syncAttributes = (currentElement, nextElement) => {
     Array.from(currentElement.attributes).forEach((attribute) => {
+      if (isProtectedAttribute(attribute.name)) return;
       if (!nextElement.hasAttribute(attribute.name)) {
         currentElement.removeAttribute(attribute.name);
       }
@@ -21,16 +29,10 @@ ${STREAM_SANITIZER_SCRIPT}
     });
   };
 
-  const canPatchNode = (currentNode, nextNode) => {
-    if (currentNode.nodeType !== nextNode.nodeType) return false;
-    if (currentNode.nodeType === Node.ELEMENT_NODE) {
-      return currentNode.nodeName === nextNode.nodeName;
-    }
-    return true;
-  };
-
-  const isChartNode = (n) => n && n.nodeType === Node.ELEMENT_NODE && n.hasAttribute('data-amc-chart');
-  const chartAttrEqual = (a, b) => a.getAttribute('data-amc-chart') === b.getAttribute('data-amc-chart');
+  const isChartNode = (n) =>
+    n && n.nodeType === Node.ELEMENT_NODE && (n.hasAttribute('data-amc-chart') || n.hasAttribute('data-amc-echarts'));
+  const chartAttr = (n) => (n.getAttribute('data-amc-chart') || n.getAttribute('data-amc-echarts') || '');
+  const chartAttrEqual = (a, b) => chartAttr(a) === chartAttr(b);
 
   // Rendered graphviz is patched in asynchronously through the parent bridge,
   // so its sig/state attributes and SVG subtree must survive attribute-unchanged
@@ -41,21 +43,57 @@ ${STREAM_SANITIZER_SCRIPT}
   const graphvizAttrEqual = (a, b) =>
     a.getAttribute('data-amc-graphviz') === b.getAttribute('data-amc-graphviz');
 
+  const canPatchNode = (currentNode, nextNode) => {
+    if (currentNode.nodeType !== nextNode.nodeType) return false;
+    if (currentNode.nodeType === Node.ELEMENT_NODE) {
+      if (currentNode.nodeName !== nextNode.nodeName) return false;
+      if (isChartNode(currentNode) !== isChartNode(nextNode)) return false;
+      if (isGraphvizNode(currentNode) !== isGraphvizNode(nextNode)) return false;
+      return true;
+    }
+    return true;
+  };
+
+  const disposeSpecialNode = (node) => {
+    if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
+    const chartNodes = isChartNode(node) ? [node] : [];
+    if (node.querySelectorAll) {
+      node.querySelectorAll('[data-amc-chart], [data-amc-echarts]').forEach((child) => {
+        chartNodes.push(child);
+      });
+    }
+    chartNodes.forEach((chartEl) => {
+      try {
+        if (window.echarts && window.echarts.getInstanceByDom(chartEl)) {
+          window.echarts.getInstanceByDom(chartEl).dispose();
+        }
+      } catch {}
+      chartEl.replaceChildren();
+    });
+  };
+
   const patchNode = (currentNode, nextNode) => {
     if (!canPatchNode(currentNode, nextNode)) {
+      disposeSpecialNode(currentNode);
       currentNode.replaceWith(nextNode);
       return;
     }
 
     // Rendered charts are patched in by the chart renderer, not by the stream:
     // their SVG subtree must survive attribute-unchanged patches. When the
-    // chart payload changes, fall through so the old SVG is replaced and the
-    // renderer's attribute observer re-renders from the new spec.
+    // chart payload is unchanged, do NOT sync attributes (which would wipe
+    // runtime attributes like _echarts_instance_ and data-amc-chart-sig).
+    // When the chart payload changes, clear old children and dispose instance
+    // so the renderer's attribute observer re-renders cleanly from the new spec.
     if (
       isChartNode(currentNode) &&
-      isChartNode(nextNode) &&
-      chartAttrEqual(currentNode, nextNode)
+      isChartNode(nextNode)
     ) {
+      if (chartAttrEqual(currentNode, nextNode)) {
+        return;
+      }
+      disposeSpecialNode(currentNode);
+      currentNode.replaceChildren();
       syncAttributes(currentNode, nextNode);
       return;
     }
@@ -96,6 +134,7 @@ ${STREAM_SANITIZER_SCRIPT}
       const nextChild = nextChildren[index];
 
       if (!nextChild) {
+        disposeSpecialNode(currentChild);
         currentChild.remove();
         continue;
       }
@@ -133,8 +172,9 @@ ${STREAM_SANITIZER_SCRIPT}
   const renderHtml = (html) => {
     if (!root || typeof html !== 'string') return;
 
+    const sanitizedHtml = html.replace(/<[a-zA-Z][^>]*$/, '');
     const parser = new DOMParser();
-    const parsedDocument = parser.parseFromString(html, 'text/html');
+    const parsedDocument = parser.parseFromString(sanitizedHtml, 'text/html');
     sanitizeElementTree(parsedDocument);
     syncDocumentAttributes(parsedDocument);
     const fragment = buildRenderableFragment(parsedDocument);

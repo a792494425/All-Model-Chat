@@ -8,6 +8,7 @@ import {
 import { isLiveArtifactsModeFromSettings } from '@/utils/live-artifacts/liveArtifactsMode';
 import { getLiveArtifactsSystemPromptOverride } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
 import { composeSystemInstruction } from '@/features/prompts/promptCompositor';
+import { applyLiveArtifactsUserDirective } from '@/features/prompts/promptRegistry';
 import {
   collectSessionMediaFiles,
   isAudioFile,
@@ -181,7 +182,12 @@ export const performStandardChatApiCall = async ({
   const apiRoute = resolveChatApiRoute(appSettings, sessionToUpdate);
   const activeProvider = apiRoute.provider ?? null;
   const apiModelId = apiRoute.modelId || activeModelId;
-  const { baseMessagesForApi, finalRole, finalParts, shouldSkipApiCall } = resolveTurn({
+  const {
+    baseMessagesForApi,
+    finalRole,
+    finalParts: turnFinalParts,
+    shouldSkipApiCall,
+  } = resolveTurn({
     messages,
     promptParts,
     textToUse,
@@ -195,6 +201,27 @@ export const performStandardChatApiCall = async ({
   if (shouldSkipApiCall) {
     return;
   }
+
+  const appLanguage = resolveAppLanguage(appSettings.language);
+  const customLiveArtifactsPrompt = getLiveArtifactsSystemPromptOverride(
+    appSettings,
+    appSettings.liveArtifactsPromptMode,
+  );
+
+  const isVisualFormattingActive = Boolean(sessionToUpdate.isVisualFormattingActive);
+  const finalParts =
+    isVisualFormattingActive && finalRole === 'user' && !isContinueMode
+      ? applyLiveArtifactsUserDirective(turnFinalParts, appLanguage, customLiveArtifactsPrompt)
+      : turnFinalParts;
+
+  const isLiveArtifactsActive = isLiveArtifactsModeFromSettings({
+    isLiveArtifactsEnabled: sessionToUpdate.isLiveArtifactsEnabled,
+    systemInstruction: sessionToUpdate.systemInstruction,
+    promptMode: appSettings.liveArtifactsPromptMode,
+    liveArtifactsSystemPrompt: appSettings.liveArtifactsSystemPrompt,
+    liveArtifactsSystemPrompts: appSettings.liveArtifactsSystemPrompts,
+  });
+  const shouldIncludeLiveArtifactsInSystemInstruction = isLiveArtifactsActive && !isVisualFormattingActive;
 
   const alwaysKeepThinking =
     sessionToUpdate.alwaysKeepThinkingInContext ?? appSettings.alwaysKeepThinkingInContext ?? false;
@@ -244,24 +271,18 @@ export const performStandardChatApiCall = async ({
       ? buildImageLocateDirective(images.map((file) => file.name))
       : '',
   ].filter(Boolean);
-  const isLiveArtifactsActive = isLiveArtifactsModeFromSettings({
-    isLiveArtifactsEnabled: sessionToUpdate.isLiveArtifactsEnabled,
-    systemInstruction: sessionToUpdate.systemInstruction,
-    promptMode: appSettings.liveArtifactsPromptMode,
-    liveArtifactsSystemPrompt: appSettings.liveArtifactsSystemPrompt,
-    liveArtifactsSystemPrompts: appSettings.liveArtifactsSystemPrompts,
-  });
   const effectiveSystemInstruction = await composeSystemInstruction({
     userInstruction: sessionToUpdate.systemInstruction,
-    isLiveArtifactsEnabled: isLiveArtifactsActive,
+    isLiveArtifactsEnabled: shouldIncludeLiveArtifactsInSystemInstruction,
     liveArtifactsPromptMode: appSettings.liveArtifactsPromptMode,
-    customLiveArtifactsPrompt: getLiveArtifactsSystemPromptOverride(appSettings, appSettings.liveArtifactsPromptMode),
+    customLiveArtifactsPrompt: shouldIncludeLiveArtifactsInSystemInstruction ? customLiveArtifactsPrompt : null,
     visionPromptMode: sessionToUpdate.visionPromptMode,
+    taskSuggestionMode: sessionToUpdate.taskSuggestionMode,
     isDeepSearchEnabled: !activeProvider && Boolean(sessionToUpdate.isDeepSearchEnabled),
     isLocalPythonEnabled: Boolean(sessionToUpdate.isLocalPythonEnabled),
     isGemmaModel: isGemmaModel(apiModelId),
     locateDirectives,
-    language: resolveAppLanguage(appSettings.language),
+    language: appLanguage,
   });
 
   const { streamOnError, streamOnComplete, streamOnPart, onThoughtChunk } = getStreamHandlers(
@@ -575,9 +596,7 @@ export const performStandardChatApiCall = async ({
     localPythonFunctionDeclarations.length > 0 &&
     (isGemini3Model(apiModelId) || !hasRequestedServerSideToolThatNeedsCombination);
 
-  const customGeminiModel = useModelPreferencesStore
-    .getState()
-    .customModels?.find((m) => m.id === apiModelId);
+  const customGeminiModel = useModelPreferencesStore.getState().customModels?.find((m) => m.id === apiModelId);
   const geminiParams = customGeminiModel?.parameters;
   const effectiveSession = geminiParams
     ? {
@@ -673,7 +692,7 @@ export const performStandardChatApiCall = async ({
               })),
             );
 
-            const { baseMessagesForApi: nextBaseMessages, finalParts: turnFinalParts } = resolveTurn({
+            const { baseMessagesForApi: nextBaseMessages, finalParts: rawRetryParts } = resolveTurn({
               messages: historyRefResult.messages,
               promptParts,
               textToUse,
@@ -683,6 +702,10 @@ export const performStandardChatApiCall = async ({
               isRawMode,
               apiModelId,
             });
+            const turnFinalParts =
+              isVisualFormattingActive && finalRole === 'user' && !isContinueMode
+                ? applyLiveArtifactsUserDirective(rawRetryParts, appLanguage, customLiveArtifactsPrompt)
+                : rawRetryParts;
 
             const targetIdentifier = extractFilesApiIdentifierFromError(error);
             const reuploadedFilesMap = new Map<string, UploadedFile>();

@@ -17,7 +17,6 @@
     "src/components/shared/Dialog.tsx": ["exports"],
     "src/components/shared/DropdownMenu.tsx": ["exports"],
     "src/components/shared/Popover.tsx": ["exports"],
-    "src/components/shared/Select.tsx": ["exports"],
     "src/utils/export/**": ["exports"],
     "src/stores/syncedPersist.ts": ["types"],
     "vite/staticAssets.ts": ["exports"]

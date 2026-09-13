@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import type { AppViewModel } from '@/hooks/app/useApp';
 import { useChatStore } from '@/stores/chatStore';
-import type { ModelOption, UploadedFile } from '@/types';
+import type { ModelOption, TaskSuggestionMode, UploadedFile } from '@/types';
 import type { ChatInputRuntimeValue } from './chatRuntimeTypes';
 
 interface InputRuntimeValuesOptions {
@@ -18,17 +18,8 @@ export const useChatInputRuntimeValues = ({
   onOpenSettings,
   onSelectModel,
 }: InputRuntimeValuesOptions) => {
-  const {
-    setAppSettings,
-    chatState,
-    pipState,
-    handleLoadLiveArtifactsPromptAndSave,
-    handleDeactivateLiveArtifactsPrompt,
-    handleToggleBBoxMode,
-    handleToggleGuideMode,
-    handleSuggestionClick,
-    isLiveArtifactsPromptActive,
-  } = app;
+  const { setAppSettings, chatState, pipState, handleToggleBBoxMode, handleToggleGuideMode, handleSuggestionClick } =
+    app;
 
   // Destructure the chatState members used below into local constants. The
   // members are stable useCallback references (their deps — activeMessages,
@@ -52,6 +43,7 @@ export const useChatInputRuntimeValues = ({
     handleRetryLastTurn,
     handleEditLastUserMessage,
     setCurrentChatSettings,
+    currentChatSettings,
     handleAddUserMessage,
     handleLiveTranscript,
     liveClientFunctions,
@@ -90,6 +82,36 @@ export const useChatInputRuntimeValues = ({
     [handleSuggestionClick],
   );
 
+  const onToggleTaskSuggestion = useCallback(
+    (mode: TaskSuggestionMode) => {
+      setCurrentChatSettings((prev) => ({
+        ...prev,
+        taskSuggestionMode: prev.taskSuggestionMode === mode ? null : mode,
+      }));
+    },
+    [setCurrentChatSettings],
+  );
+
+  const isVisualFormattingActive = Boolean(currentChatSettings?.isVisualFormattingActive);
+
+  const handleToggleVisualFormatting = useCallback(() => {
+    setCurrentChatSettings((prev) => {
+      const next = !prev.isVisualFormattingActive;
+      return {
+        ...prev,
+        isVisualFormattingActive: next,
+        ...(next ? { isLiveArtifactsEnabled: true } : {}),
+      };
+    });
+  }, [setCurrentChatSettings]);
+
+  const handleDeactivateVisualFormatting = useCallback(() => {
+    setCurrentChatSettings((prev) => ({
+      ...prev,
+      isVisualFormattingActive: false,
+    }));
+  }, [setCurrentChatSettings]);
+
   return useMemo<ChatInputRuntimeValue>(
     () => ({
       onMessageSent,
@@ -104,8 +126,8 @@ export const useChatInputRuntimeValues = ({
       onClearChat: handleClearCurrentChat,
       onNewChat: startNewChat,
       onOpenSettings,
-      onToggleLiveArtifactsPrompt: handleLoadLiveArtifactsPromptAndSave,
-      onDeactivateLiveArtifactsPrompt: handleDeactivateLiveArtifactsPrompt,
+      onToggleLiveArtifactsPrompt: handleToggleVisualFormatting,
+      onDeactivateLiveArtifactsPrompt: handleDeactivateVisualFormatting,
       onTogglePinCurrentSession: handleTogglePinCurrentSession,
       onRetryLastTurn: handleRetryLastTurn,
       onSelectModel,
@@ -123,7 +145,9 @@ export const useChatInputRuntimeValues = ({
       onEditMessageContent: handleUpdateMessageContent,
       onToggleBBox: handleToggleBBoxMode,
       onToggleGuide: handleToggleGuideMode,
-      isLiveArtifactsPromptActive,
+      isLiveArtifactsPromptActive: isVisualFormattingActive,
+      onToggleTaskSuggestion,
+      taskSuggestionMode: currentChatSettings?.taskSuggestionMode ?? null,
     }),
     [
       availableModels,
@@ -133,19 +157,19 @@ export const useChatInputRuntimeValues = ({
       handleCancelEdit,
       handleCancelFileUpload,
       handleClearCurrentChat,
-      handleDeactivateLiveArtifactsPrompt,
+      handleDeactivateVisualFormatting,
       handleEditLastUserMessage,
       handleLiveTranscript,
-      handleLoadLiveArtifactsPromptAndSave,
       handleProcessAndAddFiles,
       handleRetryLastTurn,
       handleStopGenerating,
       handleToggleBBoxMode,
       handleToggleGuideMode,
       handleTogglePinCurrentSession,
+      handleToggleVisualFormatting,
       handleTranscribeAudio,
       handleUpdateMessageContent,
-      isLiveArtifactsPromptActive,
+      isVisualFormattingActive,
       liveClientFunctions,
       onMessageSent,
       onOpenSettings,
@@ -154,6 +178,8 @@ export const useChatInputRuntimeValues = ({
       onSendMessage,
       onSuggestionClick,
       onToggleQuadImages,
+      onToggleTaskSuggestion,
+      currentChatSettings?.taskSuggestionMode,
       pipState.isPipActive,
       pipState.togglePip,
       setCurrentChatSettings,

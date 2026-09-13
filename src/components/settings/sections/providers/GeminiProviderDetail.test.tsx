@@ -43,9 +43,7 @@ describe('GeminiProviderDetail', () => {
 
     const updated = useModelPreferencesStore.getState().customModels;
     expect(updated).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ id: 'gemini-2.5-flash', visibleInSelector: false }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ id: 'gemini-2.5-flash', visibleInSelector: false })]),
     );
   });
 });

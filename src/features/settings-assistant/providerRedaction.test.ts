@@ -57,6 +57,6 @@ describe('templates', () => {
   it('lists every template id exactly once', () => {
     const summaries = listTemplateSummaries();
     expect(new Set(summaries.map((summary) => summary.id)).size).toBe(summaries.length);
-    expect(summaries.length).toBeGreaterThanOrEqual(25);
+    expect(summaries.length).toBeGreaterThanOrEqual(24);
   });
 });

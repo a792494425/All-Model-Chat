@@ -10,6 +10,7 @@ import type {
   ModelOption,
   SideViewContent,
   ChatProviderId,
+  TaskSuggestionMode,
   UploadedFile,
   VideoMetadata,
 } from '@/types';
@@ -98,6 +99,8 @@ export interface ChatInputRuntimeValue {
   onToggleBBox: () => void;
   onToggleGuide: () => void;
   isLiveArtifactsPromptActive?: boolean;
+  onToggleTaskSuggestion?: (mode: TaskSuggestionMode) => void;
+  taskSuggestionMode?: TaskSuggestionMode | null;
 }
 
 export interface ChatRuntimeValues {

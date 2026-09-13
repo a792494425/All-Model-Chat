@@ -4,20 +4,6 @@ import { ChevronDown, Check } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { useListboxNavigation } from '@/hooks/ui/useListboxNavigation';
 
-export const SelectRoot = SelectPrimitive.Root;
-export const SelectTrigger = SelectPrimitive.Trigger;
-export const SelectValue = SelectPrimitive.Value;
-export const SelectIcon = SelectPrimitive.Icon;
-export const SelectPortal = SelectPrimitive.Portal;
-export const SelectContent = SelectPrimitive.Content;
-export const SelectViewport = SelectPrimitive.Viewport;
-export const SelectItem = SelectPrimitive.Item;
-export const SelectItemText = SelectPrimitive.ItemText;
-export const SelectItemIndicator = SelectPrimitive.ItemIndicator;
-export const SelectGroup = SelectPrimitive.Group;
-export const SelectLabel = SelectPrimitive.Label;
-export const SelectSeparator = SelectPrimitive.Separator;
-
 export interface SelectProps {
   id?: string;
   label: string;

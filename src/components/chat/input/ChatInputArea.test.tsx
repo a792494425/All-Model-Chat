@@ -149,4 +149,21 @@ describe('ChatInputArea default spacing', () => {
       'onToggleImageNav={isGeminiNative && !capabilities.isGemmaModel ? handleToggleImageNav : undefined}',
     );
   });
+
+  it('wires task suggestion toggle props and getChatInputPlaceholder to ChatSuggestions and ChatTextArea', () => {
+    const source = fs.readFileSync(chatInputAreaPath, 'utf8');
+
+    expect(source).toContain('activeTaskSuggestion={chatInput.taskSuggestionMode}');
+    expect(source).toContain('onToggleTaskSuggestion={chatInput.onToggleTaskSuggestion}');
+    expect(source).toContain('placeholder={getChatInputPlaceholder({');
+    expect(source).toContain('activeMediaNavKind,');
+  });
+
+  it('renders ChatSuggestions above input area on empty session', () => {
+    const source = fs.readFileSync(chatInputAreaPath, 'utf8');
+
+    expect(source).toContain('{capabilities.permissions.canGenerateSuggestions && !isExpanded && isSessionEmpty && (');
+    expect(source).toContain('<ChatSuggestions');
+    expect(source).not.toContain('<ActiveModeCapsules');
+  });
 });

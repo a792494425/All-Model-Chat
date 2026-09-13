@@ -69,7 +69,9 @@ describe('Header', () => {
       );
     });
 
-    const liveArtifactsButton = renderer.container.querySelector('button[aria-label="Load Live Artifacts prompt"]');
+    const liveArtifactsButton = renderer.container.querySelector(
+      'button[aria-label="Enable Live Artifacts rendering"]',
+    );
 
     expect(liveArtifactsButton).not.toBeNull();
     expect(liveArtifactsButton?.className).toContain('w-9');

@@ -389,6 +389,9 @@ export const ECHARTS_RENDERER_SCRIPT = `
     try {
       let chart = window.echarts.getInstanceByDom(node);
       if (!chart) {
+        if (node.hasChildNodes()) {
+          node.replaceChildren();
+        }
         chart = window.echarts.init(node, THEME_NAME, { renderer: 'svg' });
         chartInstances.add(chart);
       }
