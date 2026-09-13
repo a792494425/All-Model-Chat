@@ -101,7 +101,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
 
   if (!isOpen || !model) return null;
 
-  const isAnthropic = protocol === 'anthropic';
   const isOpenAI = protocol === 'openai-compatible' || protocol === 'openai-responses';
 
   const handleCopyId = async () => {
