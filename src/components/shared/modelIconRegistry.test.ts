@@ -61,5 +61,12 @@ describe('modelIconRegistry', () => {
       expect(resolveIconRef('my-arbitrary-model', undefined, 'kimi').key).toBe('moonshot');
       expect(resolveIconRef('my-arbitrary-model', 'custom').key).toBe('custom');
     });
+
+    it('resolves anthropic provider icon with dark mode variant', () => {
+      const resolved = resolveIconRef('arbitrary-model-without-mark', 'anthropic');
+      expect(resolved.key).toBe('anthropic');
+      expect(resolved.url).toBeTruthy();
+      expect(resolved.darkUrl).toBeTruthy();
+    });
   });
 });
