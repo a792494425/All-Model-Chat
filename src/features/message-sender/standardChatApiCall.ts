@@ -51,6 +51,7 @@ import { requestToolApproval } from '@/stores/mcpApprovalStore';
 import { selectServersForTurn, useMcpRuntimeStore } from '@/stores/mcpRuntimeStore';
 import { useVirtualMcpStore, isVirtualServerActiveForTurn } from '@/stores/virtualMcpStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useModelPreferencesStore } from '@/stores/modelPreferencesStore';
 import { createStandardClientFunctions } from '@/features/standard-chat/standardClientFunctions';
 import { runStandardToolLoop } from '@/features/standard-chat/standardToolLoop';
 import { collectLocalPythonInputFiles } from '@/features/local-python/executionFiles';
@@ -375,20 +376,22 @@ export const performStandardChatApiCall = async ({
 
   if (activeProvider) {
     const activeModel = activeProvider.models?.find((m) => m.id === apiModelId);
+    const params = activeModel?.parameters;
     const providerConfig = {
       baseUrl: activeProvider.baseUrl,
       templateId: activeProvider.templateId,
       systemInstruction: effectiveSystemInstruction,
-      temperature: activeModel?.parameters?.temperature ?? sessionToUpdate.temperature,
-      topP: activeModel?.parameters?.topP ?? sessionToUpdate.topP,
-      topK: sessionToUpdate.topK,
-      maxOutputTokens: activeModel?.parameters?.maxOutputTokens ?? sessionToUpdate.maxOutputTokens,
-      stopSequences: sessionToUpdate.stopSequences,
-      presencePenalty: sessionToUpdate.presencePenalty,
-      frequencyPenalty: sessionToUpdate.frequencyPenalty,
-      seed: sessionToUpdate.seed,
+      temperature: params?.temperature ?? sessionToUpdate.temperature,
+      topP: params?.topP ?? sessionToUpdate.topP,
+      topK: params?.topK ?? sessionToUpdate.topK,
+      maxOutputTokens: params?.maxOutputTokens ?? sessionToUpdate.maxOutputTokens,
+      stopSequences: params?.stopSequences ?? sessionToUpdate.stopSequences,
+      presencePenalty: params?.presencePenalty ?? sessionToUpdate.presencePenalty,
+      frequencyPenalty: params?.frequencyPenalty ?? sessionToUpdate.frequencyPenalty,
+      seed: params?.seed ?? sessionToUpdate.seed,
       thinkingLevel: activeModel?.enableThinking === false ? ('NONE' as const) : sessionToUpdate.thinkingLevel,
-      thinkingBudget: sessionToUpdate.thinkingBudget,
+      thinkingBudget: params?.thinkingBudget ?? sessionToUpdate.thinkingBudget,
+      reasoningEffort: params?.reasoningEffort,
       extraHeaders: activeProvider.extraHeaders,
     };
     const isAnthropic = activeProvider.protocol === 'anthropic';
@@ -572,8 +575,27 @@ export const performStandardChatApiCall = async ({
     localPythonFunctionDeclarations.length > 0 &&
     (isGemini3Model(apiModelId) || !hasRequestedServerSideToolThatNeedsCombination);
 
+  const customGeminiModel = useModelPreferencesStore
+    .getState()
+    .customModels?.find((m) => m.id === apiModelId);
+  const geminiParams = customGeminiModel?.parameters;
+  const effectiveSession = geminiParams
+    ? {
+        ...sessionToUpdate,
+        temperature: geminiParams.temperature ?? sessionToUpdate.temperature,
+        topP: geminiParams.topP ?? sessionToUpdate.topP,
+        topK: geminiParams.topK ?? sessionToUpdate.topK,
+        maxOutputTokens: geminiParams.maxOutputTokens ?? sessionToUpdate.maxOutputTokens,
+        stopSequences: geminiParams.stopSequences ?? sessionToUpdate.stopSequences,
+        presencePenalty: geminiParams.presencePenalty ?? sessionToUpdate.presencePenalty,
+        frequencyPenalty: geminiParams.frequencyPenalty ?? sessionToUpdate.frequencyPenalty,
+        seed: geminiParams.seed ?? sessionToUpdate.seed,
+        thinkingBudget: geminiParams.thinkingBudget ?? sessionToUpdate.thinkingBudget,
+      }
+    : sessionToUpdate;
+
   const config = await buildGenerationConfig({
-    settings: sessionToUpdate,
+    settings: effectiveSession,
     modelId: apiModelId,
     systemInstruction: effectiveSystemInstruction,
     aspectRatio,

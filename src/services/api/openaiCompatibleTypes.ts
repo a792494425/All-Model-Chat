@@ -26,6 +26,7 @@ export interface OpenAICompatibleChatConfig {
   seed?: number;
   thinkingLevel?: ThinkingLevel;
   thinkingBudget?: number;
+  reasoningEffort?: 'none' | 'low' | 'medium' | 'high';
   extraHeaders?: Record<string, string> | null;
   tools?: OpenAIToolDefinition[];
 }

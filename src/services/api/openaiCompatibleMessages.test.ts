@@ -381,5 +381,29 @@ describe('openaiCompatibleMessages', () => {
 
       expect(body.tools).toEqual(tools);
     });
+
+    it('maps reasoningEffort to reasoning_effort field when provided', () => {
+      const body = buildOpenAICompatibleRequestBody(
+        'o3-mini',
+        [],
+        [{ text: 'hello' }],
+        { reasoningEffort: 'high' } as any,
+        'user',
+        false,
+      );
+      expect(body.reasoning_effort).toBe('high');
+    });
+
+    it('suppresses reasoning_effort when reasoningEffort is none', () => {
+      const body = buildOpenAICompatibleRequestBody(
+        'o3-mini',
+        [],
+        [{ text: 'hello' }],
+        { reasoningEffort: 'none' } as any,
+        'user',
+        false,
+      );
+      expect(body.reasoning_effort).toBeUndefined();
+    });
   });
 });

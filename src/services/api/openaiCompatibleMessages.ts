@@ -293,10 +293,16 @@ export const buildOpenAICompatibleRequestBody = (
   }
   // 5. Kimi K3: always-on reasoning; top-level reasoning_effort is low/high/max (default max).
   else if (isKimiK3Model(modelId)) {
-    body.reasoning_effort = mapThinkingLevelToKimiReasoningEffort(config.thinkingLevel);
+    body.reasoning_effort = config.reasoningEffort !== undefined && config.reasoningEffort !== 'none'
+      ? config.reasoningEffort
+      : mapThinkingLevelToKimiReasoningEffort(config.thinkingLevel);
   }
-  // 6. OpenAI reasoning models (o4, gpt-5, etc.) and third-party reasoning proxies (OpenRouter, SiliconFlow, Together, etc.):
-  else if (isOpenAIReasoningModel(modelId) || isOpenAIGpt5FamilyModel(modelId)) {
+  // 6. Explicit reasoningEffort or OpenAI reasoning models (o4, gpt-5, etc.) and third-party reasoning proxies:
+  else if (config.reasoningEffort !== undefined) {
+    if (config.reasoningEffort !== 'none') {
+      body.reasoning_effort = config.reasoningEffort;
+    }
+  } else if (isOpenAIReasoningModel(modelId) || isOpenAIGpt5FamilyModel(modelId)) {
     body.reasoning_effort = mapThinkingLevelToOpenAIReasoningEffort(config.thinkingLevel);
   }
 
