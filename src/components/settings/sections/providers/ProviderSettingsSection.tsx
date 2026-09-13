@@ -9,7 +9,6 @@ import {
 } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import {
-  createConnectionFromTemplate,
   createConnectionId,
   createDefaultThirdPartyApiSettings,
   addThirdPartyConnection,
@@ -22,7 +21,8 @@ import { toastError, toastSuccess } from '@/stores/toastStore';
 import { ProviderList } from './ProviderList';
 import { ProviderDetail } from './ProviderDetail';
 import { ProviderAddModal } from './ProviderAddModal';
-import { ApiConfigSection } from '@/components/settings/sections/ApiConfigSection';
+import { ProviderSetupWizardModal } from './ProviderSetupWizardModal';
+import { GeminiProviderDetail } from './GeminiProviderDetail';
 import { useProviderUiStore } from '@/stores/providerUiStore';
 
 interface ProviderSettingsSectionProps {
@@ -47,6 +47,7 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
   const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(true);
 
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [wizardTemplateId, setWizardTemplateId] = useState<ThirdPartyTemplateId | null>(null);
 
   const geminiStatus = useMemo(() => {
     const hasKey = Boolean(settings.apiKey?.trim() || settings.serverManagedApi);
@@ -100,13 +101,30 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
     setIsMobileDetailOpen(false);
   };
 
-  const handleAddTemplate = (templateId: ThirdPartyTemplateId) => {
-    const connection = createConnectionFromTemplate(templateId, connections, createConnectionId());
-    updateThirdPartyApi(addThirdPartyConnection(currentSettings, connection));
-    setSelectedConnectionId(connection.id);
-    setIsMobileDetailOpen(true);
+  const handleSelectAddTemplate = (templateId: ThirdPartyTemplateId) => {
     setIsAddOpen(false);
-    toastSuccess(t('thirdPartyProviderAdded', { name: connection.name }));
+    setWizardTemplateId(templateId);
+  };
+
+  const handleCompleteWizard = (configuredConnection: ThirdPartyConnection) => {
+    updateThirdPartyApi(addThirdPartyConnection(currentSettings, configuredConnection));
+    setSelectedConnectionId(configuredConnection.id);
+    setIsMobileDetailOpen(true);
+    setWizardTemplateId(null);
+    toastSuccess(
+      t('thirdPartyWizardConfiguredSuccess', {
+        name: configuredConnection.name,
+        count: configuredConnection.models.filter((m) => m.visibleInSelector !== false).length,
+      }),
+    );
+  };
+
+  const handleSkipWizard = (draftConnection: ThirdPartyConnection) => {
+    updateThirdPartyApi(addThirdPartyConnection(currentSettings, draftConnection));
+    setSelectedConnectionId(draftConnection.id);
+    setIsMobileDetailOpen(true);
+    setWizardTemplateId(null);
+    toastSuccess(t('thirdPartyProviderAdded', { name: draftConnection.name }));
   };
 
   const handleDuplicate = (conn: ThirdPartyConnection) => {
@@ -188,22 +206,11 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
                   <span>{t('thirdPartyBackToList')}</span>
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 max-w-3xl w-full mx-auto">
-                <ApiConfigSection
-                  useCustomApiConfig={settings.useCustomApiConfig}
-                  setUseCustomApiConfig={(val) => onUpdateSettings({ useCustomApiConfig: val })}
-                  apiKey={settings.apiKey}
-                  setApiKey={(val) => onUpdateSettings({ apiKey: val })}
-                  apiProxyUrl={settings.apiProxyUrl}
-                  setApiProxyUrl={(val) => onUpdateSettings({ apiProxyUrl: val })}
-                  useApiProxy={settings.useApiProxy ?? false}
-                  setUseApiProxy={(val) => onUpdateSettings({ useApiProxy: val })}
-                  serverManagedApi={settings.serverManagedApi ?? false}
-                  settings={settings}
-                  onUpdate={(key, val) => onUpdateSettings({ [key]: val } as any)}
-                  hideProviderRedirect={true}
-                />
-              </div>
+              <GeminiProviderDetail
+                settings={settings}
+                onUpdateSettings={onUpdateSettings}
+                onCloseModal={onCloseModal}
+              />
             </div>
           ) : selectedConnection ? (
             <div className="flex-1 flex flex-col h-full min-h-0">
@@ -235,7 +242,19 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
           )}
         </div>
       </div>
-      <ProviderAddModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} onSelectTemplate={handleAddTemplate} />
+      <ProviderAddModal
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onSelectTemplate={handleSelectAddTemplate}
+      />
+      <ProviderSetupWizardModal
+        isOpen={wizardTemplateId !== null}
+        onClose={() => setWizardTemplateId(null)}
+        templateId={wizardTemplateId}
+        existingConnections={connections}
+        onComplete={handleCompleteWizard}
+        onSkip={handleSkipWizard}
+      />
     </div>
   );
 };
