@@ -15,8 +15,8 @@ interface SlashCommandMenuProps {
   className?: string;
 }
 
-const SESSION_GROUP = new Set(['clear', 'new', 'pin', 'retry', 'model']);
-const TOOLS_GROUP = new Set(['deep', 'online', 'maps', 'code', 'url', 'file']);
+const SESSION_GROUP = new Set(['clear', 'new', 'pin', 'retry', 'model', 'library']);
+const TOOLS_GROUP = new Set(['deep', 'online', 'maps', 'code', 'url', 'file', 'find']);
 
 const getCommandGroup = (name: string): 'session' | 'tools' | 'system' => {
   if (SESSION_GROUP.has(name)) return 'session';

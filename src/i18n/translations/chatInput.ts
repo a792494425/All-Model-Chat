@@ -3303,6 +3303,24 @@ export const chatInputTranslations = {
     es: 'Alternar modo de pensamiento rápido',
     ko: '빠른 사고 모드 전환',
   },
+  helpCmdFind: {
+    en: 'Search images and media across library',
+    zh: '以文搜图与全模态素材检索',
+    ja: 'ライブラリから画像やメディアを検索',
+    de: 'Bilder und Medien in der Bibliothek suchen',
+    fr: 'Rechercher des images et médias dans la bibliothèque',
+    es: 'Buscar imágenes y medios en la biblioteca',
+    ko: '보관함에서 이미지 및 미디어 검색',
+  },
+  helpCmdLibrary: {
+    en: 'Open library',
+    zh: '打开资料库',
+    ja: 'ライブラリを開く',
+    de: 'Bibliothek öffnen',
+    fr: 'Ouvrir la bibliothèque',
+    es: 'Abrir biblioteca',
+    ko: '보관함 열기',
+  },
 
   // Help Modal
   helpModalTitle: {

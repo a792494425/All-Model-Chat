@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useUIStore } from '@/stores/uiStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useModelPreferencesStore } from '@/stores/modelPreferencesStore';
+import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
 import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
 import { sortSessionsByRecency } from './sessionRecency';
@@ -32,6 +33,8 @@ import {
   FolderKanban,
   BarChart2,
   Check,
+  Sparkles,
+  Library,
 } from 'lucide-react';
 import { isMacPlatform } from '@/utils/platform';
 
@@ -291,6 +294,19 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
             <span>{t('commandUrlContext')}</span>
             <CommandShortcut>/url</CommandShortcut>
           </CommandItem>
+
+          <CommandItem
+            value={`image search media multimodal find ${t('multimodalSearchTitle')}`}
+            onSelect={() =>
+              runCommand(() => {
+                useMultimodalSearchStore.getState().openModal();
+              })
+            }
+          >
+            <Sparkles className="text-[var(--theme-text-secondary)]" />
+            <span>{t('multimodalSearchTitle')}</span>
+            <CommandShortcut>/find</CommandShortcut>
+          </CommandItem>
         </CommandGroup>
 
         <CommandSeparator />
@@ -318,8 +334,9 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
               })
             }
           >
-            <FolderKanban className="text-[var(--theme-text-secondary)]" />
+            <Library className="text-[var(--theme-text-secondary)]" />
             <span>{t('commandOpenLibrary')}</span>
+            <CommandShortcut>/library</CommandShortcut>
           </CommandItem>
 
           <CommandItem

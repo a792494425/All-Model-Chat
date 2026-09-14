@@ -2,6 +2,8 @@ import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSlashCommands } from './useSlashCommands';
 import { renderHook } from '@/test/render/renderer';
+import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
+import { useUIStore } from '@/stores/uiStore';
 
 const createProps = (overrides: Partial<Parameters<typeof useSlashCommands>[0]> = {}) => {
   const textarea = document.createElement('textarea');
@@ -175,6 +177,42 @@ describe('useSlashCommands', () => {
     const commandNames = result.current.slashCommandState.filteredCommands.map((c) => c.name);
     expect(commandNames).not.toContain('fast');
     expect(commandNames).not.toContain('artifacts');
+    unmount();
+  });
+
+  it('executes /find and /find <query> to open multimodal search modal', () => {
+    const props = createProps();
+    const { result, unmount } = renderHook(() => useSlashCommands(props));
+
+    act(() => {
+      const handled = result.current.handleSlashCommandExecution('/find');
+      expect(handled).toBe(true);
+    });
+
+    expect(useMultimodalSearchStore.getState().isOpen).toBe(true);
+    expect(useMultimodalSearchStore.getState().searchQuery).toBe('');
+
+    act(() => {
+      useMultimodalSearchStore.getState().closeModal();
+      const handled = result.current.handleSlashCommandExecution('/find sunset beach');
+      expect(handled).toBe(true);
+    });
+
+    expect(useMultimodalSearchStore.getState().isOpen).toBe(true);
+    expect(useMultimodalSearchStore.getState().searchQuery).toBe('sunset beach');
+    unmount();
+  });
+
+  it('executes /library to navigate to library view', () => {
+    const props = createProps();
+    const { result, unmount } = renderHook(() => useSlashCommands(props));
+
+    act(() => {
+      const handled = result.current.handleSlashCommandExecution('/library');
+      expect(handled).toBe(true);
+    });
+
+    expect(useUIStore.getState().activeView).toBe('library');
     unmount();
   });
 });

@@ -19,6 +19,8 @@ import {
   Zap,
   MapPinned,
   Paperclip,
+  Sparkles,
+  Library,
 } from 'lucide-react';
 import { IconStop, IconNewChat } from './groups/GeneralIcons';
 
@@ -65,6 +67,11 @@ export const CommandIcon: React.FC<{ icon: string }> = ({ icon }) => {
       return <PictureInPicture {...iconProps} />;
     case 'fast':
       return <Zap {...iconProps} />;
+    case 'find':
+    case 'sparkles':
+      return <Sparkles {...iconProps} />;
+    case 'library':
+      return <Library {...iconProps} />;
     case 'default':
       return <Bookmark {...iconProps} />;
     default:

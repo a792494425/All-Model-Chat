@@ -125,7 +125,8 @@ export const MultimodalSearchModal: React.FC = () => {
         (i) => dbService.fetchLibraryFileBlob(i),
         { generateNewId: true },
       );
-      setSelectedFiles([uploadedFile]);
+      const currentFiles = useChatStore.getState().selectedFiles;
+      setSelectedFiles([...currentFiles, uploadedFile]);
       setActiveView('chat');
       closeModal();
     } catch {

@@ -5,6 +5,8 @@ import type { SlashCommand as Command } from '@/types/slashCommands';
 import type { ChatToolToggleStates, ToggleableChatToolId } from '@/types/chatTools';
 import { getChatToolsForSurface } from '@/features/chat-tools/toolRegistry';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
+import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
+import { useUIStore } from '@/stores/uiStore';
 import { isImageGenerationModel } from '@/utils/model/modelCapabilities';
 
 export type SlashCommandState = {
@@ -64,12 +66,14 @@ const SLASH_GROUP_PRIORITY: Record<string, number> = {
   new: 0,
   pin: 0,
   retry: 0,
+  library: 0,
   deep: 1,
   online: 1,
   maps: 1,
   code: 1,
   url: 1,
   file: 1,
+  find: 1,
 };
 const getSlashGroupPriority = (name: string): number => SLASH_GROUP_PRIORITY[name] ?? 2;
 const sortSlashCommandsByGroup = (list: Command[]): Command[] =>
@@ -162,6 +166,8 @@ export const useSlashCommands = ({
       { name: 'retry', description: t('helpCmdRetry'), icon: 'retry' },
       ...toolCommands,
       ...(canAcceptAttachments ? [{ name: 'file', description: t('helpCmdFile'), icon: 'paperclip' }] : []),
+      { name: 'find', description: t('helpCmdFind'), icon: 'find' },
+      { name: 'library', description: t('helpCmdLibrary'), icon: 'library' },
       { name: 'clear', description: t('helpCmdClear'), icon: 'clear' },
       { name: 'new', description: t('helpCmdNew'), icon: 'new' },
       { name: 'settings', description: t('helpCmdSettings'), icon: 'settings' },
@@ -215,6 +221,24 @@ export const useSlashCommands = ({
             };
           case 'file':
             return { name, description, icon, action: () => onAttachmentAction('upload') };
+          case 'find':
+            return {
+              name,
+              description,
+              icon,
+              action: () => {
+                useMultimodalSearchStore.getState().openModal();
+              },
+            };
+          case 'library':
+            return {
+              name,
+              description,
+              icon,
+              action: () => {
+                useUIStore.getState().setActiveView('library');
+              },
+            };
           case 'clear':
             return { name, description, icon, action: onClearChat };
           case 'new':
@@ -432,6 +456,17 @@ export const useSlashCommands = ({
 
         handleCommandSelect(command);
         return true;
+      }
+
+      const findCommandMatch = text.match(/^\/find\s+(.+)$/i);
+      if (findCommandMatch) {
+        const query = findCommandMatch[1].trim();
+        if (query) {
+          useMultimodalSearchStore.getState().openModal(query);
+          setInputText('');
+          resetSlashCommandState();
+          return true;
+        }
       }
 
       const modelCommandMatch = text.match(/^\/model\s+(.+)$/i);
