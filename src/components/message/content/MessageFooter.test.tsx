@@ -143,5 +143,27 @@ describe('MessageFooter', () => {
     });
     expect(onSwitchVariant).toHaveBeenCalledWith('model-msg', 0);
   });
-});
 
+  it('hides variant switcher when message.isLoading is true', () => {
+    const v1 = createChatMessage({ id: 'v1', role: 'model', content: 'Response 1' });
+    const v2 = createChatMessage({ id: 'v2', role: 'model', content: 'Response 2' });
+
+    act(() => {
+      renderer.render(
+        <MessageFooter
+          message={createChatMessage({
+            id: 'model-msg',
+            role: 'model',
+            content: 'Response 2',
+            variants: [v1, v2],
+            currentVariantIndex: 1,
+            isLoading: true,
+          })}
+        />,
+      );
+    });
+
+    const switcher = renderer.container.querySelector('[data-testid="message-variant-switcher"]');
+    expect(switcher).toBeNull();
+  });
+});

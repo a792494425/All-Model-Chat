@@ -24,7 +24,7 @@ export const MessageFooter: React.FC<MessageFooterProps> = ({
   const showTokenStats = useSettingsStore((state) => state.appSettings.showMessageTokenStats ?? true);
   const { audioSrc, audioAutoplay, suggestions, isGeneratingSuggestions, role, generationStartTime } = message;
 
-  const hasVariants = Boolean(message.variants && message.variants.length > 1);
+  const showVariants = Boolean(message.variants && message.variants.length > 1 && !message.isLoading);
   const showMetrics =
     showTokenStats &&
     (role === 'model' ||
@@ -39,16 +39,12 @@ export const MessageFooter: React.FC<MessageFooterProps> = ({
         </div>
       )}
 
-      {(hasVariants || showMetrics) && (
+      {(showVariants || showMetrics) && (
         <div
-          className={`mt-1.5 flex items-center ${hasVariants ? 'justify-between' : 'justify-end'} flex-wrap gap-x-3 gap-y-1`}
+          className={`mt-1.5 flex items-center ${showVariants ? 'justify-between' : 'justify-end'} flex-wrap gap-x-3 gap-y-1`}
         >
-          {hasVariants && (
-            <MessageVariantSwitcher message={message} onSwitchVariant={onSwitchVariant} />
-          )}
-          {showMetrics && (
-            <PerformanceMetrics message={message} hideTimer={message.isLoading} />
-          )}
+          {showVariants && <MessageVariantSwitcher message={message} onSwitchVariant={onSwitchVariant} />}
+          {showMetrics && <PerformanceMetrics message={message} hideTimer={message.isLoading} />}
         </div>
       )}
 

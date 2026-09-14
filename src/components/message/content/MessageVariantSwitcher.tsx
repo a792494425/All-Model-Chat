@@ -8,13 +8,10 @@ export interface MessageVariantSwitcherProps {
   onSwitchVariant?: (messageId: string, targetVariantIndex: number) => void;
 }
 
-export const MessageVariantSwitcher: React.FC<MessageVariantSwitcherProps> = ({
-  message,
-  onSwitchVariant,
-}) => {
+export const MessageVariantSwitcher: React.FC<MessageVariantSwitcherProps> = ({ message, onSwitchVariant }) => {
   const { t } = useI18n();
   const variants = message.variants;
-  if (!variants || variants.length <= 1) {
+  if (!variants || variants.length <= 1 || message.isLoading) {
     return null;
   }
 

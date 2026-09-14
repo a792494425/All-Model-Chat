@@ -114,4 +114,24 @@ describe('MessageVariantSwitcher', () => {
     expect(switcher?.querySelector<HTMLButtonElement>('button[aria-label="Previous version"]')).not.toBeDisabled();
     expect(switcher?.querySelector<HTMLButtonElement>('button[aria-label="Next version"]')).toBeDisabled();
   });
+
+  it('renders nothing when message.isLoading is true even if variants exist', () => {
+    const v1: ChatMessage = { ...dummyMessage, id: 'v1', content: 'V1' };
+    const v2: ChatMessage = { ...dummyMessage, id: 'v2', content: 'V2' };
+
+    act(() => {
+      renderer.render(
+        <MessageVariantSwitcher
+          message={{
+            ...dummyMessage,
+            variants: [v1, v2],
+            currentVariantIndex: 1,
+            isLoading: true,
+          }}
+        />,
+      );
+    });
+
+    expect(renderer.container.querySelector('[data-testid="message-variant-switcher"]')).toBeNull();
+  });
 });
