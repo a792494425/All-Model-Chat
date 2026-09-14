@@ -4,6 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
 import { useChatStore } from '@/stores/chatStore';
 import { dbService } from '@/services/db/dbService';
+import { autoIndexingQueue } from '@/services/embedding/autoIndexingQueue';
 import {
   extractLibraryItemsFromSessions,
   filterAndSortLibraryItems,
@@ -202,6 +203,7 @@ export const LibraryPickerModal: React.FC<LibraryPickerModalProps> = ({
       );
 
       await dbService.addStandaloneLibraryFiles(newItems);
+      autoIndexingQueue.enqueueItems(newItems);
       const updated = await dbService.getStandaloneLibraryFiles();
       setStandaloneFiles(updated);
 

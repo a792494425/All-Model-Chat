@@ -2,6 +2,7 @@ import type { SavedChatSession } from '@/types';
 import type { SyncMessage } from '@/types/sync';
 import { logService } from '@/services/logService';
 import { mergePersistedSessionMessages } from './sessionPersistence';
+import { autoIndexingQueue } from '@/services/embedding/autoIndexingQueue';
 
 interface PersistSessionChangesOptions {
   modifiedSessions: SavedChatSession[];
@@ -85,6 +86,7 @@ export async function persistSessionChanges({
       }
 
       await saveSession(session);
+      autoIndexingQueue.enqueueSession(session);
 
       if (version !== undefined && sessionPersistVersions.get(session.id) === version) {
         persistedSessionIds.add(session.id);

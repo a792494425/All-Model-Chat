@@ -98,6 +98,47 @@ export const searchMultimodalByImage = async (
 };
 
 /**
+ * Indexes a single library item and saves its embedding into the vector store.
+ */
+export const indexSingleItem = async (fileItem: LibraryItem): Promise<MultimodalEmbeddingItem | null> => {
+  const blob = await dbService.fetchLibraryFileBlob(fileItem);
+  if (!blob) {
+    return null;
+  }
+
+  const mimeType = fileItem.type || blob.type || 'application/octet-stream';
+  const category = resolveMediaCategory(mimeType);
+
+  let embedding: number[];
+
+  if (category === 'image' || category === 'audio' || category === 'video' || mimeType === 'application/pdf') {
+    embedding = await generateMediaEmbedding(blob, mimeType);
+  } else {
+    const textContent = fileItem.textContent || (await blob.text().catch(() => ''));
+    embedding = await generateDocumentEmbedding(fileItem.name, textContent);
+  }
+
+  const embeddingItem: MultimodalEmbeddingItem = {
+    id: fileItem.id,
+    name: fileItem.name,
+    type: mimeType,
+    category,
+    embedding,
+    size: fileItem.size || blob.size,
+    thumbnailUrl: fileItem.dataUrl?.startsWith('data:image') ? fileItem.dataUrl : undefined,
+    sessionId: fileItem.sessionId,
+    sessionTitle: fileItem.sessionTitle,
+    messageId: fileItem.messageId,
+    isStandalone: fileItem.isStandalone,
+    createdAt: fileItem.timestamp,
+    updatedAt: Date.now(),
+  };
+
+  await saveStoredEmbedding(embeddingItem);
+  return embeddingItem;
+};
+
+/**
  * Scans all library files and historical chat attachments to index them into vector store.
  */
 export const indexAllHistoricalItems = async (
@@ -158,42 +199,12 @@ export const indexAllHistoricalItems = async (
     });
 
     try {
-      const blob = await dbService.fetchLibraryFileBlob(fileItem);
-      if (!blob) {
-        skipped++;
-        continue;
-      }
-
-      const mimeType = fileItem.type || blob.type || 'application/octet-stream';
-      const category = resolveMediaCategory(mimeType);
-
-      let embedding: number[];
-
-      if (category === 'image' || category === 'audio' || category === 'video' || mimeType === 'application/pdf') {
-        embedding = await generateMediaEmbedding(blob, mimeType);
+      const item = await indexSingleItem(fileItem);
+      if (item) {
+        indexed++;
       } else {
-        const textContent = fileItem.textContent || (await blob.text().catch(() => ''));
-        embedding = await generateDocumentEmbedding(fileItem.name, textContent);
+        skipped++;
       }
-
-      const embeddingItem: MultimodalEmbeddingItem = {
-        id: fileItem.id,
-        name: fileItem.name,
-        type: mimeType,
-        category,
-        embedding,
-        size: fileItem.size || blob.size,
-        thumbnailUrl: fileItem.dataUrl?.startsWith('data:image') ? fileItem.dataUrl : undefined,
-        sessionId: fileItem.sessionId,
-        sessionTitle: fileItem.sessionTitle,
-        messageId: fileItem.messageId,
-        isStandalone: fileItem.isStandalone,
-        createdAt: fileItem.timestamp,
-        updatedAt: Date.now(),
-      };
-
-      await saveStoredEmbedding(embeddingItem);
-      indexed++;
     } catch {
       // Failed to index single file - gracefully continue
       skipped++;

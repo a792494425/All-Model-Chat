@@ -23,6 +23,7 @@ import { LibraryEmptyState } from './LibraryEmptyState';
 import { FilePreviewModal } from '@/components/modals/FilePreviewModal';
 import { ConfirmationModal } from '@/components/modals/ConfirmationModal';
 import { Upload } from 'lucide-react';
+import { autoIndexingQueue } from '@/services/embedding/autoIndexingQueue';
 
 const LazyCreateTextFileEditor = lazyNamedComponent(
   () => import('@/components/modals/create-file/CreateTextFileEditor'),
@@ -167,6 +168,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       );
 
       await dbService.addStandaloneLibraryFiles(newItems);
+      autoIndexingQueue.enqueueItems(newItems);
       await refreshLibraryFiles();
     },
     [refreshLibraryFiles],
@@ -259,6 +261,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       };
 
       await dbService.addStandaloneLibraryFiles([newItem]);
+      autoIndexingQueue.enqueueItems([newItem]);
       await refreshLibraryFiles();
       setShowCreateNote(false);
     },
@@ -310,6 +313,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
     if (deleteConfirmTarget === 'selected') {
       const ids = Array.from(selectedFileIds);
+      void autoIndexingQueue.removeItems(ids);
       await Promise.all([dbService.deleteStandaloneLibraryFiles(ids), dbService.addDeletedLibraryFileIds(ids)]);
       setDeletedFileIds((prev) => new Set([...prev, ...ids]));
       setHistoricalFiles((prev) => prev.filter((i) => !selectedFileIds.has(i.id)));
@@ -317,6 +321,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       await refreshLibraryFiles();
     } else {
       const item = deleteConfirmTarget;
+      void autoIndexingQueue.removeItems([item.id]);
       if (item.isStandalone) {
         await Promise.all([
           dbService.deleteStandaloneLibraryFiles([item.id]),
