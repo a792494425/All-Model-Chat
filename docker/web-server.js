@@ -30,6 +30,7 @@ const jsonStringOrNull = (value) => {
 function writeRuntimeConfig() {
   const config = {
     serverManagedApi: toBool(process.env.RUNTIME_SERVER_MANAGED_API),
+    serverAccessPassword: JSON.parse(jsonStringOrNull(process.env.RUNTIME_SERVER_ACCESS_PASSWORD)),
     useCustomApiConfig: toBool(process.env.RUNTIME_USE_CUSTOM_API_CONFIG ?? 'true'),
     useApiProxy: toBool(process.env.RUNTIME_USE_API_PROXY ?? 'true'),
     apiProxyUrl: JSON.parse(jsonStringOrNull(process.env.RUNTIME_API_PROXY_URL ?? '/api/gemini')),

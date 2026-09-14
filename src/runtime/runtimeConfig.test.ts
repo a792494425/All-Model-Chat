@@ -86,14 +86,19 @@ describe('runtimeConfig', () => {
     const envExampleSource = fs.readFileSync(path.join(projectRoot, '.env.example'), 'utf8');
 
     expect(webServerSource).toContain('serverManagedApi: toBool(process.env.RUNTIME_SERVER_MANAGED_API)');
+    expect(webServerSource).toContain('RUNTIME_SERVER_ACCESS_PASSWORD');
     expect(webServerSource).toContain('RUNTIME_PYODIDE_BASE_URL');
     expect(webServerSource).toContain('RUNTIME_LIVE_API_BASE_URL');
     expect(webServerSource).toContain('RUNTIME_THIRD_PARTY_PROXY_URL');
+    expect(composeSource).toContain('ACCESS_PASSWORD: ${ACCESS_PASSWORD:-}');
+    expect(composeSource).toContain('RUNTIME_SERVER_ACCESS_PASSWORD: ${RUNTIME_SERVER_ACCESS_PASSWORD:-}');
     expect(composeSource).toContain('RUNTIME_SERVER_MANAGED_API:-true');
     expect(composeSource).toContain('RUNTIME_LIVE_API_BASE_URL:-/api/live');
     expect(composeSource).toContain('RUNTIME_THIRD_PARTY_PROXY_URL:-/api/openai');
     expect(composeSource).toContain('RUNTIME_PYODIDE_BASE_URL');
     expect(envExampleSource).toContain('GEMINI_API_KEY=');
+    expect(envExampleSource).toContain('ACCESS_PASSWORD=');
+    expect(envExampleSource).toContain('RUNTIME_SERVER_ACCESS_PASSWORD=');
     expect(envExampleSource).toContain('RUNTIME_SERVER_MANAGED_API=true');
     expect(envExampleSource).toContain('RUNTIME_LIVE_API_BASE_URL=/api/live');
     expect(envExampleSource).toContain('RUNTIME_THIRD_PARTY_PROXY_URL=/api/openai');
