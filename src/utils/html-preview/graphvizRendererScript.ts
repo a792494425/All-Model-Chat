@@ -334,7 +334,9 @@ export const GRAPHVIZ_RENDERER_SCRIPT = `
         }
       }
     }
-    scheduleScan();
+    if (dirtyNodes.size > 0) {
+      scheduleScan();
+    }
   };
 
   window.addEventListener('message', (event) => {
@@ -383,9 +385,11 @@ export const GRAPHVIZ_RENDERER_SCRIPT = `
     }
   });
 
+  let observer = null;
   renderAll();
   if (window.MutationObserver && parentWindow) {
-    new MutationObserver(collectDirty).observe(document.documentElement || document, {
+    observer = new MutationObserver(collectDirty);
+    observer.observe(document.documentElement || document, {
       childList: true,
       subtree: true,
       attributes: true,
@@ -393,6 +397,6 @@ export const GRAPHVIZ_RENDERER_SCRIPT = `
     });
   }
 
-  window.__amcGraphviz = { renderAll };
+  window.__amcGraphviz = { renderAll, disconnect: () => observer?.disconnect() };
 })();
 `;

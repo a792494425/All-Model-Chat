@@ -216,6 +216,7 @@ const runRendererLive = (): {
     node,
     requests,
     cleanup: () => {
+      (window as unknown as { __amcGraphviz?: { disconnect?: () => void } }).__amcGraphviz?.disconnect?.();
       doc.body.replaceChildren();
       Object.defineProperty(window, 'parent', { configurable: true, value: originalParent });
     },
@@ -394,6 +395,39 @@ describe('GRAPHVIZ_RENDERER_SCRIPT', () => {
       // Exactly one request, carrying the final dot (not the intermediate one).
       expect(requests.length).toBe(before + 1);
       expect(requests[requests.length - 1]!.dot).toBe('digraph { M -> N }');
+    } finally {
+      cleanup();
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not reset the debounce timer when unrelated non-graphviz mutations occur', async () => {
+    vi.useFakeTimers();
+    const { node, requests, cleanup } = runRendererLive();
+    try {
+      await Promise.resolve();
+      const before = requests.length;
+
+      // Update the dot on the graphviz node
+      node.setAttribute('data-amc-graphviz', 'digraph { StreamingTest -> Render }');
+      await Promise.resolve();
+
+      // Simulate streaming chunks arriving for unrelated DOM nodes (e.g. text paragraphs) every 60ms
+      for (let i = 0; i < 5; i += 1) {
+        await vi.advanceTimersByTimeAsync(60);
+        const p = window.document.createElement('p');
+        p.textContent = `Streaming prose chunk ${i}`;
+        window.document.body.appendChild(p);
+        await Promise.resolve();
+      }
+
+      // Total time elapsed: 300ms (5 * 60ms). With RENDER_DEBOUNCE_MS = 350ms,
+      // advance 100ms more to cross the 350ms threshold (total 400ms).
+      // The timer should have fired and NOT been starved/reset by the 5 unrelated mutations.
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(requests.length).toBe(before + 1);
+      expect(requests[requests.length - 1]!.dot).toBe('digraph { StreamingTest -> Render }');
     } finally {
       cleanup();
       vi.useRealTimers();
