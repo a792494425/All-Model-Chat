@@ -9,6 +9,7 @@ import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { generateUniqueId } from '@/utils/chat/ids';
 import { createMessage, generateSessionTitle, performOptimisticSessionUpdate } from '@/utils/chat/session';
 import { insertMessageAfter, updateMessageInSession } from '@/utils/chat/sessionMutations';
+import { appendModelVariant } from '@/utils/chat/messageVariants';
 import { emitCompletionFeedback, type CompletionFeedback } from './completionFeedback';
 import { createLoadingModelMessage } from './useMessageLifecycle';
 import type { SessionsUpdater } from './messageSenderTypes';
@@ -77,7 +78,8 @@ interface RunOptimisticMessagePipelineParams extends Omit<StartOptimisticMessage
 type OptimisticMessagePlacement =
   | { type: 'append-turn' }
   | { type: 'continue-model'; targetMessageId: string }
-  | { type: 'insert-model-after'; sourceMessageId: string };
+  | { type: 'insert-model-after'; sourceMessageId: string }
+  | { type: 'retry-model'; targetMessageId: string };
 
 const completeModelMessage = (
   sessions: SavedChatSession[],
@@ -134,6 +136,12 @@ const startOptimisticMessageTurn = ({
         firstTokenTimeMs: undefined,
         thinkingTimeMs: undefined,
       }));
+    }
+
+    if (placement.type === 'retry-model') {
+      return updateMessageInSession(prev, finalSessionId, placement.targetMessageId, (existingMessage) => {
+        return appendModelVariant(existingMessage, modelMessage);
+      });
     }
 
     if (placement.type === 'insert-model-after') {

@@ -390,4 +390,59 @@ describe('messagePipeline', () => {
     expect(sessions).toHaveLength(1);
     expect(sessions[0].settings.systemInstruction).toBe('[Live Artifacts Protocol - zh]');
   });
+
+  it('updates target model message in-place and preserves history in variants on retry-model', async () => {
+    const existingModel = {
+      id: 'target-model',
+      role: 'model' as const,
+      content: 'Original Response',
+      isLoading: false,
+      timestamp: new Date('2026-05-02T01:00:00.000Z'),
+    };
+    let sessions: SavedChatSession[] = [
+      {
+        id: 'session-1',
+        title: 'Chat',
+        timestamp: 1,
+        settings: createChatSettings(),
+        messages: [
+          {
+            id: 'user-1',
+            role: 'user' as const,
+            content: 'Hello',
+            timestamp: new Date('2026-05-02T00:59:00.000Z'),
+          },
+          existingModel,
+        ],
+      },
+    ];
+    const updateAndPersistSessions = vi.fn((updater: (prev: SavedChatSession[]) => SavedChatSession[]) => {
+      sessions = updater(sessions);
+    });
+    const newStart = new Date('2026-05-02T01:10:00.000Z');
+
+    await runOptimisticMessagePipeline({
+      activeSessionId: 'session-1',
+      appSettings: createAppSettings(),
+      currentChatSettings: createChatSettings(),
+      updateAndPersistSessions,
+      setActiveSessionId: vi.fn(),
+      text: 'Hello',
+      generationId: 'target-model-retry-1',
+      generationStartTime: newStart,
+      abortController: new AbortController(),
+      errorPrefix: 'Retry Error',
+      placement: { type: 'retry-model', targetMessageId: 'target-model' },
+      runMessageLifecycle: vi.fn(async () => undefined),
+      execute: async () => undefined,
+    });
+
+    // Should NOT have appended a new user message
+    expect(sessions[0].messages).toHaveLength(2);
+    const retriedMsg = sessions[0].messages[1];
+    expect(retriedMsg.isLoading).toBe(true);
+    expect(retriedMsg.variants).toHaveLength(2);
+    expect(retriedMsg.currentVariantIndex).toBe(1);
+    expect(retriedMsg.variants![0].content).toBe('Original Response');
+  });
 });

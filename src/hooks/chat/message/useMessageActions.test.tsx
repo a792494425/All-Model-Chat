@@ -170,6 +170,7 @@ describe('useMessageActions', () => {
       text: 'retry this',
       files: undefined,
       editingId: 'user-1',
+      retryModelMessageId: 'model-1',
     });
     expect(oldAbortController.signal.aborted).toBe(true);
     // The handoff holds the session-level loading flag through the swap.
@@ -424,6 +425,7 @@ describe('useMessageActions', () => {
         }),
       ],
       editingId: 'user-original',
+      retryModelMessageId: 'error-target',
     });
 
     unmount();
@@ -491,6 +493,7 @@ describe('useMessageActions', () => {
           }),
         ],
         editingId: 'user-turn',
+        retryModelMessageId: 'error-msg',
       });
 
       unmount();
@@ -535,6 +538,58 @@ describe('useMessageActions', () => {
     });
     expect(setEditingMessageId).toHaveBeenCalledWith('user-edit-target');
     expect(setEditMode).toHaveBeenCalledWith('update');
+
+    unmount();
+  });
+
+  it('switches message variants through handleSwitchMessageVariant', () => {
+    let sessions: SavedChatSession[] = [
+      {
+        id: 'session-1',
+        title: 'Chat',
+        timestamp: 1,
+        settings: {} as any,
+        messages: [
+          {
+            id: 'model-1',
+            role: 'model',
+            content: 'Active v2',
+            timestamp: new Date('2026-05-02T01:00:00.000Z'),
+            variants: [
+              { id: 'model-1', role: 'model', content: 'Original v1', timestamp: new Date('2026-05-02T00:59:00.000Z') },
+              {
+                id: 'model-1-v2',
+                role: 'model',
+                content: 'Active v2',
+                timestamp: new Date('2026-05-02T01:00:00.000Z'),
+              },
+            ],
+            currentVariantIndex: 1,
+          },
+        ],
+      },
+    ];
+
+    const updateAndPersistSessions = vi.fn((updater: (prev: SavedChatSession[]) => SavedChatSession[]) => {
+      sessions = updater(sessions);
+    });
+
+    const { result, unmount } = renderHook(() =>
+      useMessageActions(
+        createStoreWiredOptions({
+          activeSessionId: 'session-1',
+          updateAndPersistSessions,
+        }),
+      ),
+    );
+
+    act(() => {
+      result.current.handleSwitchMessageVariant('model-1', 0);
+    });
+
+    expect(updateAndPersistSessions).toHaveBeenCalled();
+    expect(sessions[0].messages[0].content).toBe('Original v1');
+    expect(sessions[0].messages[0].currentVariantIndex).toBe(0);
 
     unmount();
   });

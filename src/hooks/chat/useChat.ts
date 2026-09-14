@@ -324,6 +324,7 @@ export const useChat = (
     handleEditLastUserMessage: messageActions.handleEditLastUserMessage,
     handleContinueGeneration: messageActions.handleContinueGeneration,
     handleForkMessage: messageActions.handleForkMessage,
+    handleSwitchMessageVariant: messageActions.handleSwitchMessageVariant,
 
     // Scenarios
     savedScenarios: scenarioHandler.savedScenarios,

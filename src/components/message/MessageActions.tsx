@@ -1,6 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
-import { User, AlertTriangle, Edit3, Trash2, RefreshCw, Pencil, CirclePlay, MoreHorizontal } from 'lucide-react';
+import {
+  User,
+  AlertTriangle,
+  Edit3,
+  Trash2,
+  RefreshCw,
+  Pencil,
+  CirclePlay,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { type ChatMessage } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { ExportMessageButton } from './buttons/ExportMessageButton';
@@ -67,6 +78,7 @@ interface MessageActionsProps {
   onRetryMessage: (messageId: string) => void;
   onContinueGeneration: (messageId: string) => void;
   onForkMessage: (messageId: string) => void;
+  onSwitchVariant?: (messageId: string, targetVariantIndex: number) => void;
   themeId: string;
 }
 
@@ -80,6 +92,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
   onRetryMessage,
   onContinueGeneration,
   onForkMessage,
+  onSwitchVariant,
   themeId,
 }) => {
   const { t } = useI18n();
@@ -181,6 +194,37 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
       <div
         className={`message-actions flex flex-col items-center gap-1 mt-1 transition-all duration-300 ease-in-out ${actionsVisibilityClasses}`}
       >
+        {message.variants && message.variants.length > 1 && (
+          <div
+            data-testid="message-variant-switcher"
+            className="flex items-center gap-0.5 text-xs text-[var(--theme-text-secondary)] select-none py-0.5"
+          >
+            <button
+              type="button"
+              disabled={(message.currentVariantIndex ?? 0) <= 0}
+              onClick={() => onSwitchVariant?.(message.id, (message.currentVariantIndex ?? 0) - 1)}
+              aria-label={t('messageVariantPrevious') || 'Previous version'}
+              title={t('messageVariantPrevious') || 'Previous version'}
+              className="p-1 rounded hover:bg-[var(--theme-bg-secondary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={13} strokeWidth={2} />
+            </button>
+            <span className="font-mono text-[11px] tabular-nums leading-none">
+              {(message.currentVariantIndex ?? 0) + 1} / {message.variants.length}
+            </span>
+            <button
+              type="button"
+              disabled={(message.currentVariantIndex ?? 0) >= message.variants.length - 1}
+              onClick={() => onSwitchVariant?.(message.id, (message.currentVariantIndex ?? 0) + 1)}
+              aria-label={t('messageVariantNext') || 'Next version'}
+              title={t('messageVariantNext') || 'Next version'}
+              className="p-1 rounded hover:bg-[var(--theme-bg-secondary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight size={13} strokeWidth={2} />
+            </button>
+          </div>
+        )}
+
         {message.role === 'user' && !message.isLoading && (
           <button
             onClick={() => onEditMessage(message.id, 'resend')}

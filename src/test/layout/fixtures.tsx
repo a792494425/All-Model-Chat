@@ -102,6 +102,7 @@ type ChatAreaMessageListValue = {
   onFollowUpSuggestionFill: (suggestion: string) => void;
   onContinueGeneration: (messageId: string) => void;
   onForkMessage: (messageId: string) => void;
+  onSwitchVariant?: (messageId: string, targetVariantIndex: number) => void;
   onQuickTTS: (text: string) => Promise<QuickTtsResult>;
   chatInputHeight: number;
   currentModelId: string;
@@ -172,6 +173,7 @@ export const createChatAreaProviderValue = (overrides: ChatAreaProviderValueOver
       onFollowUpSuggestionFill: vi.fn(),
       onContinueGeneration: vi.fn(),
       onForkMessage: vi.fn(),
+      onSwitchVariant: vi.fn(),
       onQuickTTS: vi.fn(async () => ({ error: 'Mock TTS error' })),
       chatInputHeight: 0,
       currentModelId: 'gemini-3.1-pro-preview',
@@ -351,6 +353,7 @@ export const createChatRuntimeApp = (value: ChatAreaProviderValue): AppViewModel
         value.messageList.onUpdateMessageFile(...args),
       handleContinueGeneration: async (messageId: string) => value.messageList.onContinueGeneration(messageId),
       handleForkMessage: value.messageList.onForkMessage,
+      handleSwitchMessageVariant: value.messageList.onSwitchVariant ?? vi.fn(),
       handleQuickTTS: value.messageList.onQuickTTS,
       handleStopGenerating: (() => {
         value.input.onStopGenerating();

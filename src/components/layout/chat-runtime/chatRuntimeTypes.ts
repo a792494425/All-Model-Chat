@@ -54,6 +54,7 @@ export interface ChatMessageListRuntimeValue {
   onFollowUpSuggestionFill: (suggestion: string) => void;
   onContinueGeneration: (messageId: string) => void;
   onForkMessage: (messageId: string) => void;
+  onSwitchVariant?: (messageId: string, targetVariantIndex: number) => void;
   onQuickTTS: (text: string) => Promise<QuickTtsResult>;
   onOpenSidePanel: (content: SideViewContent) => void;
 }

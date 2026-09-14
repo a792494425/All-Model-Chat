@@ -15,6 +15,7 @@ import { useChatStore } from '@/stores/chatStore';
 import { toastError } from '@/stores/toastStore';
 import { useI18n } from '@/contexts/I18nContext';
 import { stripLiveArtifactsUserDirective } from '@/features/prompts/promptRegistry';
+import { switchMessageVariant } from '@/utils/chat/messageVariants';
 
 type ActiveSessionSetter = (id: string | null, options?: { history?: 'push' | 'replace' | 'none' | 'auto' }) => void;
 type SendMessageFunc = (overrideOptions?: {
@@ -22,6 +23,7 @@ type SendMessageFunc = (overrideOptions?: {
   files?: UploadedFile[];
   editingId?: string;
   isContinueMode?: boolean;
+  retryModelMessageId?: string;
 }) => Promise<void>;
 
 interface UseMessageActionsOptions {
@@ -225,6 +227,7 @@ export const useMessageActions = ({
           text: userMessageToResend.content,
           files: rehydratedFiles,
           editingId: userMessageToResend.id,
+          retryModelMessageId: modelMessageIdToRetry,
         });
       } finally {
         if (isLoading) {
@@ -369,6 +372,18 @@ export const useMessageActions = ({
     [activeSessionId, messages, updateAndPersistSessions, setActiveSessionId, userScrolledUpRef],
   );
 
+  const handleSwitchMessageVariant = useCallback(
+    (messageId: string, targetVariantIndex: number) => {
+      if (!activeSessionId) return;
+      updateAndPersistSessions((prev) =>
+        updateSessionById(prev, activeSessionId, (session) =>
+          switchMessageVariant(session, messageId, targetVariantIndex),
+        ),
+      );
+    },
+    [activeSessionId, updateAndPersistSessions],
+  );
+
   return {
     handleStopGenerating,
     handleEditMessage,
@@ -379,5 +394,6 @@ export const useMessageActions = ({
     handleEditLastUserMessage,
     handleContinueGeneration,
     handleForkMessage,
+    handleSwitchMessageVariant,
   };
 };

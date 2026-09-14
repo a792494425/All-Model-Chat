@@ -43,6 +43,7 @@ const MessageListComponent: React.FC = () => {
     onFollowUpSuggestionFill,
     onContinueGeneration,
     onForkMessage,
+    onSwitchVariant,
     onQuickTTS,
     onOpenSidePanel,
   } = useChatMessageListRuntime();
@@ -158,6 +159,7 @@ const MessageListComponent: React.FC = () => {
             showThoughts={currentChatSettings.showThoughts}
             onContinueGeneration={onContinueGeneration}
             onForkMessage={onForkMessage}
+            onSwitchVariant={onSwitchVariant}
             onSuggestionClick={onFollowUpSuggestionClick}
             onSuggestionFill={onFollowUpSuggestionFill}
             onOpenSidePanel={onOpenSidePanel}
@@ -187,6 +189,7 @@ const MessageListComponent: React.FC = () => {
       onForkMessage,
       onOpenSidePanel,
       onRetryMessage,
+      onSwitchVariant,
       sessionTitle,
       userMessageCollapse,
       visibleMessages,

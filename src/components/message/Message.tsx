@@ -25,6 +25,7 @@ interface MessageProps {
   showThoughts: boolean;
   onContinueGeneration: (messageId: string) => void;
   onForkMessage: (messageId: string) => void;
+  onSwitchVariant?: (messageId: string, targetVariantIndex: number) => void;
   onSuggestionClick?: (suggestion: string) => void;
   onSuggestionFill?: (suggestion: string) => void;
   onOpenSidePanel: (content: SideViewContent) => void;
@@ -114,6 +115,7 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
       onRetryMessage={props.onRetryMessage}
       onContinueGeneration={props.onContinueGeneration}
       onForkMessage={props.onForkMessage}
+      onSwitchVariant={props.onSwitchVariant}
       themeId={themeId}
     />
   );

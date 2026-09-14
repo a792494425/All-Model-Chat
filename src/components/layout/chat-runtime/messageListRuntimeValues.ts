@@ -22,6 +22,7 @@ export const useChatMessageListRuntimeValues = ({ app }: MessageListRuntimeValue
     handleContinueGeneration,
     handleForkMessage,
     handleQuickTTS,
+    handleSwitchMessageVariant,
   } = chatState;
 
   const onFollowUpSuggestionClick = useCallback(
@@ -50,6 +51,7 @@ export const useChatMessageListRuntimeValues = ({ app }: MessageListRuntimeValue
       onFollowUpSuggestionFill,
       onContinueGeneration: handleContinueGeneration,
       onForkMessage: handleForkMessage,
+      onSwitchVariant: handleSwitchMessageVariant,
       onQuickTTS: handleQuickTTS,
       onOpenSidePanel: handleOpenSidePanel,
     }),
@@ -61,6 +63,7 @@ export const useChatMessageListRuntimeValues = ({ app }: MessageListRuntimeValue
       handleOpenSidePanel,
       handleQuickTTS,
       handleRetryMessage,
+      handleSwitchMessageVariant,
       handleUpdateMessageFile,
       onFollowUpSuggestionClick,
       onFollowUpSuggestionFill,

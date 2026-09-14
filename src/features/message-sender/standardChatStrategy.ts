@@ -26,24 +26,27 @@ interface SendStandardMessageParams {
   text: string;
   files: UploadedFile[];
   editingMessageId: string | null;
+  retryModelMessageId?: string;
   activeModelId: string;
   isContinueMode?: boolean;
   isFastMode?: boolean;
   request: PreparedModelRequest;
 }
 
-export const sendStandardMessage = async ({
-  props,
-  getStreamHandlers,
-  runMessageLifecycle,
-  text: textToUse,
-  files: filesToUse,
-  editingMessageId: effectiveEditingId,
-  activeModelId,
-  isContinueMode = false,
-  isFastMode = false,
-  request,
-}: SendStandardMessageParams) => {
+export const sendStandardMessage = async (params: SendStandardMessageParams) => {
+  const {
+    props,
+    getStreamHandlers,
+    runMessageLifecycle,
+    text: textToUse,
+    files: filesToUse,
+    editingMessageId: effectiveEditingId,
+    retryModelMessageId,
+    activeModelId,
+    isContinueMode = false,
+    isFastMode = false,
+    request,
+  } = params;
   const {
     appSettings,
     currentChatSettings,
@@ -129,7 +132,9 @@ export const sendStandardMessage = async ({
   const placement =
     isContinueMode && effectiveEditingId
       ? ({ type: 'continue-model', targetMessageId: effectiveEditingId } as const)
-      : ({ type: 'append-turn' } as const);
+      : retryModelMessageId
+        ? ({ type: 'retry-model', targetMessageId: retryModelMessageId } as const)
+        : ({ type: 'append-turn' } as const);
 
   await runOptimisticMessagePipeline({
     activeSessionId,

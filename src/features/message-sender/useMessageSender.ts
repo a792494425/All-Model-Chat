@@ -114,6 +114,7 @@ export const useMessageSender = (props: MessageSenderProps) => {
       isContinueMode?: boolean;
       isFastMode?: boolean;
       settingsOverride?: IndividualChatSettings;
+      retryModelMessageId?: string;
     }) => {
       const textToUse = overrideOptions?.text ?? '';
       // Prefer explicitly-passed files, then the live store value when the
@@ -126,6 +127,7 @@ export const useMessageSender = (props: MessageSenderProps) => {
       const filesToUse =
         overrideOptions?.files ?? (selectedFiles === storeSelectedFiles ? selectedFiles : storeSelectedFiles);
       const effectiveEditingId = overrideOptions?.editingId ?? editingMessageId;
+      const retryModelMessageId = overrideOptions?.retryModelMessageId;
       const isContinueMode = overrideOptions?.isContinueMode ?? false;
       const isFastMode = overrideOptions?.isFastMode ?? false;
 
@@ -174,9 +176,17 @@ export const useMessageSender = (props: MessageSenderProps) => {
 
       const continueTargetMessage =
         isContinueMode && effectiveEditingId ? messages.find((message) => message.id === effectiveEditingId) : null;
-      const isResendingEdit = Boolean(effectiveEditingId && !isContinueMode);
+      const isResendingEdit = Boolean(effectiveEditingId && !isContinueMode && !retryModelMessageId);
       const editIndex = isResendingEdit ? messages.findIndex((message) => message.id === effectiveEditingId) : -1;
-      const historyMessagesForTurn = editIndex !== -1 ? messages.slice(0, editIndex) : messages;
+      const retryModelIndex = retryModelMessageId
+        ? messages.findIndex((message) => message.id === retryModelMessageId)
+        : -1;
+      const historyMessagesForTurn =
+        retryModelIndex !== -1
+          ? messages.slice(0, retryModelIndex)
+          : editIndex !== -1
+            ? messages.slice(0, editIndex)
+            : messages;
 
       const request = prepareModelRequest({
         activeModelId,
@@ -396,6 +406,7 @@ export const useMessageSender = (props: MessageSenderProps) => {
         text: textToUse,
         files: filesReadyForSend,
         editingMessageId: effectiveEditingId,
+        retryModelMessageId,
         activeModelId,
         isContinueMode,
         isFastMode,

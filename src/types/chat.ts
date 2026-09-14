@@ -104,6 +104,8 @@ export interface ChatMessage {
   apiParts?: Part[]; // Preserves raw API parts for either user or model turns.
   isInternalToolMessage?: boolean; // Hidden client-side tool plumbing turn used to rebuild API context.
   toolParentMessageId?: string; // Visible model message ID associated with an internal tool turn.
+  variants?: ChatMessage[];
+  currentVariantIndex?: number;
 }
 
 export type ContentPart = Part;
