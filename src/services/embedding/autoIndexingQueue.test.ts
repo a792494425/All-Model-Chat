@@ -3,6 +3,7 @@ import { autoIndexingQueue } from './autoIndexingQueue';
 import * as multimodalSearchEngine from './multimodalSearchEngine';
 import * as multimodalIndexStore from './multimodalIndexStore';
 import { dbService } from '@/services/db/dbService';
+import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
 import type { LibraryItem, SavedChatSession } from '@/types';
 
 vi.mock('./multimodalIndexStore', () => ({
@@ -18,6 +19,7 @@ vi.mock('./multimodalSearchEngine', () => ({
 describe('autoIndexingQueue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useMultimodalSearchStore.setState({ isAutoIndexEnabled: true });
     autoIndexingQueue.resetForTest();
     vi.mocked(multimodalIndexStore.getStoredEmbeddings).mockResolvedValue({});
     vi.mocked(multimodalIndexStore.removeStoredEmbedding).mockResolvedValue();
@@ -239,5 +241,58 @@ describe('autoIndexingQueue', () => {
 
     expect(multimodalSearchEngine.indexSingleItem).toHaveBeenCalledTimes(2);
     expect(autoIndexingQueue.getQueueLength()).toBe(0);
+  });
+
+  it('does not enqueue or index items when isAutoIndexEnabled is false', async () => {
+    vi.useFakeTimers();
+    useMultimodalSearchStore.getState().setIsAutoIndexEnabled(false);
+
+    const item: LibraryItem = {
+      id: 'disabled-1',
+      name: 'disabled.png',
+      type: 'image/png',
+      size: 100,
+      timestamp: Date.now(),
+      source: 'uploaded',
+      isStandalone: true,
+    };
+
+    autoIndexingQueue.enqueueItems([item]);
+    expect(autoIndexingQueue.getQueueLength()).toBe(0);
+
+    await vi.runAllTimersAsync();
+    expect(multimodalSearchEngine.indexSingleItem).not.toHaveBeenCalled();
+  });
+
+  it('clears pending queue when isAutoIndexEnabled is switched off', async () => {
+    vi.useFakeTimers();
+
+    const item1: LibraryItem = {
+      id: 'pending-1',
+      name: 'p1.png',
+      type: 'image/png',
+      size: 100,
+      timestamp: Date.now(),
+      source: 'uploaded',
+      isStandalone: true,
+    };
+    const item2: LibraryItem = {
+      id: 'pending-2',
+      name: 'p2.png',
+      type: 'image/png',
+      size: 200,
+      timestamp: Date.now(),
+      source: 'uploaded',
+      isStandalone: true,
+    };
+
+    autoIndexingQueue.enqueueItems([item1, item2]);
+    expect(autoIndexingQueue.getQueueLength()).toBe(2);
+
+    useMultimodalSearchStore.getState().setIsAutoIndexEnabled(false);
+    expect(autoIndexingQueue.getQueueLength()).toBe(0);
+
+    await vi.runAllTimersAsync();
+    expect(multimodalSearchEngine.indexSingleItem).not.toHaveBeenCalled();
   });
 });

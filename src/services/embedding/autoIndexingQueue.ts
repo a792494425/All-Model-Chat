@@ -14,9 +14,35 @@ class AutoIndexingQueue {
   private timerId: ReturnType<typeof setTimeout> | null = null;
 
   /**
+   * Checks if auto-indexing is currently enabled in settings.
+   */
+  public isAutoIndexEnabled(): boolean {
+    return useMultimodalSearchStore.getState().isAutoIndexEnabled;
+  }
+
+  /**
+   * Clears the pending queue and cancels any pending idle/timer callbacks.
+   */
+  public clear(): void {
+    this.queue = [];
+    this.enqueuedIds.clear();
+    this.isProcessing = false;
+    this.isCatchupScheduled = false;
+    if (this.timerId !== null) {
+      clearTimeout(this.timerId);
+      this.timerId = null;
+    }
+    if (typeof window !== 'undefined' && 'cancelIdleCallback' in window && this.idleCallbackId !== null) {
+      window.cancelIdleCallback(this.idleCallbackId);
+      this.idleCallbackId = null;
+    }
+  }
+
+  /**
    * Enqueues items to be indexed in the background during idle time.
    */
   public enqueueItems(items: LibraryItem[]): void {
+    if (!this.isAutoIndexEnabled()) return;
     if (!items || items.length === 0) return;
 
     for (const item of items) {
@@ -32,6 +58,7 @@ class AutoIndexingQueue {
    * Extracts files from a session and enqueues them for background indexing.
    */
   public enqueueSession(session: SavedChatSession): void {
+    if (!this.isAutoIndexEnabled()) return;
     if (!session?.messages) return;
     const items = extractLibraryItemsFromSessions([session]);
     this.enqueueItems(items);
@@ -55,10 +82,15 @@ class AutoIndexingQueue {
    * Starts a non-blocking idle catchup scan after app initialization.
    */
   public startIdleCatchup(delayMs = 3000): void {
+    if (!this.isAutoIndexEnabled()) return;
     if (this.isCatchupScheduled) return;
     this.isCatchupScheduled = true;
 
     setTimeout(() => {
+      if (!this.isAutoIndexEnabled()) {
+        this.isCatchupScheduled = false;
+        return;
+      }
       void this.runCatchupScan();
     }, delayMs);
   }
@@ -117,6 +149,11 @@ class AutoIndexingQueue {
   }
 
   private async processNext(): Promise<void> {
+    if (!this.isAutoIndexEnabled()) {
+      this.clear();
+      return;
+    }
+
     if (this.queue.length === 0) {
       this.isProcessing = false;
       return;
@@ -156,18 +193,7 @@ class AutoIndexingQueue {
   }
 
   public resetForTest(): void {
-    this.queue = [];
-    this.enqueuedIds.clear();
-    this.isProcessing = false;
-    this.isCatchupScheduled = false;
-    if (this.timerId !== null) {
-      clearTimeout(this.timerId);
-      this.timerId = null;
-    }
-    if (typeof window !== 'undefined' && 'cancelIdleCallback' in window && this.idleCallbackId !== null) {
-      window.cancelIdleCallback(this.idleCallbackId);
-      this.idleCallbackId = null;
-    }
+    this.clear();
   }
 }
 

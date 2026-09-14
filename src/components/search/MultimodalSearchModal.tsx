@@ -10,6 +10,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Modal } from '@/components/shared/Modal';
+import { Toggle } from '@/components/shared/Toggle';
 import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
 import { useI18n } from '@/contexts/I18nContext';
 import { useUIStore } from '@/stores/uiStore';
@@ -36,6 +37,8 @@ export const MultimodalSearchModal: React.FC = () => {
   const setCategoryFilter = useMultimodalSearchStore((state) => state.setCategoryFilter);
   const isSearching = useMultimodalSearchStore((state) => state.isSearching);
   const isIndexing = useMultimodalSearchStore((state) => state.isIndexing);
+  const isAutoIndexEnabled = useMultimodalSearchStore((state) => state.isAutoIndexEnabled);
+  const setIsAutoIndexEnabled = useMultimodalSearchStore((state) => state.setIsAutoIndexEnabled);
   const indexedCount = useMultimodalSearchStore((state) => state.indexedCount);
   const indexProgress = useMultimodalSearchStore((state) => state.indexProgress);
   const results = useMultimodalSearchStore((state) => state.results);
@@ -199,7 +202,22 @@ export const MultimodalSearchModal: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div
+            className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[var(--theme-bg-tertiary)]"
+            title={t('multimodalSearchAutoIndexTooltip')}
+          >
+            <span className="text-xs text-[var(--theme-text-secondary)] select-none hidden sm:inline">
+              {t('multimodalSearchAutoIndex')}
+            </span>
+            <Toggle
+              id="multimodal-auto-index-toggle"
+              checked={isAutoIndexEnabled}
+              onChange={setIsAutoIndexEnabled}
+              ariaLabel={t('multimodalSearchAutoIndex')}
+            />
+          </div>
+
           <button
             type="button"
             onClick={() => void triggerIndexing()}
@@ -259,13 +277,7 @@ export const MultimodalSearchModal: React.FC = () => {
                 <X size={15} />
               </button>
             )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageSelect}
-            />
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -295,9 +307,7 @@ export const MultimodalSearchModal: React.FC = () => {
               alt="Search reference"
               className="w-8 h-8 object-cover rounded-lg border border-[var(--theme-border-primary)]"
             />
-            <span className="font-medium text-[var(--theme-text-primary)]">
-              {t('multimodalSearchByImage')}
-            </span>
+            <span className="font-medium text-[var(--theme-text-primary)]">{t('multimodalSearchByImage')}</span>
             <button
               type="button"
               onClick={clearSearchImage}
@@ -395,9 +405,7 @@ export const MultimodalSearchModal: React.FC = () => {
                   <div className="relative w-full aspect-[4/3] bg-[var(--theme-bg-tertiary)] overflow-hidden flex items-center justify-center">
                     <LibraryItemThumbnail item={libraryItem} size="full" className="w-full h-full object-contain" />
 
-                    <div className="absolute top-2.5 right-2.5">
-                      {getSimilarityBadge(res.similarity)}
-                    </div>
+                    <div className="absolute top-2.5 right-2.5">{getSimilarityBadge(res.similarity)}</div>
 
                     <div
                       className="absolute top-2.5 left-2.5 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-xs p-1 rounded-xl"

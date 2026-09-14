@@ -541,5 +541,22 @@ export const libraryTranslations: TranslationMap = {
     fr: 'Recherche d’images et multimodale',
     de: 'Bild- und multimodale Suche',
   },
+  multimodalSearchAutoIndex: {
+    en: 'Auto Index',
+    zh: '自动索引',
+    ja: '自動インデックス',
+    ko: '자동 색인',
+    es: 'Indexación auto',
+    fr: 'Indexation auto',
+    de: 'Auto-Indexierung',
+  },
+  multimodalSearchAutoIndexTooltip: {
+    en: 'Automatically generate embeddings for new files and sessions in the background',
+    zh: '在后台空闲时为新文件与会话自动计算向量索引',
+    ja: 'バックグラウンドで新しいファイルやセッションのベクトルインデックスを自動生成します',
+    ko: '백그라운드에서 새 파일 및 세션의 벡터 색인을 자동으로 생성합니다',
+    es: 'Generar automáticamente incrustaciones para nuevos archivos y sesiones en segundo plano',
+    fr: 'Générer automatiquement des embeddings pour les nouveaux fichiers et sessions en arrière-plan',
+    de: 'Embeddings für neue Dateien und Sitzungen automatisch im Hintergrund generieren',
+  },
 };
-

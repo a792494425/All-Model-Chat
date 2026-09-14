@@ -18,6 +18,15 @@ describe('useMultimodalSearchStore', () => {
     expect(state.results).toEqual([]);
     expect(state.isSearching).toBe(false);
     expect(state.isIndexing).toBe(false);
+    expect(state.isAutoIndexEnabled).toBe(true);
+  });
+
+  it('toggles isAutoIndexEnabled', () => {
+    useMultimodalSearchStore.getState().setIsAutoIndexEnabled(false);
+    expect(useMultimodalSearchStore.getState().isAutoIndexEnabled).toBe(false);
+
+    useMultimodalSearchStore.getState().setIsAutoIndexEnabled(true);
+    expect(useMultimodalSearchStore.getState().isAutoIndexEnabled).toBe(true);
   });
 
   it('opens and closes modal', () => {

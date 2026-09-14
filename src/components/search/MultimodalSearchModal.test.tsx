@@ -49,4 +49,21 @@ describe('MultimodalSearchModal', () => {
 
     expect(useMultimodalSearchStore.getState().isOpen).toBe(false);
   });
+
+  it('renders auto-index toggle and toggles isAutoIndexEnabled when clicked', async () => {
+    useMultimodalSearchStore.getState().openModal();
+    await renderModal();
+
+    expect(useMultimodalSearchStore.getState().isAutoIndexEnabled).toBe(true);
+
+    const toggleInput = document.querySelector<HTMLInputElement>('#multimodal-auto-index-toggle');
+    expect(toggleInput).not.toBeNull();
+    expect(toggleInput?.checked).toBe(true);
+
+    await act(async () => {
+      toggleInput?.click();
+    });
+
+    expect(useMultimodalSearchStore.getState().isAutoIndexEnabled).toBe(false);
+  });
 });
