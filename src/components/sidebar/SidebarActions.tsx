@@ -182,8 +182,9 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
             />
             <button
               onClick={() => openMultimodalSearch(searchQuery)}
-              className="h-6 px-1.5 flex items-center justify-center text-sky-500 hover:text-sky-400 rounded-md hover:bg-sky-500/10 transition-colors"
+              className="h-6 px-1.5 flex items-center justify-center text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] rounded-md hover:bg-[var(--theme-bg-tertiary)] transition-colors cursor-pointer"
               title={t('multimodalSearchButtonTooltip')}
+              aria-label={t('multimodalSearchTitle')}
             >
               <Sparkles size={14} strokeWidth={2.2} />
             </button>

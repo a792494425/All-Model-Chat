@@ -78,10 +78,11 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({ onUploadFiles, onC
 
         <button
           onClick={() => openMultimodalSearch(searchQuery)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-500 hover:bg-sky-500/20 active:scale-95 transition-all cursor-pointer whitespace-nowrap shadow-sm"
+          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-sm font-medium rounded-full border border-[var(--theme-border-primary)] bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] active:scale-95 transition-all cursor-pointer whitespace-nowrap"
           title={t('multimodalSearchButtonTooltip')}
+          aria-label={t('multimodalSearchTitle')}
         >
-          <Sparkles size={14} />
+          <Sparkles size={15} strokeWidth={2} />
           <span className="hidden md:inline">{t('multimodalSearchTitle')}</span>
         </button>
 

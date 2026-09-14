@@ -5,16 +5,9 @@ import {
   Sparkles,
   RotateCw,
   Image as ImageIcon,
-  MessageSquare,
+  MessageSquarePlus,
   Download,
   AlertCircle,
-  ExternalLink,
-  Layers,
-  FileText,
-  Music,
-  Video,
-  Check,
-  type LucideIcon,
 } from 'lucide-react';
 import { Modal } from '@/components/shared/Modal';
 import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
@@ -168,41 +161,19 @@ export const MultimodalSearchModal: React.FC = () => {
 
   const getSimilarityBadge = (similarity: number) => {
     const pct = Math.round(similarity * 100);
-    if (pct >= 85) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
-          <Sparkles size={11} />
-          {pct}%
-        </span>
-      );
-    }
-    if (pct >= 70) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-500/15 text-sky-500 border border-sky-500/30">
-          {pct}%
-        </span>
-      );
-    }
-    if (pct >= 50) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-500 border border-amber-500/30">
-          {pct}%
-        </span>
-      );
-    }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-zinc-500/15 text-zinc-400 border border-zinc-500/30">
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-black/60 text-white backdrop-blur-xs shadow-sm">
         {pct}%
       </span>
     );
   };
 
-  const categories: { key: MultimodalMediaCategory | 'all'; label: string; icon: LucideIcon }[] = [
-    { key: 'all', label: t('multimodalSearchAll'), icon: Layers },
-    { key: 'image', label: t('libraryTabImages'), icon: ImageIcon },
-    { key: 'document', label: t('libraryTabDocuments'), icon: FileText },
-    { key: 'audio', label: t('libraryTabAudio'), icon: Music },
-    { key: 'video', label: t('libraryTabVideo'), icon: Video },
+  const categories: { key: MultimodalMediaCategory | 'all'; label: string }[] = [
+    { key: 'all', label: t('multimodalSearchAll') },
+    { key: 'image', label: t('libraryTabImages') },
+    { key: 'document', label: t('libraryTabDocuments') },
+    { key: 'audio', label: t('libraryTabAudio') },
+    { key: 'video', label: t('libraryTabVideo') },
   ];
 
   if (!isOpen) return null;
@@ -214,21 +185,14 @@ export const MultimodalSearchModal: React.FC = () => {
       contentClassName="w-[94vw] max-w-4xl max-h-[88vh] flex flex-col rounded-2xl bg-[var(--theme-bg-primary)] border border-[var(--theme-border-primary)] shadow-2xl overflow-hidden p-0"
       ariaLabel={t('multimodalSearchTitle')}
     >
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--theme-border-primary)] flex-shrink-0 bg-[var(--theme-bg-secondary)]/40">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-tr from-sky-500/20 to-indigo-500/20 text-sky-500 border border-sky-500/30">
-            <Sparkles size={20} />
-          </div>
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--theme-border-primary)] flex-shrink-0">
+        <div className="flex items-center gap-2.5">
+          <Sparkles size={20} className="text-[var(--theme-text-secondary)] shrink-0" strokeWidth={2} />
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-[var(--theme-text-primary)]">
-                {t('multimodalSearchTitle')}
-              </h2>
-              <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)]">
-                gemini-embedding-2
-              </span>
-            </div>
-            <p className="text-xs text-[var(--theme-text-tertiary)] mt-0.5">
+            <h2 className="text-base sm:text-lg font-semibold text-[var(--theme-text-primary)] leading-tight">
+              {t('multimodalSearchTitle')}
+            </h2>
+            <p className="text-xs text-[var(--theme-text-tertiary)] mt-0.5 hidden sm:block">
               {t('multimodalSearchSubtitle')}
             </p>
           </div>
@@ -236,12 +200,13 @@ export const MultimodalSearchModal: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => void triggerIndexing()}
             disabled={isIndexing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-secondary)] border border-[var(--theme-border-secondary)] transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors disabled:opacity-50 cursor-pointer"
             title={t('multimodalSearchUpdateIndex')}
           >
-            <RotateCw size={13} className={isIndexing ? 'animate-spin text-sky-500' : ''} />
+            <RotateCw size={12} className={isIndexing ? 'animate-spin' : ''} />
             <span>
               {isIndexing
                 ? t('multimodalSearchIndexing')
@@ -250,9 +215,10 @@ export const MultimodalSearchModal: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={closeModal}
             aria-label="Close"
-            className="p-2 rounded-full text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -260,18 +226,16 @@ export const MultimodalSearchModal: React.FC = () => {
       </div>
 
       <div
-        className={`p-5 flex flex-col gap-4 border-b border-[var(--theme-border-primary)] transition-colors ${
-          isDragOver ? 'bg-sky-500/10' : ''
+        className={`px-6 py-4 flex flex-col gap-3 border-b border-[var(--theme-border-primary)] transition-colors ${
+          isDragOver ? 'bg-[var(--theme-bg-tertiary)]' : ''
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--theme-text-tertiary)]">
-              <Search size={18} />
-            </div>
+          <div className="relative flex-1 flex items-center bg-[var(--theme-bg-tertiary)] rounded-full px-3.5 py-2 focus-within:ring-1 focus-within:ring-[var(--theme-border-focus)] transition-all">
+            <Search size={18} className="text-[var(--theme-text-tertiary)] flex-shrink-0 mr-2.5" />
             <input
               ref={searchInputRef}
               type="text"
@@ -279,91 +243,86 @@ export const MultimodalSearchModal: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={t('multimodalSearchPlaceholder')}
-              className="w-full pl-10 pr-10 py-2.5 text-sm bg-[var(--theme-bg-secondary)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)] rounded-xl border border-[var(--theme-border-secondary)] focus:border-[var(--theme-border-focus)] focus:bg-[var(--theme-bg-primary)] outline-none transition-all shadow-inner"
+              className="w-full bg-transparent text-sm text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)] outline-none border-none"
             />
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => {
                   setSearchQuery('');
                   void executeSearch();
                 }}
                 aria-label="Clear input"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] cursor-pointer"
+                className="p-1 text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] rounded-full transition-colors cursor-pointer mr-1"
               >
-                <X size={16} />
+                <X size={15} />
               </button>
             )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageSelect}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-1 text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] rounded-full transition-colors cursor-pointer"
+              title={t('multimodalSearchByImage')}
+              aria-label={t('multimodalSearchByImage')}
+            >
+              <ImageIcon size={17} />
+            </button>
           </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageSelect}
-          />
-
           <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] text-sm font-medium transition-all flex-shrink-0 cursor-pointer"
-            title={t('multimodalSearchByImage')}
-          >
-            <ImageIcon size={16} />
-            <span className="hidden sm:inline">{t('multimodalSearchByImage')}</span>
-          </button>
-
-          <button
+            type="button"
             onClick={() => void executeSearch()}
             disabled={isSearching}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--theme-accent)] text-[var(--theme-bg-primary)] hover:opacity-90 active:scale-95 text-sm font-semibold transition-all flex-shrink-0 cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--theme-text-primary)] text-[var(--theme-bg-primary)] hover:opacity-90 active:scale-95 text-sm font-medium transition-all flex-shrink-0 cursor-pointer disabled:opacity-50 shadow-sm"
           >
-            {isSearching ? <RotateCw size={16} className="animate-spin" /> : <Search size={16} />}
-            <span>{t('libraryTitle')}</span>
+            {isSearching ? <RotateCw size={15} className="animate-spin" /> : <Search size={15} />}
+            <span>{t('search')}</span>
           </button>
         </div>
 
         {searchImagePreviewUrl && (
-          <div className="flex items-center gap-3 p-2 rounded-xl bg-[var(--theme-bg-tertiary)] border border-[var(--theme-border-secondary)] w-fit">
+          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[var(--theme-bg-secondary)] border border-[var(--theme-border-primary)] w-fit text-xs">
             <img
               src={searchImagePreviewUrl}
               alt="Search reference"
-              className="w-12 h-12 object-cover rounded-lg border border-[var(--theme-border-primary)]"
+              className="w-8 h-8 object-cover rounded-lg border border-[var(--theme-border-primary)]"
             />
-            <div className="text-xs">
-              <span className="font-medium text-[var(--theme-text-primary)] block">
-                {t('multimodalSearchByImage')}
-              </span>
-              <span className="text-[var(--theme-text-tertiary)]">
-                {t('multimodalSearchDropImage')}
-              </span>
-            </div>
+            <span className="font-medium text-[var(--theme-text-primary)]">
+              {t('multimodalSearchByImage')}
+            </span>
             <button
+              type="button"
               onClick={clearSearchImage}
-              className="p-1 rounded-full text-[var(--theme-text-tertiary)] hover:text-red-500 hover:bg-red-500/10 ml-2 cursor-pointer"
+              className="p-1 rounded-full text-[var(--theme-text-tertiary)] hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
               title="Remove query image"
             >
-              <X size={14} />
+              <X size={13} />
             </button>
           </div>
         )}
 
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pt-1">
           {categories.map((cat) => {
-            const Icon = cat.icon;
             const isActive = categoryFilter === cat.key;
             return (
               <button
                 key={cat.key}
+                type="button"
                 onClick={() => setCategoryFilter(cat.key)}
-                className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap transition-colors cursor-pointer ${
                   isActive
-                    ? 'bg-[var(--theme-text-primary)] text-[var(--theme-bg-primary)] shadow-sm'
-                    : 'bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] border border-[var(--theme-border-secondary)]'
+                    ? 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-primary)]'
+                    : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)]'
                 }`}
               >
-                <Icon size={12} />
-                <span>{cat.label}</span>
-                {isActive && <Check size={12} />}
+                {cat.label}
               </button>
             );
           })}
@@ -371,19 +330,19 @@ export const MultimodalSearchModal: React.FC = () => {
       </div>
 
       {isIndexing && indexProgress && (
-        <div className="px-5 py-2.5 bg-sky-500/10 border-b border-sky-500/20 flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-xs text-sky-500">
+        <div className="px-6 py-2 bg-[var(--theme-bg-secondary)] border-b border-[var(--theme-border-primary)] flex flex-col gap-1.5">
+          <div className="flex items-center justify-between text-xs text-[var(--theme-text-secondary)]">
             <span className="font-medium">
               {t('multimodalSearchIndexing')}
               {indexProgress.currentItemName ? ` (${indexProgress.currentItemName})` : ''}
             </span>
-            <span>
+            <span className="text-[var(--theme-text-tertiary)] font-mono">
               {indexProgress.current} / {indexProgress.total}
             </span>
           </div>
-          <div className="w-full h-1.5 bg-sky-500/20 rounded-full overflow-hidden">
+          <div className="w-full h-1 bg-[var(--theme-bg-tertiary)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-sky-500 transition-all duration-300"
+              className="h-full bg-[var(--theme-text-primary)] transition-all duration-300"
               style={{
                 width: `${indexProgress.total > 0 ? (indexProgress.current / indexProgress.total) * 100 : 0}%`,
               }}
@@ -393,19 +352,19 @@ export const MultimodalSearchModal: React.FC = () => {
       )}
 
       {searchError && (
-        <div className="mx-5 my-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-2 text-xs text-red-500">
+        <div className="mx-6 my-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-2 text-xs text-red-500">
           <AlertCircle size={15} className="flex-shrink-0" />
           <span>{searchError}</span>
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto p-6">
         {isSearching ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
                 key={i}
-                className="h-48 rounded-xl bg-[var(--theme-bg-secondary)] animate-pulse border border-[var(--theme-border-secondary)]"
+                className="h-56 rounded-2xl bg-[var(--theme-bg-secondary)] animate-pulse border border-[var(--theme-border-primary)]"
               />
             ))}
           </div>
@@ -430,21 +389,43 @@ export const MultimodalSearchModal: React.FC = () => {
               return (
                 <div
                   key={item.id}
-                  className="group flex flex-col rounded-xl border border-[var(--theme-border-primary)] bg-[var(--theme-bg-secondary)] overflow-hidden shadow-sm hover:shadow-md transition-all hover:border-[var(--theme-border-focus)]"
+                  className="group flex flex-col rounded-2xl border border-[var(--theme-border-primary)] hover:border-[var(--theme-border-secondary)] hover:shadow-sm bg-[var(--theme-bg-secondary)] overflow-hidden transition-all duration-200"
                 >
-                  <div className="relative h-40 bg-[var(--theme-bg-tertiary)] flex items-center justify-center overflow-hidden border-b border-[var(--theme-border-secondary)]">
-                    <LibraryItemThumbnail item={libraryItem} size="lg" className="w-full h-full object-cover" />
-                    <div className="absolute top-2 right-2">
+                  <div className="relative w-full aspect-[4/3] bg-[var(--theme-bg-tertiary)] overflow-hidden flex items-center justify-center">
+                    <LibraryItemThumbnail item={libraryItem} size="full" className="w-full h-full object-contain" />
+
+                    <div className="absolute top-2.5 right-2.5">
                       {getSimilarityBadge(res.similarity)}
+                    </div>
+
+                    <div
+                      className="absolute top-2.5 left-2.5 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-xs p-1 rounded-xl"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => void handleStartChatWithFile(res)}
+                        title={t('multimodalSearchStartChatWithFile')}
+                        aria-label={t('multimodalSearchStartChatWithFile')}
+                        className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+                      >
+                        <MessageSquarePlus size={14} strokeWidth={2} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleDownloadItem(res)}
+                        title={t('libraryDownload')}
+                        aria-label={t('libraryDownload')}
+                        className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+                      >
+                        <Download size={14} strokeWidth={2} />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="p-3.5 flex flex-col flex-1 justify-between gap-2.5">
+                  <div className="p-3 sm:p-3.5 flex flex-col justify-between flex-1 gap-2">
                     <div>
-                      <h4
-                        className="text-sm font-semibold text-[var(--theme-text-primary)] truncate"
-                        title={item.name}
-                      >
+                      <h4 className="text-sm font-medium text-[var(--theme-text-primary)] truncate" title={item.name}>
                         {item.name}
                       </h4>
                       <div className="flex items-center gap-2 mt-1 text-xs text-[var(--theme-text-tertiary)]">
@@ -455,31 +436,40 @@ export const MultimodalSearchModal: React.FC = () => {
                     </div>
 
                     {item.sessionTitle && (
-                      <button
+                      <div
+                        role="button"
+                        tabIndex={0}
                         onClick={() => handleJumpToSession(item.sessionId)}
-                        className="flex items-center gap-1.5 text-xs text-sky-500 hover:underline truncate text-left cursor-pointer"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleJumpToSession(item.sessionId);
+                          }
+                        }}
+                        className="text-xs text-[var(--theme-text-tertiary)] hover:text-[var(--theme-accent)] hover:underline truncate cursor-pointer transition-colors"
                         title={item.sessionTitle}
                       >
-                        <MessageSquare size={12} className="flex-shrink-0" />
-                        <span className="truncate">{item.sessionTitle}</span>
-                        <ExternalLink size={11} className="flex-shrink-0 ml-auto" />
-                      </button>
+                        {interpolate(t('libraryFromSession'), { title: item.sessionTitle })}
+                      </div>
                     )}
 
                     <div className="flex items-center gap-1.5 pt-2 border-t border-[var(--theme-border-secondary)]">
                       <button
+                        type="button"
                         onClick={() => void handleStartChatWithFile(res)}
-                        className="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-text-primary)] hover:text-[var(--theme-bg-primary)] text-xs font-medium text-[var(--theme-text-secondary)] transition-colors cursor-pointer"
+                        className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-text-primary)] hover:text-[var(--theme-bg-primary)] text-xs font-medium text-[var(--theme-text-secondary)] transition-colors cursor-pointer"
                         title={t('multimodalSearchStartChatWithFile')}
                       >
-                        <MessageSquare size={13} />
+                        <MessageSquarePlus size={13} />
                         <span>{t('multimodalSearchStartChatWithFile')}</span>
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => void handleDownloadItem(res)}
                         className="p-1.5 rounded-lg bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-primary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors cursor-pointer"
                         title={t('libraryDownload')}
+                        aria-label={t('libraryDownload')}
                       >
                         <Download size={14} />
                       </button>
@@ -492,10 +482,10 @@ export const MultimodalSearchModal: React.FC = () => {
         ) : (
           <div className="h-64 flex flex-col items-center justify-center text-center p-6 gap-3">
             <div className="p-4 rounded-full bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-tertiary)]">
-              <Sparkles size={32} />
+              <Sparkles size={28} strokeWidth={1.8} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-[var(--theme-text-primary)]">
+              <p className="text-sm font-medium text-[var(--theme-text-primary)]">
                 {searchQuery || searchImagePreviewUrl
                   ? t('multimodalSearchNoResults')
                   : t('multimodalSearchPlaceholder')}
@@ -506,10 +496,11 @@ export const MultimodalSearchModal: React.FC = () => {
             </div>
             {indexedCount === 0 && !isIndexing && (
               <button
+                type="button"
                 onClick={() => void triggerIndexing()}
-                className="mt-2 flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--theme-accent)] text-[var(--theme-bg-primary)] text-xs font-semibold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                className="mt-2 flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--theme-text-primary)] text-[var(--theme-bg-primary)] text-xs font-medium hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-sm"
               >
-                <RotateCw size={14} />
+                <RotateCw size={13} />
                 <span>{t('multimodalSearchUpdateIndex')}</span>
               </button>
             )}
