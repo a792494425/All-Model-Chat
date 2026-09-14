@@ -316,4 +316,46 @@ describe('buildAnthropicRequestBody', () => {
 
     expect(body.tools).toEqual(tools);
   });
+
+  it('handles PDF attachments as Anthropic document content blocks', () => {
+    const fakePdfBase64 = 'JVBERi0xLjQKJcTl8uXr...';
+    const body = buildAnthropicRequestBody(
+      'claude-3-7-sonnet',
+      [],
+      [{ inlineData: { mimeType: 'application/pdf', data: fakePdfBase64 } }, { text: 'Please summarize this PDF.' }],
+      {},
+      'user',
+      false,
+    ) as { messages: Array<{ role: string; content: any[] }> };
+
+    expect(body.messages[0].content).toEqual([
+      {
+        type: 'document',
+        source: {
+          type: 'base64',
+          media_type: 'application/pdf',
+          data: fakePdfBase64,
+        },
+      },
+      {
+        type: 'text',
+        text: 'Please summarize this PDF.',
+      },
+    ]);
+  });
+
+  it('decodes inline text attachments into text content blocks', () => {
+    const textData = 'export const greeting = "hello world";';
+    const base64Data = btoa(textData);
+    const body = buildAnthropicRequestBody(
+      'claude-3-7-sonnet',
+      [],
+      [{ inlineData: { mimeType: 'text/plain', data: base64Data } }, { text: 'Explain this code.' }],
+      {},
+      'user',
+      false,
+    ) as { messages: Array<{ role: string; content: any[] }> };
+
+    expect(body.messages[0].content).toBe('export const greeting = "hello world";\nExplain this code.');
+  });
 });

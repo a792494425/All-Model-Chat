@@ -405,5 +405,20 @@ describe('openaiCompatibleMessages', () => {
       );
       expect(body.reasoning_effort).toBeUndefined();
     });
+
+    it('decodes inline text attachments into text content blocks', () => {
+      const textData = 'const a = 1; console.log(a);';
+      const base64Data = btoa(textData);
+      const body = buildOpenAICompatibleRequestBody(
+        'gpt-4o',
+        [],
+        [{ inlineData: { mimeType: 'text/javascript', data: base64Data } }, { text: 'Analyze this code.' }],
+        {},
+        'user',
+        false,
+      ) as { messages: Array<{ role: string; content: string }> };
+
+      expect(body.messages[0].content).toBe('const a = 1; console.log(a);\nAnalyze this code.');
+    });
   });
 });

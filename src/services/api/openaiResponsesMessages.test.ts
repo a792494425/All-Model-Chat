@@ -131,4 +131,19 @@ describe('openaiResponsesMessages', () => {
       previous_response_id: 'resp_12345',
     });
   });
+
+  it('decodes inline text attachments into input_text content blocks', () => {
+    const textData = 'SELECT * FROM users;';
+    const base64Data = btoa(textData);
+    const body = buildOpenAIResponsesRequestBody(
+      'o4-mini',
+      [],
+      [{ inlineData: { mimeType: 'text/x-sql', data: base64Data } }, { text: 'Optimize this query.' }],
+      {},
+      'user',
+      false,
+    ) as { input: Array<{ role: string; content: string }> };
+
+    expect(body.input[0].content).toBe('SELECT * FROM users;\nOptimize this query.');
+  });
 });

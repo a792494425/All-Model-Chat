@@ -1,12 +1,20 @@
 import type { Part } from '@google/genai';
 import type { ChatHistoryItem, ThinkingLevel } from '@/types';
-import { isImageMimeType } from '@/utils/file/fileTypeClassification';
+import { isImageMimeType, isPdfMimeType } from '@/utils/file/fileTypeClassification';
+import { SUPPORTED_TEXT_MIME_TYPES } from '@/constants/fileTypeSupport';
+import { base64ToUtf8 } from '@/utils/file/fileEncoding';
 import { isAnthropicEffortModel, isAnthropicThinkingModel } from '@/utils/model/modelCapabilities';
 import type { AnthropicChatConfig, AnthropicContentBlock, AnthropicMessage } from './anthropicTypes';
 import { collapseOnlyTextContent, hasNonEmptyMessageContent } from './chatMessageContent';
 import { appendSamplingParameters } from './requestFactory';
 
 const ANTHROPIC_FILE_DATA_ERROR = 'Anthropic mode cannot send Gemini Files API file references.';
+
+const isTextMimeType = (mimeType?: string): boolean => {
+  if (!mimeType) return false;
+  const normalized = mimeType.toLowerCase().split(';')[0].trim();
+  return normalized.startsWith('text/') || SUPPORTED_TEXT_MIME_TYPES.includes(normalized);
+};
 
 const partToAnthropicContentItems = (part: Part): AnthropicContentBlock[] => {
   const partWithMedia = part as Part & {
@@ -57,6 +65,24 @@ const partToAnthropicContentItems = (part: Part): AnthropicContentBlock[] => {
       {
         type: 'image',
         source: { type: 'base64', media_type: mimeType, data: inlineData.data },
+      },
+    ];
+  }
+
+  if (inlineData?.data && mimeType && isPdfMimeType(mimeType)) {
+    return [
+      {
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: inlineData.data },
+      },
+    ];
+  }
+
+  if (inlineData?.data && mimeType && isTextMimeType(mimeType)) {
+    return [
+      {
+        type: 'text',
+        text: base64ToUtf8(inlineData.data),
       },
     ];
   }

@@ -8,6 +8,11 @@ export const decodeBase64ToArrayBuffer = (base64: string): Uint8Array => {
   return bytes;
 };
 
+export const base64ToUtf8 = (base64: string): string => {
+  const bytes = decodeBase64ToArrayBuffer(base64);
+  return new TextDecoder().decode(bytes);
+};
+
 /**
  * Converts an ArrayBuffer or TypedArray/ArrayBufferView to a Base64 string.
  * Uses 32KB chunking to avoid call-stack overflow on large buffers.

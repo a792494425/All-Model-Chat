@@ -98,6 +98,37 @@ import { getGeminiKeyForRequest } from '@/utils/apiKeySelection';
 import { getTranslator } from '@/i18n/translations';
 import { resolveAppLanguage } from '@/i18n/languageRegistry';
 import { logService } from '@/services/logService';
+import { isPdfMimeType } from '@/utils/file/fileTypeClassification';
+import { extractPdfTextFromBase64 } from '@/utils/file/pdfTextExtraction';
+
+const normalizePartsForNonAnthropicProvider = async (parts: ContentPart[]): Promise<ContentPart[]> => {
+  const result: ContentPart[] = [];
+  for (const part of parts) {
+    const inlineData = (part as { inlineData?: { mimeType?: string; data?: string } })?.inlineData;
+    if (inlineData?.data && isPdfMimeType(inlineData.mimeType)) {
+      const extractedText = await extractPdfTextFromBase64(inlineData.data);
+      result.push({
+        text: extractedText.trim()
+          ? `[Document (PDF)]\n${extractedText}`
+          : '[Document (PDF)]\n(Text content could not be extracted from this PDF)',
+      });
+    } else {
+      result.push(part);
+    }
+  }
+  return result;
+};
+
+const normalizeHistoryForNonAnthropicProvider = async (
+  history: Array<{ role: 'user' | 'model'; parts: ContentPart[] }>,
+): Promise<Array<{ role: 'user' | 'model'; parts: ContentPart[] }>> => {
+  return Promise.all(
+    history.map(async (item) => ({
+      ...item,
+      parts: await normalizePartsForNonAnthropicProvider(item.parts),
+    })),
+  );
+};
 
 interface StandardChatApiCallContext {
   appSettings: StandardChatProps['appSettings'];
@@ -421,11 +452,18 @@ export const performStandardChatApiCall = async ({
     // Docker THIRD_PARTY_ROUTES is keyed by template, not connection UUID.
     const providerId = getProxyProviderHeader(activeProvider.templateId);
 
+    const effectiveHistoryForChat = !isAnthropic
+      ? await normalizeHistoryForNonAnthropicProvider(
+          historyForChat as Array<{ role: 'user' | 'model'; parts: ContentPart[] }>,
+        )
+      : historyForChat;
+    const effectiveFinalParts = !isAnthropic ? await normalizePartsForNonAnthropicProvider(finalParts) : finalParts;
+
     const hasClientFunctions = Object.keys(combinedClientFunctions).length > 0;
     if (hasClientFunctions) {
       try {
         const toolLoopResult = await runStandardToolLoop({
-          initialContents: appendTurnToHistory(historyForChat, finalRole, finalParts),
+          initialContents: appendTurnToHistory(effectiveHistoryForChat, finalRole, effectiveFinalParts),
           clientFunctions: combinedClientFunctions,
           abortSignal: newAbortController.signal,
           onToolCallsStarted: (modelContent) => {
@@ -511,8 +549,8 @@ export const performStandardChatApiCall = async ({
               ? sendOpenAIResponsesStream(
                   keyToUse,
                   apiModelId,
-                  historyForChat,
-                  finalParts,
+                  effectiveHistoryForChat,
+                  effectiveFinalParts,
                   providerConfig,
                   newAbortController.signal,
                   thirdPartyOnPart,
@@ -525,8 +563,8 @@ export const performStandardChatApiCall = async ({
               : sendOpenAICompatibleMessageStream(
                   keyToUse,
                   apiModelId,
-                  historyForChat,
-                  finalParts,
+                  effectiveHistoryForChat,
+                  effectiveFinalParts,
                   providerConfig,
                   newAbortController.signal,
                   thirdPartyOnPart,
@@ -560,8 +598,8 @@ export const performStandardChatApiCall = async ({
             ? sendOpenAIResponsesNonStream(
                 keyToUse,
                 apiModelId,
-                historyForChat,
-                finalParts,
+                effectiveHistoryForChat,
+                effectiveFinalParts,
                 providerConfig,
                 newAbortController.signal,
                 streamOnError,
@@ -572,8 +610,8 @@ export const performStandardChatApiCall = async ({
             : sendOpenAICompatibleMessageNonStream(
                 keyToUse,
                 apiModelId,
-                historyForChat,
-                finalParts,
+                effectiveHistoryForChat,
+                effectiveFinalParts,
                 providerConfig,
                 newAbortController.signal,
                 streamOnError,

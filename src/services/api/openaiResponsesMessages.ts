@@ -1,6 +1,8 @@
 import type { Part } from '@google/genai';
 import type { ChatHistoryItem, ThinkingLevel } from '@/types';
 import { isAudioMimeType, isImageMimeType } from '@/utils/file/fileTypeClassification';
+import { SUPPORTED_TEXT_MIME_TYPES } from '@/constants/fileTypeSupport';
+import { base64ToUtf8 } from '@/utils/file/fileEncoding';
 import { getInlineAudioFormat } from '@/features/audio/audioProcessing';
 import type {
   OpenAIResponsesChatConfig,
@@ -12,6 +14,12 @@ import { collapseOnlyTextContent, hasNonEmptyMessageContent } from './chatMessag
 import { isOpenAIGpt5FamilyModel, isOpenAIReasoningModel } from '@/utils/model/modelCapabilities';
 
 const OPENAI_RESPONSES_FILE_DATA_ERROR = 'OpenAI Responses mode cannot send Gemini Files API file references.';
+
+const isTextMimeType = (mimeType?: string): boolean => {
+  if (!mimeType) return false;
+  const normalized = mimeType.toLowerCase().split(';')[0].trim();
+  return normalized.startsWith('text/') || SUPPORTED_TEXT_MIME_TYPES.includes(normalized);
+};
 
 const mapThinkingLevelToOpenAIReasoningEffort = (level: ThinkingLevel | undefined): string => {
   switch (level) {
@@ -72,6 +80,15 @@ const partToOpenAIResponsesContentItems = (part: Part): OpenAIResponsesContentPa
           data: inlineData.data,
           format: getInlineAudioFormat(mimeType),
         },
+      },
+    ];
+  }
+
+  if (inlineData?.data && mimeType && isTextMimeType(mimeType)) {
+    return [
+      {
+        type: 'input_text',
+        text: base64ToUtf8(inlineData.data),
       },
     ];
   }

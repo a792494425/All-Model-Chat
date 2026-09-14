@@ -699,4 +699,71 @@ describe('performStandardChatApiCall', () => {
       }),
     );
   });
+
+  it('extracts PDF text and sends text part for OpenAI-compatible providers', async () => {
+    mocks.resolveChatApiRoute.mockReturnValue({
+      provider: {
+        templateId: 'openai',
+        protocol: 'openai-compatible',
+        baseUrl: 'https://api.openai.com/v1',
+      },
+      modelId: 'gpt-4o',
+    });
+
+    mocks.sendOpenAICompatibleMessageStream.mockImplementation(
+      async (_key, _model, _history, _parts, _config, _signal, _part, _thought, _error, onComplete) => {
+        onComplete();
+      },
+    );
+
+    const pdfBase64 = 'JVBERi0xLjQK...';
+    const params = baseParams({
+      resolveTurn: () => ({
+        baseMessagesForApi: [],
+        finalRole: 'user' as const,
+        finalParts: [{ inlineData: { mimeType: 'application/pdf', data: pdfBase64 } }, { text: 'Analyze this PDF' }],
+        shouldSkipApiCall: false,
+      }),
+    });
+
+    await performStandardChatApiCall(params as never);
+
+    expect(mocks.sendOpenAICompatibleMessageStream).toHaveBeenCalledTimes(1);
+    const sentParts = mocks.sendOpenAICompatibleMessageStream.mock.calls[0][3];
+    expect(sentParts[0].text).toContain('[Document (PDF)]');
+    expect(sentParts[1].text).toBe('Analyze this PDF');
+  });
+
+  it('preserves native PDF inlineData for Anthropic provider', async () => {
+    mocks.resolveChatApiRoute.mockReturnValue({
+      provider: {
+        templateId: 'anthropic',
+        protocol: 'anthropic',
+        baseUrl: 'https://api.anthropic.com',
+      },
+      modelId: 'claude-3-7-sonnet',
+    });
+
+    mocks.sendAnthropicMessageStream.mockImplementation(
+      async (_key, _model, _history, _parts, _config, _signal, _part, _thought, _error, onComplete) => {
+        onComplete();
+      },
+    );
+
+    const pdfBase64 = 'JVBERi0xLjQK...';
+    const params = baseParams({
+      resolveTurn: () => ({
+        baseMessagesForApi: [],
+        finalRole: 'user' as const,
+        finalParts: [{ inlineData: { mimeType: 'application/pdf', data: pdfBase64 } }, { text: 'Analyze this PDF' }],
+        shouldSkipApiCall: false,
+      }),
+    });
+
+    await performStandardChatApiCall(params as never);
+
+    expect(mocks.sendAnthropicMessageStream).toHaveBeenCalledTimes(1);
+    const sentParts = mocks.sendAnthropicMessageStream.mock.calls[0][3];
+    expect(sentParts[0]).toEqual({ inlineData: { mimeType: 'application/pdf', data: pdfBase64 } });
+  });
 });
