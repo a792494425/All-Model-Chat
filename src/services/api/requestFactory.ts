@@ -76,11 +76,32 @@ export const fetchProviderModelOptions = async (options: {
   if (!response.ok) {
     throw new Error(await readResponseErrorMessage(response, options.errorContextLabel));
   }
-  const payload = (await response.json()) as { data?: Array<{ id?: unknown }> };
-  const rawModels = (payload.data ?? [])
-    .map((item) => (typeof item.id === 'string' ? item.id.trim() : ''))
-    .filter((id) => id.length > 0)
-    .map((id) => ({ id, name: id }));
+  const payload = (await response.json()) as unknown;
+  const items: unknown[] = Array.isArray(payload)
+    ? payload
+    : payload && typeof payload === 'object' && Array.isArray((payload as { data?: unknown[] }).data)
+      ? (payload as { data: unknown[] }).data
+      : payload && typeof payload === 'object' && Array.isArray((payload as { models?: unknown[] }).models)
+        ? (payload as { models: unknown[] }).models
+        : [];
+
+  const rawModels = items
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const record = item as Record<string, unknown>;
+      const id =
+        typeof record.id === 'string' && record.id.trim()
+          ? record.id.trim()
+          : typeof record.name === 'string' && record.name.trim()
+            ? record.name.trim()
+            : '';
+      if (!id) return null;
+      const name = typeof record.name === 'string' && record.name.trim() ? record.name.trim() : id;
+      const ownedBy = typeof record.owned_by === 'string' ? record.owned_by : undefined;
+      return { id, name, ...(ownedBy ? { ownedBy } : {}) };
+    })
+    .filter((model): model is ModelOption => model !== null);
+
   return deduplicateModelsById(rawModels);
 };
 

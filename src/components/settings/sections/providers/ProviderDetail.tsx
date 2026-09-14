@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { Settings, Eye, EyeOff, KeyRound, Activity, ExternalLink, Loader2, AlertCircle, X } from 'lucide-react';
+import { Settings, Copy, Eye, EyeOff, KeyRound, Activity, ExternalLink, Loader2, AlertCircle, X, SlidersHorizontal, ArrowUpRight } from 'lucide-react';
 import type { ModelOption, ThirdPartyConnection } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
+import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { Toggle } from '@/components/shared/Toggle';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { getThirdPartyTemplateLinks } from '@/utils/thirdPartyApiProviders';
@@ -35,6 +36,7 @@ const EMPTY_PROBE_RESULTS: Record<string, ConnectionHealthProbeResult> = {};
 interface ProviderDetailProps {
   connection: ThirdPartyConnection;
   onUpdateConnection: (updates: Partial<ThirdPartyConnection>) => void;
+  onDuplicateConnection?: () => void;
   onDeleteConnection: () => void;
   onCloseModal?: () => void;
 }
@@ -42,6 +44,7 @@ interface ProviderDetailProps {
 export const ProviderDetail: React.FC<ProviderDetailProps> = ({
   connection,
   onUpdateConnection,
+  onDuplicateConnection,
   onDeleteConnection,
   onCloseModal: _onCloseModal,
 }) => {
@@ -296,6 +299,18 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
           >
             <Settings size={15} />
           </button>
+          {onDuplicateConnection && (
+            <button
+              type="button"
+              data-testid="provider-duplicate-button"
+              onClick={onDuplicateConnection}
+              className="p-1.5 rounded-lg text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors focus:outline-none"
+              title={t('thirdPartyDuplicate')}
+              aria-label={t('thirdPartyDuplicate')}
+            >
+              <Copy size={15} />
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-3 flex-shrink-0">
@@ -308,6 +323,21 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5">
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-secondary)]/25 text-xs text-[var(--theme-text-secondary)]">
+          <div className="flex items-center gap-2 min-w-0">
+            <SlidersHorizontal size={14} className="text-[var(--theme-text-link)] shrink-0" />
+            <span className="truncate">{t('thirdPartyGenerationSettingsHint')}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => useSettingsUiStore.getState().setActiveTab('models')}
+            className="shrink-0 flex items-center gap-1 font-medium text-[var(--theme-text-link)] hover:underline hover:text-[var(--theme-text-primary)] transition-colors cursor-pointer"
+          >
+            <span>{t('settingsTabModels')}</span>
+            <ArrowUpRight size={13} />
+          </button>
+        </div>
+
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-[var(--theme-text-primary)]">{t('thirdPartyApiKeyLabel')}</span>

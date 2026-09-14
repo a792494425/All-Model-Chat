@@ -364,7 +364,7 @@ describe('ProviderDetail', () => {
   describe('sync models dispatches on protocol', () => {
     const clickSyncModels = async () => {
       const syncBtn = Array.from(renderer.container.querySelectorAll('button')).find((btn) =>
-        btn.textContent?.includes('同步模型'),
+        btn.textContent?.includes('拉取模型') || btn.textContent?.includes('同步模型'),
       );
       expect(syncBtn).toBeDefined();
       await act(async () => {
@@ -519,5 +519,29 @@ describe('ProviderDetail', () => {
       expect(renderer.container.textContent).not.toContain('Chat Standard');
       expect(renderer.container.textContent).not.toContain('DALL-E 3');
     });
+
+    it('renders duplicate button and triggers onDuplicateConnection when clicked', () => {
+      const onDuplicate = vi.fn();
+      act(() => {
+        renderer.root.render(
+          <ProviderDetail
+            connection={baseConnection}
+            onUpdateConnection={vi.fn()}
+            onDuplicateConnection={onDuplicate}
+            onDeleteConnection={vi.fn()}
+          />,
+        );
+      });
+
+      const dupBtn = renderer.container.querySelector<HTMLButtonElement>('[data-testid="provider-duplicate-button"]');
+      expect(dupBtn).not.toBeNull();
+
+      act(() => {
+        dupBtn?.click();
+      });
+
+      expect(onDuplicate).toHaveBeenCalledTimes(1);
+    });
   });
 });
+

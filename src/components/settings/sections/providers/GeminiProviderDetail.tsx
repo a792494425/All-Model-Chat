@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useRef } from 'react';
+import { SlidersHorizontal, ArrowUpRight } from 'lucide-react';
 import type { AppSettings, ModelOption } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { getDefaultModelOptions } from '@/utils/defaultModelOptions';
 import { useModelPreferencesStore } from '@/stores/modelPreferencesStore';
 import { useProviderUiStore } from '@/stores/providerUiStore';
+import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { ProviderAvatar } from './ProviderAvatar';
 import { ApiConfigSection } from '@/components/settings/sections/ApiConfigSection';
 import { ProviderModelListSection } from './models/ProviderModelListSection';
@@ -146,6 +148,21 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-secondary)]/25 text-xs text-[var(--theme-text-secondary)]">
+          <div className="flex items-center gap-2 min-w-0">
+            <SlidersHorizontal size={14} className="text-[var(--theme-text-link)] shrink-0" />
+            <span className="truncate">{t('geminiGenerationSettingsHint')}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => useSettingsUiStore.getState().setActiveTab('models')}
+            className="shrink-0 flex items-center gap-1 font-medium text-[var(--theme-text-link)] hover:underline hover:text-[var(--theme-text-primary)] transition-colors cursor-pointer"
+          >
+            <span>{t('settingsTabModels')}</span>
+            <ArrowUpRight size={13} />
+          </button>
+        </div>
+
         <div className="rounded-2xl border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-secondary)]/10 p-4">
           <ApiConfigSection
             useCustomApiConfig={settings.useCustomApiConfig}

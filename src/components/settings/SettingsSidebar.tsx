@@ -1,6 +1,6 @@
 import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { KeyRound, LayoutPanelLeft, Bot, SlidersHorizontal, X, Server } from 'lucide-react';
+import { KeyRound, LayoutPanelLeft, SlidersHorizontal, X, Server } from 'lucide-react';
 import { type SettingsTab, type SettingsTabDescriptor, useSettingsUiStore } from '@/stores/settingsUiStore';
 import { IconAbout, IconData, IconKeyboard, IconMcp } from '@/components/icons';
 import { Toggle } from '@/components/shared/Toggle';
@@ -9,7 +9,7 @@ import { SettingsSearchBar } from './SettingsSearchBar';
 import { interpolate } from '@/i18n/interpolate';
 
 const SETTINGS_TAB_ICONS: Record<SettingsTab, React.ElementType> = {
-  models: Bot,
+  models: SlidersHorizontal,
   providers: Server,
   interface: LayoutPanelLeft,
   api: KeyRound,

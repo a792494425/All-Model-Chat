@@ -107,6 +107,47 @@ describe('fetchProviderModelOptions', () => {
       fetchProviderModelOptions({ url: 'https://example.com/models', requestInit: {}, errorContextLabel: 'Test' }),
     ).rejects.toThrow('invalid key');
   });
+
+  it('supports Ollama style { models: [{ name }] } and raw array payloads with ownedBy', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        jsonResponse({
+          models: [{ name: 'llama3:latest' }, { name: 'qwen2.5:7b' }],
+        }),
+      ),
+    );
+
+    const ollamaModels = await fetchProviderModelOptions({
+      url: 'http://localhost:11434/api/tags',
+      requestInit: {},
+      errorContextLabel: 'Ollama',
+    });
+
+    expect(ollamaModels).toEqual([
+      { id: 'llama3:latest', name: 'llama3:latest' },
+      { id: 'qwen2.5:7b', name: 'qwen2.5:7b' },
+    ]);
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        jsonResponse([
+          { id: 'deepseek-chat', name: 'DeepSeek Chat', owned_by: 'deepseek' },
+        ]),
+      ),
+    );
+
+    const arrayModels = await fetchProviderModelOptions({
+      url: 'https://api.deepseek.com/models',
+      requestInit: {},
+      errorContextLabel: 'DeepSeek',
+    });
+
+    expect(arrayModels).toEqual([
+      { id: 'deepseek-chat', name: 'DeepSeek Chat', ownedBy: 'deepseek' },
+    ]);
+  });
 });
 
 describe('executeNonStreamChatRequest', () => {

@@ -24,7 +24,7 @@ describe('GeminiProviderDetail', () => {
     // Header title
     expect(screen.getByText(/Google Gemini/i)).toBeInTheDocument();
     // Models header
-    expect(screen.getByText(/Models|模型/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Models|模型/i).length).toBeGreaterThanOrEqual(1);
     // Model items
     expect(screen.getByText('Gemini 2.5 Flash')).toBeInTheDocument();
     expect(screen.getByText('Gemini 2.5 Pro')).toBeInTheDocument();

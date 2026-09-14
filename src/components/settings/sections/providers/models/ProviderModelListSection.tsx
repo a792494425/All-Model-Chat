@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronDown, ChevronRight, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, X, Sparkles, RefreshCw, Plus } from 'lucide-react';
 import type { ModelOption, ThirdPartyApiProtocol, ThirdPartyTemplateId } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
@@ -375,11 +375,50 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
 
       <div className="rounded-2xl border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-secondary)]/10 p-2 space-y-3">
         {Object.keys(groupedModels).length === 0 ? (
-          <div className="py-8 text-center text-xs text-[var(--theme-text-secondary)]">
-            {models.length === 0
-              ? t('thirdPartyNoModelsPrompt') || 'No models configured yet.'
-              : t('thirdPartyNoMatchingFilteredModels') || 'No matching models found.'}
-          </div>
+          models.length === 0 ? (
+            <div
+              data-testid="provider-no-models-card"
+              className="py-10 px-4 text-center space-y-3.5 max-w-md mx-auto"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-[var(--theme-bg-tertiary)]/70 border border-[var(--theme-border-secondary)]/40 flex items-center justify-center mx-auto text-[var(--theme-text-secondary)] shadow-xs">
+                <Sparkles size={22} className="text-amber-500/80" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-[var(--theme-text-primary)]">
+                  {t('thirdPartyNoModelsCardTitle') || 'No Models Configured'}
+                </h4>
+                <p className="text-xs text-[var(--theme-text-secondary)] leading-relaxed">
+                  {t('thirdPartyNoModelsCardDesc') ||
+                    'You can pull available models directly from the remote /v1/models endpoint, or add models manually.'}
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-2.5 pt-1">
+                {onSyncRemoteModels && (
+                  <button
+                    type="button"
+                    onClick={onSyncRemoteModels}
+                    disabled={isSyncingRemoteModels || isProbingBatch}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--theme-border-focus)] hover:bg-[var(--theme-border-focus)]/90 text-white text-xs font-medium transition-all cursor-pointer disabled:opacity-60 shadow-xs"
+                  >
+                    <RefreshCw size={13} className={isSyncingRemoteModels ? 'animate-spin' : ''} />
+                    <span>{t('thirdPartyFetchModelsAction') || 'Fetch Models (/v1/models)'}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsAddingModel(true)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[var(--theme-border-secondary)]/70 bg-[var(--theme-bg-secondary)] hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-primary)] text-xs font-medium transition-all cursor-pointer shadow-xs"
+                >
+                  <Plus size={13} />
+                  <span>{t('thirdPartyManualAddModel') || 'Add Manually'}</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="py-8 text-center text-xs text-[var(--theme-text-secondary)]">
+              {t('thirdPartyNoMatchingFilteredModels') || 'No matching models found.'}
+            </div>
+          )
         ) : (
           (Object.entries(groupedModels) as Array<[string, ModelOption[]]>).map(([groupKey, groupModels]) => {
             const isCollapsed = groupsCollapsed[groupKey] ?? false;

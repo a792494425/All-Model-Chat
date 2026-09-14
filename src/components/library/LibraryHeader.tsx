@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
-import { Search, X, ChevronDown, ChevronLeft, Upload, Image as ImageIcon, FileText } from 'lucide-react';
+import { Search, X, ChevronDown, ChevronLeft, Upload, Image as ImageIcon, FileText, Sparkles } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { useLibraryStore } from '@/stores/libraryStore';
+import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -22,6 +23,7 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({ onUploadFiles, onC
   const setSearchQuery = useLibraryStore((state) => state.setSearchQuery);
   const isNewDropdownOpen = useLibraryStore((state) => state.isNewDropdownOpen);
   const setIsNewDropdownOpen = useLibraryStore((state) => state.setIsNewDropdownOpen);
+  const openMultimodalSearch = useMultimodalSearchStore((state) => state.openModal);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -73,6 +75,15 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({ onUploadFiles, onC
             </button>
           )}
         </div>
+
+        <button
+          onClick={() => openMultimodalSearch(searchQuery)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-500 hover:bg-sky-500/20 active:scale-95 transition-all cursor-pointer whitespace-nowrap shadow-sm"
+          title={t('multimodalSearchButtonTooltip')}
+        >
+          <Sparkles size={14} />
+          <span className="hidden md:inline">{t('multimodalSearchTitle')}</span>
+        </button>
 
         <DropdownMenu open={isNewDropdownOpen} onOpenChange={setIsNewDropdownOpen}>
           <DropdownMenuTrigger asChild>

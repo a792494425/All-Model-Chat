@@ -135,4 +135,68 @@ describe('ProviderSettingsSection', () => {
 
     expect(useProviderUiStore.getState().selectedConnectionId).toBe(GEMINI_PROVIDER_ID);
   });
+
+  it('duplicates connection when duplicate button is clicked in detail header', () => {
+    const conn1 = createThirdPartyConnection({
+      id: 'conn-source',
+      name: 'Source Provider',
+      baseUrl: 'https://api.source.com/v1',
+      models: [{ id: 'src-m1', name: 'Src Model 1', visibleInSelector: true }],
+    });
+
+    const onUpdateSettings = vi.fn();
+    const settingsWithConn: AppSettings = {
+      ...useSettingsStore.getState().appSettings,
+      thirdPartyApi: {
+        connections: [conn1],
+      },
+    };
+
+    act(() => {
+      renderer.root.render(
+        <ProviderSettingsSection
+          {...createProps({ settings: settingsWithConn, onUpdateSettings, initialSelectedId: 'conn-source' })}
+        />,
+      );
+    });
+
+    const dupButton = renderer.container.querySelector<HTMLButtonElement>('[data-testid="provider-duplicate-button"]');
+    expect(dupButton).not.toBeNull();
+
+    act(() => {
+      dupButton?.click();
+    });
+
+    expect(onUpdateSettings).toHaveBeenCalledTimes(1);
+    const updatedApi = onUpdateSettings.mock.calls[0][0].thirdPartyApi;
+    expect(updatedApi.connections).toHaveLength(2);
+    const cloned = updatedApi.connections[1];
+    expect(cloned.name).toContain('Source Provider');
+    expect(cloned.id).not.toBe('conn-source');
+    expect(cloned.models[0].providerId).toBe(cloned.id);
+  });
+
+  it('opens ProviderCreateDrawer when add connection button is clicked', () => {
+    const emptySettings: AppSettings = {
+      ...useSettingsStore.getState().appSettings,
+      thirdPartyApi: { connections: [] },
+    };
+
+    act(() => {
+      renderer.root.render(<ProviderSettingsSection {...createProps({ settings: emptySettings })} />);
+    });
+
+    // Drawer tabs should not be in document yet
+    expect(renderer.container.querySelector('[data-testid="tab-preset"]')).toBeNull();
+
+    const addBtn = renderer.container.querySelector<HTMLButtonElement>('[data-settings-item="providers-add"]');
+    expect(addBtn).not.toBeNull();
+
+    act(() => {
+      addBtn?.click();
+    });
+
+    // Drawer should now be open and render tabs
+    expect(renderer.container.querySelector('[data-testid="tab-preset"]')).not.toBeNull();
+  });
 });

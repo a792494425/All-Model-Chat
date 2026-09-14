@@ -5,23 +5,21 @@ import {
   type AppSettings,
   type ThirdPartyApiSettings,
   type ThirdPartyConnection,
-  type ThirdPartyTemplateId,
 } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import {
-  createConnectionId,
   createDefaultThirdPartyApiSettings,
   addThirdPartyConnection,
   removeThirdPartyConnection,
   updateThirdPartyConnection,
   reorderThirdPartyConnections,
+  duplicateThirdPartyConnection,
 } from '@/utils/thirdPartyApiProviders';
 import { probeThirdPartyConnection, formatLatency } from '@/utils/thirdPartyDiagnostics';
 import { toastError, toastSuccess } from '@/stores/toastStore';
 import { ProviderList } from './ProviderList';
 import { ProviderDetail } from './ProviderDetail';
-import { ProviderAddModal } from './ProviderAddModal';
-import { ProviderSetupWizardModal } from './ProviderSetupWizardModal';
+import { ProviderCreateDrawer } from './ProviderCreateDrawer';
 import { GeminiProviderDetail } from './GeminiProviderDetail';
 import { useProviderUiStore } from '@/stores/providerUiStore';
 
@@ -46,8 +44,7 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
   const setSelectedConnectionId = useProviderUiStore((s) => s.setSelectedConnectionId);
   const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(true);
 
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [wizardTemplateId, setWizardTemplateId] = useState<ThirdPartyTemplateId | null>(null);
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
   const geminiStatus = useMemo(() => {
     const hasKey = Boolean(settings.apiKey?.trim() || settings.serverManagedApi);
@@ -101,38 +98,17 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
     setIsMobileDetailOpen(false);
   };
 
-  const handleAddTemplate = (templateId: ThirdPartyTemplateId) => {
-    setIsAddOpen(false);
-    setWizardTemplateId(templateId);
-  };
-
-  const handleCompleteWizard = (configuredConnection: ThirdPartyConnection) => {
-    updateThirdPartyApi(addThirdPartyConnection(currentSettings, configuredConnection));
-    setSelectedConnectionId(configuredConnection.id);
+  const handleCreateComplete = (newConnection: ThirdPartyConnection) => {
+    updateThirdPartyApi(addThirdPartyConnection(currentSettings, newConnection));
+    setSelectedConnectionId(newConnection.id);
     setIsMobileDetailOpen(true);
-    setWizardTemplateId(null);
-    toastSuccess(
-      t('thirdPartyWizardConfiguredSuccess', {
-        name: configuredConnection.name,
-        count: configuredConnection.models.filter((m) => m.visibleInSelector !== false).length,
-      }),
-    );
-  };
-
-  const handleSkipWizard = (draftConnection: ThirdPartyConnection) => {
-    updateThirdPartyApi(addThirdPartyConnection(currentSettings, draftConnection));
-    setSelectedConnectionId(draftConnection.id);
-    setIsMobileDetailOpen(true);
-    setWizardTemplateId(null);
-    toastSuccess(t('thirdPartyProviderAdded', { name: draftConnection.name }));
+    setIsCreateDrawerOpen(false);
+    toastSuccess(t('thirdPartyProviderAdded', { name: newConnection.name }));
   };
 
   const handleDuplicate = (conn: ThirdPartyConnection) => {
-    const duplicated: ThirdPartyConnection = {
-      ...conn,
-      id: createConnectionId(),
-      name: t('thirdPartyCopySuffix', { name: conn.name }),
-    };
+    const copySuffix = t('thirdPartyCopySuffix', { name: conn.name });
+    const duplicated = duplicateThirdPartyConnection(conn, connections, copySuffix);
     updateThirdPartyApi(addThirdPartyConnection(currentSettings, duplicated));
     setSelectedConnectionId(duplicated.id);
     setIsMobileDetailOpen(true);
@@ -185,7 +161,7 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
             selectedConnectionId={selectedConnectionId}
             onSelectConnection={handleSelectConnection}
             onReorder={handleReorder}
-            onAddConnection={() => setIsAddOpen(true)}
+            onAddConnection={() => setIsCreateDrawerOpen(true)}
             onEditConnection={() => {}}
             onDuplicateConnection={handleDuplicate}
             onDeleteConnection={handleDelete}
@@ -232,6 +208,7 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
                   updateThirdPartyApi(updateThirdPartyConnection(currentSettings, selectedConnection.id, updates))
                 }
                 onDeleteConnection={() => handleDelete(selectedConnection.id)}
+                onDuplicateConnection={() => handleDuplicate(selectedConnection)}
                 onCloseModal={onCloseModal}
               />
             </div>
@@ -242,14 +219,11 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
           )}
         </div>
       </div>
-      <ProviderAddModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} onSelectTemplate={handleAddTemplate} />
-      <ProviderSetupWizardModal
-        isOpen={wizardTemplateId !== null}
-        onClose={() => setWizardTemplateId(null)}
-        templateId={wizardTemplateId}
+      <ProviderCreateDrawer
+        isOpen={isCreateDrawerOpen}
+        onClose={() => setIsCreateDrawerOpen(false)}
         existingConnections={connections}
-        onComplete={handleCompleteWizard}
-        onSkip={handleSkipWizard}
+        onComplete={handleCreateComplete}
       />
     </div>
   );

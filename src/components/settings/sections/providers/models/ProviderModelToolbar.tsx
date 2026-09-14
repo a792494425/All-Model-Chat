@@ -143,10 +143,11 @@ export const ProviderModelToolbar: React.FC<ProviderModelToolbarProps> = ({
               type="button"
               onClick={onSyncModels}
               disabled={isSyncingModels || isCheckingBatch}
+              title={t('thirdPartySyncModelsTooltip') || 'Fetch remote models via /v1/models endpoint'}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--theme-border-secondary)]/70 bg-[var(--theme-bg-secondary)]/50 hover:bg-[var(--theme-bg-tertiary)] text-xs font-medium text-[var(--theme-text-primary)] transition-all cursor-pointer disabled:opacity-60 shadow-xs"
             >
-              <RefreshCw size={13} className={isSyncingModels ? 'animate-spin' : ''} />
-              <span>{t('thirdPartySyncModels') || 'Sync'}</span>
+              <RefreshCw size={13} className={isSyncingModels ? 'animate-spin text-blue-500' : ''} />
+              <span>{isSyncingModels ? (t('thirdPartySyncingModels') || 'Fetching...') : (t('thirdPartySyncModels') || 'Fetch Models')}</span>
             </button>
           )}
 

@@ -1,0 +1,94 @@
+import { act } from 'react';
+import { fireEvent } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { renderWithProviders } from '@/test/render/providerRenderer';
+import { AppearanceLivePreview } from './AppearanceLivePreview';
+import type { AppSettings } from '@/types';
+
+const baseSettings: AppSettings = {
+  themeId: 'onyx',
+  baseFontSize: 16,
+  showMessageTokenStats: true,
+} as AppSettings;
+
+describe('AppearanceLivePreview', () => {
+  it('renders live preview with user message and code block by default', () => {
+    const { container } = renderWithProviders(<AppearanceLivePreview settings={baseSettings} />, {
+      language: 'en',
+    });
+
+    expect(container.textContent).toContain('Live Preview');
+    expect(container.textContent).toContain('WYSIWYG');
+    expect(container.textContent).toContain('Write a Python function to generate Fibonacci numbers');
+    expect(container.textContent).toContain('def fibonacci');
+    expect(container.textContent).toContain('⚡ 64 tokens');
+
+    const avatar = container.querySelector('img[src="/assets/assistant-avatar.png"]');
+    expect(avatar).not.toBeNull();
+    expect(container.textContent).toContain('Gemini 3.8 Flash');
+    expect(container.textContent).toContain('Thought for 1.2s');
+  });
+
+  it('renders custom model display name reactively from settings', () => {
+    const customModelSettings: AppSettings = {
+      ...baseSettings,
+      modelId: 'gemini-3.7-flash',
+    };
+
+    const { container } = renderWithProviders(<AppearanceLivePreview settings={customModelSettings} />, {
+      language: 'en',
+    });
+
+    expect(container.textContent).toContain('Gemini 3.7 Flash');
+  });
+
+  it('updates font size reactively according to settings', () => {
+    const customSettings: AppSettings = {
+      ...baseSettings,
+      baseFontSize: 22,
+    };
+
+    const { container } = renderWithProviders(<AppearanceLivePreview settings={customSettings} />, {
+      language: 'en',
+    });
+
+    const userBubble = container.querySelector('div[style*="font-size: 22px"]');
+    expect(userBubble).not.toBeNull();
+  });
+
+  it('allows toggling between code tab and typography text tab', () => {
+    const { container } = renderWithProviders(<AppearanceLivePreview settings={baseSettings} />, {
+      language: 'en',
+    });
+
+    // Code is visible initially
+    expect(container.textContent).toContain('def fibonacci');
+
+    // Click typography tab
+    const textTabBtn = Array.from(container.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Typography'),
+    );
+    expect(textTabBtn).toBeDefined();
+
+    act(() => {
+      fireEvent.click(textTabBtn!);
+    });
+
+    // Should now show typography text sample instead of python code
+    expect(container.textContent).toContain('Markdown formatting with');
+    expect(container.textContent).not.toContain('def fibonacci');
+  });
+
+  it('hides token stats when showMessageTokenStats is false', () => {
+    const noStatsSettings: AppSettings = {
+      ...baseSettings,
+      showMessageTokenStats: false,
+    };
+
+    const { container } = renderWithProviders(<AppearanceLivePreview settings={noStatsSettings} />, {
+      language: 'en',
+    });
+
+    expect(container.textContent).not.toContain('⚡ 64 tokens');
+  });
+});

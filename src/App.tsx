@@ -26,6 +26,10 @@ const LazyGlobalCommandPalette = lazyNamedComponent(
   () => import('./components/command/GlobalCommandPalette'),
   'GlobalCommandPalette',
 );
+const LazyMultimodalSearchModal = lazyNamedComponent(
+  () => import('./components/search/MultimodalSearchModal'),
+  'MultimodalSearchModal',
+);
 
 const App: React.FC = () => {
   return (
@@ -124,6 +128,9 @@ const AppContent: React.FC = () => {
           onOpenExportModal={() => app.setIsExportModalOpen(true)}
           onClearCurrentChat={chatState.handleClearCurrentChat}
         />
+      </Suspense>
+      <Suspense fallback={null}>
+        <LazyMultimodalSearchModal />
       </Suspense>
     </div>
   );

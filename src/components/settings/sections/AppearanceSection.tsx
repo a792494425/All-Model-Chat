@@ -1,5 +1,6 @@
 import React from 'react';
 import { type AppSettings } from '@/types';
+import { AppearanceLivePreview } from './appearance/AppearanceLivePreview';
 import { ThemeLanguageSelector } from './appearance/ThemeLanguageSelector';
 import { FontSizeControl } from './appearance/FontSizeControl';
 import { LiveArtifactsFontSizeControl } from './appearance/LiveArtifactsFontSizeControl';
@@ -13,6 +14,8 @@ interface AppearanceSectionProps {
 export const AppearanceSection: React.FC<AppearanceSectionProps> = ({ settings, onUpdate }) => {
   return (
     <div className="space-y-6">
+      <AppearanceLivePreview settings={settings} />
+
       <ThemeLanguageSelector settings={settings} onUpdate={onUpdate} />
 
       <FontSizeControl settings={settings} onUpdate={onUpdate} />

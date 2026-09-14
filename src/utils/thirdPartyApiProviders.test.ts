@@ -16,6 +16,8 @@ import {
   sanitizeThirdPartyApiSettings,
   resolveProviderForModelId,
   createConnectionFromTemplate,
+  duplicateThirdPartyConnection,
+  sanitizeThirdPartyConnection,
   THIRD_PARTY_TEMPLATE_LABELS,
 } from './thirdPartyApiProviders';
 
@@ -445,3 +447,50 @@ describe('provider endpoint type classification', () => {
     expect(isLocalEngineEndpoint('custom', 'https://api.openai.com/v1')).toBe(false);
   });
 });
+
+describe('duplicateThirdPartyConnection', () => {
+  it('clones a connection with new id, suffix name, and re-binds models', () => {
+    const original = createThirdPartyConnection({
+      id: 'conn-orig',
+      name: 'DeepSeek',
+      apiKey: 'sk-orig',
+      baseUrl: 'https://api.deepseek.com',
+      extraHeaders: { 'X-Custom': 'val' },
+      models: [
+        { id: 'deepseek-chat', name: 'DeepSeek Chat', providerId: 'conn-orig', connectionName: 'DeepSeek' },
+      ],
+    });
+
+    const duplicated = duplicateThirdPartyConnection(original, [original], '{name} (Copy)');
+
+    expect(duplicated.id).not.toBe(original.id);
+    expect(duplicated.name).toBe('DeepSeek (Copy)');
+    expect(duplicated.apiKey).toBe('sk-orig');
+    expect(duplicated.baseUrl).toBe('https://api.deepseek.com');
+    expect(duplicated.extraHeaders).toEqual({ 'X-Custom': 'val' });
+    expect(duplicated.models).toHaveLength(1);
+    expect(duplicated.models[0].providerId).toBe(duplicated.id);
+    expect(duplicated.models[0].connectionName).toBe('DeepSeek (Copy)');
+  });
+
+  it('increments duplicate name suffix if copy name already exists', () => {
+    const conn1 = createThirdPartyConnection({ id: 'c1', name: 'SiliconFlow' });
+    const conn2 = createThirdPartyConnection({ id: 'c2', name: 'SiliconFlow (Copy)' });
+
+    const duplicated = duplicateThirdPartyConnection(conn1, [conn1, conn2], '{name} (Copy)');
+    expect(duplicated.name).toBe('SiliconFlow (Copy) 2');
+  });
+
+  it('preserves empty models array when explicitly provided to sanitizeThirdPartyConnection', () => {
+    const conn = sanitizeThirdPartyConnection({
+      id: 'conn-empty-models',
+      name: 'Custom Provider',
+      templateId: 'deepseek',
+      models: [],
+    });
+
+    expect(conn?.models).toEqual([]);
+    expect(conn?.modelId).toBe('');
+  });
+});
+

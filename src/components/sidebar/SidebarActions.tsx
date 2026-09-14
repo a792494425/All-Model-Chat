@@ -1,11 +1,12 @@
 import React, { type RefObject } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { Search, X, Library } from 'lucide-react';
+import { Search, X, Library, Sparkles } from 'lucide-react';
 import { IconNewChat, IconNewGroup } from '@/components/icons';
 import { DESKTOP_BREAKPOINT_PX } from '@/constants/layout';
 import { buildNewTabHref } from '@/utils/chat/lastActiveSession';
 import { SIDEBAR_ACTION_LINK_CLASS, SIDEBAR_ACTION_ROW_CLASS } from './sidebarStyles';
 import { useUIStore } from '@/stores/uiStore';
+import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
 import { isMacPlatform } from '@/utils/platform';
 
 interface SidebarActionsProps {
@@ -103,6 +104,7 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
   const { t } = useI18n();
   const activeView = useUIStore((state) => state.activeView);
   const setActiveView = useUIStore((state) => state.setActiveView);
+  const openMultimodalSearch = useMultimodalSearchStore((state) => state.openModal);
 
   const closeSearch = () => {
     setIsSearching(false);
@@ -178,6 +180,13 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
                 if (e.key === 'Escape') closeSearch();
               }}
             />
+            <button
+              onClick={() => openMultimodalSearch(searchQuery)}
+              className="h-6 px-1.5 flex items-center justify-center text-sky-500 hover:text-sky-400 rounded-md hover:bg-sky-500/10 transition-colors"
+              title={t('multimodalSearchButtonTooltip')}
+            >
+              <Sparkles size={14} strokeWidth={2.2} />
+            </button>
             <button
               onClick={closeSearch}
               className="h-6 w-6 flex items-center justify-center text-[var(--theme-text-primary)] hover:text-[var(--theme-text-primary)] rounded-md hover:bg-[var(--theme-bg-tertiary)]"

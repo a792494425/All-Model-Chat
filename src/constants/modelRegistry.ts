@@ -119,3 +119,8 @@ export const getModelOptionsForGroup = (group: ModelRegistryGroup, options: { pi
     name: model.groupLabels?.[group] || model.name,
     ...(options.pinned !== undefined ? { isPinned: options.pinned } : {}),
   }));
+
+export const getRegisteredModelName = (modelId: string): string | undefined => {
+  const normalized = modelId.replace(/^models\//, '');
+  return MODEL_REGISTRY.find((model) => model.id === normalized)?.name;
+};

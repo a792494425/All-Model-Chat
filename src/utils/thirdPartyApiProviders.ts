@@ -467,8 +467,8 @@ export const sanitizeThirdPartyConnection = (
   const defaults = TEMPLATE_DEFAULTS[templateId];
   const candidateModels = Array.isArray(value?.models) ? value.models : defaults.models;
   const sanitizedModels = sanitizeModelOptions(candidateModels);
-  const models = sanitizedModels.length > 0 ? sanitizedModels : cloneModels(defaults.models);
-  const defaultModelId = models.find((model) => model.isPinned)?.id ?? models[0]?.id ?? defaults.modelId;
+  const models = Array.isArray(value?.models) ? sanitizedModels : cloneModels(defaults.models);
+  const defaultModelId = models.find((model) => model.isPinned)?.id ?? models[0]?.id ?? (models.length === 0 ? '' : defaults.modelId);
   const modelId = typeof value?.modelId === 'string' ? value.modelId.trim() || defaultModelId : defaultModelId;
   const id = typeof value?.id === 'string' && value.id.trim() ? value.id.trim() : '';
   if (!id) {
@@ -714,6 +714,32 @@ export const removeThirdPartyConnection = (
 ): ThirdPartyApiSettings => ({
   connections: thirdPartyApi.connections.filter((connection) => connection.id !== connectionId),
 });
+
+export const duplicateThirdPartyConnection = (
+  connection: ThirdPartyConnection,
+  existingConnections: ThirdPartyConnection[],
+  copySuffixPattern: string = '{name} (Copy)',
+): ThirdPartyConnection => {
+  const newId = createConnectionId();
+  const baseCopyName = copySuffixPattern.replace('{name}', connection.name);
+  const newName = nextConnectionName(existingConnections, baseCopyName);
+
+  const clonedModels: ModelOption[] = (connection.models || []).map((model) => ({
+    ...model,
+    providerId: newId,
+    connectionName: newName,
+    parameters: model.parameters ? { ...model.parameters } : undefined,
+    capabilities: model.capabilities ? { ...model.capabilities } : undefined,
+  }));
+
+  return {
+    ...connection,
+    id: newId,
+    name: newName,
+    extraHeaders: { ...(connection.extraHeaders || {}) },
+    models: clonedModels,
+  };
+};
 
 export const isDeepSeekOfficialEndpoint = (templateId?: string | null, baseUrl?: string | null): boolean => {
   if (templateId === 'deepseek') return true;

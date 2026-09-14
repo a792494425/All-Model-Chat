@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { ProviderModelListSection } from './ProviderModelListSection';
 import { useProviderUiStore } from '@/stores/providerUiStore';
 import type { ModelOption } from '@/types';
@@ -79,5 +79,29 @@ describe('ProviderModelListSection', () => {
 
     // Modal should be open with model name
     expect(screen.getByDisplayValue('Model One')).toBeInTheDocument();
+  });
+
+  it('renders callout card when no models are configured and triggers fetch models', () => {
+    const handleSync = vi.fn();
+    render(
+      <ProviderModelListSection
+        providerId="empty-provider"
+        providerName="Empty Provider"
+        models={[]}
+        onUpdateModels={vi.fn()}
+        onProbeSingleModel={vi.fn()}
+        onProbeBatchModels={vi.fn()}
+        onSyncRemoteModels={handleSync}
+      />,
+    );
+
+    const emptyCard = screen.getByTestId('provider-no-models-card');
+    expect(emptyCard).toBeInTheDocument();
+
+    const fetchBtn = within(emptyCard).getByRole('button', { name: /fetch models|拉取模型/i });
+    expect(fetchBtn).toBeInTheDocument();
+
+    fireEvent.click(fetchBtn);
+    expect(handleSync).toHaveBeenCalledTimes(1);
   });
 });

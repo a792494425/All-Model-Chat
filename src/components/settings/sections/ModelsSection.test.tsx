@@ -2,6 +2,7 @@ import { act, type ComponentProps, useState } from 'react';
 import { setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { setupStoreStateReset } from '@/test/stores/reset';
 import { ModelsSection } from './ModelsSection';
 import type { ApiMode, AppSettings } from '@/types';
@@ -343,4 +344,33 @@ describe('ModelsSection', () => {
       renderer.container.querySelector<HTMLButtonElement>('button[aria-label="Toggle safety settings"]'),
     ).toBeNull();
   });
+
+  it('renders active model & provider status card with direct navigation to providers tab', async () => {
+    const setActiveTabSpy = vi.spyOn(useSettingsUiStore.getState(), 'setActiveTab');
+
+    await renderModelsSection({
+      modelId: 'gemini-3.1-pro-preview',
+      availableModels: [{ id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview' }],
+      currentSettings: {
+        ...useSettingsStore.getState().appSettings,
+        providerId: 'gemini',
+      },
+    });
+
+    expect(renderer.container.textContent).toContain('Active Model');
+    expect(renderer.container.textContent).toContain('Google Gemini');
+    expect(renderer.container.textContent).toContain('Gemini 3.1 Pro Preview');
+
+    const manageBtn = Array.from(renderer.container.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Manage Providers & Models'),
+    );
+    expect(manageBtn).toBeDefined();
+
+    await act(async () => {
+      manageBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(setActiveTabSpy).toHaveBeenCalledWith('providers');
+  });
 });
+
