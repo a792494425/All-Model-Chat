@@ -115,7 +115,6 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
       onRetryMessage={props.onRetryMessage}
       onContinueGeneration={props.onContinueGeneration}
       onForkMessage={props.onForkMessage}
-      onSwitchVariant={props.onSwitchVariant}
       themeId={themeId}
     />
   );
@@ -150,6 +149,7 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
             userMessageCollapse={props.userMessageCollapse}
             mcpPair={props.mcpPair}
             isTurnActive={props.isTurnActive}
+            onSwitchVariant={props.onSwitchVariant}
           />
         </div>
         {message.role === 'user' && messageActions}

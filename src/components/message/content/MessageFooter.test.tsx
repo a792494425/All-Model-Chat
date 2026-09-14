@@ -72,9 +72,11 @@ describe('MessageFooter', () => {
   });
 
   it('hides token stats when the setting is off', () => {
-    useSettingsStore.setState((state) => ({
-      appSettings: { ...state.appSettings, showMessageTokenStats: false },
-    }));
+    act(() => {
+      useSettingsStore.setState((state) => ({
+        appSettings: { ...state.appSettings, showMessageTokenStats: false },
+      }));
+    });
 
     renderer.render(
       <MessageFooter
@@ -110,4 +112,36 @@ describe('MessageFooter', () => {
 
     expect(renderer.container.textContent).toBe('');
   });
+
+  it('renders variant switcher in footer when message has multiple variants', () => {
+    const onSwitchVariant = vi.fn();
+    const v1 = createChatMessage({ id: 'v1', role: 'model', content: 'Response 1' });
+    const v2 = createChatMessage({ id: 'v2', role: 'model', content: 'Response 2' });
+
+    act(() => {
+      renderer.render(
+        <MessageFooter
+          message={createChatMessage({
+            id: 'model-msg',
+            role: 'model',
+            content: 'Response 2',
+            variants: [v1, v2],
+            currentVariantIndex: 1,
+          })}
+          onSwitchVariant={onSwitchVariant}
+        />,
+      );
+    });
+
+    const switcher = renderer.container.querySelector('[data-testid="message-variant-switcher"]');
+    expect(switcher).not.toBeNull();
+    expect(switcher?.textContent).toContain('2 / 2');
+
+    const prevBtn = switcher?.querySelector<HTMLButtonElement>('button[aria-label="Previous version"]');
+    act(() => {
+      prevBtn?.click();
+    });
+    expect(onSwitchVariant).toHaveBeenCalledWith('model-msg', 0);
+  });
 });
+

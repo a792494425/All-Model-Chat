@@ -31,6 +31,7 @@ interface MessageContentProps {
   diagramLoadMode?: 'deferred' | 'eager';
   mcpPair?: { calls: FunctionCall[]; responses: Part[] };
   isTurnActive?: boolean;
+  onSwitchVariant?: (messageId: string, targetVariantIndex: number) => void;
 }
 
 export const MessageContent: React.FC<MessageContentProps> = React.memo((props) => {
@@ -68,6 +69,7 @@ export const MessageContent: React.FC<MessageContentProps> = React.memo((props) 
         message={message}
         onSuggestionClick={props.onSuggestionClick}
         onSuggestionFill={props.onSuggestionFill}
+        onSwitchVariant={props.onSwitchVariant}
       />
     </>
   );

@@ -2,6 +2,7 @@ import React from 'react';
 import { Loader2, PencilLine } from 'lucide-react';
 import { type ChatMessage } from '@/types';
 import { PerformanceMetrics } from '@/components/message/PerformanceMetrics';
+import { MessageVariantSwitcher } from './MessageVariantSwitcher';
 import { AudioPlayer } from '@/components/shared/AudioPlayer';
 import { useI18n } from '@/contexts/I18nContext';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -10,12 +11,25 @@ interface MessageFooterProps {
   message: ChatMessage;
   onSuggestionClick?: (suggestion: string) => void;
   onSuggestionFill?: (suggestion: string) => void;
+  onSwitchVariant?: (messageId: string, targetVariantIndex: number) => void;
 }
 
-export const MessageFooter: React.FC<MessageFooterProps> = ({ message, onSuggestionClick, onSuggestionFill }) => {
+export const MessageFooter: React.FC<MessageFooterProps> = ({
+  message,
+  onSuggestionClick,
+  onSuggestionFill,
+  onSwitchVariant,
+}) => {
   const { t } = useI18n();
   const showTokenStats = useSettingsStore((state) => state.appSettings.showMessageTokenStats ?? true);
   const { audioSrc, audioAutoplay, suggestions, isGeneratingSuggestions, role, generationStartTime } = message;
+
+  const hasVariants = Boolean(message.variants && message.variants.length > 1);
+  const showMetrics =
+    showTokenStats &&
+    (role === 'model' ||
+      (role === 'error' && generationStartTime) ||
+      (role === 'user' && Boolean(message.promptTokens || message.totalTokens)));
 
   return (
     <>
@@ -25,12 +39,18 @@ export const MessageFooter: React.FC<MessageFooterProps> = ({ message, onSuggest
         </div>
       )}
 
-      {showTokenStats &&
-        (role === 'model' ||
-          (role === 'error' && generationStartTime) ||
-          (role === 'user' && Boolean(message.promptTokens || message.totalTokens))) && (
-          <PerformanceMetrics message={message} hideTimer={message.isLoading} />
-        )}
+      {(hasVariants || showMetrics) && (
+        <div
+          className={`mt-1.5 flex items-center ${hasVariants ? 'justify-between' : 'justify-end'} flex-wrap gap-x-3 gap-y-1`}
+        >
+          {hasVariants && (
+            <MessageVariantSwitcher message={message} onSwitchVariant={onSwitchVariant} />
+          )}
+          {showMetrics && (
+            <PerformanceMetrics message={message} hideTimer={message.isLoading} />
+          )}
+        </div>
+      )}
 
       {suggestions && suggestions.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
