@@ -52,7 +52,7 @@ const initialState: MultimodalSearchState = {
   categoryFilter: 'all',
   isSearching: false,
   isIndexing: false,
-  isAutoIndexEnabled: true,
+  isAutoIndexEnabled: false,
   indexedCount: 0,
   indexProgress: null,
   results: [],

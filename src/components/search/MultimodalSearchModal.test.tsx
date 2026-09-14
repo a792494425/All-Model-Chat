@@ -54,16 +54,16 @@ describe('MultimodalSearchModal', () => {
     useMultimodalSearchStore.getState().openModal();
     await renderModal();
 
-    expect(useMultimodalSearchStore.getState().isAutoIndexEnabled).toBe(true);
+    expect(useMultimodalSearchStore.getState().isAutoIndexEnabled).toBe(false);
 
     const toggleInput = document.querySelector<HTMLInputElement>('#multimodal-auto-index-toggle');
     expect(toggleInput).not.toBeNull();
-    expect(toggleInput?.checked).toBe(true);
+    expect(toggleInput?.checked).toBe(false);
 
     await act(async () => {
       toggleInput?.click();
     });
 
-    expect(useMultimodalSearchStore.getState().isAutoIndexEnabled).toBe(false);
+    expect(useMultimodalSearchStore.getState().isAutoIndexEnabled).toBe(true);
   });
 });
