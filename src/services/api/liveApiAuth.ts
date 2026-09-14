@@ -3,7 +3,8 @@ import type { AppSettings } from '@/types';
 import { getClient } from './apiClient';
 import { SERVER_MANAGED_API_KEY } from '@/utils/apiKeySelection';
 import { resolveLiveClientBaseUrl } from './geminiApiBaseUrl';
-import type { GeminiClientHttpOptions } from './geminiApiVersion';
+import { type GeminiClientHttpOptions, withHttpOptionHeaders } from './geminiApiVersion';
+import { getServerAuthHeaders } from './apiAuthHeaders';
 
 export class LiveApiAuthConfigurationError extends Error {
   code: 'MISSING_API_KEY';
@@ -35,6 +36,7 @@ export const createLiveEphemeralToken = async (
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    ...getServerAuthHeaders(),
   };
   if (options?.apiKey) {
     headers['x-goog-api-key'] = options.apiKey;
@@ -65,15 +67,19 @@ export const getLiveApiClient = async (
   const proxyBaseUrl = resolveLiveClientBaseUrl(appSettings);
   const apiKey = apiKeyForLiveConnection?.trim();
 
+  const authHeaders = getServerAuthHeaders();
+  const effectiveHttpOptions =
+    Object.keys(authHeaders).length > 0 ? withHttpOptionHeaders(httpOptions, authHeaders) : httpOptions;
+
   if (!apiKey) {
     // No browser key. If the Docker WS proxy is configured, hand the api
     // container the server-managed sentinel; it swaps in the real server key
     // (BYOK 兜底). Without the proxy there is nowhere to swap, so bail.
     if (proxyBaseUrl) {
-      return getClient(SERVER_MANAGED_API_KEY, proxyBaseUrl, httpOptions);
+      return getClient(SERVER_MANAGED_API_KEY, proxyBaseUrl, effectiveHttpOptions);
     }
     throw new LiveApiAuthConfigurationError('MISSING_API_KEY', 'Live API requires a browser API key.');
   }
 
-  return getClient(apiKey, proxyBaseUrl, httpOptions);
+  return getClient(apiKey, proxyBaseUrl, effectiveHttpOptions);
 };

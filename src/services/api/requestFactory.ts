@@ -13,6 +13,7 @@ import { readResponseErrorMessage, toError } from '@/utils/errorMessage';
 import { deduplicateModelsById } from '@/utils/model/modelSorting';
 import { logService } from '@/services/logService';
 import { buildThirdPartyForwardHeaders } from './thirdPartyRequestHeaders';
+import { getServerAuthHeaders } from './apiAuthHeaders';
 
 /** 认证协议头构造器:仅负责认证/版本头(如 x-api-key + anthropic-version,或 Bearer)。 */
 export type ApiAuthHeaderFactory = (apiKey: string) => Record<string, string>;
@@ -43,6 +44,7 @@ export const createApiRequestInitFactory = (authHeaders: ApiAuthHeaderFactory): 
     method: 'POST',
     headers: {
       ...authHeaders(apiKey),
+      ...getServerAuthHeaders(),
       'content-type': 'application/json',
       ...buildThirdPartyForwardHeaders({ proxyProviderId: providerId, baseUrl, extraHeaders }),
     },
@@ -53,6 +55,7 @@ export const createApiRequestInitFactory = (authHeaders: ApiAuthHeaderFactory): 
     method: 'GET',
     headers: {
       ...authHeaders(apiKey),
+      ...getServerAuthHeaders(),
       ...buildThirdPartyForwardHeaders({ proxyProviderId: providerId, baseUrl, extraHeaders }),
     },
     signal: abortSignal,

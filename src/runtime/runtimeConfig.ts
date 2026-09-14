@@ -2,6 +2,7 @@ import type { AppSettings } from '@/types';
 
 type RuntimeConfigKey =
   | 'serverManagedApi'
+  | 'serverAccessPassword'
   | 'useCustomApiConfig'
   | 'useApiProxy'
   | 'apiProxyUrl'
@@ -119,7 +120,7 @@ export function getGeminiApiProxyBaseUrl(): string | null {
 }
 
 export function getRuntimeConfigAppSettingsOverrides(): Partial<
-  Pick<AppSettings, 'serverManagedApi' | 'useCustomApiConfig' | 'useApiProxy' | 'apiProxyUrl'>
+  Pick<AppSettings, 'serverManagedApi' | 'serverAccessPassword' | 'useCustomApiConfig' | 'useApiProxy' | 'apiProxyUrl'>
 > {
   const runtimeConfig = getRuntimeConfig();
 
@@ -128,12 +129,20 @@ export function getRuntimeConfigAppSettingsOverrides(): Partial<
   }
 
   const overrides: Partial<
-    Pick<AppSettings, 'serverManagedApi' | 'useCustomApiConfig' | 'useApiProxy' | 'apiProxyUrl'>
+    Pick<
+      AppSettings,
+      'serverManagedApi' | 'serverAccessPassword' | 'useCustomApiConfig' | 'useApiProxy' | 'apiProxyUrl'
+    >
   > = {};
 
   const serverManagedApi = readBooleanValue(runtimeConfig.serverManagedApi);
   if (serverManagedApi !== undefined) {
     overrides.serverManagedApi = serverManagedApi;
+  }
+
+  const serverAccessPassword = readNullableString(runtimeConfig.serverAccessPassword);
+  if (serverAccessPassword !== undefined) {
+    overrides.serverAccessPassword = serverAccessPassword;
   }
 
   const useCustomApiConfig = readBooleanValue(runtimeConfig.useCustomApiConfig);

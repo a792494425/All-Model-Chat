@@ -90,6 +90,7 @@ const BASE_DEFAULT_APP_SETTINGS: Omit<AppSettings, 'thirdPartyApi'> = {
   baseFontSize: DEFAULT_BASE_FONT_SIZE,
   useCustomApiConfig: false,
   serverManagedApi: false,
+  serverAccessPassword: null,
   apiKey: null,
   apiProxyUrl: 'https://api-proxy.de/gemini',
   useApiProxy: false,

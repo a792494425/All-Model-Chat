@@ -229,4 +229,31 @@ describe('Live WS upgrade security', () => {
     expect(outcome).not.toBe('timeout');
     app.closeAllConnections?.();
   });
+
+  it('rejects WebSocket upgrades without valid accessPassword when configured', async () => {
+    const config = buildConfig({ accessPassword: 'ws-password' });
+    const app = createServer(config);
+    attachLiveWsUpgrade(app, config);
+    const appServer = serverCleanup.track(await startHttpServer(app));
+    const { hostname, port } = new URL(appServer.baseUrl);
+
+    // 1. Upgrade without token should receive 401 or close
+    const rejected = await new Promise<string>((resolve) => {
+      const request = http.request({
+        hostname,
+        port: Number(port),
+        path: '/api/live',
+        headers: { connection: 'Upgrade', upgrade: 'websocket' },
+      });
+      request.on('response', (res) => resolve(`status-${res.statusCode}`));
+      request.on('upgrade', () => resolve('upgraded'));
+      request.on('close', () => resolve('closed'));
+      request.on('error', () => resolve('error'));
+      request.end();
+      setTimeout(() => resolve('timeout'), 2000);
+    });
+    expect(rejected).toMatch(/status-401|closed/);
+
+    app.closeAllConnections?.();
+  });
 });

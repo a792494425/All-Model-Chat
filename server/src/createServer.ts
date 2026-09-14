@@ -30,6 +30,7 @@ type CreateServerConfig = Pick<ApiServerConfig, 'geminiApiBase' | 'geminiApiKey'
   Partial<
     Pick<
       ApiServerConfig,
+      | 'accessPassword'
       | 'allowedOrigins'
       | 'enableMcpStdio'
       | 'enableMcpPrivateHttp'
@@ -56,6 +57,7 @@ interface ResolvedServerConfig
     >,
     GeminiProxyConfig,
     ThirdPartyProxyConfig {
+  accessPassword?: string;
   allowedOrigins: string[];
   enableMcpStdio: boolean;
   enableMcpPrivateHttp: boolean;
@@ -66,9 +68,34 @@ interface ResolvedServerConfig
   thirdPartyRoutes: Record<string, ThirdPartyProxyRoute>;
 }
 
+function isAuthorized(request: http.IncomingMessage, accessPassword?: string): boolean {
+  if (!accessPassword) {
+    return true;
+  }
+
+  const authHeader = request.headers['authorization'];
+  if (authHeader && typeof authHeader === 'string') {
+    const trimmed = authHeader.trim();
+    if (trimmed.startsWith('Bearer ')) {
+      const token = trimmed.slice(7).trim();
+      if (token === accessPassword) {
+        return true;
+      }
+    }
+  }
+
+  const customToken = request.headers['x-access-token'];
+  if (typeof customToken === 'string' && customToken.trim() === accessPassword) {
+    return true;
+  }
+
+  return false;
+}
+
 export function createServer(config: CreateServerConfig, dependencies: CreateServerDependencies = {}): http.Server {
   const resolvedConfig: ResolvedServerConfig = {
     ...config,
+    accessPassword: config.accessPassword,
     allowedOrigins: config.allowedOrigins ?? [],
     enableMcpStdio: config.enableMcpStdio ?? false,
     enableMcpPrivateHttp: config.enableMcpPrivateHttp ?? false,
@@ -114,6 +141,7 @@ export function createServer(config: CreateServerConfig, dependencies: CreateSer
             status: 'ok',
             timestamp: new Date().toISOString(),
             uptimeSeconds: Math.floor(process.uptime()),
+            authRequired: Boolean(resolvedConfig.accessPassword),
             capabilities: {
               liveWsProxy: resolvedConfig.enableLiveWsProxy,
               thirdPartyProxy: Object.keys(resolvedConfig.thirdPartyRoutes).length > 0,
@@ -121,6 +149,31 @@ export function createServer(config: CreateServerConfig, dependencies: CreateSer
               mcpPrivateHttp: resolvedConfig.enableMcpPrivateHttp,
             },
           },
+          resolvedConfig.allowedOrigins,
+        );
+        return;
+      }
+
+      if (path === '/api/auth/verify' || path === '/api/v1/auth/verify') {
+        const authorized = isAuthorized(request, resolvedConfig.accessPassword);
+        sendJson(
+          request,
+          response,
+          authorized ? 200 : 401,
+          authorized
+            ? { ok: true, authRequired: Boolean(resolvedConfig.accessPassword) }
+            : { error: 'Unauthorized', message: 'Invalid or missing server access password' },
+          resolvedConfig.allowedOrigins,
+        );
+        return;
+      }
+
+      if (!isAuthorized(request, resolvedConfig.accessPassword)) {
+        sendJson(
+          request,
+          response,
+          401,
+          { error: 'Unauthorized', message: 'Invalid or missing server access password' },
           resolvedConfig.allowedOrigins,
         );
         return;

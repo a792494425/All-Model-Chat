@@ -162,4 +162,19 @@ describe('ApiConfigSection', () => {
 
     expect(renderer.container.querySelector('#live-api-key-input')).not.toBeNull();
   });
+
+  it('renders server access password section and displays configured value', async () => {
+    const onUpdate = vi.fn();
+    await renderApiConfigSection({
+      settings: {
+        ...settingsFixture,
+        serverAccessPassword: 'initial-password',
+      },
+      onUpdate,
+    });
+
+    const input = renderer.container.querySelector<HTMLInputElement>('[data-testid="server-access-password-input"]');
+    expect(input).not.toBeNull();
+    expect(input?.value).toBe('initial-password');
+  });
 });

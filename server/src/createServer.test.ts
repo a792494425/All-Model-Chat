@@ -488,4 +488,76 @@ describe('createServer', () => {
     expect(image?.fileName).toBe('clipboard-image.png');
     expect(image?.data.equals(pngBytes)).toBe(true);
   });
+
+  describe('accessPassword authentication gate', () => {
+    it('reports authRequired: true on /health and blocks unauthorized requests when accessPassword is set', async () => {
+      const app = createServer({
+        geminiApiBase: 'https://example.test',
+        geminiApiKey: 'server-key',
+        accessPassword: 'super-secret-password',
+      });
+      const started = serverCleanup.track(await startHttpServer(app));
+
+      // 1. /health is always unauthenticated, but indicates authRequired: true
+      const healthRes = await fetch(`${started.baseUrl}/health`);
+      const healthBody = (await healthRes.json()) as Record<string, unknown>;
+      expect(healthRes.status).toBe(200);
+      expect(healthBody.authRequired).toBe(true);
+
+      // 2. Sensitive endpoint without token returns 401
+      const unauthRes = await fetch(`${started.baseUrl}/api/local-clipboard-image`);
+      expect(unauthRes.status).toBe(401);
+      const unauthBody = (await unauthRes.json()) as Record<string, unknown>;
+      expect(unauthBody.error).toBe('Unauthorized');
+
+      // 3. /api/auth/verify rejects wrong token
+      const wrongVerify = await fetch(`${started.baseUrl}/api/auth/verify`, {
+        headers: { authorization: 'Bearer wrong-pw' },
+      });
+      expect(wrongVerify.status).toBe(401);
+
+      // 4. /api/auth/verify accepts correct Bearer token
+      const validBearerVerify = await fetch(`${started.baseUrl}/api/auth/verify`, {
+        headers: { authorization: 'Bearer super-secret-password' },
+      });
+      expect(validBearerVerify.status).toBe(200);
+      expect((await validBearerVerify.json()) as Record<string, unknown>).toMatchObject({
+        ok: true,
+        authRequired: true,
+      });
+
+      // 5. /api/auth/verify accepts correct x-access-token header
+      const validHeaderVerify = await fetch(`${started.baseUrl}/api/auth/verify`, {
+        headers: { 'x-access-token': 'super-secret-password' },
+      });
+      expect(validHeaderVerify.status).toBe(200);
+
+      // 6. Sensitive endpoint with valid credentials passes through
+      const authedRes = await fetch(`${started.baseUrl}/api/local-clipboard-image`, {
+        headers: { authorization: 'Bearer super-secret-password' },
+      });
+      // Not 401 (either 404 for no image, or 200, proving auth gate passed)
+      expect(authedRes.status).not.toBe(401);
+    });
+
+    it('allows all requests when accessPassword is not set', async () => {
+      const app = createServer({
+        geminiApiBase: 'https://example.test',
+        geminiApiKey: 'server-key',
+      });
+      const started = serverCleanup.track(await startHttpServer(app));
+
+      const healthRes = await fetch(`${started.baseUrl}/health`);
+      const healthBody = (await healthRes.json()) as Record<string, unknown>;
+      expect(healthRes.status).toBe(200);
+      expect(healthBody.authRequired).toBe(false);
+
+      const verifyRes = await fetch(`${started.baseUrl}/api/auth/verify`);
+      expect(verifyRes.status).toBe(200);
+      expect((await verifyRes.json()) as Record<string, unknown>).toMatchObject({
+        ok: true,
+        authRequired: false,
+      });
+    });
+  });
 });

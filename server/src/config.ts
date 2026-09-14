@@ -8,6 +8,7 @@ export interface ApiServerConfig {
   geminiApiBase: string;
   geminiApiKey?: string;
   liveGeminiApiKey?: string;
+  accessPassword?: string;
   allowedOrigins: string[];
   enableMcpStdio: boolean;
   enableMcpPrivateHttp: boolean;
@@ -124,6 +125,7 @@ export function loadConfig(env: EnvLike = process.env): ApiServerConfig {
     geminiApiBase: env.GEMINI_API_BASE?.trim() || DEFAULT_GEMINI_API_BASE,
     geminiApiKey: env.GEMINI_API_KEY?.trim() || undefined,
     liveGeminiApiKey: env.LIVE_GEMINI_API_KEY?.trim() || undefined,
+    accessPassword: env.ACCESS_PASSWORD?.trim() || env.SERVER_ACCESS_TOKEN?.trim() || undefined,
     allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
     enableMcpStdio: parseBooleanFlag(env.ENABLE_MCP_STDIO),
     enableMcpPrivateHttp: parseBooleanFlag(env.ENABLE_MCP_PRIVATE_HTTP),

@@ -97,4 +97,12 @@ describe('loadConfig', () => {
     expect(config.geminiApiKey).toBe('general-key');
     expect(config.liveGeminiApiKey).toBe('live-key');
   });
+
+  it('parses ACCESS_PASSWORD or SERVER_ACCESS_TOKEN from environment', () => {
+    expect(loadConfig({}).accessPassword).toBeUndefined();
+    expect(loadConfig({ ACCESS_PASSWORD: '  my-secret-pw  ' }).accessPassword).toBe('my-secret-pw');
+    expect(loadConfig({ SERVER_ACCESS_TOKEN: '  token-123  ' }).accessPassword).toBe('token-123');
+    // ACCESS_PASSWORD takes precedence if both provided
+    expect(loadConfig({ ACCESS_PASSWORD: 'pw', SERVER_ACCESS_TOKEN: 'token' }).accessPassword).toBe('pw');
+  });
 });

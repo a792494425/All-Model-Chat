@@ -305,6 +305,7 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
   baseFontSize: numberWithDefault(DEFAULT_APP_SETTINGS.baseFontSize),
   useCustomApiConfig: booleanWithDefault(DEFAULT_APP_SETTINGS.useCustomApiConfig),
   serverManagedApi: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.serverManagedApi),
+  serverAccessPassword: nullableStringWithDefault(DEFAULT_APP_SETTINGS.serverAccessPassword),
   apiKey: nullableStringWithDefault(DEFAULT_APP_SETTINGS.apiKey),
   apiProxyUrl: nullableStringWithDefault(DEFAULT_APP_SETTINGS.apiProxyUrl),
   useApiProxy: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.useApiProxy),

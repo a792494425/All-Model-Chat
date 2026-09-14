@@ -257,6 +257,24 @@ export function attachLiveWsUpgrade(server: Server, config: ApiServerConfig): vo
       return;
     }
 
+    if (config.accessPassword) {
+      const requestUrl = new URL(request.url || '/', 'http://localhost');
+      const token =
+        requestUrl.searchParams.get('server_token') ||
+        requestUrl.searchParams.get('access_password') ||
+        request.headers['x-access-token'] ||
+        (typeof request.headers['authorization'] === 'string' && request.headers['authorization'].startsWith('Bearer ')
+          ? request.headers['authorization'].slice(7).trim()
+          : undefined);
+
+      if (token !== config.accessPassword) {
+        logLiveEvent('rejected', { reason: 'unauthorized' });
+        socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+    }
+
     wss.handleUpgrade(request, socket, head, (clientWs) => {
       bridge(clientWs, request, liveConfig.upstreamBase, liveConfig);
     });

@@ -1,4 +1,5 @@
 import { STREAM_ABORT_URL_PREFIX } from './streamAbortUrl';
+import { getServerAuthHeaders } from '@/services/api/apiAuthHeaders';
 
 /**
  * Fire-and-forget POST to the api container's stream-abort endpoint so the
@@ -21,7 +22,10 @@ export const abortServerStreamJob = async (
     await fetch(`${STREAM_ABORT_URL_PREFIX}/${encodeURIComponent(jobId)}`, {
       method: 'POST',
       signal: abortSignal,
-      ...(jobSecret ? { headers: { 'x-amc-job-secret': jobSecret } } : {}),
+      headers: {
+        ...getServerAuthHeaders(),
+        ...(jobSecret ? { 'x-amc-job-secret': jobSecret } : {}),
+      },
     });
   } catch (error) {
     // Swallow: this is best-effort. The local AbortController already

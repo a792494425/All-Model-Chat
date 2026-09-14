@@ -124,7 +124,14 @@ export const getConfiguredApiClient = async (
         })()
       : undefined;
 
-  const mergedHttpOptions = upstreamHeader ? withHttpOptionHeaders(httpOptions, upstreamHeader) : httpOptions;
+  const authHeaders = settings?.serverAccessPassword?.trim()
+    ? { 'x-access-token': settings.serverAccessPassword.trim() }
+    : undefined;
+
+  let mergedHttpOptions = upstreamHeader ? withHttpOptionHeaders(httpOptions, upstreamHeader) : httpOptions;
+  if (authHeaders) {
+    mergedHttpOptions = withHttpOptionHeaders(mergedHttpOptions, authHeaders);
+  }
   return getClient(apiKey, effectiveApiProxyUrl, mergedHttpOptions);
 };
 
@@ -133,7 +140,11 @@ export const getConfiguredApiClientContext = async (
   httpOptions?: GeminiClientHttpOptions,
 ): Promise<ConfiguredApiClientContext> => {
   const { settings, apiProxyUrl } = await loadConfiguredApiRouting();
-  const client = await getClient(apiKey, apiProxyUrl, httpOptions);
+  const authHeaders = settings?.serverAccessPassword?.trim()
+    ? { 'x-access-token': settings.serverAccessPassword.trim() }
+    : undefined;
+  const mergedHttpOptions = authHeaders ? withHttpOptionHeaders(httpOptions, authHeaders) : httpOptions;
+  const client = await getClient(apiKey, apiProxyUrl, mergedHttpOptions);
 
   return {
     client,

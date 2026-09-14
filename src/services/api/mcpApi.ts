@@ -1,6 +1,7 @@
 import type { McpServerConfig } from '@/types';
 import { readResponseErrorMessage } from '@/utils/errorMessage';
 import { rememberDiscoveredTools } from '@/features/mcp/toolDisplayNames';
+import { getServerAuthHeaders } from './apiAuthHeaders';
 
 export interface McpToolDefinition {
   name: string;
@@ -192,7 +193,7 @@ export const fetchMcpTools = async (
 ): Promise<McpToolsResponse> => {
   const response = await fetch('/api/mcp/tools', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...getServerAuthHeaders() },
     body: JSON.stringify({ servers }),
     signal: abortSignal,
   });
@@ -213,7 +214,7 @@ export const fetchMcpResources = async (
 ): Promise<McpResourcesResponse> => {
   const response = await fetch('/api/mcp/resources', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...getServerAuthHeaders() },
     body: JSON.stringify({ servers }),
     signal: abortSignal,
   });
@@ -231,7 +232,7 @@ export const fetchMcpPrompts = async (
 ): Promise<McpPromptsResponse> => {
   const response = await fetch('/api/mcp/prompts', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...getServerAuthHeaders() },
     body: JSON.stringify({ servers }),
     signal: abortSignal,
   });
@@ -250,7 +251,7 @@ export const fetchMcpResource = async (
 ): Promise<{ result?: McpResourceReadResult }> => {
   const response = await fetch('/api/mcp/resource', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...getServerAuthHeaders() },
     body: JSON.stringify({ server, uri }),
     signal: abortSignal,
   });
@@ -270,7 +271,7 @@ export const fetchMcpPrompt = async (
 ): Promise<{ result?: McpPromptGetResult }> => {
   const response = await fetch('/api/mcp/prompt', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...getServerAuthHeaders() },
     body: JSON.stringify({ server, promptName, args }),
     signal: abortSignal,
   });
@@ -291,7 +292,7 @@ export const callMcpTool = async (
 ): Promise<unknown> => {
   const response = await fetch('/api/mcp/call', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', accept: 'application/x-ndjson' },
+    headers: { 'content-type': 'application/json', accept: 'application/x-ndjson', ...getServerAuthHeaders() },
     body: JSON.stringify({ server, toolName, args }),
     signal: abortSignal,
   });
@@ -311,7 +312,10 @@ export const callMcpTool = async (
 };
 
 export const fetchMcpLogs = async (server: McpServerConfig, signal?: AbortSignal): Promise<{ logs: McpLogEntry[] }> => {
-  const response = await fetch(`/api/mcp/logs?serverId=${encodeURIComponent(server.id)}`, { signal });
+  const response = await fetch(`/api/mcp/logs?serverId=${encodeURIComponent(server.id)}`, {
+    signal,
+    headers: getServerAuthHeaders(),
+  });
   if (!response.ok) {
     throw new Error(await readErrorMessage(response));
   }

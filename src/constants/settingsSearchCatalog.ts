@@ -332,6 +332,13 @@ const apiEntries: SettingsSearchEntry[] = [
     groupKey: 'settingsTabApi',
   },
   {
+    id: 'server-access-password',
+    tab: 'api',
+    labelKey: 'settingsServerAccessPassword',
+    descriptionKey: 'settingsServerAccessPasswordHelp',
+    groupKey: 'settingsTabApi',
+  },
+  {
     id: 'api-provider',
     tab: 'api',
     labelKey: 'settingsTabProviders',

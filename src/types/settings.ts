@@ -311,6 +311,7 @@ export interface AppSettings extends ChatSettings {
   baseFontSize: number;
   useCustomApiConfig: boolean;
   serverManagedApi?: boolean;
+  serverAccessPassword?: string | null;
   apiKey: string | null;
   apiProxyUrl: string | null;
   useApiProxy?: boolean;

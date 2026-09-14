@@ -15,6 +15,7 @@ import { ApiConfigToggle } from './api-config/ApiConfigToggle';
 import { ApiKeyInput } from './api-config/ApiKeyInput';
 import { ApiProxySettings } from './api-config/ApiProxySettings';
 import { ApiConnectionTester } from './api-config/ApiConnectionTester';
+import { ServerAccessPasswordInput } from './api-config/ServerAccessPasswordInput';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { useProviderUiStore } from '@/stores/providerUiStore';
 import { getLatencyGrade } from '@/utils/thirdPartyDiagnostics';
@@ -284,6 +285,17 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
             />
           </div>
         </div>
+      </div>
+
+      <div
+        className="rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-surface-secondary)]/50 p-4 transition-all duration-200"
+        data-settings-item="server-access-password"
+      >
+        <ServerAccessPasswordInput
+          serverAccessPassword={settings.serverAccessPassword ?? null}
+          onUpdate={(val) => onUpdate('serverAccessPassword', val)}
+          apiProxyUrl={apiProxyUrl}
+        />
       </div>
 
       <div
