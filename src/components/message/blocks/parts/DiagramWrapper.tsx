@@ -53,7 +53,7 @@ export const DiagramWrapper: React.FC<DiagramWrapperProps> = ({
 
   if (isRendering) {
     return (
-      <div className={`${containerClasses} bg-[var(--theme-bg-tertiary)] my-2`}>
+      <div className={`${containerClasses} bg-[var(--theme-bg-tertiary)] my-2`} data-diagram-rendering="true">
         <Loader2 size={24} className="animate-spin text-[var(--theme-text-link)]" />
       </div>
     );

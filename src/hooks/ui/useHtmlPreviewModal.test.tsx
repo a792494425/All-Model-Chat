@@ -11,6 +11,7 @@ import {
 import { renderHook } from '@/test/render/renderer';
 
 const exportElementAsPngMock = vi.hoisted(() => vi.fn(async () => {}));
+const exportSvgAsImageMock = vi.hoisted(() => vi.fn(async () => {}));
 
 vi.mock('./useFullscreen', () => ({
   useFullscreen: () => ({
@@ -21,6 +22,7 @@ vi.mock('./useFullscreen', () => ({
 
 vi.mock('@/utils/export/image', () => ({
   exportElementAsPng: exportElementAsPngMock,
+  exportSvgAsImage: exportSvgAsImageMock,
 }));
 
 const HtmlPreviewWrapper = ({ children }: PropsWithChildren) => (
@@ -526,6 +528,104 @@ describe('useHtmlPreviewModal', () => {
 
     expect(result.current.diagnostics).toHaveLength(1);
     expect(result.current.diagnostics[0].message).toBe('Test error');
+
+    unmount();
+  });
+
+  it('exports SVG preview using exportSvgAsImage instead of html2canvas', async () => {
+    const iframe = document.createElement('iframe');
+    const contentWindowStub = {} as Window;
+    Object.defineProperty(iframe, 'contentWindow', {
+      value: contentWindowStub,
+      configurable: true,
+    });
+    const iframeRef = { current: iframe } as RefObject<HTMLIFrameElement>;
+
+    const { result, unmount } = renderHook(
+      () =>
+        useHtmlPreviewModal({
+          isOpen: true,
+          onClose: vi.fn(),
+          htmlContent: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/></svg>',
+          iframeRef,
+        }),
+      { attachToDocument: true, wrapper: HtmlPreviewWrapper },
+    );
+
+    await act(async () => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: { channel: HTML_PREVIEW_MESSAGE_CHANNEL, event: 'ready' },
+          origin: 'null',
+          source: contentWindowStub,
+        }),
+      );
+    });
+
+    await act(async () => {
+      await result.current.handleScreenshot();
+    });
+
+    expect(exportSvgAsImageMock).toHaveBeenCalledWith(
+      expect.stringContaining('<svg'),
+      'HTML Preview-screenshot.png',
+      2,
+      'image/png',
+    );
+    expect(exportElementAsPngMock).not.toHaveBeenCalled();
+
+    unmount();
+  });
+
+  it('passes themeId and baseFontSize to createStaticPreviewSnapshotContainer when iframe is inaccessible', async () => {
+    const iframe = document.createElement('iframe');
+    const contentWindowStub = {} as Window;
+    Object.defineProperty(iframe, 'contentWindow', {
+      value: contentWindowStub,
+      configurable: true,
+    });
+    // In cross-origin sandbox, accessing contentDocument throws or returns null
+    Object.defineProperty(iframe, 'contentDocument', {
+      get: () => {
+        throw new DOMException('Cross-origin frame', 'SecurityError');
+      },
+      configurable: true,
+    });
+    const iframeRef = { current: iframe } as RefObject<HTMLIFrameElement>;
+
+    const { result, unmount } = renderHook(
+      () =>
+        useHtmlPreviewModal({
+          isOpen: true,
+          onClose: vi.fn(),
+          htmlContent: '<div class="artifact">Sandboxed Live Artifact</div>',
+          privilege: 'sanitized',
+          themeId: 'onyx',
+          baseFontSize: 18,
+          iframeRef,
+        }),
+      { attachToDocument: true, wrapper: HtmlPreviewWrapper },
+    );
+
+    await act(async () => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: { channel: HTML_PREVIEW_MESSAGE_CHANNEL, event: 'ready' },
+          origin: 'null',
+          source: contentWindowStub,
+        }),
+      );
+    });
+
+    await act(async () => {
+      await result.current.handleScreenshot();
+    });
+
+    expect(exportElementAsPngMock).toHaveBeenCalled();
+    const [capturedTarget] = (exportElementAsPngMock.mock.lastCall ?? []) as unknown as [HTMLElement];
+    expect(capturedTarget).toBeTruthy();
+    // Verify container received the onyx theme background color (#0c0c0e) instead of hardcoded white
+    expect(capturedTarget.style.background).toBe('rgb(12, 12, 14)');
 
     unmount();
   });

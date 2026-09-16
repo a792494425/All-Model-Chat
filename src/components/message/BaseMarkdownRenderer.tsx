@@ -134,7 +134,7 @@ export const BaseMarkdownRenderer: React.FC<BaseMarkdownRendererProps> = React.m
     hideThinkingInContext,
     files,
     diagramLoadMode = 'deferred',
-    diagramRenderDelayMs = 500,
+    diagramRenderDelayMs = diagramLoadMode === 'eager' ? 0 : 500,
     interactiveMode = 'enabled',
     contentPreNormalized = false,
     liveArtifactFontSize,

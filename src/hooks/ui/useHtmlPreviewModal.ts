@@ -34,6 +34,7 @@ interface UseHtmlPreviewModalProps {
   initialTrueFullscreenRequest?: boolean;
   privilege?: HtmlPreviewPrivilege;
   themeId?: string;
+  baseFontSize?: number;
   iframeRef: RefObject<HTMLIFrameElement>;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   onImageClick?: (file: UploadedFile) => void;
@@ -65,6 +66,7 @@ export const useHtmlPreviewModal = ({
   initialTrueFullscreenRequest,
   privilege = DEFAULT_HTML_PREVIEW_PRIVILEGE,
   themeId,
+  baseFontSize,
   iframeRef,
   onLiveArtifactFollowUp,
   onImageClick,
@@ -268,7 +270,7 @@ export const useHtmlPreviewModal = ({
     return title;
   }, [htmlContent, t]);
 
-  const handleDownload = useCallback(() => {
+  const handleDownload = useCallback(async () => {
     if (!htmlContent) return;
     const isSvg = htmlContent.trim().startsWith('<svg');
     const title = getPreviewTitle();
@@ -278,12 +280,20 @@ export const useHtmlPreviewModal = ({
     let codeToDownload = htmlContent;
     if (isSvg) {
       codeToDownload = repairIncompleteSvg(codeToDownload);
+    } else {
+      const { buildStandaloneHtmlArtifact } = await import('@/utils/html-preview/previewDocument');
+      codeToDownload = await buildStandaloneHtmlArtifact(htmlContent, {
+        themeId,
+        baseFontSize,
+        title,
+        sanitize: privilege !== 'unrestricted',
+      });
     }
     const mimeType = isSvg ? 'image/svg+xml;charset=utf-8' : 'text/html;charset=utf-8';
     const blob = new Blob([codeToDownload], { type: mimeType });
     const url = createManagedObjectUrl(blob);
     triggerDownload(url, filename);
-  }, [htmlContent, getPreviewTitle]);
+  }, [htmlContent, getPreviewTitle, themeId, baseFontSize, privilege]);
 
   const getCurrentPreviewScreenshotTarget = useCallback((): HTMLElement | null => {
     try {
@@ -300,6 +310,16 @@ export const useHtmlPreviewModal = ({
     setIsScreenshotting(true);
     let snapshotCleanup: (() => void) | null = null;
     try {
+      const isSvg = htmlContent.trim().startsWith('<svg');
+      if (isSvg) {
+        const { exportSvgAsImage } = await import('@/utils/export/image');
+        const title = getPreviewTitle();
+        const filename = `${sanitizeFilename(title)}-screenshot.png`;
+        const repairedSvg = repairIncompleteSvg(htmlContent);
+        await exportSvgAsImage(repairedSvg, filename, 2, 'image/png');
+        return;
+      }
+
       const { exportElementAsPng } = await import('@/utils/export/image');
       const target = getCurrentPreviewScreenshotTarget();
       let exportTarget = target;
@@ -309,6 +329,8 @@ export const useHtmlPreviewModal = ({
         // hydrated before the frame is exported.
         const snapshot = await createStaticPreviewSnapshotContainer(htmlContent, targetDocument, {
           sanitize: privilege !== 'unrestricted',
+          themeId,
+          baseFontSize,
         });
         snapshotCleanup = snapshot.cleanup;
         exportTarget = snapshot.container;
@@ -317,7 +339,7 @@ export const useHtmlPreviewModal = ({
       const filename = `${sanitizeFilename(title)}-screenshot.png`;
 
       await exportElementAsPng(exportTarget, filename, {
-        backgroundColor: null,
+        backgroundColor: privilege === 'unrestricted' ? '#ffffff' : null,
         scale: 2,
         messages: {
           imageTooLarge: t('exportImageTooLarge'),
@@ -340,6 +362,8 @@ export const useHtmlPreviewModal = ({
     t,
     targetDocument,
     privilege,
+    themeId,
+    baseFontSize,
   ]);
 
   const handleRefresh = useCallback(() => {

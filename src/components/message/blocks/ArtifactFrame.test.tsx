@@ -658,9 +658,7 @@ describe('ArtifactFrame', () => {
 
   it('re-creates the iframe DOM node when transitioning from streaming to final mode', () => {
     act(() => {
-      renderer.root.render(
-        <ArtifactFrame html="<p>Chunk 1</p>" isLoading cacheKey="msg-1" />,
-      );
+      renderer.root.render(<ArtifactFrame html="<p>Chunk 1</p>" isLoading cacheKey="msg-1" />);
     });
 
     const streamingIframe = renderer.container.querySelector('iframe');
@@ -668,9 +666,7 @@ describe('ArtifactFrame', () => {
 
     // Streaming updates keep the same iframe DOM node
     act(() => {
-      renderer.root.render(
-        <ArtifactFrame html="<p>Chunk 1 and 2</p>" isLoading cacheKey="msg-1" />,
-      );
+      renderer.root.render(<ArtifactFrame html="<p>Chunk 1 and 2</p>" isLoading cacheKey="msg-1" />);
     });
 
     const streamingIframe2 = renderer.container.querySelector('iframe');

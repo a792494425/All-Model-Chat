@@ -76,6 +76,7 @@ export const HtmlPreviewModal: React.FC<HtmlPreviewModalProps> = ({
     initialTrueFullscreenRequest,
     privilege,
     themeId,
+    baseFontSize,
     iframeRef,
     onLiveArtifactFollowUp: privilege === 'sanitized' ? onLiveArtifactFollowUp : undefined,
     onImageClick,

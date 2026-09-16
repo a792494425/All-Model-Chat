@@ -4,6 +4,7 @@ import {
   buildHtmlPreviewSrcDoc,
   buildStreamingHtmlPreviewSrcDoc,
   buildUnrestrictedHtmlPreviewSrcDoc,
+  buildStandaloneHtmlArtifact,
   createStaticPreviewSnapshotContainer,
   loadKatex,
   HTML_PREVIEW_DIAGNOSTIC_EVENT,
@@ -205,7 +206,9 @@ describe('htmlPreview utilities', () => {
     const srcDoc = buildHtmlPreviewSrcDoc('<table><tr><td><span>Tag</span></td></tr></table>');
 
     expect(srcDoc).toContain('table td,table th{vertical-align:top;}');
-    expect(srcDoc).toContain('span[style*="border-radius"][style*="padding"]{white-space:nowrap;display:inline-block;}');
+    expect(srcDoc).toContain(
+      'span[style*="border-radius"][style*="padding"]{white-space:nowrap;display:inline-block;}',
+    );
   });
 
   it('injects a declarative Live Artifact follow-up click bridge', () => {
@@ -457,6 +460,20 @@ describe('htmlPreview utilities', () => {
     cleanup();
   });
 
+  it('sets theme background color and text color on the snapshot container for dark themes', async () => {
+    const { container, cleanup } = await createStaticPreviewSnapshotContainer(
+      '<html><body><p>Dark snapshot content</p></body></html>',
+      document,
+      { themeId: 'onyx' },
+    );
+
+    // Onyx theme bgPrimary is #0c0c0e -> rgb(12, 12, 14)
+    expect(container.style.background).toBe('rgb(12, 12, 14)');
+    expect(container.style.color).toBe('var(--amc-live-artifact-text)');
+
+    cleanup();
+  });
+
   it('strips scripts and inline event handlers from artifact HTML before rendering', () => {
     const srcDoc = buildHtmlPreviewSrcDoc(
       '<section><script>alert(1)</script><button onclick="alert(2)">Run</button><img src="javascript:alert(3)" alt="x"></section>',
@@ -646,6 +663,46 @@ describe('htmlPreview utilities', () => {
       const srcDoc = buildUnrestrictedHtmlPreviewSrcDoc('<div><div data-amc-chart=\'{"type":"bar"}\'></div></div>');
 
       expect(srcDoc).toContain('/vendor/echarts.min.js');
+    });
+  });
+
+  describe('buildStandaloneHtmlArtifact', () => {
+    it('builds a self-contained offline HTML document with theme variables and responsive meta', async () => {
+      const html = await buildStandaloneHtmlArtifact('<div class="card">Hello Artifact</div>', {
+        themeId: 'onyx',
+        title: 'Custom Title',
+        baseFontSize: 16,
+      });
+
+      expect(html).toMatch(/^<!DOCTYPE html>/);
+      expect(html).toContain('<title>Custom Title</title>');
+      expect(html).toContain('charset="UTF-8"');
+      expect(html).toContain('name="viewport"');
+      expect(html).toContain('--amc-live-artifact-text:');
+      expect(html).toContain('--amc-live-artifact-surface:');
+      expect(html).toContain('--amc-live-artifact-font-size:16px;');
+      expect(html).toContain('html,body{background-color:#0c0c0e!important;}');
+      expect(html).toContain('Hello Artifact');
+    });
+
+    it('hydrates declarative charts into static vector SVG for offline rendering', async () => {
+      const rawHtml = `
+        <div data-amc-chart='{"xAxis":{"type":"category","data":["Mon","Tue"]},"yAxis":{"type":"value"},"series":[{"type":"bar","data":[10,20]}]}'></div>
+      `;
+
+      const html = await buildStandaloneHtmlArtifact(rawHtml, { themeId: 'pearl' });
+
+      expect(html).toContain('<svg');
+      expect(html).toContain('data-amc-chart-rendered="1"');
+    });
+
+    it('pre-renders KaTeX math formulas with KaTeX styles in standalone document', async () => {
+      const rawHtml = '<p>Formula: $E=mc^2$</p>';
+
+      const html = await buildStandaloneHtmlArtifact(rawHtml);
+
+      expect(html).toContain('class="katex"');
+      expect(html).toContain('data-amc-katex="true"');
     });
   });
 });

@@ -4,6 +4,7 @@ import { buildLiveArtifactThemeVars } from '@/utils/live-artifacts/liveArtifactT
 import { PREVIEW_BRIDGE_SCRIPT } from './previewBridgeScript';
 import { hydrateChartsIntoDocument } from './chartRendererScript';
 import { sanitizeElementTree } from './previewSanitizer';
+import { sanitizeDocumentStylesForPngExport } from '@/utils/export/cssColorSanitizer';
 import { STREAMING_PREVIEW_RUNNER_SCRIPT } from './streamingPreviewRunnerScript';
 import type { HtmlPreviewPrivilege } from './previewPrivilege';
 
@@ -78,7 +79,6 @@ const PREVIEW_CONTENT_SECURITY_POLICY_META = `<meta http-equiv="Content-Security
 const PREVIEW_BASE_FONT_SIZE_ATTRIBUTE = 'data-amc-live-artifact-base-font-size';
 const PREVIEW_THEME_ATTRIBUTE = 'data-amc-live-artifact-theme';
 const MATH_IGNORED_ANCESTOR_SELECTOR = 'script,style,textarea,pre,code,kbd,samp,.katex';
-const DARK_LIVE_ARTIFACT_THEME_IDS = new Set(['onyx', 'graphite']);
 const TEX_MATH_SIGNAL_REGEX = /[\\^_{}=+\-*/<>|]|[A-Za-z]\d|\d[A-Za-z]|[\u0370-\u03ff]/;
 const TEX_MATH_ENVIRONMENT_NAMES =
   'align\\*?|aligned|alignedat|array|Bmatrix|bmatrix|cases|equation\\*?|gather\\*?|gathered|matrix|multline\\*?|pmatrix|smallmatrix|split|subarray|Vmatrix|vmatrix';
@@ -332,7 +332,7 @@ const buildPreviewThemeStyle = (
   options: { varsOnly?: boolean; baseFontSize?: number } = {},
 ): string => {
   const theme = resolvePreviewTheme(themeId);
-  const colorScheme = DARK_LIVE_ARTIFACT_THEME_IDS.has(theme.id) ? 'dark' : 'light';
+  const colorScheme = theme.isDark ? 'dark' : 'light';
   // Shared with themeDom.ts (host-document fallback rendering) so both channels
   // cannot drift; see liveArtifactThemeTokens.buildLiveArtifactThemeVars.
   const cssVars = buildLiveArtifactThemeVars(theme.colors);
@@ -582,6 +582,21 @@ export const createStaticPreviewSnapshotContainer = async (
   if (options.sanitize !== false) {
     sanitizeElementTree(parsedDocument);
   }
+  // Sanitize any modern CSS color functions in styles, inline attributes, and SVG attributes
+  // so html2canvas doesn't crash on color(), oklab(), etc.
+  sanitizeDocumentStylesForPngExport(parsedDocument);
+  // Pre-render KaTeX math if formulas exist
+  if (hasTexMathDelimiterCandidate(htmlContent)) {
+    try {
+      await whenKatexReady();
+      if (renderMathInDocument(parsedDocument)) {
+        injectKatexStyles(parsedDocument);
+      }
+    } catch {
+      // Continue if KaTeX fails to load
+    }
+  }
+
   // Hydrate declarative charts as static SVG so the PNG export matches the
   // on-screen artifact. The theme style (varsOnly) is injected so chart SVG
   // colors resolve on the parent page, which never defines --amc-live-artifact-*.
@@ -598,6 +613,7 @@ export const createStaticPreviewSnapshotContainer = async (
     baseFontSize: options.baseFontSize,
   });
 
+  const theme = resolvePreviewTheme(options.themeId);
   const container = targetDocument.createElement('div');
   container.className = 'is-exporting-png html-preview-snapshot';
   Object.assign(container.style, {
@@ -609,19 +625,32 @@ export const createStaticPreviewSnapshotContainer = async (
     pointerEvents: 'none',
     zIndex: '-1',
     overflow: 'hidden',
-    background: '#ffffff',
+    background: theme.colors.bgPrimary,
+    color: 'var(--amc-live-artifact-text)',
   });
 
   parsedDocument.head.querySelectorAll('style, link[rel="stylesheet"]').forEach((node) => {
     container.appendChild(cloneIntoDocument(node, targetDocument));
   });
 
+  // Inject the theme styles so that all --amc-live-artifact-* variables,
+  // overflow guard, table and span badge styles are preserved in exported HTML and snapshots.
+  const themeStyleMarkup = buildPreviewThemeStyle(options.themeId, {
+    varsOnly: false,
+    baseFontSize: options.baseFontSize,
+  });
+  const themeTemplate = targetDocument.createElement('template');
+  themeTemplate.innerHTML = themeStyleMarkup;
+  container.appendChild(themeTemplate.content.cloneNode(true));
+
   const bodyWrapper = targetDocument.createElement('div');
-  bodyWrapper.className = parsedDocument.body.className;
+  bodyWrapper.className = `html-preview-body ${parsedDocument.body.className}`.trim();
   const inlineBodyStyle = parsedDocument.body.getAttribute('style');
   if (inlineBodyStyle) {
     bodyWrapper.setAttribute('style', inlineBodyStyle);
   }
+  bodyWrapper.style.color = 'var(--amc-live-artifact-text)';
+  bodyWrapper.style.minWidth = '0';
 
   Array.from(parsedDocument.body.childNodes).forEach((node) => {
     bodyWrapper.appendChild(cloneIntoDocument(node, targetDocument));
@@ -636,4 +665,88 @@ export const createStaticPreviewSnapshotContainer = async (
       container.remove();
     },
   };
+};
+
+/**
+ * Builds a self-contained, offline-ready HTML document for downloading a Live Artifact.
+ * Pre-hydrates charts and Graphviz into vector SVGs, renders KaTeX math, and injects
+ * complete theme CSS variables, ensuring the downloaded file renders identically in any browser.
+ */
+export const buildStandaloneHtmlArtifact = async (
+  htmlContent: string,
+  options: {
+    themeId?: string;
+    baseFontSize?: number;
+    title?: string;
+    sanitize?: boolean;
+  } = {},
+): Promise<string> => {
+  const parser = new DOMParser();
+  const parsedDocument = parser.parseFromString(htmlContent, 'text/html');
+
+  if (options.sanitize !== false) {
+    sanitizeElementTree(parsedDocument);
+  }
+
+  // Pre-render KaTeX math if formulas are present
+  if (hasTexMathDelimiterCandidate(htmlContent)) {
+    try {
+      await whenKatexReady();
+      if (renderMathInDocument(parsedDocument)) {
+        injectKatexStyles(parsedDocument);
+      }
+    } catch {
+      // Continue without math rendering if KaTeX unavailable
+    }
+  }
+
+  // Hydrate declarative charts as self-contained static SVG
+  hydrateChartsIntoDocument(parsedDocument, {
+    themeStyle: buildPreviewThemeStyle(options.themeId, {
+      varsOnly: true,
+      baseFontSize: options.baseFontSize,
+    }),
+  });
+
+  // Hydrate Graphviz diagrams as self-contained static SVG
+  await hydrateGraphvizIntoDocument(parsedDocument, {
+    themeId: options.themeId,
+    baseFontSize: options.baseFontSize,
+  });
+
+  // Ensure <meta charset="UTF-8"> exists
+  if (!parsedDocument.head.querySelector('meta[charset]')) {
+    const metaCharset = parsedDocument.createElement('meta');
+    metaCharset.setAttribute('charset', 'UTF-8');
+    parsedDocument.head.prepend(metaCharset);
+  }
+
+  // Ensure responsive <meta name="viewport"> exists
+  if (!parsedDocument.head.querySelector('meta[name="viewport"]')) {
+    const metaViewport = parsedDocument.createElement('meta');
+    metaViewport.setAttribute('name', 'viewport');
+    metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
+    parsedDocument.head.appendChild(metaViewport);
+  }
+
+  // Set document title
+  if (options.title) {
+    let titleEl = parsedDocument.head.querySelector('title');
+    if (!titleEl) {
+      titleEl = parsedDocument.createElement('title');
+      parsedDocument.head.appendChild(titleEl);
+    }
+    titleEl.textContent = options.title;
+  }
+
+  const theme = resolvePreviewTheme(options.themeId);
+  const themeStyle = buildPreviewThemeStyle(options.themeId, {
+    varsOnly: false,
+    baseFontSize: options.baseFontSize,
+  });
+  const themeTemplate = parsedDocument.createElement('template');
+  themeTemplate.innerHTML = `${themeStyle}<style>html,body{background-color:${theme.colors.bgPrimary}!important;}</style>`;
+  parsedDocument.head.appendChild(themeTemplate.content.cloneNode(true));
+
+  return `<!DOCTYPE html>\n${parsedDocument.documentElement.outerHTML}`;
 };
