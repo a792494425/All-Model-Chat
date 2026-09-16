@@ -5,6 +5,7 @@
 **Goal:** 修复项目中发现的核心功能缺陷（Gemini Provider 思考预算配置失效、模型 ID 修改冲突）、全量解决国际化 (i18n) 遗漏与硬编码中文问题、完善模型置顶视觉标识与指令面板体验，并补齐 Dockerfile 构建与缓存工程化配置。
 
 **Architecture:**
+
 1. 修正 `GeminiProviderDetail` 协议透传，让 `ModelConfigModal` 在 Gemini 原生模式下正确展示并调节思考预算 (`thinkingBudget`)，并在保存时增加同 Provider 内模型 ID 重复校验。
 2. 根目录补充 `.dockerignore`，避免本地 `node_modules` 与 `.git` 污染 Docker 上下文。
 3. 全面梳理国际化字典，为 `GlobalCommandPalette`、`ProviderModelRow`、`ModelConfigModal`、`media-nav` 组件及 `SpreadsheetViewer` / `ZipViewer` / `AudioRecorder` / `TextEditorModal` 补全 7 国语言翻译 key（en/zh/ja/ko/es/fr/de），替换所有硬编码文本。
@@ -27,11 +28,13 @@
 ### Task 1: 修复 GeminiProviderDetail 协议透传及思考预算配置
 
 **Files:**
+
 - Modify: `src/components/settings/sections/providers/GeminiProviderDetail.tsx:165-175`
 - Test: `src/components/settings/sections/providers/GeminiProviderDetail.test.tsx`
 - Test: `src/components/settings/sections/providers/ModelConfigModal.test.tsx`
 
 **Interfaces:**
+
 - `ProviderModelListSection`: 接收 `protocol?: ThirdPartyApiProtocol`（Gemini 为 `undefined`）
 - `ModelConfigModal`: 当 `protocol` 未传入时，`isOpenAI = false`，展示 `Thinking Budget Tokens`
 
@@ -92,11 +95,13 @@ Expected: PASS
 ### Task 2: ModelConfigModal 模型 ID 修改增加冲突保护
 
 **Files:**
+
 - Modify: `src/components/settings/sections/providers/ModelConfigModal.tsx`
 - Modify: `src/components/settings/sections/providers/models/ProviderModelListSection.tsx`
 - Test: `src/components/settings/sections/providers/ModelConfigModal.test.tsx`
 
 **Interfaces:**
+
 - `ModelConfigModalProps`: 增加 `existingModelIds?: string[]`
 - `handleSave`: 校验 `newId !== model.id && existingModelIds.includes(newId)`，若冲突则拦截并 Toast 报错
 
@@ -142,6 +147,7 @@ Expected: PASS
 ### Task 3: 新增 `.dockerignore` 完善工程化配置
 
 **Files:**
+
 - Create: `.dockerignore`
 
 - [ ] **Step 1: 编写 `.dockerignore` 文件**
@@ -173,11 +179,13 @@ Run: `git -C /Volumes/WD_BLACK/Code/AMC-WebUI status`
 ### Task 4: 全局指令面板 (`GlobalCommandPalette`) 完整国际化与动态模型加载
 
 **Files:**
+
 - Modify: `src/i18n/translations/common.ts` 或 `src/i18n/translations/chat.ts` (添加指令面板所需的 i18n 词条)
 - Modify: `src/components/command/GlobalCommandPalette.tsx`
 - Test: `src/components/command/GlobalCommandPalette.test.tsx`
 
 **Interfaces:**
+
 - `useI18n`: 引入 `t` 替换占位符、分组标题、按钮文字和 toast 提示
 - 动态从 `savedSessions` 或 `useModelPreferencesStore` 获取最近使用的活跃/置顶模型替代写死的 `COMMON_MODELS`
 
@@ -191,6 +199,7 @@ Run: `git -C /Volumes/WD_BLACK/Code/AMC-WebUI status`
 ### Task 5: 服务商模型列表与配置弹窗 (`ProviderModelRow` / `ModelConfigModal`) 国际化
 
 **Files:**
+
 - Modify: `src/i18n/translations/settings/model.ts`
 - Modify: `src/components/settings/sections/providers/models/ProviderModelRow.tsx`
 - Modify: `src/components/settings/sections/providers/ModelConfigModal.tsx`
@@ -207,6 +216,7 @@ Run: `git -C /Volumes/WD_BLACK/Code/AMC-WebUI status`
 ### Task 6: 顶栏模型选择器 (`ModelCatalogList`) 渲染置顶 (Pin) 视觉标识
 
 **Files:**
+
 - Modify: `src/components/shared/ModelCatalogList.tsx`
 - Test: `src/components/shared/ModelPicker.test.tsx`
 
@@ -219,6 +229,7 @@ Run: `git -C /Volumes/WD_BLACK/Code/AMC-WebUI status`
 ### Task 7: 媒体导航与文件预览残留硬编码中文收归
 
 **Files:**
+
 - Modify: `src/i18n/translations/common.ts` / `src/i18n/translations/chat.ts`
 - Modify: `src/components/media-nav/InlinePdfLocateButton.tsx`
 - Modify: `src/components/media-nav/InlineImageLocateButton.tsx`

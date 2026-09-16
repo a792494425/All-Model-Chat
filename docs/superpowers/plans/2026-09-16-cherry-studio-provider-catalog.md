@@ -5,6 +5,7 @@
 **Goal:** 重构 AMC-WebUI 服务商设置体验，借鉴 Cherry Studio 的统一列表、预设常驻、分段过滤与零弹窗直接启用模式，并将全屏添加弹窗精简为轻量自定义弹窗。
 
 **Architecture:**
+
 - 侧边栏动态合成用户已有连接与官方预设（Virtual Presets），顶部增加 `已启用` / `全部` / `未启用` 快速分段过滤。
 - 点击未配置预设无需弹窗，右侧面板直接渲染草稿，用户输入 Key 或打开开关时无缝自动保存入库。
 - 将原本 92vh 的全屏 `ProviderCreateDrawer` 替换为约 440px 紧凑单栏的 `ProviderCreateModal`，仅用于自定义服务商或多账号复制。
@@ -18,6 +19,7 @@
 ### Task 1: 国际化词条补充 (I18n Locales)
 
 **Files:**
+
 - Modify: `src/i18n/locales/zh-CN.json`
 - Modify: `src/i18n/locales/en.json`
 
@@ -34,6 +36,7 @@
 ### Task 2: 轻量级自定义服务商弹窗 (`ProviderCreateModal.tsx`)
 
 **Files:**
+
 - Create: `src/components/settings/sections/providers/ProviderCreateModal.tsx`
 - Test: `src/components/settings/sections/providers/ProviderCreateModal.test.tsx`
 
@@ -48,6 +51,7 @@
 ### Task 3: 侧边栏列表重构 (`ProviderList.tsx`)
 
 **Files:**
+
 - Modify: `src/components/settings/sections/providers/ProviderList.tsx`
 - Test: `src/components/settings/sections/providers/ProviderList.test.tsx`
 
@@ -65,6 +69,7 @@
 ### Task 4: 容器协调与草稿自动持久化 (`ProviderSettingsSection.tsx`)
 
 **Files:**
+
 - Modify: `src/components/settings/sections/providers/ProviderSettingsSection.tsx`
 - Test: `src/components/settings/sections/providers/ProviderSettingsSection.test.tsx`
 

@@ -24,11 +24,13 @@
 ### Task 1: Multimodal Embedding Types & Core Gemini Service
 
 **Files:**
+
 - Create: `src/services/embedding/embeddingTypes.ts`
 - Create: `src/services/embedding/geminiEmbeddingService.ts`
 - Test: `src/services/embedding/geminiEmbeddingService.test.ts`
 
 **Interfaces:**
+
 - Consumes: `getConfiguredApiClient` from `src/services/api/apiClient`, `dbService` from `src/services/db/dbService`
 - Produces:
   - `generateQueryEmbedding(text: string, apiKey?: string): Promise<number[]>`
@@ -48,10 +50,12 @@
 ### Task 2: Multimodal Index Persistence Store (IndexedDB)
 
 **Files:**
+
 - Create: `src/services/embedding/multimodalIndexStore.ts`
 - Test: `src/services/embedding/multimodalIndexStore.test.ts`
 
 **Interfaces:**
+
 - Consumes: `getKeyValue`, `setKeyValue`, `deleteKeyValue` from `src/services/db/indexedDbAccess`
 - Produces:
   - `getStoredEmbeddings(): Promise<Record<string, MultimodalEmbeddingItem>>`
@@ -71,10 +75,12 @@
 ### Task 3: Multimodal Search Engine & Historical Indexer
 
 **Files:**
+
 - Create: `src/services/embedding/multimodalSearchEngine.ts`
 - Test: `src/services/embedding/multimodalSearchEngine.test.ts`
 
 **Interfaces:**
+
 - Consumes: `geminiEmbeddingService`, `multimodalIndexStore`, `dbService` (historical sessions, standalone library items, `fetchLibraryFileBlob`), `blobToBase64`
 - Produces:
   - `indexAllHistoricalItems(onProgress?: (progress: MultimodalIndexProgress) => void): Promise<{ indexed: number, skipped: number }>`
@@ -92,10 +98,12 @@
 ### Task 4: Zustand Store for Multimodal Search UI
 
 **Files:**
+
 - Create: `src/stores/multimodalSearchStore.ts`
 - Test: `src/stores/multimodalSearchStore.test.ts`
 
 **Interfaces:**
+
 - Consumes: `multimodalSearchEngine`, `multimodalIndexStore`
 - Produces: `useMultimodalSearchStore` (isOpen, searchQuery, searchImage, filterType, isIndexing, isSearching, results, progress, openModal, closeModal, executeSearch, runIndexing)
 
@@ -110,6 +118,7 @@
 ### Task 5: Multimodal Search Modal Component & UI Integration
 
 **Files:**
+
 - Create: `src/components/search/MultimodalSearchModal.tsx`
 - Modify: `src/components/library/LibraryHeader.tsx` (add Multimodal Search button)
 - Modify: `src/components/sidebar/HistorySidebar.tsx` (add Multimodal Search trigger button)
@@ -117,6 +126,7 @@
 - Test: `src/components/search/MultimodalSearchModal.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `useMultimodalSearchStore`, `useI18n`, `useChatStore` (for jump to session)
 - Produces: Interactive Multimodal Search Modal with image upload, text input, filter pills, score badges, thumbnails, jump to session, download, preview
 
@@ -131,6 +141,7 @@
 ### Task 6: Internationalization (7 Languages) & Architecture Verification
 
 **Files:**
+
 - Modify: `src/i18n/translations/zh/index.ts` (and relevant translation files)
 - Modify: `src/i18n/translations/en/index.ts`
 - Modify: `src/i18n/translations/ja/index.ts`

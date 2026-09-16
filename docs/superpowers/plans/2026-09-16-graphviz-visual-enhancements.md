@@ -4,7 +4,8 @@
 
 **Goal:** Elevate the visual display quality of Graphviz diagrams in AMC-WebUI to modern design standards (soft card drop shadows, clean edge label text halos, comfortable CJK vertical breathing margins, refined edge arrowheads, and an engineering dot-grid canvas background).
 
-**Architecture:** 
+**Architecture:**
+
 1. Refine default DOT attribute injections in `vizRuntime.ts` (`buildThemeDefaults`: tighter arrow proportions `arrowsize="0.75"`, comfortable node padding `margin="0.22,0.13"`, clean nodesep/ranksep).
 2. Enhance post-render SVG processing in `vizRuntime.ts`: inject a reusable SVG `<feDropShadow>` filter applied specifically to node background shapes (keeping text crisp), and inject edge text halo styling (`paint-order: stroke fill`) so crossing edges don't cut through label text.
 3. Bump `RENDER_STYLE_VERSION` to `v9` for cache invalidation.
@@ -15,6 +16,7 @@
 **Spec:** Current conversation recommendations on Graphviz visual display enhancements.
 
 ## Global Constraints
+
 - Must not break existing Live Artifacts relay protocol or chat markdown rendering.
 - Must preserve SVG sanitization through DOMPurify (filters and SVG styles must remain clean and safe).
 - Node text must remain crisp and readable (shadows apply to card shapes, not text elements).
@@ -26,16 +28,19 @@
 ### Task 1: Update DOT Defaults and SVG Filter/Halo Post-Processing in `vizRuntime.ts`
 
 **Files:**
+
 - Modify: `src/features/graphviz/vizRuntime.ts:220-295, 595-675`
 - Test: `src/features/graphviz/vizRuntime.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Theme['colors']`, `renderDotToSvg`
 - Produces: `RENDER_STYLE_VERSION = 'v9'`, enhanced `buildThemeDefaults`, enhanced `renderDotToSvg`
 
 - [ ] **Step 1: Write tests in `src/features/graphviz/vizRuntime.test.ts` for new visual enhancements**
 
 Add test cases asserting:
+
 - `getGraphvizCacheKey` starts with `v9:`
 - `buildThemeDefaults` uses `arrowsize="0.75"`, `margin="0.22,0.13"`
 - `renderDotToSvg` injects `<filter id="amc-graphviz-shadow"` into `<defs>`
@@ -88,23 +93,26 @@ git commit -m "feat(graphviz): enhance visual rendering with node shadows, edge 
 ### Task 2: Add Blueprint Dot-Grid Canvas Background in `DiagramWrapper.tsx`
 
 **Files:**
+
 - Modify: `src/components/message/blocks/parts/DiagramWrapper.tsx:49-55`
 - Test: `src/components/message/blocks/GraphvizBlock.test.tsx`
 
 **Interfaces:**
+
 - Consumes: Tailwind classes and CSS variables (`--theme-border-secondary`, `--theme-bg-secondary`)
 
 - [ ] **Step 1: Update container background styling in `DiagramWrapper.tsx`**
 
 Add delicate dot-grid texture on the diagram wrapper canvas:
+
 ```tsx
-const bgClass = isDarkThemeId(themeId)
-  ? 'bg-[var(--theme-bg-secondary)]'
-  : 'bg-white';
+const bgClass = isDarkThemeId(themeId) ? 'bg-[var(--theme-bg-secondary)]' : 'bg-white';
 const dotGridClass =
   'bg-[radial-gradient(var(--theme-border-secondary)_1px,transparent_1px)] [background-size:16px_16px]';
 ```
+
 Combine into the diagram container div:
+
 ```tsx
 className={`${containerClasses} ${bgClass} ${dotGridClass} ...`}
 ```
@@ -126,6 +134,7 @@ git commit -m "style(diagram): add blueprint dot-grid texture to diagram contain
 ### Task 3: Comprehensive Test Suite & Visual Regression Verification
 
 **Files:**
+
 - Test: `src/features/graphviz/vizRuntime.test.ts`
 - Test: `src/features/graphviz/graphvizLimits.test.ts`
 - Test: `src/utils/html-preview/graphvizRendererScript.test.ts`

@@ -5,7 +5,8 @@
 **Goal:** 实现单条消息多版本切换（Message Tree `< 1 / N >`），在用户重试（Retry）或重新生成模型回答时，保留所有历史回答版本而非物理覆盖删除；在消息操作栏渲染版本翻页器，支持无缝切换任意历史版本。
 
 **Architecture:**
-1. **数据模型 (Data Structure)**: 
+
+1. **数据模型 (Data Structure)**:
    在 `ChatMessage` 扩充可选字段 `variants?: ChatMessage[]` 与 `currentVariantIndex?: number`。保持 `session.messages` 线性数组作为活跃视图，老会话与未重试消息 100% 保持向后兼容。
 2. **纯函数核心工具 (Core Utility - `src/utils/chat/messageVariants.ts`)**:
    - `switchMessageVariant(session, messageId, targetIndex)`: 在当前会话中将 `message[currentIndex]` 快照保存至 `variants[currentIndex]`，并将 `variants[targetIndex]` 的内容、思考过程、耗时、Token等还原到活跃消息中；
@@ -34,6 +35,7 @@
 ### Task 1: 数据类型扩充与 `messageVariants` 工具库开发 (TDD)
 
 **Files:**
+
 - Modify: `src/types/chat.ts`
 - Create: `src/utils/chat/messageVariants.ts`
 - Create: `src/utils/chat/messageVariants.test.ts`
@@ -54,20 +56,21 @@ export interface ChatMessage {
   - 测试 `appendModelVariant`：把旧消息压入 variants，新消息作为最新版本，currentVariantIndex 正确递增。
 
 - [ ] **Step 3: 运行测试并验证其因文件不存在而失败**
-  `pnpm exec vitest run src/utils/chat/messageVariants.test.ts`
+      `pnpm exec vitest run src/utils/chat/messageVariants.test.ts`
 
 - [ ] **Step 4: 在 `src/utils/chat/messageVariants.ts` 中实现核心函数**
   - `switchMessageVariant`
   - `appendModelVariant`
 
 - [ ] **Step 5: 运行测试确保全部通过**
-  `pnpm exec vitest run src/utils/chat/messageVariants.test.ts`
+      `pnpm exec vitest run src/utils/chat/messageVariants.test.ts`
 
 ---
 
 ### Task 2: 扩展 `messagePipeline.ts` 支持 `retry-model` 模式 (TDD)
 
 **Files:**
+
 - Modify: `src/features/message-sender/messagePipeline.ts`
 - Modify: `src/features/message-sender/messagePipeline.test.ts`
 
@@ -78,20 +81,21 @@ export interface ChatMessage {
     - `currentVariantIndex` 更新为最新版本索引。
 
 - [ ] **Step 2: 运行测试验证失败**
-  `pnpm exec vitest run src/features/message-sender/messagePipeline.test.ts`
+      `pnpm exec vitest run src/features/message-sender/messagePipeline.test.ts`
 
 - [ ] **Step 3: 在 `messagePipeline.ts` 中实现 `retry-model` 逻辑**
   - 扩展 `OptimisticMessagePlacement` 联合类型；
   - 在 `startOptimisticMessageTurn` 中针对 `retry-model`，利用 `appendModelVariant` 将旧消息沉淀入 `variants` 并更新为 `modelMessage`。
 
 - [ ] **Step 4: 运行测试确保全部通过**
-  `pnpm exec vitest run src/features/message-sender/messagePipeline.test.ts`
+      `pnpm exec vitest run src/features/message-sender/messagePipeline.test.ts`
 
 ---
 
 ### Task 3: 重构 `handleRetryMessage` 接入无损版本重试 (TDD)
 
 **Files:**
+
 - Modify: `src/features/message-sender/standardChatStrategy.ts`
 - Modify: `src/hooks/chat/message/useMessageActions.ts`
 - Modify: `src/hooks/chat/message/useMessageActions.test.tsx`
@@ -99,7 +103,7 @@ export interface ChatMessage {
 - [ ] **Step 1: 在 `useMessageActions.test.tsx` 中编写测试，断言重试调用携带 `retryModelMessageId` 并且支持调用 `handleSwitchMessageVariant`**
 
 - [ ] **Step 2: 运行测试验证失败**
-  `pnpm exec vitest run src/hooks/chat/message/useMessageActions.test.tsx`
+      `pnpm exec vitest run src/hooks/chat/message/useMessageActions.test.tsx`
 
 - [ ] **Step 3: 实现 `useMessageActions.ts` 中的重构**
   - 新增 `handleSwitchMessageVariant(messageId: string, targetIndex: number)`；
@@ -107,13 +111,14 @@ export interface ChatMessage {
   - 在 `standardChatStrategy.ts` 中当检测到针对 model 消息的重试时，指定 placement 为 `retry-model`。
 
 - [ ] **Step 4: 运行测试确保全部通过**
-  `pnpm exec vitest run src/hooks/chat/message/useMessageActions.test.tsx`
+      `pnpm exec vitest run src/hooks/chat/message/useMessageActions.test.tsx`
 
 ---
 
 ### Task 4: 补全 7 国语言 i18n 词条与验证
 
 **Files:**
+
 - Modify: `src/i18n/translations/messages.ts` (或 `common.ts`)
 
 - [ ] **Step 1: 在 i18n 字典中增加 `messageVariantPrevious` 与 `messageVariantNext` 翻译**
@@ -132,6 +137,7 @@ export interface ChatMessage {
 ### Task 5: UI 渲染翻页器与组件链式透传 (TDD)
 
 **Files:**
+
 - Modify: `src/components/message/MessageActions.tsx`
 - Modify: `src/components/message/MessageActions.test.tsx`
 - Modify: `src/components/message/Message.tsx`
@@ -144,7 +150,7 @@ export interface ChatMessage {
   - 点击按钮触发 `onSwitchVariant` 回调并携带目标 index。
 
 - [ ] **Step 2: 运行测试验证失败**
-  `pnpm exec vitest run src/components/message/MessageActions.test.tsx`
+      `pnpm exec vitest run src/components/message/MessageActions.test.tsx`
 
 - [ ] **Step 3: 在 `MessageActions.tsx` 中实现翻页控件**
   - 接入 `onSwitchVariant` 属性；
@@ -153,7 +159,7 @@ export interface ChatMessage {
 - [ ] **Step 4: 自顶向下在 `messageListRuntimeValues.ts` -> `MessageList.tsx` -> `Message.tsx` 完成 `onSwitchVariant` 属性透传**
 
 - [ ] **Step 5: 运行测试验证组件与交互正常**
-  `pnpm exec vitest run src/components/message/MessageActions.test.tsx`
+      `pnpm exec vitest run src/components/message/MessageActions.test.tsx`
 
 ---
 
