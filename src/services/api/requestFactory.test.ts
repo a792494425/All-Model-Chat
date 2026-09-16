@@ -131,11 +131,7 @@ describe('fetchProviderModelOptions', () => {
 
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        jsonResponse([
-          { id: 'deepseek-chat', name: 'DeepSeek Chat', owned_by: 'deepseek' },
-        ]),
-      ),
+      vi.fn(async () => jsonResponse([{ id: 'deepseek-chat', name: 'DeepSeek Chat', owned_by: 'deepseek' }])),
     );
 
     const arrayModels = await fetchProviderModelOptions({
@@ -144,9 +140,7 @@ describe('fetchProviderModelOptions', () => {
       errorContextLabel: 'DeepSeek',
     });
 
-    expect(arrayModels).toEqual([
-      { id: 'deepseek-chat', name: 'DeepSeek Chat', ownedBy: 'deepseek' },
-    ]);
+    expect(arrayModels).toEqual([{ id: 'deepseek-chat', name: 'DeepSeek Chat', ownedBy: 'deepseek' }]);
   });
 });
 

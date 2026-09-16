@@ -84,7 +84,7 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
         id: m.id,
         name: m.name || m.id,
         provider: m.connectionName || m.providerId || (m as { provider?: string }).provider || 'AI',
-        badge: m.isPinned ? 'Pinned' : (m.capabilities?.thinking ? 'Reasoning' : 'Model'),
+        badge: m.isPinned ? 'Pinned' : m.capabilities?.thinking ? 'Reasoning' : 'Model',
       }));
     }
     return COMMON_MODELS;
@@ -162,7 +162,10 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
             <CommandShortcut>{modKey}⇧O</CommandShortcut>
           </CommandItem>
 
-          <CommandItem value={`toggle sidebar ${t('commandToggleSidebar')}`} onSelect={() => runCommand(() => toggleHistorySidebar())}>
+          <CommandItem
+            value={`toggle sidebar ${t('commandToggleSidebar')}`}
+            onSelect={() => runCommand(() => toggleHistorySidebar())}
+          >
             <FolderKanban className="text-[var(--theme-text-secondary)]" />
             <span>{t('commandToggleSidebar')}</span>
             <CommandShortcut>{modKey}B</CommandShortcut>
@@ -177,7 +180,10 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
           )}
 
           {onClearCurrentChat && (
-            <CommandItem value={`clear current chat ${t('commandClearChat')}`} onSelect={() => runCommand(onClearCurrentChat)}>
+            <CommandItem
+              value={`clear current chat ${t('commandClearChat')}`}
+              onSelect={() => runCommand(onClearCurrentChat)}
+            >
               <Trash2 className="text-[var(--theme-icon-error)]" />
               <span>{t('commandClearChat')}</span>
               <CommandShortcut>/clear</CommandShortcut>

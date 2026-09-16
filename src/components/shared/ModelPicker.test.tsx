@@ -130,4 +130,3 @@ describe('ModelCatalogList', () => {
     expect(screen.getByTestId('model-pinned-icon')).toBeInTheDocument();
   });
 });
-

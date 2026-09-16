@@ -58,9 +58,6 @@ describe('GeminiProviderDetail', () => {
     const configButtons = screen.getAllByTitle(/model configuration|settingsmodelconfigtitle/i);
     fireEvent.click(configButtons[0]);
 
-
-
-
     const paramTab = screen.getByRole('tab', { name: /params|generation|reasoning/i });
     fireEvent.click(paramTab);
 
@@ -68,9 +65,3 @@ describe('GeminiProviderDetail', () => {
     expect(screen.queryByText(/Reasoning Effort/i)).not.toBeInTheDocument();
   });
 });
-
-
-
-
-
-

@@ -71,12 +71,11 @@ describe('ProviderAvatar', () => {
   });
 
   it('renders data URL image avatar correctly', () => {
-    const dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    const dataUrl =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
     render(<ProviderAvatar name="Custom Service" icon={dataUrl} size={32} />);
     const img = screen.getByRole('img');
     expect(img).toBeDefined();
     expect(img.getAttribute('src')).toBe(dataUrl);
   });
 });
-
-

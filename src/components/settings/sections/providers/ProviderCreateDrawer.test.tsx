@@ -23,12 +23,7 @@ describe('ProviderCreateDrawer', () => {
 
     act(() => {
       renderer.render(
-        <ProviderCreateDrawer
-          isOpen={true}
-          onClose={onClose}
-          existingConnections={existing}
-          onComplete={onComplete}
-        />,
+        <ProviderCreateDrawer isOpen={true} onClose={onClose} existingConnections={existing} onComplete={onComplete} />,
       );
     });
 
@@ -58,12 +53,7 @@ describe('ProviderCreateDrawer', () => {
 
     act(() => {
       renderer.render(
-        <ProviderCreateDrawer
-          isOpen={true}
-          onClose={onClose}
-          existingConnections={[]}
-          onComplete={onComplete}
-        />,
+        <ProviderCreateDrawer isOpen={true} onClose={onClose} existingConnections={[]} onComplete={onComplete} />,
       );
     });
 
@@ -94,9 +84,7 @@ describe('ProviderCreateDrawer', () => {
       anthropicBtn?.click();
     });
 
-    const saveBtn = renderer.container.querySelector<HTMLButtonElement>(
-      '[data-testid="add-provider-confirm-button"]',
-    );
+    const saveBtn = renderer.container.querySelector<HTMLButtonElement>('[data-testid="add-provider-confirm-button"]');
     act(() => {
       saveBtn?.click();
     });
@@ -123,12 +111,7 @@ describe('ProviderCreateDrawer', () => {
 
     act(() => {
       renderer.render(
-        <ProviderCreateDrawer
-          isOpen={true}
-          onClose={onClose}
-          existingConnections={[]}
-          onComplete={onComplete}
-        />,
+        <ProviderCreateDrawer isOpen={true} onClose={onClose} existingConnections={[]} onComplete={onComplete} />,
       );
     });
 

@@ -147,7 +147,11 @@ export const ProviderModelToolbar: React.FC<ProviderModelToolbarProps> = ({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--theme-border-secondary)]/70 bg-[var(--theme-bg-secondary)]/50 hover:bg-[var(--theme-bg-tertiary)] text-xs font-medium text-[var(--theme-text-primary)] transition-all cursor-pointer disabled:opacity-60 shadow-xs"
             >
               <RefreshCw size={13} className={isSyncingModels ? 'animate-spin text-blue-500' : ''} />
-              <span>{isSyncingModels ? (t('thirdPartySyncingModels') || 'Fetching...') : (t('thirdPartySyncModels') || 'Fetch Models')}</span>
+              <span>
+                {isSyncingModels
+                  ? t('thirdPartySyncingModels') || 'Fetching...'
+                  : t('thirdPartySyncModels') || 'Fetch Models'}
+              </span>
             </button>
           )}
 

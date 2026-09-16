@@ -190,6 +190,8 @@ export const useApp = (): AppViewModel => {
   const handleExportChat = useCallback(
     async (format: 'png' | 'html' | 'txt' | 'json') => {
       if (!activeChat) {
+        setIsExportModalOpen(false);
+        toastError(t('exportFailedTitle'));
         return;
       }
 

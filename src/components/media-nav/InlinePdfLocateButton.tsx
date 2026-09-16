@@ -120,7 +120,9 @@ export const InlinePdfLocateButton: React.FC<InlinePdfLocateButtonProps> = ({
           <span className="text-[10px] text-[var(--theme-text-tertiary)] opacity-80">{t('pdfNavRegionLocate')}</span>
         </div>
       )}
-      {!box2d && <div className="text-[10px] text-[var(--theme-text-tertiary)] opacity-80 mt-0.5">{t('pdfNavClickToJump')}</div>}
+      {!box2d && (
+        <div className="text-[10px] text-[var(--theme-text-tertiary)] opacity-80 mt-0.5">{t('pdfNavClickToJump')}</div>
+      )}
     </div>
   );
 

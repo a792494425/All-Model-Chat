@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
-import type {
-  ThirdPartyConnection,
-  ThirdPartyTemplateId,
-  ThirdPartyApiProtocol,
-} from '@/types';
+import type { ThirdPartyConnection, ThirdPartyTemplateId, ThirdPartyApiProtocol } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import {
   SETTINGS_PRIMARY_ACTION_BUTTON_CLASS,
   SETTINGS_SECONDARY_ACTION_BUTTON_CLASS,
 } from '@/constants/buttonClasses';
-import {
-  createConnectionId,
-  getThirdPartyTemplateDefaults,
-} from '@/utils/thirdPartyApiProviders';
+import { createConnectionId, getThirdPartyTemplateDefaults } from '@/utils/thirdPartyApiProviders';
 import { ProviderAvatar } from './ProviderAvatar';
 import { ProviderImageUpload } from './ProviderImageUpload';
 
@@ -27,11 +20,7 @@ export interface ProviderCreateDrawerProps {
   initialDuplicateSourceId?: string;
 }
 
-export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({
-  isOpen,
-  onClose,
-  onComplete,
-}) => {
+export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({ isOpen, onClose, onComplete }) => {
   const { t } = useI18n();
 
   const [name, setName] = useState('');
@@ -57,8 +46,7 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({
     const trimmedName = name.trim() || 'Custom Provider';
     const newId = createConnectionId();
 
-    const customTemplateId: ThirdPartyTemplateId =
-      protocol === 'anthropic' ? 'custom-anthropic' : 'custom-openai';
+    const customTemplateId: ThirdPartyTemplateId = protocol === 'anthropic' ? 'custom-anthropic' : 'custom-openai';
     const defaults = getThirdPartyTemplateDefaults(customTemplateId);
 
     const newConn: ThirdPartyConnection = {
@@ -104,10 +92,7 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({
               size={32}
             />
             <div>
-              <h3
-                id="provider-create-drawer-title"
-                className="text-sm font-semibold text-[var(--theme-text-primary)]"
-              >
+              <h3 id="provider-create-drawer-title" className="text-sm font-semibold text-[var(--theme-text-primary)]">
                 {t('thirdPartyCustomModalTitle') || '添加自定义服务商'}
               </h3>
               <p className="text-[11px] text-[var(--theme-text-secondary)]/80">
@@ -176,18 +161,17 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({
                       : 'bg-[var(--theme-bg-tertiary)]/50 text-[var(--theme-text-secondary)] border-transparent hover:text-[var(--theme-text-primary)]'
                   }`}
                 >
-                  {p === 'anthropic'
-                    ? 'Anthropic'
-                    : p === 'openai-responses'
-                      ? 'Responses'
-                      : 'OpenAI 兼容'}
+                  {p === 'anthropic' ? 'Anthropic' : p === 'openai-responses' ? 'Responses' : 'OpenAI 兼容'}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="provider-drawer-baseurl" className="text-xs font-semibold text-[var(--theme-text-secondary)]">
+            <label
+              htmlFor="provider-drawer-baseurl"
+              className="text-xs font-semibold text-[var(--theme-text-secondary)]"
+            >
               {t('thirdPartyApiBaseUrl') || 'API 地址 (Base URL)'}
             </label>
             <input
@@ -201,7 +185,10 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="provider-drawer-apikey" className="text-xs font-semibold text-[var(--theme-text-secondary)]">
+            <label
+              htmlFor="provider-drawer-apikey"
+              className="text-xs font-semibold text-[var(--theme-text-secondary)]"
+            >
               {t('thirdPartyApiKey') || 'API 密钥'}
             </label>
             <div className="relative flex items-center">
@@ -228,11 +215,7 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({
         </div>
 
         <div className="flex items-center justify-end gap-2.5 px-5 py-3.5 border-t border-[var(--theme-border-secondary)]/40 flex-shrink-0 bg-[var(--theme-bg-secondary)]/25">
-          <button
-            type="button"
-            onClick={onClose}
-            className={SETTINGS_SECONDARY_ACTION_BUTTON_CLASS}
-          >
+          <button type="button" onClick={onClose} className={SETTINGS_SECONDARY_ACTION_BUTTON_CLASS}>
             {t('cancel')}
           </button>
           <button

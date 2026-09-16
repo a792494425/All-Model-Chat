@@ -363,8 +363,8 @@ describe('ProviderDetail', () => {
 
   describe('sync models dispatches on protocol', () => {
     const clickSyncModels = async () => {
-      const syncBtn = Array.from(renderer.container.querySelectorAll('button')).find((btn) =>
-        btn.textContent?.includes('拉取模型') || btn.textContent?.includes('同步模型'),
+      const syncBtn = Array.from(renderer.container.querySelectorAll('button')).find(
+        (btn) => btn.textContent?.includes('拉取模型') || btn.textContent?.includes('同步模型'),
       );
       expect(syncBtn).toBeDefined();
       await act(async () => {
@@ -544,4 +544,3 @@ describe('ProviderDetail', () => {
     });
   });
 });
-

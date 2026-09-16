@@ -507,9 +507,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
         <div className="flex items-center justify-between gap-3">
           <div>
             <h4 className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsAutoTitleCardTitle')}</h4>
-            <p className="mt-0.5 text-xs text-[var(--theme-text-secondary)]">
-              {t('settingsAutoTitleCardDesc')}
-            </p>
+            <p className="mt-0.5 text-xs text-[var(--theme-text-secondary)]">{t('settingsAutoTitleCardDesc')}</p>
           </div>
           <ToggleItem
             label={t('isAutoTitleEnabled')}
@@ -541,9 +539,7 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
                 label={t('settingsAutoTitleLengthLabel')}
                 hideLabel
                 value={currentSettings.autoTitleLength ?? 'standard'}
-                onChange={(e) =>
-                  onUpdateSetting('autoTitleLength', e.target.value as AutoTitleLength)
-                }
+                onChange={(e) => onUpdateSetting('autoTitleLength', e.target.value as AutoTitleLength)}
               >
                 <option value="concise">{t('settingsAutoTitleLengthConcise')}</option>
                 <option value="standard">{t('settingsAutoTitleLengthStandard')}</option>

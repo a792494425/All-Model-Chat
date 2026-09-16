@@ -371,4 +371,3 @@ describe('ModelsSection', () => {
     expect(setActiveTabSpy).toHaveBeenCalledWith('providers');
   });
 });
-

@@ -121,9 +121,7 @@ describe('AttachmentMenu', () => {
 
     const menuItems = Array.from(document.querySelectorAll<HTMLButtonElement>('button[role="menuitem"]'));
     const searchBtn = menuItems.find(
-      (b) =>
-        b.textContent?.includes('多模态语义搜索') ||
-        b.textContent?.toLowerCase().includes('multimodal search'),
+      (b) => b.textContent?.includes('多模态语义搜索') || b.textContent?.toLowerCase().includes('multimodal search'),
     );
     expect(searchBtn).toBeDefined();
 

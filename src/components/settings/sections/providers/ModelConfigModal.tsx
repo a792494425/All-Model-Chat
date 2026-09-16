@@ -53,7 +53,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
   onClose,
   onSave,
 }) => {
-
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabType>('info');
   const [copiedId, setCopiedId] = useState(false);
@@ -149,7 +148,6 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
       .split(/[,，\n]+/)
       .map((s) => s.trim())
       .filter(Boolean);
-
 
     const params: ModelParameters = {};
     if (typeof temperature === 'number' && !isNaN(temperature)) params.temperature = temperature;
@@ -491,8 +489,8 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
                     <Sparkles size={14} className="text-amber-500" />
                     <span>
                       {isOpenAI
-                        ? (t('settingsModelConfigReasoningEffort') || 'Reasoning Effort')
-                        : (t('settingsModelConfigThinkingBudget') || 'Thinking Budget Tokens')}
+                        ? t('settingsModelConfigReasoningEffort') || 'Reasoning Effort'
+                        : t('settingsModelConfigThinkingBudget') || 'Thinking Budget Tokens'}
                     </span>
                   </div>
                   <span className="text-[11px] font-mono text-[var(--theme-text-secondary)]">

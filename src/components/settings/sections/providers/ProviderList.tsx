@@ -94,12 +94,7 @@ const SortableProviderItem: React.FC<SortableProviderItemProps> = ({
           <GripVertical size={15} />
         </button>
 
-        <ProviderAvatar
-          name={connection.name}
-          templateId={connection.templateId}
-          size={26}
-          icon={connection.icon}
-        />
+        <ProviderAvatar name={connection.name} templateId={connection.templateId} size={26} icon={connection.icon} />
 
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
           <span
@@ -249,10 +244,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  const configuredTemplateIds = useMemo(
-    () => new Set(connections.map((c) => c.templateId)),
-    [connections],
-  );
+  const configuredTemplateIds = useMemo(() => new Set(connections.map((c) => c.templateId)), [connections]);
 
   const unconfiguredPresets = useMemo(() => {
     return TEMPLATE_PRESETS.filter((p) => !configuredTemplateIds.has(p.id));
@@ -496,9 +488,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({
                     <ProviderAvatar name={preset.name} templateId={preset.id} size={26} />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-sm truncate text-[var(--theme-text-primary)]">
-                          {preset.name}
-                        </span>
+                        <span className="text-sm truncate text-[var(--theme-text-primary)]">{preset.name}</span>
                         <span className="px-1.5 py-0.2 text-[9px] font-medium rounded-full bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-secondary)]/50 shrink-0">
                           {t('thirdPartyPresetBadge') || '预设'}
                         </span>

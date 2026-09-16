@@ -9,6 +9,7 @@ import { renderHook } from '@/test/render/renderer';
 const mockSetIsHistorySidebarOpen = vi.fn();
 const mockSetIsLogViewerOpen = vi.fn();
 const mockSetAppSettings = vi.fn();
+const mockToastError = vi.fn();
 const LIVE_ARTIFACTS_PROMPT = '[Live Artifacts Protocol - zh]\nLive Artifacts prompt';
 
 const fullMessages: ChatMessage[] = [
@@ -154,6 +155,10 @@ vi.mock('@/hooks/data-management/useChatSessionExport', () => ({
   }),
 }));
 
+vi.mock('@/stores/toastStore', () => ({
+  toastError: (...args: unknown[]) => mockToastError(...args),
+}));
+
 vi.mock('@/stores/uiStore', () => ({
   useUIStore: (
     selector: (state: {
@@ -196,6 +201,25 @@ describe('useApp', () => {
 
     expect(result.current.activeChat?.messages).toEqual(fullMessages);
     expect(result.current.sessionTitle).toBe('Portable Export');
+
+    unmount();
+  });
+
+  it('closes the export modal and toasts an error when handleExportChat is called without an active chat', async () => {
+    currentChatState.activeChat = undefined;
+    const { result, unmount } = renderHook(() => useApp());
+
+    act(() => {
+      result.current.setIsExportModalOpen(true);
+    });
+    expect(result.current.isExportModalOpen).toBe(true);
+
+    await act(async () => {
+      await result.current.handleExportChat('html');
+    });
+
+    expect(result.current.isExportModalOpen).toBe(false);
+    expect(mockToastError).toHaveBeenCalledWith('exportFailedTitle');
 
     unmount();
   });

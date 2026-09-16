@@ -60,7 +60,8 @@ describe('ProviderImageUpload', () => {
 
   it('disables URL text input and shows local placeholder when value is a data URL', () => {
     const onChange = vi.fn();
-    const dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    const dataUrl =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
     act(() => {
       renderer.render(<ProviderImageUpload value={dataUrl} onChange={onChange} name="TestProvider" />);
     });
@@ -80,7 +81,8 @@ describe('ProviderImageUpload', () => {
     const fileInput = renderer.container.querySelector<HTMLInputElement>('input[type="file"]');
     expect(fileInput).not.toBeNull();
 
-    const svgContent = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><circle cx="12" cy="12" r="10"/></svg>';
+    const svgContent =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><circle cx="12" cy="12" r="10"/></svg>';
     const file = new File([svgContent], 'icon.svg', { type: 'image/svg+xml' });
 
     act(() => {

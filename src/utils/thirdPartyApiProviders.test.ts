@@ -456,9 +456,7 @@ describe('duplicateThirdPartyConnection', () => {
       apiKey: 'sk-orig',
       baseUrl: 'https://api.deepseek.com',
       extraHeaders: { 'X-Custom': 'val' },
-      models: [
-        { id: 'deepseek-chat', name: 'DeepSeek Chat', providerId: 'conn-orig', connectionName: 'DeepSeek' },
-      ],
+      models: [{ id: 'deepseek-chat', name: 'DeepSeek Chat', providerId: 'conn-orig', connectionName: 'DeepSeek' }],
     });
 
     const duplicated = duplicateThirdPartyConnection(original, [original], '{name} (Copy)');
@@ -493,4 +491,3 @@ describe('duplicateThirdPartyConnection', () => {
     expect(conn?.modelId).toBe('');
   });
 });
-

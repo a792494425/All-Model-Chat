@@ -63,11 +63,7 @@ const resizeImageToDataUrl = (file: File, maxSize = 128): Promise<string> => {
   });
 };
 
-export const ProviderImageUpload: React.FC<ProviderImageUploadProps> = ({
-  value,
-  onChange,
-  name = 'Custom',
-}) => {
+export const ProviderImageUpload: React.FC<ProviderImageUploadProps> = ({ value, onChange, name = 'Custom' }) => {
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -143,9 +139,7 @@ export const ProviderImageUpload: React.FC<ProviderImageUploadProps> = ({
             isDataUrl ? 'opacity-60 bg-[var(--theme-bg-tertiary)]/40 cursor-not-allowed' : ''
           }`}
         />
-        <p className="text-[10px] text-[var(--theme-text-secondary)]/70 pl-0.5">
-          {t('thirdPartyUploadIconHint')}
-        </p>
+        <p className="text-[10px] text-[var(--theme-text-secondary)]/70 pl-0.5">{t('thirdPartyUploadIconHint')}</p>
       </div>
     </div>
   );

@@ -1,5 +1,18 @@
 import React, { useState, useRef } from 'react';
-import { Settings, Copy, Eye, EyeOff, KeyRound, Activity, ExternalLink, Loader2, AlertCircle, X, SlidersHorizontal, ArrowUpRight } from 'lucide-react';
+import {
+  Settings,
+  Copy,
+  Eye,
+  EyeOff,
+  KeyRound,
+  Activity,
+  ExternalLink,
+  Loader2,
+  AlertCircle,
+  X,
+  SlidersHorizontal,
+  ArrowUpRight,
+} from 'lucide-react';
 import type { ModelOption, ThirdPartyConnection } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';
@@ -290,12 +303,7 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
     <div className="flex-1 flex flex-col h-full min-w-0 bg-[var(--theme-bg-primary)] overflow-hidden">
       <div className="flex items-center justify-between gap-3 px-6 py-3.5 border-b border-[var(--theme-border-secondary)]/30 flex-shrink-0 bg-[var(--theme-bg-primary)]">
         <div className="flex items-center gap-3 min-w-0">
-          <ProviderAvatar
-            name={connection.name}
-            templateId={connection.templateId}
-            size={28}
-            icon={connection.icon}
-          />
+          <ProviderAvatar name={connection.name} templateId={connection.templateId} size={28} icon={connection.icon} />
           <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-xl font-bold text-[var(--theme-text-primary)] truncate">{connection.name}</h2>
             {connection.notes && (
@@ -422,7 +430,9 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
               ) : (
                 <Activity size={13} className="text-[var(--theme-text-secondary)]" />
               )}
-              <span>{healthStatus === 'testing' ? t('thirdPartyTestingConnection') : t('thirdPartyTestConnection')}</span>
+              <span>
+                {healthStatus === 'testing' ? t('thirdPartyTestingConnection') : t('thirdPartyTestConnection')}
+              </span>
             </button>
             {healthResult && (
               <span
@@ -460,7 +470,8 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
                 )}
                 {(healthResult.diagnosticTip || diagnoseConnectionError(healthResult.errorMessage || '')) && (
                   <div className="text-[11px] text-amber-700 dark:text-amber-300/90 font-medium pt-0.5">
-                    💡 {t('thirdPartyDiagnosticAdvice')}: {healthResult.diagnosticTip || diagnoseConnectionError(healthResult.errorMessage || '')}
+                    💡 {t('thirdPartyDiagnosticAdvice')}:{' '}
+                    {healthResult.diagnosticTip || diagnoseConnectionError(healthResult.errorMessage || '')}
                   </div>
                 )}
               </div>

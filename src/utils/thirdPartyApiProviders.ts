@@ -75,7 +75,12 @@ export const TEMPLATE_PRESETS: TemplatePresetMeta[] = [
   { id: 'huggingface', name: 'Hugging Face', category: 'recommended', description: '开源社区官方推理路由端点' },
 
   // Domestic
-  { id: 'siliconflow', name: 'SiliconFlow (硅基流动)', category: 'domestic', description: '高性价比模型分发平台 (DeepSeek 等全系列)' },
+  {
+    id: 'siliconflow',
+    name: 'SiliconFlow (硅基流动)',
+    category: 'domestic',
+    description: '高性价比模型分发平台 (DeepSeek 等全系列)',
+  },
   { id: 'qwen', name: '通义千问 (Qwen)', category: 'domestic', description: '阿里云 DashScope 百炼通用大模型' },
   { id: 'kimi', name: 'Kimi (月之暗面)', category: 'domestic', description: 'Moonshot AI 超长上下文大模型' },
   { id: 'glm', name: '智谱清言 (GLM)', category: 'domestic', description: 'GLM-4, GLM-Zero 智谱大模型平台' },
@@ -505,7 +510,8 @@ export const sanitizeThirdPartyConnection = (
   const candidateModels = Array.isArray(value?.models) ? value.models : defaults.models;
   const sanitizedModels = sanitizeModelOptions(candidateModels);
   const models = Array.isArray(value?.models) ? sanitizedModels : cloneModels(defaults.models);
-  const defaultModelId = models.find((model) => model.isPinned)?.id ?? models[0]?.id ?? (models.length === 0 ? '' : defaults.modelId);
+  const defaultModelId =
+    models.find((model) => model.isPinned)?.id ?? models[0]?.id ?? (models.length === 0 ? '' : defaults.modelId);
   const modelId = typeof value?.modelId === 'string' ? value.modelId.trim() || defaultModelId : defaultModelId;
   const id = typeof value?.id === 'string' && value.id.trim() ? value.id.trim() : '';
   if (!id) {

@@ -376,10 +376,7 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
       <div className="rounded-2xl border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-secondary)]/10 p-2 space-y-3">
         {Object.keys(groupedModels).length === 0 ? (
           models.length === 0 ? (
-            <div
-              data-testid="provider-no-models-card"
-              className="py-10 px-4 text-center space-y-3.5 max-w-md mx-auto"
-            >
+            <div data-testid="provider-no-models-card" className="py-10 px-4 text-center space-y-3.5 max-w-md mx-auto">
               <div className="w-12 h-12 rounded-2xl bg-[var(--theme-bg-tertiary)]/70 border border-[var(--theme-border-secondary)]/40 flex items-center justify-center mx-auto text-[var(--theme-text-secondary)] shadow-xs">
                 <Sparkles size={22} className="text-amber-500/80" />
               </div>
@@ -482,7 +479,6 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
           }
         }}
       />
-
     </div>
   );
 };

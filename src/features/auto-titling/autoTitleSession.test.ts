@@ -146,17 +146,11 @@ describe('autoTitleSession', () => {
     });
 
     expect(result).toBe(true);
-    expect(generateTitleApiMock).toHaveBeenCalledWith(
-      'gemini-key',
-      `${longContent.slice(0, 2000)}…`,
-      'short',
-      'en',
-      {
-        includeEmoji: true,
-        length: 'standard',
-        customPrompt: '',
-      },
-    );
+    expect(generateTitleApiMock).toHaveBeenCalledWith('gemini-key', `${longContent.slice(0, 2000)}…`, 'short', 'en', {
+      includeEmoji: true,
+      length: 'standard',
+      customPrompt: '',
+    });
     expect(sessions[0].title).toBe('Routing Basics');
     expect(sessions[0].titleSource).toBe('auto');
   });
@@ -180,17 +174,11 @@ describe('autoTitleSession', () => {
     });
 
     expect(result).toBe(true);
-    expect(generateTitleApiMock).toHaveBeenCalledWith(
-      'gemini-key',
-      'Help me refactor code',
-      'Sure',
-      'zh',
-      {
-        includeEmoji: false,
-        length: 'concise',
-        customPrompt: 'Never use question marks',
-      },
-    );
+    expect(generateTitleApiMock).toHaveBeenCalledWith('gemini-key', 'Help me refactor code', 'Sure', 'zh', {
+      includeEmoji: false,
+      length: 'concise',
+      customPrompt: 'Never use question marks',
+    });
   });
 
   it('writes the heuristic fallback and keeps titleSource default when the API errors', async () => {
