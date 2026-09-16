@@ -401,11 +401,7 @@ describe('autoIndexingQueue', () => {
       autoIndexingQueue.enqueueItems([item]);
       await vi.runAllTimersAsync();
 
-      expect(mockRequest).toHaveBeenCalledWith(
-        'amc_auto_indexing_worker',
-        { ifAvailable: true },
-        expect.any(Function),
-      );
+      expect(mockRequest).toHaveBeenCalledWith('amc_auto_indexing_worker', { ifAvailable: true }, expect.any(Function));
       expect(multimodalSearchEngine.indexSingleItem).not.toHaveBeenCalled();
       expect(autoIndexingQueue.getQueueLength()).toBe(1);
     } finally {

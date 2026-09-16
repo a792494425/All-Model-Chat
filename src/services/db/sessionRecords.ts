@@ -4,7 +4,7 @@ import {
   extractPersistedSessionFileRecords,
   stripSessionFilePayloads,
 } from '@/utils/chat/session';
-import { FILES_STORE, KEY_VALUE_STORE, SESSIONS_STORE } from './dbSchema';
+import { EMBEDDINGS_STORE, FILES_STORE, KEY_VALUE_STORE, SESSIONS_STORE } from './dbSchema';
 import { getAll, getDb, getItem, transactionToPromise, withWriteLock } from './indexedDbAccess';
 import { getDraftFilesKey } from './draftFileRecords';
 import { releaseManagedObjectUrlsByOwner } from '@/services/objectUrlManager';
@@ -23,10 +23,13 @@ const getSessionFileRecords = async (sessionId: string): Promise<PersistedSessio
 export const saveSession = async (session: SavedChatSession): Promise<void> => {
   return withWriteLock(async () => {
     const db = await getDb();
-    const tx = db.transaction([SESSIONS_STORE, FILES_STORE], 'readwrite');
+    const hasEmbeddings = db.objectStoreNames.contains(EMBEDDINGS_STORE);
+    const storeNames = hasEmbeddings ? [SESSIONS_STORE, FILES_STORE, EMBEDDINGS_STORE] : [SESSIONS_STORE, FILES_STORE];
+    const tx = db.transaction(storeNames, 'readwrite');
     const sessionStore = tx.objectStore(SESSIONS_STORE);
     const fileStore = tx.objectStore(FILES_STORE);
     const fileIndex = fileStore.index('sessionId');
+    const embeddingsStore = hasEmbeddings ? tx.objectStore(EMBEDDINGS_STORE) : null;
 
     const sanitizedSession = stripSessionFilePayloads(session);
     const fileRecords = extractPersistedSessionFileRecords(session);
@@ -44,6 +47,7 @@ export const saveSession = async (session: SavedChatSession): Promise<void> => {
 
       if (!nextFileIds.has(cursor.primaryKey as string)) {
         fileStore.delete(cursor.primaryKey);
+        embeddingsStore?.delete(cursor.primaryKey);
       }
       cursor.continue();
     };
@@ -58,17 +62,41 @@ export const saveSession = async (session: SavedChatSession): Promise<void> => {
 export const setAllSessions = async (sessions: SavedChatSession[]): Promise<void> => {
   return withWriteLock(async () => {
     const db = await getDb();
-    const tx = db.transaction([SESSIONS_STORE, FILES_STORE], 'readwrite');
+    const hasEmbeddings = db.objectStoreNames.contains(EMBEDDINGS_STORE);
+    const storeNames = hasEmbeddings ? [SESSIONS_STORE, FILES_STORE, EMBEDDINGS_STORE] : [SESSIONS_STORE, FILES_STORE];
+    const tx = db.transaction(storeNames, 'readwrite');
     const sessionStore = tx.objectStore(SESSIONS_STORE);
     const fileStore = tx.objectStore(FILES_STORE);
+    const embeddingsStore = hasEmbeddings ? tx.objectStore(EMBEDDINGS_STORE) : null;
 
     sessionStore.clear();
     fileStore.clear();
 
+    const retainedSessionIds = new Set<string>(sessions.map((s) => s.id));
+    const retainedFileIds = new Set<string>();
+
     sessions.forEach((session) => {
       sessionStore.put(stripSessionFilePayloads(session));
-      extractPersistedSessionFileRecords(session).forEach((record) => fileStore.put(record));
+      extractPersistedSessionFileRecords(session).forEach((record) => {
+        retainedFileIds.add(record.id);
+        fileStore.put(record);
+      });
     });
+
+    if (embeddingsStore) {
+      const cursorRequest = embeddingsStore.openCursor();
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+        if (!cursor) return;
+        const item = cursor.value as { id?: string; sessionId?: string };
+        if (item?.sessionId && !retainedSessionIds.has(item.sessionId)) {
+          cursor.delete();
+        } else if (item?.id && item?.sessionId && !retainedFileIds.has(item.id)) {
+          cursor.delete();
+        }
+        cursor.continue();
+      };
+    }
 
     return transactionToPromise(tx);
   });
@@ -78,11 +106,16 @@ export const deleteSession = async (id: string): Promise<void> => {
   return withWriteLock(async () => {
     releaseManagedObjectUrlsByOwner(`draft:${id}`);
     const db = await getDb();
-    const tx = db.transaction([SESSIONS_STORE, FILES_STORE, KEY_VALUE_STORE], 'readwrite');
+    const hasEmbeddings = db.objectStoreNames.contains(EMBEDDINGS_STORE);
+    const storeNames = hasEmbeddings
+      ? [SESSIONS_STORE, FILES_STORE, KEY_VALUE_STORE, EMBEDDINGS_STORE]
+      : [SESSIONS_STORE, FILES_STORE, KEY_VALUE_STORE];
+    const tx = db.transaction(storeNames, 'readwrite');
     const sessionStore = tx.objectStore(SESSIONS_STORE);
     const fileStore = tx.objectStore(FILES_STORE);
     const kvStore = tx.objectStore(KEY_VALUE_STORE);
     const fileIndex = fileStore.index('sessionId');
+    const embeddingsStore = hasEmbeddings ? tx.objectStore(EMBEDDINGS_STORE) : null;
 
     sessionStore.delete(id);
     kvStore.delete(getDraftFilesKey(id));
@@ -95,6 +128,7 @@ export const deleteSession = async (id: string): Promise<void> => {
       }
 
       fileStore.delete(cursor.primaryKey);
+      embeddingsStore?.delete(cursor.primaryKey);
       cursor.continue();
     };
     cleanupRequest.onerror = () => {
@@ -216,9 +250,12 @@ export const deleteFilesFromSessions = async (fileIds: string[]): Promise<void> 
 
   return withWriteLock(async () => {
     const db = await getDb();
-    const tx = db.transaction([SESSIONS_STORE, FILES_STORE], 'readwrite');
+    const hasEmbeddings = db.objectStoreNames?.contains(EMBEDDINGS_STORE);
+    const storeNames = hasEmbeddings ? [SESSIONS_STORE, FILES_STORE, EMBEDDINGS_STORE] : [SESSIONS_STORE, FILES_STORE];
+    const tx = db.transaction(storeNames, 'readwrite');
     const sessionStore = tx.objectStore(SESSIONS_STORE);
     const fileStore = tx.objectStore(FILES_STORE);
+    const embeddingsStore = hasEmbeddings ? tx.objectStore(EMBEDDINGS_STORE) : null;
 
     const request = sessionStore.openCursor();
     await new Promise<void>((resolve, reject) => {
@@ -258,6 +295,7 @@ export const deleteFilesFromSessions = async (fileIds: string[]): Promise<void> 
 
     for (const id of fileIds) {
       fileStore.delete(id);
+      embeddingsStore?.delete(id);
     }
 
     return transactionToPromise(tx);

@@ -30,10 +30,25 @@ export const getDb = (): Promise<IDBDatabase> => {
           }
 
           console.error('IndexedDB error:', request.error);
+          dbPromise = null;
           reject(request.error);
         };
 
-        request.onsuccess = () => resolve(request.result);
+        request.onsuccess = () => {
+          const db = request.result;
+          db.onversionchange = () => {
+            try {
+              db.close();
+            } catch {
+              // Ignore close errors
+            }
+            dbPromise = null;
+          };
+          db.onclose = () => {
+            dbPromise = null;
+          };
+          resolve(db);
+        };
 
         request.onupgradeneeded = (event) => {
           const db = (event.target as IDBOpenDBRequest).result;

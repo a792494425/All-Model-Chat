@@ -7,6 +7,7 @@ import {
   saveBatchStoredEmbeddings,
   removeStoredEmbedding,
   removeStoredEmbeddings,
+  removeStoredEmbeddingsBySessionId,
   clearAllStoredEmbeddings,
   getStoredEmbeddingCount,
   updateStoredEmbeddingName,
@@ -166,6 +167,17 @@ describe('multimodalIndexStore', () => {
     await removeStoredEmbeddings(['file-1', 'file-2']);
 
     expect(await getStoredEmbeddingCount()).toBe(0);
+  });
+
+  it('removes embeddings associated with a specific session id', async () => {
+    const itemInSession = { ...sampleItem, id: 'session-file-1', sessionId: 'target-session' };
+    const itemInOtherSession = { ...item2, id: 'session-file-2', sessionId: 'other-session' };
+    await saveBatchStoredEmbeddings([itemInSession, itemInOtherSession]);
+
+    await removeStoredEmbeddingsBySessionId('target-session');
+
+    expect(await getStoredEmbedding('session-file-1')).toBeUndefined();
+    expect(await getStoredEmbedding('session-file-2')).toBeDefined();
   });
 
   it('clears all embeddings', async () => {

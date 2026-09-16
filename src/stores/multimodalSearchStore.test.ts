@@ -33,13 +33,19 @@ describe('useMultimodalSearchStore', () => {
     expect(useMultimodalSearchStore.getState().isAutoIndexEnabled).toBe(false);
   });
 
-  it('opens and closes modal', () => {
+  it('opens and closes modal, resetting search image state', () => {
     useMultimodalSearchStore.getState().openModal('initial query');
     expect(useMultimodalSearchStore.getState().isOpen).toBe(true);
     expect(useMultimodalSearchStore.getState().searchQuery).toBe('initial query');
 
+    const dummyBlob = new Blob(['data'], { type: 'image/png' });
+    useMultimodalSearchStore.getState().setSearchImage(dummyBlob, 'blob:mock-url');
+    expect(useMultimodalSearchStore.getState().searchImagePreviewUrl).toBe('blob:mock-url');
+
     useMultimodalSearchStore.getState().closeModal();
     expect(useMultimodalSearchStore.getState().isOpen).toBe(false);
+    expect(useMultimodalSearchStore.getState().searchImage).toBeNull();
+    expect(useMultimodalSearchStore.getState().searchImagePreviewUrl).toBeNull();
   });
 
   it('sets search image and clears it', () => {

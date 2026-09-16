@@ -332,7 +332,8 @@ describe('libraryRecords service', () => {
     await expect(fetchLibraryFileBlob(item)).resolves.toBe(blob);
   });
 
-  it('drops the mirrored payload when a standalone file is deleted', async () => {
+  it('drops the mirrored payload and removes stored embeddings when a standalone file is deleted', async () => {
+    const removeEmbeddingsSpy = vi.spyOn(multimodalIndexStoreModule, 'removeStoredEmbeddings');
     const blob = new Blob(['payload'], { type: 'image/png' });
     mockStore['lib-doomed'] = { id: 'lib-doomed', rawFile: blob };
     mockStore['amc_library_standalone_files_v1'] = [
@@ -343,5 +344,6 @@ describe('libraryRecords service', () => {
 
     expect(mockStore['lib-doomed']).toBeUndefined();
     expect(await getStandaloneLibraryFiles()).toEqual([]);
+    expect(removeEmbeddingsSpy).toHaveBeenCalledWith(['lib-doomed']);
   });
 });

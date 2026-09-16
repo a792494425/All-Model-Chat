@@ -95,6 +95,10 @@ export const useMultimodalSearchStore = create<MultimodalSearchState & Multimoda
         }
         set({
           isOpen: false,
+          searchImage: null,
+          searchImagePreviewUrl: null,
+          cachedImageBlob: null,
+          cachedQueryEmbedding: null,
           searchError: null,
         });
       },

@@ -3,7 +3,7 @@ import { getKeyValue, setKeyValue, getItem, getAll, putMany, deleteMany } from '
 import { FILES_STORE, SESSIONS_STORE } from './dbSchema';
 import { extractLibraryItemsFromSessions } from '@/utils/library/libraryFiles';
 import { base64ToBlob } from '@/utils/file/fileEncoding';
-import { updateStoredEmbeddingName } from '@/services/embedding/multimodalIndexStore';
+import { removeStoredEmbeddings, updateStoredEmbeddingName } from '@/services/embedding/multimodalIndexStore';
 
 const STANDALONE_LIBRARY_STORAGE_KEY = 'amc_library_standalone_files_v1';
 const DELETED_LIBRARY_FILES_STORAGE_KEY = 'amc_library_deleted_file_ids_v1';
@@ -83,6 +83,7 @@ export const deleteStandaloneLibraryFiles = async (ids: string[]): Promise<void>
   const remaining = current.filter((item) => !idSet.has(item.id));
   await setKeyValue(STANDALONE_LIBRARY_STORAGE_KEY, remaining);
   await deleteMany(FILES_STORE, ids);
+  await removeStoredEmbeddings(ids).catch(() => {});
 };
 
 export const renameStandaloneLibraryFile = async (id: string, newName: string): Promise<void> => {

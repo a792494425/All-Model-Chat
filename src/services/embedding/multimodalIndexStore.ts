@@ -153,6 +153,19 @@ export const removeStoredEmbeddings = async (ids: string[]): Promise<void> => {
 };
 
 /**
+ * Removes all embeddings associated with a specific session ID.
+ */
+export const removeStoredEmbeddingsBySessionId = async (sessionId: string): Promise<void> => {
+  if (!sessionId) return;
+  await ensureLegacyEmbeddingsMigrated();
+  const allItems = await getAll<MultimodalEmbeddingItem>(EMBEDDINGS_STORE);
+  const idsToDelete = allItems.filter((item) => item.sessionId === sessionId).map((item) => item.id);
+  if (idsToDelete.length > 0) {
+    await deleteMany(EMBEDDINGS_STORE, idsToDelete);
+  }
+};
+
+/**
  * Clears all multimodal embeddings, including any un-migrated legacy record.
  */
 export const clearAllStoredEmbeddings = async (): Promise<void> => {
