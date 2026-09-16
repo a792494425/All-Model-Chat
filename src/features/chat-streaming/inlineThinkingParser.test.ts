@@ -47,6 +47,20 @@ describe('inlineThinkingParser', () => {
     expect(state.mode).toBe('content');
   });
 
+  it('carries an uppercase opener split across chunk boundaries into thinking mode', () => {
+    const state = createInlineThinkingParserState();
+
+    expect(pushInlineThinkingChunk(state, 'Before <THI')).toEqual({ content: 'Before ', thought: '' });
+    expect(state.buffer).toBe('<THI');
+    expect(pushInlineThinkingChunk(state, 'NKING>Draft.')).toEqual({ content: '', thought: 'Draft.' });
+    expect(state.mode).toBe('thinking');
+
+    expect(pushInlineThinkingChunk(state, '</THI')).toEqual({ content: '', thought: '' });
+    expect(state.buffer).toBe('</THI');
+    expect(pushInlineThinkingChunk(state, 'NK>Done.')).toEqual({ content: 'Done.', thought: '' });
+    expect(state.mode).toBe('content');
+  });
+
   it('defers a trailing close-tag prefix in thinking mode until it resolves', () => {
     const state = createInlineThinkingParserState();
 

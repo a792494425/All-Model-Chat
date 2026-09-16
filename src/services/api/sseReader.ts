@@ -89,6 +89,15 @@ export const readSseStream = async <T>(
   }, 5_000);
   idleWatchdog.unref?.();
 
+  const onAbort = () => {
+    void reader.cancel().catch(() => undefined);
+  };
+  if (abortSignal.aborted) {
+    onAbort();
+  } else {
+    abortSignal.addEventListener('abort', onAbort, { once: true });
+  }
+
   try {
     while (true) {
       const { done, value } = await reader.read();
@@ -110,6 +119,10 @@ export const readSseStream = async <T>(
       throw createStreamIdleTimeoutError();
     }
 
+    if (abortSignal.aborted) {
+      return;
+    }
+
     const tail = decoder.decode();
     if (tail) {
       buffer = appendSseChunk(buffer, tail);
@@ -119,6 +132,7 @@ export const readSseStream = async <T>(
       onEvent(event);
     }
   } finally {
+    abortSignal.removeEventListener('abort', onAbort);
     clearInterval(idleWatchdog);
     // Release the reader so the underlying HTTP/TLS connection is returned to the pool.
     await reader.cancel().catch(() => undefined);

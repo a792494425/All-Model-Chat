@@ -25,18 +25,24 @@ const navigationRoute = new NavigationRoute(createHandlerBoundToURL('/index.html
 
 registerRoute(navigationRoute);
 
+// Network-only routes must be registered before the destination-based cache route
+// so requests to /api/ (such as /api/image-proxy with destination='image') are
+// never intercepted by StaleWhileRevalidate.
+registerRoute(
+  ({ url }) =>
+    url.origin === self.location.origin &&
+    (url.pathname === '/runtime-config.js' || url.pathname === '/api' || url.pathname.startsWith('/api/')),
+  new NetworkOnly(),
+);
+
 registerRoute(
   ({ request, url }) =>
     url.origin === self.location.origin &&
     ['style', 'script', 'worker', 'font', 'image'].includes(request.destination) &&
-    url.pathname !== '/runtime-config.js',
+    url.pathname !== '/runtime-config.js' &&
+    url.pathname !== '/api' &&
+    !url.pathname.startsWith('/api/'),
   new StaleWhileRevalidate({
     cacheName: 'static-assets',
   }),
-);
-
-registerRoute(
-  ({ url }) =>
-    url.origin === self.location.origin && (url.pathname === '/runtime-config.js' || url.pathname.startsWith('/api/')),
-  new NetworkOnly(),
 );

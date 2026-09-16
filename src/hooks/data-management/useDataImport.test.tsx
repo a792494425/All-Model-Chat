@@ -380,4 +380,62 @@ describe('useDataImport', () => {
 
     unmount();
   });
+
+  it('assigns generated unique IDs when imported sessions, groups, or messages lack an id', () => {
+    let sessions: SavedChatSession[] = [];
+    let groups: ChatGroup[] = [];
+    const updateAndPersistSessions = vi.fn((updater: (prev: SavedChatSession[]) => SavedChatSession[]) => {
+      sessions = updater(sessions);
+    });
+    const updateAndPersistGroups = vi.fn((updater: (prev: ChatGroup[]) => ChatGroup[]) => {
+      groups = updater(groups);
+    });
+
+    fileReaderResult = JSON.stringify({
+      type: 'AllModelChat-History',
+      history: [
+        {
+          title: 'Session without id',
+          timestamp: '2026-04-18T08:30:00.000Z',
+          messages: [
+            {
+              role: 'user',
+              content: 'Message without id',
+            },
+          ],
+          settings: {},
+        },
+      ],
+      groups: [
+        {
+          title: 'Group without id',
+          timestamp: '2026-04-17T08:30:00.000Z',
+        },
+      ],
+    });
+
+    const { result, unmount } = renderHook(() =>
+      useDataImport({
+        setAppSettings: vi.fn(),
+        updateAndPersistSessions,
+        updateAndPersistGroups,
+        savedScenarios: [],
+        handleSaveAllScenarios: vi.fn(),
+        t: (key) => key,
+      }),
+    );
+
+    act(() => {
+      result.current.handleImportHistory(new File(['history'], 'history.json', { type: 'application/json' }));
+    });
+
+    expect(typeof sessions[0].id).toBe('string');
+    expect(sessions[0].id.length).toBeGreaterThan(0);
+    expect(typeof sessions[0].messages[0].id).toBe('string');
+    expect(sessions[0].messages[0].id.length).toBeGreaterThan(0);
+    expect(typeof groups[0].id).toBe('string');
+    expect(groups[0].id.length).toBeGreaterThan(0);
+
+    unmount();
+  });
 });

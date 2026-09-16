@@ -52,6 +52,7 @@ const normalizeImportedTimestamp = (value: unknown): number => {
 
 const normalizeImportedGroup = (group: ChatGroup): ChatGroup => ({
   ...group,
+  id: typeof group?.id === 'string' && group.id.trim() ? group.id.trim() : generateUniqueId(),
   timestamp: normalizeImportedTimestamp(group.timestamp),
 });
 
@@ -70,6 +71,7 @@ const normalizeImportedDate = (value: unknown): Date | undefined => {
 
 const normalizeImportedMessage = (message: ChatMessage): ChatMessage => ({
   ...message,
+  id: typeof message?.id === 'string' && message.id.trim() ? message.id.trim() : generateUniqueId(),
   timestamp: normalizeImportedDate(message.timestamp) ?? new Date(),
   generationStartTime: normalizeImportedDate(message.generationStartTime),
   generationEndTime: normalizeImportedDate(message.generationEndTime),
@@ -77,6 +79,7 @@ const normalizeImportedMessage = (message: ChatMessage): ChatMessage => ({
 
 const normalizeImportedSession = (session: SavedChatSession): SavedChatSession => ({
   ...session,
+  id: typeof session?.id === 'string' && session.id.trim() ? session.id.trim() : generateUniqueId(),
   timestamp: normalizeImportedTimestamp(session.timestamp),
   settings: {
     ...session.settings,

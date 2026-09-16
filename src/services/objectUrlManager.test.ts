@@ -70,4 +70,26 @@ describe('ObjectUrlManager', () => {
     expect(revokeObjectUrl).toHaveBeenCalledTimes(2);
     expect(revokeObjectUrl).toHaveBeenLastCalledWith(otherUrl);
   });
+
+  it('safely handles idempotent releaseOwner without over-decrementing shared URLs', () => {
+    const sharedKey = 'shared-key-1';
+    const urlA = createManagedObjectUrl(blob, { key: sharedKey, ownerId: 'owner-a' });
+    const urlB = createManagedObjectUrl(blob, { key: sharedKey, ownerId: 'owner-b' });
+
+    expect(urlA).toBe(urlB);
+    expect(createObjectUrl).toHaveBeenCalledTimes(1);
+
+    // First release by owner-a
+    releaseManagedObjectUrlsByOwner('owner-a');
+    expect(revokeObjectUrl).not.toHaveBeenCalled();
+
+    // Idempotent second release by owner-a must be a no-op and not decrement owner-b's ref
+    releaseManagedObjectUrlsByOwner('owner-a');
+    expect(revokeObjectUrl).not.toHaveBeenCalled();
+
+    // Releasing owner-b now cleans up the URL
+    releaseManagedObjectUrlsByOwner('owner-b');
+    expect(revokeObjectUrl).toHaveBeenCalledTimes(1);
+    expect(revokeObjectUrl).toHaveBeenCalledWith(urlA);
+  });
 });

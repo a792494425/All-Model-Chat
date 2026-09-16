@@ -90,9 +90,14 @@ class ObjectUrlManager {
     }
 
     const urls = [...ownerUrls];
+    this.urlsByOwner.delete(ownerId);
+
     urls.forEach((url) => {
       const entry = this.entries.get(url);
       const ownerRefs = entry?.owners.get(ownerId) ?? 1;
+      if (entry) {
+        entry.owners.delete(ownerId);
+      }
 
       for (let i = 0; i < ownerRefs; i += 1) {
         this.release(url);

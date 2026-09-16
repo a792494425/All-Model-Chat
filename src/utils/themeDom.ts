@@ -72,5 +72,8 @@ export const applyThemeToDocument = (doc: Document, theme: Theme, settings: AppS
   bodyClassList.toggle('dark', theme.isDark);
 
   // Reading size targets chat body text (messages set their own px). Chrome uses rem from html.
-  doc.body.style.fontSize = `${settings.baseFontSize}px`;
+  const fontSize = Number(settings?.baseFontSize);
+  if (Number.isFinite(fontSize) && fontSize > 0) {
+    doc.body.style.fontSize = `${fontSize}px`;
+  }
 };

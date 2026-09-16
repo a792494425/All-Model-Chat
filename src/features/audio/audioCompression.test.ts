@@ -26,9 +26,13 @@ const flushAudioCompressionPipeline = async () => {
   }
 };
 
-const createAudioContextMock = (audioBuffer: { duration: number }) =>
-  vi.fn(function AudioContextMock(this: { decodeAudioData: ReturnType<typeof vi.fn> }) {
+const createAudioContextMock = (audioBuffer: { duration: number }, closeSpy = vi.fn().mockResolvedValue(undefined)) =>
+  vi.fn(function AudioContextMock(this: {
+    decodeAudioData: ReturnType<typeof vi.fn>;
+    close: ReturnType<typeof vi.fn>;
+  }) {
     this.decodeAudioData = vi.fn().mockResolvedValue(audioBuffer);
+    this.close = closeSpy;
   });
 
 const createOfflineAudioContextMock = (pcmData: Float32Array) =>
@@ -90,7 +94,8 @@ describe('compressAudioToMp3', () => {
     const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockImplementation(() => 'blob:audio-worker');
     const revokeObjectUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
     const pcmData = new Float32Array([0.25, -0.25, 0.5]);
-    vi.stubGlobal('AudioContext', createAudioContextMock({ duration: 2 }));
+    const closeAudioCtxSpy = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('AudioContext', createAudioContextMock({ duration: 2 }, closeAudioCtxSpy));
     vi.stubGlobal('OfflineAudioContext', createOfflineAudioContextMock(pcmData));
     vi.stubGlobal(
       'Worker',
@@ -116,6 +121,7 @@ describe('compressAudioToMp3', () => {
 
     expect(result.name).toBe('voice.mp3');
     expect(result.type).toBe('audio/mpeg');
+    expect(closeAudioCtxSpy).toHaveBeenCalled();
     expect(worker.terminate).toHaveBeenCalled();
     expect(revokeObjectUrl).toHaveBeenCalledWith('blob:audio-worker');
 

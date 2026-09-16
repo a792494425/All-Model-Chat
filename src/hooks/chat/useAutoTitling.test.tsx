@@ -99,6 +99,11 @@ describe('useAutoTitling', () => {
         'Explain routing',
         'Routing decides which handler receives a request.',
         'en',
+        expect.objectContaining({
+          includeEmoji: true,
+          length: 'standard',
+          customPrompt: '',
+        }),
       );
     });
     expect(getGeminiKeyForRequestMock).toHaveBeenCalled();

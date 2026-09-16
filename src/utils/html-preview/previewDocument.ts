@@ -644,17 +644,20 @@ export const createStaticPreviewSnapshotContainer = async (
   container.appendChild(themeTemplate.content.cloneNode(true));
 
   const bodyWrapper = targetDocument.createElement('div');
-  bodyWrapper.className = `html-preview-body ${parsedDocument.body.className}`.trim();
-  const inlineBodyStyle = parsedDocument.body.getAttribute('style');
+  const bodyElement = parsedDocument.body;
+  bodyWrapper.className = `html-preview-body ${bodyElement?.className || ''}`.trim();
+  const inlineBodyStyle = bodyElement?.getAttribute('style');
   if (inlineBodyStyle) {
     bodyWrapper.setAttribute('style', inlineBodyStyle);
   }
   bodyWrapper.style.color = 'var(--amc-live-artifact-text)';
   bodyWrapper.style.minWidth = '0';
 
-  Array.from(parsedDocument.body.childNodes).forEach((node) => {
-    bodyWrapper.appendChild(cloneIntoDocument(node, targetDocument));
-  });
+  if (bodyElement) {
+    Array.from(bodyElement.childNodes).forEach((node) => {
+      bodyWrapper.appendChild(cloneIntoDocument(node, targetDocument));
+    });
+  }
 
   container.appendChild(bodyWrapper);
   targetDocument.body.appendChild(container);
@@ -714,27 +717,34 @@ export const buildStandaloneHtmlArtifact = async (
     baseFontSize: options.baseFontSize,
   });
 
+  // Ensure <head> exists
+  let head = parsedDocument.head;
+  if (!head) {
+    head = parsedDocument.createElement('head');
+    parsedDocument.documentElement.prepend(head);
+  }
+
   // Ensure <meta charset="UTF-8"> exists
-  if (!parsedDocument.head.querySelector('meta[charset]')) {
+  if (!head.querySelector('meta[charset]')) {
     const metaCharset = parsedDocument.createElement('meta');
     metaCharset.setAttribute('charset', 'UTF-8');
-    parsedDocument.head.prepend(metaCharset);
+    head.prepend(metaCharset);
   }
 
   // Ensure responsive <meta name="viewport"> exists
-  if (!parsedDocument.head.querySelector('meta[name="viewport"]')) {
+  if (!head.querySelector('meta[name="viewport"]')) {
     const metaViewport = parsedDocument.createElement('meta');
     metaViewport.setAttribute('name', 'viewport');
     metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
-    parsedDocument.head.appendChild(metaViewport);
+    head.appendChild(metaViewport);
   }
 
   // Set document title
   if (options.title) {
-    let titleEl = parsedDocument.head.querySelector('title');
+    let titleEl = head.querySelector('title');
     if (!titleEl) {
       titleEl = parsedDocument.createElement('title');
-      parsedDocument.head.appendChild(titleEl);
+      head.appendChild(titleEl);
     }
     titleEl.textContent = options.title;
   }
@@ -746,7 +756,7 @@ export const buildStandaloneHtmlArtifact = async (
   });
   const themeTemplate = parsedDocument.createElement('template');
   themeTemplate.innerHTML = `${themeStyle}<style>html,body{background-color:${theme.colors.bgPrimary}!important;}</style>`;
-  parsedDocument.head.appendChild(themeTemplate.content.cloneNode(true));
+  head.appendChild(themeTemplate.content.cloneNode(true));
 
   return `<!DOCTYPE html>\n${parsedDocument.documentElement.outerHTML}`;
 };

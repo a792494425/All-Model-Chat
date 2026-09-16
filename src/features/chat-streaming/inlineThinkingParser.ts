@@ -42,13 +42,14 @@ const findEarliestTag = (buffer: string, tags: readonly string[]): { index: numb
 // with. Only proper prefixes qualify — a complete tag is handled by
 // findEarliestTag and consumed outright.
 const heldBackPrefix = (buffer: string, tags: readonly string[]): string => {
+  const lower = buffer.toLowerCase();
   let longest = '';
 
   for (const tag of tags) {
     for (let prefixLength = 1; prefixLength < tag.length; prefixLength += 1) {
       const prefix = tag.slice(0, prefixLength);
-      if (prefix.length > longest.length && buffer.endsWith(prefix)) {
-        longest = prefix;
+      if (prefix.length > longest.length && lower.endsWith(prefix)) {
+        longest = buffer.slice(buffer.length - prefixLength);
       }
     }
   }
