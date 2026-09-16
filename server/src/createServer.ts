@@ -1,4 +1,5 @@
 import http from 'node:http';
+import crypto from 'node:crypto';
 import type { ApiServerConfig } from './config.js';
 import { type ThirdPartyProxyRoute } from './config.js';
 import {
@@ -68,6 +69,12 @@ interface ResolvedServerConfig
   thirdPartyRoutes: Record<string, ThirdPartyProxyRoute>;
 }
 
+function timingSafePasswordEqual(provided: string, expected: string): boolean {
+  const hashProvided = crypto.createHash('sha256').update(provided).digest();
+  const hashExpected = crypto.createHash('sha256').update(expected).digest();
+  return crypto.timingSafeEqual(hashProvided, hashExpected);
+}
+
 function isAuthorized(request: http.IncomingMessage, accessPassword?: string): boolean {
   if (!accessPassword) {
     return true;
@@ -78,14 +85,14 @@ function isAuthorized(request: http.IncomingMessage, accessPassword?: string): b
     const trimmed = authHeader.trim();
     if (trimmed.startsWith('Bearer ')) {
       const token = trimmed.slice(7).trim();
-      if (token === accessPassword) {
+      if (timingSafePasswordEqual(token, accessPassword)) {
         return true;
       }
     }
   }
 
   const customToken = request.headers['x-access-token'];
-  if (typeof customToken === 'string' && customToken.trim() === accessPassword) {
+  if (typeof customToken === 'string' && timingSafePasswordEqual(customToken.trim(), accessPassword)) {
     return true;
   }
 

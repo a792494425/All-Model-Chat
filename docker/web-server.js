@@ -56,6 +56,7 @@ const MIME = {
   '.gif': 'image/gif',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
+  '.webp': 'image/webp',
   '.woff': 'font/woff',
   '.woff2': 'font/woff2',
   '.ttf': 'font/ttf',
@@ -97,11 +98,18 @@ function proxyApi(req, res) {
 
 function serveStatic(req, res) {
   const url = new URL(req.url, 'http://localhost');
-  let pathname = decodeURIComponent(url.pathname);
+  let pathname;
+  try {
+    pathname = decodeURIComponent(url.pathname);
+  } catch {
+    res.writeHead(400);
+    res.end('Bad Request');
+    return;
+  }
 
   // Guard against path traversal.
   const resolved = path.normalize(path.join(ROOT, pathname));
-  if (!resolved.startsWith(ROOT)) {
+  if (resolved !== ROOT && !resolved.startsWith(ROOT + path.sep)) {
     res.writeHead(403);
     res.end('Forbidden');
     return;
@@ -148,8 +156,19 @@ function serveStatic(req, res) {
     headers['cache-control'] = 'no-cache';
   }
 
+  const stream = fs.createReadStream(filePath);
+  stream.on('error', (err) => {
+    console.error('[web] file stream error:', err.message);
+    if (!res.headersSent) {
+      res.writeHead(500);
+      res.end('Internal Server Error');
+    } else {
+      res.destroy();
+    }
+  });
+
   res.writeHead(200, headers);
-  fs.createReadStream(filePath).pipe(res);
+  stream.pipe(res);
 }
 
 const server = http.createServer((req, res) => {
