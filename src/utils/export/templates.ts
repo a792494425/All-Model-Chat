@@ -1,4 +1,65 @@
 import { escapeHtml } from '@/utils/escapeHtml';
+import { AVAILABLE_THEMES, DEFAULT_THEME_ID } from '@/constants/themeRegistry';
+import { buildLiveArtifactThemeVars } from '@/utils/live-artifacts/liveArtifactThemeTokens';
+interface ExportHtmlLabels {
+  copyText: string;
+  copyTitle: string;
+  copiedText: string;
+  printText: string;
+  printTitle: string;
+}
+
+export const EXPORT_HTML_LABELS: Record<string, ExportHtmlLabels> = {
+  zh: {
+    copyText: '复制',
+    copyTitle: '复制正文',
+    copiedText: '已复制',
+    printText: '打印 (PDF)',
+    printTitle: '打印 (PDF)',
+  },
+  en: {
+    copyText: 'Copy',
+    copyTitle: 'Copy Content',
+    copiedText: 'Copied',
+    printText: 'Print (PDF)',
+    printTitle: 'Print (PDF)',
+  },
+  ja: {
+    copyText: 'コピー',
+    copyTitle: '本文をコピー',
+    copiedText: 'コピー完了',
+    printText: '印刷 (PDF)',
+    printTitle: '印刷 (PDF)',
+  },
+  ko: {
+    copyText: '복사',
+    copyTitle: '본문 복사',
+    copiedText: '복사됨',
+    printText: '인쇄 (PDF)',
+    printTitle: '인쇄 (PDF)',
+  },
+  es: {
+    copyText: 'Copiar',
+    copyTitle: 'Copiar contenido',
+    copiedText: 'Copiado',
+    printText: 'Imprimir (PDF)',
+    printTitle: 'Imprimir (PDF)',
+  },
+  fr: {
+    copyText: 'Copier',
+    copyTitle: 'Copier le contenu',
+    copiedText: 'Copié',
+    printText: 'Imprimer (PDF)',
+    printTitle: 'Imprimer (PDF)',
+  },
+  de: {
+    copyText: 'Kopieren',
+    copyTitle: 'Inhalt kopieren',
+    copiedText: 'Kopiert',
+    printText: 'Drucken (PDF)',
+    printTitle: 'Drucken (PDF)',
+  },
+};
 
 export const generateExportHtmlTemplate = ({
   title,
@@ -27,15 +88,26 @@ export const generateExportHtmlTemplate = ({
   const safeLanguage = escapeHtml(language);
   const safeThemeId = escapeHtml(themeId);
   const safeBodyClasses = escapeHtml(bodyClasses);
-  // rootBgColor is interpolated into a CSS value inside a <style> block — escapeHtml
-  // alone does not stop CSS breakout (no quotes to close), so validate it matches a
-  // safe CSS color token; fall back to transparent otherwise.
+  const selectedTheme =
+    AVAILABLE_THEMES.find((t) => t.id === themeId) ??
+    AVAILABLE_THEMES.find((t) => t.id === DEFAULT_THEME_ID) ??
+    AVAILABLE_THEMES[0];
+  const langKey = language?.toLowerCase().slice(0, 2) || 'en';
+  const labels = EXPORT_HTML_LABELS[langKey] || EXPORT_HTML_LABELS.en;
+  const safeCopyTitle = escapeHtml(labels.copyTitle);
+  const safeCopyText = escapeHtml(labels.copyText);
+  const safePrintTitle = escapeHtml(labels.printTitle);
+  const safePrintText = escapeHtml(labels.printText);
+  const jsonCopiedText = JSON.stringify(labels.copiedText);
+  const liveArtifactThemeVars = buildLiveArtifactThemeVars(selectedTheme.colors);
+  const fallbackBgColor = selectedTheme.colors.bgPrimary;
+  const trimmedRootBgColor = rootBgColor?.trim() ?? '';
   const safeRootBgColor =
-    /^(#[0-9a-fA-F]{3,8}|rgb\([^()]*\)|rgba\([^()]*\)|hsl\([^()]*\)|hsla\([^()]*\)|oklch\([^()]*\)|transparent|currentColor|[a-z]+)$/i.test(
-      rootBgColor.trim(),
-    )
-      ? rootBgColor.trim()
-      : 'transparent';
+    /^(#[0-9a-fA-F]{3,8}|rgb\([^()]*\)|rgba\([^()]*\)|hsl\([^()]*\)|hsla\([^()]*\)|oklch\([^()]*\)|currentColor|[a-z]+)$/i.test(
+      trimmedRootBgColor,
+    ) && trimmedRootBgColor !== 'transparent'
+      ? trimmedRootBgColor
+      : fallbackBgColor;
 
   return `
         <!DOCTYPE html>
@@ -46,47 +118,230 @@ export const generateExportHtmlTemplate = ({
             <title>Chat Export: ${safeTitle}</title>
             ${styles}
             <style>
-                /* Reset & Layout */
+                /* Reset & Layout - Light Paper Theme */
+                :root {
+                    ${liveArtifactThemeVars};
+                    --export-page-bg: #f8fafc;
+                    --export-card-bg: #ffffff;
+                    --export-card-border: rgba(0, 0, 0, 0.08);
+                    --export-card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+                    --export-table-border: rgba(0, 0, 0, 0.08);
+                    --export-table-header-bg: #f8fafc;
+                }
                 html, body { height: auto !important; overflow: auto !important; min-height: 100vh; }
                 body {
                     background-color: ${safeRootBgColor};
-                    padding: 2rem; 
+                    background-color: var(--export-page-bg, #f8fafc);
+                    padding: 2.5rem 1.5rem; 
                     box-sizing: border-box; 
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                    color: var(--theme-text-primary, #333);
+                    color: var(--theme-text-primary, #1e293b);
+                    margin: 0;
+                    line-height: 1.6;
                 }
                 
-                /* Container */
+                /* Elevated Paper Document Card */
                 .exported-chat-container {
                     width: 100%;
-                    max-width: 900px;
+                    max-width: 960px;
                     margin: 0 auto;
-                    background-color: transparent;
+                    background-color: var(--export-card-bg, #ffffff);
+                    border-radius: 16px;
+                    border: 1px solid var(--export-card-border, rgba(0, 0, 0, 0.08));
+                    box-shadow: var(--export-card-shadow, 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02));
+                    padding: 2.5rem 3rem;
+                    box-sizing: border-box;
+                }
+                @media (max-width: 640px) {
+                    body {
+                        padding: 1rem 0.5rem;
+                    }
+                    .exported-chat-container {
+                        padding: 1.5rem 1.25rem;
+                        border-radius: 12px;
+                    }
                 }
 
-                /* Header Styles */
-                .exported-chat-header { 
-                    padding-bottom: 1.5rem; 
-                    border-bottom: 1px solid var(--theme-border-secondary, #e5e7eb); 
-                    margin-bottom: 2rem; 
+                /* Completely hide thinking processes / chain-of-thought in export */
+                .message-thoughts-block,
+                .thought-process-accordion,
+                .thought-process-content,
+                [data-thoughts="true"] {
+                    display: none !important;
+                    visibility: hidden !important;
+                    height: 0 !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
                 }
-                .exported-chat-title { 
-                    font-size: 1.75rem; 
-                    font-weight: 700; 
-                    color: var(--theme-text-primary, inherit); 
-                    margin: 0 0 0.5rem 0; 
+
+                /* Live Artifact Snapshot Container */
+                .html-preview-snapshot {
+                    color: var(--amc-live-artifact-text, inherit);
+                    width: 100%;
+                    margin: 1rem 0;
+                    position: relative;
+                    overflow-wrap: anywhere;
+                }
+                .html-preview-snapshot :where(div,section,article,main,aside,header,footer,li,td,th,p,h1,h2,h3,h4,h5,h6,span,strong,em,small,code) {
+                    min-width: 0;
+                }
+                .html-preview-snapshot table {
+                    display: table !important;
+                    width: 100% !important;
+                    border-collapse: separate !important;
+                    border-spacing: 0 !important;
+                    border: 1px solid var(--amc-live-artifact-border, #e5e5e5) !important;
+                    border-radius: 8px !important;
+                    overflow: hidden !important;
+                    margin: 0.75rem 0 !important;
+                }
+                .html-preview-snapshot th,
+                .html-preview-snapshot td {
+                    border: none !important;
+                    border-bottom: 1px solid var(--amc-live-artifact-border, #e5e5e5) !important;
+                    padding: 0.6rem 0.85rem !important;
+                    vertical-align: top !important;
+                }
+                .html-preview-snapshot tr:last-child td {
+                    border-bottom: none !important;
+                }
+                .html-preview-snapshot th {
+                    background-color: var(--amc-live-artifact-surface-muted, rgba(0, 0, 0, 0.03)) !important;
+                    font-weight: 600;
+                }
+                .html-preview-snapshot span[style*="border-radius"][style*="padding"] {
+                    white-space: nowrap !important;
+                    display: inline-block !important;
+                }
+
+                /* Header Styles - Minimalist Notion Topbar */
+                .exported-chat-header { 
+                    padding-bottom: 0.85rem; 
+                    border-bottom: 1px solid var(--theme-border-primary, rgba(0, 0, 0, 0.06)); 
+                    margin-bottom: 1.5rem; 
+                }
+                .exported-topbar {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    flex-wrap: wrap;
+                    gap: 0.75rem;
+                    margin-bottom: 0.45rem;
+                }
+                .exported-breadcrumb-nav {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.45rem;
+                    min-width: 0;
+                    flex: 1 1 auto;
+                }
+                .exported-brand-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.35rem;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    color: var(--theme-bg-accent, #2563eb);
+                    background: var(--theme-bg-info, rgba(37, 99, 235, 0.08));
+                    padding: 0.25rem 0.55rem;
+                    border-radius: 6px;
+                    user-select: none;
+                    flex-shrink: 0;
+                }
+                .exported-brand-icon {
+                    flex-shrink: 0;
+                }
+                .exported-breadcrumb-sep {
+                    color: #94a3b8;
+                    font-size: 0.8rem;
+                    user-select: none;
+                    flex-shrink: 0;
+                }
+                .exported-breadcrumb-title { 
+                    font-size: 0.925rem; 
+                    font-weight: 600; 
+                    color: #1e293b; 
+                    margin: 0; 
+                    padding: 0;
+                    line-height: 1.3;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 560px;
+                }
+                .exported-topbar-actions {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.45rem;
+                    flex-shrink: 0;
+                }
+                .exported-action-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.35rem;
+                    font-size: 0.75rem;
+                    font-weight: 500;
+                    color: #64748b;
+                    background: #ffffff;
+                    border: 1px solid rgba(0, 0, 0, 0.09);
+                    border-radius: 6px;
+                    padding: 0.25rem 0.55rem;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                    user-select: none;
                     line-height: 1.2;
                 }
+                .exported-action-btn:hover {
+                    color: #0f172a;
+                    background: #f1f5f9;
+                    border-color: rgba(0, 0, 0, 0.16);
+                }
+                .exported-action-btn.copied {
+                    color: #059669;
+                    background: #ecfdf5;
+                    border-color: rgba(16, 185, 129, 0.35);
+                }
                 .exported-chat-meta { 
-                    font-size: 0.875rem; 
-                    color: var(--theme-text-tertiary, #6b7280); 
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.35rem 0.55rem;
+                    align-items: center;
+                    font-size: 0.75rem; 
+                    color: #64748b; 
+                }
+                .exported-meta-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.35rem;
                     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                }
+                .exported-meta-dot {
+                    width: 5px;
+                    height: 5px;
+                    border-radius: 50%;
+                    background: #10b981;
+                    display: inline-block;
+                }
+                .meta-dot-model {
+                    background: var(--theme-bg-accent, #2563eb);
+                }
+                .exported-meta-divider {
+                    color: #cbd5e1;
+                    user-select: none;
+                }
+                .exported-meta-val {
+                    font-weight: 500;
+                    color: #64748b;
                 }
 
                 /* UI Cleanup - Hide interactive elements */
                 .message-actions, 
                 .code-block-utility-button, 
-                button, 
+                button:not(.amc-diagram-btn):not(.exported-action-btn), 
                 .sticky,
                 [role="tooltip"],
                 input,
@@ -107,14 +362,36 @@ export const generateExportHtmlTemplate = ({
                 a { color: var(--theme-text-link, #2563eb); text-decoration: none; }
                 a:hover { text-decoration: underline; }
 
-                /* Tables */
-                table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-                th, td { 
-                    border: 1px solid var(--theme-border-secondary, #e5e5e5); 
-                    padding: 0.5rem 0.75rem; 
-                    text-align: left; 
+                /* Tables - Modern Clean Document Style */
+                table { 
+                    width: 100%; 
+                    border-collapse: separate !important;
+                    border-spacing: 0 !important;
+                    margin: 1.25rem 0; 
+                    border: 1px solid var(--export-table-border, #e2e8f0);
+                    border-radius: 10px;
+                    overflow: hidden;
+                    font-size: 0.9em;
                 }
-                th { background-color: var(--theme-bg-tertiary, #f3f4f6); font-weight: 600; }
+                th, td { 
+                    border: none !important;
+                    border-bottom: 1px solid var(--export-table-border, #e2e8f0) !important;
+                    padding: 0.75rem 1rem; 
+                    text-align: left; 
+                    vertical-align: top;
+                }
+                th { 
+                    background-color: var(--export-table-header-bg, #f8fafc) !important; 
+                    font-weight: 600; 
+                    color: var(--theme-text-primary, #0f172a);
+                    border-bottom: 2px solid var(--export-table-border, #e2e8f0) !important;
+                }
+                tr:last-child td {
+                    border-bottom: none !important;
+                }
+                tbody tr:hover {
+                    background-color: var(--theme-bg-surface-muted, rgba(0, 0, 0, 0.02));
+                }
 
                 /* Code Blocks */
                 pre { 
@@ -122,6 +399,50 @@ export const generateExportHtmlTemplate = ({
                     border-radius: 0.5rem; 
                     padding: 1rem; 
                     overflow-x: auto; 
+                }
+
+                /* Footer */
+                .exported-chat-footer {
+                    margin-top: 3.5rem;
+                    padding-top: 1.5rem;
+                    border-top: 1px solid var(--theme-border-primary, rgba(0, 0, 0, 0.08));
+                    text-align: center;
+                    font-size: 0.8rem;
+                    color: var(--theme-text-tertiary, #94a3b8);
+                    user-select: none;
+                }
+                .exported-footer-content {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.6rem;
+                }
+
+                @media print {
+                    body {
+                        background-color: #ffffff !important;
+                        color: #000000 !important;
+                        padding: 0 !important;
+                    }
+                    .exported-chat-container {
+                        border: none !important;
+                        box-shadow: none !important;
+                        max-width: 100% !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                    }
+                    .exported-topbar-actions,
+                    .exported-action-btn,
+                    .amc-diagram-modal-backdrop {
+                        display: none !important;
+                    }
+                    .exported-chat-header {
+                        border-bottom: 1px solid #e2e8f0 !important;
+                        margin-bottom: 1rem !important;
+                        padding-bottom: 0.5rem !important;
+                    }
+                    pre, blockquote, table, figure, .html-preview-snapshot {
+                        break-inside: avoid;
+                    }
                 }
 
                 /* Graphviz and Interactive Diagrams */
@@ -240,13 +561,53 @@ export const generateExportHtmlTemplate = ({
         </head>
         <body class="${safeBodyClasses} theme-${safeThemeId} is-exporting-png">
             <div class="exported-chat-container">
-                <div class="exported-chat-header">
-                    <h1 class="exported-chat-title">${safeTitle}</h1>
-                    <div class="exported-chat-meta">
-                        <span>${safeDate}</span> • <span>${safeModel}</span>
+                <header class="exported-chat-header">
+                    <div class="exported-topbar">
+                        <div class="exported-breadcrumb-nav">
+                            <div class="exported-brand-badge">
+                                <svg class="exported-brand-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                    <polyline points="2 17 12 22 22 17"></polyline>
+                                    <polyline points="2 12 12 17 22 12"></polyline>
+                                </svg>
+                                <span>AMC WebUI</span>
+                            </div>
+                            <span class="exported-breadcrumb-sep">/</span>
+                            <h1 class="exported-breadcrumb-title" title="${safeTitle}">${safeTitle}</h1>
+                        </div>
+                        <div class="exported-topbar-actions">
+                            <button type="button" class="exported-action-btn" id="amc-copy-btn" title="${safeCopyTitle}" aria-label="${safeCopyTitle}">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                <span id="amc-copy-text">${safeCopyText}</span>
+                            </button>
+                            <button type="button" class="exported-action-btn" id="amc-print-btn" onclick="window.print()" title="${safePrintTitle}" aria-label="${safePrintTitle}">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                <span>${safePrintText}</span>
+                            </button>
+                        </div>
                     </div>
+                    <div class="exported-chat-meta">
+                        <div class="exported-meta-pill">
+                            <span class="exported-meta-dot"></span>
+                            <span class="exported-meta-val">${safeDate}</span>
+                        </div>
+                        <span class="exported-meta-divider">•</span>
+                        <div class="exported-meta-pill">
+                            <span class="exported-meta-dot meta-dot-model"></span>
+                            <span class="exported-meta-val">${safeModel}</span>
+                        </div>
+                    </div>
+                </header>
+                <div class="exported-chat-content">
+                    ${contentHtml}
                 </div>
-                ${contentHtml}
+                <footer class="exported-chat-footer">
+                    <div class="exported-footer-content">
+                        <span>Generated by <strong>AMC WebUI</strong></span>
+                        <span>•</span>
+                        <span>${safeDate}</span>
+                    </div>
+                </footer>
             </div>
             <script>
             (function() {
@@ -460,6 +821,46 @@ export const generateExportHtmlTemplate = ({
                     openModal(svg);
                 });
             })();
+
+            (function() {
+                var copyBtn = document.getElementById('amc-copy-btn');
+                var copyText = document.getElementById('amc-copy-text');
+                if (!copyBtn || !copyText) return;
+                copyBtn.addEventListener('click', function() {
+                    var content = document.querySelector('.exported-chat-content');
+                    if (!content) return;
+                    var text = content.innerText || content.textContent || '';
+                    function onCopied() {
+                        var orig = copyText.textContent;
+                        copyText.textContent = ${jsonCopiedText};
+                        copyBtn.classList.add('copied');
+                        setTimeout(function() {
+                            copyText.textContent = orig;
+                            copyBtn.classList.remove('copied');
+                        }, 1800);
+                    }
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(onCopied).catch(function(copyClipboardError) {
+                            fallbackCopy(text, onCopied);
+                        });
+                    } else {
+                        fallbackCopy(text, onCopied);
+                    }
+                });
+                function fallbackCopy(text, cb) {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try {
+                        document.execCommand('copy');
+                        cb();
+                    } catch (execCopyError) {}
+                    document.body.removeChild(ta);
+                }
+            })();
             </script>
         </body>
         </html>
@@ -475,7 +876,13 @@ export const generateExportTxtTemplate = ({
   title: string;
   date: string;
   model: string;
-  messages: Array<{ role: string; timestamp: Date; content: string; files?: Array<{ name: string }> }>;
+  messages: Array<{
+    role: string;
+    timestamp: Date | number | string;
+    content?: string;
+    thoughts?: string;
+    files?: Array<{ name: string }>;
+  }>;
 }) => {
   const separator = '-'.repeat(40);
 
@@ -484,8 +891,9 @@ export const generateExportTxtTemplate = ({
   const body = messages
     .map((message) => {
       const roleTitle = message.role.toUpperCase();
-      const timestampText = new Date(message.timestamp).toLocaleString();
-      let text = `### ${roleTitle} [${timestampText}]\n`;
+      const timestampDate = message.timestamp instanceof Date ? message.timestamp : new Date(message.timestamp);
+      const timestampText = Number.isNaN(timestampDate.getTime()) ? '' : ` [${timestampDate.toLocaleString()}]`;
+      let text = `### ${roleTitle}${timestampText}\n`;
 
       if (message.files && message.files.length > 0) {
         message.files.forEach((file) => {
@@ -493,7 +901,11 @@ export const generateExportTxtTemplate = ({
         });
       }
 
-      text += message.content;
+      if (message.thoughts && message.thoughts.trim()) {
+        text += `[Thinking Process]\n${message.thoughts.trim()}\n\n`;
+      }
+
+      text += message.content || '';
       return text;
     })
     .join(`\n\n${separator}\n\n`);

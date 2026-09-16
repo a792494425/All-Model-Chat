@@ -10,7 +10,7 @@ const exportTextStringAsFile = vi.fn();
 const generateSnapshotPng = vi.fn();
 const prepareElementForExport = vi.fn(async (element: HTMLElement) => element);
 const buildHtmlDocument = vi.fn(async ({ contentHtml }: { contentHtml: string }) => contentHtml);
-const buildTextDocument = vi.fn(() => 'txt export');
+const buildTextDocument = vi.fn((_args?: any) => 'txt export');
 
 vi.mock('@/utils/export/runtime', () => ({
   buildChatExportFilename: vi.fn(() => 'chat-export.html'),
@@ -100,6 +100,57 @@ describe('useChatSessionExport', () => {
     });
 
     expect(exportResult).toBe(false);
+    unmount();
+  });
+
+  it('exports TXT with visible messages only and includes thoughts without internal tool messages', async () => {
+    const sessionWithInternal = {
+      ...makeSession(),
+      messages: [
+        {
+          id: 'msg-user',
+          role: 'user' as const,
+          content: 'Hello',
+          timestamp: new Date('2026-04-26T00:00:00.000Z'),
+        },
+        {
+          id: 'msg-tool',
+          role: 'model' as const,
+          content: 'internal tool message',
+          isInternalToolMessage: true,
+          timestamp: new Date('2026-04-26T00:00:30.000Z'),
+        },
+        {
+          id: 'msg-model',
+          role: 'model' as const,
+          content: 'Here is the answer',
+          thoughts: 'Thinking about the problem...',
+          timestamp: new Date('2026-04-26T00:01:00.000Z'),
+        },
+      ],
+    };
+
+    const { result, unmount } = renderHook(() =>
+      useChatSessionExport({
+        activeChat: sessionWithInternal,
+        currentTheme: { id: 'pearl' } as Theme,
+        language: 'en',
+        t: (key) => key,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.exportChatLogic('txt');
+    });
+
+    expect(buildTextDocument).toHaveBeenCalledTimes(1);
+    const calledArgs = buildTextDocument.mock.calls[0][0];
+    expect(calledArgs.messages).toHaveLength(2);
+    expect(calledArgs.messages[0].content).toBe('Hello');
+    expect(calledArgs.messages[1].content).toBe('Here is the answer');
+    expect(calledArgs.messages[1].thoughts).toBe('Thinking about the problem...');
+    expect(exportTextStringAsFile).toHaveBeenCalledTimes(1);
+
     unmount();
   });
 });

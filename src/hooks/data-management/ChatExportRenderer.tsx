@@ -9,6 +9,23 @@ import { getVisibleChatMessages } from '@/utils/chat/visibility';
 import { normalizeThemeId } from '@/utils/themeMode';
 
 const CHAT_EXPORT_RENDER_SETTLE_DELAY_MS = 100;
+const CHAT_EXPORT_MAX_SETTLE_TIMEOUT_MS = 3000;
+
+const waitForExportContentToSettle = async (host: HTMLElement): Promise<void> => {
+  const startTime = Date.now();
+  // Minimum settle time for react flush and initial microtasks
+  await new Promise((resolve) => window.setTimeout(resolve, CHAT_EXPORT_RENDER_SETTLE_DELAY_MS));
+
+  while (Date.now() - startTime < CHAT_EXPORT_MAX_SETTLE_TIMEOUT_MS) {
+    const hasPending = host.querySelector('[data-export-pending="true"], [data-diagram-rendering="true"]');
+    if (!hasPending) {
+      // Allow an extra tick for DOM commits
+      await new Promise((resolve) => window.setTimeout(resolve, 50));
+      return;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 50));
+  }
+};
 
 const noop = () => {};
 
@@ -16,6 +33,7 @@ const createExportAppSettings = (session: SavedChatSession, themeId: string): Ap
   ...DEFAULT_APP_SETTINGS,
   ...session.settings,
   themeId: normalizeThemeId(themeId),
+  showThoughts: false,
 });
 
 export const createChatExportElement = async (
@@ -100,7 +118,7 @@ export const createChatExportElement = async (
     );
   });
 
-  await new Promise((resolve) => window.setTimeout(resolve, CHAT_EXPORT_RENDER_SETTLE_DELAY_MS));
+  await waitForExportContentToSettle(host);
 
   const element = host.querySelector('.export-chat-transcript') as HTMLElement | null;
   if (!element) {

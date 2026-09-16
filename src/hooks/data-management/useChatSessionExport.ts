@@ -9,6 +9,7 @@ import { serializeSessionForPortableExport } from '@/utils/chat/session';
 import { triggerDownload } from '@/utils/export/core';
 import { buildChatExportFilename, createExportDateMeta, loadExportRuntime } from '@/utils/export/runtime';
 import { formatI18nErrorMessage } from '@/i18n/interpolate';
+import { getVisibleChatMessages } from '@/utils/chat/visibility';
 
 interface UseChatSessionExportProps {
   activeChat: SavedChatSession | undefined;
@@ -80,14 +81,16 @@ export const useChatSessionExport = ({ activeChat, currentTheme, language, t }: 
         }
       } else if (format === 'txt') {
         const { exportTextStringAsFile, buildTextDocument } = await loadExportRuntime();
+        const visibleMessages = getVisibleChatMessages(activeChat.messages);
         const txtContent = buildTextDocument({
           title: activeChat.title,
           date: dateStr,
           model: activeChat.settings.modelId,
-          messages: activeChat.messages.map((message) => ({
+          messages: visibleMessages.map((message) => ({
             role: message.role === 'user' ? t('exportRoleUser') : t('exportRoleAssistant'),
-            timestamp: message.timestamp,
-            content: message.content,
+            timestamp: new Date(message.timestamp),
+            content: message.content || '',
+            thoughts: message.thoughts,
             files: message.files?.map((file) => ({ name: file.name })),
           })),
         });

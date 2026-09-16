@@ -71,25 +71,32 @@ export const gatherPageStyles = async (): Promise<string> => {
 };
 
 /**
- * Embeds images in a cloned DOM element by converting their sources to Base64 data URIs.
- * This allows the HTML to be self-contained (offline-capable).
+ * Embeds media (images, audio, and source tags) in a cloned DOM element by converting
+ * their sources to Base64 data URIs. This allows the HTML to be self-contained (offline-capable).
  * @param clone The cloned HTMLElement to process.
  */
-const embedImagesInClone = async (clone: HTMLElement): Promise<void> => {
-  const images = Array.from(clone.querySelectorAll('img'));
+const embedMediaInClone = async (clone: HTMLElement): Promise<void> => {
+  const mediaElements = Array.from(
+    clone.querySelectorAll<HTMLImageElement | HTMLAudioElement | HTMLSourceElement>('img, audio, source'),
+  );
   await Promise.all(
-    images.map(async (img) => {
+    mediaElements.map(async (el) => {
       try {
-        const src = img.getAttribute('src');
+        const src = el.getAttribute('src');
         if (!src || src.startsWith('data:')) return;
 
-        const response = await fetch(img.src);
+        const fullSrc = (el as HTMLImageElement | HTMLAudioElement).src || src;
+        const response = await fetch(fullSrc);
         const blob = await response.blob();
-        img.src = await blobToDataUrl(blob);
-        img.removeAttribute('srcset');
-        img.removeAttribute('loading');
+        const dataUrl = await blobToDataUrl(blob);
+        el.setAttribute('src', dataUrl);
+        if ('src' in el) {
+          (el as any).src = dataUrl;
+        }
+        el.removeAttribute('srcset');
+        el.removeAttribute('loading');
       } catch (embedError) {
-        logService.warn('Failed to embed image for export:', embedError);
+        logService.warn('Failed to embed media for export:', embedError);
       }
     }),
   );
@@ -253,9 +260,9 @@ export const createExportDOMHeader = (title: string, metaLeft: string, metaRight
  */
 export const prepareElementForExport = async (
   sourceElement: HTMLElement,
-  options: { expandDetails?: boolean; forPng?: boolean; themeId?: string } = {},
+  options: { expandDetails?: boolean; forPng?: boolean; themeId?: string; includeThoughts?: boolean } = {},
 ): Promise<HTMLElement> => {
-  const { expandDetails = true, themeId } = options;
+  const { expandDetails = true, themeId, includeThoughts = false } = options;
 
   const clone = sourceElement.cloneNode(true) as HTMLElement;
 
@@ -290,21 +297,36 @@ export const prepareElementForExport = async (
     (element as HTMLElement).style.transform = 'none';
   });
 
-  if (expandDetails) {
-    clone.querySelectorAll('.message-thoughts-block').forEach((element) => element.remove());
+  // In both HTML and PNG export, code blocks must be fully expanded
+  // and the interactive expand overlay/gradient removed, as there are no
+  // client-side React scripts to toggle them in static snapshots.
+  clone.querySelectorAll('.code-block-expand-overlay').forEach((element) => element.remove());
 
-    clone.querySelectorAll('.code-block-expand-overlay').forEach((element) => element.remove());
+  clone.querySelectorAll('pre').forEach((element) => {
+    (element as HTMLElement).style.maxHeight = 'none';
+    (element as HTMLElement).style.height = 'auto';
+    (element as HTMLElement).style.overflow = 'visible';
+  });
 
-    clone.querySelectorAll('pre').forEach((element) => {
-      (element as HTMLElement).style.maxHeight = 'none';
-      (element as HTMLElement).style.height = 'auto';
-      (element as HTMLElement).style.overflow = 'visible';
-    });
+  // In exported snapshots (both PNG and HTML), collapsed user messages must be fully expanded.
+  clone.querySelectorAll('[data-user-message-collapsed]').forEach((container) => {
+    container.removeAttribute('data-user-message-collapsed');
+  });
+  clone.querySelectorAll<HTMLElement>('[id$="-message-text"]').forEach((element) => {
+    element.classList.remove('overflow-hidden');
+    element.style.maxHeight = 'none';
+    element.style.height = 'auto';
+    element.style.overflow = 'visible';
+  });
 
-    clone.querySelectorAll('details').forEach((element) => element.setAttribute('open', 'true'));
-  } else {
-    clone.querySelectorAll('details').forEach((element) => element.removeAttribute('open'));
-
+  // Strip thinking records / chain of thought unless explicitly requested.
+  if (!includeThoughts) {
+    clone
+      .querySelectorAll('.message-thoughts-block, .thought-process-accordion, [data-thoughts="true"]')
+      .forEach((element) => {
+        element.remove();
+      });
+  } else if (!expandDetails) {
     clone.querySelectorAll('.thought-process-accordion').forEach((accordion) => {
       const parent = accordion.parentElement;
       if (!parent) return;
@@ -349,13 +371,19 @@ export const prepareElementForExport = async (
     });
   }
 
+  if (expandDetails) {
+    clone.querySelectorAll('details').forEach((element) => element.setAttribute('open', 'true'));
+  } else {
+    clone.querySelectorAll('details').forEach((element) => element.removeAttribute('open'));
+  }
+
   // Replace sandboxed artifact iframes with same-origin static snapshots for both PNG and HTML export.
   // Sandboxed iframes cannot load external vendor scripts (/vendor/echarts.min.js) or receive
   // parent window Graphviz postMessage relays when exported as standalone HTML documents.
   await replaceLiveArtifactIframes(clone, sourceElement.ownerDocument, themeId);
 
-  // Embed blob and remote images before the clone leaves the live document.
-  await embedImagesInClone(clone);
+  // Embed blob and remote media (images and audio) before the clone leaves the live document.
+  await embedMediaInClone(clone);
 
   return clone;
 };

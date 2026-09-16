@@ -148,6 +148,28 @@ const linearSrgbToChannel = (value: number): number => {
   return encoded * 255;
 };
 
+const srgbChannelToLinear = (value: number): number => {
+  const clamped = clamp(value, 0, 1);
+  return clamped <= 0.04045 ? clamped / 12.92 : Math.pow((clamped + 0.055) / 1.055, 2.4);
+};
+
+const oklabToChannels = (lightness: number, okA: number, okB: number, alpha: number): ColorChannels => {
+  const lPrime = lightness + 0.3963377774 * okA + 0.2158037573 * okB;
+  const mPrime = lightness - 0.1055613458 * okA - 0.0638541728 * okB;
+  const sPrime = lightness - 0.0894841775 * okA - 1.291485548 * okB;
+
+  const l = lPrime ** 3;
+  const m = mPrime ** 3;
+  const s = sPrime ** 3;
+
+  return {
+    r: linearSrgbToChannel(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+    g: linearSrgbToChannel(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+    b: linearSrgbToChannel(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s),
+    a: alpha,
+  };
+};
+
 const parseOklchColor = (value: string): ColorChannels | null => {
   const match = value.match(/^oklch\((.*)\)$/i);
   if (!match) return null;
@@ -170,20 +192,158 @@ const parseOklchColor = (value: string): ColorChannels | null => {
 
   const okA = chroma * Math.cos(hueRadians);
   const okB = chroma * Math.sin(hueRadians);
+  const alpha = parseAlphaChannel(alphaPart);
 
-  const lPrime = lightness + 0.3963377774 * okA + 0.2158037573 * okB;
-  const mPrime = lightness - 0.1055613458 * okA - 0.0638541728 * okB;
-  const sPrime = lightness - 0.0894841775 * okA - 1.291485548 * okB;
+  return oklabToChannels(lightness, okA, okB, alpha);
+};
 
-  const l = lPrime ** 3;
-  const m = mPrime ** 3;
-  const s = sPrime ** 3;
+const parseOklabComponent = (value: string): number => {
+  const trimmed = value.trim();
+  if (trimmed.endsWith('%')) {
+    return (parseCssNumber(trimmed.slice(0, -1)) / 100) * 0.4;
+  }
+  return parseCssNumber(trimmed);
+};
+
+const parseOklabColor = (value: string): ColorChannels | null => {
+  const match = value.match(/^oklab\((.*)\)$/i);
+  if (!match) return null;
+
+  const parts = match[1]
+    .replace(/\s*\/\s*/, ' / ')
+    .split(/\s+/)
+    .filter(Boolean);
+  const slashIndex = parts.indexOf('/');
+  const colorParts = slashIndex === -1 ? parts : parts.slice(0, slashIndex);
+  const alphaPart = slashIndex === -1 ? undefined : parts[slashIndex + 1];
+
+  if (colorParts.length < 3) return null;
+
+  const lightness = parseOklchLightness(colorParts[0]);
+  const okA = parseOklabComponent(colorParts[1]);
+  const okB = parseOklabComponent(colorParts[2]);
+
+  if (![lightness, okA, okB].every(Number.isFinite)) return null;
+
+  const alpha = parseAlphaChannel(alphaPart);
+  return oklabToChannels(lightness, okA, okB, alpha);
+};
+
+const parseColorSpaceChannel = (value: string): number => {
+  const trimmed = value.trim();
+  if (trimmed.endsWith('%')) {
+    return parseCssNumber(trimmed.slice(0, -1)) / 100;
+  }
+  return parseCssNumber(trimmed);
+};
+
+const parseColorFunctionColor = (value: string): ColorChannels | null => {
+  const match = value.match(/^color\((.*)\)$/i);
+  if (!match) return null;
+
+  const parts = match[1]
+    .replace(/\s*\/\s*/, ' / ')
+    .split(/\s+/)
+    .filter(Boolean);
+  const slashIndex = parts.indexOf('/');
+  const colorParts = slashIndex === -1 ? parts : parts.slice(0, slashIndex);
+  const alphaPart = slashIndex === -1 ? undefined : parts[slashIndex + 1];
+
+  if (colorParts.length < 4) return null;
+
+  const space = colorParts[0].toLowerCase();
+  const c1 = parseColorSpaceChannel(colorParts[1]);
+  const c2 = parseColorSpaceChannel(colorParts[2]);
+  const c3 = parseColorSpaceChannel(colorParts[3]);
+
+  if (![c1, c2, c3].every(Number.isFinite)) return null;
+
+  const alpha = parseAlphaChannel(alphaPart);
+
+  if (space === 'display-p3') {
+    const rLin = srgbChannelToLinear(c1);
+    const gLin = srgbChannelToLinear(c2);
+    const bLin = srgbChannelToLinear(c3);
+
+    const rSrgbLin = 1.22494018 * rLin - 0.22494018 * gLin;
+    const gSrgbLin = -0.04205695 * rLin + 1.04205695 * gLin;
+    const bSrgbLin = -0.01964179 * rLin - 0.07865042 * gLin + 1.09829221 * bLin;
+
+    return {
+      r: linearSrgbToChannel(rSrgbLin),
+      g: linearSrgbToChannel(gSrgbLin),
+      b: linearSrgbToChannel(bSrgbLin),
+      a: alpha,
+    };
+  }
+
+  if (space === 'srgb-linear') {
+    return {
+      r: linearSrgbToChannel(c1),
+      g: linearSrgbToChannel(c2),
+      b: linearSrgbToChannel(c3),
+      a: alpha,
+    };
+  }
 
   return {
-    r: linearSrgbToChannel(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
-    g: linearSrgbToChannel(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
-    b: linearSrgbToChannel(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s),
-    a: parseAlphaChannel(alphaPart),
+    r: clamp(c1 * 255, 0, 255),
+    g: clamp(c2 * 255, 0, 255),
+    b: clamp(c3 * 255, 0, 255),
+    a: alpha,
+  };
+};
+
+const parseHwbColor = (value: string): ColorChannels | null => {
+  const match = value.match(/^hwb\((.*)\)$/i);
+  if (!match) return null;
+
+  const parts = match[1]
+    .replace(/\s*\/\s*/, ' / ')
+    .split(/\s+/)
+    .filter(Boolean);
+  const slashIndex = parts.indexOf('/');
+  const colorParts = slashIndex === -1 ? parts : parts.slice(0, slashIndex);
+  const alphaPart = slashIndex === -1 ? undefined : parts[slashIndex + 1];
+
+  if (colorParts.length < 3) return null;
+
+  const hueDeg = parseHueDegrees(colorParts[0]);
+  const whiteness = parseOklchLightness(colorParts[1]);
+  const blackness = parseOklchLightness(colorParts[2]);
+
+  if (![hueDeg, whiteness, blackness].every(Number.isFinite)) return null;
+
+  const alpha = parseAlphaChannel(alphaPart);
+
+  if (whiteness + blackness >= 1) {
+    const gray = (whiteness / (whiteness + blackness)) * 255;
+    return { r: gray, g: gray, b: gray, a: alpha };
+  }
+
+  let hNorm = (hueDeg % 360) / 360;
+  if (hNorm < 0) hNorm += 1;
+
+  const hue2rgb = (t: number): number => {
+    let tt = t;
+    if (tt < 0) tt += 1;
+    if (tt > 1) tt -= 1;
+    if (tt < 1 / 6) return 6 * tt;
+    if (tt < 1 / 2) return 1;
+    if (tt < 2 / 3) return (2 / 3 - tt) * 6;
+    return 0;
+  };
+
+  const rBase = hue2rgb(hNorm + 1 / 3);
+  const gBase = hue2rgb(hNorm);
+  const bBase = hue2rgb(hNorm - 1 / 3);
+  const scale = 1 - whiteness - blackness;
+
+  return {
+    r: clamp((rBase * scale + whiteness) * 255, 0, 255),
+    g: clamp((gBase * scale + whiteness) * 255, 0, 255),
+    b: clamp((bBase * scale + whiteness) * 255, 0, 255),
+    a: alpha,
   };
 };
 
@@ -213,7 +373,14 @@ const parseCssColor = (
     return null;
   }
 
-  return parseHexColor(trimmed) ?? parseRgbColor(trimmed) ?? parseOklchColor(trimmed);
+  return (
+    parseHexColor(trimmed) ??
+    parseRgbColor(trimmed) ??
+    parseOklchColor(trimmed) ??
+    parseOklabColor(trimmed) ??
+    parseColorFunctionColor(trimmed) ??
+    parseHwbColor(trimmed)
+  );
 };
 
 const parseColorStop = (value: string, resolveCssVariable: (name: string) => string): ColorStop | null => {
@@ -286,6 +453,21 @@ const convertOklchToRgba = (expression: string): string => {
   return color ? formatRgba(color) : 'rgba(0, 0, 0, 0)';
 };
 
+const convertOklabToRgba = (expression: string): string => {
+  const color = parseOklabColor(expression);
+  return color ? formatRgba(color) : 'rgba(0, 0, 0, 0)';
+};
+
+const convertColorFunctionToRgba = (expression: string): string => {
+  const color = parseColorFunctionColor(expression);
+  return color ? formatRgba(color) : 'rgba(0, 0, 0, 0)';
+};
+
+const convertHwbToRgba = (expression: string): string => {
+  const color = parseHwbColor(expression);
+  return color ? formatRgba(color) : 'rgba(0, 0, 0, 0)';
+};
+
 const replaceCssFunction = (css: string, functionName: string, replacement: (expression: string) => string): string => {
   const lowerCss = css.toLowerCase();
   const search = `${functionName.toLowerCase()}(`;
@@ -297,6 +479,14 @@ const replaceCssFunction = (css: string, functionName: string, replacement: (exp
     if (start === -1) {
       result += css.slice(cursor);
       break;
+    }
+
+    // Ensure the character immediately preceding `functionName(` is not a CSS identifier character
+    // (a-z, 0-9, _, -), which would mean it's part of another identifier or property
+    if (start > 0 && /[a-zA-Z0-9_-]/.test(css[start - 1])) {
+      result += css.slice(cursor, start + functionName.length);
+      cursor = start + functionName.length;
+      continue;
     }
 
     const openIndex = start + functionName.length;
@@ -316,15 +506,45 @@ const replaceCssFunction = (css: string, functionName: string, replacement: (exp
 
 export const sanitizeCssColorFunctionsForPngExport = (css: string, options: CssColorSanitizerOptions = {}): string => {
   const resolveCssVariable = options.resolveCssVariable ?? defaultResolveCssVariable;
-  const cssWithoutColorMix = replaceCssFunction(css, 'color-mix', (expression) =>
-    convertColorMixToRgba(expression, resolveCssVariable),
-  );
+  let currentCss = css;
 
-  return replaceCssFunction(cssWithoutColorMix, 'oklch', convertOklchToRgba);
+  for (let iteration = 0; iteration < 5 && currentCss.includes('color-mix('); iteration += 1) {
+    const nextCss = replaceCssFunction(currentCss, 'color-mix', (expression) =>
+      convertColorMixToRgba(expression, resolveCssVariable),
+    );
+    if (nextCss === currentCss) break;
+    currentCss = nextCss;
+  }
+
+  currentCss = replaceCssFunction(currentCss, 'oklch', convertOklchToRgba);
+  currentCss = replaceCssFunction(currentCss, 'oklab', convertOklabToRgba);
+  currentCss = replaceCssFunction(currentCss, 'hwb', convertHwbToRgba);
+  currentCss = replaceCssFunction(currentCss, 'color', convertColorFunctionToRgba);
+
+  return currentCss;
 };
+
+const SVG_COLOR_ATTRIBUTES = ['fill', 'stroke', 'stop-color', 'flood-color', 'lighting-color'];
+const COLOR_FUNCTION_LOOKAHEAD = /color\(|oklch\(|oklab\(|color-mix\(|hwb\(/i;
 
 export const sanitizeDocumentStylesForPngExport = (doc: Document): void => {
   doc.querySelectorAll('style').forEach((styleElement) => {
     styleElement.textContent = sanitizeCssColorFunctionsForPngExport(styleElement.textContent ?? '');
+  });
+
+  doc.querySelectorAll('[style]').forEach((element) => {
+    const inlineStyle = element.getAttribute('style');
+    if (inlineStyle && COLOR_FUNCTION_LOOKAHEAD.test(inlineStyle)) {
+      element.setAttribute('style', sanitizeCssColorFunctionsForPngExport(inlineStyle));
+    }
+  });
+
+  SVG_COLOR_ATTRIBUTES.forEach((attr) => {
+    doc.querySelectorAll(`[${attr}]`).forEach((element) => {
+      const val = element.getAttribute(attr);
+      if (val && COLOR_FUNCTION_LOOKAHEAD.test(val)) {
+        element.setAttribute(attr, sanitizeCssColorFunctionsForPngExport(val));
+      }
+    });
   });
 };

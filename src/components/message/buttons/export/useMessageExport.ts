@@ -8,6 +8,7 @@ import { triggerDownload } from '@/utils/export/core';
 import { buildMessageExportFilenameBase, createExportDateMeta, loadExportRuntime } from '@/utils/export/runtime';
 import { useI18n } from '@/contexts/I18nContext';
 import { interpolate, formatI18nErrorMessage } from '@/i18n/interpolate';
+import { useChatStore } from '@/stores/chatStore';
 
 interface UseMessageExportProps {
   message: ChatMessage;
@@ -62,6 +63,21 @@ export const useMessageExport = ({ message, sessionTitle, messageIndex, themeId 
 
       const messageContentNode = findMessageContentNode(message.id);
 
+      const resolveCurrentModel = (): string => {
+        try {
+          const chatStore = useChatStore.getState?.();
+          const activeSession = chatStore?.savedSessions?.find((s) => s.id === chatStore.activeSessionId);
+          return activeSession?.settings?.modelId || chatStore?.pendingChatSettings?.modelId || '';
+        } catch (resolveError) {
+          logService.debug?.('Failed to resolve current session model:', resolveError);
+          return '';
+        }
+      };
+
+      const resolvedModel = resolveCurrentModel();
+      const exportTitle = sessionTitle || interpolate(t('exportMessageHtmlTitle'), { id: shortId });
+      const exportModel = resolvedModel || interpolate(t('exportMessageId'), { id: shortId });
+
       if (type === 'png' || type === 'html') {
         if (!messageContentNode) {
           throw new Error(t('exportMessageContentMissing'));
@@ -82,9 +98,9 @@ export const useMessageExport = ({ message, sessionTitle, messageIndex, themeId 
             `${filenameBase}.png`,
             themeId,
             {
-              title: t('exportMessageTitle'),
+              title: exportTitle,
               metaLeft: dateLabel,
-              metaRight: interpolate(t('exportMessageId'), { id: shortId }),
+              metaRight: exportModel,
             },
             {
               scale: MESSAGE_PNG_EXPORT_SCALE,
@@ -104,9 +120,9 @@ export const useMessageExport = ({ message, sessionTitle, messageIndex, themeId 
           const chatHtml = wrapper.outerHTML;
 
           const fullHtml = await buildHtmlDocument({
-            title: interpolate(t('exportMessageHtmlTitle'), { id: shortId }),
+            title: exportTitle,
             date: dateLabel,
-            model: interpolate(t('exportMessageId'), { id: shortId }),
+            model: exportModel,
             contentHtml: chatHtml,
             themeId,
             language,
@@ -117,14 +133,17 @@ export const useMessageExport = ({ message, sessionTitle, messageIndex, themeId 
       } else if (type === 'txt') {
         const { exportTextStringAsFile, buildTextDocument } = await loadExportRuntime();
         const txtContent = buildTextDocument({
-          title: interpolate(t('exportMessageTextTitle'), { id: shortId }),
+          title: sessionTitle
+            ? `${sessionTitle} (${shortId})`
+            : interpolate(t('exportMessageTextTitle'), { id: shortId }),
           date: dateLabel,
-          model: t('exportNotApplicable'),
+          model: resolvedModel || t('exportNotApplicable'),
           messages: [
             {
               role: message.role === 'user' ? t('exportRoleUser') : t('exportRoleAssistant'),
               timestamp: new Date(message.timestamp),
               content: markdownContent,
+              thoughts: message.thoughts,
               files: message.files?.map((file) => ({ name: file.name })),
             },
           ],

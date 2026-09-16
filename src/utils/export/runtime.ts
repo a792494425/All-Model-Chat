@@ -31,8 +31,9 @@ interface BuildTextDocumentArgs {
   model: string;
   messages: Array<{
     role: string;
-    timestamp: Date;
-    content: string;
+    timestamp: Date | number | string;
+    content?: string;
+    thoughts?: string;
     files?: Array<{ name: string }>;
   }>;
 }

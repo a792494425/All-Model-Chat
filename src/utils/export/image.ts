@@ -3,7 +3,7 @@ import { toastError } from '@/stores/toastStore';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 
-import { sanitizeDocumentStylesForPngExport } from './cssColorSanitizer';
+import { sanitizeDocumentStylesForPngExport, sanitizeCssColorFunctionsForPngExport } from './cssColorSanitizer';
 import { triggerDownload } from './core';
 import { createSnapshotContainer, createExportDOMHeader } from './dom';
 
@@ -26,6 +26,53 @@ export interface PngExportMessages {
 }
 
 const waitForPaint = (delayMs: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, delayMs));
+
+const COLOR_FUNCTION_LOOKAHEAD = /color\(|oklch\(|oklab\(|color-mix\(|hwb\(/i;
+
+const sanitizeComputedValue = (value: unknown): unknown => {
+  if (typeof value === 'string' && COLOR_FUNCTION_LOOKAHEAD.test(value)) {
+    return sanitizeCssColorFunctionsForPngExport(value);
+  }
+  return value;
+};
+
+/**
+ * Wraps window.getComputedStyle so that modern CSS Color Module Level 4 expressions
+ * (such as color(display-p3 ...), color(srgb ...), oklch(...), oklab(...)) returned
+ * by the browser's CSS engine are dynamically converted to rgba(...), preventing
+ * html2canvas from throwing "Attempting to parse an unsupported color function".
+ */
+export const wrapGetComputedStyleWithColorSanitizer = (targetWindow: Window): (() => void) => {
+  const originalGetComputedStyle = targetWindow.getComputedStyle;
+  if (!originalGetComputedStyle) return () => {};
+
+  targetWindow.getComputedStyle = function (element: Element, pseudoElt?: string | null): CSSStyleDeclaration {
+    const declaration = originalGetComputedStyle.call(targetWindow, element, pseudoElt);
+    if (!declaration) return declaration;
+
+    return new Proxy(declaration, {
+      get(target, prop) {
+        if (prop === 'getPropertyValue') {
+          return (propertyName: string): string => {
+            const raw = target.getPropertyValue(propertyName);
+            return typeof raw === 'string' && COLOR_FUNCTION_LOOKAHEAD.test(raw)
+              ? sanitizeCssColorFunctionsForPngExport(raw)
+              : raw;
+          };
+        }
+        const val = Reflect.get(target, prop, target);
+        if (typeof val === 'function') {
+          return val.bind(target);
+        }
+        return sanitizeComputedValue(val);
+      },
+    });
+  };
+
+  return () => {
+    targetWindow.getComputedStyle = originalGetComputedStyle;
+  };
+};
 
 /**
  * Exports a given HTML element as a PNG image.
@@ -72,7 +119,16 @@ export const exportElementAsPng = async (
 
   targetScale = Math.max(targetScale, MIN_EXPORT_SCALE);
 
+  const cleanupProxies: Array<() => void> = [];
   try {
+    if (typeof window !== 'undefined') {
+      cleanupProxies.push(wrapGetComputedStyleWithColorSanitizer(window));
+    }
+    const elementWindow = element.ownerDocument?.defaultView;
+    if (elementWindow && elementWindow !== (typeof window !== 'undefined' ? window : null)) {
+      cleanupProxies.push(wrapGetComputedStyleWithColorSanitizer(elementWindow));
+    }
+
     const canvas = await html2canvas(element, {
       height,
       width,
@@ -88,10 +144,22 @@ export const exportElementAsPng = async (
       onclone: (clonedDoc) => {
         sanitizeDocumentStylesForPngExport(clonedDoc);
 
+        const clonedWindow = clonedDoc.defaultView;
+        if (
+          clonedWindow &&
+          clonedWindow !== (typeof window !== 'undefined' ? window : null) &&
+          clonedWindow !== elementWindow
+        ) {
+          cleanupProxies.push(wrapGetComputedStyleWithColorSanitizer(clonedWindow));
+        }
+
         const clonedElement = clonedDoc.querySelector('.is-exporting-png') as HTMLElement;
         if (clonedElement) {
           clonedElement.style.transform = 'none';
           clonedElement.style.maxHeight = 'none';
+          if (clonedElement.style.position === 'fixed') {
+            clonedElement.style.position = 'static';
+          }
         }
       },
     });
@@ -110,6 +178,15 @@ export const exportElementAsPng = async (
     logService.error('html2canvas error:', error);
     toastError(options.messages.exportFailed(getErrorMessage(error)));
     return false;
+  } finally {
+    while (cleanupProxies.length > 0) {
+      const cleanup = cleanupProxies.pop();
+      try {
+        cleanup?.();
+      } catch (cleanupError) {
+        logService.warn('Failed to restore getComputedStyle:', cleanupError);
+      }
+    }
   }
 };
 
