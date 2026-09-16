@@ -56,5 +56,22 @@ describe('extractPdfTextFromBase64', () => {
       expect(result.numPages).toBe(1);
       expect(result.text).toBe('');
     });
+
+    it('respects maxPages limit while reporting true total page count', async () => {
+      const doc = new jsPDF();
+      doc.text('Page 1', 10, 10);
+      doc.addPage();
+      doc.text('Page 2', 10, 10);
+      doc.addPage();
+      doc.text('Page 3', 10, 10);
+      const arrayBuffer = doc.output('arraybuffer');
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+
+      const result = await inspectPdfBlob(blob, { maxPages: 1 });
+      expect(result.numPages).toBe(3);
+      expect(result.text).toContain('Page 1');
+      expect(result.text).not.toContain('Page 2');
+      expect(result.text).not.toContain('Page 3');
+    });
   });
 });
