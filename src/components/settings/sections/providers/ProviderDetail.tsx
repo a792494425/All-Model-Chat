@@ -10,6 +10,7 @@ import {
   probeThirdPartyConnection,
   formatLatency,
   getLatencyBadgeStyles,
+  diagnoseConnectionError,
   type ConnectionHealthProbeResult,
 } from '@/utils/thirdPartyDiagnostics';
 import {
@@ -289,12 +290,24 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
     <div className="flex-1 flex flex-col h-full min-w-0 bg-[var(--theme-bg-primary)] overflow-hidden">
       <div className="flex items-center justify-between gap-3 px-6 py-3.5 border-b border-[var(--theme-border-secondary)]/30 flex-shrink-0 bg-[var(--theme-bg-primary)]">
         <div className="flex items-center gap-3 min-w-0">
-          <ProviderAvatar name={connection.name} templateId={connection.templateId} size={28} />
-          <h2 className="text-xl font-bold text-[var(--theme-text-primary)] truncate">{connection.name}</h2>
+          <ProviderAvatar
+            name={connection.name}
+            templateId={connection.templateId}
+            size={28}
+            icon={connection.icon}
+          />
+          <div className="flex items-center gap-2 min-w-0">
+            <h2 className="text-xl font-bold text-[var(--theme-text-primary)] truncate">{connection.name}</h2>
+            {connection.notes && (
+              <span className="px-2 py-0.5 text-xs font-normal rounded-lg bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-secondary)]/40 truncate max-w-[120px] shrink-0">
+                {connection.notes}
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={() => setIsEditOpen(true)}
-            className="p-1.5 rounded-lg text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors focus:outline-none"
+            className="p-1.5 rounded-lg text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors focus:outline-none cursor-pointer"
             title={t('thirdPartyConfigureProvider')}
           >
             <Settings size={15} />
@@ -336,6 +349,19 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
             <span>{t('settingsTabModels')}</span>
             <ArrowUpRight size={13} />
           </button>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-[var(--theme-text-primary)] flex items-center justify-between">
+            <span>{t('thirdPartyConnectionNotes')}</span>
+          </label>
+          <input
+            type="text"
+            value={connection.notes ?? ''}
+            onChange={(e) => onUpdateConnection({ notes: e.target.value.trim() || undefined })}
+            placeholder={t('thirdPartyConnectionNotesPlaceholder')}
+            className={`w-full px-3 py-1.5 rounded-xl border text-xs transition-all ${SETTINGS_INPUT_CLASS}`}
+          />
         </div>
 
         <div className="space-y-2">
@@ -396,7 +422,7 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
               ) : (
                 <Activity size={13} className="text-[var(--theme-text-secondary)]" />
               )}
-              <span>{t('thirdPartyDetect')}</span>
+              <span>{healthStatus === 'testing' ? t('thirdPartyTestingConnection') : t('thirdPartyTestConnection')}</span>
             </button>
             {healthResult && (
               <span
@@ -412,6 +438,34 @@ export const ProviderDetail: React.FC<ProviderDetailProps> = ({
               </span>
             )}
           </div>
+
+          {healthResult && healthResult.status === 'error' && (
+            <div className="flex items-start gap-2.5 p-3 rounded-xl border border-rose-500/20 bg-rose-500/5 text-xs text-[var(--theme-text-primary)] animate-in fade-in duration-150">
+              <AlertCircle size={15} className="text-rose-500 shrink-0 mt-0.5" />
+              <div className="space-y-1 min-w-0 flex-1">
+                <div className="font-semibold text-rose-600 dark:text-rose-400 flex items-center justify-between">
+                  <span>{t('thirdPartyConnectionFailed')}</span>
+                  <button
+                    type="button"
+                    onClick={() => setConnectionHealthResult(connection.id, null)}
+                    className="text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] cursor-pointer"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+                {healthResult.errorMessage && (
+                  <p className="font-mono text-[11px] text-[var(--theme-text-secondary)] break-all opacity-90">
+                    {healthResult.errorMessage}
+                  </p>
+                )}
+                {(healthResult.diagnosticTip || diagnoseConnectionError(healthResult.errorMessage || '')) && (
+                  <div className="text-[11px] text-amber-700 dark:text-amber-300/90 font-medium pt-0.5">
+                    💡 {t('thirdPartyDiagnosticAdvice')}: {healthResult.diagnosticTip || diagnoseConnectionError(healthResult.errorMessage || '')}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">

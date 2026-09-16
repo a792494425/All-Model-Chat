@@ -209,6 +209,11 @@ export const autoTitleSession = async ({
         clampForTitle(userContentForTitle),
         clampForTitle(exchange.modelContent),
         language,
+        {
+          includeEmoji: appSettings.autoTitleIncludeEmoji ?? true,
+          length: appSettings.autoTitleLength ?? 'standard',
+          customPrompt: appSettings.autoTitleCustomPrompt ?? '',
+        },
       )
     ).trim();
   } catch (error) {

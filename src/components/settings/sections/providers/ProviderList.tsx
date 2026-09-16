@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Search, Filter, Plus, GripVertical, MoreVertical, Edit, Copy, Trash2, Activity, Check, X } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Search, Plus, GripVertical, MoreVertical, Edit, Copy, Trash2, Activity, X } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -20,6 +20,8 @@ import { GEMINI_PROVIDER_ID, type ThirdPartyConnection } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { useProviderUiStore } from '@/stores/providerUiStore';
 import { ProviderAvatar } from './ProviderAvatar';
+import { TEMPLATE_PRESETS } from '@/utils/thirdPartyApiProviders';
+import { formatLatency, type ConnectionHealthProbeResult } from '@/utils/thirdPartyDiagnostics';
 
 interface ProviderListProps {
   connections: ThirdPartyConnection[];
@@ -40,6 +42,7 @@ interface ProviderListProps {
 interface SortableProviderItemProps {
   connection: ThirdPartyConnection;
   isSelected: boolean;
+  healthResult?: ConnectionHealthProbeResult;
   onSelect: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
@@ -51,6 +54,7 @@ interface SortableProviderItemProps {
 const SortableProviderItem: React.FC<SortableProviderItemProps> = ({
   connection,
   isSelected,
+  healthResult,
   onSelect,
   onEdit,
   onDuplicate,
@@ -59,8 +63,7 @@ const SortableProviderItem: React.FC<SortableProviderItemProps> = ({
   t,
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: connection.id });
-
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -79,7 +82,7 @@ const SortableProviderItem: React.FC<SortableProviderItemProps> = ({
           : 'hover:bg-[var(--theme-bg-secondary)]/50'
       } ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
     >
-      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+      <div className="flex items-center gap-2 min-w-0 flex-1">
         <button
           type="button"
           {...attributes}
@@ -91,24 +94,65 @@ const SortableProviderItem: React.FC<SortableProviderItemProps> = ({
           <GripVertical size={15} />
         </button>
 
-        <ProviderAvatar name={connection.name} templateId={connection.templateId} size={26} />
+        <ProviderAvatar
+          name={connection.name}
+          templateId={connection.templateId}
+          size={26}
+          icon={connection.icon}
+        />
 
-        <span
-          className={`text-sm truncate min-w-0 flex-1 ${
-            isSelected
-              ? 'text-[var(--theme-text-primary)] font-semibold'
-              : connection.enabled
-                ? 'text-[var(--theme-text-primary)]'
-                : 'text-[var(--theme-text-secondary)] line-through opacity-70'
-          }`}
-          title={connection.name}
-        >
-          {connection.name}
-        </span>
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <span
+            className={`text-sm truncate min-w-0 ${
+              isSelected
+                ? 'text-[var(--theme-text-primary)] font-semibold'
+                : connection.enabled
+                  ? 'text-[var(--theme-text-primary)]'
+                  : 'text-[var(--theme-text-secondary)] line-through opacity-70'
+            }`}
+            title={connection.name}
+          >
+            {connection.name}
+          </span>
+          {connection.notes && (
+            <span
+              className="px-1.5 py-0.2 text-[9px] font-normal leading-none rounded-md bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-secondary)]/40 truncate max-w-[75px] shrink-0"
+              title={connection.notes}
+            >
+              {connection.notes}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-        {connection.enabled ? (
+        {healthResult ? (
+          <span
+            className={`px-1.5 py-0.5 text-[10px] font-mono font-medium rounded-md flex items-center gap-1 cursor-default ${
+              healthResult.status === 'success'
+                ? healthResult.latencyMs < 500
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+            }`}
+            title={
+              healthResult.status === 'success'
+                ? `${formatLatency(healthResult.latencyMs)} (${healthResult.grade})`
+                : healthResult.diagnosticTip || healthResult.errorMessage || t('thirdPartyConnectionFailed')
+            }
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                healthResult.status === 'success'
+                  ? healthResult.latencyMs < 500
+                    ? 'bg-emerald-500'
+                    : 'bg-amber-500'
+                  : 'bg-rose-500'
+              }`}
+            />
+            <span>{healthResult.status === 'success' ? formatLatency(healthResult.latencyMs) : 'ERR'}</span>
+          </span>
+        ) : connection.enabled ? (
           <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-xs" title={t('enabled')} />
         ) : (
           <span className="w-2 h-2 rounded-full bg-[var(--theme-border-secondary)] opacity-40" title={t('disabled')} />
@@ -198,12 +242,33 @@ export const ProviderList: React.FC<ProviderListProps> = ({
   const setSearch = useProviderUiStore((s) => s.setListSearchQuery);
   const filterMode = useProviderUiStore((s) => s.listFilterMode);
   const setFilterMode = useProviderUiStore((s) => s.setListFilterMode);
-  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
+  const healthResults = useProviderUiStore((s) => s.healthResultByConnection);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+
+  const configuredTemplateIds = useMemo(
+    () => new Set(connections.map((c) => c.templateId)),
+    [connections],
+  );
+
+  const unconfiguredPresets = useMemo(() => {
+    return TEMPLATE_PRESETS.filter((p) => !configuredTemplateIds.has(p.id));
+  }, [configuredTemplateIds]);
+
+  const enabledCount = useMemo(() => {
+    return connections.filter((c) => c.enabled).length + (geminiStatus?.isConfigured ? 1 : 0);
+  }, [connections, geminiStatus?.isConfigured]);
+
+  const allCount = useMemo(() => {
+    return connections.length + 1 + unconfiguredPresets.length;
+  }, [connections.length, unconfiguredPresets.length]);
+
+  const disabledCount = useMemo(() => {
+    return Math.max(0, allCount - enabledCount);
+  }, [allCount, enabledCount]);
 
   const filteredConnections = useMemo(() => {
     return connections
@@ -215,9 +280,27 @@ export const ProviderList: React.FC<ProviderListProps> = ({
       .filter((conn) => {
         if (!search.trim()) return true;
         const q = search.trim().toLowerCase();
-        return conn.name.toLowerCase().includes(q) || conn.models.some((m) => m.id.toLowerCase().includes(q));
+        return (
+          conn.name.toLowerCase().includes(q) ||
+          (conn.notes && conn.notes.toLowerCase().includes(q)) ||
+          conn.templateId.toLowerCase().includes(q) ||
+          conn.models.some((m) => m.id.toLowerCase().includes(q) || (m.name && m.name.toLowerCase().includes(q)))
+        );
       });
   }, [connections, filterMode, search]);
+
+  const filteredPresets = useMemo(() => {
+    if (filterMode === 'enabled') return [];
+    return unconfiguredPresets.filter((p) => {
+      if (!search.trim()) return true;
+      const q = search.trim().toLowerCase();
+      return (
+        p.name.toLowerCase().includes(q) ||
+        p.id.toLowerCase().includes(q) ||
+        (p.description && p.description.toLowerCase().includes(q))
+      );
+    });
+  }, [filterMode, unconfiguredPresets, search]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -233,15 +316,21 @@ export const ProviderList: React.FC<ProviderListProps> = ({
     }
   };
 
-  const isGeminiMatch =
-    !search ||
-    'google gemini official builtin 官方 内置'.toLowerCase().includes(search.toLowerCase()) ||
-    t('thirdPartyOfficialProviders').toLowerCase().includes(search.toLowerCase());
+  const isGeminiMatch = useMemo(() => {
+    if (filterMode === 'enabled' && !geminiStatus?.isConfigured) return false;
+    if (filterMode === 'disabled' && geminiStatus?.isConfigured) return false;
+    if (!search.trim()) return true;
+    const q = search.trim().toLowerCase();
+    return (
+      'google gemini official builtin 官方 内置'.toLowerCase().includes(q) ||
+      t('thirdPartyOfficialProviders').toLowerCase().includes(q)
+    );
+  }, [filterMode, geminiStatus?.isConfigured, search, t]);
 
   return (
     <div className="w-full md:w-64 lg:w-72 flex flex-col h-full bg-[var(--theme-bg-secondary)]/25 border-r border-[var(--theme-border-secondary)]/40 flex-shrink-0 select-none">
-      <div className="p-3 border-b border-[var(--theme-border-secondary)]/30 flex-shrink-0 flex items-center gap-2">
-        <div className="relative flex-1">
+      <div className="p-3 border-b border-[var(--theme-border-secondary)]/30 flex-shrink-0 space-y-2">
+        <div className="relative w-full">
           <Search
             size={14}
             className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-secondary)]/60 pointer-events-none"
@@ -264,45 +353,43 @@ export const ProviderList: React.FC<ProviderListProps> = ({
           )}
         </div>
 
-        <div className="relative">
+        <div className="flex items-center gap-1 p-0.5 bg-[var(--theme-bg-tertiary)]/60 rounded-xl">
           <button
             type="button"
-            onClick={() => setFilterMenuOpen(!filterMenuOpen)}
-            className={`p-1.5 rounded-lg border transition-colors ${
-              filterMode !== 'all'
-                ? 'border-[var(--theme-border-focus)] bg-[var(--theme-border-focus)]/10 text-[var(--theme-text-focus)]'
-                : 'border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-primary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
+            onClick={() => setFilterMode('enabled')}
+            className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center justify-center gap-1 ${
+              filterMode === 'enabled'
+                ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-xs font-semibold'
+                : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
             }`}
-            title={t('thirdPartyFilterStatus')}
           >
-            <Filter size={13} />
+            <span>{t('thirdPartyFilterEnabled') || '已启用'}</span>
+            <span className="text-[10px] opacity-60">({enabledCount})</span>
           </button>
-
-          {filterMenuOpen && (
-            <>
-              <div className="fixed inset-0 z-30" onClick={() => setFilterMenuOpen(false)} />
-              <div className="absolute right-0 top-full mt-1 z-40 w-32 rounded-xl border border-[var(--theme-border-primary)] bg-[var(--theme-bg-primary)] p-1 shadow-xl text-xs space-y-0.5">
-                {[
-                  { id: 'all', label: t('thirdPartyFilterAll') },
-                  { id: 'enabled', label: t('thirdPartyFilterEnabled') },
-                  { id: 'disabled', label: t('thirdPartyFilterDisabled') },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      setFilterMode(item.id as any);
-                      setFilterMenuOpen(false);
-                    }}
-                    className="flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg text-left text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]"
-                  >
-                    <span>{item.label}</span>
-                    {filterMode === item.id && <Check size={13} className="text-emerald-500" />}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+          <button
+            type="button"
+            onClick={() => setFilterMode('all')}
+            className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center justify-center gap-1 ${
+              filterMode === 'all'
+                ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-xs font-semibold'
+                : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
+            }`}
+          >
+            <span>{t('thirdPartyFilterAll') || '全部'}</span>
+            <span className="text-[10px] opacity-60">({allCount})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterMode('disabled')}
+            className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center justify-center gap-1 ${
+              filterMode === 'disabled'
+                ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-xs font-semibold'
+                : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
+            }`}
+          >
+            <span>{t('thirdPartyFilterDisabled') || '未启用'}</span>
+            <span className="text-[10px] opacity-60">({disabledCount})</span>
+          </button>
         </div>
       </div>
 
@@ -355,7 +442,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({
           </div>
 
           {filteredConnections.length === 0 ? (
-            <div className="py-6 px-2 text-center text-xs text-[var(--theme-text-secondary)]">
+            <div className="py-4 px-2 text-center text-xs text-[var(--theme-text-secondary)]">
               {search ? t('thirdPartyNoSearchResults') : t('thirdPartyConnectionsEmpty')}
             </div>
           ) : (
@@ -366,6 +453,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({
                     key={connection.id}
                     connection={connection}
                     isSelected={connection.id === selectedConnectionId}
+                    healthResult={healthResults[connection.id]}
                     onSelect={() => onSelectConnection(connection.id)}
                     onEdit={() => onEditConnection(connection)}
                     onDuplicate={() => onDuplicateConnection(connection)}
@@ -378,6 +466,59 @@ export const ProviderList: React.FC<ProviderListProps> = ({
             </DndContext>
           )}
         </div>
+
+        {filteredPresets.length > 0 && (
+          <div className="space-y-1 pt-1 border-t border-[var(--theme-border-secondary)]/30">
+            <div className="flex items-center justify-between px-2 py-0.5">
+              <span className="text-[10px] font-semibold tracking-wider text-[var(--theme-text-secondary)]/60 uppercase">
+                {t('thirdPartyTabPresets') || '预设服务商'}
+              </span>
+              <span className="text-[10px] text-[var(--theme-text-secondary)]/50 font-mono">
+                ({filteredPresets.length})
+              </span>
+            </div>
+
+            {filteredPresets.map((preset) => {
+              const presetKey = `preset:${preset.id}`;
+              const isSelected = selectedConnectionId === presetKey;
+              return (
+                <div
+                  key={preset.id}
+                  data-testid={`preset-item-${preset.id}`}
+                  onClick={() => onSelectConnection(presetKey)}
+                  className={`group relative flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl cursor-pointer select-none transition-all ${
+                    isSelected
+                      ? 'bg-[var(--theme-bg-secondary)] shadow-xs ring-1 ring-[var(--theme-border-focus)]/40 font-medium'
+                      : 'hover:bg-[var(--theme-bg-secondary)]/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <ProviderAvatar name={preset.name} templateId={preset.id} size={26} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm truncate text-[var(--theme-text-primary)]">
+                          {preset.name}
+                        </span>
+                        <span className="px-1.5 py-0.2 text-[9px] font-medium rounded-full bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-secondary)]/50 shrink-0">
+                          {t('thirdPartyPresetBadge') || '预设'}
+                        </span>
+                      </div>
+                      {preset.description && (
+                        <div className="text-[10px] text-[var(--theme-text-secondary)]/70 truncate mt-0.5">
+                          {preset.description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <span
+                    className="w-2 h-2 rounded-full bg-[var(--theme-border-secondary)] opacity-30 shrink-0"
+                    title={t('disabled')}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="p-3 border-t border-[var(--theme-border-secondary)]/30 flex-shrink-0 bg-[var(--theme-bg-primary)]/40">
@@ -388,7 +529,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({
           className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-dashed border-[var(--theme-border-secondary)] hover:border-[var(--theme-border-focus)] bg-[var(--theme-bg-secondary)]/50 hover:bg-[var(--theme-bg-tertiary)]/70 text-xs font-medium text-[var(--theme-text-primary)] transition-all cursor-pointer shadow-xs"
         >
           <Plus size={14} />
-          <span>{t('thirdPartyAddConnection')}</span>
+          <span>{t('thirdPartyAddCustomConnection') || t('thirdPartyAddConnection')}</span>
         </button>
       </div>
     </div>

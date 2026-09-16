@@ -311,30 +311,28 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   const handleConfirmDelete = useCallback(async () => {
     if (!deleteConfirmTarget) return;
 
+    const ids = deleteConfirmTarget === 'selected' ? Array.from(selectedFileIds) : [deleteConfirmTarget.id];
+    const idSet = new Set(ids);
+
+    void autoIndexingQueue.removeItems(ids);
+
+    await Promise.all([
+      dbService.deleteStandaloneLibraryFiles(ids),
+      dbService.deleteFilesFromSessions(ids),
+      dbService.addDeletedLibraryFileIds(ids),
+    ]);
+
+    useChatStore.getState().removeFilesFromStore(ids);
+
+    setDeletedFileIds((prev) => new Set([...prev, ...ids]));
+    setStandaloneFiles((prev) => prev.filter((i) => !idSet.has(i.id)));
+    setHistoricalFiles((prev) => prev.filter((i) => !idSet.has(i.id)));
+
     if (deleteConfirmTarget === 'selected') {
-      const ids = Array.from(selectedFileIds);
-      void autoIndexingQueue.removeItems(ids);
-      await Promise.all([dbService.deleteStandaloneLibraryFiles(ids), dbService.addDeletedLibraryFileIds(ids)]);
-      setDeletedFileIds((prev) => new Set([...prev, ...ids]));
-      setHistoricalFiles((prev) => prev.filter((i) => !selectedFileIds.has(i.id)));
       clearSelection();
-      await refreshLibraryFiles();
-    } else {
-      const item = deleteConfirmTarget;
-      void autoIndexingQueue.removeItems([item.id]);
-      if (item.isStandalone) {
-        await Promise.all([
-          dbService.deleteStandaloneLibraryFiles([item.id]),
-          dbService.addDeletedLibraryFileIds([item.id]),
-        ]);
-      } else {
-        // Session file: record tombstone so it won't reappear from savedSessions
-        await dbService.addDeletedLibraryFileIds([item.id]);
-      }
-      setDeletedFileIds((prev) => new Set([...prev, item.id]));
-      setHistoricalFiles((prev) => prev.filter((i) => i.id !== item.id));
-      await refreshLibraryFiles();
     }
+    setDeleteConfirmTarget(null);
+    await refreshLibraryFiles();
   }, [deleteConfirmTarget, selectedFileIds, clearSelection, refreshLibraryFiles]);
 
   // Preview item

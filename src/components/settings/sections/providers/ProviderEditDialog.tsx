@@ -13,6 +13,7 @@ import { Select } from '@/components/shared/Select';
 import { Toggle } from '@/components/shared/Toggle';
 import { isForwardedThirdPartyExtraHeader } from '../../../../../shared/thirdPartyExtraHeaders';
 import { ProviderAvatar } from './ProviderAvatar';
+import { ProviderImageUpload } from './ProviderImageUpload';
 
 interface ProviderEditDialogProps {
   isOpen: boolean;
@@ -34,6 +35,8 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
   const { t } = useI18n();
 
   const [name, setName] = useState(connection.name);
+  const [notes, setNotes] = useState(connection.notes ?? '');
+  const [icon, setIcon] = useState(connection.icon ?? '');
   const [protocol, setProtocol] = useState<ThirdPartyApiProtocol>(connection.protocol);
   const [baseUrl, setBaseUrl] = useState(connection.baseUrl ?? '');
   const [authOptional, setAuthOptional] = useState(Boolean(connection.authOptional));
@@ -47,6 +50,8 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
 
   React.useEffect(() => {
     setName(connection.name);
+    setNotes(connection.notes ?? '');
+    setIcon(connection.icon ?? '');
     setProtocol(connection.protocol);
     setBaseUrl(connection.baseUrl ?? '');
     setAuthOptional(Boolean(connection.authOptional));
@@ -77,6 +82,8 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
       baseUrl: baseUrl.trim() || null,
       authOptional,
       extraHeaders: nextHeaders,
+      icon: icon.trim() || undefined,
+      notes: notes.trim() || undefined,
     });
     onClose();
   };
@@ -90,7 +97,7 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
       >
         <div className="flex items-center justify-between border-b border-[var(--theme-border-secondary)]/40 pb-3 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <ProviderAvatar name={connection.name} templateId={connection.templateId} size={22} />
+            <ProviderAvatar name={name || connection.name} templateId={connection.templateId} icon={icon} size={22} />
             <h3 className="text-base font-semibold text-[var(--theme-text-primary)]">{t('settingsEditProvider')}</h3>
           </div>
           <button
@@ -114,6 +121,24 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
               className={`w-full p-2.5 rounded-lg border text-sm ${SETTINGS_INPUT_CLASS}`}
               placeholder="e.g. OpenRouter, Muse, DeepSeek..."
             />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
+              {t('thirdPartyConnectionNotes')}
+            </label>
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className={`w-full p-2.5 rounded-lg border text-sm ${SETTINGS_INPUT_CLASS}`}
+              placeholder={t('thirdPartyConnectionNotesPlaceholder')}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
+              {t('thirdPartySelectIcon')}
+            </label>
+            <ProviderImageUpload value={icon} onChange={setIcon} name={name || connection.name} />
           </div>
           <Select
             id="edit-provider-protocol"

@@ -72,7 +72,7 @@ describe('ProviderSettingsSection', () => {
     expect(renderer.container.textContent).toContain('Muse Spark 1.3 Contributor');
     expect(renderer.container.textContent).toContain('API 密钥');
     expect(renderer.container.textContent).toContain('API 地址');
-    expect(renderer.container.textContent).toContain('检测');
+    expect(renderer.container.textContent).toContain('测试连通性');
   });
 
   it('persists selectedConnectionId and restores it on render', () => {
@@ -186,8 +186,8 @@ describe('ProviderSettingsSection', () => {
       renderer.root.render(<ProviderSettingsSection {...createProps({ settings: emptySettings })} />);
     });
 
-    // Drawer tabs should not be in document yet
-    expect(renderer.container.querySelector('[data-testid="tab-preset"]')).toBeNull();
+    // Custom provider modal should not be in document yet
+    expect(renderer.container.querySelector('#provider-drawer-baseurl')).toBeNull();
 
     const addBtn = renderer.container.querySelector<HTMLButtonElement>('[data-settings-item="providers-add"]');
     expect(addBtn).not.toBeNull();
@@ -196,7 +196,8 @@ describe('ProviderSettingsSection', () => {
       addBtn?.click();
     });
 
-    // Drawer should now be open and render tabs
-    expect(renderer.container.querySelector('[data-testid="tab-preset"]')).not.toBeNull();
+    // Custom provider modal should now be open
+    expect(renderer.container.querySelector('#provider-drawer-baseurl')).not.toBeNull();
+    expect(renderer.container.querySelector('[data-testid="add-provider-confirm-button"]')).not.toBeNull();
   });
 });

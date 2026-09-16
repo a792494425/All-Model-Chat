@@ -41,7 +41,7 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
       if (dir === 'TB' || dir === 'BT') return 'TB';
       if (dir === 'LR' || dir === 'RL') return 'LR';
     }
-    return 'LR';
+    return 'TB';
   }, [code, manualLayout]);
 
   const [svgContent, setSvgContent] = useState('');
@@ -73,7 +73,7 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
 
     const result = await renderDotToSvgCached(code, {
       themeId,
-      layout: effectiveLayout,
+      layout: manualLayout ?? undefined,
       preserveAuthorColors: true,
     });
 
@@ -95,15 +95,17 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
     if (isMessageLoading) {
       setIsRendering(true);
     } else {
-      const errorMessage =
-        result.error === 'render-failed'
-          ? result.message.replace(/.*error:\s*/i, '')
-          : t('diagramRenderGraphvizFailed');
+      let errorMessage = t('diagramRenderGraphvizFailed');
+      if (result.error === 'render-failed') {
+        errorMessage = result.message.replace(/.*error:\s*/i, '');
+      } else if (result.error === 'too-large') {
+        errorMessage = result.message || t('diagramRenderGraphvizTooLarge');
+      }
       setError(errorMessage);
       setSvgContent('');
       setIsRendering(false);
     }
-  }, [code, effectiveLayout, isMessageLoading, t, themeId]);
+  }, [code, isMessageLoading, manualLayout, t, themeId]);
 
   const renderGraphWithLogging = useCallback(() => {
     renderGraph().catch((error) => {

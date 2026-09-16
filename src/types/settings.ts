@@ -87,6 +87,7 @@ export enum MediaResolution {
 
 export type ImageOutputMode = 'IMAGE_TEXT' | 'IMAGE_ONLY';
 export type ApiMode = 'gemini-native' | 'third-party';
+export type AutoTitleLength = 'concise' | 'standard' | 'detailed';
 
 /** The built-in Gemini provider id used in session routing. */
 export const GEMINI_PROVIDER_ID = 'gemini-native';
@@ -172,6 +173,8 @@ export interface ThirdPartyConnection {
   models: ModelOption[];
   enabled: boolean;
   authOptional?: boolean;
+  icon?: string;
+  notes?: string;
 }
 
 /** Third-party connections. Sessions route by stored (providerId, modelId). */
@@ -326,6 +329,9 @@ export interface AppSettings extends ChatSettings {
   filesApiConfig: FilesApiConfig;
   expandCodeBlocksByDefault: boolean;
   isAutoTitleEnabled: boolean;
+  autoTitleIncludeEmoji?: boolean;
+  autoTitleLength?: AutoTitleLength;
+  autoTitleCustomPrompt?: string;
   isMermaidRenderingEnabled: boolean;
   isGraphvizRenderingEnabled?: boolean;
   isCompletionNotificationEnabled: boolean;
@@ -363,6 +369,7 @@ export interface AppSettings extends ChatSettings {
   selectionAskProviderId?: ChatProviderId;
   tokenCalculatorApiKey?: string | null;
   liveApiKey?: string | null;
+  embeddingApiKey?: string | null;
   thirdPartyApi: ThirdPartyApiSettings;
 }
 

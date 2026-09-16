@@ -201,6 +201,13 @@ describe('htmlPreview utilities', () => {
     expect(srcDoc).toContain('overflow-wrap:anywhere');
   });
 
+  it('injects table cell vertical-align and pill tag nowrap guards', () => {
+    const srcDoc = buildHtmlPreviewSrcDoc('<table><tr><td><span>Tag</span></td></tr></table>');
+
+    expect(srcDoc).toContain('table td,table th{vertical-align:top;}');
+    expect(srcDoc).toContain('span[style*="border-radius"][style*="padding"]{white-space:nowrap;display:inline-block;}');
+  });
+
   it('injects a declarative Live Artifact follow-up click bridge', () => {
     const srcDoc = buildHtmlPreviewSrcDoc(
       `<section><button data-amc-followup='{"instruction":"Continue","state":{"selected":"B"}}'>Continue</button></section>`,
@@ -393,6 +400,14 @@ describe('htmlPreview utilities', () => {
     expect(srcDoc).toContain('O(1)');
     expect(srcDoc).not.toContain('$O(L)$');
     expect(srcDoc).not.toContain('$O(1)$');
+  });
+
+  it('renders comma-separated math variable lists in preview HTML', () => {
+    const srcDoc = buildHtmlPreviewSrcDoc('<section><p>Inputs: $K, V$ and $Q, K, V$</p></section>');
+
+    expect(srcDoc).toContain('class="katex"');
+    expect(srcDoc).not.toContain('$K, V$');
+    expect(srcDoc).not.toContain('$Q, K, V$');
   });
 
   it('creates a static screenshot container without scripts or inline event handlers', async () => {

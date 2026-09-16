@@ -525,7 +525,10 @@ describe('ArtifactFrame', () => {
       );
     });
 
-    expect(renderDotToSvgCached).toHaveBeenCalledWith('digraph { A -> B }', { themeId: 'pearl' });
+    expect(renderDotToSvgCached).toHaveBeenCalledWith('digraph { A -> B }', {
+      themeId: 'pearl',
+      preserveAuthorColors: true,
+    });
     expect(postMessage).toHaveBeenCalledWith(
       {
         channel: HTML_PREVIEW_MESSAGE_CHANNEL,
@@ -651,5 +654,38 @@ describe('ArtifactFrame', () => {
       uploadState: 'active',
     });
     expect(uploadedFile.dataUrl).toContain('data:image/svg+xml;base64,');
+  });
+
+  it('re-creates the iframe DOM node when transitioning from streaming to final mode', () => {
+    act(() => {
+      renderer.root.render(
+        <ArtifactFrame html="<p>Chunk 1</p>" isLoading cacheKey="msg-1" />,
+      );
+    });
+
+    const streamingIframe = renderer.container.querySelector('iframe');
+    expect(streamingIframe).not.toBeNull();
+
+    // Streaming updates keep the same iframe DOM node
+    act(() => {
+      renderer.root.render(
+        <ArtifactFrame html="<p>Chunk 1 and 2</p>" isLoading cacheKey="msg-1" />,
+      );
+    });
+
+    const streamingIframe2 = renderer.container.querySelector('iframe');
+    expect(streamingIframe2).toBe(streamingIframe);
+
+    // Finishing the stream transitions to a fresh iframe node so Chromium re-renders the browsing context
+    act(() => {
+      renderer.root.render(
+        <ArtifactFrame html="<p>Chunk 1 and 2 with math $x$</p>" isLoading={false} cacheKey="msg-1" />,
+      );
+    });
+
+    const finalIframe = renderer.container.querySelector('iframe');
+    expect(finalIframe).not.toBeNull();
+    expect(finalIframe).not.toBe(streamingIframe);
+    expect(finalIframe?.getAttribute('srcdoc')).toContain('class="katex"');
   });
 });

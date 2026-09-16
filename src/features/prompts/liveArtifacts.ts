@@ -76,11 +76,11 @@ Example 2—multi-select with items (feature scope):
 
 ## Component patterns (short form; same type → same markup; nest in root)
 - Neutral card: surface-muted + border token; recommend/caution/risk cards: matching *-surface + semantic border; default neutral+tags; full-card tint only for strong polarity.
-- Status tags: *-surface + matching text + semantic border; padding:0.15em 0.5em;border-radius:0.25rem;font-size:0.75em;font-weight:600.
+- Status tags: *-surface + matching text + semantic border; padding:0.15em 0.5em;border-radius:0.25rem;font-size:0.75em;font-weight:600;white-space:nowrap;display:inline-block.
 - Metrics: ≤3 quantifiable values, size ≤1.5em + tabular-nums.
 - Progress: track surface-muted; fill accent when neutral, success/warning/danger when statusful.
 - Timeline: border-left:2px solid border token.
-- Table: thead background surface-muted; cell borders border token; wrap wide tables in overflow-x:auto.
+- Table: thead background surface-muted; cell borders border token; wrap wide tables in overflow-x:auto; td/th default to vertical-align:top; short status/tag columns must declare white-space:nowrap; recommended or default rows in comparison tables may declare subtle highlight background (e.g. success-surface/accent-surface).
 - Grid: repeat(auto-fit,minmax(min(100%,12em),1fr)); multi-card grid containers declare align-items:stretch; cards use display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;height:100% to ensure equal-height alignment.
 
 ## Declarative chart DSL (data-amc-chart)
@@ -97,14 +97,14 @@ For numeric data, use data-amc-chart with Apache ECharts Option JSON; never hand
 
 ## Declarative graph DSL (data-amc-graphviz)
 Use data-amc-graphviz for structure/dependency/flow/state-machine/organization; never hand-write SVG diagrams (layout is done by the host renderer).
-- Usage: <div data-amc-graphviz='digraph { rankdir=LR; start[label="Start"]; parse[label="Parse request"]; start->parse; }'></div>
+- Usage: <div data-amc-graphviz='digraph { start[label="Start"]; parse[label="Parse request"]; start->parse; }'></div>
 - DOT lives in a single-quoted attribute; strings inside DOT use only double quotes; no single quotes \`'\` (rewrite labels containing apostrophes); no HTML-like labels (<...>); no URLs/href/images
 - Limits: DOT ≤ ${DOT_MAX_CHARS} chars; nodes ≤ ${DOT_MAX_NODES}; edges ≤ ${DOT_MAX_EDGES}
-- Node ids ASCII; labels localized. Short flows with concise node labels (≤4 chars) may use rankdir=LR; but whenever labels are long or node count > 4, prioritize rankdir=TB (vertical flow) to prevent horizontal overflow/clipping; multi-branching trees also use rankdir=TB.
-- Default nodes to rounded filled cards (shape=box style="rounded,filled"); text nodes must uniformly use rounded filled cards, never set text labels to shape=ellipse (text horizontally distorts ellipses, use shape=box style="rounded,filled" instead; reserve ellipse strictly for tiny 1–2 word start/end markers); parallel branches only: subgraph cluster_* { label="lane" }; Do not wrap a straight pipeline in lanes; decisions may use shape=diamond; back-edges style=dashed
-- Never write penwidth/arrowsize/fontname/margin or hex/rgb; default nodes stay neutral without fillcolor/color; reserve semantic colors strictly for true status/highlights; set fillcolor and color to the same semantic name; edges may use color=semantic; keep the node empty
+- Node ids ASCII; labels localized. Default layout is top-to-bottom (TB); horizontal pipelines may specify rankdir=LR when node count ≤ 4 with concise labels.
+- Use standard Graphviz shapes naturally (e.g. ellipse/box for nodes, diamond for decisions, cylinder for databases); parallel branches only: subgraph cluster_* { label="lane" }; Do not wrap a straight pipeline in lanes; back-edges style=dashed
+- Color & styling: Use clear, purposeful colors to distinguish tiers/status (e.g. soft pastel fills like #E0E7FF, #FEF3C7, #FEE2E2, #DCFCE7, #F3E8FF, #F1F5F9 or semantic names accent/success/warning/danger); when setting fillcolor, declare style="filled" (or style="filled,rounded") so Graphviz renders background fills; clusters may use style=filled; fillcolor="..." for grouping; edges may use color=...; keep the node empty
 Example (branch + lanes):
-<div data-amc-graphviz='digraph { rankdir=TB; start[label="Start" shape=ellipse]; decide[label="Branch?" shape=diamond fillcolor=accent color=accent]; subgraph cluster_ok { label="Pass"; done[label="Done" fillcolor=success color=success]; } subgraph cluster_no { label="Retry"; retry[label="Retry" fillcolor=warning color=warning]; } start->decide; decide->done [label="yes"]; decide->retry [label="no"]; retry->decide [style=dashed]; }'></div>
+<div data-amc-graphviz='digraph { rankdir=TB; start[label="Start" shape=ellipse]; decide[label="Branch?" shape=diamond style="filled" fillcolor=accent color=accent]; subgraph cluster_ok { label="Pass"; style="filled"; fillcolor="#F0FDF4"; done[label="Done" style="filled" fillcolor=success color=success]; } subgraph cluster_no { label="Retry"; style="filled"; fillcolor="#FFFBEB"; retry[label="Retry" style="filled" fillcolor=warning color=warning]; } start->decide; decide->done [label="yes"]; decide->retry [label="no"]; retry->decide [style=dashed]; }'></div>
 
 ## Chart selection rules
 - Numeric series / numeric comparison → data-amc-chart
@@ -144,10 +144,10 @@ Example (branch + lanes):
   <h3 style="font-size:1.1em;font-weight:600;margin:0 0 0.5rem;">Task table</h3>
   <div style="overflow-x:auto;margin-bottom:1rem;">
   <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
-    <thead><tr style="background:var(--amc-live-artifact-surface-muted);"><th style="text-align:left;padding:0.4em 0.6em;border-bottom:2px solid var(--amc-live-artifact-border);font-weight:600;">Task</th><th style="text-align:right;padding:0.4em 0.6em;border-bottom:2px solid var(--amc-live-artifact-border);font-weight:600;">Effort</th><th style="text-align:left;padding:0.4em 0.6em;border-bottom:2px solid var(--amc-live-artifact-border);font-weight:600;">Status</th></tr></thead>
+    <thead><tr style="background:var(--amc-live-artifact-surface-muted);"><th style="text-align:left;padding:0.4em 0.6em;border-bottom:2px solid var(--amc-live-artifact-border);font-weight:600;">Task</th><th style="text-align:right;padding:0.4em 0.6em;border-bottom:2px solid var(--amc-live-artifact-border);font-weight:600;">Effort</th><th style="text-align:left;padding:0.4em 0.6em;border-bottom:2px solid var(--amc-live-artifact-border);font-weight:600;white-space:nowrap;">Status</th></tr></thead>
     <tbody>
-      <tr><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);">Payments</td><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);text-align:right;font-variant-numeric:tabular-nums;">8d</td><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);"><span style="background:var(--amc-live-artifact-success-surface);color:var(--amc-live-artifact-success);padding:0.1em 0.45em;border-radius:0.25rem;font-size:0.85em;font-weight:600;">Done</span></td></tr>
-      <tr><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);">Search rewrite</td><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);text-align:right;font-variant-numeric:tabular-nums;">12d</td><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);"><span style="background:var(--amc-live-artifact-warning-surface);color:var(--amc-live-artifact-warning);padding:0.1em 0.45em;border-radius:0.25rem;font-size:0.85em;font-weight:600;">At risk</span></td></tr>
+      <tr><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);vertical-align:top;">Payments</td><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);text-align:right;font-variant-numeric:tabular-nums;vertical-align:top;">8d</td><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);white-space:nowrap;vertical-align:top;"><span style="background:var(--amc-live-artifact-success-surface);color:var(--amc-live-artifact-success);padding:0.1em 0.45em;border-radius:0.25rem;font-size:0.85em;font-weight:600;white-space:nowrap;display:inline-block;">Done</span></td></tr>
+      <tr><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);vertical-align:top;">Search rewrite</td><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);text-align:right;font-variant-numeric:tabular-nums;vertical-align:top;">12d</td><td style="padding:0.4em 0.6em;border-bottom:1px solid var(--amc-live-artifact-border);white-space:nowrap;vertical-align:top;"><span style="background:var(--amc-live-artifact-warning-surface);color:var(--amc-live-artifact-warning);padding:0.1em 0.45em;border-radius:0.25rem;font-size:0.85em;font-weight:600;white-space:nowrap;display:inline-block;">At risk</span></td></tr>
     </tbody>
   </table>
   </div>
@@ -189,7 +189,7 @@ Example (branch + lanes):
 5. Wide content wrapped in overflow-x:auto.
 6. If outputting JSON: are field keys ASCII? fields 1–24? enum ≤50? instruction ≤2000? format/type match?
 7. Numeric charts use data-amc-chart instead of hand-written SVG? x and y equal length? Graphs use data-amc-graphviz instead of hand-written SVG? DOT free of single quotes, HTML-like labels, and over-limit sizes? Hierarchical graphs set rankdir=TB explicitly?
-8. If a graph: colors semantic only with fillcolor and color paired; clusters only for parallel branches; diamond only for decisions; dashed only for back-edges?
+8. If a graph: clear purposeful colors (soft pastels or semantic tokens) with style="filled"; standard Graphviz shapes (box, ellipse, diamond, cylinder, etc.); clusters for logical grouping/lanes; dashed for back-edges/async?
 
 ## HARD CONSTRAINTS (violations silently break interaction; no UI error)
 ### A) amc-live-artifact-interaction JSON
@@ -203,7 +203,7 @@ Example (branch + lanes):
 ### C) data-amc-graphviz
 - DOT ≤ ${DOT_MAX_CHARS} chars; nodes ≤ ${DOT_MAX_NODES}; edges ≤ ${DOT_MAX_EDGES}
 - No single quotes \`'\` inside DOT attribute values; labels must not be HTML-like (<...>), URLs/hrefs/images
-- No hex/rgb or penwidth/arrowsize/fontname/margin; shape only box/ellipse/diamond; style only dashed; parallel branches use cluster_*
+- Use clear pastel fills or semantic colors with style="filled"; standard shapes (box, ellipse, diamond, cylinder, etc.); parallel branches/tiers use cluster_*
 `;
 
 const LIVE_ARTIFACTS_USER_DIRECTIVE_ZH = `请使用 Live Artifacts，将提供的信息整理成结构化、响应式的 HTML 作品。请保留所有重要信息：`;

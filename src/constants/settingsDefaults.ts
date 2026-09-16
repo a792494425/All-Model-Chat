@@ -105,6 +105,9 @@ const BASE_DEFAULT_APP_SETTINGS: Omit<AppSettings, 'thirdPartyApi'> = {
   filesApiConfig: DEFAULT_FILES_API_CONFIG,
   expandCodeBlocksByDefault: false,
   isAutoTitleEnabled: true,
+  autoTitleIncludeEmoji: true,
+  autoTitleLength: 'standard',
+  autoTitleCustomPrompt: '',
   isMermaidRenderingEnabled: true,
   isGraphvizRenderingEnabled: true,
   isCompletionNotificationEnabled: false,
@@ -140,6 +143,7 @@ const BASE_DEFAULT_APP_SETTINGS: Omit<AppSettings, 'thirdPartyApi'> = {
   selectionAskProviderId: undefined,
   tokenCalculatorApiKey: null,
   liveApiKey: null,
+  embeddingApiKey: null,
 };
 
 export function getDefaultAppSettings(): AppSettings {

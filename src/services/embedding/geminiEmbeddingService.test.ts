@@ -4,6 +4,8 @@ import {
   generateQueryEmbedding,
   generateMediaEmbedding,
   generateDocumentEmbedding,
+  generateMultimodalQueryEmbedding,
+  hasConfiguredApiKey,
   DEFAULT_EMBEDDING_MODEL,
   EMBEDDING_DIMENSION,
 } from './geminiEmbeddingService';
@@ -72,6 +74,56 @@ describe('geminiEmbeddingService', () => {
       expect(result).toEqual(mockVector);
     });
 
+    it('uses dedicated embeddingApiKey and passes directGoogleApi: true when configured', async () => {
+      vi.spyOn(dbService, 'getAppSettings').mockResolvedValue({
+        apiKey: 'general-api-key',
+        embeddingApiKey: 'dedicated-official-key',
+      } as any);
+
+      const mockVector = new Array(768).fill(0.1);
+      mockEmbedContent.mockResolvedValue({
+        embeddings: [{ values: mockVector }],
+      });
+
+      await generateQueryEmbedding('search with dedicated key');
+
+      expect(apiClientModule.getConfiguredApiClient).toHaveBeenCalledWith('dedicated-official-key', undefined, {
+        directGoogleApi: true,
+      });
+    });
+
+    it('falls back to general apiKey without directGoogleApi when embeddingApiKey is empty or not set', async () => {
+      vi.spyOn(dbService, 'getAppSettings').mockResolvedValue({
+        apiKey: 'general-api-key',
+        embeddingApiKey: null,
+      } as any);
+
+      const mockVector = new Array(768).fill(0.1);
+      mockEmbedContent.mockResolvedValue({
+        embeddings: [{ values: mockVector }],
+      });
+
+      await generateQueryEmbedding('search with general key');
+
+      expect(apiClientModule.getConfiguredApiClient).toHaveBeenCalledWith('general-api-key');
+    });
+
+    it('prioritizes explicit apiKeyOverride over embeddingApiKey', async () => {
+      vi.spyOn(dbService, 'getAppSettings').mockResolvedValue({
+        apiKey: 'general-api-key',
+        embeddingApiKey: 'dedicated-official-key',
+      } as any);
+
+      const mockVector = new Array(768).fill(0.1);
+      mockEmbedContent.mockResolvedValue({
+        embeddings: [{ values: mockVector }],
+      });
+
+      await generateQueryEmbedding('search with override', 'custom-override-key');
+
+      expect(apiClientModule.getConfiguredApiClient).toHaveBeenCalledWith('custom-override-key');
+    });
+
     it('throws error when no embedding values returned', async () => {
       mockEmbedContent.mockResolvedValue({ embeddings: [] });
       await expect(generateQueryEmbedding('test query')).rejects.toThrow('No embedding returned');
@@ -106,6 +158,26 @@ describe('geminiEmbeddingService', () => {
       });
       expect(result).toEqual(mockVector);
     });
+
+    it('uses dedicated embeddingApiKey and passes directGoogleApi: true for media', async () => {
+      vi.spyOn(dbService, 'getAppSettings').mockResolvedValue({
+        apiKey: 'general-api-key',
+        embeddingApiKey: 'dedicated-official-key',
+      } as any);
+
+      const mockVector = new Array(768).fill(0.2);
+      mockEmbedContent.mockResolvedValue({
+        embeddings: [{ values: mockVector }],
+      });
+      vi.spyOn(fileEncodingModule, 'blobToBase64').mockResolvedValue('base64encodeddata');
+
+      const dummyBlob = new Blob(['audio content'], { type: 'audio/mp3' });
+      await generateMediaEmbedding(dummyBlob, 'audio/mp3');
+
+      expect(apiClientModule.getConfiguredApiClient).toHaveBeenCalledWith('dedicated-official-key', undefined, {
+        directGoogleApi: true,
+      });
+    });
   });
 
   describe('generateDocumentEmbedding', () => {
@@ -127,6 +199,24 @@ describe('geminiEmbeddingService', () => {
       expect(result).toEqual(mockVector);
     });
 
+    it('uses dedicated embeddingApiKey and passes directGoogleApi: true for document', async () => {
+      vi.spyOn(dbService, 'getAppSettings').mockResolvedValue({
+        apiKey: 'general-api-key',
+        embeddingApiKey: 'dedicated-official-key',
+      } as any);
+
+      const mockVector = new Array(768).fill(0.3);
+      mockEmbedContent.mockResolvedValue({
+        embeddings: [{ values: mockVector }],
+      });
+
+      await generateDocumentEmbedding('My Document', 'Some text');
+
+      expect(apiClientModule.getConfiguredApiClient).toHaveBeenCalledWith('dedicated-official-key', undefined, {
+        directGoogleApi: true,
+      });
+    });
+
     it('handles empty title with title: none format', async () => {
       const mockVector = new Array(768).fill(0.3);
       mockEmbedContent.mockResolvedValue({
@@ -142,6 +232,81 @@ describe('geminiEmbeddingService', () => {
           outputDimensionality: EMBEDDING_DIMENSION,
         },
       });
+    });
+  });
+
+  describe('generateMultimodalQueryEmbedding', () => {
+    it('calls embedContent with both text and inlineData for aggregated embedding', async () => {
+      const mockVector = new Array(768).fill(0.4);
+      mockEmbedContent.mockResolvedValue({
+        embeddings: [{ values: mockVector }],
+      });
+      vi.spyOn(fileEncodingModule, 'blobToBase64').mockResolvedValue('imagebase64data');
+
+      const dummyBlob = new Blob(['image content'], { type: 'image/png' });
+      const result = await generateMultimodalQueryEmbedding('golden retriever in autumn', dummyBlob, 'image/png');
+
+      expect(fileEncodingModule.blobToBase64).toHaveBeenCalledWith(dummyBlob);
+      expect(mockEmbedContent).toHaveBeenCalledWith({
+        model: DEFAULT_EMBEDDING_MODEL,
+        contents: [
+          'golden retriever in autumn',
+          {
+            inlineData: {
+              mimeType: 'image/png',
+              data: 'imagebase64data',
+            },
+          },
+        ],
+        config: {
+          outputDimensionality: EMBEDDING_DIMENSION,
+        },
+      });
+      expect(result).toEqual(mockVector);
+    });
+
+    it('uses dedicated embeddingApiKey and passes directGoogleApi: true', async () => {
+      vi.spyOn(dbService, 'getAppSettings').mockResolvedValue({
+        apiKey: 'general-api-key',
+        embeddingApiKey: 'dedicated-official-key',
+      } as any);
+
+      const mockVector = new Array(768).fill(0.4);
+      mockEmbedContent.mockResolvedValue({
+        embeddings: [{ values: mockVector }],
+      });
+      vi.spyOn(fileEncodingModule, 'blobToBase64').mockResolvedValue('imagebase64data');
+
+      const dummyBlob = new Blob(['image content'], { type: 'image/png' });
+      await generateMultimodalQueryEmbedding('dark mode interface', dummyBlob, 'image/png');
+
+      expect(apiClientModule.getConfiguredApiClient).toHaveBeenCalledWith('dedicated-official-key', undefined, {
+        directGoogleApi: true,
+      });
+    });
+  });
+
+  describe('hasConfiguredApiKey', () => {
+    it('returns true when embeddingApiKey is set', async () => {
+      vi.spyOn(dbService, 'getAppSettings').mockResolvedValue({
+        embeddingApiKey: 'custom-embed-key',
+      } as any);
+      expect(await hasConfiguredApiKey()).toBe(true);
+    });
+
+    it('returns true when regular apiKey is set', async () => {
+      vi.spyOn(dbService, 'getAppSettings').mockResolvedValue({
+        apiKey: 'standard-api-key',
+      } as any);
+      expect(await hasConfiguredApiKey()).toBe(true);
+    });
+
+    it('returns false when neither apiKey is configured', async () => {
+      vi.spyOn(dbService, 'getAppSettings').mockResolvedValue({
+        apiKey: '',
+        embeddingApiKey: '',
+      } as any);
+      expect(await hasConfiguredApiKey()).toBe(false);
     });
   });
 });

@@ -208,8 +208,8 @@ describe('project structure boundaries', () => {
   it('keeps IndexedDB migration comments complete across schema versions', () => {
     const dbSchemaSource = readProjectFile('src/services/db/dbSchema.ts');
 
-    expect(dbSchemaSource).toContain('export const DB_VERSION = 5;');
-    for (const version of [1, 2, 3, 4, 5]) expect(dbSchemaSource).toContain(`Version ${version}:`);
+    expect(dbSchemaSource).toContain('export const DB_VERSION = 6;');
+    for (const version of [1, 2, 3, 4, 5, 6]) expect(dbSchemaSource).toContain(`Version ${version}:`);
   });
 
   it('keeps E2E IndexedDB seed versions aligned with the production schema', () => {

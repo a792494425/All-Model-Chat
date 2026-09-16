@@ -82,6 +82,7 @@ describe('NavChip', () => {
     expect(chip).not.toBeNull();
     expect(chip?.getAttribute('aria-pressed')).toBe('true');
     expect(chip?.textContent).toContain('PDF Navigation');
+    expect(chip?.querySelector('[data-testid="chip-dismiss-icon"]')).toBeNull();
   });
 
   it('renders the video chip with its own label and test id', () => {
@@ -95,6 +96,7 @@ describe('NavChip', () => {
     expect(chip).not.toBeNull();
     expect(chip?.getAttribute('aria-pressed')).toBe('false');
     expect(chip?.textContent).toContain('Video Navigation');
+    expect(chip?.querySelector('[data-testid="chip-dismiss-icon"]')).toBeNull();
   });
 
   it('notifies the toggle handler on click and refocuses chat input', () => {

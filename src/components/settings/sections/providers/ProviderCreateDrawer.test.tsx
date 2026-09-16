@@ -14,11 +14,10 @@ describe('ProviderCreateDrawer', () => {
       name: 'My SiliconFlow',
       apiKey: 'sk-existing',
       baseUrl: 'https://api.siliconflow.cn/v1',
-      models: [{ id: 'deepseek-v3', name: 'DeepSeek V3' }],
     }),
   ];
 
-  it('renders preset mode by default and allows switching templates', () => {
+  it('renders custom provider modal fields and no tabs', () => {
     const onComplete = vi.fn();
     const onClose = vi.fn();
 
@@ -33,216 +32,116 @@ describe('ProviderCreateDrawer', () => {
       );
     });
 
-    expect(renderer.container.querySelector('[data-testid="tab-preset"]')).not.toBeNull();
-    expect(renderer.container.querySelector('[data-testid="tab-duplicate"]')).not.toBeNull();
-    expect(renderer.container.querySelector('[data-testid="tab-custom"]')).not.toBeNull();
+    // Verify there are no tabs or preset matrices
+    expect(renderer.container.querySelector('[data-testid="tab-preset"]')).toBeNull();
+    expect(renderer.container.querySelector('[data-testid="tab-duplicate"]')).toBeNull();
 
-    // Default template is DeepSeek
+    // Verify core custom provider fields exist
     const nameInput = renderer.container.querySelector<HTMLInputElement>('input[placeholder="Name"]');
-    expect(nameInput?.value).toBe('DeepSeek');
+    expect(nameInput?.value).toBe('Custom Provider');
 
-    // Click OpenAI preset button
-    const buttons = Array.from(renderer.container.querySelectorAll('button'));
-    const openaiBtn = buttons.find((b) => b.textContent?.includes('OpenAI') && !b.getAttribute('data-testid'));
-    expect(openaiBtn).toBeDefined();
-
-    act(() => {
-      openaiBtn?.click();
-    });
-
-    expect(nameInput?.value).toBe('OpenAI');
-  });
-
-  it('allows duplicating from existing connections', () => {
-    const onComplete = vi.fn();
-    const onClose = vi.fn();
-
-    act(() => {
-      renderer.render(
-        <ProviderCreateDrawer
-          isOpen={true}
-          onClose={onClose}
-          existingConnections={existing}
-          onComplete={onComplete}
-          initialMode="duplicate"
-        />,
-      );
-    });
-
-    const nameInput = renderer.container.querySelector<HTMLInputElement>('input[placeholder="Name"]');
-    expect(nameInput?.value).toBe('My SiliconFlow Copy');
-
-    // Click save
-    const saveBtn = renderer.container.querySelector<HTMLButtonElement>('[data-testid="add-provider-confirm-button"]');
-    expect(saveBtn).not.toBeNull();
-
-    act(() => {
-      saveBtn?.click();
-    });
-
-    expect(onComplete).toHaveBeenCalledTimes(1);
-    const created = onComplete.mock.calls[0][0];
-    expect(created.name).toBe('My SiliconFlow Copy');
-    expect(created.baseUrl).toBe('https://api.siliconflow.cn/v1');
-    expect(created.apiKey).toBe('sk-existing');
-    expect(created.models[0].providerId).toBe(created.id);
-  });
-
-  it('allows creating custom providers', () => {
-    const onComplete = vi.fn();
-    const onClose = vi.fn();
-
-    act(() => {
-      renderer.render(
-        <ProviderCreateDrawer
-          isOpen={true}
-          onClose={onClose}
-          existingConnections={[]}
-          onComplete={onComplete}
-          initialMode="custom"
-        />,
-      );
-    });
-
-    const nameInput = renderer.container.querySelector<HTMLInputElement>('input[placeholder="Name"]');
     const urlInput = renderer.container.querySelector<HTMLInputElement>('#provider-drawer-baseurl');
+    expect(urlInput).not.toBeNull();
 
-    act(() => {
-      fireEvent.change(nameInput!, { target: { value: 'Local vLLM' } });
-      fireEvent.change(urlInput!, { target: { value: 'http://localhost:8000/v1' } });
-    });
+    const keyInput = renderer.container.querySelector<HTMLInputElement>('#provider-drawer-apikey');
+    expect(keyInput).not.toBeNull();
 
-    const saveBtn = renderer.container.querySelector<HTMLButtonElement>('[data-testid="add-provider-confirm-button"]');
-    act(() => {
-      saveBtn?.click();
-    });
-
-    expect(onComplete).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: 'Local vLLM',
-        baseUrl: 'http://localhost:8000/v1',
-        protocol: 'openai-compatible',
-      }),
+    const confirmBtn = renderer.container.querySelector<HTMLButtonElement>(
+      '[data-testid="add-provider-confirm-button"]',
     );
+    expect(confirmBtn).not.toBeNull();
   });
 
-  it('fetches models via /v1/models in drawer and attaches them to the created provider', async () => {
+  it('allows creating a custom provider with custom values', () => {
     const onComplete = vi.fn();
-    const openaiCompatibleApi = await import('@/services/api/openaiCompatibleApi');
-    vi.spyOn(openaiCompatibleApi, 'fetchOpenAICompatibleModels').mockResolvedValueOnce([
-      { id: 'qwen-2.5-72b', name: 'Qwen 2.5 72B' },
-      { id: 'deepseek-r1-distill', name: 'DeepSeek R1 Distill' },
-    ]);
+    const onClose = vi.fn();
 
     act(() => {
       renderer.render(
         <ProviderCreateDrawer
           isOpen={true}
-          onClose={vi.fn()}
+          onClose={onClose}
           existingConnections={[]}
           onComplete={onComplete}
-          initialMode="custom"
         />,
       );
     });
 
-    const nameInput = renderer.container.querySelector<HTMLInputElement>('input[placeholder="Name"]');
+    const inputs = Array.from(renderer.container.querySelectorAll<HTMLInputElement>('input'));
+    const nameInput = inputs[0];
+    const notesInput = inputs[1];
     const urlInput = renderer.container.querySelector<HTMLInputElement>('#provider-drawer-baseurl');
     const keyInput = renderer.container.querySelector<HTMLInputElement>('#provider-drawer-apikey');
 
+    const imageInput = renderer.container.querySelector<HTMLInputElement>('input[placeholder*="http"]');
+    expect(imageInput).not.toBeNull();
+
     act(() => {
-      fireEvent.change(nameInput!, { target: { value: 'SiliconFlow Test' } });
-      fireEvent.change(urlInput!, { target: { value: 'https://api.siliconflow.cn/v1' } });
-      fireEvent.change(keyInput!, { target: { value: 'sk-silicon-test' } });
+      fireEvent.change(nameInput!, { target: { value: 'My OneAPI Proxy' } });
+      fireEvent.change(notesInput!, { target: { value: 'Work Team' } });
+      fireEvent.change(imageInput!, { target: { value: 'https://example.com/logo.png' } });
+      fireEvent.change(urlInput!, { target: { value: 'https://oneapi.example.com/v1' } });
+      fireEvent.change(keyInput!, { target: { value: 'sk-proxy-123456' } });
     });
 
-    const fetchBtn = renderer.container.querySelector<HTMLButtonElement>('[data-testid="drawer-fetch-models-button"]');
-    expect(fetchBtn).not.toBeNull();
+    // Switch protocol to Anthropic
+    const anthropicBtn = Array.from(renderer.container.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === 'Anthropic',
+    );
+    expect(anthropicBtn).toBeDefined();
 
-    await act(async () => {
-      fetchBtn?.click();
+    act(() => {
+      anthropicBtn?.click();
     });
 
-    expect(renderer.container.textContent).toContain('2');
-
-    const saveBtn = renderer.container.querySelector<HTMLButtonElement>('[data-testid="add-provider-confirm-button"]');
+    const saveBtn = renderer.container.querySelector<HTMLButtonElement>(
+      '[data-testid="add-provider-confirm-button"]',
+    );
     act(() => {
       saveBtn?.click();
     });
 
     expect(onComplete).toHaveBeenCalledTimes(1);
-    const created = onComplete.mock.calls[0][0];
-    expect(created.models).toHaveLength(2);
-    expect(created.models[0].id).toBe('qwen-2.5-72b');
-    expect(created.models[1].id).toBe('deepseek-r1-distill');
-    expect(created.models[0].providerId).toBe(created.id);
-    expect(created.models[0].connectionName).toBe('SiliconFlow Test');
+    expect(onComplete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'My OneAPI Proxy',
+        baseUrl: 'https://oneapi.example.com/v1',
+        apiKey: 'sk-proxy-123456',
+        protocol: 'anthropic',
+        templateId: 'custom-anthropic',
+        icon: 'https://example.com/logo.png',
+        notes: 'Work Team',
+        enabled: true,
+      }),
+    );
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('filters presets by category and search keyword', () => {
+  it('handles closing the modal via cancel button', () => {
+    const onComplete = vi.fn();
+    const onClose = vi.fn();
+
     act(() => {
       renderer.render(
         <ProviderCreateDrawer
           isOpen={true}
-          onClose={vi.fn()}
+          onClose={onClose}
           existingConnections={[]}
-          onComplete={vi.fn()}
+          onComplete={onComplete}
         />,
       );
     });
 
-    const searchInput = renderer.container.querySelector<HTMLInputElement>('input[placeholder*="Search"]');
-    expect(searchInput).not.toBeNull();
+    const cancelBtn = Array.from(renderer.container.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === 'Cancel' || b.textContent?.trim() === '取消',
+    );
+    expect(cancelBtn).toBeDefined();
 
     act(() => {
-      fireEvent.change(searchInput!, { target: { value: 'SiliconFlow' } });
+      cancelBtn?.click();
     });
 
-    // Should match SiliconFlow
-    expect(renderer.container.textContent).toContain('SiliconFlow');
-
-    // Click category Domestic
-    const buttons = Array.from(renderer.container.querySelectorAll('button'));
-    const domesticBtn = buttons.find((b) => b.textContent === 'Domestic');
-    expect(domesticBtn).toBeDefined();
-
-    act(() => {
-      domesticBtn?.click();
-    });
-
-    expect(renderer.container.textContent).toContain('SiliconFlow');
-  });
-
-  it('allows resetting Base URL to default when modified', () => {
-    act(() => {
-      renderer.render(
-        <ProviderCreateDrawer
-          isOpen={true}
-          onClose={vi.fn()}
-          existingConnections={[]}
-          onComplete={vi.fn()}
-        />,
-      );
-    });
-
-    const urlInput = renderer.container.querySelector<HTMLInputElement>('#provider-drawer-baseurl');
-    expect(urlInput?.value).toBe('https://api.deepseek.com');
-
-    act(() => {
-      fireEvent.change(urlInput!, { target: { value: 'https://custom-proxy.internal/v1' } });
-    });
-
-    expect(urlInput?.value).toBe('https://custom-proxy.internal/v1');
-
-    // Reset button should now be visible
-    const buttons = Array.from(renderer.container.querySelectorAll('button'));
-    const resetBtn = buttons.find((b) => b.textContent?.includes('Reset'));
-    expect(resetBtn).toBeDefined();
-
-    act(() => {
-      resetBtn?.click();
-    });
-
-    expect(urlInput?.value).toBe('https://api.deepseek.com');
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onComplete).not.toHaveBeenCalled();
   });
 });

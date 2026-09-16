@@ -119,6 +119,8 @@ interface ChatActions extends ChatUiSliceActions {
 
   /** Updates an uploaded file by ID across composer selectedFiles and session messages */
   updateUploadedFile: (fileId: string, patch: Partial<UploadedFile>) => void;
+  /** Removes uploaded files by ID across composer selectedFiles, activeMessages, and session messages */
+  removeFilesFromStore: (fileIds: string[]) => void;
 
   setCurrentChatSettings: ChatSettingsUpdater;
 }
@@ -531,6 +533,62 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
 
       return {
         selectedFiles: hasInSelected ? nextSelected : state.selectedFiles,
+        activeMessages: hasActiveChange ? nextActiveMessages : state.activeMessages,
+        savedSessions: hasSessionChange ? nextSessions : state.savedSessions,
+      };
+    });
+  },
+
+  removeFilesFromStore: (fileIds) => {
+    if (!fileIds || fileIds.length === 0) return;
+    const targetSet = new Set(fileIds);
+
+    set((state) => {
+      const nextSelected = state.selectedFiles.filter((f) => !targetSet.has(f.id));
+      const hasSelectedChange = nextSelected.length !== state.selectedFiles.length;
+
+      let hasActiveChange = false;
+      const nextActiveMessages = state.activeMessages.map((message) => {
+        if (message.files && message.files.some((f) => targetSet.has(f.id))) {
+          hasActiveChange = true;
+          const remainingFiles = message.files.filter((f) => !targetSet.has(f.id));
+          return {
+            ...message,
+            files: remainingFiles.length > 0 ? remainingFiles : undefined,
+          };
+        }
+        return message;
+      });
+
+      let hasSessionChange = false;
+      const nextSessions = state.savedSessions.map((session) => {
+        if (!session.messages || session.messages.length === 0) return session;
+        let hasMsgChange = false;
+        const nextMessages = session.messages.map((message) => {
+          if (message.files && message.files.some((f) => targetSet.has(f.id))) {
+            hasMsgChange = true;
+            const remainingFiles = message.files.filter((f) => !targetSet.has(f.id));
+            return {
+              ...message,
+              files: remainingFiles.length > 0 ? remainingFiles : undefined,
+            };
+          }
+          return message;
+        });
+
+        if (hasMsgChange) {
+          hasSessionChange = true;
+          return { ...session, messages: nextMessages };
+        }
+        return session;
+      });
+
+      if (!hasSelectedChange && !hasActiveChange && !hasSessionChange) {
+        return state;
+      }
+
+      return {
+        selectedFiles: hasSelectedChange ? nextSelected : state.selectedFiles,
         activeMessages: hasActiveChange ? nextActiveMessages : state.activeMessages,
         savedSessions: hasSessionChange ? nextSessions : state.savedSessions,
       };

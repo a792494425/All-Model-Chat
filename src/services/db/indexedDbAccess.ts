@@ -79,6 +79,72 @@ export async function getAll<T>(storeName: string): Promise<T[]> {
   return requestToPromise(db.transaction(storeName, 'readonly').objectStore(storeName).getAll());
 }
 
+/**
+ * Returns every primary key in a store without materializing the stored values.
+ * Cheap enough to use as a membership set for large stores.
+ */
+export async function getAllKeys(storeName: string): Promise<IDBValidKey[]> {
+  const db = await getDb();
+  return requestToPromise(db.transaction(storeName, 'readonly').objectStore(storeName).getAllKeys());
+}
+
+/**
+ * Counts records in a store without materializing them (IDBObjectStore.count).
+ */
+export async function countAll(storeName: string): Promise<number> {
+  const db = await getDb();
+  return requestToPromise(db.transaction(storeName, 'readonly').objectStore(storeName).count());
+}
+
+/**
+ * Counts the records matched by a key or key range, without materializing them.
+ */
+export async function countByKey(storeName: string, key: IDBValidKey | IDBKeyRange): Promise<number> {
+  const db = await getDb();
+  return requestToPromise(db.transaction(storeName, 'readonly').objectStore(storeName).count(key));
+}
+
+/**
+ * Writes many records in a single transaction. Far cheaper than one
+ * read-modify-write cycle per record.
+ */
+export async function putMany<T>(storeName: string, values: T[]): Promise<void> {
+  if (values.length === 0) return;
+  return withWriteLock(async () => {
+    const db = await getDb();
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    values.forEach((value) => store.put(value));
+    return transactionToPromise(tx);
+  });
+}
+
+/**
+ * Deletes many records by primary key in a single transaction.
+ */
+export async function deleteMany(storeName: string, keys: IDBValidKey[]): Promise<void> {
+  if (keys.length === 0) return;
+  return withWriteLock(async () => {
+    const db = await getDb();
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    keys.forEach((key) => store.delete(key));
+    return transactionToPromise(tx);
+  });
+}
+
+/**
+ * Deletes every record in a store without dropping the store itself.
+ */
+export async function clearStore(storeName: string): Promise<void> {
+  return withWriteLock(async () => {
+    const db = await getDb();
+    const tx = db.transaction(storeName, 'readwrite');
+    tx.objectStore(storeName).clear();
+    return transactionToPromise(tx);
+  });
+}
+
 export async function setAll<T>(storeName: string, values: T[]): Promise<void> {
   return withWriteLock(async () => {
     const db = await getDb();

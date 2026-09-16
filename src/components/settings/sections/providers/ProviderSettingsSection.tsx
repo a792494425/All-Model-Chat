@@ -5,6 +5,7 @@ import {
   type AppSettings,
   type ThirdPartyApiSettings,
   type ThirdPartyConnection,
+  type ThirdPartyTemplateId,
 } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import {
@@ -14,6 +15,8 @@ import {
   updateThirdPartyConnection,
   reorderThirdPartyConnections,
   duplicateThirdPartyConnection,
+  createConnectionFromTemplate,
+  createConnectionId,
 } from '@/utils/thirdPartyApiProviders';
 import { probeThirdPartyConnection, formatLatency } from '@/utils/thirdPartyDiagnostics';
 import { toastError, toastSuccess } from '@/stores/toastStore';
@@ -57,6 +60,7 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
   const selectedConnectionId = useMemo(() => {
     if (initialSelectedId) return initialSelectedId;
     if (storedSelectedConnectionId === GEMINI_PROVIDER_ID) return GEMINI_PROVIDER_ID;
+    if (storedSelectedConnectionId?.startsWith('preset:')) return storedSelectedConnectionId;
     if (storedSelectedConnectionId && connections.some((c) => c.id === storedSelectedConnectionId)) {
       return storedSelectedConnectionId;
     }
@@ -82,10 +86,25 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
     onUpdateSettings({ thirdPartyApi: next });
   };
 
-  const selectedConnection = useMemo(
-    () => connections.find((c) => c.id === selectedConnectionId) ?? null,
-    [connections, selectedConnectionId],
-  );
+  const isVirtualPreset = Boolean(selectedConnectionId && selectedConnectionId.startsWith('preset:'));
+  const virtualTemplateId = isVirtualPreset
+    ? (selectedConnectionId.replace('preset:', '') as ThirdPartyTemplateId)
+    : null;
+
+  const draftPresetConnection = useMemo<ThirdPartyConnection | null>(() => {
+    if (!virtualTemplateId) return null;
+    const templateConn = createConnectionFromTemplate(virtualTemplateId, connections, selectedConnectionId);
+    return {
+      ...templateConn,
+      enabled: false,
+      apiKey: null,
+    };
+  }, [virtualTemplateId, selectedConnectionId, connections]);
+
+  const selectedConnection = useMemo(() => {
+    if (isVirtualPreset) return draftPresetConnection;
+    return connections.find((c) => c.id === selectedConnectionId) ?? null;
+  }, [isVirtualPreset, draftPresetConnection, connections, selectedConnectionId]);
 
   const isDetailVisibleOnMobile = isMobileDetailOpen && (Boolean(selectedConnection) || isGeminiSelected);
 
@@ -116,6 +135,10 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
   };
 
   const handleDelete = (id: string) => {
+    if (id.startsWith('preset:')) {
+      setSelectedConnectionId(connections[0]?.id || GEMINI_PROVIDER_ID);
+      return;
+    }
     const target = connections.find((c) => c.id === id);
     updateThirdPartyApi(removeThirdPartyConnection(currentSettings, id));
     if (selectedConnectionId === id) {
@@ -125,6 +148,36 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
     useProviderUiStore.getState().cleanupConnectionUi(id);
     if (target) {
       toastSuccess(t('thirdPartyProviderRemoved', { name: target.name }));
+    }
+  };
+
+  const handleUpdateConnection = (updates: Partial<ThirdPartyConnection>) => {
+    if (isVirtualPreset && draftPresetConnection && virtualTemplateId) {
+      // User is editing or enabling the virtual preset
+      const newId = createConnectionId();
+      const newConnection: ThirdPartyConnection = {
+        ...draftPresetConnection,
+        ...updates,
+        id: newId,
+      };
+      if (newConnection.models) {
+        newConnection.models = newConnection.models.map((m) => ({
+          ...m,
+          providerId: newId,
+          connectionName: newConnection.name,
+        }));
+      }
+      updateThirdPartyApi(addThirdPartyConnection(currentSettings, newConnection));
+      setSelectedConnectionId(newId);
+      setIsMobileDetailOpen(true);
+      if (updates.enabled) {
+        toastSuccess(t('thirdPartyProviderAdded', { name: newConnection.name }));
+      }
+      return;
+    }
+
+    if (selectedConnection) {
+      updateThirdPartyApi(updateThirdPartyConnection(currentSettings, selectedConnection.id, updates));
     }
   };
 
@@ -204,9 +257,7 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
               <ProviderDetail
                 key={selectedConnection.id}
                 connection={selectedConnection}
-                onUpdateConnection={(updates) =>
-                  updateThirdPartyApi(updateThirdPartyConnection(currentSettings, selectedConnection.id, updates))
-                }
+                onUpdateConnection={handleUpdateConnection}
                 onDeleteConnection={() => handleDelete(selectedConnection.id)}
                 onDuplicateConnection={() => handleDuplicate(selectedConnection)}
                 onCloseModal={onCloseModal}

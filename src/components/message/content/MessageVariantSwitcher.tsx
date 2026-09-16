@@ -21,7 +21,7 @@ export const MessageVariantSwitcher: React.FC<MessageVariantSwitcherProps> = ({ 
   return (
     <div
       data-testid="message-variant-switcher"
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border border-[var(--theme-border-secondary)]/70 bg-[var(--theme-bg-secondary)]/80 text-[var(--theme-text-secondary)] select-none text-xs shadow-sm"
+      className="inline-flex items-center gap-0.5 text-xs text-[var(--theme-text-secondary)] select-none"
     >
       <button
         type="button"
@@ -29,11 +29,11 @@ export const MessageVariantSwitcher: React.FC<MessageVariantSwitcherProps> = ({ 
         onClick={() => onSwitchVariant?.(message.id, currentIndex - 1)}
         aria-label={t('messageVariantPrevious') || 'Previous version'}
         title={t('messageVariantPrevious') || 'Previous version'}
-        className="p-1 rounded-full hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
+        className="p-1 rounded-md hover:bg-[var(--theme-bg-tertiary)]/70 hover:text-[var(--theme-text-primary)] disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
       >
-        <ChevronLeft size={13} strokeWidth={2} />
+        <ChevronLeft size={15} strokeWidth={1.75} />
       </button>
-      <span className="font-mono text-[11px] tabular-nums px-1 leading-none font-medium text-[var(--theme-text-primary)]">
+      <span className="font-mono text-xs tabular-nums px-1.5 leading-none font-normal text-[var(--theme-text-secondary)]">
         {currentIndex + 1} / {totalVariants}
       </span>
       <button
@@ -42,9 +42,9 @@ export const MessageVariantSwitcher: React.FC<MessageVariantSwitcherProps> = ({ 
         onClick={() => onSwitchVariant?.(message.id, currentIndex + 1)}
         aria-label={t('messageVariantNext') || 'Next version'}
         title={t('messageVariantNext') || 'Next version'}
-        className="p-1 rounded-full hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
+        className="p-1 rounded-md hover:bg-[var(--theme-bg-tertiary)]/70 hover:text-[var(--theme-text-primary)] disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
       >
-        <ChevronRight size={13} strokeWidth={2} />
+        <ChevronRight size={15} strokeWidth={1.75} />
       </button>
     </div>
   );

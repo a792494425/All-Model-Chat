@@ -345,7 +345,7 @@ describe('ModelsSection', () => {
     ).toBeNull();
   });
 
-  it('renders active model & provider status card with direct navigation to providers tab', async () => {
+  it('renders direct navigation to providers tab without redundant active model card', async () => {
     const setActiveTabSpy = vi.spyOn(useSettingsUiStore.getState(), 'setActiveTab');
 
     await renderModelsSection({
@@ -357,9 +357,7 @@ describe('ModelsSection', () => {
       },
     });
 
-    expect(renderer.container.textContent).toContain('Active Model');
-    expect(renderer.container.textContent).toContain('Google Gemini');
-    expect(renderer.container.textContent).toContain('Gemini 3.1 Pro Preview');
+    expect(renderer.container.textContent).not.toContain('Active Model');
 
     const manageBtn = Array.from(renderer.container.querySelectorAll('button')).find((b) =>
       b.textContent?.includes('Manage Providers & Models'),

@@ -72,6 +72,7 @@ describe('LibraryView', () => {
     vi.spyOn(dbService, 'addDeletedLibraryFileIds').mockResolvedValue(undefined);
     vi.spyOn(dbService, 'addStandaloneLibraryFiles').mockResolvedValue(undefined);
     vi.spyOn(dbService, 'deleteStandaloneLibraryFiles').mockResolvedValue(undefined);
+    vi.spyOn(dbService, 'deleteFilesFromSessions').mockResolvedValue(undefined);
     vi.spyOn(dbService, 'fetchLibraryFileBlob').mockResolvedValue(new Blob(['test']));
     useChatStore.setState({ savedSessions: [] });
   });
@@ -362,6 +363,7 @@ describe('LibraryView', () => {
     const addDeletedSpy = vi.spyOn(dbService, 'addDeletedLibraryFileIds').mockImplementation(async (ids) => {
       deletedList = [...deletedList, ...ids];
     });
+    const deleteFilesSpy = vi.spyOn(dbService, 'deleteFilesFromSessions').mockResolvedValue(undefined);
     useChatStore.setState({ savedSessions: [mockSession] });
 
     await act(async () => {
@@ -384,8 +386,36 @@ describe('LibraryView', () => {
       await Promise.resolve();
     });
 
+    expect(deleteFilesSpy).toHaveBeenCalledWith(['file-pdf-1']);
     expect(addDeletedSpy).toHaveBeenCalledWith(['file-pdf-1']);
     expect(screen.queryByText('quarterly_report.pdf')).not.toBeInTheDocument();
+  });
+
+  it('batch deletes files and cascades deletion across standalone and session storage', async () => {
+    const deleteFilesSpy = vi.spyOn(dbService, 'deleteFilesFromSessions').mockResolvedValue(undefined);
+    const deleteStandaloneSpy = vi.spyOn(dbService, 'deleteStandaloneLibraryFiles').mockResolvedValue(undefined);
+
+    useChatStore.setState({ savedSessions: [mockSession] });
+    useLibraryStore.setState({ selectedFileIds: new Set(['file-pdf-1', 'file-img-1']) });
+
+    await act(async () => {
+      renderer.root.render(<LibraryView />);
+      await Promise.resolve();
+    });
+
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+    await act(async () => {
+      fireEvent.click(deleteButtons[0]);
+    });
+
+    const confirmBtn = screen.getByRole('button', { name: /^delete$/i });
+    await act(async () => {
+      fireEvent.click(confirmBtn);
+      await Promise.resolve();
+    });
+
+    expect(deleteFilesSpy).toHaveBeenCalledWith(expect.arrayContaining(['file-pdf-1', 'file-img-1']));
+    expect(deleteStandaloneSpy).toHaveBeenCalledWith(expect.arrayContaining(['file-pdf-1', 'file-img-1']));
   });
 
   it('clears selection when Deselect all button is clicked in toolbar', async () => {

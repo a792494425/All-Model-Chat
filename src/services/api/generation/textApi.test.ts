@@ -140,6 +140,41 @@ describe('textApi prompt construction', () => {
     expect(request.contents[0].parts[0].text).toContain('6~12');
   });
 
+  it('sends title instructions without emoji when includeEmoji is false', async () => {
+    mockGenerateContent.mockResolvedValue({ text: 'Python脚本编写' });
+    const title = await generateTitleApi('key', 'u', 'm', 'zh', { includeEmoji: false });
+
+    expect(title).toBe('Python脚本编写');
+    const request = mockGenerateContent.mock.calls[0][0];
+    expect(request.contents[0].parts[0].text).toContain('严禁包含任何 Emoji');
+  });
+
+  it('strips leading emoji when includeEmoji is false even if model output has emoji', async () => {
+    mockGenerateContent.mockResolvedValue({ text: '💻 Python脚本编写' });
+    const title = await generateTitleApi('key', 'u', 'm', 'zh', { includeEmoji: false });
+
+    expect(title).toBe('Python脚本编写');
+  });
+
+  it('configures concise and detailed title length rules', async () => {
+    mockGenerateContent.mockResolvedValue({ text: 'Short' });
+    await generateTitleApi('key', 'u', 'm', 'zh', { length: 'concise' });
+    let request = mockGenerateContent.mock.calls[0][0];
+    expect(request.contents[0].parts[0].text).toContain('4~8');
+
+    mockGenerateContent.mockResolvedValue({ text: 'Detailed' });
+    await generateTitleApi('key', 'u', 'm', 'zh', { length: 'detailed' });
+    request = mockGenerateContent.mock.calls[1][0];
+    expect(request.contents[0].parts[0].text).toContain('10~18');
+  });
+
+  it('injects custom prompt rules into title instructions', async () => {
+    mockGenerateContent.mockResolvedValue({ text: 'T' });
+    await generateTitleApi('key', 'u', 'm', 'zh', { customPrompt: '不要使用问号，突出架构名词' });
+    const request = mockGenerateContent.mock.calls[0][0];
+    expect(request.contents[0].parts[0].text).toContain('不要使用问号，突出架构名词');
+  });
+
   it('strips wrapping markdown and quotes from generated title', async () => {
     mockGenerateContent.mockResolvedValueOnce({ text: '**💻 Safe Title**' });
     const titleWithBold = await generateTitleApi('key', 'u', 'm', 'en');

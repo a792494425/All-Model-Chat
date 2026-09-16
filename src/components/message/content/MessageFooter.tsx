@@ -7,7 +7,7 @@ import { AudioPlayer } from '@/components/shared/AudioPlayer';
 import { useI18n } from '@/contexts/I18nContext';
 import { useSettingsStore } from '@/stores/settingsStore';
 
-interface MessageFooterProps {
+export interface MessageFooterProps {
   message: ChatMessage;
   onSuggestionClick?: (suggestion: string) => void;
   onSuggestionFill?: (suggestion: string) => void;
@@ -41,7 +41,8 @@ export const MessageFooter: React.FC<MessageFooterProps> = ({
 
       {(showVariants || showMetrics) && (
         <div
-          className={`mt-1.5 flex items-center ${showVariants ? 'justify-between' : 'justify-end'} flex-wrap gap-x-3 gap-y-1`}
+          data-testid="message-bottom-bar"
+          className={`mt-2 pt-0.5 flex items-center ${showVariants ? 'justify-between' : 'justify-end'} flex-wrap gap-x-3 gap-y-1`}
         >
           {showVariants && <MessageVariantSwitcher message={message} onSwitchVariant={onSwitchVariant} />}
           {showMetrics && <PerformanceMetrics message={message} hideTimer={message.isLoading} />}
@@ -49,7 +50,7 @@ export const MessageFooter: React.FC<MessageFooterProps> = ({
       )}
 
       {suggestions && suggestions.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
+        <div className="mt-3.5 pt-0.5 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
           {suggestions.map((suggestion, index) => (
             <div key={index} className="group/suggestion relative -mt-3 pt-3">
               {onSuggestionFill && (

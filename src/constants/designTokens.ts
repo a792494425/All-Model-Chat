@@ -29,8 +29,8 @@ const SUGGESTION_CHIP_BASE_CLASS = `flex items-center gap-1 sm:gap-1.5 px-2.5 sm
 /** Default / hover suggestion chip (soft, no elevation). */
 export const SUGGESTION_CHIP_CLASS = `${SUGGESTION_CHIP_BASE_CLASS} border-[var(--theme-border-secondary)]/70 bg-[var(--theme-bg-tertiary)]/35 text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] hover:border-[var(--theme-border-focus)]`;
 
-/** Active mode chip (BBox / Guide) — stronger than hover. */
-export const SUGGESTION_CHIP_ACTIVE_CLASS = `${SUGGESTION_CHIP_BASE_CLASS} border-[var(--theme-bg-accent)] bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] hover:bg-[var(--theme-bg-accent-hover)] hover:border-[var(--theme-bg-accent-hover)] shadow-sm`;
+/** Active mode chip (BBox / Guide / Live Artifacts) — refined soft tint with focus border. */
+export const SUGGESTION_CHIP_ACTIVE_CLASS = `${SUGGESTION_CHIP_BASE_CLASS} border-[var(--theme-border-focus)]/70 bg-[var(--theme-bg-accent)]/15 text-[var(--theme-text-primary)] font-semibold shadow-xs hover:bg-[var(--theme-bg-accent)]/25 hover:border-[var(--theme-border-focus)]`;
 
 /** Intra-cluster gap for composer icon groups (preserves 44px icon pitch with 36px buttons). */
 export const COMPOSER_CLUSTER_GAP_CLASS = 'gap-2';

@@ -99,6 +99,41 @@ describe('AttachmentMenu', () => {
     expect(value.onAttachmentAction).toHaveBeenCalledWith('library');
   });
 
+  it('renders multimodal search option and triggers multimodal_search action when clicked', () => {
+    const value = createChatInputActionsContextValue({
+      currentModelId: 'gemini-3.7-flash',
+    });
+
+    act(() => {
+      renderer.render(
+        <ChatInputActionsContext.Provider value={value}>
+          <AttachmentMenu />
+        </ChatInputActionsContext.Provider>,
+      );
+    });
+
+    const trigger = document.querySelector<HTMLButtonElement>('button[aria-haspopup="true"]');
+    expect(trigger).not.toBeNull();
+
+    act(() => {
+      trigger!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    const menuItems = Array.from(document.querySelectorAll<HTMLButtonElement>('button[role="menuitem"]'));
+    const searchBtn = menuItems.find(
+      (b) =>
+        b.textContent?.includes('多模态语义搜索') ||
+        b.textContent?.toLowerCase().includes('multimodal search'),
+    );
+    expect(searchBtn).toBeDefined();
+
+    act(() => {
+      searchBtn!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(value.onAttachmentAction).toHaveBeenCalledWith('multimodal_search');
+  });
+
   it('renders cloud icon for add by id option and triggers id action when clicked', () => {
     const value = createChatInputActionsContextValue({
       currentModelId: 'gemini-3.7-flash',

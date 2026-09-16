@@ -322,6 +322,13 @@ const modelsEntries: SettingsSearchEntry[] = [
     descriptionKey: 'selectionAskModelDesc',
     groupKey: 'settingsTabModels',
   },
+  {
+    id: 'models-auto-title',
+    tab: 'models',
+    labelKey: 'settingsAutoTitleCardTitle',
+    descriptionKey: 'settingsAutoTitleCardDesc',
+    groupKey: 'settingsTabModels',
+  },
 ];
 
 const apiEntries: SettingsSearchEntry[] = [

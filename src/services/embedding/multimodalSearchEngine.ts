@@ -3,10 +3,22 @@ import {
   computeCosineSimilarity,
   generateDocumentEmbedding,
   generateMediaEmbedding,
+  generateMultimodalQueryEmbedding,
   generateQueryEmbedding,
 } from './geminiEmbeddingService';
-import { getStoredEmbeddings, saveStoredEmbedding } from './multimodalIndexStore';
+import { getStoredEmbeddings, getStoredEmbeddingIds, saveStoredEmbedding } from './multimodalIndexStore';
+import {
+  isOversizedForEmbedding,
+  truncateEmbeddingText,
+  MAX_EMBEDDING_PDF_PAGES,
+  MAX_EMBEDDING_AUDIO_SECONDS,
+  MAX_EMBEDDING_VIDEO_SECONDS,
+} from './embeddingLimits';
+import { inspectPdfBlob } from '@/utils/file/pdfTextExtraction';
+import { probeMediaDuration } from '@/utils/file/mediaDuration';
 import type {
+  IndexableLibraryItem,
+  IndexSkipReason,
   MultimodalEmbeddingItem,
   MultimodalIndexProgress,
   MultimodalMediaCategory,
@@ -24,17 +36,25 @@ const resolveMediaCategory = (mimeType: string): MultimodalMediaCategory => {
   return 'document';
 };
 
+export interface MultimodalSearchExecutionResult {
+  results: MultimodalSearchResult[];
+  queryEmbedding: number[];
+}
+
 /**
  * Searches stored multimodal embeddings by a natural language query.
  */
 export const searchMultimodalByText = async (
   query: string,
-  options: MultimodalSearchFilter = {},
-): Promise<MultimodalSearchResult[]> => {
+  options: MultimodalSearchFilter & { cachedQueryEmbedding?: number[] } = {},
+): Promise<MultimodalSearchExecutionResult> => {
   const trimmed = query.trim();
-  if (!trimmed) return [];
+  if (!trimmed) return { results: [], queryEmbedding: [] };
 
-  const queryEmbedding = await generateQueryEmbedding(trimmed);
+  const queryEmbedding =
+    options.cachedQueryEmbedding && options.cachedQueryEmbedding.length > 0
+      ? options.cachedQueryEmbedding
+      : await generateQueryEmbedding(trimmed);
   const stored = await getStoredEmbeddings();
   const items = Object.values(stored);
 
@@ -59,7 +79,7 @@ export const searchMultimodalByText = async (
   // Sort descending by similarity
   results.sort((a, b) => b.similarity - a.similarity);
 
-  return results.slice(0, limit);
+  return { results: results.slice(0, limit), queryEmbedding };
 };
 
 /**
@@ -67,10 +87,13 @@ export const searchMultimodalByText = async (
  */
 export const searchMultimodalByImage = async (
   imageBlob: Blob,
-  options: MultimodalSearchFilter = {},
-): Promise<MultimodalSearchResult[]> => {
+  options: MultimodalSearchFilter & { cachedQueryEmbedding?: number[] } = {},
+): Promise<MultimodalSearchExecutionResult> => {
   const mimeType = imageBlob.type || 'image/png';
-  const queryEmbedding = await generateMediaEmbedding(imageBlob, mimeType);
+  const queryEmbedding =
+    options.cachedQueryEmbedding && options.cachedQueryEmbedding.length > 0
+      ? options.cachedQueryEmbedding
+      : await generateMediaEmbedding(imageBlob, mimeType);
   const stored = await getStoredEmbeddings();
   const items = Object.values(stored);
 
@@ -94,38 +117,126 @@ export const searchMultimodalByImage = async (
 
   results.sort((a, b) => b.similarity - a.similarity);
 
-  return results.slice(0, limit);
+  return { results: results.slice(0, limit), queryEmbedding };
 };
 
 /**
- * Indexes a single library item and saves its embedding into the vector store.
+ * Searches stored multimodal embeddings using both text and an image (图文联合检索).
+ * Uses Gemini Embedding 2 aggregated input [query, inlineData] without task prefix.
  */
-export const indexSingleItem = async (fileItem: LibraryItem): Promise<MultimodalEmbeddingItem | null> => {
-  const blob = await dbService.fetchLibraryFileBlob(fileItem);
-  if (!blob) {
-    return null;
+export const searchMultimodalCombined = async (
+  query: string,
+  imageBlob: Blob,
+  options: MultimodalSearchFilter & { cachedQueryEmbedding?: number[] } = {},
+): Promise<MultimodalSearchExecutionResult> => {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return searchMultimodalByImage(imageBlob, options);
   }
 
-  const mimeType = fileItem.type || blob.type || 'application/octet-stream';
+  const mimeType = imageBlob.type || 'image/png';
+  const queryEmbedding =
+    options.cachedQueryEmbedding && options.cachedQueryEmbedding.length > 0
+      ? options.cachedQueryEmbedding
+      : await generateMultimodalQueryEmbedding(trimmed, imageBlob, mimeType);
+  const stored = await getStoredEmbeddings();
+  const items = Object.values(stored);
+
+  const { category = 'all', minSimilarity = 0.25, limit = 40 } = options;
+
+  const results: MultimodalSearchResult[] = [];
+
+  for (const item of items) {
+    if (category !== 'all' && item.category !== category) {
+      continue;
+    }
+
+    const similarity = computeCosineSimilarity(queryEmbedding, item.embedding);
+    if (similarity >= minSimilarity) {
+      results.push({
+        item,
+        similarity,
+      });
+    }
+  }
+
+  results.sort((a, b) => b.similarity - a.similarity);
+
+  return { results: results.slice(0, limit), queryEmbedding };
+};
+
+export type IndexSingleItemResult =
+  { status: 'indexed'; item: MultimodalEmbeddingItem } | { status: 'skipped'; reason: IndexSkipReason };
+
+/**
+ * Indexes a single library item and saves its embedding into the vector store.
+ *
+ * The item payload is resolved here, one item at a time, and released as soon as
+ * the embedding has been produced. Callers must not pass payload-bearing objects
+ * in bulk.
+ */
+export const indexSingleItem = async (fileItem: IndexableLibraryItem): Promise<IndexSingleItemResult> => {
+  const mimeType = fileItem.type || 'application/octet-stream';
   const category = resolveMediaCategory(mimeType);
+
+  // Reject oversized items before any payload is read into memory.
+  if (isOversizedForEmbedding(category, fileItem.size)) {
+    return { status: 'skipped', reason: 'too-large' };
+  }
+
+  const blob = await dbService.fetchLibraryFileBlob(fileItem as LibraryItem);
+  if (!blob) {
+    return { status: 'skipped', reason: 'missing-payload' };
+  }
+
+  if (isOversizedForEmbedding(category, blob.size)) {
+    return { status: 'skipped', reason: 'too-large' };
+  }
+
+  const resolvedMimeType = fileItem.type || blob.type || 'application/octet-stream';
+  const resolvedCategory = resolveMediaCategory(resolvedMimeType);
 
   let embedding: number[];
 
-  if (category === 'image' || category === 'audio' || category === 'video' || mimeType === 'application/pdf') {
-    embedding = await generateMediaEmbedding(blob, mimeType);
+  if (resolvedCategory === 'video' || resolvedCategory === 'audio') {
+    const duration = await probeMediaDuration(blob, resolvedMimeType);
+    if (duration !== null) {
+      const maxDuration = resolvedCategory === 'video' ? MAX_EMBEDDING_VIDEO_SECONDS : MAX_EMBEDDING_AUDIO_SECONDS;
+      if (duration > maxDuration) {
+        return { status: 'skipped', reason: 'duration-exceeded' };
+      }
+    }
+    embedding = await generateMediaEmbedding(blob, resolvedMimeType);
+  } else if (resolvedMimeType === 'application/pdf') {
+    const { numPages, text } = await inspectPdfBlob(blob);
+    if (numPages <= MAX_EMBEDDING_PDF_PAGES) {
+      embedding = await generateMediaEmbedding(blob, resolvedMimeType);
+    } else {
+      // PDF exceeds 6 pages: fallback to document text embedding
+      const truncated = truncateEmbeddingText(text);
+      if (!truncated.trim()) {
+        return { status: 'skipped', reason: 'too-large' };
+      }
+      embedding = await generateDocumentEmbedding(fileItem.name, truncated);
+    }
+  } else if (resolvedCategory === 'image') {
+    embedding = await generateMediaEmbedding(blob, resolvedMimeType);
   } else {
-    const textContent = fileItem.textContent || (await blob.text().catch(() => ''));
-    embedding = await generateDocumentEmbedding(fileItem.name, textContent);
+    const textContent = (fileItem as LibraryItem).textContent || (await blob.text().catch(() => ''));
+    const text = truncateEmbeddingText(textContent);
+    if (!text.trim()) {
+      return { status: 'skipped', reason: 'no-content' };
+    }
+    embedding = await generateDocumentEmbedding(fileItem.name, text);
   }
 
   const embeddingItem: MultimodalEmbeddingItem = {
     id: fileItem.id,
     name: fileItem.name,
-    type: mimeType,
-    category,
+    type: resolvedMimeType,
+    category: resolvedCategory,
     embedding,
     size: fileItem.size || blob.size,
-    thumbnailUrl: fileItem.dataUrl?.startsWith('data:image') ? fileItem.dataUrl : undefined,
     sessionId: fileItem.sessionId,
     sessionTitle: fileItem.sessionTitle,
     messageId: fileItem.messageId,
@@ -135,7 +246,7 @@ export const indexSingleItem = async (fileItem: LibraryItem): Promise<Multimodal
   };
 
   await saveStoredEmbedding(embeddingItem);
-  return embeddingItem;
+  return { status: 'indexed', item: embeddingItem };
 };
 
 /**
@@ -151,11 +262,13 @@ export const indexAllHistoricalItems = async (
     phase: 'scanning',
   });
 
-  const [standalone, historical, deletedIds, stored] = await Promise.all([
+  // Only ids are read here; the vectors themselves are never materialized as a
+  // whole, and each item's payload is resolved individually below.
+  const [standalone, historical, deletedIds, storedIds] = await Promise.all([
     dbService.getStandaloneLibraryFiles(),
     dbService.getAllHistoricalSessionFiles(),
     dbService.getDeletedLibraryFileIds(),
-    getStoredEmbeddings(),
+    getStoredEmbeddingIds(),
   ]);
 
   const deletedSet = new Set(deletedIds);
@@ -174,9 +287,7 @@ export const indexAllHistoricalItems = async (
   }
 
   const allFiles = Array.from(fileMap.values());
-  const pendingFiles = options.forceReindex
-    ? allFiles
-    : allFiles.filter((f) => !stored[f.id] || !stored[f.id].embedding?.length);
+  const pendingFiles = options.forceReindex ? allFiles : allFiles.filter((f) => !storedIds.has(f.id));
 
   const total = pendingFiles.length;
   let indexed = 0;
@@ -199,8 +310,8 @@ export const indexAllHistoricalItems = async (
     });
 
     try {
-      const item = await indexSingleItem(fileItem);
-      if (item) {
+      const result = await indexSingleItem(fileItem);
+      if (result.status === 'indexed') {
         indexed++;
       } else {
         skipped++;

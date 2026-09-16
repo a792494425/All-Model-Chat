@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paperclip, FolderOpen, Library, FileArchive } from 'lucide-react';
+import { Paperclip, FolderOpen, Library, FileArchive, Layers } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { type AttachmentAction, GEMINI_PROVIDER_ID } from '@/types';
 import {
@@ -73,6 +73,7 @@ export const AttachmentMenu: React.FC = () => {
           { labelKey: 'attachMenuGallery', icon: <IconGallery size={menuIconSize} />, action: 'gallery' },
         ] as const)
       : []),
+    { labelKey: 'attachMenuMultimodalSearch', icon: <Layers size={menuIconSize} />, action: 'multimodal_search' },
     { labelKey: 'attachMenuLibrary', icon: <Library size={menuIconSize} />, action: 'library' },
     { labelKey: 'attachMenuUpload', icon: <IconUpload size={menuIconSize} />, action: 'upload' },
   ] as const;
@@ -80,13 +81,18 @@ export const AttachmentMenu: React.FC = () => {
   const filteredMenuItems = isTranscribeModel
     ? menuItems.filter(
         (item) =>
-          item.action === 'upload' || item.action === 'library' || item.action === 'recorder' || item.action === 'id',
+          item.action === 'upload' ||
+          item.action === 'library' ||
+          item.action === 'multimodal_search' ||
+          item.action === 'recorder' ||
+          item.action === 'id',
       )
     : isImageGenerationModel
       ? menuItems.filter(
           (item) =>
             item.action === 'upload' ||
             item.action === 'library' ||
+            item.action === 'multimodal_search' ||
             item.action === 'gallery' ||
             item.action === 'camera' ||
             item.action === 'screenshot' ||

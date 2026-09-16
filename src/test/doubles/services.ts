@@ -15,6 +15,7 @@ type MockDbService = MockRecord & {
   setAllSessions: MockFn;
   saveSession: MockFn;
   deleteSession: MockFn;
+  deleteFilesFromSessions: MockFn;
   getAllGroups: MockFn;
   setAllGroups: MockFn;
   getAllScenarios: MockFn;
@@ -28,6 +29,7 @@ type MockDbService = MockRecord & {
   clearLogs: MockFn;
   pruneLogs: MockFn;
   getStandaloneLibraryFiles: MockFn;
+  getStandaloneLibraryFile: MockFn;
   saveStandaloneLibraryFiles: MockFn;
   addStandaloneLibraryFiles: MockFn;
   deleteStandaloneLibraryFiles: MockFn;
@@ -77,6 +79,7 @@ export const createMockDbService = (overrides: Partial<MockDbService> = {}): Moc
   setAllSessions: asyncMockFn(undefined),
   saveSession: asyncMockFn(undefined),
   deleteSession: asyncMockFn(undefined),
+  deleteFilesFromSessions: asyncMockFn(undefined),
   getAllGroups: asyncMockFn([]),
   setAllGroups: asyncMockFn(undefined),
   getAllScenarios: asyncMockFn([]),
@@ -90,6 +93,7 @@ export const createMockDbService = (overrides: Partial<MockDbService> = {}): Moc
   clearLogs: asyncMockFn(undefined),
   pruneLogs: asyncMockFn(undefined),
   getStandaloneLibraryFiles: asyncMockFn([]),
+  getStandaloneLibraryFile: asyncMockFn(undefined),
   saveStandaloneLibraryFiles: asyncMockFn(undefined),
   addStandaloneLibraryFiles: asyncMockFn(undefined),
   deleteStandaloneLibraryFiles: asyncMockFn(undefined),

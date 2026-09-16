@@ -11,6 +11,7 @@ import {
   addDeletedLibraryFileIds,
 } from './libraryRecords';
 import type { LibraryItem } from '@/types';
+import * as multimodalIndexStoreModule from '@/services/embedding/multimodalIndexStore';
 
 let mockStore: Record<string, any> = {};
 let mockSessions: any[] = [];
@@ -22,6 +23,16 @@ vi.mock('./indexedDbAccess', () => ({
   }),
   getItem: vi.fn(async (_store: string, key: string) => mockStore[key]),
   getAll: vi.fn(async (_store: string) => mockSessions),
+  putMany: vi.fn(async (_store: string, values: any[]) => {
+    values.forEach((value) => {
+      mockStore[value.id] = value;
+    });
+  }),
+  deleteMany: vi.fn(async (_store: string, keys: any[]) => {
+    keys.forEach((key) => {
+      delete mockStore[key];
+    });
+  }),
 }));
 
 describe('libraryRecords service', () => {
@@ -102,15 +113,18 @@ describe('libraryRecords service', () => {
     expect(retrieved.map((f) => f.id)).toEqual(['lib-1', 'lib-3']);
   });
 
-  it('renames standalone library file', async () => {
+  it('renames standalone library file and syncs stored embedding name', async () => {
     const files: LibraryItem[] = [
       { id: 'lib-1', name: 'old-name.png', type: 'image/png', size: 10, timestamp: 1, source: 'uploaded' },
     ];
     await saveStandaloneLibraryFiles(files);
 
+    const updateEmbeddingSpy = vi.spyOn(multimodalIndexStoreModule, 'updateStoredEmbeddingName').mockResolvedValue();
+
     await renameStandaloneLibraryFile('lib-1', 'new-name.png');
     const retrieved = await getStandaloneLibraryFiles();
     expect(retrieved[0].name).toBe('new-name.png');
+    expect(updateEmbeddingSpy).toHaveBeenCalledWith('lib-1', 'new-name.png');
   });
 
   it('fetches library file blob from FILES_STORE if not in rawFile', async () => {
@@ -277,5 +291,57 @@ describe('libraryRecords service', () => {
     await addDeletedLibraryFileIds(['del-2', 'del-3']);
     current = await getDeletedLibraryFileIds();
     expect(current).toEqual(['del-1', 'del-2', 'del-3']);
+  });
+
+  it('mirrors standalone payloads into the id-keyed FILES_STORE', async () => {
+    const blob = new Blob(['payload'], { type: 'image/png' });
+    const files: LibraryItem[] = [
+      {
+        id: 'lib-mirror',
+        name: 'mirror.png',
+        type: 'image/png',
+        size: 7,
+        timestamp: 1,
+        source: 'uploaded',
+        isStandalone: true,
+        rawFile: blob,
+      },
+    ];
+
+    await saveStandaloneLibraryFiles(files);
+
+    expect(mockStore['lib-mirror']).toMatchObject({ id: 'lib-mirror', rawFile: blob });
+  });
+
+  it('resolves a standalone payload by id without scanning the standalone array', async () => {
+    const blob = new Blob(['payload'], { type: 'image/png' });
+    mockStore['lib-fast'] = { id: 'lib-fast', rawFile: blob };
+    // Poison the legacy array so any full scan would fail loudly.
+    mockStore['amc_library_standalone_files_v1'] = 'not-an-array';
+
+    const item: LibraryItem = {
+      id: 'lib-fast',
+      name: 'fast.png',
+      type: 'image/png',
+      size: 7,
+      timestamp: 1,
+      isStandalone: true,
+      source: 'uploaded',
+    };
+
+    await expect(fetchLibraryFileBlob(item)).resolves.toBe(blob);
+  });
+
+  it('drops the mirrored payload when a standalone file is deleted', async () => {
+    const blob = new Blob(['payload'], { type: 'image/png' });
+    mockStore['lib-doomed'] = { id: 'lib-doomed', rawFile: blob };
+    mockStore['amc_library_standalone_files_v1'] = [
+      { id: 'lib-doomed', name: 'doomed.png', type: 'image/png', size: 7, timestamp: 1, source: 'uploaded' },
+    ];
+
+    await deleteStandaloneLibraryFiles(['lib-doomed']);
+
+    expect(mockStore['lib-doomed']).toBeUndefined();
+    expect(await getStandaloneLibraryFiles()).toEqual([]);
   });
 });

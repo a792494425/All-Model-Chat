@@ -10,6 +10,7 @@ interface ProviderAvatarProps {
   modelName?: string;
   size?: number;
   className?: string;
+  icon?: string;
 }
 
 export const ProviderAvatar: React.FC<ProviderAvatarProps> = ({
@@ -19,8 +20,55 @@ export const ProviderAvatar: React.FC<ProviderAvatarProps> = ({
   modelName,
   size = 28,
   className = '',
+  icon,
 }) => {
   const [imageError, setImageError] = useState(false);
+
+  if (icon && icon.trim()) {
+    const trimmed = icon.trim();
+    const isImage =
+      trimmed.startsWith('data:image/') ||
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('blob:') ||
+      trimmed.startsWith('/') ||
+      /\.(png|jpe?g|svg|webp|gif|ico)(\?.*)?$/i.test(trimmed);
+
+    if (isImage && !imageError) {
+      return (
+        <div
+          className={`flex-shrink-0 flex items-center justify-center rounded-full overflow-hidden bg-[var(--theme-bg-tertiary)]/50 border border-[var(--theme-border-secondary)]/40 ${className}`}
+          style={{ width: size, height: size }}
+        >
+          <img
+            src={trimmed}
+            alt={name}
+            width={size}
+            height={size}
+            draggable={false}
+            onError={() => setImageError(true)}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      );
+    }
+
+    const fontSize = Math.max(12, Math.round(size * 0.55));
+    return (
+      <div
+        className={`flex-shrink-0 flex items-center justify-center rounded-full bg-[var(--theme-bg-tertiary)] select-none shadow-xs border border-[var(--theme-border-secondary)]/40 ${className}`}
+        style={{
+          width: size,
+          height: size,
+          fontSize: `${fontSize}px`,
+        }}
+        aria-hidden="true"
+      >
+        {trimmed}
+      </div>
+    );
+  }
+
   const {
     key: logoKey,
     url: logoUrl,

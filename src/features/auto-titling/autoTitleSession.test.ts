@@ -146,9 +146,51 @@ describe('autoTitleSession', () => {
     });
 
     expect(result).toBe(true);
-    expect(generateTitleApiMock).toHaveBeenCalledWith('gemini-key', `${longContent.slice(0, 2000)}…`, 'short', 'en');
+    expect(generateTitleApiMock).toHaveBeenCalledWith(
+      'gemini-key',
+      `${longContent.slice(0, 2000)}…`,
+      'short',
+      'en',
+      {
+        includeEmoji: true,
+        length: 'standard',
+        customPrompt: '',
+      },
+    );
     expect(sessions[0].title).toBe('Routing Basics');
     expect(sessions[0].titleSource).toBe('auto');
+  });
+
+  it('passes custom title style preferences to the title API', async () => {
+    const session = createSession({
+      messages: [makeUserMessage('Help me refactor code'), makeModelMessage('Sure')],
+    });
+    sessions = [session];
+
+    const result = await autoTitleSession({
+      session,
+      appSettings: {
+        ...DEFAULT_APP_SETTINGS,
+        autoTitleIncludeEmoji: false,
+        autoTitleLength: 'concise',
+        autoTitleCustomPrompt: 'Never use question marks',
+      },
+      language: 'zh',
+      updateAndPersistSessions,
+    });
+
+    expect(result).toBe(true);
+    expect(generateTitleApiMock).toHaveBeenCalledWith(
+      'gemini-key',
+      'Help me refactor code',
+      'Sure',
+      'zh',
+      {
+        includeEmoji: false,
+        length: 'concise',
+        customPrompt: 'Never use question marks',
+      },
+    );
   });
 
   it('writes the heuristic fallback and keeps titleSource default when the API errors', async () => {
@@ -249,6 +291,11 @@ describe('autoTitleSession', () => {
       'Build a landing page',
       `${longModelContent.slice(0, 2000)}…`,
       'en',
+      {
+        includeEmoji: true,
+        length: 'standard',
+        customPrompt: '',
+      },
     );
     expect(sessions[0].title).toBe('Routing Basics');
     expect(sessions[0].titleSource).toBe('auto');
@@ -329,6 +376,11 @@ describe('autoTitleSession', () => {
       'Please explain quantum computing in depth',
       'Quantum computing uses qubits instead of classical bits.',
       'en',
+      {
+        includeEmoji: true,
+        length: 'standard',
+        customPrompt: '',
+      },
     );
     expect(sessions[0].title).toBe('Quantum Computing');
   });

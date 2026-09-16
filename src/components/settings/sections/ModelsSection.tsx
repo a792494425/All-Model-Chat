@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { ChevronDown, Shield, Sparkles, Sliders, Layers, Bot, SlidersHorizontal, ArrowUpRight } from 'lucide-react';
+import { ChevronDown, Shield, Sparkles, Sliders, Layers, Bot, ArrowUpRight } from 'lucide-react';
 import { type ApiMode, type AppSettings, type ModelOption } from '@/types';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { ModelSelector } from '@/components/settings/controls/ModelSelector';
@@ -70,16 +70,6 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({
       return nextModel;
     });
 
-  const activeModel = availableModels.find((m) => m.id === modelId);
-  const activeModelName = activeModel?.name || modelId;
-
-  const connections = currentSettings.thirdPartyApi?.connections ?? [];
-  const activeProvider = connections.find((c) => c.id === currentSettings.providerId);
-  const isGemini = !isThirdPartyMode && (!currentSettings.providerId || currentSettings.providerId === 'gemini');
-  const providerDisplayName = isGemini
-    ? 'Google Gemini'
-    : (activeProvider?.name || (currentSettings.providerId ? currentSettings.providerId.toUpperCase() : 'Custom Provider'));
-
   const showCatalog = isThirdPartyMode || activeSubTab === 'all' || activeSubTab === 'catalog';
   const showGeneration = isThirdPartyMode || activeSubTab === 'all' || activeSubTab === 'generation';
   const showFeatures = !isThirdPartyMode && (activeSubTab === 'all' || activeSubTab === 'features');
@@ -87,63 +77,41 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">
-      <div className="rounded-2xl border border-[var(--theme-border-secondary)]/50 bg-[var(--theme-bg-secondary)]/30 p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-2 rounded-xl bg-[var(--theme-bg-tertiary)]/70 text-[var(--theme-text-link)] shrink-0">
-              <SlidersHorizontal size={18} />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-[var(--theme-text-secondary)]">
-                  {t('modelsCurrentModelLabel')}
-                </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-secondary)]/40">
-                  {providerDisplayName}
-                </span>
-              </div>
-              <h3 className="text-sm font-semibold text-[var(--theme-text-primary)] truncate">
-                {activeModelName}
-              </h3>
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
+        {!isThirdPartyMode ? (
+          <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className={SETTINGS_SEGMENTED_TRACK_CLASS} role="tablist" aria-label={t('settingsTabModels')}>
+              {SUB_TABS.map(({ id, labelKey, icon: Icon }) => {
+                const isActive = activeSubTab === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setActiveSubTab(id)}
+                    className={`flex items-center gap-1.5 ${isActive ? SETTINGS_SEGMENTED_ACTIVE_CLASS : SETTINGS_SEGMENTED_IDLE_CLASS}`}
+                  >
+                    <Icon size={13} className="shrink-0" />
+                    <span>{t(labelKey)}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
+        ) : (
+          <div />
+        )}
 
-          <button
-            type="button"
-            onClick={() => useSettingsUiStore.getState().setActiveTab('providers')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-secondary)]/80 hover:bg-[var(--theme-bg-tertiary)] text-xs font-medium text-[var(--theme-text-primary)] transition-all cursor-pointer shadow-xs hover:border-[var(--theme-border-primary)]"
-          >
-            <span>{t('modelsManageProvidersAction')}</span>
-            <ArrowUpRight size={13} className="text-[var(--theme-text-secondary)]" />
-          </button>
-        </div>
-
-        <p className="text-xs text-[var(--theme-text-secondary)] leading-relaxed">
-          {t('modelsCurrentActiveModelHint')}
-        </p>
+        <button
+          type="button"
+          onClick={() => useSettingsUiStore.getState().setActiveTab('providers')}
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-secondary)]/60 hover:bg-[var(--theme-bg-tertiary)] text-xs font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-all cursor-pointer shadow-xs hover:border-[var(--theme-border-primary)]"
+        >
+          <span>{t('modelsManageProvidersAction')}</span>
+          <ArrowUpRight size={13} className="text-[var(--theme-text-secondary)]" />
+        </button>
       </div>
-      {!isThirdPartyMode && (
-        <div className="flex justify-start overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className={SETTINGS_SEGMENTED_TRACK_CLASS} role="tablist" aria-label={t('settingsTabModels')}>
-            {SUB_TABS.map(({ id, labelKey, icon: Icon }) => {
-              const isActive = activeSubTab === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  onClick={() => setActiveSubTab(id)}
-                  className={`flex items-center gap-1.5 ${isActive ? SETTINGS_SEGMENTED_ACTIVE_CLASS : SETTINGS_SEGMENTED_IDLE_CLASS}`}
-                >
-                  <Icon size={13} className="shrink-0" />
-                  <span>{t(labelKey)}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {showCatalog && (
         <div data-settings-item="models-primary" className="space-y-4">

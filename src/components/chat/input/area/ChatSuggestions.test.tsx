@@ -39,6 +39,12 @@ describe('ChatSuggestions button sizing', () => {
     expect(SUGGESTION_CHIP_CLASS).toContain('hover:border-[var(--theme-border-focus)]');
   });
 
+  it('uses a balanced light tint and focus border for active suggestion chips', () => {
+    expect(SUGGESTION_CHIP_ACTIVE_CLASS).toContain('bg-[var(--theme-bg-accent)]/15');
+    expect(SUGGESTION_CHIP_ACTIVE_CLASS).toContain('border-[var(--theme-border-focus)]');
+    expect(SUGGESTION_CHIP_ACTIVE_CLASS).toContain('text-[var(--theme-text-primary)]');
+  });
+
   it('keeps scroll arrows reachable and visible for keyboard focus', () => {
     const source = fs.readFileSync(chatSuggestionsPath, 'utf8');
 
@@ -193,6 +199,7 @@ describe('ChatSuggestions rendering', () => {
     expect(organizeChip).not.toBeNull();
     expect(organizeChip?.className).toContain(SUGGESTION_CHIP_ACTIVE_CLASS);
     expect(organizeChip?.getAttribute('aria-pressed')).toBe('true');
+    expect(organizeChip?.querySelector('[data-testid="chip-dismiss-icon"]')).toBeNull();
   });
 
   it('renders organize chip as an inactive toggle chip when isLiveArtifactsPromptActive is false', async () => {
@@ -212,6 +219,7 @@ describe('ChatSuggestions rendering', () => {
     expect(organizeChip).not.toBeNull();
     expect(organizeChip?.className).toContain(SUGGESTION_CHIP_CLASS);
     expect(organizeChip?.getAttribute('aria-pressed')).toBe('false');
+    expect(organizeChip?.querySelector('[data-testid="chip-dismiss-icon"]')).toBeNull();
   });
 
   it('renders task suggestion chips as toggle chips with active state when activeTaskSuggestion matches', async () => {

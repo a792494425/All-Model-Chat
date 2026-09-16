@@ -657,6 +657,15 @@ export const chatInputTranslations = {
     es: 'Agregar desde la biblioteca',
     ko: '보관함에서 추가',
   },
+  attachMenuMultimodalSearch: {
+    en: 'Multimodal Search',
+    zh: '多模态语义搜索',
+    ja: 'マルチモーダル検索',
+    de: 'Multimodale Suche',
+    fr: 'Recherche multimodale',
+    es: 'Búsqueda multimodal',
+    ko: '멀티모달 검색',
+  },
   attachMenuImportFolder: {
     en: 'Import Folder / Zip',
     zh: '导入文件夹 / Zip',

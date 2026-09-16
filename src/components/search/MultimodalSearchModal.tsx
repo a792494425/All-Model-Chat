@@ -2,12 +2,14 @@ import React, { useRef, useState, useEffect } from 'react';
 import {
   Search,
   X,
-  Sparkles,
+  Layers,
   RotateCw,
   Image as ImageIcon,
-  MessageSquarePlus,
   Download,
   AlertCircle,
+  Plus,
+  Check,
+  Loader2,
 } from 'lucide-react';
 import { Modal } from '@/components/shared/Modal';
 import { Toggle } from '@/components/shared/Toggle';
@@ -53,6 +55,12 @@ export const MultimodalSearchModal: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [selectedResultIds, setSelectedResultIds] = useState<Set<string>>(new Set());
+  const [isInserting, setIsInserting] = useState(false);
+
+  useEffect(() => {
+    setSelectedResultIds(new Set());
+  }, [results, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -106,7 +114,7 @@ export const MultimodalSearchModal: React.FC = () => {
     closeModal();
   };
 
-  const handleStartChatWithFile = async (result: MultimodalSearchResult) => {
+  const resolveSearchResultToUploadedFile = async (result: MultimodalSearchResult) => {
     const item = result.item;
     const libraryItem: LibraryItem = {
       id: item.id,
@@ -122,19 +130,71 @@ export const MultimodalSearchModal: React.FC = () => {
       dataUrl: item.thumbnailUrl,
     };
 
+    return resolveLibraryItemToUploadedFile(libraryItem, (i) => dbService.fetchLibraryFileBlob(i), {
+      generateNewId: true,
+    });
+  };
+
+  const handleInsertSingleItem = async (result: MultimodalSearchResult) => {
+    setIsInserting(true);
     try {
-      const uploadedFile = await resolveLibraryItemToUploadedFile(
-        libraryItem,
-        (i) => dbService.fetchLibraryFileBlob(i),
-        { generateNewId: true },
-      );
+      const uploadedFile = await resolveSearchResultToUploadedFile(result);
       const currentFiles = useChatStore.getState().selectedFiles;
-      setSelectedFiles([...currentFiles, uploadedFile]);
+      const alreadyExists = currentFiles.some(
+        (f) => f.id === uploadedFile.id || (f.name === uploadedFile.name && f.size === uploadedFile.size),
+      );
+      if (!alreadyExists) {
+        setSelectedFiles([...currentFiles, uploadedFile]);
+      }
       setActiveView('chat');
       closeModal();
     } catch {
       setActiveView('chat');
       closeModal();
+    } finally {
+      setIsInserting(false);
+    }
+  };
+
+  const handleBatchInsert = async () => {
+    if (selectedResultIds.size === 0 || isInserting) return;
+    setIsInserting(true);
+    try {
+      const selectedResults = results.filter((r) => selectedResultIds.has(r.item.id));
+      const resolvedFiles = await Promise.all(selectedResults.map((res) => resolveSearchResultToUploadedFile(res)));
+      const currentFiles = useChatStore.getState().selectedFiles;
+      const newFiles = resolvedFiles.filter(
+        (newF) => !currentFiles.some((f) => f.id === newF.id || (f.name === newF.name && f.size === newF.size)),
+      );
+      setSelectedFiles([...currentFiles, ...newFiles]);
+      setActiveView('chat');
+      closeModal();
+    } catch {
+      setActiveView('chat');
+      closeModal();
+    } finally {
+      setIsInserting(false);
+    }
+  };
+
+  const handleToggleSelect = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setSelectedResultIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAllToggle = () => {
+    if (selectedResultIds.size === results.length) {
+      setSelectedResultIds(new Set());
+    } else {
+      setSelectedResultIds(new Set(results.map((r) => r.item.id)));
     }
   };
 
@@ -191,7 +251,7 @@ export const MultimodalSearchModal: React.FC = () => {
     >
       <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--theme-border-primary)] flex-shrink-0">
         <div className="flex items-center gap-2.5">
-          <Sparkles size={20} className="text-[var(--theme-text-secondary)] shrink-0" strokeWidth={2} />
+          <Layers size={20} className="text-[var(--theme-text-secondary)] shrink-0" strokeWidth={2} />
           <div>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--theme-text-primary)] leading-tight">
               {t('multimodalSearchTitle')}
@@ -307,7 +367,9 @@ export const MultimodalSearchModal: React.FC = () => {
               alt="Search reference"
               className="w-8 h-8 object-cover rounded-lg border border-[var(--theme-border-primary)]"
             />
-            <span className="font-medium text-[var(--theme-text-primary)]">{t('multimodalSearchByImage')}</span>
+            <span className="font-medium text-[var(--theme-text-primary)]">
+              {searchQuery.trim() ? t('multimodalSearchCombinedQuery') : t('multimodalSearchByImage')}
+            </span>
             <button
               type="button"
               onClick={clearSearchImage}
@@ -383,6 +445,7 @@ export const MultimodalSearchModal: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {results.map((res) => {
               const item = res.item;
+              const isSelected = selectedResultIds.has(item.id);
               const libraryItem: LibraryItem = {
                 id: item.id,
                 name: item.name,
@@ -400,35 +463,58 @@ export const MultimodalSearchModal: React.FC = () => {
               return (
                 <div
                   key={item.id}
-                  className="group flex flex-col rounded-2xl border border-[var(--theme-border-primary)] hover:border-[var(--theme-border-secondary)] hover:shadow-sm bg-[var(--theme-bg-secondary)] overflow-hidden transition-all duration-200"
+                  className={`group flex flex-col rounded-2xl border transition-all duration-200 overflow-hidden ${
+                    isSelected
+                      ? 'border-blue-500 ring-2 ring-blue-500/50 bg-[var(--theme-bg-secondary)]'
+                      : 'border-[var(--theme-border-primary)] hover:border-[var(--theme-border-secondary)] hover:shadow-sm bg-[var(--theme-bg-secondary)]'
+                  }`}
                 >
                   <div className="relative w-full aspect-[4/3] bg-[var(--theme-bg-tertiary)] overflow-hidden flex items-center justify-center">
                     <LibraryItemThumbnail item={libraryItem} size="full" className="w-full h-full object-contain" />
 
-                    <div className="absolute top-2.5 right-2.5">{getSimilarityBadge(res.similarity)}</div>
+                    <button
+                      type="button"
+                      onClick={(e) => handleToggleSelect(item.id, e)}
+                      className={`absolute top-2.5 left-2.5 z-10 w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+                        isSelected
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-black/50 text-white/80 hover:text-white hover:bg-black/70 sm:opacity-0 sm:group-hover:opacity-100'
+                      }`}
+                      title={isSelected ? t('multimodalSearchDeselectAll') : t('multimodalSearchSelectAll')}
+                      aria-label={isSelected ? t('multimodalSearchDeselectAll') : t('multimodalSearchSelectAll')}
+                    >
+                      {isSelected ? (
+                        <Check size={14} strokeWidth={2.5} />
+                      ) : (
+                        <div className="w-3.5 h-3.5 rounded border border-white/60" />
+                      )}
+                    </button>
 
                     <div
-                      className="absolute top-2.5 left-2.5 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-xs p-1 rounded-xl"
+                      className="absolute top-2.5 right-2.5 flex items-center gap-1.5"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <button
-                        type="button"
-                        onClick={() => void handleStartChatWithFile(res)}
-                        title={t('multimodalSearchStartChatWithFile')}
-                        aria-label={t('multimodalSearchStartChatWithFile')}
-                        className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
-                      >
-                        <MessageSquarePlus size={14} strokeWidth={2} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void handleDownloadItem(res)}
-                        title={t('libraryDownload')}
-                        aria-label={t('libraryDownload')}
-                        className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
-                      >
-                        <Download size={14} strokeWidth={2} />
-                      </button>
+                      <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-black/60 backdrop-blur-xs p-1 rounded-xl">
+                        <button
+                          type="button"
+                          onClick={() => void handleInsertSingleItem(res)}
+                          title={t('multimodalSearchInsertIntoChat')}
+                          aria-label={t('multimodalSearchInsertIntoChat')}
+                          className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+                        >
+                          <Plus size={14} strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleDownloadItem(res)}
+                          title={t('libraryDownload')}
+                          aria-label={t('libraryDownload')}
+                          className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+                        >
+                          <Download size={14} strokeWidth={2} />
+                        </button>
+                      </div>
+                      {getSimilarityBadge(res.similarity)}
                     </div>
                   </div>
 
@@ -465,12 +551,17 @@ export const MultimodalSearchModal: React.FC = () => {
                     <div className="flex items-center gap-1.5 pt-2 border-t border-[var(--theme-border-secondary)]">
                       <button
                         type="button"
-                        onClick={() => void handleStartChatWithFile(res)}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-text-primary)] hover:text-[var(--theme-bg-primary)] text-xs font-medium text-[var(--theme-text-secondary)] transition-colors cursor-pointer"
-                        title={t('multimodalSearchStartChatWithFile')}
+                        onClick={() => void handleInsertSingleItem(res)}
+                        disabled={isInserting}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-text-primary)] hover:text-[var(--theme-bg-primary)] text-xs font-medium text-[var(--theme-text-secondary)] transition-colors cursor-pointer disabled:opacity-50"
+                        title={t('multimodalSearchInsertIntoChat')}
                       >
-                        <MessageSquarePlus size={13} />
-                        <span>{t('multimodalSearchStartChatWithFile')}</span>
+                        {isInserting ? (
+                          <Loader2 size={13} className="animate-spin" />
+                        ) : (
+                          <Plus size={13} strokeWidth={2} />
+                        )}
+                        <span>{t('multimodalSearchInsertIntoChat')}</span>
                       </button>
 
                       <button
@@ -491,7 +582,7 @@ export const MultimodalSearchModal: React.FC = () => {
         ) : (
           <div className="h-64 flex flex-col items-center justify-center text-center p-6 gap-3">
             <div className="p-4 rounded-full bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-tertiary)]">
-              <Sparkles size={28} strokeWidth={1.8} />
+              <Layers size={28} strokeWidth={1.8} />
             </div>
             <div>
               <p className="text-sm font-medium text-[var(--theme-text-primary)]">
@@ -516,6 +607,45 @@ export const MultimodalSearchModal: React.FC = () => {
           </div>
         )}
       </div>
+
+      {selectedResultIds.size > 0 && (
+        <div className="flex items-center justify-between px-6 py-3 border-t border-[var(--theme-border-primary)] bg-[var(--theme-bg-secondary)] flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-medium text-[var(--theme-text-secondary)]">
+              {interpolate(t('multimodalSearchSelectedCount'), { count: selectedResultIds.size })}
+            </span>
+            <button
+              type="button"
+              onClick={handleSelectAllToggle}
+              className="text-xs text-[var(--theme-text-link)] hover:underline font-medium cursor-pointer"
+            >
+              {selectedResultIds.size === results.length
+                ? t('multimodalSearchDeselectAll')
+                : t('multimodalSearchSelectAll')}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedResultIds(new Set())}
+              disabled={isInserting}
+              className="px-3 py-1.5 text-xs font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] rounded-xl transition-colors cursor-pointer"
+            >
+              {t('cancel')}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleBatchInsert()}
+              disabled={isInserting}
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl transition-colors shadow-xs cursor-pointer"
+            >
+              {isInserting ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} strokeWidth={2.5} />}
+              <span>{interpolate(t('multimodalSearchBatchInsert'), { count: selectedResultIds.size })}</span>
+            </button>
+          </div>
+        </div>
+      )}
     </Modal>
   );
 };

@@ -1,19 +1,62 @@
 import { getConfiguredApiClient } from '@/services/api/apiClient';
 import { dbService } from '@/services/db/dbService';
+import { parseApiKeys } from '@/utils/apiKeySelection';
 import { blobToBase64 } from '@/utils/file/fileEncoding';
 
 export const DEFAULT_EMBEDDING_MODEL = 'gemini-embedding-2';
 export const EMBEDDING_DIMENSION = 768;
 
-const resolveApiKey = async (apiKeyOverride?: string): Promise<string> => {
+interface ResolvedEmbeddingApiKey {
+  apiKey: string;
+  isDirectGoogleApi?: boolean;
+}
+
+const resolveApiKey = async (apiKeyOverride?: string): Promise<ResolvedEmbeddingApiKey> => {
   if (apiKeyOverride && apiKeyOverride.trim().length > 0) {
-    return apiKeyOverride.trim();
+    return { apiKey: apiKeyOverride.trim() };
   }
   const settings = await dbService.getAppSettings();
+  if (settings?.embeddingApiKey && settings.embeddingApiKey.trim().length > 0) {
+    const keys = parseApiKeys(settings.embeddingApiKey);
+    if (keys.length > 0) {
+      return {
+        apiKey: keys[0],
+        isDirectGoogleApi: true,
+      };
+    }
+  }
   if (settings?.apiKey && settings.apiKey.trim().length > 0) {
-    return settings.apiKey.trim();
+    const keys = parseApiKeys(settings.apiKey);
+    if (keys.length > 0) {
+      return { apiKey: keys[0] };
+    }
   }
   throw new Error('API key is required for generating embeddings. Please configure it in settings.');
+};
+
+/**
+ * Checks whether an API key for embedding generation is configured (either dedicated or standard).
+ */
+export const hasConfiguredApiKey = async (): Promise<boolean> => {
+  try {
+    const settings = await dbService.getAppSettings();
+    if (settings?.embeddingApiKey && settings.embeddingApiKey.trim().length > 0) {
+      return parseApiKeys(settings.embeddingApiKey).length > 0;
+    }
+    if (settings?.apiKey && settings.apiKey.trim().length > 0) {
+      return parseApiKeys(settings.apiKey).length > 0;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
+
+const getEmbeddingClient = async (resolved: ResolvedEmbeddingApiKey) => {
+  if (resolved.isDirectGoogleApi) {
+    return getConfiguredApiClient(resolved.apiKey, undefined, { directGoogleApi: true });
+  }
+  return getConfiguredApiClient(resolved.apiKey);
 };
 
 /**
@@ -56,8 +99,8 @@ export const generateQueryEmbedding = async (
   apiKeyOverride?: string,
   modelName: string = DEFAULT_EMBEDDING_MODEL,
 ): Promise<number[]> => {
-  const apiKey = await resolveApiKey(apiKeyOverride);
-  const client = await getConfiguredApiClient(apiKey);
+  const resolvedKey = await resolveApiKey(apiKeyOverride);
+  const client = await getEmbeddingClient(resolvedKey);
 
   const formattedQuery = `task: search result | query: ${query.trim()}`;
   const response = await client.models.embedContent({
@@ -86,8 +129,8 @@ export const generateMediaEmbedding = async (
   apiKeyOverride?: string,
   modelName: string = DEFAULT_EMBEDDING_MODEL,
 ): Promise<number[]> => {
-  const apiKey = await resolveApiKey(apiKeyOverride);
-  const client = await getConfiguredApiClient(apiKey);
+  const resolvedKey = await resolveApiKey(apiKeyOverride);
+  const client = await getEmbeddingClient(resolvedKey);
   const base64Data = await blobToBase64(blob);
 
   const response = await client.models.embedContent({
@@ -123,8 +166,8 @@ export const generateDocumentEmbedding = async (
   apiKeyOverride?: string,
   modelName: string = DEFAULT_EMBEDDING_MODEL,
 ): Promise<number[]> => {
-  const apiKey = await resolveApiKey(apiKeyOverride);
-  const client = await getConfiguredApiClient(apiKey);
+  const resolvedKey = await resolveApiKey(apiKeyOverride);
+  const client = await getEmbeddingClient(resolvedKey);
 
   const safeTitle = title?.trim() ? title.trim() : 'none';
   const formattedDoc = `title: ${safeTitle} | text: ${text}`;
@@ -140,6 +183,46 @@ export const generateDocumentEmbedding = async (
   const embedding = response.embeddings?.[0]?.values;
   if (!embedding || embedding.length === 0) {
     throw new Error('No embedding returned from Gemini API for document.');
+  }
+
+  return embedding;
+};
+
+/**
+ * Generates an aggregated embedding for a multimodal query combining text and an image.
+ * As per Gemini Embedding 2 specification, text combined with media should NOT have
+ * task prefixes, and is passed in an aggregated contents array [text, inlineData].
+ */
+export const generateMultimodalQueryEmbedding = async (
+  query: string,
+  imageBlob: Blob,
+  mimeType: string,
+  apiKeyOverride?: string,
+  modelName: string = DEFAULT_EMBEDDING_MODEL,
+): Promise<number[]> => {
+  const resolvedKey = await resolveApiKey(apiKeyOverride);
+  const client = await getEmbeddingClient(resolvedKey);
+  const base64Data = await blobToBase64(imageBlob);
+
+  const response = await client.models.embedContent({
+    model: modelName,
+    contents: [
+      query.trim(),
+      {
+        inlineData: {
+          mimeType,
+          data: base64Data,
+        },
+      },
+    ],
+    config: {
+      outputDimensionality: EMBEDDING_DIMENSION,
+    },
+  });
+
+  const embedding = response.embeddings?.[0]?.values;
+  if (!embedding || embedding.length === 0) {
+    throw new Error('No embedding returned from Gemini API for multimodal query.');
   }
 
   return embedding;

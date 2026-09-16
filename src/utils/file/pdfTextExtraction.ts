@@ -1,11 +1,16 @@
 import { decodeBase64ToArrayBuffer } from './fileEncoding';
 import { logService } from '@/services/logService';
 
+export interface PdfInspectionResult {
+  numPages: number;
+  text: string;
+}
+
 /**
- * Extracts plain text from raw PDF binary data using pdfjs-dist.
+ * Extracts plain text and page count from raw PDF binary data using pdfjs-dist.
  * Works across both browser and Node.js environments.
  */
-const extractTextFromPdfData = async (data: Uint8Array | ArrayBuffer): Promise<string> => {
+const inspectPdfData = async (data: Uint8Array | ArrayBuffer): Promise<PdfInspectionResult> => {
   try {
     const pdfjs = await import('pdfjs-dist');
     const loadingTask = pdfjs.getDocument({
@@ -30,10 +35,13 @@ const extractTextFromPdfData = async (data: Uint8Array | ArrayBuffer): Promise<s
       }
     }
 
-    return pageTexts.join('\n\n');
+    return {
+      numPages: pdfDoc.numPages,
+      text: pageTexts.join('\n\n'),
+    };
   } catch (error) {
-    logService.warn('Failed to extract text from PDF data', { error });
-    return '';
+    logService.warn('Failed to inspect PDF data', { error });
+    return { numPages: 1, text: '' };
   }
 };
 
@@ -43,9 +51,23 @@ const extractTextFromPdfData = async (data: Uint8Array | ArrayBuffer): Promise<s
 export const extractPdfTextFromBase64 = async (base64: string): Promise<string> => {
   try {
     const uint8Array = decodeBase64ToArrayBuffer(base64);
-    return await extractTextFromPdfData(uint8Array);
+    const { text } = await inspectPdfData(uint8Array);
+    return text;
   } catch (error) {
     logService.warn('Failed to decode base64 for PDF text extraction', { error });
     return '';
+  }
+};
+
+/**
+ * Inspects a PDF Blob to get its total page count and extracted text.
+ */
+export const inspectPdfBlob = async (blob: Blob): Promise<PdfInspectionResult> => {
+  try {
+    const arrayBuffer = await blob.arrayBuffer();
+    return await inspectPdfData(arrayBuffer);
+  } catch (error) {
+    logService.warn('Failed to inspect PDF blob', { error });
+    return { numPages: 1, text: '' };
   }
 };

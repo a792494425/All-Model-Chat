@@ -47,7 +47,11 @@ export const useHtmlPreviewGraphvizRelay = ({
         return;
       }
 
-      void renderDotToSvgCached(resolved.dot, { themeId, baseFontSize }).then((result) => {
+      void renderDotToSvgCached(resolved.dot, {
+        themeId,
+        ...(baseFontSize !== undefined && { baseFontSize }),
+        preserveAuthorColors: true,
+      }).then((result) => {
         iframeWindow?.postMessage(
           createHtmlPreviewGraphvizResponseMessage(
             resolved.id,

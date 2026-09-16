@@ -1,8 +1,9 @@
 import { type LibraryItem, type PersistedSessionFileRecord, type SavedChatSession } from '@/types';
-import { getKeyValue, setKeyValue, getItem, getAll } from './indexedDbAccess';
+import { getKeyValue, setKeyValue, getItem, getAll, putMany, deleteMany } from './indexedDbAccess';
 import { FILES_STORE, SESSIONS_STORE } from './dbSchema';
 import { extractLibraryItemsFromSessions } from '@/utils/library/libraryFiles';
 import { base64ToBlob } from '@/utils/file/fileEncoding';
+import { updateStoredEmbeddingName } from '@/services/embedding/multimodalIndexStore';
 
 const STANDALONE_LIBRARY_STORAGE_KEY = 'amc_library_standalone_files_v1';
 const DELETED_LIBRARY_FILES_STORAGE_KEY = 'amc_library_deleted_file_ids_v1';
@@ -24,8 +25,49 @@ export const getStandaloneLibraryFiles = async (): Promise<LibraryItem[]> => {
   return Array.isArray(items) ? items : [];
 };
 
+/**
+ * Resolves a single standalone item's payload. Prefers the id-keyed
+ * FILES_STORE mirror and only falls back to scanning the legacy array.
+ */
+export const getStandaloneLibraryFile = async (id: string): Promise<LibraryItem | undefined> => {
+  if (!id) return undefined;
+
+  const record = await getItem<{ rawFile?: Blob }>(FILES_STORE, id);
+  if (record?.rawFile instanceof Blob) {
+    return { id, rawFile: record.rawFile } as LibraryItem;
+  }
+
+  const items = await getStandaloneLibraryFiles();
+  return items.find((item) => item?.id === id);
+};
+
+/**
+ * Mirrors standalone payloads into FILES_STORE keyed by item id.
+ *
+ * Standalone metadata all lives in one key-value array, so resolving a payload
+ * through it is O(library size) per lookup. FILES_STORE is keyed by id, which
+ * gives the indexer (and the UI's lazy preview loader) an O(1) path without
+ * changing the legacy array format.
+ */
+const mirrorStandalonePayloads = async (files: LibraryItem[]): Promise<void> => {
+  await putMany(
+    FILES_STORE,
+    files
+      .filter((file) => file?.id && file.rawFile instanceof Blob)
+      .map((file) => ({
+        id: file.id,
+        sessionId: file.sessionId,
+        messageId: file.messageId,
+        name: file.name,
+        type: file.type,
+        rawFile: file.rawFile,
+      })),
+  );
+};
+
 export const saveStandaloneLibraryFiles = async (files: LibraryItem[]): Promise<void> => {
   await setKeyValue(STANDALONE_LIBRARY_STORAGE_KEY, files);
+  await mirrorStandalonePayloads(files);
 };
 
 export const addStandaloneLibraryFiles = async (newFiles: LibraryItem[]): Promise<void> => {
@@ -39,16 +81,26 @@ export const deleteStandaloneLibraryFiles = async (ids: string[]): Promise<void>
   const current = await getStandaloneLibraryFiles();
   const idSet = new Set(ids);
   const remaining = current.filter((item) => !idSet.has(item.id));
-  await saveStandaloneLibraryFiles(remaining);
+  await setKeyValue(STANDALONE_LIBRARY_STORAGE_KEY, remaining);
+  await deleteMany(FILES_STORE, ids);
 };
 
 export const renameStandaloneLibraryFile = async (id: string, newName: string): Promise<void> => {
   const current = await getStandaloneLibraryFiles();
   const updated = current.map((item) => (item.id === id ? { ...item, name: newName } : item));
   await saveStandaloneLibraryFiles(updated);
+  await updateStoredEmbeddingName(id, newName).catch(() => {});
 };
 
-export const fetchLibraryFileBlob = async (item: LibraryItem): Promise<Blob | undefined> => {
+/**
+ * Minimal shape needed to locate a file payload. Accepting a structural subset
+ * lets the indexer resolve payloads for lightweight descriptors that carry no
+ * blob/text payload of their own.
+ */
+export type LibraryFileLookup = Pick<LibraryItem, 'id' | 'name' | 'type'> &
+  Partial<Pick<LibraryItem, 'size' | 'sessionId' | 'isStandalone' | 'rawFile' | 'dataUrl' | 'textContent'>>;
+
+export const fetchLibraryFileBlob = async (item: LibraryFileLookup): Promise<Blob | undefined> => {
   // 1. Direct rawFile Blob
   if (item.rawFile instanceof Blob) {
     return item.rawFile;
@@ -103,11 +155,12 @@ export const fetchLibraryFileBlob = async (item: LibraryItem): Promise<Blob | un
     }
   }
 
-  // 5. If standalone file, retrieve from standalone storage
+  // 5. If standalone file, retrieve from standalone storage. This reaches for the
+  //    id-keyed FILES_STORE mirror before scanning the legacy array, so indexing
+  //    a standalone item stays O(1) instead of O(library size).
   if (item.isStandalone || !item.sessionId) {
     try {
-      const standalone = await getStandaloneLibraryFiles();
-      const match = standalone.find((f) => f.id === item.id);
+      const match = await getStandaloneLibraryFile(item.id);
       if (match) {
         if (match.rawFile instanceof Blob) {
           return match.rawFile;

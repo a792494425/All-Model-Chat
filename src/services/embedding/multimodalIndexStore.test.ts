@@ -1,29 +1,65 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
+  getStoredEmbedding,
+  getStoredEmbeddingIds,
   getStoredEmbeddings,
   saveStoredEmbedding,
   saveBatchStoredEmbeddings,
   removeStoredEmbedding,
+  removeStoredEmbeddings,
   clearAllStoredEmbeddings,
   getStoredEmbeddingCount,
+  updateStoredEmbeddingName,
+  ensureLegacyEmbeddingsMigrated,
+  resetLegacyMigrationForTest,
   MULTIMODAL_EMBEDDING_KEY,
 } from './multimodalIndexStore';
 import * as indexedDbAccessModule from '@/services/db/indexedDbAccess';
+import { EMBEDDINGS_STORE } from '@/services/db/dbSchema';
 import type { MultimodalEmbeddingItem } from './embeddingTypes';
 
 describe('multimodalIndexStore', () => {
-  let mockStorage: Record<string, any> = {};
+  let mockStore: Record<string, any> = {};
+  let mockLegacy: Record<string, any> = {};
 
   beforeEach(() => {
-    mockStorage = {};
-    vi.spyOn(indexedDbAccessModule, 'getKeyValue').mockImplementation(async (key: string) => {
-      return mockStorage[key];
+    mockStore = {};
+    mockLegacy = {};
+    resetLegacyMigrationForTest();
+
+    vi.spyOn(indexedDbAccessModule, 'getItem').mockImplementation(async (store: string, key: string) => {
+      return store === EMBEDDINGS_STORE ? mockStore[key] : mockLegacy[key];
     });
+    vi.spyOn(indexedDbAccessModule, 'getAll').mockImplementation(async (store: string) => {
+      return store === EMBEDDINGS_STORE ? Object.values(mockStore) : [];
+    });
+    vi.spyOn(indexedDbAccessModule, 'getAllKeys').mockImplementation(async (store: string) => {
+      return store === EMBEDDINGS_STORE ? Object.keys(mockStore) : [];
+    });
+    vi.spyOn(indexedDbAccessModule, 'countAll').mockImplementation(async (store: string) => {
+      return store === EMBEDDINGS_STORE ? Object.keys(mockStore).length : 0;
+    });
+    vi.spyOn(indexedDbAccessModule, 'putMany').mockImplementation(async (store: string, values: any[]) => {
+      if (store !== EMBEDDINGS_STORE) return;
+      values.forEach((value) => {
+        mockStore[value.id] = value;
+      });
+    });
+    vi.spyOn(indexedDbAccessModule, 'deleteMany').mockImplementation(async (store: string, keys: IDBValidKey[]) => {
+      if (store !== EMBEDDINGS_STORE) return;
+      keys.forEach((key) => {
+        delete mockStore[String(key)];
+      });
+    });
+    vi.spyOn(indexedDbAccessModule, 'clearStore').mockImplementation(async (store: string) => {
+      if (store === EMBEDDINGS_STORE) mockStore = {};
+    });
+    vi.spyOn(indexedDbAccessModule, 'getKeyValue').mockImplementation(async (key: string) => mockLegacy[key]);
     vi.spyOn(indexedDbAccessModule, 'setKeyValue').mockImplementation(async (key: string, val: any) => {
-      mockStorage[key] = val;
+      mockLegacy[key] = val;
     });
     vi.spyOn(indexedDbAccessModule, 'deleteKeyValue').mockImplementation(async (key: string) => {
-      delete mockStorage[key];
+      delete mockLegacy[key];
     });
   });
 
@@ -36,30 +72,79 @@ describe('multimodalIndexStore', () => {
     updatedAt: 1700000000,
   };
 
-  it('retrieves empty record when no embeddings stored', async () => {
-    const embeddings = await getStoredEmbeddings();
-    expect(embeddings).toEqual({});
+  const item2: MultimodalEmbeddingItem = {
+    id: 'file-2',
+    name: 'doc.pdf',
+    type: 'application/pdf',
+    category: 'document',
+    embedding: [0.4, 0.5, 0.6],
+    updatedAt: 1700000010,
+  };
+
+  it('retrieves empty state when no embeddings stored', async () => {
+    expect(await getStoredEmbeddings()).toEqual({});
     expect(await getStoredEmbeddingCount()).toBe(0);
+    expect(await getStoredEmbeddingIds()).toEqual(new Set());
   });
 
   it('saves and retrieves an embedding item', async () => {
     await saveStoredEmbedding(sampleItem);
 
-    const embeddings = await getStoredEmbeddings();
-    expect(embeddings['file-1']).toEqual(sampleItem);
+    expect(await getStoredEmbedding('file-1')).toEqual(sampleItem);
     expect(await getStoredEmbeddingCount()).toBe(1);
   });
 
-  it('saves multiple items in batch', async () => {
-    const item2: MultimodalEmbeddingItem = {
-      id: 'file-2',
-      name: 'doc.pdf',
-      type: 'application/pdf',
-      category: 'document',
-      embedding: [0.4, 0.5, 0.6],
-      updatedAt: 1700000010,
-    };
+  it('reads a single embedding without touching other records', async () => {
+    await saveStoredEmbedding(sampleItem);
+    await saveBatchStoredEmbeddings([item2]);
 
+    const getItemSpy = vi.spyOn(indexedDbAccessModule, 'getItem');
+    const getAllSpy = vi.spyOn(indexedDbAccessModule, 'getAll');
+    getItemSpy.mockClear();
+    getAllSpy.mockClear();
+
+    await getStoredEmbedding('file-2');
+
+    expect(getItemSpy).toHaveBeenCalledTimes(1);
+    // Regression guard for the O(n^2) blowup: resolving one embedding must never
+    // materialize the whole index.
+    expect(getAllSpy).not.toHaveBeenCalled();
+  });
+
+  it('writes a single embedding without rewriting the whole index', async () => {
+    await saveBatchStoredEmbeddings([sampleItem, item2]);
+
+    const putManySpy = vi.spyOn(indexedDbAccessModule, 'putMany');
+    const getAllSpy = vi.spyOn(indexedDbAccessModule, 'getAll');
+    putManySpy.mockClear();
+    getAllSpy.mockClear();
+
+    const updated = { ...sampleItem, embedding: [9, 9, 9] };
+    await saveStoredEmbedding(updated);
+
+    expect(getAllSpy).not.toHaveBeenCalled();
+    expect(putManySpy).toHaveBeenCalledWith(EMBEDDINGS_STORE, [updated]);
+    // Sibling records survive the single-record write.
+    expect(mockStore['file-2']).toEqual(item2);
+  });
+
+  it('counts without materializing the vectors', async () => {
+    await saveBatchStoredEmbeddings([sampleItem, item2]);
+
+    const getAllSpy = vi.spyOn(indexedDbAccessModule, 'getAll');
+    getAllSpy.mockClear();
+
+    expect(await getStoredEmbeddingCount()).toBe(2);
+    expect(getAllSpy).not.toHaveBeenCalled();
+  });
+
+  it('lists ids without materializing the vectors', async () => {
+    await saveBatchStoredEmbeddings([sampleItem, item2]);
+
+    expect(await getStoredEmbeddingIds()).toEqual(new Set(['file-1', 'file-2']));
+  });
+
+  it('saves multiple items in batch', async () => {
     await saveBatchStoredEmbeddings([sampleItem, item2]);
 
     const embeddings = await getStoredEmbeddings();
@@ -72,8 +157,14 @@ describe('multimodalIndexStore', () => {
     await saveStoredEmbedding(sampleItem);
     await removeStoredEmbedding('file-1');
 
-    const embeddings = await getStoredEmbeddings();
-    expect(embeddings['file-1']).toBeUndefined();
+    expect(await getStoredEmbedding('file-1')).toBeUndefined();
+    expect(await getStoredEmbeddingCount()).toBe(0);
+  });
+
+  it('removes several embeddings in one transaction', async () => {
+    await saveBatchStoredEmbeddings([sampleItem, item2]);
+    await removeStoredEmbeddings(['file-1', 'file-2']);
+
     expect(await getStoredEmbeddingCount()).toBe(0);
   });
 
@@ -81,8 +172,39 @@ describe('multimodalIndexStore', () => {
     await saveStoredEmbedding(sampleItem);
     await clearAllStoredEmbeddings();
 
-    expect(mockStorage[MULTIMODAL_EMBEDDING_KEY]).toBeUndefined();
-    const count = await getStoredEmbeddingCount();
-    expect(count).toBe(0);
+    expect(await getStoredEmbeddingCount()).toBe(0);
+  });
+
+  it('migrates the legacy single-record index once and deletes it', async () => {
+    mockLegacy[MULTIMODAL_EMBEDDING_KEY] = { 'file-1': sampleItem };
+
+    await ensureLegacyEmbeddingsMigrated();
+
+    expect(mockStore['file-1']).toEqual(sampleItem);
+    expect(mockLegacy[MULTIMODAL_EMBEDDING_KEY]).toBeUndefined();
+    expect(await getStoredEmbeddingCount()).toBe(1);
+  });
+
+  it('runs the legacy migration at most once', async () => {
+    mockLegacy[MULTIMODAL_EMBEDDING_KEY] = { 'file-1': sampleItem };
+    const deleteSpy = vi.spyOn(indexedDbAccessModule, 'deleteKeyValue');
+    deleteSpy.mockClear();
+
+    await ensureLegacyEmbeddingsMigrated();
+    await ensureLegacyEmbeddingsMigrated();
+    await getStoredEmbeddingIds();
+
+    expect(deleteSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates the name of an existing stored embedding', async () => {
+    await saveStoredEmbedding(sampleItem);
+    await updateStoredEmbeddingName('file-1', 'renamed_sunset.jpg');
+
+    const updated = await getStoredEmbedding('file-1');
+    expect(updated).toBeDefined();
+    expect(updated?.name).toBe('renamed_sunset.jpg');
+    expect(updated?.category).toBe(sampleItem.category);
+    expect(updated?.embedding).toEqual(sampleItem.embedding);
   });
 });

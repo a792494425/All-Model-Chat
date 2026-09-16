@@ -24,7 +24,8 @@ import { DOT_MAX_CHARS, DOT_MAX_EDGES, DOT_MAX_NODES, countDotEdges, countDotNod
 
 type DotRenderResult =
   | { ok: true; svg: string }
-  | { ok: false; error: 'empty' | 'too-large'; message?: never }
+  | { ok: false; error: 'empty'; message?: never }
+  | { ok: false; error: 'too-large'; message?: string }
   | { ok: false; error: 'render-failed'; message: string };
 
 interface DotRenderOptions {
@@ -36,9 +37,9 @@ interface DotRenderOptions {
    */
   layout?: 'LR' | 'TB';
   /**
-   * Chat ```graphviz``` / ```dot``` blocks pass true so author hex and named
-   * colors survive. Live Artifacts keep the default (false) and scrub
-   * hardcoded colors down to the theme palette.
+   * Preserves author hex and named colors. Defaults to true so custom pastel fills,
+   * cluster backgrounds, and status colors render faithfully. Pass false to force
+   * scrubbing hardcoded colors down to the theme palette.
    */
   preserveAuthorColors?: boolean;
   /**
@@ -94,9 +95,8 @@ const resolveGraphvizTheme = (themeId?: string): Theme => {
 };
 
 /**
- * Derives the effective layout from a DOT string the same way GraphvizBlock
- * did: an explicit rankdir wins, otherwise LR. Exposed so the cache key and the
- * actual render always agree even when `layout` was not passed explicitly.
+ * Derives the effective layout from a DOT string: an explicit rankdir wins,
+ * otherwise TB (native Graphviz default, matching GraphvizOnline).
  */
 export const resolveDotLayout = (dot: string, forced?: 'LR' | 'TB'): 'LR' | 'TB' => {
   if (forced === 'LR' || forced === 'TB') return forced;
@@ -104,14 +104,14 @@ export const resolveDotLayout = (dot: string, forced?: 'LR' | 'TB'): 'LR' | 'TB'
   if (match) {
     const dir = match[2].toUpperCase();
     if (dir === 'TB' || dir === 'BT') return 'TB';
-    return 'LR';
+    if (dir === 'LR' || dir === 'RL') return 'LR';
   }
-  return 'LR';
+  return 'TB';
 };
 
 export const getGraphvizCacheKey = (dot: string, options: DotRenderOptions = {}): string => {
   const layout = resolveDotLayout(dot, options.layout);
-  const colorMode = options.preserveAuthorColors ? 'author' : 'theme';
+  const colorMode = options.preserveAuthorColors === false ? 'theme' : 'author';
   // The themed DOT embeds a scaled fontsize, so the key must separate sizes or a
   // 16px SVG would be reused for a 24px artifact.
   return `${RENDER_STYLE_VERSION}:${options.themeId ?? ''}:${options.baseFontSize ?? ''}:${layout}:${colorMode}:${hashString(dot)}`;
@@ -229,7 +229,7 @@ const GRAPHVIZ_SVG_FONT_FAMILY =
 
 // Bump when the injected default styling changes so cached SVGs rendered with
 // the previous style are never reused (see getGraphvizCacheKey).
-const RENDER_STYLE_VERSION = 'v8';
+const RENDER_STYLE_VERSION = 'v13';
 
 const DEFAULT_GRAPHVIZ_BASE_FONT_SIZE = 16;
 // Ratios keep the 16px baseline pixel-identical to what shipped before (node and
@@ -249,11 +249,9 @@ const resolveGraphvizFontSizes = (baseFontSize?: number): { label: number; clust
 };
 
 /**
- * Theme-aware default styles injected before the model's own DOT so a bare
- * graph renders as rounded, soft-filled cards with readable spacing. DOT merges
- * same-named attributes with "last wins" and different-named attributes by
- * union, so anything the model writes explicitly still overrides these
- * fallbacks — exactly the safety-net semantics we want.
+ * Clean theme defaults injected before the model's own DOT for font and contrast.
+ * Preserves native Graphviz shapes (ellipse, diamond, etc.) and native routing,
+ * mirroring pure GraphvizOnline output without opinionated card/spline distortion.
  */
 export const buildThemeDefaults = (colors: Theme['colors'], baseFontSize?: number): string => {
   const fontSize = resolveGraphvizFontSizes(baseFontSize);
@@ -261,34 +259,21 @@ export const buildThemeDefaults = (colors: Theme['colors'], baseFontSize?: numbe
   return `
   graph [
     bgcolor="transparent"
-    pad="0.24"
-    nodesep="0.45"
-    ranksep="0.7"
-    splines="true"
-    compound="true"
-    outputorder="edgesfirst"
-    newrank="true"
+    pad="0.2"
     fontname="Helvetica"
     fontcolor="${normalizeGraphvizColor(colors.textPrimary)}"
   ];
   node [
-    shape="box"
-    style="rounded,filled"
-    fillcolor="${flattenGraphvizFill(colors.bgSurfaceMuted, colors.bgSurfaceMuted)}"
-    color="${normalizeGraphvizColor(colors.borderSecondary)}"
     fontname="Helvetica"
     fontcolor="${normalizeGraphvizColor(colors.textPrimary)}"
+    color="${normalizeGraphvizColor(colors.borderSecondary)}"
     fontsize="${fontSize.label}"
-    penwidth="1.2"
-    margin="0.18,0.1"
   ];
   edge [
+    fontname="Helvetica"
     color="${normalizeGraphvizColor(colors.textSecondary)}"
     fontcolor="${normalizeGraphvizColor(colors.textSecondary)}"
-    fontname="Helvetica"
     fontsize="${fontSize.label}"
-    penwidth="1.25"
-    arrowsize="0.8"
   ];
 `;
 };
@@ -493,26 +478,198 @@ export const compensateCjkNodeWidths = (dot: string): string => {
   return out;
 };
 
+/**
+ * Calculates high-contrast fontcolor (dark slate `#0F172A` or off-white `#F8FAFC`)
+ * for a given hex fill color based on standard sRGB relative luminance.
+ * Ensures text remains crisp and readable across both light and dark themes.
+ */
+export const getContrastFontColor = (hex: string): string => {
+  let h = hex.replace('#', '').trim();
+  if (h.length === 3)
+    h = h
+      .split('')
+      .map((c) => c + c)
+      .join('');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return '#0F172A';
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+  return lum > 140 ? '#0F172A' : '#F8FAFC';
+};
+
+/**
+ * Graphviz C-engine ignores `fillcolor="..."` on nodes and clusters unless `style`
+ * includes `filled` (e.g. `style="filled"` or `style="rounded,filled"`).
+ *
+ * This function scans DOT attribute brackets `[...]` and cluster definitions `{ ... }`
+ * where `fillcolor=` is specified:
+ * - If `style=` is missing, it appends `style="filled"`.
+ * - If `style=` is present but does not contain `filled`, it prepends `filled,` to the style value.
+ * - If `fillcolor` is a hex color and no `fontcolor` is set, it computes and injects a high-contrast
+ *   text color so light pastel cards do not wash out with white text in dark themes.
+ */
+export const ensureFilledStyleOnFillcolor = (dot: string): string => {
+  let out = '';
+  let quote: '"' | "'" | null = null;
+  let escaped = false;
+  let inBracket = false;
+  let bracketContent = '';
+
+  // 1. Process attribute brackets [...]
+  for (let i = 0; i < dot.length; i += 1) {
+    const ch = dot[i];
+    if (quote) {
+      if (inBracket) {
+        bracketContent += ch;
+      } else {
+        out += ch;
+      }
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === quote) {
+        quote = null;
+      }
+      continue;
+    }
+
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      if (inBracket) {
+        bracketContent += ch;
+      } else {
+        out += ch;
+      }
+      continue;
+    }
+
+    if (!inBracket) {
+      if (ch === '[') {
+        inBracket = true;
+        bracketContent = '';
+        continue;
+      }
+      out += ch;
+    } else {
+      if (ch === ']') {
+        inBracket = false;
+        // Strip quoted strings to inspect attributes without false positives in label text
+        const unquoted = bracketContent.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '');
+        if (/\bfillcolor\s*=/i.test(unquoted)) {
+          const styleMatch = bracketContent.match(/\bstyle\s*=\s*(["']?)([^"',\]\s]+(?:\s*,\s*[^"',\]\s]+)*)\1/i);
+          if (styleMatch) {
+            const currentStyles = (styleMatch[2] ?? '').split(',').map((s: string) => s.trim());
+            if (!currentStyles.includes('filled')) {
+              const newStyle = ['filled', ...currentStyles].join(',');
+              bracketContent = bracketContent.replace(styleMatch[0], `style="${newStyle}"`);
+            }
+          } else {
+            bracketContent = `${bracketContent.trimEnd()} style="filled"`;
+          }
+
+          // If a hex fillcolor is provided and no explicit fontcolor is set, ensure high contrast
+          // so light pastel cards don't wash out with white text in dark themes
+          if (!/\bfontcolor\s*=/i.test(unquoted)) {
+            const hexMatch = bracketContent.match(/\bfillcolor\s*=\s*["']?(#[0-9a-fA-F]{3,8})["']?/i);
+            if (hexMatch) {
+              const contrastColor = getContrastFontColor(hexMatch[1]);
+              bracketContent = `${bracketContent.trimEnd()} fontcolor="${contrastColor}"`;
+            }
+          }
+        }
+        out += `[${bracketContent}]`;
+      } else {
+        bracketContent += ch;
+      }
+    }
+  }
+
+  // 2. Process bare fillcolor statements in cluster or graph scope outside brackets:
+  // e.g. fillcolor = "#F1F5F9"; or fillcolor=warning
+  let tokenized = '';
+  quote = null;
+  escaped = false;
+  inBracket = false;
+  let currentStmt = '';
+
+  for (let i = 0; i < out.length; i += 1) {
+    const ch = out[i];
+    if (quote) {
+      currentStmt += ch;
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === quote) {
+        quote = null;
+      }
+      continue;
+    }
+
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      currentStmt += ch;
+      continue;
+    }
+
+    if (ch === '[') {
+      inBracket = true;
+      currentStmt += ch;
+      continue;
+    }
+
+    if (ch === ']') {
+      inBracket = false;
+      currentStmt += ch;
+      continue;
+    }
+
+    if (!inBracket) {
+      if (ch === ';' || ch === '\n' || ch === '\r' || ch === '}' || ch === '{') {
+        const trimmed = currentStmt.trim();
+        if (/^fillcolor\s*=\s*(["']?)([^";\n\r]+)\1/i.test(trimmed)) {
+          tokenized += `${currentStmt}; style="filled"${ch}`;
+        } else {
+          tokenized += `${currentStmt}${ch}`;
+        }
+        currentStmt = '';
+        continue;
+      }
+    }
+
+    currentStmt += ch;
+  }
+  tokenized += currentStmt;
+
+  return tokenized;
+};
+
 export const applyThemeAndLayout = (dot: string, options: DotRenderOptions): string => {
   let code = dot;
-  const layout = resolveDotLayout(code, options.layout);
   const colors = resolveGraphvizTheme(options.themeId).colors;
 
   // Compensate CJK node widths so WebAssembly Graphviz accurately sizes card boundaries for Chinese text
   code = compensateCjkNodeWidths(code);
 
+  // Ensure style="filled" (or style="...,filled") whenever fillcolor is specified on nodes or clusters
+  code = ensureFilledStyleOnFillcolor(code);
+
   // Normalize style="rounded" to style="rounded,filled" so fillcolor is never ignored when the model specifies rounded style
   code = code.replace(/\bstyle\s*=\s*(["'])rounded\1/gi, 'style=$1rounded,filled$1');
 
-  // Layout: rewrite an explicit rankdir, or inject the default right after the
-  // graph-opening declaration so it wins over any node/edge defaults below.
-  const rankdirRegex = /(rankdir\s*=\s*)(["']?)(LR|TB|RL|BT)\2/gi;
-  if (rankdirRegex.test(code)) {
-    code = code.replace(rankdirRegex, `$1"${layout}"`);
-  } else {
-    const graphMatch = code.match(/(\s*(?:di)?graph\s+[\w\d_"]*\s*\{)/i);
-    if (graphMatch) {
-      code = code.replace(graphMatch[0], `${graphMatch[0]}\n  rankdir="${layout}";`);
+  // Layout: when options.layout is explicitly set (e.g. user toggled LR/TB),
+  // rewrite an existing rankdir or inject it. When omitted, leave the DOT's native layout alone.
+  if (options.layout) {
+    const rankdirRegex = /(rankdir\s*=\s*)(["']?)(LR|TB|RL|BT)\2/gi;
+    if (rankdirRegex.test(code)) {
+      code = code.replace(rankdirRegex, `$1"${options.layout}"`);
+    } else {
+      const graphMatch = code.match(/(\s*(?:di)?graph\s+[\w\d_"]*\s*\{)/i);
+      if (graphMatch) {
+        code = code.replace(graphMatch[0], `${graphMatch[0]}\n  rankdir="${options.layout}";`);
+      }
     }
   }
 
@@ -526,21 +683,9 @@ export const applyThemeAndLayout = (dot: string, options: DotRenderOptions): str
     'gi',
   );
 
-  // Strip hardcoded color values the model wrote (violating the Live Artifacts
-  // protocol) so the injected theme defaults win. Must run BEFORE the semantic
-  // replacement: afterwards every semantic name has been rewritten to a hex/rgb
-  // value and there is no way to tell it apart from a model-hardcoded color.
-  // The negative lookahead excludes semantic names, which the next pass maps to
-  // theme colors. The whole attribute is removed (rather than remapped) so
-  // `fillcolor="#000" fontcolor="#fff"` both fall back to the node defaults
-  // instead of ending up light-on-light.
-  //
-  // The lookbehind anchors the attribute name to a structural boundary (`[`,
-  // space, `;`, `,`, `{`) while rejecting quote chars (label prose) and word
-  // chars (`somefillcolor`). It does not consume the boundary, so two adjacent
-  // hardcoded attrs on one line both get stripped. Values are split by shape
-  // because a bare named color is ambiguous with an arbitrary word (needs the
-  // semantic-name lookahead), while hex/rgb are distinctive on their own.
+  // Strip hardcoded color values when preserveAuthorColors is explicitly false.
+  // By default (undefined or true), author hex/named colors are preserved faithfully.
+  // The negative lookahead excludes semantic names, which the next pass maps to theme colors.
   const namedColorValue = `(?!(?:${SEMANTIC_COLOR_NAMES.join('|')})\\b)[a-zA-Z][a-zA-Z0-9-]*`;
   const attrName = `(?<!["'\\w])(?:${SEMANTIC_COLOR_ATTRS.join('|')})`;
   const hardcodedColorPattern = new RegExp(
@@ -548,7 +693,7 @@ export const applyThemeAndLayout = (dot: string, options: DotRenderOptions): str
     `${attrName}\\s*=\\s*["']?(?:rgba?\\([^)]*\\)|#[0-9a-fA-F]{3,8}|${namedColorValue})["']?`,
     'gi',
   );
-  if (!options.preserveAuthorColors) {
+  if (options.preserveAuthorColors === false) {
     code = cleanupEmptyDotAttributes(code.replace(hardcodedColorPattern, ''));
   }
 
@@ -581,11 +726,8 @@ export const applyThemeAndLayout = (dot: string, options: DotRenderOptions): str
 const injectClusterDefaults = (dot: string, colors: Theme['colors'], baseFontSize?: number): string => {
   const fontSize = resolveGraphvizFontSizes(baseFontSize);
   const clusterStyle = `
-    style="rounded,dashed"
-    penwidth="1.35"
     color="${normalizeGraphvizColor(colors.borderSecondary)}"
     fontcolor="${normalizeGraphvizColor(colors.textSecondary)}"
-    bgcolor="${flattenGraphvizFill(colors.bgTertiary, colors.bgInput)}"
     margin="16"
     fontsize="${fontSize.clusterLabel}"
     fontname="Helvetica"
@@ -606,6 +748,22 @@ const applyGraphvizSvgFonts = (svg: SVGSVGElement): void => {
   svg.setAttribute('font-family', GRAPHVIZ_SVG_FONT_FAMILY);
   rewrite(svg);
   svg.querySelectorAll('[font-family], [style]').forEach(rewrite);
+};
+
+const enhanceGraphvizSvg = (svg: SVGSVGElement, colors: Theme['colors']): void => {
+  // Apply edge label text halo for high contrast against intersecting lines
+  // Text halo uses paint-order: stroke fill with theme-aware background stroke
+  const edgeTexts = svg.querySelectorAll('.edge text');
+  if (edgeTexts.length > 0) {
+    const haloColor = flattenGraphvizFill(colors.bgSurfaceMuted, colors.bgInput);
+    edgeTexts.forEach((text) => {
+      text.setAttribute('paint-order', 'stroke fill');
+      text.setAttribute('stroke', haloColor);
+      text.setAttribute('stroke-width', '3.5px');
+      text.setAttribute('stroke-linejoin', 'round');
+      text.setAttribute('stroke-linecap', 'round');
+    });
+  }
 };
 
 const sanitizeSvg = (svg: string): string => {
@@ -650,15 +808,37 @@ export const renderDotToSvg = async (dot: string, options: DotRenderOptions = {}
   if (!code) {
     return { ok: false, error: 'empty' };
   }
-  if (code.length > DOT_MAX_CHARS || countDotNodes(code) > DOT_MAX_NODES || countDotEdges(code) > DOT_MAX_EDGES) {
-    return { ok: false, error: 'too-large' };
+  if (code.length > DOT_MAX_CHARS) {
+    return {
+      ok: false,
+      error: 'too-large',
+      message: `DOT length exceeds limit (${code.length}/${DOT_MAX_CHARS} chars)`,
+    };
+  }
+  const nodeCount = countDotNodes(code);
+  if (nodeCount > DOT_MAX_NODES) {
+    return {
+      ok: false,
+      error: 'too-large',
+      message: `Diagram node count exceeds limit (${nodeCount}/${DOT_MAX_NODES} nodes)`,
+    };
+  }
+  const edgeCount = countDotEdges(code);
+  if (edgeCount > DOT_MAX_EDGES) {
+    return {
+      ok: false,
+      error: 'too-large',
+      message: `Diagram edge count exceeds limit (${edgeCount}/${DOT_MAX_EDGES} edges)`,
+    };
   }
 
   try {
     const vizInstance = await getVizInstance();
+    const theme = resolveGraphvizTheme(options.themeId);
     const processedCode = applyThemeAndLayout(code, options);
     const svgElement = await vizInstance.renderSVGElement(processedCode);
     applyGraphvizSvgFonts(svgElement);
+    enhanceGraphvizSvg(svgElement, theme.colors);
 
     // Keep the SVG at its natural width so narrow diagrams center via
     // margin:auto and wide ones scroll in the container instead of being
@@ -689,10 +869,7 @@ export const renderDotToSvgCached = async (dot: string, options: DotRenderOption
     return { ok: true, svg: cached };
   }
 
-  const result = await renderDotToSvg(dot, {
-    ...options,
-    layout: resolveDotLayout(dot, options.layout),
-  });
+  const result = await renderDotToSvg(dot, options);
   if (result.ok) {
     touchGraphvizCache(key, result.svg);
   }

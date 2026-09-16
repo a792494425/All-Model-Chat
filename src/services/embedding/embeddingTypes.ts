@@ -16,6 +16,28 @@ export interface MultimodalEmbeddingItem {
   updatedAt: number;
 }
 
+/**
+ * The lightweight descriptor the background queue and the indexer operate on.
+ *
+ * It deliberately carries no `rawFile`/`dataUrl`/`textContent` payload: holding
+ * those for every pending item kept entire libraries resident in memory. The
+ * payload is resolved one item at a time, right before it is embedded.
+ */
+export interface IndexableLibraryItem {
+  id: string;
+  name: string;
+  type: string;
+  size?: number;
+  timestamp?: number;
+  sessionId?: string;
+  sessionTitle?: string;
+  messageId?: string;
+  isStandalone?: boolean;
+}
+
+/** Why an item was not embedded, so callers can skip retrying permanent failures. */
+export type IndexSkipReason = 'too-large' | 'no-content' | 'missing-payload' | 'duration-exceeded';
+
 export interface MultimodalSearchResult {
   item: MultimodalEmbeddingItem;
   similarity: number; // 0.0 to 1.0 (or percentage)

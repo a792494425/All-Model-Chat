@@ -64,7 +64,13 @@ type StructuredTextContent = Array<{
   parts: Array<{ text: string }>;
 }>;
 
-const sanitizeGeneratedTitle = (text: string) => {
+export interface AutoTitleStyleOptions {
+  includeEmoji?: boolean;
+  length?: 'concise' | 'standard' | 'detailed';
+  customPrompt?: string;
+}
+
+const sanitizeGeneratedTitle = (text: string, includeEmoji = true) => {
   let cleaned = text.trim();
 
   for (let i = 0; i < 3; i += 1) {
@@ -87,6 +93,10 @@ const sanitizeGeneratedTitle = (text: string) => {
       cleaned = cleaned.substring(1, cleaned.length - 1).trim();
     }
     if (cleaned === prev) break;
+  }
+
+  if (!includeEmoji) {
+    cleaned = cleaned.replace(/^[\p{Extended_Pictographic}\u{1F300}-\u{1FAFF}\s]+/u, '').trim();
   }
 
   return cleaned;
@@ -157,23 +167,54 @@ const buildTitleContents = (
   userContent: string,
   modelContent: string,
   language: SupportedLanguage,
+  options?: AutoTitleStyleOptions,
 ): StructuredTextContent => {
-  const instruction =
-    language === 'zh'
-      ? `作为对话标题提炼专家，请基于后续独立内容片段中的对话，创建一个简短精练的会话标题。
+  const includeEmoji = options?.includeEmoji ?? true;
+  const length = options?.length ?? 'standard';
+  const customPrompt = options?.customPrompt?.trim();
+
+  let instruction: string;
+  if (language === 'zh') {
+    const emojiRules = includeEmoji
+      ? '1. 开头必须且仅包含 1 个最贴切的主题 Emoji 表情（如 💻代码、🐛排错、📝写作、💡创意、🌍翻译、📊数据等）。\n2. Emoji 与标题文字之间保留 1 个空格。'
+      : '1. 严禁包含任何 Emoji 表情符号或特殊装饰符号。';
+
+    let lengthRule = '3. 标题文字简明扼要（6~12 个字），突出核心动作或主题，避免“关于...”、“讨论...”等冗余泛话。';
+    if (length === 'concise') {
+      lengthRule = '3. 标题文字极简凝练（4~8 个字），仅保留最核心的动宾词或专有名词。';
+    } else if (length === 'detailed') {
+      lengthRule = '3. 标题文字充分概括主题与背景（10~18 个字），语义完整具体。';
+    }
+
+    const customRule = customPrompt ? `\n5. 额外定制要求：${customPrompt}` : '';
+
+    instruction = `作为对话标题提炼专家，请基于后续独立内容片段中的对话，创建一个会话标题。
 
 规则：
-1. 开头必须且仅包含 1 个最贴切的主题 Emoji 表情（如 💻代码、🐛排错、📝写作、💡创意、🌍翻译、📊数据等）。
-2. Emoji 与标题文字之间保留 1 个空格。
-3. 标题文字简明扼要（6~12 个字），突出核心动作或主题，避免“关于...”、“讨论...”等冗余泛话。
-4. 严禁使用引号、括号或 Markdown 格式（如加粗），仅返回单行纯文本标题。`
-      : `You are an expert at summarizing conversations into concise titles. Based on the conversation in the following separate content parts, create a short, focused title.
+${emojiRules}
+${lengthRule}
+4. 严禁使用引号、括号或 Markdown 格式（如加粗），仅返回单行纯文本标题。${customRule}`;
+  } else {
+    const emojiRules = includeEmoji
+      ? '1. Start with exactly 1 most relevant emoji reflecting the core topic (e.g. 💻, 🐛, 📝, 💡, 🌍, 📊).\n2. Put a single space between the emoji and the title text.'
+      : '1. Do NOT include any emojis or symbol icons in the title.';
+
+    let lengthRule = '3. Keep the title concise and specific (3-6 words max).';
+    if (length === 'concise') {
+      lengthRule = '3. Keep the title very concise (2-4 words max).';
+    } else if (length === 'detailed') {
+      lengthRule = '3. Summarize the context and key topic in a clear title (6-10 words).';
+    }
+
+    const customRule = customPrompt ? `\n5. Additional user requirement: ${customPrompt}` : '';
+
+    instruction = `You are an expert at summarizing conversations into concise titles. Based on the conversation in the following separate content parts, create a focused title.
 
 Rules:
-1. Start with exactly 1 most relevant emoji reflecting the core topic (e.g. 💻, 🐛, 📝, 💡, 🌍, 📊).
-2. Put a single space between the emoji and the title text.
-3. Keep the title concise and specific (3-6 words max).
-4. Do not use quotes or markdown formatting. Return only the single-line title text.${outputLanguageDirective(language)}`;
+${emojiRules}
+${lengthRule}
+4. Do not use quotes or markdown formatting. Return only the single-line title text.${outputLanguageDirective(language)}${customRule}`;
+  }
 
   return [
     {
@@ -324,8 +365,9 @@ export const generateTitleApi = async (
   userContent: string,
   modelContent: string,
   language: SupportedLanguage,
+  options?: AutoTitleStyleOptions,
 ): Promise<string> => {
-  const contents = buildTitleContents(userContent, modelContent, language);
+  const contents = buildTitleContents(userContent, modelContent, language, options);
   const timeoutController = new AbortController();
   const timeoutId = window.setTimeout(() => timeoutController.abort(), AUX_API_TIMEOUT_MS);
 
@@ -358,7 +400,7 @@ export const generateTitleApi = async (
             });
             return '';
           }
-          return sanitizeGeneratedTitle(titleText);
+          return sanitizeGeneratedTitle(titleText, options?.includeEmoji ?? true);
         } catch (error) {
           // Abort is intentional (timeout) — let it propagate so the timeout
           // controller can be observed; all other failures just fall back to

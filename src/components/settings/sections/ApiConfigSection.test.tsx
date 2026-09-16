@@ -163,6 +163,24 @@ describe('ApiConfigSection', () => {
     expect(renderer.container.querySelector('#live-api-key-input')).not.toBeNull();
   });
 
+  it('renders dedicated Embedding API key toggle and expands input on click', async () => {
+    await renderApiConfigSection({
+      apiKey: 'browser-key',
+    });
+
+    expect(renderer.container.textContent).toContain('Embedding Dedicated Key (Optional)');
+    expect(renderer.container.querySelector('#embedding-api-key-input')).toBeNull();
+
+    const toggleButton = findButton('Embedding Dedicated Key');
+    expect(toggleButton).toBeDefined();
+
+    act(() => {
+      toggleButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(renderer.container.querySelector('#embedding-api-key-input')).not.toBeNull();
+  });
+
   it('renders server access password section and displays configured value', async () => {
     const onUpdate = vi.fn();
     await renderApiConfigSection({

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { jsPDF } from 'jspdf';
 import { arrayBufferToBase64 } from './fileEncoding';
-import { extractPdfTextFromBase64 } from './pdfTextExtraction';
+import { extractPdfTextFromBase64, inspectPdfBlob } from './pdfTextExtraction';
 
 describe('extractPdfTextFromBase64', () => {
   it('extracts text from a single-page PDF', async () => {
@@ -33,5 +33,28 @@ describe('extractPdfTextFromBase64', () => {
     const invalidBase64 = btoa('not a real pdf');
     const extracted = await extractPdfTextFromBase64(invalidBase64);
     expect(extracted).toBe('');
+  });
+
+  describe('inspectPdfBlob', () => {
+    it('returns numPages and text from a PDF blob', async () => {
+      const doc = new jsPDF();
+      doc.text('First page content', 10, 10);
+      doc.addPage();
+      doc.text('Second page content', 10, 10);
+      const arrayBuffer = doc.output('arraybuffer');
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+
+      const result = await inspectPdfBlob(blob);
+      expect(result.numPages).toBe(2);
+      expect(result.text).toContain('First page content');
+      expect(result.text).toContain('Second page content');
+    });
+
+    it('handles invalid PDF blob gracefully', async () => {
+      const blob = new Blob(['corrupt pdf data'], { type: 'application/pdf' });
+      const result = await inspectPdfBlob(blob);
+      expect(result.numPages).toBe(1);
+      expect(result.text).toBe('');
+    });
   });
 });

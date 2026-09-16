@@ -9,6 +9,7 @@ import {
   buildStreamingHtmlPreviewRenderPayload,
   buildHtmlPreviewSrcDoc,
   buildStreamingHtmlPreviewSrcDoc,
+  isKatexLoaded,
   whenKatexReady,
   HTML_PREVIEW_CLEAR_SELECTION_EVENT,
   HTML_PREVIEW_MESSAGE_CHANNEL,
@@ -130,6 +131,13 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
       ? frameHeightState.height
       : readCachedFrameHeight(heightCacheKey, streamingHeightCacheKey);
   const srcDoc = isLoading ? streamingSrcDoc : finalSrcDoc;
+  // Stable key preserves the streaming runner across chunk updates, while
+  // forcing Chromium to reload the sandboxed browsing context when switching
+  // from streaming to final mode, when lazy KaTeX becomes ready, or when
+  // content/theme changes.
+  const iframeKey = isLoading
+    ? 'streaming'
+    : `final:${katexReadyTick}:${themeId ?? ''}:${baseFontSize ?? ''}:${contentHeightCacheKey}`;
 
   useLayoutEffect(() => {
     latestStreamingHtmlRef.current = html;
@@ -230,7 +238,7 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
   }, [clearStreamingFlushTimeout]);
 
   useEffect(() => {
-    if (isLoading) {
+    if (isLoading || isKatexLoaded()) {
       return;
     }
     // When the final srcDoc first meets a TeX delimiter, renderPreviewMath
@@ -349,6 +357,7 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
         style={{ height: frameHeight }}
       >
         <iframe
+          key={iframeKey}
           ref={iframeRef}
           srcDoc={srcDoc}
           title={t('htmlPreviewTitle')}

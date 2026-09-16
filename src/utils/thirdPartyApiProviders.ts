@@ -51,6 +51,43 @@ export const THIRD_PARTY_TEMPLATE_LABELS: Record<ThirdPartyTemplateId, string> =
   'custom-anthropic': 'Custom (Anthropic)',
 };
 
+export interface TemplatePresetMeta {
+  id: ThirdPartyTemplateId;
+  name: string;
+  category: 'recommended' | 'domestic' | 'local';
+  description?: string;
+}
+
+export const TEMPLATE_PRESETS: TemplatePresetMeta[] = [
+  // Recommended / International
+  { id: 'deepseek', name: 'DeepSeek', category: 'recommended', description: '深度求索官方 API (DeepSeek-V3, R1)' },
+  { id: 'openai', name: 'OpenAI', category: 'recommended', description: 'GPT-4o, o1, o3-mini, GPT-4.5' },
+  { id: 'anthropic', name: 'Anthropic', category: 'recommended', description: 'Claude 3.7 Sonnet, Claude 3.5' },
+  { id: 'openrouter', name: 'OpenRouter', category: 'recommended', description: '聚合全球领先 AI 模型与路由' },
+  { id: 'groq', name: 'Groq', category: 'recommended', description: 'LPU 极速推理平台' },
+  { id: 'together', name: 'Together AI', category: 'recommended', description: '开源模型云端高性能托管' },
+  { id: 'nvidia', name: 'NVIDIA NIM', category: 'recommended', description: '英伟达云端微服务推理引擎' },
+  { id: 'grok', name: 'xAI (Grok)', category: 'recommended', description: 'Grok 2, Grok 3 官方接口' },
+  { id: 'mistral', name: 'Mistral AI', category: 'recommended', description: '欧洲顶尖开源与商业旗舰模型' },
+  { id: 'cerebras', name: 'Cerebras', category: 'recommended', description: '晶圆级超高速推理解析' },
+  { id: 'fireworks', name: 'Fireworks AI', category: 'recommended', description: '高并发低延迟生产级推理平台' },
+  { id: 'opencode', name: 'OpenCode Go', category: 'recommended', description: 'Zen Go 开发者 AI 接口服务' },
+  { id: 'huggingface', name: 'Hugging Face', category: 'recommended', description: '开源社区官方推理路由端点' },
+
+  // Domestic
+  { id: 'siliconflow', name: 'SiliconFlow (硅基流动)', category: 'domestic', description: '高性价比模型分发平台 (DeepSeek 等全系列)' },
+  { id: 'qwen', name: '通义千问 (Qwen)', category: 'domestic', description: '阿里云 DashScope 百炼通用大模型' },
+  { id: 'kimi', name: 'Kimi (月之暗面)', category: 'domestic', description: 'Moonshot AI 超长上下文大模型' },
+  { id: 'glm', name: '智谱清言 (GLM)', category: 'domestic', description: 'GLM-4, GLM-Zero 智谱大模型平台' },
+  { id: 'doubao', name: '火山引擎 (豆包)', category: 'domestic', description: '字节跳动豆包企业级大模型平台' },
+  { id: 'hunyuan', name: '腾讯混元 (Hunyuan)', category: 'domestic', description: '腾讯官方混元通用多模态大模型' },
+  { id: 'minimax', name: 'MiniMax', category: 'domestic', description: 'ABAB 系列高精与多模态大模型' },
+
+  // Local / Self-hosted
+  { id: 'ollama', name: 'Ollama', category: 'local', description: '本地免密大模型运行引擎 (默认端口 11434)' },
+  { id: 'lmstudio', name: 'LM Studio', category: 'local', description: '本地桌面推理工作站 (默认端口 1234)' },
+];
+
 const isThirdPartyProtocol = (value: unknown): value is ThirdPartyApiProtocol =>
   value === 'openai-compatible' || value === 'anthropic' || value === 'openai-responses';
 
@@ -489,6 +526,8 @@ export const sanitizeThirdPartyConnection = (
     protocol: isThirdPartyProtocol(value?.protocol) ? value.protocol : defaults.protocol,
     enabled: value?.enabled === true,
     authOptional: typeof value?.authOptional === 'boolean' ? value.authOptional : defaults.authOptional,
+    icon: typeof value?.icon === 'string' && value.icon.trim() ? value.icon.trim() : undefined,
+    notes: typeof value?.notes === 'string' && value.notes.trim() ? value.notes.trim() : undefined,
   };
 };
 
@@ -620,7 +659,7 @@ export const buildProviderAwareModelList = (
         apiMode: 'third-party' as const,
         providerId: id,
         templateId: getConnectionDisplayTemplateId(config),
-        connectionName: config.name,
+        connectionName: config.notes ? `${config.name} [${config.notes}]` : config.name,
         ...(config.authOptional || config.apiKey?.trim() ? {} : { missingApiKey: true as const }),
       })),
   );

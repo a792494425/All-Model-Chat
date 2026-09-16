@@ -1,5 +1,5 @@
 export const DB_NAME = 'AllModelChatDB';
-export const DB_VERSION = 5;
+export const DB_VERSION = 6;
 
 export const SESSIONS_STORE = 'sessions';
 export const FILES_STORE = 'files';
@@ -8,6 +8,7 @@ export const SCENARIOS_STORE = 'scenarios';
 export const KEY_VALUE_STORE = 'keyValueStore';
 export const LOGS_STORE = 'logs';
 export const API_USAGE_STORE = 'api_usage';
+export const EMBEDDINGS_STORE = 'multimodal_embeddings';
 
 export const DB_STORE_NAMES = [
   SESSIONS_STORE,
@@ -17,6 +18,7 @@ export const DB_STORE_NAMES = [
   KEY_VALUE_STORE,
   LOGS_STORE,
   API_USAGE_STORE,
+  EMBEDDINGS_STORE,
 ] as const;
 
 export const LOCK_NAME = 'all_model_chat_db_write_lock';
@@ -45,6 +47,7 @@ type StoreDef = {
  * Version 3: Reserved by an earlier migration without retained schema changes
  * Version 4: Add persisted session files store
  * Version 5: Add API usage store
+ * Version 6: Add multimodal embeddings store (one record per embedding)
  */
 // Exported so consumers that cannot share the live IDBDatabase handle (e.g. the
 // E2E seed harness) serialize the exact same store shapes instead of keeping a
@@ -71,6 +74,15 @@ export const DB_STORE_DEFS: readonly StoreDef[] = [
     sinceVersion: 5,
     options: { keyPath: 'id', autoIncrement: true },
     indexes: [{ name: 'timestamp', keyPath: 'timestamp', unique: false }],
+  },
+  {
+    // One record per embedding. Storing every vector in a single key-value blob
+    // forced a full read/rewrite of the whole index for every indexed file,
+    // which made background indexing O(n^2) in memory and serialization work.
+    name: EMBEDDINGS_STORE,
+    sinceVersion: 6,
+    options: { keyPath: 'id' },
+    indexes: [{ name: 'updatedAt', keyPath: 'updatedAt', unique: false }],
   },
 ];
 

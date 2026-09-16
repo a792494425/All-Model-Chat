@@ -83,6 +83,16 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
     }
   }, [settings.liveApiKey]);
 
+  const [showDedicatedEmbeddingKey, setShowDedicatedEmbeddingKey] = useState(() =>
+    Boolean(settings.embeddingApiKey && settings.embeddingApiKey.trim().length > 0),
+  );
+
+  useEffect(() => {
+    if (settings.embeddingApiKey && settings.embeddingApiKey.trim().length > 0) {
+      setShowDedicatedEmbeddingKey(true);
+    }
+  }, [settings.embeddingApiKey]);
+
   useEffect(() => {
     return () => {
       if (overflowTimerRef.current !== null) {
@@ -260,6 +270,52 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
                       <button
                         type="button"
                         onClick={() => onUpdate('liveApiKey', null)}
+                        className="text-xs text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-danger)] transition-colors hover:underline"
+                      >
+                        {t('delete')}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setShowDedicatedEmbeddingKey((prev) => !prev)}
+                className="inline-flex items-center gap-1.5 text-xs text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors cursor-pointer select-none focus:outline-none py-0.5"
+              >
+                {showDedicatedEmbeddingKey ? (
+                  <ChevronDown size={14} className="text-[var(--theme-text-secondary)] flex-shrink-0" />
+                ) : (
+                  <ChevronRight size={14} className="text-[var(--theme-text-secondary)] flex-shrink-0" />
+                )}
+                <span className="font-medium">{t('settingsEmbeddingApiKey')}</span>
+                {settings.embeddingApiKey ? (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+                ) : (
+                  <span className="text-[10px] text-[var(--theme-text-secondary)]/60">
+                    ({t('settingsEmbeddingDefaultKeyNotice')})
+                  </span>
+                )}
+              </button>
+
+              {showDedicatedEmbeddingKey && (
+                <div className="mt-2.5 pl-3.5 border-l-2 border-[var(--theme-border-secondary)]/40 space-y-2">
+                  <ApiKeyInput
+                    inputId="embedding-api-key-input"
+                    label={t('settingsEmbeddingApiKey')}
+                    apiKey={settings.embeddingApiKey ?? null}
+                    setApiKey={(nextKey) => onUpdate('embeddingApiKey', nextKey)}
+                    placeholder={t('settingsEmbeddingApiKeyPlaceholder')}
+                    helpText={t('settingsEmbeddingApiKeyHelp')}
+                  />
+                  {settings.embeddingApiKey && (
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => onUpdate('embeddingApiKey', null)}
                         className="text-xs text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-danger)] transition-colors hover:underline"
                       >
                         {t('delete')}

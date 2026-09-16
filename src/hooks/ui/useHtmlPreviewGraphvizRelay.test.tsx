@@ -60,7 +60,10 @@ describe('useHtmlPreviewGraphvizRelay', () => {
       await Promise.resolve();
     });
 
-    expect(renderDotToSvgCached).toHaveBeenCalledWith('digraph { A -> B }', { themeId: 'pearl' });
+    expect(renderDotToSvgCached).toHaveBeenCalledWith('digraph { A -> B }', {
+      themeId: 'pearl',
+      preserveAuthorColors: true,
+    });
     expect(postMessage).toHaveBeenCalledWith(
       {
         channel: HTML_PREVIEW_MESSAGE_CHANNEL,
@@ -115,6 +118,7 @@ describe('useHtmlPreviewGraphvizRelay', () => {
     expect(renderDotToSvgCached).toHaveBeenCalledWith('digraph { A -> B }', {
       themeId: 'pearl',
       baseFontSize: 24,
+      preserveAuthorColors: true,
     });
 
     unmount();

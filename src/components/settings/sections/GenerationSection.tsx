@@ -7,7 +7,7 @@ import {
   SETTINGS_SECTION_LABEL_CLASS,
   SETTINGS_VALUE_BADGE_CLASS,
 } from '@/constants/designTokens';
-import { type AppSettings, MediaResolution } from '@/types';
+import { type AppSettings, type AutoTitleLength, MediaResolution } from '@/types';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
 import { bansModelTurnPrefill } from '@/utils/model/modelCapabilities';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';
@@ -502,6 +502,74 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
             )}
         </div>
       )}
+
+      <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-4`} data-settings-item="models-auto-title">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h4 className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsAutoTitleCardTitle')}</h4>
+            <p className="mt-0.5 text-xs text-[var(--theme-text-secondary)]">
+              {t('settingsAutoTitleCardDesc')}
+            </p>
+          </div>
+          <ToggleItem
+            label={t('isAutoTitleEnabled')}
+            checked={currentSettings.isAutoTitleEnabled}
+            onChange={(enabled) => onUpdateSetting('isAutoTitleEnabled', enabled)}
+          />
+        </div>
+
+        {currentSettings.isAutoTitleEnabled && (
+          <div className="pt-3 border-t border-[var(--theme-border-secondary)]/40 space-y-4">
+            <div data-settings-item="models-auto-title-emoji">
+              <ToggleItem
+                label={t('settingsAutoTitleIncludeEmojiLabel')}
+                checked={currentSettings.autoTitleIncludeEmoji ?? true}
+                onChange={(enabled) => onUpdateSetting('autoTitleIncludeEmoji', enabled)}
+                tooltip={t('settingsAutoTitleIncludeEmojiTooltip')}
+              />
+            </div>
+
+            <div className="space-y-1.5" data-settings-item="models-auto-title-length">
+              <label
+                htmlFor="auto-title-length-select"
+                className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]"
+              >
+                {t('settingsAutoTitleLengthLabel')}
+              </label>
+              <Select
+                id="auto-title-length-select"
+                label={t('settingsAutoTitleLengthLabel')}
+                hideLabel
+                value={currentSettings.autoTitleLength ?? 'standard'}
+                onChange={(e) =>
+                  onUpdateSetting('autoTitleLength', e.target.value as AutoTitleLength)
+                }
+              >
+                <option value="concise">{t('settingsAutoTitleLengthConcise')}</option>
+                <option value="standard">{t('settingsAutoTitleLengthStandard')}</option>
+                <option value="detailed">{t('settingsAutoTitleLengthDetailed')}</option>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5" data-settings-item="models-auto-title-custom-prompt">
+              <label
+                htmlFor="auto-title-custom-prompt"
+                className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]"
+              >
+                {t('settingsAutoTitleCustomPromptLabel')}
+              </label>
+              <input
+                id="auto-title-custom-prompt"
+                type="text"
+                value={currentSettings.autoTitleCustomPrompt ?? ''}
+                onChange={(e) => onUpdateSetting('autoTitleCustomPrompt', e.target.value)}
+                placeholder={t('settingsAutoTitleCustomPromptPlaceholder')}
+                className={`w-full p-2.5 border rounded-lg transition-all duration-200 focus:ring-2 focus:ring-offset-0 text-sm ${SETTINGS_INPUT_CLASS}`}
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

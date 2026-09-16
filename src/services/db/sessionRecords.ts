@@ -207,3 +207,59 @@ export const searchSessions = async (query: string): Promise<string[]> => {
     request.onerror = () => reject(request.error);
   });
 };
+
+export const deleteFilesFromSessions = async (fileIds: string[]): Promise<void> => {
+  if (!fileIds || fileIds.length === 0) {
+    return;
+  }
+  const targetIds = new Set(fileIds);
+
+  return withWriteLock(async () => {
+    const db = await getDb();
+    const tx = db.transaction([SESSIONS_STORE, FILES_STORE], 'readwrite');
+    const sessionStore = tx.objectStore(SESSIONS_STORE);
+    const fileStore = tx.objectStore(FILES_STORE);
+
+    const request = sessionStore.openCursor();
+    await new Promise<void>((resolve, reject) => {
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+        if (!cursor) {
+          resolve();
+          return;
+        }
+
+        const session = cursor.value as SavedChatSession;
+        if (session.messages && session.messages.length > 0) {
+          let sessionChanged = false;
+          const updatedMessages = session.messages.map((msg) => {
+            if (msg.files && msg.files.some((f) => targetIds.has(f.id))) {
+              sessionChanged = true;
+              const remainingFiles = msg.files.filter((f) => !targetIds.has(f.id));
+              return {
+                ...msg,
+                files: remainingFiles.length > 0 ? remainingFiles : undefined,
+              };
+            }
+            return msg;
+          });
+
+          if (sessionChanged) {
+            cursor.update({
+              ...session,
+              messages: updatedMessages,
+            });
+          }
+        }
+        cursor.continue();
+      };
+      request.onerror = () => reject(request.error);
+    });
+
+    for (const id of fileIds) {
+      fileStore.delete(id);
+    }
+
+    return transactionToPromise(tx);
+  });
+};

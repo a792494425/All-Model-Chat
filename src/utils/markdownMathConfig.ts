@@ -14,7 +14,13 @@ const isLikelyTexMath = (value: string): boolean => {
     return false;
   }
 
-  return TEX_MATH_SIGNAL_REGEX.test(normalizedValue) || ASYMPTOTIC_COMPLEXITY_REGEX.test(normalizedValue);
+  const inner = normalizedValue.replace(/^\$+|\$+$/g, '').trim();
+
+  return (
+    /^[A-Za-z](?:\s*,\s*[A-Za-z])*$/.test(inner) ||
+    TEX_MATH_SIGNAL_REGEX.test(normalizedValue) ||
+    ASYMPTOTIC_COMPLEXITY_REGEX.test(normalizedValue)
+  );
 };
 
 const stripEscapedDollarMarkers = (value: string): string => value.replace(/\\\$/g, '$');

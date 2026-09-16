@@ -285,7 +285,7 @@ export const ChatInputArea: React.FC = () => {
             </div>
           )}
           <div
-            className={`${inputContainerClass} ${hasCustomHeight ? 'expanded' : ''}`}
+            className={`${inputContainerClass} ${hasCustomHeight ? 'expanded' : ''} ${chatInput.isLiveArtifactsPromptActive ? 'border-[var(--theme-border-focus)]/50 shadow-[0_8px_30px_rgba(var(--theme-accent-rgb,37,99,235),0.07)]' : ''}`}
             onClick={handleInputShellClick}
             data-composer-inputbar=""
           >

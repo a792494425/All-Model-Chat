@@ -321,4 +321,71 @@ describe('GenerationSection', () => {
     expect(renderer.container.querySelector('[data-settings-item="models-hide-thinking"]')).not.toBeNull();
     expect(renderer.container.querySelector('[data-settings-item="models-always-keep-thinking"]')).not.toBeNull();
   });
+
+  it('renders auto-title style preference controls when enabled', async () => {
+    const onUpdateSetting = vi.fn();
+
+    await act(async () => {
+      renderer.root.render(
+        <GenerationSection
+          modelId="gemini-2.5-flash"
+          currentSettings={{
+            ...baseSettings,
+            isAutoTitleEnabled: true,
+            autoTitleIncludeEmoji: true,
+            autoTitleLength: 'standard',
+            autoTitleCustomPrompt: 'No questions',
+          }}
+          onUpdateSetting={onUpdateSetting}
+        />,
+      );
+    });
+
+    const autoTitleCard = renderer.container.querySelector('[data-settings-item="models-auto-title"]');
+    expect(autoTitleCard).not.toBeNull();
+    expect(autoTitleCard?.textContent).toContain('Session Auto-Titling');
+
+    const emojiToggle = renderer.container.querySelector<HTMLInputElement>(
+      '[data-settings-item="models-auto-title-emoji"] input[type="checkbox"]',
+    );
+    expect(emojiToggle).not.toBeNull();
+    expect(emojiToggle?.checked).toBe(true);
+
+    const lengthTrigger = renderer.container.querySelector<HTMLButtonElement>('#auto-title-length-select');
+    expect(lengthTrigger).not.toBeNull();
+    expect(lengthTrigger?.textContent).toContain('Standard');
+
+    const promptInput = renderer.container.querySelector<HTMLInputElement>('#auto-title-custom-prompt');
+    expect(promptInput).not.toBeNull();
+    expect(promptInput?.value).toBe('No questions');
+
+    await act(async () => {
+      fireEvent.click(emojiToggle!);
+    });
+    expect(onUpdateSetting).toHaveBeenCalledWith('autoTitleIncludeEmoji', false);
+
+    await act(async () => {
+      fireEvent.change(promptInput!, { target: { value: 'New Rule' } });
+    });
+    expect(onUpdateSetting).toHaveBeenCalledWith('autoTitleCustomPrompt', 'New Rule');
+  });
+
+  it('hides child title style controls when auto-titling is disabled', async () => {
+    await act(async () => {
+      renderer.root.render(
+        <GenerationSection
+          modelId="gemini-2.5-flash"
+          currentSettings={{
+            ...baseSettings,
+            isAutoTitleEnabled: false,
+          }}
+          onUpdateSetting={vi.fn()}
+        />,
+      );
+    });
+
+    expect(renderer.container.querySelector('[data-settings-item="models-auto-title-emoji"]')).toBeNull();
+    expect(renderer.container.querySelector('#auto-title-length-select')).toBeNull();
+    expect(renderer.container.querySelector('#auto-title-custom-prompt')).toBeNull();
+  });
 });

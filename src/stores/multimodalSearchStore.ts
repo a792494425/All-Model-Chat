@@ -9,8 +9,9 @@ import {
   indexAllHistoricalItems,
   searchMultimodalByImage,
   searchMultimodalByText,
+  searchMultimodalCombined,
 } from '@/services/embedding/multimodalSearchEngine';
-import { getStoredEmbeddingCount } from '@/services/embedding/multimodalIndexStore';
+import { getStoredEmbeddingCount, getStoredIndexStats } from '@/services/embedding/multimodalIndexStore';
 import { autoIndexingQueue } from '@/services/embedding/autoIndexingQueue';
 
 export interface MultimodalSearchState {
@@ -27,6 +28,9 @@ export interface MultimodalSearchState {
   results: MultimodalSearchResult[];
   selectedResult: MultimodalSearchResult | null;
   searchError: string | null;
+  cachedQueryText: string | null;
+  cachedImageBlob: Blob | null;
+  cachedQueryEmbedding: number[] | null;
 }
 
 export interface MultimodalSearchActions {
@@ -58,6 +62,9 @@ const initialState: MultimodalSearchState = {
   results: [],
   selectedResult: null,
   searchError: null,
+  cachedQueryText: null,
+  cachedImageBlob: null,
+  cachedQueryEmbedding: null,
 };
 
 export const useMultimodalSearchStore = create<MultimodalSearchState & MultimodalSearchActions>()(
@@ -124,6 +131,8 @@ export const useMultimodalSearchStore = create<MultimodalSearchState & Multimoda
         set({
           searchImage: null,
           searchImagePreviewUrl: null,
+          cachedImageBlob: null,
+          cachedQueryEmbedding: null,
         });
       },
 
@@ -136,26 +145,71 @@ export const useMultimodalSearchStore = create<MultimodalSearchState & Multimoda
       },
 
       executeSearch: async () => {
-        const { searchQuery, searchImage, categoryFilter } = get();
-        if (!searchQuery.trim() && !searchImage) {
-          set({ results: [], searchError: null });
+        const { searchQuery, searchImage, categoryFilter, cachedQueryText, cachedImageBlob, cachedQueryEmbedding } =
+          get();
+        const trimmedQuery = searchQuery.trim();
+        if (!trimmedQuery && !searchImage) {
+          set({
+            results: [],
+            searchError: null,
+            cachedQueryText: null,
+            cachedImageBlob: null,
+            cachedQueryEmbedding: null,
+          });
           return;
         }
+
+        let count = get().indexedCount;
+        if (count === 0) {
+          count = await getStoredEmbeddingCount().catch(() => 0);
+          if (count > 0) {
+            set({ indexedCount: count });
+          }
+        }
+        if (count === 0) {
+          set({
+            results: [],
+            isSearching: false,
+            searchError: null,
+          });
+          return;
+        }
+
+        const isSameQuery =
+          trimmedQuery === (cachedQueryText ?? '') &&
+          searchImage === cachedImageBlob &&
+          Array.isArray(cachedQueryEmbedding) &&
+          cachedQueryEmbedding.length > 0;
+
+        const embeddingToUse = isSameQuery ? cachedQueryEmbedding : undefined;
 
         set({ isSearching: true, searchError: null });
 
         try {
-          let results: MultimodalSearchResult[] = [];
-          if (searchImage) {
-            results = await searchMultimodalByImage(searchImage, {
+          let response: { results: MultimodalSearchResult[]; queryEmbedding: number[] };
+          if (searchImage && trimmedQuery) {
+            response = await searchMultimodalCombined(trimmedQuery, searchImage, {
               category: categoryFilter,
+              cachedQueryEmbedding: embeddingToUse,
+            });
+          } else if (searchImage) {
+            response = await searchMultimodalByImage(searchImage, {
+              category: categoryFilter,
+              cachedQueryEmbedding: embeddingToUse,
             });
           } else {
-            results = await searchMultimodalByText(searchQuery.trim(), {
+            response = await searchMultimodalByText(trimmedQuery, {
               category: categoryFilter,
+              cachedQueryEmbedding: embeddingToUse,
             });
           }
-          set({ results, isSearching: false });
+          set({
+            results: response.results,
+            isSearching: false,
+            cachedQueryText: trimmedQuery,
+            cachedImageBlob: searchImage,
+            cachedQueryEmbedding: response.queryEmbedding,
+          });
         } catch (error: any) {
           set({
             isSearching: false,
@@ -185,6 +239,12 @@ export const useMultimodalSearchStore = create<MultimodalSearchState & Multimoda
 
       refreshIndexStats: async () => {
         try {
+          // Show the last persisted count immediately so the modal does not
+          // flash a stale zero, then reconcile with the real count.
+          const cached = await getStoredIndexStats();
+          if (cached) {
+            set({ indexedCount: cached.indexedCount });
+          }
           const count = await getStoredEmbeddingCount();
           set({ indexedCount: count });
         } catch {

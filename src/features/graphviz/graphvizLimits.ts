@@ -8,9 +8,9 @@
  * Keep this bias in mind when touching the regexes.
  */
 
-export const DOT_MAX_CHARS = 16_000;
-export const DOT_MAX_NODES = 40;
-export const DOT_MAX_EDGES = 80; // was 200 before the alignment with the prompt
+export const DOT_MAX_CHARS = 64_000;
+export const DOT_MAX_NODES = 200;
+export const DOT_MAX_EDGES = 400;
 
 const DOT_RESERVED_WORDS = new Set(['graph', 'digraph', 'subgraph', 'node', 'edge', 'strict']);
 

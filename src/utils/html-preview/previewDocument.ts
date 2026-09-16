@@ -30,11 +30,13 @@ type KatexModule = { default: typeof import('katex').default };
 let katexInstance: typeof import('katex').default | null = null;
 let katexCss: string | null = null;
 let katexLoadingPromise: Promise<void> | null = null;
-let katexReadyResolve: (() => void) | null = null;
-let katexReadyReject: ((error: unknown) => void) | null = null;
-let katexReadyPromise: Promise<void> | null = null;
+
+export const isKatexLoaded = (): boolean => Boolean(katexInstance);
 
 export const loadKatex = (): Promise<void> => {
+  if (katexInstance) {
+    return Promise.resolve();
+  }
   if (!katexLoadingPromise) {
     katexLoadingPromise = Promise.all([
       import('katex').then((module: KatexModule) => {
@@ -44,17 +46,8 @@ export const loadKatex = (): Promise<void> => {
         katexCss = cssModule.default as string;
       }),
     ])
-      .then(() => {
-        katexReadyResolve?.();
-      })
+      .then(() => {})
       .catch((error: unknown) => {
-        // A failed load must reject anyone waiting on whenKatexReady() so the
-        // waiting frame does not hang "pending" forever. Reset all state so the
-        // next render that sees math can attempt the load again (retry).
-        katexReadyReject?.(error);
-        katexReadyPromise = null;
-        katexReadyResolve = null;
-        katexReadyReject = null;
         katexLoadingPromise = null;
         throw error;
       });
@@ -67,13 +60,7 @@ export const whenKatexReady = (): Promise<void> => {
   if (katexInstance) {
     return Promise.resolve();
   }
-  if (!katexReadyPromise) {
-    katexReadyPromise = new Promise<void>((resolve, reject) => {
-      katexReadyResolve = resolve;
-      katexReadyReject = reject;
-    });
-  }
-  return katexReadyPromise;
+  return loadKatex();
 };
 // SECURITY NOTE (intentional): `script-src 'unsafe-inline' https: blob:` is
 // deliberately permissive. Live Artifacts are model-authored HTML/JS demos; the
@@ -113,7 +100,7 @@ const isLikelyTexMath = (value: string): boolean => {
   const normalizedValue = value.trim();
 
   return (
-    /^[A-Za-z]$/.test(normalizedValue) ||
+    /^[A-Za-z](?:\s*,\s*[A-Za-z])*$/.test(normalizedValue) ||
     TEX_MATH_SIGNAL_REGEX.test(normalizedValue) ||
     ASYMPTOTIC_COMPLEXITY_REGEX.test(normalizedValue)
   );
@@ -376,9 +363,10 @@ const buildPreviewThemeStyle = (
   // (`min-width:0`) and to wrap long tokens makes that text reflow onto another
   // line instead of vanishing. Set on descendants only, so the artifact's own
   const overflowGuard = `body :where(div,section,article,main,aside,header,footer,li,td,th,p,h1,h2,h3,h4,h5,h6,span,strong,em,small,code){min-width:0;}body{overflow-wrap:anywhere;}`;
+  const tableAndTagStyles = `table td,table th{vertical-align:top;}span[style*="border-radius"][style*="padding"]{white-space:nowrap;display:inline-block;}`;
   const scrollbarStyles = `*{scrollbar-width:thin;scrollbar-color:var(--amc-live-artifact-border) transparent;}*::-webkit-scrollbar{width:5px;height:5px;}*::-webkit-scrollbar-track{background:transparent;}*::-webkit-scrollbar-thumb{background:var(--amc-live-artifact-border);border-radius:9999px;}*::-webkit-scrollbar-thumb:hover{background:var(--amc-live-artifact-muted);}`;
   const graphvizStyles = `[data-amc-graphviz][data-amc-graphviz-state="rendered"]{cursor:zoom-in;}[data-amc-graphviz][data-amc-graphviz-state="pending"]{min-height:96px;display:flex;align-items:center;justify-content:center;background:var(--amc-live-artifact-surface-muted,rgba(0,0,0,0.03));border-radius:0.5rem;}[data-amc-graphviz][data-amc-graphviz-state="pending"]::after{content:"";width:18px;height:18px;border:2px solid var(--amc-live-artifact-border,rgba(0,0,0,0.1));border-top-color:var(--amc-live-artifact-accent,#3b82f6);border-radius:50%;animation:amc-gv-spin 0.8s linear infinite;}@keyframes amc-gv-spin{to{transform:rotate(360deg);}}`;
-  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};}html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}body{overflow-x:auto;}${overflowGuard}${scrollbarStyles}${graphvizStyles}</style>`;
+  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};}html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}body{overflow-x:auto;}${overflowGuard}${tableAndTagStyles}${scrollbarStyles}${graphvizStyles}</style>`;
 };
 
 const injectPreviewTheme = (srcDoc: string, themeId?: string): string => {

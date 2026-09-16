@@ -745,6 +745,15 @@ export const messagesTranslations = {
     es: 'No se pudo renderizar el diagrama de Graphviz.',
     ko: 'Graphviz 다이어그램을 렌더링하지 못했습니다.',
   },
+  diagramRenderGraphvizTooLarge: {
+    en: 'Graphviz diagram exceeds size limits (too many nodes or edges).',
+    zh: 'Graphviz 图表超出规模限制（节点或连线过多）。',
+    ja: 'Graphviz図のサイズ制限を超えています（ノードまたはエッジが多すぎます）。',
+    de: 'Graphviz-Diagramm überschreitet Größenbeschränkungen (zu viele Knoten oder Kanten).',
+    fr: 'Le diagramme Graphviz dépasse les limites de taille (trop de nœuds ou d’arêtes).',
+    es: 'El diagrama de Graphviz supera los límites de tamaño (demasiados nodos o aristas).',
+    ko: 'Graphviz 다이어그램 크기 제한을 초과했습니다(노드 또는 간선이 너무 많음).',
+  },
   diagramRenderMermaidFailed: {
     en: 'Failed to render Mermaid diagram.',
     zh: '渲染 Mermaid 图表失败。',

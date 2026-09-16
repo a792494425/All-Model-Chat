@@ -13,6 +13,7 @@ import {
 } from './indexedDbAccess';
 import { addLogs, clearLogs, getLogs, pruneLogs } from './logRecords';
 import {
+  deleteFilesFromSessions,
   deleteSession,
   getAllSessionMetadata,
   getAllSessions,
@@ -24,6 +25,7 @@ import {
 } from './sessionRecords';
 import {
   getStandaloneLibraryFiles,
+  getStandaloneLibraryFile,
   saveStandaloneLibraryFiles,
   addStandaloneLibraryFiles,
   deleteStandaloneLibraryFiles,
@@ -52,6 +54,7 @@ export const dbService = {
   setAllSessions,
   saveSession,
   deleteSession,
+  deleteFilesFromSessions,
 
   getAllGroups: () => getAll<ChatGroup>(GROUPS_STORE),
   setAllGroups: (groups: ChatGroup[]) => setAll<ChatGroup>(GROUPS_STORE, groups),
@@ -71,6 +74,7 @@ export const dbService = {
   pruneLogs,
 
   getStandaloneLibraryFiles,
+  getStandaloneLibraryFile,
   saveStandaloneLibraryFiles,
   addStandaloneLibraryFiles,
   deleteStandaloneLibraryFiles,

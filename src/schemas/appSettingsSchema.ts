@@ -326,6 +326,12 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
   filesApiConfig: filesApiConfigSchema,
   expandCodeBlocksByDefault: booleanWithDefault(DEFAULT_APP_SETTINGS.expandCodeBlocksByDefault),
   isAutoTitleEnabled: booleanWithDefault(DEFAULT_APP_SETTINGS.isAutoTitleEnabled),
+  autoTitleIncludeEmoji: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.autoTitleIncludeEmoji),
+  autoTitleLength: optionalWithDefault(
+    z.enum(['concise', 'standard', 'detailed']),
+    DEFAULT_APP_SETTINGS.autoTitleLength,
+  ),
+  autoTitleCustomPrompt: optionalStringWithDefault(DEFAULT_APP_SETTINGS.autoTitleCustomPrompt),
   isMermaidRenderingEnabled: booleanWithDefault(DEFAULT_APP_SETTINGS.isMermaidRenderingEnabled),
   isGraphvizRenderingEnabled: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.isGraphvizRenderingEnabled),
   isCompletionNotificationEnabled: booleanWithDefault(DEFAULT_APP_SETTINGS.isCompletionNotificationEnabled),
@@ -378,6 +384,7 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
   selectionAskProviderId: optionalWithDefault(z.string(), DEFAULT_APP_SETTINGS.selectionAskProviderId),
   tokenCalculatorApiKey: nullableStringWithDefault(DEFAULT_APP_SETTINGS.tokenCalculatorApiKey),
   liveApiKey: nullableStringWithDefault(DEFAULT_APP_SETTINGS.liveApiKey),
+  embeddingApiKey: nullableStringWithDefault(DEFAULT_APP_SETTINGS.embeddingApiKey),
   thirdPartyApi: thirdPartyApiSchema,
 });
 

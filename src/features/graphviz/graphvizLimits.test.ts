@@ -43,13 +43,13 @@ describe('countDotNodes', () => {
 
 describe('limits consistency', () => {
   it('exposes the same limits the prompts advertise', () => {
-    expect(DOT_MAX_CHARS).toBe(16_000);
-    expect(DOT_MAX_NODES).toBe(40);
-    expect(DOT_MAX_EDGES).toBe(80);
+    expect(DOT_MAX_CHARS).toBe(64_000);
+    expect(DOT_MAX_NODES).toBe(200);
+    expect(DOT_MAX_EDGES).toBe(400);
   });
 
-  it('node count is a heuristic upper bound: a 41-node graph trips the limit', () => {
-    const dot = `digraph { ${Array.from({ length: 41 }, (_, i) => `n${i}`).join('; ')}; }`;
+  it('node count is a heuristic upper bound: a 201-node graph trips the limit', () => {
+    const dot = `digraph { ${Array.from({ length: 201 }, (_, i) => `n${i}`).join('; ')}; }`;
     expect(countDotNodes(dot)).toBeGreaterThan(DOT_MAX_NODES);
   });
 });

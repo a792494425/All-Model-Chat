@@ -58,6 +58,11 @@ describe('database structure boundaries', () => {
           options: { keyPath: 'id', autoIncrement: true },
           indexes: [{ name: 'timestamp', keyPath: 'timestamp', unique: false }],
         },
+        {
+          name: 'multimodal_embeddings',
+          options: { keyPath: 'id' },
+          indexes: [{ name: 'updatedAt', keyPath: 'updatedAt', unique: false }],
+        },
       ],
       seedStores: {
         sessions: 'sessions',

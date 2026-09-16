@@ -19,6 +19,7 @@ import { isTextFile } from '@/utils/file/fileTypeClassification';
 import { useFileModalState } from '@/hooks/ui/useFileModalState';
 import { readUploadedTextFileContent } from '@/utils/chat-input/textFileToInput';
 import { useI18n } from '@/contexts/I18nContext';
+import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
 
 interface UseChatInputFileUiOptions {
   selectedFiles: UploadedFile[];
@@ -109,6 +110,9 @@ export const useChatInputFileUi = ({
           break;
         case 'library':
           setShowLibraryPicker(true);
+          break;
+        case 'multimodal_search':
+          useMultimodalSearchStore.getState().openModal();
           break;
         case 'gallery':
           imageInputRef.current?.click();

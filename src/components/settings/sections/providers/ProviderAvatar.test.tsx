@@ -56,4 +56,27 @@ describe('ProviderAvatar', () => {
     expect(img).not.toBeNull();
     expect(img?.getAttribute('alt')).toBe('Qwen3.8-Flash (Alias)');
   });
+
+  it('renders emoji avatar when icon is an emoji', () => {
+    const { container } = render(<ProviderAvatar name="My Proxy" icon="🚀" size={32} />);
+    expect(container.textContent).toContain('🚀');
+  });
+
+  it('renders image avatar when icon is an external URL', () => {
+    render(<ProviderAvatar name="Custom Service" icon="https://example.com/logo.png" size={32} />);
+    const img = screen.getByRole('img');
+    expect(img).toBeDefined();
+    expect(img.getAttribute('src')).toBe('https://example.com/logo.png');
+    expect(img.getAttribute('alt')).toBe('Custom Service');
+  });
+
+  it('renders data URL image avatar correctly', () => {
+    const dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    render(<ProviderAvatar name="Custom Service" icon={dataUrl} size={32} />);
+    const img = screen.getByRole('img');
+    expect(img).toBeDefined();
+    expect(img.getAttribute('src')).toBe(dataUrl);
+  });
 });
+
+

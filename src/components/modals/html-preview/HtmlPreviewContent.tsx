@@ -1,7 +1,7 @@
 import { logService } from '@/services/logService';
-import React, { useRef, useState, useEffect, type RefObject } from 'react';
+import React, { useRef, useState, useEffect, useMemo, type RefObject } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { buildHtmlPreviewSrcDoc } from '@/utils/html-preview/previewDocument';
+import { buildHtmlPreviewSrcDoc, isKatexLoaded, whenKatexReady } from '@/utils/html-preview/previewDocument';
 import {
   DEFAULT_HTML_PREVIEW_PRIVILEGE,
   HTML_PREVIEW_SANDBOX,
@@ -33,6 +33,24 @@ export const HtmlPreviewContent: React.FC<HtmlPreviewContentProps> = ({
   const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
+  const [katexReadyTick, setKatexReadyTick] = useState(0);
+
+  useEffect(() => {
+    if (isKatexLoaded()) {
+      return;
+    }
+    let cancelled = false;
+    void whenKatexReady()
+      .then(() => {
+        if (!cancelled) {
+          setKatexReadyTick((tick) => tick + 1);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -52,11 +70,16 @@ export const HtmlPreviewContent: React.FC<HtmlPreviewContentProps> = ({
 
   const isUnrestricted = privilege === 'unrestricted';
   const isDeviceFramed = deviceMode === 'tablet' || deviceMode === 'mobile';
+  const srcDoc = useMemo(() => {
+    void katexReadyTick;
+    return buildHtmlPreviewSrcDoc(htmlContent, { privilege, themeId, baseFontSize });
+  }, [baseFontSize, htmlContent, katexReadyTick, privilege, themeId]);
 
   const frameInner = (
     <iframe
+      key={`${katexReadyTick}:${privilege}:${themeId ?? ''}:${baseFontSize ?? ''}`}
       ref={iframeRef}
-      srcDoc={buildHtmlPreviewSrcDoc(htmlContent, { privilege, themeId, baseFontSize })}
+      srcDoc={srcDoc}
       title={t('htmlPreviewIframeTitle')}
       className={`border-none shadow-sm origin-top-left flex-1 w-full ${isUnrestricted ? 'bg-white' : 'bg-[var(--theme-bg-primary)]'}`}
       style={{

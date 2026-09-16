@@ -168,4 +168,11 @@ describe('ChatInputArea default spacing', () => {
     expect(source).toContain('<ChatSuggestions');
     expect(source).not.toContain('<ActiveModeCapsules');
   });
+
+  it('highlights the composer container with a soft accent border when Live Artifacts is active', () => {
+    const source = fs.readFileSync(chatInputAreaPath, 'utf8');
+
+    expect(source).toContain('isLiveArtifactsPromptActive');
+    expect(source).toContain('border-[var(--theme-border-focus)]/50');
+  });
 });
