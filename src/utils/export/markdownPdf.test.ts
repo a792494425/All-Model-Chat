@@ -166,8 +166,11 @@ describe('createMarkdownPdfBlob', () => {
       globalThis.fetch = originalFetch;
     }
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/image-proxy?url=https%3A%2F%2Fcdn.example.com%2Fdiagram.png');
-    expect(fetchMock).not.toHaveBeenCalledWith('https://cdn.example.com/diagram.png');
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/image-proxy?url=https%3A%2F%2Fcdn.example.com%2Fdiagram.png',
+      expect.anything(),
+    );
+    expect(fetchMock).not.toHaveBeenCalledWith('https://cdn.example.com/diagram.png', expect.anything());
     expect(addImageMock).toHaveBeenCalledWith(
       expect.stringMatching(/^data:image\/png;base64,/),
       'PNG',

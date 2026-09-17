@@ -5,7 +5,7 @@ test('Live Artifacts helper toggles on from an edge tap after hover', async ({ p
   await page.waitForLoadState('networkidle');
 
   const liveArtifactsButton = page.getByRole('button', {
-    name: /Load Live Artifacts prompt|加载 Live Artifacts 提示/,
+    name: /Enable Live Artifacts rendering|开启 Live Artifacts 协议与工件渲染/,
   });
 
   await expect(liveArtifactsButton).toBeVisible();
@@ -30,7 +30,7 @@ test('Live Artifacts helper toggles on from an edge tap after hover', async ({ p
 
   await expect(
     page.getByRole('button', {
-      name: /Live Artifacts prompt is active\. Click to remove\.|Live Artifacts 提示已激活。点击移除。/,
+      name: /Live Artifacts rendering is active|Live Artifacts 协议与工件渲染已开启/,
     }),
   ).toBeVisible();
 });

@@ -4,10 +4,19 @@ import { isImageMimeType } from '@/utils/file/fileTypeClassification';
 const FALLBACK_IMAGE_WIDTH = 1200;
 const FALLBACK_IMAGE_HEIGHT = 675;
 const IMAGE_SIZE_TIMEOUT_MS = 3000;
+const IMAGE_FETCH_TIMEOUT_MS = 5000;
+const IMAGE_RASTERIZE_TIMEOUT_MS = 5000;
 
 const fetchImageSourceAsDataUrl = async (src: string): Promise<string | null> => {
   try {
-    const response = await fetch(src);
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), IMAGE_FETCH_TIMEOUT_MS);
+    let response: Response;
+    try {
+      response = await fetch(src, { signal: controller.signal });
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
     if (!response.ok) {
       return null;
     }
@@ -74,7 +83,14 @@ const isDirectlyEmbeddablePdfImage = (dataUrl: string): boolean =>
 const rasterizeToPngDataUrl = (src: string): Promise<string | null> =>
   new Promise((resolve) => {
     const image = new Image();
+    const timeoutId = window.setTimeout(() => resolve(null), IMAGE_RASTERIZE_TIMEOUT_MS);
+
+    const cleanup = () => {
+      window.clearTimeout(timeoutId);
+    };
+
     image.onload = () => {
+      cleanup();
       const canvas = document.createElement('canvas');
       canvas.width = Math.max(1, image.naturalWidth || image.width);
       canvas.height = Math.max(1, image.naturalHeight || image.height);
@@ -91,7 +107,10 @@ const rasterizeToPngDataUrl = (src: string): Promise<string | null> =>
         resolve(null);
       }
     };
-    image.onerror = () => resolve(null);
+    image.onerror = () => {
+      cleanup();
+      resolve(null);
+    };
     image.src = src;
   });
 
