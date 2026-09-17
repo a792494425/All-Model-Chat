@@ -414,7 +414,7 @@ const injectPreviewBaseFontSize = (srcDoc: string, baseFontSize?: number): strin
   return injectIntoParsedDocument(parsedDocument, { headElements: [style] });
 };
 
-const ECHARTS_SCRIPT_SRC = '/vendor/echarts.min.js';
+const ECHARTS_SCRIPT_SRC = `${(import.meta.env?.BASE_URL || '/').replace(/\/$/, '')}/vendor/echarts.min.js`;
 const ECHARTS_SCRIPT_ATTRIBUTE = 'data-amc-echarts-script';
 const ECHARTS_SCRIPT_TAG = `<script ${ECHARTS_SCRIPT_ATTRIBUTE}="true" src="${ECHARTS_SCRIPT_SRC}"></script>`;
 

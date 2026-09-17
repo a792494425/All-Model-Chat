@@ -1,5 +1,13 @@
+const baseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL)
+  ? import.meta.env.BASE_URL
+  : '/';
+const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+
 export const audioCompressionWorkerCode = `
-importScripts('/lame.min.js');
+const resolvedBaseUrl = (typeof location !== 'undefined' && location.origin)
+  ? new URL(${JSON.stringify(normalizedBase)}, location.origin).href
+  : ${JSON.stringify(normalizedBase)};
+importScripts(new URL('lame.min.js', resolvedBaseUrl).href);
 
 self.onmessage = function(event) {
     try {
