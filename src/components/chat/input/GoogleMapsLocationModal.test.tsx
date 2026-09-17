@@ -32,7 +32,7 @@ describe('GoogleMapsLocationModal', () => {
     expect(document.body.textContent).toContain('Maps Location Context');
     expect(document.body.textContent).toContain('Popular Cities');
 
-    const nameInput = document.body.querySelector<HTMLInputElement>('input[placeholder="如：北京、办公室、家"]');
+    const nameInput = document.body.querySelector<HTMLInputElement>('input[type="text"]');
     expect(nameInput?.value).toBe('Beijing');
 
     const latInput = document.body.querySelector<HTMLInputElement>('input[placeholder="39.9042"]');
@@ -60,7 +60,7 @@ describe('GoogleMapsLocationModal', () => {
 
     const latInput = document.body.querySelector<HTMLInputElement>('input[placeholder="39.9042"]');
     const lngInput = document.body.querySelector<HTMLInputElement>('input[placeholder="116.4074"]');
-    const nameInput = document.body.querySelector<HTMLInputElement>('input[placeholder="如：北京、办公室、家"]');
+    const nameInput = document.body.querySelector<HTMLInputElement>('input[type="text"]');
 
     expect(latInput?.value).toBe('35.6762');
     expect(lngInput?.value).toBe('139.6503');
@@ -79,7 +79,7 @@ describe('GoogleMapsLocationModal', () => {
 
     const latInput = document.body.querySelector<HTMLInputElement>('input[placeholder="39.9042"]');
     const lngInput = document.body.querySelector<HTMLInputElement>('input[placeholder="116.4074"]');
-    const nameInput = document.body.querySelector<HTMLInputElement>('input[placeholder="如：北京、办公室、家"]');
+    const nameInput = document.body.querySelector<HTMLInputElement>('input[type="text"]');
 
     const setInputValue = (input: HTMLInputElement, value: string) => {
       const valueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;

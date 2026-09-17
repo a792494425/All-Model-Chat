@@ -4,6 +4,7 @@ import {
   writePersistentStorageItem,
   removePersistentStorageItem,
 } from '@/stores/persistentStorage';
+import { safeJsonParse } from '@/utils/safeJsonParse';
 import type { ChatSettings } from '@/types';
 
 /**
@@ -38,25 +39,22 @@ export const writeLastActiveSessionSnapshot = (snapshot: Omit<LastActiveSessionS
 };
 
 export const readLastActiveSessionSnapshot = (): LastActiveSessionSnapshot | null => {
-  try {
-    const raw = readPersistentStorageItem(LAST_ACTIVE_CHAT_SESSION_ID_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<LastActiveSessionSnapshot>;
-    if (
-      typeof parsed.sessionId !== 'string' ||
-      typeof parsed.ts !== 'number' ||
-      !parsed.settings ||
-      typeof parsed.settings !== 'object'
-    ) {
-      removePersistentStorageItem(LAST_ACTIVE_CHAT_SESSION_ID_KEY);
-      return null;
-    }
-    return {
-      sessionId: parsed.sessionId,
-      settings: parsed.settings as ChatSettings,
-      ts: parsed.ts,
-    };
-  } catch {
+  const raw = readPersistentStorageItem(LAST_ACTIVE_CHAT_SESSION_ID_KEY);
+  if (!raw) return null;
+  const parsed = safeJsonParse<Partial<LastActiveSessionSnapshot> | null>(raw, null);
+  if (
+    !parsed ||
+    typeof parsed.sessionId !== 'string' ||
+    typeof parsed.ts !== 'number' ||
+    !parsed.settings ||
+    typeof parsed.settings !== 'object'
+  ) {
+    removePersistentStorageItem(LAST_ACTIVE_CHAT_SESSION_ID_KEY);
     return null;
   }
+  return {
+    sessionId: parsed.sessionId,
+    settings: parsed.settings as ChatSettings,
+    ts: parsed.ts,
+  };
 };

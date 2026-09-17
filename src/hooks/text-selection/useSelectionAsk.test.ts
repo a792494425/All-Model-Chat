@@ -6,6 +6,7 @@ import { useSelectionAsk } from './useSelectionAsk';
 
 type CapturedStream = {
   signal: AbortSignal;
+  parts: Array<{ text: string }>;
   onPart: (part: { text?: string }) => void;
   onError: (e: Error) => void;
   onComplete: () => void;
@@ -15,6 +16,7 @@ const streams = vi.hoisted(
   () =>
     [] as Array<{
       signal: AbortSignal;
+      parts: Array<{ text: string }>;
       onPart: (part: { text?: string }) => void;
       onError: (e: Error) => void;
       onComplete: () => void;
@@ -26,7 +28,7 @@ vi.mock('@/services/api/chatApi', () => ({
     _key: unknown,
     _modelId: unknown,
     _history: unknown,
-    _parts: unknown,
+    parts: Array<{ text: string }>,
     _requestConfig: unknown,
     signal: AbortSignal,
     onPart: CapturedStream['onPart'],
@@ -34,7 +36,7 @@ vi.mock('@/services/api/chatApi', () => ({
     onError: CapturedStream['onError'],
     onComplete: CapturedStream['onComplete'],
   ) => {
-    streams.push({ signal, onPart, onError, onComplete });
+    streams.push({ signal, parts, onPart, onError, onComplete });
   },
 }));
 
@@ -120,5 +122,35 @@ describe('useSelectionAsk', () => {
     });
     expect(result.current.answer).toBe('');
     expect(result.current.error).toBeNull();
+  });
+
+  it('formats prompt using active language instructions and truncates long text', async () => {
+    const { result } = renderHookWithProviders(() => useSelectionAsk(), { language: 'en' });
+    const longText = 'a'.repeat(6050);
+
+    await act(async () => {
+      result.current.ask(longText, 'Explain this');
+    });
+
+    expect(streams).toHaveLength(1);
+    const sentText = streams[0].parts[0]?.text ?? '';
+    expect(sentText).toContain('Selected text:');
+    expect(sentText).toContain('User question: Explain this');
+    expect(sentText).toContain('[Note: Selected text was too long and truncated to first 6000 characters]');
+    expect(sentText).not.toContain('选中文本：');
+  });
+
+  it('formats prompt in Chinese when language is zh', async () => {
+    const { result } = renderHookWithProviders(() => useSelectionAsk(), { language: 'zh' });
+
+    await act(async () => {
+      result.current.ask('短文本', '这是什么');
+    });
+
+    expect(streams).toHaveLength(1);
+    const sentText = streams[0].parts[0]?.text ?? '';
+    expect(sentText).toContain('选中文本：');
+    expect(sentText).toContain('用户问题：这是什么');
+    expect(sentText).toContain('短文本');
   });
 });

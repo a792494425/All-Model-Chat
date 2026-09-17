@@ -198,8 +198,8 @@ describe('FilePreviewModal', () => {
 
     expect(document.querySelector('[data-testid="docx-viewer"]')).not.toBeNull();
 
-    const toggleBtn = Array.from(document.querySelectorAll('button')).find((b) =>
-      b.textContent?.includes('切换至纯文本模式'),
+    const toggleBtn = Array.from(document.querySelectorAll('button')).find(
+      (b) => b.textContent?.includes('切换至纯文本模式') || b.textContent?.includes('Switch to plain text mode'),
     );
     await act(async () => {
       toggleBtn?.click();
@@ -220,8 +220,8 @@ describe('FilePreviewModal', () => {
       renderer.root.render(<FilePreviewModal file={createDocxFile()} onClose={() => {}} />);
     });
 
-    const toggleBtn = Array.from(document.querySelectorAll('button')).find((b) =>
-      b.textContent?.includes('切换至纯文本模式'),
+    const toggleBtn = Array.from(document.querySelectorAll('button')).find(
+      (b) => b.textContent?.includes('切换至纯文本模式') || b.textContent?.includes('Switch to plain text mode'),
     );
     await act(async () => {
       toggleBtn?.click();

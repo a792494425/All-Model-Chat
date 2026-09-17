@@ -9,9 +9,14 @@ import {
 } from './multimodalIndexStore';
 import { indexSingleItem } from './multimodalSearchEngine';
 import { hasConfiguredApiKey } from './geminiEmbeddingService';
-import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
 import type { IndexableLibraryItem } from './embeddingTypes';
 import type { LibraryItem, SavedChatSession } from '@/types';
+
+export interface AutoIndexingQueueDelegate {
+  isAutoIndexEnabled?: () => boolean;
+  onIndexedCountChange?: (count: number) => void;
+  onRefreshIndexStats?: () => void | Promise<void>;
+}
 
 /** Name of the Web Lock used to coordinate background indexing across browser tabs. */
 const AUTO_INDEXING_LOCK_NAME = 'amc_auto_indexing_worker';
@@ -60,11 +65,31 @@ class AutoIndexingQueue {
   private lastStatsRefreshAt = 0;
   private indexedSinceStatsRefresh = 0;
 
+  private delegate: AutoIndexingQueueDelegate | null = null;
+  private enabledFallback = false;
+
   /**
-   * Checks if auto-indexing is currently enabled in settings.
+   * Sets or clears the external delegate (e.g. hooked to the multimodal search store).
+   */
+  public setDelegate(delegate: AutoIndexingQueueDelegate | null): void {
+    this.delegate = delegate;
+  }
+
+  /**
+   * Sets the local fallback auto-index state when no delegate is configured.
+   */
+  public setAutoIndexEnabled(enabled: boolean): void {
+    this.enabledFallback = enabled;
+  }
+
+  /**
+   * Checks if auto-indexing is currently enabled in settings or fallback state.
    */
   public isAutoIndexEnabled(): boolean {
-    return useMultimodalSearchStore.getState().isAutoIndexEnabled;
+    if (this.delegate?.isAutoIndexEnabled) {
+      return this.delegate.isAutoIndexEnabled();
+    }
+    return this.enabledFallback;
   }
 
   /**
@@ -130,7 +155,7 @@ class AutoIndexingQueue {
       this.enqueuedIds.delete(id);
     }
     await removeStoredEmbeddings(ids).catch(() => {});
-    void useMultimodalSearchStore.getState().refreshIndexStats();
+    void this.delegate?.onRefreshIndexStats?.();
   }
 
   /**
@@ -317,7 +342,7 @@ class AutoIndexingQueue {
     void getStoredEmbeddingCount()
       .then((count) => {
         saveStoredIndexStats({ indexedCount: count, updatedAt: Date.now() });
-        useMultimodalSearchStore.setState({ indexedCount: count });
+        this.delegate?.onIndexedCountChange?.(count);
       })
       .catch(() => {
         // Statistics are advisory only.

@@ -170,6 +170,7 @@ const proxyImageRequest = async (request: DevServerRequest, response: DevServerR
     'content-type': contentType,
     'cache-control': 'public, max-age=86400',
     'x-content-type-options': 'nosniff',
+    'content-security-policy': "default-src 'none'; script-src 'none'",
   });
   response.end(method === 'HEAD' ? undefined : body);
 };

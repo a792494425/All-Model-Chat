@@ -26,6 +26,7 @@ import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/con
 import { applyImportedProviders, exportProvidersBackupFile, parseProvidersBackupText } from '@/utils/thirdPartyBackup';
 import { toastError, toastSuccess, toastWarning } from '@/stores/toastStore';
 import { interpolate } from '@/i18n/interpolate';
+import { fileToString } from '@/utils/file/fileEncoding';
 import { FileStrategyControl } from '@/components/settings/sections/appearance/FileStrategyControl';
 
 interface DataManagementSectionProps {
@@ -127,13 +128,12 @@ export const DataManagementSection: React.FC<DataManagementSectionProps> = ({
   }, [onExportProviders, settings.thirdPartyApi, t]);
 
   const handleImportProviders = useCallback(
-    (file: File) => {
+    async (file: File) => {
       if (onImportProviders) {
         onImportProviders(file);
       } else {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const text = (reader.result ?? e.target?.result) as string;
+        try {
+          const text = await fileToString(file);
           const parsed = parseProvidersBackupText(text);
           if (parsed.validCount === 0) {
             toastError(t('thirdPartyImportError'));
@@ -146,11 +146,9 @@ export const DataManagementSection: React.FC<DataManagementSectionProps> = ({
             connections: next,
           });
           toastSuccess(interpolate(t('thirdPartyImportSuccess'), { count: parsed.validCount }));
-        };
-        reader.onerror = () => {
+        } catch {
           toastError(t('thirdPartyImportError'));
-        };
-        reader.readAsText(file);
+        }
       }
     },
     [onImportProviders, onUpdate, settings.thirdPartyApi, t],

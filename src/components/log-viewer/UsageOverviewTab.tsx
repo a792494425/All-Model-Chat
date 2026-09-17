@@ -1,6 +1,7 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
+import { interpolate } from '@/i18n/interpolate';
 import {
   SETTINGS_SECTION_CARD_CLASS,
   SETTINGS_SECTION_LABEL_CLASS,
@@ -18,34 +19,31 @@ const RANGE_OPTIONS: Array<{ value: UsageTimeRange; labelKey: string }> = [
   { value: 'all', labelKey: 'usageAllTime' },
 ];
 
-import type { SupportedLanguage } from '@/i18n/languageRegistry';
-
-const getUnavailablePriceLabel = (count: number, language: SupportedLanguage) =>
-  language === 'zh' ? `${count.toLocaleString()} 条不可定价` : `${count.toLocaleString()} unavailable`;
-
 const PriceValue: React.FC<{
   amount: number;
   pricedRequests: number;
   unavailableRequests: number;
-  language: SupportedLanguage;
-}> = ({ amount, pricedRequests, unavailableRequests, language }) => {
+  unavailableLabel?: string;
+}> = ({ amount, pricedRequests, unavailableRequests, unavailableLabel }) => {
   const hasPricedAmount = pricedRequests > 0;
 
   return (
     <span className="inline-flex flex-col items-end gap-0.5">
       <span>{hasPricedAmount ? formatPriceUsd(amount) : '—'}</span>
-      {unavailableRequests > 0 && (
-        <span className="text-xs font-medium text-[var(--theme-text-tertiary)]">
-          {getUnavailablePriceLabel(unavailableRequests, language)}
-        </span>
+      {unavailableRequests > 0 && unavailableLabel && (
+        <span className="text-xs font-medium text-[var(--theme-text-tertiary)]">{unavailableLabel}</span>
       )}
     </span>
   );
 };
 
 export const UsageOverviewTab: React.FC = () => {
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   const { timeRange, setTimeRange, isLoading, summary, byModel } = useUsageStats();
+
+  const unavailableLabel = interpolate(t('usagePricingUnavailable'), {
+    count: summary.estimatedCostUnavailableRequests.toLocaleString(),
+  });
 
   const metrics = [
     { title: t('usageTotalRequests'), value: summary.totalRequests.toLocaleString() },
@@ -60,7 +58,7 @@ export const UsageOverviewTab: React.FC = () => {
           amount={summary.estimatedCostUsd}
           pricedRequests={summary.estimatedCostPricedRequests}
           unavailableRequests={summary.estimatedCostUnavailableRequests}
-          language={language}
+          unavailableLabel={unavailableLabel}
         />
       ),
     },
@@ -178,7 +176,9 @@ export const UsageOverviewTab: React.FC = () => {
                               amount={item.estimatedCostUsd}
                               pricedRequests={item.estimatedCostPricedRequests}
                               unavailableRequests={item.estimatedCostUnavailableRequests}
-                              language={language}
+                              unavailableLabel={interpolate(t('usagePricingUnavailable'), {
+                                count: item.estimatedCostUnavailableRequests.toLocaleString(),
+                              })}
                             />
                           </td>
                         </tr>

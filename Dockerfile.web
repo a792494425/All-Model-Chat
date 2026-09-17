@@ -2,12 +2,14 @@ FROM node:24-slim
 
 WORKDIR /app
 
-COPY docker/web-server.js /app/web-server.js
-COPY dist /app/public
+COPY --chown=node:node docker/web-server.js /app/web-server.js
+COPY --chown=node:node dist /app/public
 
 ENV PORT=80
 ENV API_UPSTREAM=http://api:3001
 ENV WEB_ROOT=/app/public
+
+USER node
 
 EXPOSE 80
 

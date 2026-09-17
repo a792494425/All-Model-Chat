@@ -437,4 +437,11 @@ describe('project structure boundaries', () => {
       expect(source, relativePath).not.toContain('./markdownUtils');
     }
   });
+
+  it('keeps embedding background services decoupled from UI stores', () => {
+    const queueSource = readProjectFile('src/services/embedding/autoIndexingQueue.ts');
+
+    expect(queueSource).not.toContain("from '@/stores/");
+    expect(queueSource).not.toContain('useMultimodalSearchStore');
+  });
 });

@@ -117,7 +117,7 @@ export const McpPickerMenu: React.FC<McpPickerMenuProps> = ({ disabled, disabled
           <span className="min-w-0 truncate text-[var(--theme-text-primary)]">{server.name}</span>
           {server.isVirtual && (
             <span className="shrink-0 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              {t('mcpPickerVirtualBadge', t('settingsMcpVirtualBadge', '内置'))}
+              {t('mcpPickerVirtualBadge')}
             </span>
           )}
         </div>

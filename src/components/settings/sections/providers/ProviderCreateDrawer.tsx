@@ -161,7 +161,11 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({ isOp
                       : 'bg-[var(--theme-bg-tertiary)]/50 text-[var(--theme-text-secondary)] border-transparent hover:text-[var(--theme-text-primary)]'
                   }`}
                 >
-                  {p === 'anthropic' ? 'Anthropic' : p === 'openai-responses' ? 'Responses' : 'OpenAI 兼容'}
+                  {p === 'anthropic'
+                    ? 'Anthropic'
+                    : p === 'openai-responses'
+                      ? 'Responses'
+                      : t('thirdPartyProtocolOpenAI')}
                 </button>
               ))}
             </div>

@@ -60,7 +60,7 @@ export const AssistantApiKeyDialog: React.FC = () => {
                   </p>
                   <div className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400 font-medium pt-1">
                     <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
-                    <span>端到端安全隔离：密钥不会传递给 AI 提示词或模型服务</span>
+                    <span>{t('assistantApiKeySecurityNotice')}</span>
                   </div>
                 </div>
               </AlertDialogDescription>

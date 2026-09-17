@@ -19,7 +19,11 @@ clientsClaim();
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-const navigationRoute = new NavigationRoute(createHandlerBoundToURL('/index.html'), {
+const baseUrl = import.meta.env.BASE_URL || '/';
+const runtimeConfigPath = `${baseUrl}runtime-config.js`.replace(/\/{2,}/g, '/');
+const indexPath = `${baseUrl}index.html`.replace(/\/{2,}/g, '/');
+
+const navigationRoute = new NavigationRoute(createHandlerBoundToURL(indexPath), {
   denylist: [/^\/api\//],
 });
 
@@ -31,7 +35,10 @@ registerRoute(navigationRoute);
 registerRoute(
   ({ url }) =>
     url.origin === self.location.origin &&
-    (url.pathname === '/runtime-config.js' || url.pathname === '/api' || url.pathname.startsWith('/api/')),
+    (url.pathname === runtimeConfigPath ||
+      url.pathname === '/runtime-config.js' ||
+      url.pathname === '/api' ||
+      url.pathname.startsWith('/api/')),
   new NetworkOnly(),
 );
 
@@ -39,6 +46,7 @@ registerRoute(
   ({ request, url }) =>
     url.origin === self.location.origin &&
     ['style', 'script', 'worker', 'font', 'image'].includes(request.destination) &&
+    url.pathname !== runtimeConfigPath &&
     url.pathname !== '/runtime-config.js' &&
     url.pathname !== '/api' &&
     !url.pathname.startsWith('/api/'),

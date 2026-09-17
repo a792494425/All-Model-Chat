@@ -22,6 +22,7 @@ import { type LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArt
 import { LIVE_ARTIFACT_CLEAR_SELECTION_EVENT } from '@/utils/text-selection/liveArtifactSelection';
 import { type UploadedFile } from '@/types';
 import { svgToUploadedFile } from '@/utils/export/svgToUploadedFile';
+import { copyTextToClipboard } from '@/utils/clipboard';
 
 interface ArtifactFrameProps {
   html: string;
@@ -271,9 +272,7 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
     (text: string) => {
       // The sandboxed iframe lacks allow-same-origin, so navigator.clipboard
       // is unavailable there; the parent page writes to the clipboard instead.
-      targetWindow.navigator.clipboard?.writeText(text).catch((error: unknown) => {
-        logService.warn('Failed to copy Live Artifact text:', error);
-      });
+      void copyTextToClipboard(text, targetWindow.document);
     },
     [targetWindow],
   );

@@ -18,13 +18,13 @@ const LEVEL_LABEL_KEYS: Record<ThinkingLevel, string> = {
 };
 
 const LEVEL_FALLBACK: Record<ThinkingLevel, string> = {
-  NONE: '关闭',
-  MINIMAL: '极简',
-  LOW: '低',
-  MEDIUM: '中',
-  HIGH: '高',
-  XHIGH: '极高',
-  MAX: '最大',
+  NONE: 'Off',
+  MINIMAL: 'Minimal',
+  LOW: 'Low',
+  MEDIUM: 'Medium',
+  HIGH: 'High',
+  XHIGH: 'Extra High',
+  MAX: 'Max',
 };
 
 const WHEEL_STEP_THRESHOLD = 40;
@@ -160,16 +160,12 @@ export const ThinkingSpeedControl: React.FC = () => {
 
   const isDefault = displayLevel === defaultLevel;
 
-  const intensityLabel = t('thinkingIntensity');
-  const intensityText = intensityLabel !== 'thinkingIntensity' ? intensityLabel : '强度';
-  const defaultLabel = t('thinkingDefault');
-  const defaultText = defaultLabel !== 'thinkingDefault' ? defaultLabel : '默认';
-  const fasterLabel = t('thinkingFaster');
-  const fasterText = fasterLabel !== 'thinkingFaster' ? fasterLabel : '更快';
-  const smarterLabel = t('thinkingSmarter');
-  const smarterText = smarterLabel !== 'thinkingSmarter' ? smarterLabel : '更智能';
+  const intensityText = t('thinkingIntensity');
+  const defaultText = t('thinkingDefault');
+  const fasterText = t('thinkingFaster');
+  const smarterText = t('thinkingSmarter');
   const settingsThinkingModeLabel = t('settingsThinkingMode');
-  const fastAriaLabel = t('thinkingFaster') !== 'thinkingFaster' ? t('thinkingFaster') : '极速';
+  const fastAriaLabel = t('thinkingFaster');
 
   const supportsFast = (isFlash3 || isRobotics) && activeCapabilities.supportsMinimalThinkingLevel;
   const isFastActive = supportsFast && displayLevel === 'MINIMAL';

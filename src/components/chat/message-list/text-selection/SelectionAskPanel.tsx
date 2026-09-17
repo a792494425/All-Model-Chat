@@ -22,10 +22,11 @@ import { useSelectionAsk } from '@/hooks/text-selection/useSelectionAsk';
 import { resolveAskPanelDockSide, type AskPanelDockSide } from '@/utils/text-selection/askPanelDocking';
 import { formatSelectionAskModelLabel } from '@/utils/text-selection/selectionAskDisplay';
 import TextareaAutosize from 'react-textarea-autosize';
-import { MathMarkdownRenderer } from '@/components/message/MathMarkdownRenderer';
+import { LazyMarkdownRenderer } from '@/components/message/LazyMarkdownRenderer';
 import { copyTextToClipboard } from '@/utils/clipboard';
 import { SELECTION_ASK_PANEL_SIZE_KEY } from '@/constants/storageKeys';
 import { readPersistentStorageItem, writePersistentStorageItem } from '@/stores/persistentStorage';
+import { safeJsonParse } from '@/utils/safeJsonParse';
 
 interface SelectionAskPanelProps {
   selectedText: string;
@@ -60,15 +61,11 @@ const clampSizeToViewport = (size: PanelSize, vw: number, vh: number): PanelSize
 });
 
 const readPersistedSize = (vw: number, vh: number): PanelSize | null => {
-  try {
-    const raw = readPersistentStorageItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<PanelSize>;
-    if (typeof parsed.width !== 'number' || typeof parsed.height !== 'number') return null;
-    return clampSizeToViewport({ width: parsed.width, height: parsed.height }, vw, vh);
-  } catch {
-    return null;
-  }
+  const raw = readPersistentStorageItem(STORAGE_KEY);
+  if (!raw) return null;
+  const parsed = safeJsonParse<Partial<PanelSize> | null>(raw, null);
+  if (!parsed || typeof parsed.width !== 'number' || typeof parsed.height !== 'number') return null;
+  return clampSizeToViewport({ width: parsed.width, height: parsed.height }, vw, vh);
 };
 
 export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
@@ -809,7 +806,7 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
 
           {hasAnswer && (
             <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:overflow-auto prose-pre:bg-[var(--theme-bg-code-block)]">
-              <MathMarkdownRenderer
+              <LazyMarkdownRenderer
                 content={answer}
                 isLoading={isLoading}
                 onImageClick={() => {}}

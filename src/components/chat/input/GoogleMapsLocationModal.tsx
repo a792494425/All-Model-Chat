@@ -57,7 +57,7 @@ export const GoogleMapsLocationModal: React.FC<GoogleMapsLocationModalProps> = (
       const position = await requestBrowserLocation();
       setDraftLat(String(position.latitude));
       setDraftLng(String(position.longitude));
-      setDraftName(position.name || '当前位置');
+      setDraftName(position.name || t('mapsLocationCurrentLocation'));
     } catch {
       setLocateError(t('mapsLocationLocateFailed'));
     } finally {
@@ -192,7 +192,7 @@ export const GoogleMapsLocationModal: React.FC<GoogleMapsLocationModalProps> = (
                 type="text"
                 value={draftName}
                 onChange={(e) => setDraftName(e.target.value)}
-                placeholder="如：北京、办公室、家"
+                placeholder={t('mapsLocationPlaceholder')}
                 className={SETTINGS_INPUT_CLASS}
               />
             </div>

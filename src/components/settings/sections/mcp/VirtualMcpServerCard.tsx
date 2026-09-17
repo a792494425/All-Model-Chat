@@ -109,7 +109,7 @@ export const VirtualMcpServerCard: React.FC<VirtualMcpServerCardProps> = ({
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <span className="truncate text-sm font-semibold text-[var(--theme-text-primary)]">{server.name}</span>
             <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-              {t('settingsMcpVirtualBadge') || '内置'}
+              {t('settingsMcpVirtualBadge')}
             </span>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -169,7 +169,7 @@ export const VirtualMcpServerCard: React.FC<VirtualMcpServerCardProps> = ({
               {testSuccess && (
                 <span className="flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
                   <Check size={13} />
-                  <span>服务状态正常，全部工具就绪</span>
+                  <span>{t('settingsMcpVirtualReady')}</span>
                 </span>
               )}
             </div>

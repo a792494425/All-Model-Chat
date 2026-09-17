@@ -4,6 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { logService } from '@/services/logService';
 import { ProviderAvatar } from './ProviderAvatar';
+import { blobToDataUrl } from '@/utils/file/fileEncoding';
 
 export interface ProviderImageUploadProps {
   value?: string;
@@ -11,55 +12,44 @@ export interface ProviderImageUploadProps {
   name?: string;
 }
 
-const resizeImageToDataUrl = (file: File, maxSize = 128): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    if (file.type === 'image/svg+xml') {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        resolve(result);
-      };
-      reader.onerror = (caughtError) => reject(caughtError);
-      reader.readAsDataURL(file);
-      return;
-    }
+const resizeImageToDataUrl = async (file: File, maxSize = 128): Promise<string> => {
+  const rawDataUrl = await blobToDataUrl(file);
+  if (file.type === 'image/svg+xml') {
+    return rawDataUrl;
+  }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        let { width, height } = img;
-        if (width > height) {
-          if (width > maxSize) {
-            height = Math.round((height * maxSize) / width);
-            width = maxSize;
-          }
-        } else {
-          if (height > maxSize) {
-            width = Math.round((width * maxSize) / height);
-            height = maxSize;
-          }
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > height) {
+        if (width > maxSize) {
+          height = Math.round((height * maxSize) / width);
+          width = maxSize;
         }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.max(width, 1);
-        canvas.height = Math.max(height, 1);
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve(event.target?.result as string);
-          return;
+      } else {
+        if (height > maxSize) {
+          width = Math.round((width * maxSize) / height);
+          height = maxSize;
         }
+      }
 
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/png', 0.9));
-      };
-      img.onerror = () => {
-        resolve(event.target?.result as string);
-      };
-      img.src = event.target?.result as string;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(width, 1);
+      canvas.height = Math.max(height, 1);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(rawDataUrl);
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png', 0.9));
     };
-    reader.onerror = (caughtError) => reject(caughtError);
-    reader.readAsDataURL(file);
+    img.onerror = () => {
+      resolve(rawDataUrl);
+    };
+    img.src = rawDataUrl;
   });
 };
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getErrorMessage, toError } from './errorMessage';
+import { getErrorMessage, readResponseErrorMessage, toError } from './errorMessage';
 
 describe('errorMessage utility', () => {
   describe('getErrorMessage', () => {
@@ -43,6 +43,28 @@ describe('errorMessage utility', () => {
     it('defaults to Unknown error when no fallback provided', () => {
       const err = toError(undefined);
       expect(err.message).toBe('Unknown error');
+    });
+  });
+
+  describe('readResponseErrorMessage', () => {
+    it('returns status message for empty response body', async () => {
+      const res = new Response('', { status: 502 });
+      expect(await readResponseErrorMessage(res, 'Request')).toBe('Request failed with status 502');
+    });
+
+    it('extracts nested error.message object', async () => {
+      const res = new Response(JSON.stringify({ error: { message: 'Quota exceeded' } }));
+      expect(await readResponseErrorMessage(res, 'API')).toBe('Quota exceeded');
+    });
+
+    it('extracts string error field', async () => {
+      const res = new Response(JSON.stringify({ error: 'Server busy' }));
+      expect(await readResponseErrorMessage(res, 'API')).toBe('Server busy');
+    });
+
+    it('falls back to raw text for non-JSON response', async () => {
+      const res = new Response('504 Gateway Time-out', { status: 504 });
+      expect(await readResponseErrorMessage(res, 'API')).toBe('504 Gateway Time-out');
     });
   });
 });

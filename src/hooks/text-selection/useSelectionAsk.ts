@@ -10,6 +10,7 @@ import { sendAnthropicMessageStream } from '@/services/api/anthropicApi';
 import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { useI18n } from '@/contexts/I18nContext';
+import { interpolate } from '@/i18n/interpolate';
 import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 
 export function useSelectionAsk() {
@@ -92,9 +93,12 @@ export function useSelectionAsk() {
       const MAX_SELECTION_CHARS = 6000;
       const truncatedForPrompt =
         trimmedSelection.length > MAX_SELECTION_CHARS
-          ? `${trimmedSelection.slice(0, MAX_SELECTION_CHARS)}\n\n[注：选中文本过长已截断，仅显示前 ${MAX_SELECTION_CHARS} 字]`
+          ? `${trimmedSelection.slice(0, MAX_SELECTION_CHARS)}\n\n${interpolate(t('selectionAskTruncated'), { limit: MAX_SELECTION_CHARS })}`
           : trimmedSelection;
-      const prompt = `选中文本：\n"""${truncatedForPrompt}"""\n\n用户问题：${trimmedQuestion}\n\n请基于选中文本回答问题，若选中文本不足以回答请结合常识补充，但优先围绕选中文本。回答使用与用户问题相同的语言。`;
+      const prompt = interpolate(t('selectionAskInstruction'), {
+        selection: truncatedForPrompt,
+        question: trimmedQuestion,
+      });
 
       // Minimal history, single user turn
       const history: never[] = [];

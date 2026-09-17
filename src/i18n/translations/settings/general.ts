@@ -257,6 +257,15 @@ const generalSettings = {
     es: 'Todo el periodo',
     fr: 'Toute la période',
   },
+  usagePricingUnavailable: {
+    en: '{count} unavailable',
+    zh: '{count} 条不可定价',
+    ja: '{count} 件価格未対応',
+    ko: '{count}건 가격 미책정',
+    es: '{count} no tarificado',
+    fr: '{count} non tarifié',
+    de: '{count} nicht bepreist',
+  },
   usageTotalRequests: {
     en: 'Requests',
     zh: '请求次数',

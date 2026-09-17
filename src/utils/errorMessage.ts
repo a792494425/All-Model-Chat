@@ -1,3 +1,5 @@
+import { safeJsonParse } from './safeJsonParse';
+
 export const getErrorMessage = (error: unknown, fallbackMessage?: string): string => {
   if (error instanceof Error) {
     return error.message || fallbackMessage || '';
@@ -26,13 +28,11 @@ export const readResponseErrorMessage = async (response: Response, fallbackLabel
   if (!text) {
     return `${fallbackLabel} failed with status ${response.status}`;
   }
-  try {
-    const parsed = JSON.parse(text) as { error?: { message?: string } | string };
+  const parsed = safeJsonParse<{ error?: { message?: string } | string } | null>(text, null);
+  if (parsed && typeof parsed === 'object') {
     const error = parsed.error;
     if (typeof error === 'string') return error || text;
     if (error && typeof error.message === 'string') return error.message;
-    return text;
-  } catch {
-    return text;
   }
+  return text;
 };

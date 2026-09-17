@@ -115,6 +115,7 @@ export async function proxyExternalImage(
     'content-type': contentType,
     'cache-control': 'public, max-age=86400',
     'x-content-type-options': 'nosniff',
+    'content-security-policy': "default-src 'none'; script-src 'none'",
   });
 
   if (request.method === 'HEAD') {

@@ -116,12 +116,7 @@ describe('resolveUpstream (BYOK 兜底 unit)', () => {
   });
 
   it('still uses browser key when serverKeyPriority is true but no server key is configured', () => {
-    const result = resolveUpstream(
-      new URL('http://localhost/api/live?key=browser-key'),
-      'wss://host',
-      undefined,
-      true,
-    );
+    const result = resolveUpstream(new URL('http://localhost/api/live?key=browser-key'), 'wss://host', undefined, true);
     expect(result?.hadBrowserKey).toBe(true);
     expect(result?.url).toContain('key=browser-key');
   });

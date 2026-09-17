@@ -289,3 +289,13 @@ export const useMultimodalSearchStore = create<MultimodalSearchState & Multimoda
     },
   ),
 );
+
+autoIndexingQueue.setDelegate({
+  isAutoIndexEnabled: () => useMultimodalSearchStore.getState().isAutoIndexEnabled,
+  onIndexedCountChange: (count) => {
+    useMultimodalSearchStore.setState({ indexedCount: count });
+  },
+  onRefreshIndexStats: () => {
+    void useMultimodalSearchStore.getState().refreshIndexStats();
+  },
+});

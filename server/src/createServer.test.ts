@@ -341,6 +341,7 @@ describe('createServer', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toBe('image/png');
     expect(response.headers.get('cache-control')).toContain('max-age');
+    expect(response.headers.get('content-security-policy')).toBe("default-src 'none'; script-src 'none'");
     expect(Array.from(bytes)).toEqual([137, 80, 78, 71]);
   });
 

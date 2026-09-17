@@ -309,7 +309,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
                     onClick={() => setDocxViewMode('text')}
                     className="px-2.5 py-1 text-xs rounded-lg bg-[var(--theme-bg-secondary)] border border-[var(--theme-border-secondary)] text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] shadow-2xs transition-all font-medium cursor-pointer"
                   >
-                    切换至纯文本模式
+                    {t('filePreviewSwitchToPlainText')}
                   </button>
                 </div>
                 <div className="flex-1 min-h-0 overflow-hidden">
@@ -333,7 +333,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
                       onClick={() => setDocxViewMode('rich')}
                       className="px-2.5 py-1 text-xs rounded-lg bg-[var(--theme-bg-secondary)] border border-[var(--theme-border-secondary)] text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] shadow-2xs transition-all font-medium cursor-pointer"
                     >
-                      切换至高保真排版
+                      {t('filePreviewSwitchToRichText')}
                     </button>
                   </div>
                 )}

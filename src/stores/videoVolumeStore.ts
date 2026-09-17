@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { readPersistentStorageItem, writePersistentStorageItem } from './persistentStorage';
+import { safeJsonParse } from '@/utils/safeJsonParse';
 
 export const VIDEO_VOLUME_STORAGE_KEY = 'amc_video_player_volume';
 export const DEFAULT_VIDEO_VOLUME = 1;
@@ -31,22 +32,18 @@ const loadStoredVideoVolume = (): PersistedVideoVolumeData => {
     };
   }
 
-  try {
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === 'object') {
-      const volume = clampVolume(parsed.volume);
-      const isMuted = typeof parsed.isMuted === 'boolean' ? parsed.isMuted : volume === 0;
-      const parsedLast = typeof parsed.lastNonZeroVolume === 'number' ? clampVolume(parsed.lastNonZeroVolume) : 0;
-      const lastNonZeroVolume = parsedLast > 0 ? parsedLast : volume > 0 ? volume : DEFAULT_VIDEO_VOLUME;
+  const parsed = safeJsonParse<Partial<PersistedVideoVolumeData> | null>(raw, null);
+  if (parsed && typeof parsed === 'object') {
+    const volume = typeof parsed.volume === 'number' ? clampVolume(parsed.volume) : DEFAULT_VIDEO_VOLUME;
+    const isMuted = typeof parsed.isMuted === 'boolean' ? parsed.isMuted : volume === 0;
+    const parsedLast = typeof parsed.lastNonZeroVolume === 'number' ? clampVolume(parsed.lastNonZeroVolume) : 0;
+    const lastNonZeroVolume = parsedLast > 0 ? parsedLast : volume > 0 ? volume : DEFAULT_VIDEO_VOLUME;
 
-      return {
-        volume,
-        isMuted,
-        lastNonZeroVolume,
-      };
-    }
-  } catch {
-    // Fallback on corrupt JSON data
+    return {
+      volume,
+      isMuted,
+      lastNonZeroVolume,
+    };
   }
 
   return {

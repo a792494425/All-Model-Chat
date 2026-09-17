@@ -3,6 +3,7 @@ import { type VirtuosoHandle } from 'react-virtuoso';
 import { type ChatMessage } from '@/types';
 import { CHAT_SCROLL_POS_STORAGE_PREFIX } from '@/constants/storageKeys';
 import { readPersistentStorageItem, writePersistentStorageItem } from '@/stores/persistentStorage';
+import { safeJsonParse } from '@/utils/safeJsonParse';
 
 interface UseMessageListScrollProps {
   messages: ChatMessage[];
@@ -44,30 +45,29 @@ const parseStoredScrollSnapshot = (rawValue: string | null): StoredScrollSnapsho
     return legacyTop;
   }
 
-  try {
-    const parsed = JSON.parse(rawValue) as Partial<StoredMessageScrollSnapshot & StoredBottomScrollSnapshot>;
-    if (parsed.atBottom === true && Number.isFinite(parsed.scrollTop)) {
-      return {
-        atBottom: true,
-        scrollTop: Number(parsed.scrollTop),
-      };
-    }
-    if (
-      typeof parsed.messageId === 'string' &&
-      Number.isFinite(parsed.scrollTop) &&
-      Number.isFinite(parsed.topOffset)
-    ) {
-      return {
-        messageId: parsed.messageId,
-        scrollTop: Number(parsed.scrollTop),
-        topOffset: Number(parsed.topOffset),
-      };
-    }
-    if (Number.isFinite(parsed.scrollTop)) {
-      return Number(parsed.scrollTop);
-    }
-  } catch {
+  const parsed = safeJsonParse<Partial<StoredMessageScrollSnapshot & StoredBottomScrollSnapshot> | null>(
+    rawValue,
+    null,
+  );
+  if (!parsed || typeof parsed !== 'object') {
     return null;
+  }
+
+  if (parsed.atBottom === true && Number.isFinite(parsed.scrollTop)) {
+    return {
+      atBottom: true,
+      scrollTop: Number(parsed.scrollTop),
+    };
+  }
+  if (typeof parsed.messageId === 'string' && Number.isFinite(parsed.scrollTop) && Number.isFinite(parsed.topOffset)) {
+    return {
+      messageId: parsed.messageId,
+      scrollTop: Number(parsed.scrollTop),
+      topOffset: Number(parsed.topOffset),
+    };
+  }
+  if (Number.isFinite(parsed.scrollTop)) {
+    return Number(parsed.scrollTop);
   }
 
   return null;
