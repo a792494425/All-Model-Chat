@@ -1,5 +1,6 @@
 services:
   api:
+    image: ${API_IMAGE:-ghcr.io/yeahhe365/amc-webui-api:latest}
     build:
       context: .
       dockerfile: Dockerfile.api
@@ -37,6 +38,7 @@ services:
     restart: unless-stopped
 
   web:
+    image: ${WEB_IMAGE:-ghcr.io/yeahhe365/amc-webui-web:latest}
     build:
       context: .
       dockerfile: Dockerfile.web

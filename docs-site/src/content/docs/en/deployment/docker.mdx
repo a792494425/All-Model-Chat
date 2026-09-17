@@ -12,6 +12,18 @@ Docker Compose is the recommended deployment mode for self-hosting. It runs as t
 ---
 
 ## Quickstart
+ 
+### Option 1: Pull Official GHCR Prebuilt Images (Recommended)
+
+To run AMC WebUI without building from source, use the official multi-arch images (`linux/amd64` and `linux/arm64`):
+
+```bash
+# Pull latest images and start containers
+docker compose pull
+docker compose up -d
+```
+
+### Option 2: Build from Source Locally
 
 ```bash
 # 1. Build production bundles

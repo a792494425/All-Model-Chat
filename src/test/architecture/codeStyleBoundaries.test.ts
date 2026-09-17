@@ -53,7 +53,7 @@ describe('code style boundaries', () => {
     expect(dockerBuildJob).toContain('actions/download-artifact@v4');
     expect(dockerBuildJob).not.toContain('npm ci --legacy-peer-deps');
     expect(dockerBuildJob).not.toContain('npm run build');
-    expect(apiDockerfile).toContain('COPY server/dist /app/server/dist');
+    expect(apiDockerfile).toMatch(/COPY\s+(--chown=\S+\s+)?server\/dist\s+\/app\/server\/dist/);
     expect(apiDockerfile).not.toContain('RUN npm run build:api');
   });
 

@@ -13,6 +13,18 @@ Docker Compose 是官方推荐的自用与局域网私有化部署方案。它�
 
 ## 快速部署步骤
 
+### 方式一：直接拉取 GHCR 预构建镜像（推荐，免本地编译）
+
+如果您不需要修改源码，可直接使用官方预构建的多架构镜像（支持 `linux/amd64` 与 `linux/arm64`）：
+
+```bash
+# 拉取最新官方镜像并启动
+docker compose pull
+docker compose up -d
+```
+
+### 方式二：本地源码构建
+
 ```bash
 # 1. 在项目根目录构建前后端生产包
 pnpm run build:docker
