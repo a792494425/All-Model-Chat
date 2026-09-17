@@ -93,7 +93,7 @@ function proxyApi(req, res) {
     }
   });
 
-  req.on('close', () => {
+  res.on('close', () => {
     if (!res.writableEnded) {
       proxyReq.destroy();
     }
