@@ -117,6 +117,7 @@ function createStdioTransport(server: McpServerConfig): Transport {
     command: server.command,
     args: server.args ?? [],
     env: server.env ? { ...getDefaultEnvironment(), ...server.env } : undefined,
+    stderr: 'pipe',
   });
 }
 
@@ -163,10 +164,23 @@ async function closeTransportQuietly(client: Client | undefined, transport: Tran
     });
   }
 
-  const candidate = transport as { subprocess?: { kill?: (signal?: string) => void } } | undefined;
-  if (candidate?.subprocess?.kill) {
+  if (typeof transport?.close === 'function') {
+    await transport.close().catch((error) => {
+      console.warn('[mcp] transport.close() failed.', error);
+    });
+  }
+
+  const candidate = transport as
+    | {
+        subprocess?: { kill?: (signal?: string) => void };
+        _process?: { kill?: (signal?: string) => void };
+        process?: { kill?: (signal?: string) => void };
+      }
+    | undefined;
+  const proc = candidate?.subprocess ?? candidate?._process ?? candidate?.process;
+  if (proc?.kill) {
     try {
-      candidate.subprocess.kill('SIGTERM');
+      proc.kill('SIGTERM');
     } catch {
       // best-effort cleanup
     }
@@ -375,10 +389,11 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
         if (server.transport === 'stdio') {
           const t = connected.transport as unknown as {
             stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void };
+            _process?: { stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void } };
             process?: { stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void } };
             subprocess?: { stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void } };
           };
-          const maybeStderr = t.stderr ?? t.process?.stderr ?? t.subprocess?.stderr;
+          const maybeStderr = t.stderr ?? t._process?.stderr ?? t.process?.stderr ?? t.subprocess?.stderr;
           if (maybeStderr?.on) {
             maybeStderr.on('data', (chunk: Buffer | string) => {
               const text = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);

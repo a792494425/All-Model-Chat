@@ -407,11 +407,19 @@ export const createMcpClientFunctions = async ({
       const configKey = JSON.stringify(
         runtimeServers.map((s) => ({
           id: s.id,
+          name: s.name,
+          transport: s.transport,
           url: s.url,
           command: s.command,
+          args: s.args,
+          env: s.env,
+          headers: s.headers,
+          auth: s.auth,
           disabledTools: s.disabledTools,
           disabledAutoApproveTools: s.disabledAutoApproveTools,
           isTrusted: s.isTrusted,
+          timeout: s.timeout,
+          longRunning: s.longRunning,
         })),
       );
       const cachedResponse = readCachedTools(lister, configKey);

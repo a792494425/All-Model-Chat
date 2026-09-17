@@ -290,8 +290,24 @@ self.onmessage = async (event) => {
         // Listing the starting file set is best-effort; an empty dir is fine.
       }
 
-      pyodide.setStdout({ batched: (msg) => stdout.push(msg) });
-      pyodide.setStderr({ batched: (msg) => stdout.push(msg) });
+      const MAX_STDOUT_BYTES = 5 * 1024 * 1024;
+      let stdoutBytes = 0;
+      let stdoutTruncated = false;
+      const appendOutput = (msg) => {
+        if (stdoutTruncated) return;
+        const text = typeof msg === 'string' ? msg : String(msg ?? '');
+        if (stdoutBytes + text.length > MAX_STDOUT_BYTES) {
+          stdout.push(text.slice(0, Math.max(0, MAX_STDOUT_BYTES - stdoutBytes)) + '\\n[Output truncated: exceeded 5MB limit]');
+          stdoutBytes = MAX_STDOUT_BYTES;
+          stdoutTruncated = true;
+          return;
+        }
+        stdout.push(text);
+        stdoutBytes += text.length;
+      };
+
+      pyodide.setStdout({ batched: appendOutput });
+      pyodide.setStderr({ batched: appendOutput });
 
       await installDependencies(code);
 

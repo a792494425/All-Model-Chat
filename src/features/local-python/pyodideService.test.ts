@@ -568,6 +568,19 @@ describe('PyodideService', () => {
     await expect(firstRun).resolves.toMatchObject({ output: 'first' });
   });
 
+  it('clears the execution timeout handle when worker completes', async () => {
+    const clearTimeoutFn = vi.fn();
+    const { service, workers } = createService({ clearTimeoutFn });
+    const [worker] = workers;
+
+    const run = service.runPython('print("done")');
+    await waitForWorkerPost();
+    worker.emit({ id: 'mount-1', status: 'success', output: 'done' });
+    await expect(run).resolves.toMatchObject({ output: 'done' });
+
+    expect(clearTimeoutFn).toHaveBeenCalled();
+  });
+
   it('clears pending request bookkeeping when worker postMessage throws synchronously', async () => {
     const { service, workers } = createService();
     const [worker] = workers;

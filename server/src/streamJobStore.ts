@@ -493,8 +493,10 @@ async function attachJobStream(
         // render a spurious error bubble. Only genuine upstream failures get
         // the error event. And a write to an already-destroyed response throws
         // (browser went away); there's nothing left to send then.
-        if (job.error !== ABORTED_BY_CLIENT_MESSAGE && !response.writableEnded && !response.destroyed) {
-          response.write(buildStreamErrorEvent(job.error));
+        if (!response.writableEnded && !response.destroyed) {
+          if (job.error !== ABORTED_BY_CLIENT_MESSAGE) {
+            response.write(buildStreamErrorEvent(job.error));
+          }
           response.end();
         }
         return;

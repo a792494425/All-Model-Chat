@@ -25,6 +25,7 @@ interface PyodideServiceDependencies {
   createObjectUrl?: (blob: Blob) => string;
   revokeObjectUrl?: (url: string) => void;
   setTimeoutFn?: typeof setTimeout;
+  clearTimeoutFn?: typeof clearTimeout;
   createRequestId?: () => string;
   idleTimeoutMs?: number;
 }
@@ -92,8 +93,10 @@ export class PyodideService {
   private readonly createObjectUrl: (blob: Blob) => string;
   private readonly revokeObjectUrl: (url: string) => void;
   private readonly setTimeoutFn: typeof setTimeout;
+  private readonly clearTimeoutFn: typeof clearTimeout;
   private readonly createRequestId: () => string;
   private readonly idleTimeoutMs: number;
+  private idleTimerId: ReturnType<typeof setTimeout> | null = null;
   private queue: QueuedRequest[] = [];
   private running = false;
   private idleTimerVersion = 0;
@@ -108,6 +111,7 @@ export class PyodideService {
     createObjectUrl,
     revokeObjectUrl,
     setTimeoutFn,
+    clearTimeoutFn,
     createRequestId,
     idleTimeoutMs,
   }: PyodideServiceDependencies = {}) {
@@ -116,6 +120,7 @@ export class PyodideService {
     this.createObjectUrl = createObjectUrl ?? createManagedObjectUrl;
     this.revokeObjectUrl = revokeObjectUrl ?? releaseManagedObjectUrl;
     this.setTimeoutFn = setTimeoutFn ?? globalThis.setTimeout.bind(globalThis);
+    this.clearTimeoutFn = clearTimeoutFn ?? globalThis.clearTimeout.bind(globalThis);
     this.createRequestId = createRequestId ?? (() => Math.random().toString(36).substring(7));
     this.idleTimeoutMs = idleTimeoutMs ?? DEFAULT_IDLE_TIMEOUT_MS;
   }
@@ -266,6 +271,10 @@ export class PyodideService {
   }
 
   private clearIdleTimer() {
+    if (this.idleTimerId !== null) {
+      this.clearTimeoutFn(this.idleTimerId);
+      this.idleTimerId = null;
+    }
     // Invalidate any in-flight idle-reclaim callback by bumping the version it
     // captured; the callback checks the version before tearing the worker down.
     this.idleTimerVersion += 1;
@@ -275,8 +284,10 @@ export class PyodideService {
     if (this.idleTimeoutMs <= 0 || !this.worker) {
       return;
     }
+    this.clearIdleTimer();
     const version = ++this.idleTimerVersion;
-    this.setTimeoutFn(() => {
+    this.idleTimerId = this.setTimeoutFn(() => {
+      this.idleTimerId = null;
       if (version !== this.idleTimerVersion || this.disposed) {
         return;
       }
@@ -352,7 +363,12 @@ export class PyodideService {
     const abortError = this.createAbortError();
 
     return new Promise<ExecutionResult>((resolve, reject) => {
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
       const cleanup = () => {
+        if (timeoutId !== null) {
+          this.clearTimeoutFn(timeoutId);
+          timeoutId = null;
+        }
         abortSignal?.removeEventListener('abort', handleAbort);
         this.completeRequest(req.id);
       };
@@ -390,7 +406,7 @@ export class PyodideService {
         return;
       }
 
-      this.setTimeoutFn(() => {
+      timeoutId = this.setTimeoutFn(() => {
         if (this.pendingPromises.has(req.id)) {
           this.pendingPromises.delete(req.id);
           this.resetWorker(new Error('Execution timed out (60s)'), { skipRejectIds: [req.id] });
@@ -497,16 +513,6 @@ export class PyodideService {
     }
 
     return new Promise<ExecutionResult>((resolve, reject) => {
-      const req: QueuedRequest = {
-        id,
-        code,
-        uploadedFiles: options.files ?? [],
-        abortSignal,
-        resolve,
-        reject,
-        aborted: false,
-      };
-
       // Reject a queued request the moment it is aborted, without waiting for
       // the in-flight request ahead of it to finish and without touching the
       // healthy worker.
@@ -519,6 +525,26 @@ export class PyodideService {
         }
       };
       abortSignal?.addEventListener('abort', onAbort, { once: true });
+
+      const cleanupAbort = () => {
+        abortSignal?.removeEventListener('abort', onAbort);
+      };
+
+      const req: QueuedRequest = {
+        id,
+        code,
+        uploadedFiles: options.files ?? [],
+        abortSignal,
+        resolve: (result) => {
+          cleanupAbort();
+          resolve(result);
+        },
+        reject: (error) => {
+          cleanupAbort();
+          reject(error);
+        },
+        aborted: false,
+      };
 
       this.queue.push(req);
       void this.drain();

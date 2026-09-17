@@ -467,8 +467,29 @@ describe('createMcpClientFunctions discovery cache', () => {
       listTools,
       callTool: vi.fn(),
     });
+    // Headers change
+    await createMcpClientFunctions({
+      servers: [{ ...httpServer, headers: { 'x-custom': '1' } }],
+      listTools,
+      callTool: vi.fn(),
+    });
+    // Command args change
+    const stdioServer: McpServerConfig = {
+      id: 'stdio-test',
+      name: 'Stdio Test',
+      enabled: true,
+      transport: 'stdio',
+      command: 'node',
+      args: ['a.js'],
+    };
+    await createMcpClientFunctions({ servers: [stdioServer], listTools, callTool: vi.fn() });
+    await createMcpClientFunctions({
+      servers: [{ ...stdioServer, args: ['b.js'] }],
+      listTools,
+      callTool: vi.fn(),
+    });
 
-    expect(listTools).toHaveBeenCalledTimes(2);
+    expect(listTools).toHaveBeenCalledTimes(5);
   });
 
   it('refetches after the discovery cache expires', async () => {

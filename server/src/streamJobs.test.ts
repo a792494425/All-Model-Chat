@@ -404,12 +404,25 @@ describe('stream journal (job-id gated)', () => {
     });
     const appStarted = serverCleanup.track(await startHttpServer(app));
 
+    let streamEndedCleanly = false;
+    let sawErrorEvent = false;
+
     const streamReq = http.request(`${appStarted.baseUrl}${STREAM_PATH}`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
         [JOB_ID_HEADER]: 'job-client-abort',
       },
+    });
+    streamReq.on('response', (streamRes) => {
+      streamRes.on('data', (chunk: Buffer) => {
+        if (chunk.toString('utf8').includes('"error"')) {
+          sawErrorEvent = true;
+        }
+      });
+      streamRes.on('end', () => {
+        streamEndedCleanly = true;
+      });
     });
     streamReq.write(JSON.stringify({ contents: [] }));
     streamReq.end();
@@ -421,19 +434,10 @@ describe('stream journal (job-id gated)', () => {
     });
 
     // Allow the abort to land and the flush to run.
-    await new Promise((resolve) => setTimeout(resolve, 60));
-
-    let sawErrorEvent = false;
-    streamReq.on('data', (chunk: Buffer) => {
-      if (chunk.toString('utf8').includes('"error"')) {
-        sawErrorEvent = true;
-      }
-    });
-    // Give any (erroneous) error event a chance to arrive.
-    await new Promise((resolve) => setTimeout(resolve, 80));
-    streamReq.destroy();
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(sawErrorEvent).toBe(false);
+    expect(streamEndedCleanly).toBe(true);
   });
 
   it('journals multi-byte UTF-8 characters split across TCP chunks without corruption', async () => {

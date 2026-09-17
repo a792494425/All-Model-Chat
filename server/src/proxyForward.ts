@@ -133,6 +133,11 @@ export async function forwardUpstream(
       abortController.abort();
     }
   };
+  const handleClientClose = () => {
+    if (!response.writableEnded) {
+      abortUpstream();
+    }
+  };
 
   const requestInit: RequestInit & { duplex?: 'half' } = {
     method,
@@ -149,14 +154,14 @@ export async function forwardUpstream(
   }
 
   request.once('aborted', abortUpstream);
-  response.once('close', abortUpstream);
+  response.once('close', handleClientClose);
 
   let upstreamResponse: Response;
   try {
     upstreamResponse = await fetchImpl(upstreamUrl, requestInit);
   } catch (error) {
     request.off('aborted', abortUpstream);
-    response.off('close', abortUpstream);
+    response.off('close', handleClientClose);
     if (abortController.signal.aborted) {
       if (!response.destroyed) {
         response.destroy();
@@ -174,7 +179,7 @@ export async function forwardUpstream(
   // point us elsewhere.
   if (upstreamResponse.status >= 300 && upstreamResponse.status < 400) {
     request.off('aborted', abortUpstream);
-    response.off('close', abortUpstream);
+    response.off('close', handleClientClose);
     console.error(`${logTag} upstream returned redirect:`, upstreamResponse.status);
     sendJson(
       request,
@@ -190,7 +195,7 @@ export async function forwardUpstream(
 
   if (!upstreamResponse.body) {
     request.off('aborted', abortUpstream);
-    response.off('close', abortUpstream);
+    response.off('close', handleClientClose);
     response.end();
     return;
   }
@@ -203,6 +208,6 @@ export async function forwardUpstream(
     }
   } finally {
     request.off('aborted', abortUpstream);
-    response.off('close', abortUpstream);
+    response.off('close', handleClientClose);
   }
 }

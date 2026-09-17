@@ -101,7 +101,7 @@ const waitForUploadRetry = (attempt: number, signal: AbortSignal) =>
       return;
     }
 
-    const timeoutId = window.setTimeout(
+    const timeoutId = globalThis.setTimeout(
       () => {
         signal.removeEventListener('abort', handleAbort);
         resolve();
@@ -110,7 +110,7 @@ const waitForUploadRetry = (attempt: number, signal: AbortSignal) =>
     );
 
     const handleAbort = () => {
-      window.clearTimeout(timeoutId);
+      globalThis.clearTimeout(timeoutId);
       reject(createUploadAbortError());
     };
 
@@ -203,6 +203,9 @@ const uploadFileBytes = async (
       let settled = false;
       const cleanup = () => {
         signal.removeEventListener('abort', handleAbort);
+        xhr.onload = null;
+        xhr.onerror = null;
+        xhr.onabort = null;
       };
       const settle = (callback: () => void) => {
         if (settled) return;
@@ -266,6 +269,7 @@ const uploadFileBytes = async (
           'X-Goog-Upload-Offset': String(chunkOffset),
           'X-Goog-Upload-Command': uploadCommand,
           'Content-Length': String(chunk.size),
+          ...(apiKey ? { 'x-goog-api-key': apiKey } : {}),
         },
       },
       abortSignal: signal,

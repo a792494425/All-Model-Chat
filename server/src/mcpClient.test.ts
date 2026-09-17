@@ -543,4 +543,58 @@ describe('createMcpClientBridge', () => {
       expect(logs[0].message).toContain('Bearer ***');
     });
   });
+
+  describe('stdio process lifecycle and cleanup', () => {
+    it('creates stdio transport with stderr piped and cleans up process on connection failure', async () => {
+      const server = {
+        id: 'stdio-test',
+        name: 'Stdio Test',
+        enabled: true,
+        transport: 'stdio' as const,
+        command: 'node',
+        args: ['worker.js'],
+      };
+
+      const mockClose = vi.fn(async () => undefined);
+      const mockKill = vi.fn();
+      sdkMocks.stdioTransportConstructor.mockImplementationOnce(function MockStdio() {
+        return {
+          transport: 'stdio',
+          close: mockClose,
+          _process: { kill: mockKill },
+        };
+      });
+
+      // Simulate connection failure (e.g. handshake timeout)
+      sdkMocks.clientConstructor.mockImplementationOnce(function MockFailingClient() {
+        return {
+          connect: vi.fn(async () => {
+            throw new Error('Connection handshake timed out');
+          }),
+          close: vi.fn(async () => undefined),
+          ping: vi.fn(),
+          listTools: vi.fn(),
+          callTool: vi.fn(),
+          listResources: vi.fn(),
+          listResourceTemplates: vi.fn(),
+          readResource: vi.fn(),
+          listPrompts: vi.fn(),
+          getPrompt: vi.fn(),
+        };
+      });
+
+      const bridge = createBridge();
+      await expect(bridge.listTools(server)).rejects.toThrow('Connection handshake timed out');
+
+      expect(sdkMocks.stdioTransportConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          command: 'node',
+          args: ['worker.js'],
+          stderr: 'pipe',
+        }),
+      );
+      expect(mockClose).toHaveBeenCalled();
+      expect(mockKill).toHaveBeenCalledWith('SIGTERM');
+    });
+  });
 });
