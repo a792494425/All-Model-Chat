@@ -38,6 +38,9 @@ const REMOVED_MODEL_ID_MIGRATIONS: Readonly<Record<string, string>> = {
   // Exact IDs only — must not match gemini-3.5-flash-lite.
   'gemini-3.5-flash': 'gemini-3.7-flash',
   'models/gemini-3.5-flash': 'gemini-3.7-flash',
+  // Robotics ER generation 1 shut down 2026-08-31; migrate to ER 2.
+  'gemini-robotics-er-1.6-preview': ROBOTICS_MODEL,
+  'models/gemini-robotics-er-1.6-preview': ROBOTICS_MODEL,
 };
 
 export const migrateRemovedModelId = (modelId: string | null | undefined): string | undefined => {
@@ -73,8 +76,6 @@ export const THINKING_BUDGET_RANGES: { [key: string]: { min: number; max: number
     modelIds: [
       'gemini-2.5-flash',
       'models/gemini-2.5-flash',
-      'gemini-robotics-er-1.6-preview',
-      'models/gemini-robotics-er-1.6-preview',
     ],
     range: thinkingBudgetRange(0, 24576),
   },
