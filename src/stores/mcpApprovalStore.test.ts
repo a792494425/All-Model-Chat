@@ -3,9 +3,10 @@ import { requestToolApproval, useMcpApprovalStore } from './mcpApprovalStore';
 import type { McpApprovalRequest } from '@/features/mcp/toolApproval';
 
 const makeRequest = (toolName: string): McpApprovalRequest => ({
+  serverId: 'test-server-id',
   serverName: 'test-server',
   toolName,
-  arguments: { foo: 'bar' },
+  args: { foo: 'bar' },
 });
 
 describe('mcpApprovalStore', () => {
@@ -30,8 +31,8 @@ describe('mcpApprovalStore', () => {
     expect(useMcpApprovalStore.getState().pendingQueue).toHaveLength(3);
 
     // Resolve first
-    useMcpApprovalStore.getState().resolveApproval('allow');
-    expect(await p1).toBe('allow');
+    useMcpApprovalStore.getState().resolveApproval('allow-once');
+    expect(await p1).toBe('allow-once');
 
     // Second now becomes pending
     expect(useMcpApprovalStore.getState().pending?.request.toolName).toBe('tool-2');
@@ -45,9 +46,9 @@ describe('mcpApprovalStore', () => {
     expect(useMcpApprovalStore.getState().pending?.request.toolName).toBe('tool-3');
     expect(useMcpApprovalStore.getState().pendingQueue).toHaveLength(1);
 
-    // Resolve third with allow-always
-    useMcpApprovalStore.getState().resolveApproval('allow-always');
-    expect(await p3).toBe('allow-always');
+    // Resolve third with allow-session
+    useMcpApprovalStore.getState().resolveApproval('allow-session');
+    expect(await p3).toBe('allow-session');
 
     // Queue now empty
     expect(useMcpApprovalStore.getState().pending).toBeNull();
@@ -72,8 +73,8 @@ describe('mcpApprovalStore', () => {
     expect(useMcpApprovalStore.getState().pending?.request.toolName).toBe('tool-2');
     expect(useMcpApprovalStore.getState().pendingQueue).toHaveLength(1);
 
-    useMcpApprovalStore.getState().resolveApproval('allow');
-    expect(await p2).toBe('allow');
+    useMcpApprovalStore.getState().resolveApproval('allow-once');
+    expect(await p2).toBe('allow-once');
     expect(useMcpApprovalStore.getState().pending).toBeNull();
   });
 });

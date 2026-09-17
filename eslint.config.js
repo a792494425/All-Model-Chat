@@ -112,6 +112,7 @@ export default tseslint.config(
       'src/services/db/indexedDbAccess.ts',
       'src/features/local-python/pyodideWorkerTemplate.ts',
       'src/utils/chat/session.ts',
+      'src/test/setup.ts',
     ],
     rules: {
       // These files either run outside the browser UI thread or provide diagnostics that feed logService.

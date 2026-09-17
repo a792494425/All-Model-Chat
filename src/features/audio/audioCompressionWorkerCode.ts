@@ -1,6 +1,4 @@
-const baseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL)
-  ? import.meta.env.BASE_URL
-  : '/';
+const baseUrl = typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL ? import.meta.env.BASE_URL : '/';
 const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
 
 export const audioCompressionWorkerCode = `

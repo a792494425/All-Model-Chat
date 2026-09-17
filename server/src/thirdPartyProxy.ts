@@ -183,7 +183,9 @@ export async function proxyThirdPartyRequest(
       upstreamGuard.rejection === 'invalid-url'
         ? 'Invalid third-party upstream URL.'
         : upstreamGuard.rejection === 'insecure-protocol'
-          ? (config.enablePrivateHttp ? 'Third-party upstream must use HTTP or HTTPS.' : 'Third-party upstream must use HTTPS.')
+          ? config.enablePrivateHttp
+            ? 'Third-party upstream must use HTTP or HTTPS.'
+            : 'Third-party upstream must use HTTPS.'
           : `Third-party upstream host "${upstreamGuard.hostname}" is not allowed.`;
     sendJson(request, response, 400, { error: detail }, config.allowedOrigins);
     return;

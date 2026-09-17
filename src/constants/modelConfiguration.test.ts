@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  migrateRemovedModelId,
-  ROBOTICS_MODEL,
-  THINKING_BUDGET_RANGES,
-} from './modelConfiguration';
+import { migrateRemovedModelId, ROBOTICS_MODEL, THINKING_BUDGET_RANGES } from './modelConfiguration';
 
 describe('migrateRemovedModelId', () => {
   it('migrates legacy robotics-er-1.6-preview to ROBOTICS_MODEL (er-2)', () => {

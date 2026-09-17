@@ -22,13 +22,7 @@ describe('HtmlPreviewContent', () => {
     const srcDoc = iframe?.getAttribute('srcdoc') ?? '';
 
     expect(sandbox.split(/\s+/)).toEqual(
-      expect.arrayContaining([
-        'allow-scripts',
-        'allow-forms',
-        'allow-popups',
-        'allow-modals',
-        'allow-downloads',
-      ]),
+      expect.arrayContaining(['allow-scripts', 'allow-forms', 'allow-popups', 'allow-modals', 'allow-downloads']),
     );
     expect(sandbox).not.toContain('allow-same-origin');
     expect(sandbox).not.toContain('allow-top-navigation');

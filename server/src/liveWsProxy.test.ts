@@ -29,6 +29,7 @@ const buildConfig = (overrides: Partial<ApiServerConfig> = {}): ApiServerConfig 
   allowedOrigins: [],
   enableMcpStdio: false,
   enableMcpPrivateHttp: false,
+  enableThirdPartyPrivateHttp: false,
   enableLiveWsProxy: true,
   liveWsIdleTimeoutMs: 300_000,
   serverKeyPriority: false,

@@ -14,7 +14,7 @@ describe('pdfWorker', () => {
       },
     };
 
-    configurePdfWorker(dummyPdfjs);
+    configurePdfWorker(dummyPdfjs as unknown as Parameters<typeof configurePdfWorker>[0]);
     expect(dummyPdfjs.GlobalWorkerOptions.workerSrc).toBe(getPdfWorkerSrc());
   });
 });
