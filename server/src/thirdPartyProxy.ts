@@ -42,6 +42,7 @@ export interface ThirdPartyProxyConfig {
    */
   serverKeyPriority?: boolean;
   allowedOrigins: string[];
+  enablePrivateHttp?: boolean;
 }
 
 function resolveProviderId(request: IncomingMessage): string | null {
@@ -169,17 +170,20 @@ export async function proxyThirdPartyRequest(
   const targetBase = route.baseUrl.replace(/\/$/, '');
   const upstreamUrl = `${targetBase}${upstreamPath}${requestUrl.search}`;
 
-  // SSRF guard: only allow https + non-private hosts from the route table.
+  // SSRF guard: only allow https + non-private hosts from the route table
+  // (unless enablePrivateHttp is enabled, e.g. for local Ollama/vLLM endpoints).
   // Embedded credentials are NOT rejected here — this path has never checked
   // them, so the shared guard's credential check stays off to preserve the
   // behavior exactly (the Gemini override header does enable it).
-  const upstreamGuard = guardPublicHttpsUrl(upstreamUrl);
+  const upstreamGuard = guardPublicHttpsUrl(upstreamUrl, {
+    allowPrivateHttp: config.enablePrivateHttp,
+  });
   if (!upstreamGuard.ok) {
     const detail =
       upstreamGuard.rejection === 'invalid-url'
         ? 'Invalid third-party upstream URL.'
         : upstreamGuard.rejection === 'insecure-protocol'
-          ? 'Third-party upstream must use HTTPS.'
+          ? (config.enablePrivateHttp ? 'Third-party upstream must use HTTP or HTTPS.' : 'Third-party upstream must use HTTPS.')
           : `Third-party upstream host "${upstreamGuard.hostname}" is not allowed.`;
     sendJson(request, response, 400, { error: detail }, config.allowedOrigins);
     return;

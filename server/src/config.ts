@@ -12,6 +12,7 @@ export interface ApiServerConfig {
   allowedOrigins: string[];
   enableMcpStdio: boolean;
   enableMcpPrivateHttp: boolean;
+  enableThirdPartyPrivateHttp: boolean;
   enableLiveWsProxy: boolean;
   liveWsIdleTimeoutMs: number;
   /** Test hook only: overrides the Live upstream WS base (scheme + host). Production config never sets it. */
@@ -129,6 +130,7 @@ export function loadConfig(env: EnvLike = process.env): ApiServerConfig {
     allowedOrigins: parseAllowedOrigins(env.ALLOWED_ORIGINS),
     enableMcpStdio: parseBooleanFlag(env.ENABLE_MCP_STDIO),
     enableMcpPrivateHttp: parseBooleanFlag(env.ENABLE_MCP_PRIVATE_HTTP),
+    enableThirdPartyPrivateHttp: parseBooleanFlag(env.ENABLE_THIRD_PARTY_PRIVATE_HTTP),
     enableLiveWsProxy: parseBooleanFlag(env.ENABLE_LIVE_WS_PROXY),
     liveWsIdleTimeoutMs: parseLiveWsIdleTimeoutMs(env.LIVE_WS_IDLE_TIMEOUT_MS),
     serverKeyPriority: parseServerKeyPriority(env.SERVER_KEY_PRIORITY),

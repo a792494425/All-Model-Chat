@@ -41,6 +41,7 @@ describe('createServer', () => {
       thirdPartyProxy: expect.any(Boolean),
       mcpStdio: false,
       mcpPrivateHttp: false,
+      thirdPartyPrivateHttp: false,
     });
     expect(typeof body.timestamp).toBe('string');
 

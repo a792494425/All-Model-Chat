@@ -35,6 +35,7 @@ type CreateServerConfig = Pick<ApiServerConfig, 'geminiApiBase' | 'geminiApiKey'
       | 'allowedOrigins'
       | 'enableMcpStdio'
       | 'enableMcpPrivateHttp'
+      | 'enableThirdPartyPrivateHttp'
       | 'enableLiveWsProxy'
       | 'liveWsIdleTimeoutMs'
       | 'liveWsUpstreamBase'
@@ -50,6 +51,7 @@ interface ResolvedServerConfig
       | 'allowedOrigins'
       | 'enableMcpStdio'
       | 'enableMcpPrivateHttp'
+      | 'enableThirdPartyPrivateHttp'
       | 'enableLiveWsProxy'
       | 'liveWsIdleTimeoutMs'
       | 'liveWsUpstreamBase'
@@ -62,6 +64,7 @@ interface ResolvedServerConfig
   allowedOrigins: string[];
   enableMcpStdio: boolean;
   enableMcpPrivateHttp: boolean;
+  enableThirdPartyPrivateHttp: boolean;
   enableLiveWsProxy: boolean;
   liveWsIdleTimeoutMs: number;
   liveWsUpstreamBase?: string;
@@ -106,6 +109,8 @@ export function createServer(config: CreateServerConfig, dependencies: CreateSer
     allowedOrigins: config.allowedOrigins ?? [],
     enableMcpStdio: config.enableMcpStdio ?? false,
     enableMcpPrivateHttp: config.enableMcpPrivateHttp ?? false,
+    enableThirdPartyPrivateHttp: config.enableThirdPartyPrivateHttp ?? false,
+    enablePrivateHttp: config.enableThirdPartyPrivateHttp ?? false,
     enableLiveWsProxy: config.enableLiveWsProxy ?? false,
     liveWsIdleTimeoutMs: config.liveWsIdleTimeoutMs ?? 300_000,
     serverKeyPriority: config.serverKeyPriority ?? false,
@@ -154,6 +159,7 @@ export function createServer(config: CreateServerConfig, dependencies: CreateSer
               thirdPartyProxy: Object.keys(resolvedConfig.thirdPartyRoutes).length > 0,
               mcpStdio: resolvedConfig.enableMcpStdio,
               mcpPrivateHttp: resolvedConfig.enableMcpPrivateHttp,
+              thirdPartyPrivateHttp: resolvedConfig.enableThirdPartyPrivateHttp,
             },
           },
           resolvedConfig.allowedOrigins,

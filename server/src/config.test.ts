@@ -8,16 +8,19 @@ describe('loadConfig', () => {
 
     expect(config.enableMcpStdio).toBe(false);
     expect(config.enableMcpPrivateHttp).toBe(false);
+    expect(config.enableThirdPartyPrivateHttp).toBe(false);
   });
 
-  it('parses MCP transport enablement flags from the environment', () => {
+  it('parses MCP and third-party transport enablement flags from the environment', () => {
     const config = loadConfig({
       ENABLE_MCP_STDIO: 'true',
       ENABLE_MCP_PRIVATE_HTTP: 'yes',
+      ENABLE_THIRD_PARTY_PRIVATE_HTTP: '1',
     });
 
     expect(config.enableMcpStdio).toBe(true);
     expect(config.enableMcpPrivateHttp).toBe(true);
+    expect(config.enableThirdPartyPrivateHttp).toBe(true);
   });
 
   it('leaves the Live WS proxy disabled by default', () => {

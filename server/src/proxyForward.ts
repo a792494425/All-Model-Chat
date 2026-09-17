@@ -53,12 +53,17 @@ export interface UpstreamUrlGuardOptions {
    * preserve its behavior exactly.
    */
   rejectEmbeddedCredentials?: boolean;
+  /**
+   * When true, allow http: protocol and private network hostnames (e.g. localhost, 127.0.0.1, host.docker.internal).
+   * Used when ENABLE_THIRD_PARTY_PRIVATE_HTTP is enabled for local Ollama / LM Studio deployments.
+   */
+  allowPrivateHttp?: boolean;
 }
 
 /**
- * Validate an upstream target URL for SSRF safety: it must parse, use https,
+ * Validate an upstream target URL for SSRF safety: it must parse, use https (or http if allowPrivateHttp is set),
  * (optionally) carry no embedded credentials, and resolve to a non-private
- * network hostname. The checks run in that fixed order so callers can map
+ * network hostname (unless allowPrivateHttp is set). The checks run in that fixed order so callers can map
  * each rejection reason to their own error copy without behavior drift.
  */
 export function guardPublicHttpsUrl(rawUrl: string, options: UpstreamUrlGuardOptions = {}): UpstreamUrlGuard {
@@ -69,7 +74,7 @@ export function guardPublicHttpsUrl(rawUrl: string, options: UpstreamUrlGuardOpt
     return { ok: false, rejection: 'invalid-url' };
   }
 
-  if (url.protocol !== 'https:') {
+  if (url.protocol !== 'https:' && (!options.allowPrivateHttp || url.protocol !== 'http:')) {
     return { ok: false, rejection: 'insecure-protocol', hostname: url.hostname };
   }
 
@@ -77,7 +82,7 @@ export function guardPublicHttpsUrl(rawUrl: string, options: UpstreamUrlGuardOpt
     return { ok: false, rejection: 'embedded-credentials', hostname: url.hostname };
   }
 
-  if (isPrivateNetworkHostname(url.hostname)) {
+  if (!options.allowPrivateHttp && isPrivateNetworkHostname(url.hostname)) {
     return { ok: false, rejection: 'private-network-host', hostname: url.hostname };
   }
 

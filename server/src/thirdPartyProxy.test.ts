@@ -282,6 +282,57 @@ describe('third-party proxy routing + BYOK 兜底', () => {
     expect(response.status).toBe(400);
   });
 
+  it('allows a private-network HTTP upstream when enableThirdPartyPrivateHttp is true', async () => {
+    const { fetchImpl, calls } = fetchRecorder();
+    const app = createServer(
+      buildConfig({
+        enableThirdPartyPrivateHttp: true,
+        thirdPartyRoutes: {
+          ollama: { baseUrl: 'http://127.0.0.1:11434/v1', apiKey: 'ollama-local' },
+        },
+      }),
+      { fetchImpl },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/openai/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-third-party-provider': 'ollama' },
+      body: JSON.stringify({ model: 'llama3' }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe('http://127.0.0.1:11434/v1/chat/completions');
+  });
+
+  it('allows a private-network browser-supplied baseUrl in pure-BYOK mode when enableThirdPartyPrivateHttp is true', async () => {
+    const { fetchImpl, calls } = fetchRecorder();
+    const app = createServer(
+      buildConfig({
+        enableThirdPartyPrivateHttp: true,
+        thirdPartyRoutes: {},
+      }),
+      { fetchImpl },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/openai/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-third-party-provider': 'lmstudio',
+        authorization: 'Bearer lm-studio-key',
+        'x-third-party-base-url': 'http://localhost:1234/v1',
+      },
+      body: JSON.stringify({ model: 'local-model' }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe('http://localhost:1234/v1/chat/completions');
+  });
+
   it('rejects a non-https upstream from the route table', async () => {
     const app = createServer(
       buildConfig({
