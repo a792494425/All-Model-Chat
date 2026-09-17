@@ -93,6 +93,12 @@ function proxyApi(req, res) {
     }
   });
 
+  req.on('close', () => {
+    if (!res.writableEnded) {
+      proxyReq.destroy();
+    }
+  });
+
   req.pipe(proxyReq);
 }
 
@@ -221,9 +227,11 @@ server.on('upgrade', (req, socket, head) => {
     console.error('[web] live ws upstream connect error:', err.message);
     cleanup();
   });
+  upstreamSocket.on('close', cleanup);
   socket.on('error', () => {
     cleanup();
   });
+  socket.on('close', cleanup);
 
   upstreamSocket.on('connect', () => {
     // Re-emit the exact upgrade request bytes the browser sent so the api

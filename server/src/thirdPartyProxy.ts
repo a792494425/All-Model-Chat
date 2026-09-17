@@ -3,6 +3,7 @@ import {
   parseThirdPartyExtraHeadersHeader,
   THIRD_PARTY_EXTRA_HEADERS_HEADER,
 } from '../../shared/thirdPartyExtraHeaders.js';
+import { SERVER_MANAGED_API_KEY, isAuthOptionalApiKey } from '../../shared/serverManagedApiKey.js';
 import { sendJson } from './cors.js';
 import type { ThirdPartyProxyRoute } from './config.js';
 import { forwardUpstream, guardPublicHttpsUrl } from './proxyForward.js';
@@ -67,14 +68,21 @@ const resolveRoute = (
   const route = routes[providerId] ?? routes['openai'];
 
   const browserAuthorization = request.headers['authorization'];
-  const browserBearer =
+  let browserBearer =
     typeof browserAuthorization === 'string' && browserAuthorization.toLowerCase().startsWith('bearer ')
       ? browserAuthorization.slice(7).trim()
       : '';
   const browserApiKeyHeader = request.headers['x-api-key'];
-  const browserApiKey = Array.isArray(browserApiKeyHeader)
+  let browserApiKey = Array.isArray(browserApiKeyHeader)
     ? (browserApiKeyHeader[0]?.trim() ?? '')
     : (browserApiKeyHeader?.trim() ?? '');
+
+  if (browserBearer === SERVER_MANAGED_API_KEY) {
+    browserBearer = '';
+  }
+  if (browserApiKey === SERVER_MANAGED_API_KEY) {
+    browserApiKey = '';
+  }
 
   const browserKey = browserBearer || browserApiKey;
 
@@ -131,7 +139,7 @@ function buildProxyHeaders(request: IncomingMessage, route: ResolvedRoute, provi
   // Anthropic uses x-api-key + anthropic-version; OpenAI-compatible uses Bearer.
   // The browser already sets content-type / anthropic-version on these requests;
   // re-stamp the auth header with the resolved (browser or server) key.
-  if (route.apiKey) {
+  if (route.apiKey && !isAuthOptionalApiKey(route.apiKey)) {
     headers.set('authorization', `Bearer ${route.apiKey}`);
     headers.set('x-api-key', route.apiKey);
   }

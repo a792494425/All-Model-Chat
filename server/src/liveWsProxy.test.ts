@@ -103,6 +103,28 @@ describe('resolveUpstream (BYOK 兜底 unit)', () => {
     );
     expect(result?.url).toContain('wss://generativelanguage.googleapis.com/generateContent');
   });
+
+  it('prefers the server-managed key when serverKeyPriority is true', () => {
+    const result = resolveUpstream(
+      new URL('http://localhost/api/live?key=browser-key'),
+      'wss://host',
+      'server-key',
+      true,
+    );
+    expect(result?.hadBrowserKey).toBe(false);
+    expect(result?.url).toContain('key=server-key');
+  });
+
+  it('still uses browser key when serverKeyPriority is true but no server key is configured', () => {
+    const result = resolveUpstream(
+      new URL('http://localhost/api/live?key=browser-key'),
+      'wss://host',
+      undefined,
+      true,
+    );
+    expect(result?.hadBrowserKey).toBe(true);
+    expect(result?.url).toContain('key=browser-key');
+  });
 });
 
 describe('Live WS proxy bridging', () => {
@@ -254,7 +276,37 @@ describe('Live WS upgrade security', () => {
       setTimeout(() => resolve('timeout'), 2000);
     });
     expect(rejected).toMatch(/status-401|closed/);
+    app.closeAllConnections?.();
+  });
 
+  it('closes the connection with code 1008 if the client overflows the pending buffer before upstream opens', async () => {
+    const upstreamHttp = http.createServer((_req, res) => res.end());
+    upstreamHttp.on('upgrade', () => {
+      // Deliberately never complete the upgrade so it stays in CONNECTING
+    });
+    const upstream = serverCleanup.track(await startHttpServer(upstreamHttp));
+    const upstreamWsBase = upstream.baseUrl.replace('http', 'ws');
+
+    const app = createServer(buildConfig());
+    attachLiveWsUpgrade(app, buildConfig({ liveWsUpstreamBase: upstreamWsBase }));
+    const server = serverCleanup.track(await startHttpServer(app));
+    const wsUrl = `${server.baseUrl.replace('http', 'ws')}/api/live?key=byok-key`;
+
+    const clientWs = new WebSocket(wsUrl);
+    const closePromise = new Promise<{ code: number; reason: string }>((resolve) => {
+      clientWs.on('close', (code, reasonBuf) => resolve({ code, reason: reasonBuf.toString() }));
+    });
+
+    await new Promise<void>((resolve) => clientWs.on('open', () => resolve()));
+
+    // Flood 101 frames while upstream is still connecting
+    for (let i = 0; i < 101; i++) {
+      clientWs.send(JSON.stringify({ index: i }));
+    }
+
+    const { code, reason } = await closePromise;
+    expect(code).toBe(1008);
+    expect(reason).toContain('Buffer overflow');
     app.closeAllConnections?.();
   });
 });

@@ -259,6 +259,39 @@ describe('createServer', () => {
     expect(init.headers.get('x-goog-api-key')).toBe('browser-key');
   });
 
+  it('swaps __SERVER_MANAGED_API_KEY__ sentinel for server-managed Gemini key', async () => {
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => {
+      return new Response('proxied', { status: 202 });
+    });
+    const app = createServer(
+      {
+        geminiApiBase: 'https://example.test',
+        geminiApiKey: 'server-secret-key',
+      },
+      { fetchImpl },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    const response = await fetch(`${started.baseUrl}/api/gemini/v1beta/models`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-goog-api-key': '__SERVER_MANAGED_API_KEY__',
+      },
+      body: JSON.stringify({ prompt: 'hello' }),
+    });
+
+    expect(response.status).toBe(202);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+
+    const init = fetchImpl.mock.calls[0][1];
+    if (!init?.headers || !(init.headers instanceof Headers)) {
+      throw new Error('Expected proxy request headers to be a Headers instance');
+    }
+
+    expect(init.headers.get('x-goog-api-key')).toBe('server-secret-key');
+  });
+
   it('returns a 502 JSON error when Gemini upstream fetch fails', async () => {
     const fetchImpl = vi.fn(async () => {
       throw new Error('network down');

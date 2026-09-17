@@ -112,7 +112,7 @@ describe('compressAudioToMp3', () => {
     expect(worker.postMessage).toHaveBeenCalledWith({ pcmData, sampleRate: 16_000, kbps: 64 }, [pcmData.buffer]);
     expect(createObjectUrl).toHaveBeenCalled();
     const workerCode = await (createObjectUrl.mock.calls[0][0] as Blob).text();
-    expect(workerCode).toContain("importScripts('/lame.min.js')");
+    expect(workerCode).toContain("importScripts(new URL('lame.min.js'");
     expect(workerCode).toContain("self.postMessage({ type: 'success'");
 
     worker.emitSuccess([new Uint8Array([7, 8, 9])]);

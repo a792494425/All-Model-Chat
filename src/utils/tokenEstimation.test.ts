@@ -93,6 +93,21 @@ describe('estimateVideoTokensForFiles', () => {
     expect(result).toBe(2100);
   });
 
+  it('returns 0 when startOffset is greater than or equal to endOffset', async () => {
+    const files = [
+      {
+        ...baseVideo,
+        videoMetadata: { startOffset: '40s', endOffset: '10s' },
+      },
+    ];
+    const result = await estimateVideoTokensForFiles(
+      files,
+      'gemini-3-pro',
+      MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED,
+    );
+    expect(result).toBe(0);
+  });
+
   it('uses file-level mediaResolution override when set', async () => {
     const files = [
       {

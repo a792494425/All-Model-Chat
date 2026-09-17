@@ -16,20 +16,29 @@ export interface EphemeralTokenConfig {
 const readRequestBodyJson = async (request: IncomingMessage): Promise<Record<string, unknown>> => {
   return new Promise((resolve) => {
     let body = '';
+    let settled = false;
+    const finish = (result: Record<string, unknown>) => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+
     request.on('data', (chunk) => {
+      if (settled) return;
       body += chunk;
       if (body.length > 1024 * 1024) {
-        resolve({});
+        request.destroy();
+        finish({});
       }
     });
     request.on('end', () => {
       try {
-        resolve(body ? JSON.parse(body) : {});
+        finish(body ? JSON.parse(body) : {});
       } catch {
-        resolve({});
+        finish({});
       }
     });
-    request.on('error', () => resolve({}));
+    request.on('error', () => finish({}));
   });
 };
 

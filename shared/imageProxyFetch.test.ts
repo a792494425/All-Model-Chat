@@ -1,7 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
 import type { ImageProxyDnsLookup } from './imageProxyDns.js';
-import { fetchImageProxyWithSafeRedirects, isUnsafeImageProxyRedirect } from './imageProxyFetch.js';
+import {
+  fetchImageProxyWithSafeRedirects,
+  isUnsafeImageProxyRedirect,
+  readBoundedResponseBody,
+} from './imageProxyFetch.js';
 
 const publicLookup: ImageProxyDnsLookup = async () => [{ address: '1.2.3.4', family: 4 }];
 
@@ -125,5 +129,27 @@ describe('fetchImageProxyWithSafeRedirects', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.kind).toBe('fetch_error');
+  });
+});
+
+describe('readBoundedResponseBody', () => {
+  it('reads small streams within the byte limit', async () => {
+    const data = new Uint8Array([1, 2, 3, 4, 5]);
+    const response = new Response(data);
+    const result = await readBoundedResponseBody(response, 10);
+    expect(result).toEqual(data);
+  });
+
+  it('cancels the reader and returns null when stream exceeds maxBytes', async () => {
+    const data = new Uint8Array(100);
+    const response = new Response(data);
+    const result = await readBoundedResponseBody(response, 50);
+    expect(result).toBeNull();
+  });
+
+  it('handles responses without a body gracefully', async () => {
+    const response = new Response(null);
+    const result = await readBoundedResponseBody(response, 50);
+    expect(result).toEqual(new Uint8Array(0));
   });
 });

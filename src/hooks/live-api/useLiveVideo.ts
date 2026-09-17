@@ -88,6 +88,17 @@ export const useLiveVideo = () => {
     return dataUrl.split(',')[1];
   }, []);
 
+  const streamRef = useRef<MediaStream | null>(null);
+  useEffect(() => {
+    streamRef.current = videoStream;
+  }, [videoStream]);
+
+  useEffect(() => {
+    return () => {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
+
   useEffect(() => {
     if (videoRef.current && videoStream) {
       const videoEl = videoRef.current;

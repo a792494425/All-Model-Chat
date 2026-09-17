@@ -118,6 +118,60 @@ describe('third-party proxy routing + BYOK 兜底', () => {
     expect(headers.get('x-api-key')).toBe('browser-byok-key');
   });
 
+  it('treats __SERVER_MANAGED_API_KEY__ as sentinel and falls back to server route key', async () => {
+    const { fetchImpl, calls } = fetchRecorder();
+    const app = createServer(
+      buildConfig({
+        thirdPartyRoutes: {
+          openai: { baseUrl: 'https://api.openai.com/v1', apiKey: 'server-route-key' },
+        },
+      }),
+      { fetchImpl },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    await fetch(`${started.baseUrl}/api/openai/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-third-party-provider': 'openai',
+        authorization: 'Bearer __SERVER_MANAGED_API_KEY__',
+      },
+      body: JSON.stringify({}),
+    });
+
+    const headers = new Headers(calls[0].init.headers as HeadersInit);
+    expect(headers.get('authorization')).toBe('Bearer server-route-key');
+    expect(headers.get('x-api-key')).toBe('server-route-key');
+  });
+
+  it('omits auth headers when route apiKey is auth-optional', async () => {
+    const { fetchImpl, calls } = fetchRecorder();
+    const app = createServer(
+      buildConfig({
+        enableThirdPartyPrivateHttp: true,
+        thirdPartyRoutes: {
+          ollama: { baseUrl: 'http://127.0.0.1:11434/v1', apiKey: 'auth-optional' },
+        },
+      }),
+      { fetchImpl },
+    );
+    const started = serverCleanup.track(await startHttpServer(app));
+
+    await fetch(`${started.baseUrl}/api/openai/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-third-party-provider': 'ollama',
+      },
+      body: JSON.stringify({}),
+    });
+
+    const headers = new Headers(calls[0].init.headers as HeadersInit);
+    expect(headers.get('authorization')).toBeNull();
+    expect(headers.get('x-api-key')).toBeNull();
+  });
+
   it('lets the server route key win when SERVER_KEY_PRIORITY is on', async () => {
     const { fetchImpl, calls } = fetchRecorder();
     const app = createServer(

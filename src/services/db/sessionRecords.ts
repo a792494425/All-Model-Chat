@@ -96,6 +96,9 @@ export const setAllSessions = async (sessions: SavedChatSession[]): Promise<void
         }
         cursor.continue();
       };
+      cursorRequest.onerror = () => {
+        tx.abort();
+      };
     }
 
     return transactionToPromise(tx);

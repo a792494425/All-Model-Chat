@@ -20,6 +20,7 @@ interface LiveWsProxyConfig {
   geminiApiKey?: string;
   upstreamBase: string;
   allowedOrigins: string[];
+  serverKeyPriority: boolean;
 }
 
 // Log only non-secret context. The key and full upstream URL are never printed.
@@ -33,6 +34,7 @@ const resolveLiveWsProxyConfig = (config: ApiServerConfig): LiveWsProxyConfig =>
   geminiApiKey: config.liveGeminiApiKey || config.geminiApiKey,
   upstreamBase: config.liveWsUpstreamBase || UPSTREAM_WS_BASE,
   allowedOrigins: config.allowedOrigins,
+  serverKeyPriority: config.serverKeyPriority ?? false,
 });
 
 const isPathHandled = (request: IncomingMessage): boolean => {
@@ -45,12 +47,14 @@ interface ResolvedUpstream {
   hadBrowserKey: boolean;
 }
 
-// Key priority (BYOK 兜底): a real browser key wins; the sentinel or a missing
+// Key priority: when serverKeyPriority is true and a server key exists, the server
+// key wins. Otherwise BYOK 兜底: a real browser key wins; the sentinel or a missing
 // key falls back to the server-managed GEMINI_API_KEY.
 export const resolveUpstream = (
   requestUrl: URL,
   upstreamBase: string,
   serverApiKey?: string,
+  serverKeyPriority = false,
 ): ResolvedUpstream | null => {
   const restPath = requestUrl.pathname.slice(LIVE_WS_PATH_PREFIX.length) || '/';
   const searchParams = new URLSearchParams(requestUrl.searchParams);
@@ -60,15 +64,18 @@ export const resolveUpstream = (
 
   let resolvedKey: string;
   let hadBrowserKey = false;
+  const serverKey = serverApiKey?.trim();
 
-  if (queryKey && queryKey !== SERVER_MANAGED_API_KEY_SENTINEL) {
+  if (serverKeyPriority && serverKey) {
+    resolvedKey = serverKey;
+    hadBrowserKey = false;
+  } else if (queryKey && queryKey !== SERVER_MANAGED_API_KEY_SENTINEL) {
     resolvedKey = queryKey;
     hadBrowserKey = true;
   } else if (accessToken && accessToken !== SERVER_MANAGED_API_KEY_SENTINEL) {
     resolvedKey = accessToken;
     hadBrowserKey = true;
   } else {
-    const serverKey = serverApiKey?.trim();
     if (!serverKey) {
       return null;
     }
@@ -100,9 +107,19 @@ const closeBoth = (a: WebSocket, b: WebSocket | null, code: number, reason: stri
   }
 };
 
+const MAX_PENDING_UPSTREAM_MESSAGES = 100;
+const MAX_PENDING_UPSTREAM_BYTES = 10 * 1024 * 1024;
+
+const getRawDataSize = (data: WebSocket.RawData): number => {
+  if (Buffer.isBuffer(data)) return data.byteLength;
+  if (Array.isArray(data)) return data.reduce((acc, b) => acc + b.byteLength, 0);
+  if (data instanceof ArrayBuffer) return data.byteLength;
+  return 0;
+};
+
 const bridge = (clientWs: WebSocket, request: IncomingMessage, upstreamHost: string, config: LiveWsProxyConfig) => {
   const requestUrl = new URL(request.url || '/', 'http://localhost');
-  const resolved = resolveUpstream(requestUrl, upstreamHost, config.geminiApiKey);
+  const resolved = resolveUpstream(requestUrl, upstreamHost, config.geminiApiKey, config.serverKeyPriority);
   if (!resolved) {
     logLiveEvent('rejected', { reason: 'no-api-key' });
     clientWs.close(1011, 'Live API key not configured');
@@ -125,12 +142,14 @@ const bridge = (clientWs: WebSocket, request: IncomingMessage, upstreamHost: str
   // setup frame immediately; dropping those frames (the old behavior) hung the
   // session until the idle timeout. Buffer them until the upstream opens, then
   // flush in order.
+  let pendingUpstreamBytes = 0;
   const pendingUpstreamMessages: { data: WebSocket.RawData; isBinary: boolean }[] = [];
   const flushPendingUpstreamMessages = () => {
     while (pendingUpstreamMessages.length > 0) {
       const { data, isBinary } = pendingUpstreamMessages.shift()!;
       upstreamWs.send(data, { binary: isBinary });
     }
+    pendingUpstreamBytes = 0;
   };
   const resetIdle = () => {
     if (idleTimer) clearTimeout(idleTimer);
@@ -147,6 +166,8 @@ const bridge = (clientWs: WebSocket, request: IncomingMessage, upstreamHost: str
       clearTimeout(idleTimer);
       idleTimer = null;
     }
+    pendingUpstreamMessages.length = 0;
+    pendingUpstreamBytes = 0;
     if (!settled) {
       settled = true;
       logLiveEvent('closed', { reason });
@@ -168,7 +189,19 @@ const bridge = (clientWs: WebSocket, request: IncomingMessage, upstreamHost: str
     if (upstreamWs.readyState === WebSocket.OPEN) {
       upstreamWs.send(data, { binary: isBinary });
     } else if (upstreamWs.readyState === WebSocket.CONNECTING) {
-      // Not open yet — hold the frame and flush it once the handshake lands.
+      const msgSize = getRawDataSize(data);
+      if (
+        pendingUpstreamMessages.length >= MAX_PENDING_UPSTREAM_MESSAGES ||
+        pendingUpstreamBytes + msgSize > MAX_PENDING_UPSTREAM_BYTES
+      ) {
+        logLiveEvent('buffer-overflow', {
+          pendingCount: pendingUpstreamMessages.length,
+          pendingBytes: pendingUpstreamBytes,
+        });
+        closeBoth(clientWs, upstreamWs, 1008, 'Buffer overflow during upstream connection');
+        return;
+      }
+      pendingUpstreamBytes += msgSize;
       pendingUpstreamMessages.push({ data, isBinary });
     }
     // Any other state (CLOSING/CLOSED) silently drops, matching prior behavior.

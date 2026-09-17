@@ -66,7 +66,7 @@ interface VideoDurationSource {
 const getVideoDurationSeconds = async (file: VideoDurationSource): Promise<number | null> => {
   const start = parseOffsetSeconds(file.videoMetadata?.startOffset);
   const end = parseOffsetSeconds(file.videoMetadata?.endOffset);
-  if (start !== null && end !== null && end > start) return end - start;
+  if (start !== null && end !== null) return Math.max(0, end - start);
 
   let blob: Blob | null = file.rawFile ?? null;
   if (!blob && file.dataUrl) {
@@ -80,8 +80,8 @@ const getVideoDurationSeconds = async (file: VideoDurationSource): Promise<numbe
 
   const fullDuration = await probeMediaDuration('video', blob);
   if (fullDuration === null) return null;
-  if (start !== null) return Math.max(0, fullDuration - start);
-  if (end !== null) return Math.min(fullDuration, end);
+  if (start !== null) return Math.max(0, fullDuration - Math.max(0, start));
+  if (end !== null) return Math.min(fullDuration, Math.max(0, end));
   return fullDuration;
 };
 

@@ -1,4 +1,5 @@
 import type { IncomingMessage } from 'node:http';
+import { SERVER_MANAGED_API_KEY } from '../../shared/serverManagedApiKey.js';
 
 // Shared proxy header machinery used by geminiProxy, thirdPartyProxy, and
 // streamJobs. Each proxy keeps its own STRIPPED_PROXY_REQUEST_HEADERS set and
@@ -108,7 +109,7 @@ export function resolveGeminiRequestApiKey(
     return trimmedServerApiKey;
   }
 
-  if (browserApiKey) {
+  if (browserApiKey && browserApiKey !== SERVER_MANAGED_API_KEY) {
     return browserApiKey;
   }
 

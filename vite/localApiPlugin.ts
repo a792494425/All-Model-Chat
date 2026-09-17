@@ -1,7 +1,7 @@
 import { Buffer } from 'node:buffer';
 import type { IncomingHttpHeaders } from 'node:http';
 import type { Plugin } from 'vite';
-import { fetchImageProxyWithSafeRedirects } from '../shared/imageProxyFetch';
+import { fetchImageProxyWithSafeRedirects, readBoundedResponseBody } from '../shared/imageProxyFetch';
 import { parseAllowedImageProxyUrl } from '../shared/imageProxyUrl';
 import { readMacOsClipboardPng } from '../shared/macosClipboardPng';
 
@@ -160,8 +160,8 @@ const proxyImageRequest = async (request: DevServerRequest, response: DevServerR
     return;
   }
 
-  const body = new Uint8Array(await upstreamResponse.arrayBuffer());
-  if (body.byteLength > MAX_IMAGE_PROXY_BYTES) {
+  const body = await readBoundedResponseBody(upstreamResponse, MAX_IMAGE_PROXY_BYTES);
+  if (!body) {
     writeImageProxyJson(response, 413, { error: 'Image proxy target is too large.' });
     return;
   }

@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { fetchImageProxyWithSafeRedirects } from '../../shared/imageProxyFetch.js';
+import { fetchImageProxyWithSafeRedirects, readBoundedResponseBody } from '../../shared/imageProxyFetch.js';
 import { parseAllowedImageProxyUrl } from '../../shared/imageProxyUrl.js';
 import { getCorsHeaders, sendJson } from './cors.js';
 
@@ -104,8 +104,8 @@ export async function proxyExternalImage(
     return;
   }
 
-  const body = new Uint8Array(await finalUpstreamResponse.arrayBuffer());
-  if (body.byteLength > MAX_IMAGE_PROXY_BYTES) {
+  const body = await readBoundedResponseBody(finalUpstreamResponse, MAX_IMAGE_PROXY_BYTES);
+  if (!body) {
     sendJson(request, response, 413, { error: 'Image proxy target is too large.' }, allowedOrigins);
     return;
   }
