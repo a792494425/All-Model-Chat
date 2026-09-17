@@ -372,4 +372,22 @@ describe('autoTitleSession', () => {
     );
     expect(sessions[0].title).toBe('Quantum Computing');
   });
+
+  it('falls back to heuristic title in pure third-party mode when no Gemini key is available', async () => {
+    getGeminiKeyForRequestMock.mockReturnValue({ error: 'No Gemini API key' });
+    const session = createSession({ title: 'New Chat' });
+    sessions = [session];
+
+    const result = await autoTitleSession({
+      session,
+      appSettings: DEFAULT_APP_SETTINGS,
+      language: 'en',
+      updateAndPersistSessions,
+    });
+
+    expect(result).toBe(true);
+    expect(generateTitleApiMock).not.toHaveBeenCalled();
+    expect(sessions[0].title).toBe('Explain routing');
+    expect(sessions[0].titleSource).toBe('default');
+  });
 });

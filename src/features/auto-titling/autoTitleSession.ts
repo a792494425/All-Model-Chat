@@ -169,17 +169,17 @@ export const autoTitleSession = async ({
     return false;
   }
 
-  let keyToUse: string;
+  let keyToUse: string | undefined;
   if (stickyKey) {
     keyToUse = stickyKey;
   } else {
     const keyResult = getGeminiKeyForRequest(appSettings, session.settings, { skipIncrement: true });
     if ('error' in keyResult) {
       // Expected in pure third-party mode — do not spam the error log.
-      logService.debug(`Skipping title generation for session ${sessionId}: ${keyResult.error}`);
-      return false;
+      logService.debug(`Skipping AI title generation for session ${sessionId}: ${keyResult.error}`);
+    } else {
+      keyToUse = keyResult.key;
     }
-    keyToUse = keyResult.key;
   }
 
   // Cross-tab dedup: reload from DB, skip if another tab already titled it.
@@ -201,25 +201,27 @@ export const autoTitleSession = async ({
   logService.info(`Auto-generating title for session ${sessionId}`);
 
   let newTitle = '';
-  try {
-    const userContentForTitle = stripLiveArtifactsUserDirective(exchange.userContent).trim() || exchange.userContent;
-    newTitle = (
-      await generateTitleApi(
-        keyToUse,
-        clampForTitle(userContentForTitle),
-        clampForTitle(exchange.modelContent),
-        language,
-        {
-          includeEmoji: appSettings.autoTitleIncludeEmoji ?? true,
-          length: appSettings.autoTitleLength ?? 'standard',
-          customPrompt: appSettings.autoTitleCustomPrompt ?? '',
-        },
-      )
-    ).trim();
-  } catch (error) {
-    // Title API failures (network, quota, 429) are routine during backfill
-    // bursts — keep the console quiet and let the heuristic fallback below run.
-    logService.debug(`Skipping AI title for session ${sessionId} (will use heuristic)`, { error });
+  if (keyToUse) {
+    try {
+      const userContentForTitle = stripLiveArtifactsUserDirective(exchange.userContent).trim() || exchange.userContent;
+      newTitle = (
+        await generateTitleApi(
+          keyToUse,
+          clampForTitle(userContentForTitle),
+          clampForTitle(exchange.modelContent),
+          language,
+          {
+            includeEmoji: appSettings.autoTitleIncludeEmoji ?? true,
+            length: appSettings.autoTitleLength ?? 'standard',
+            customPrompt: appSettings.autoTitleCustomPrompt ?? '',
+          },
+        )
+      ).trim();
+    } catch (error) {
+      // Title API failures (network, quota, 429) are routine during backfill
+      // bursts — keep the console quiet and let the heuristic fallback below run.
+      logService.debug(`Skipping AI title for session ${sessionId} (will use heuristic)`, { error });
+    }
   }
 
   if (newTitle) {
@@ -242,13 +244,13 @@ export const autoTitleSession = async ({
     return true;
   }
 
-  // Unified failure fallback (API error or empty response): write the heuristic
-  // title but keep 'default', so a later retry can still produce an AI title.
+  // Unified failure fallback (API error or empty response, or no Gemini key configured):
+  // write the heuristic title but keep 'default', so a later retry can still produce an AI title.
   // Skipped for an in-flight exchange: the model is still streaming, so the
   // heuristic would be based on partial content and would clobber a title the
   // user has not even finished reading. The next finished exchange retries.
   if (!exchange.isIncomplete) {
-    const localTitle = generateSessionTitle(freshSession.messages);
+    const localTitle = generateSessionTitle(freshSession.messages?.length ? freshSession.messages : session.messages);
     if (localTitle && localTitle !== 'New Chat' && localTitle !== freshTitle) {
       updateAndPersistSessions((prev) =>
         prev.map((candidate) =>
