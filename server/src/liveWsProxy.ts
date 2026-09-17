@@ -1,6 +1,7 @@
 import type { IncomingMessage, Server } from 'node:http';
 import { WebSocket, WebSocketServer } from 'ws';
 import type { ApiServerConfig } from './config.js';
+import { timingSafePasswordEqual } from './passwordSecurity.js';
 
 // Sentinel the browser sends when Live should use the server-managed key
 // (single-sourced in shared/, mirrored by src/utils/apiKeySelection).
@@ -259,15 +260,23 @@ export function attachLiveWsUpgrade(server: Server, config: ApiServerConfig): vo
 
     if (config.accessPassword) {
       const requestUrl = new URL(request.url || '/', 'http://localhost');
+      const rawAccessToken = request.headers['x-access-token'];
+      const headerAccessToken = Array.isArray(rawAccessToken) ? rawAccessToken[0] : rawAccessToken;
+
+      const rawAuth = request.headers['authorization'];
+      const authHeader = Array.isArray(rawAuth) ? rawAuth[0] : rawAuth;
+      const bearerToken =
+        typeof authHeader === 'string' && authHeader.trim().startsWith('Bearer ')
+          ? authHeader.trim().slice(7).trim()
+          : undefined;
+
       const token =
         requestUrl.searchParams.get('server_token') ||
         requestUrl.searchParams.get('access_password') ||
-        request.headers['x-access-token'] ||
-        (typeof request.headers['authorization'] === 'string' && request.headers['authorization'].startsWith('Bearer ')
-          ? request.headers['authorization'].slice(7).trim()
-          : undefined);
+        headerAccessToken ||
+        bearerToken;
 
-      if (token !== config.accessPassword) {
+      if (!token || !timingSafePasswordEqual(token.trim(), config.accessPassword)) {
         logLiveEvent('rejected', { reason: 'unauthorized' });
         socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');
         socket.destroy();

@@ -18,6 +18,7 @@ import { handleEphemeralTokenRequest, EPHEMERAL_TOKEN_PATH, LEGACY_AUTH_TOKENS_P
 import { abortJob, readJobSecret } from './streamJobs.js';
 import { STREAM_ABORT_PREFIX, UNIFIED_STREAM_ABORT_PREFIX } from './streamJobsRoutes.js';
 import { OPENAI_PROXY_PREFIX, proxyThirdPartyRequest, type ThirdPartyProxyConfig } from './thirdPartyProxy.js';
+import { timingSafePasswordEqual } from './passwordSecurity.js';
 
 export { readMacOsClipboardPng } from './clipboardImage.js';
 
@@ -72,18 +73,13 @@ interface ResolvedServerConfig
   thirdPartyRoutes: Record<string, ThirdPartyProxyRoute>;
 }
 
-function timingSafePasswordEqual(provided: string, expected: string): boolean {
-  const hashProvided = crypto.createHash('sha256').update(provided).digest();
-  const hashExpected = crypto.createHash('sha256').update(expected).digest();
-  return crypto.timingSafeEqual(hashProvided, hashExpected);
-}
-
 function isAuthorized(request: http.IncomingMessage, accessPassword?: string): boolean {
   if (!accessPassword) {
     return true;
   }
 
-  const authHeader = request.headers['authorization'];
+  const rawAuth = request.headers['authorization'];
+  const authHeader = Array.isArray(rawAuth) ? rawAuth[0] : rawAuth;
   if (authHeader && typeof authHeader === 'string') {
     const trimmed = authHeader.trim();
     if (trimmed.startsWith('Bearer ')) {
@@ -94,7 +90,8 @@ function isAuthorized(request: http.IncomingMessage, accessPassword?: string): b
     }
   }
 
-  const customToken = request.headers['x-access-token'];
+  const rawToken = request.headers['x-access-token'];
+  const customToken = Array.isArray(rawToken) ? rawToken[0] : rawToken;
   if (typeof customToken === 'string' && timingSafePasswordEqual(customToken.trim(), accessPassword)) {
     return true;
   }
