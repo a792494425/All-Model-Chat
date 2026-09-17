@@ -3,8 +3,10 @@ FROM node:24-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 
+ARG NPM_REGISTRY=https://registry.npmjs.org
+
 RUN echo '{"type":"module"}' > /app/package.json && \
-    npm config set registry https://registry.npmmirror.com && \
+    npm config set registry ${NPM_REGISTRY} && \
     npm install --no-package-lock --no-audit --no-fund @modelcontextprotocol/sdk@^1.29.0 ws@^8.18.0
 
 COPY server/dist /app/server/dist

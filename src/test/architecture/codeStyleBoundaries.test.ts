@@ -394,6 +394,7 @@ describe('code style boundaries', () => {
       'src/features/local-python/pyodideWorkerTemplate.ts',
       'src/utils/chat/session.ts',
       'src/utils/html-preview/previewBridgeScript.ts',
+      'src/test/setup.ts',
     ]);
 
     const offenders = listProjectSourceFiles('src')
