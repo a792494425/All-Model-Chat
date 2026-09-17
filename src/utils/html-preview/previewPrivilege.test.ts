@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { createHtmlPreviewRequest, HTML_PREVIEW_SANDBOX, isHtmlPreviewMessageOriginAllowed } from './previewPrivilege';
 
 describe('HTML preview privilege', () => {
-  it('keeps sanitized previews opaque and unrestricted previews same-origin', () => {
+  it('keeps both sanitized and unrestricted previews without allow-same-origin to protect host storage', () => {
     expect(HTML_PREVIEW_SANDBOX.sanitized).toContain('allow-scripts');
     expect(HTML_PREVIEW_SANDBOX.sanitized).not.toContain('allow-same-origin');
-    expect(HTML_PREVIEW_SANDBOX.unrestricted).toContain('allow-same-origin');
+    expect(HTML_PREVIEW_SANDBOX.unrestricted).toContain('allow-scripts');
+    expect(HTML_PREVIEW_SANDBOX.unrestricted).not.toContain('allow-same-origin');
   });
 
   it('never grants top-level navigation to either preview sandbox', () => {

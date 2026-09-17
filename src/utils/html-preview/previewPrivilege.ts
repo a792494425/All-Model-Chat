@@ -40,7 +40,7 @@ export const DEFAULT_HTML_PREVIEW_PRIVILEGE: HtmlPreviewPrivilege = 'unrestricte
 export const HTML_PREVIEW_SANDBOX: Record<HtmlPreviewPrivilege, string> = {
   sanitized: 'allow-scripts allow-forms allow-popups allow-modals allow-downloads',
   unrestricted:
-    'allow-scripts allow-forms allow-popups allow-modals allow-downloads allow-same-origin allow-popups-to-escape-sandbox allow-presentation allow-pointer-lock',
+    'allow-scripts allow-forms allow-popups allow-modals allow-downloads allow-popups-to-escape-sandbox allow-presentation allow-pointer-lock',
 };
 
 export const isHtmlPreviewMessageOriginAllowed = (

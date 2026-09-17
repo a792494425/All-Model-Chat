@@ -24,13 +24,13 @@ describe('HtmlPreviewContent', () => {
     expect(sandbox.split(/\s+/)).toEqual(
       expect.arrayContaining([
         'allow-scripts',
-        'allow-same-origin',
         'allow-forms',
         'allow-popups',
         'allow-modals',
         'allow-downloads',
       ]),
     );
+    expect(sandbox).not.toContain('allow-same-origin');
     expect(sandbox).not.toContain('allow-top-navigation');
     // Unrestricted: keep model scripts/handlers and do not inject a CSP.
     expect(srcDoc).toContain('cdn.example/app.js');
