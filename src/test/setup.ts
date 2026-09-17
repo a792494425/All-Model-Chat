@@ -6,6 +6,32 @@ import { ensureAllFeatureTranslations } from '@/i18n/translations';
 
 import { installBrowserTestEnvironment, resetBrowserTestEnvironment } from './browser/environment';
 
+// Filter known Radix UI internal microtask act(...) warnings that flood stdout
+// (>200,000 log lines) and cause test timeouts and worker pool hangs.
+const originalConsoleError = console.error;
+console.error = (...args: unknown[]) => {
+  const fullText = args
+    .map((arg) => (typeof arg === 'string' ? arg : arg instanceof Error ? arg.message : ''))
+    .join(' ');
+
+  if (
+    fullText.includes('not wrapped in act(...)') &&
+    (fullText.includes('SelectProvider') ||
+      fullText.includes('Slider') ||
+      fullText.includes('Dialog') ||
+      fullText.includes('McpToolCallBlock') ||
+      fullText.includes('@radix-ui') ||
+      fullText.includes('Select') ||
+      fullText.includes('SettingsModal') ||
+      fullText.includes('ProviderSettingsSection') ||
+      fullText.includes('Modal'))
+  ) {
+    return;
+  }
+
+  originalConsoleError.apply(console, args);
+};
+
 // Core service mocks are registered once here instead of being copy-pasted into
 // every suite. Suites that test the REAL modules opt out with vi.unmock().
 vi.mock('@/services/logService', async () => {
