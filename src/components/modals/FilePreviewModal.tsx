@@ -179,7 +179,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       setSubtitleProgressPercent(undefined);
 
       // 1. Extract audio pure client-side via Web Audio API
-      const { audioBlob } = await extractAudioFromVideo(videoBlob, abortController.signal);
+      const { audioBlob, durationSeconds } = await extractAudioFromVideo(videoBlob, abortController.signal);
 
       // 2. Transcribe with gemini-3.5-transcribe
       const annotations = await transcribeAudioWithGemini(
@@ -191,6 +191,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
           setSubtitlePhase(phase);
           setSubtitleProgressPercent(percent);
         },
+        durationSeconds,
       );
 
       // 3. Group words into cues and generate VTT Blob URL

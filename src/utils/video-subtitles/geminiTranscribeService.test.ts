@@ -79,11 +79,37 @@ describe('geminiTranscribeService', () => {
       });
     });
 
+    it('should correctly extract audioTranscription.text from generateContent candidates and allocate timestamps', () => {
+      const mockGenerateContentResponse = {
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  audioTranscription: {
+                    text: 'こんにちは世界。今日はいい天気ですね。',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const result = extractWordAnnotations(mockGenerateContentResponse, 10.0);
+      expect(result.length).toBeGreaterThanOrEqual(2);
+      expect(result[0].text).toContain('こんにちは世界。');
+      expect(result[1].text).toContain('今日はいい天気ですね。');
+      expect(parseFloat(result[0].start_offset)).toBeCloseTo(0, 1);
+      expect(parseFloat(result[result.length - 1].end_offset)).toBeLessThanOrEqual(10.0);
+    });
+
     it('should handle missing or malformed steps gracefully', () => {
       expect(extractWordAnnotations(null)).toEqual([]);
       expect(extractWordAnnotations({})).toEqual([]);
       expect(extractWordAnnotations({ steps: [] })).toEqual([]);
       expect(extractWordAnnotations({ steps: [{ content: [] }] })).toEqual([]);
+      expect(extractWordAnnotations({ candidates: [] })).toEqual([]);
     });
   });
 
@@ -120,29 +146,25 @@ describe('geminiTranscribeService', () => {
         return mockUploadedFile as any;
       });
 
-      const mockCreate = vi.fn().mockResolvedValue({
-        id: 'interactions/res-1',
-        steps: [
+      const mockGenerateContent = vi.fn().mockResolvedValue({
+        candidates: [
           {
-            content: [
-              {
-                annotations: [
-                  {
-                    type: 'word_info',
-                    text: 'Bonjour',
-                    start_offset: '0.200s',
-                    end_offset: '0.600s',
+            content: {
+              parts: [
+                {
+                  audioTranscription: {
+                    text: 'Bonjour monde.',
                   },
-                ],
-              },
-            ],
+                },
+              ],
+            },
           },
         ],
       });
 
       vi.mocked(getConfiguredApiClient).mockResolvedValue({
-        interactions: {
-          create: mockCreate,
+        models: {
+          generateContent: mockGenerateContent,
         },
       } as any);
 
@@ -156,6 +178,7 @@ describe('geminiTranscribeService', () => {
         (phase, percent) => {
           progressPhases.push(`${phase}:${percent ?? ''}`);
         },
+        5.0,
       );
 
       // Verify upload was called with File object created from Blob
@@ -170,38 +193,29 @@ describe('geminiTranscribeService', () => {
       expect(progressPhases).toContain('uploading:100');
       expect(progressPhases).toContain('transcribing:');
 
-      // Verify interactions.create payload
-      expect(mockCreate).toHaveBeenCalledWith(
+      // Verify generateContent payload
+      expect(mockGenerateContent).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'gemini-3.5-transcribe',
-          input: [
+          contents: [
             {
-              type: 'audio',
-              uri: mockUploadedFile.uri,
-              mime_type: 'audio/wav',
+              parts: [
+                {
+                  fileData: {
+                    fileUri: mockUploadedFile.uri,
+                    mimeType: 'audio/wav',
+                  },
+                },
+              ],
             },
           ],
-          generation_config: {
-            transcription_config: {
-              mode: {
-                type: 'verbatim',
-                timestamp_granularities: ['word'],
-              },
-            },
-          },
         }),
-        expect.anything(),
       );
 
       // Verify result
-      expect(result).toEqual([
-        {
-          text: 'Bonjour',
-          start_offset: '0.200s',
-          end_offset: '0.600s',
-          speaker: undefined,
-        },
-      ]);
+      expect(result).toHaveLength(1);
+      expect(result[0].text).toBe('Bonjour monde.');
+      expect(result[0].start_offset).toBe('0.000s');
 
       // Verify cleanup of uploaded file
       expect(deleteFileApi).toHaveBeenCalledWith(mockApiKey, mockUploadedFile.name);
@@ -217,23 +231,39 @@ describe('geminiTranscribeService', () => {
 
       vi.mocked(uploadFileApi).mockResolvedValue(mockUploadedFile as any);
 
-      const mockCreate = vi.fn().mockRejectedValue(new Error('Transcription service error'));
+      const mockGenerateContent = vi.fn().mockRejectedValue(new Error('Transcription service error'));
       vi.mocked(getConfiguredApiClient).mockResolvedValue({
-        interactions: {
-          create: mockCreate,
+        models: {
+          generateContent: mockGenerateContent,
         },
+      } as any);
+
+      vi.mocked(getConfiguredApiClientContext).mockResolvedValue({
+        apiBaseUrl: 'https://generativelanguage.googleapis.com',
+        proxyBaseUrl: null,
+      } as any);
+
+      const originalFetch = global.fetch;
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: async () => 'Internal Server Error',
       } as any);
 
       vi.mocked(deleteFileApi).mockResolvedValue();
 
-      await expect(transcribeAudioWithGemini(mockApiKey, mockBlob, mockFileName, controller.signal)).rejects.toThrow(
-        'Transcription service error',
-      );
+      try {
+        await expect(transcribeAudioWithGemini(mockApiKey, mockBlob, mockFileName, controller.signal)).rejects.toThrow(
+          'Gemini Transcribe API call failed (500)',
+        );
+      } finally {
+        global.fetch = originalFetch;
+      }
 
       expect(deleteFileApi).toHaveBeenCalledWith(mockApiKey, mockUploadedFile.name);
     });
 
-    it('should fallback to REST API if interactions.create is not present on client', async () => {
+    it('should fallback to REST API if models.generateContent is not present on client', async () => {
       const controller = new AbortController();
       const mockUploadedFile = {
         name: 'files/audio-rest-123',
@@ -247,20 +277,17 @@ describe('geminiTranscribeService', () => {
       const mockFetchResponse = {
         ok: true,
         json: async () => ({
-          steps: [
+          candidates: [
             {
-              content: [
-                {
-                  annotations: [
-                    {
-                      type: 'word_info',
-                      text: 'Fallback',
-                      start_offset: '1.000s',
-                      end_offset: '1.500s',
+              content: {
+                parts: [
+                  {
+                    audioTranscription: {
+                      text: 'Fallback transcript',
                     },
-                  ],
-                },
-              ],
+                  },
+                ],
+              },
             },
           ],
         }),
@@ -275,11 +302,11 @@ describe('geminiTranscribeService', () => {
       } as any);
 
       try {
-        const result = await transcribeAudioWithGemini(mockApiKey, mockBlob, mockFileName, controller.signal);
+        const result = await transcribeAudioWithGemini(mockApiKey, mockBlob, mockFileName, controller.signal, undefined, 4.0);
         expect(result).toHaveLength(1);
-        expect(result[0].text).toBe('Fallback');
+        expect(result[0].text).toBe('Fallback transcript');
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/v1beta/interactions'),
+          expect.stringContaining('/v1beta/models/gemini-3.5-transcribe:generateContent'),
           expect.objectContaining({
             method: 'POST',
           }),

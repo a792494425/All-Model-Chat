@@ -11,12 +11,99 @@ export interface TranscribeProgressCallback {
 }
 
 /**
- * Extracts word-level annotations from Gemini 3.5 Transcribe response payload.
+ * Splits raw transcript text into natural subtitle segments.
  */
-export function extractWordAnnotations(data: any): WordAnnotation[] {
-  const words: WordAnnotation[] = [];
-  const steps = Array.isArray(data?.steps) ? data.steps : [];
+export function splitTranscriptIntoSegments(text: string): string[] {
+  if (!text || typeof text !== 'string') return [];
+  const normalized = text.trim();
+  if (!normalized) return [];
 
+  const rawSentences = normalized.split(/(?<=[。！？!?\n])|(?<=\.\s+)/);
+  const segments: string[] = [];
+
+  for (const sentence of rawSentences) {
+    const s = sentence.trim();
+    if (!s) continue;
+
+    // Break up very long clauses for readable subtitles
+    if (s.length > 25) {
+      const parts = s.split(/(?<=[、,])\s*/);
+      let buffer = '';
+      for (const p of parts) {
+        const trimmedP = p.trim();
+        if (!trimmedP) continue;
+        if ((buffer + trimmedP).length > 28 && buffer.length > 0) {
+          segments.push(buffer.trim());
+          buffer = trimmedP;
+        } else {
+          buffer = buffer ? `${buffer}${trimmedP}` : trimmedP;
+        }
+      }
+      if (buffer.trim()) {
+        segments.push(buffer.trim());
+      }
+    } else {
+      segments.push(s);
+    }
+  }
+
+  return segments;
+}
+
+/**
+ * Distributes time across text segments proportionally based on segment length and audio duration.
+ */
+export function convertTranscriptTextToAnnotations(text: string, durationSeconds?: number): WordAnnotation[] {
+  const segments = splitTranscriptIntoSegments(text);
+  if (segments.length === 0) return [];
+
+  const totalChars = segments.reduce((sum, seg) => sum + Math.max(1, seg.length), 0);
+  const totalDuration = durationSeconds && durationSeconds > 0 ? durationSeconds : segments.length * 2.5;
+
+  const maxPausePerGap = 0.25;
+  const totalGaps = Math.max(1, segments.length - 1);
+  const pause = Math.min(maxPausePerGap, Math.max(0.05, (totalDuration * 0.12) / totalGaps));
+  const availableSpeechTime = Math.max(0.5 * segments.length, totalDuration - (segments.length - 1) * pause);
+
+  let currentTime = 0;
+  const annotations: WordAnnotation[] = [];
+
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    const segRatio = Math.max(1, seg.length) / totalChars;
+    let segDuration = Math.max(0.5, segRatio * availableSpeechTime);
+
+    const startTime = currentTime;
+    const endTime = Math.min(totalDuration, startTime + segDuration);
+
+    annotations.push({
+      text: seg,
+      start_offset: `${startTime.toFixed(3)}s`,
+      end_offset: `${endTime.toFixed(3)}s`,
+    });
+
+    currentTime = endTime + pause;
+    if (currentTime >= totalDuration && i < segments.length - 1) {
+      currentTime = Math.max(0, totalDuration - 0.2 * (segments.length - 1 - i));
+    }
+  }
+
+  return annotations;
+}
+
+/**
+ * Extracts word-level or sentence-level annotations from Gemini transcription response payload.
+ * Supports:
+ * - Interaction API response with word_info annotations
+ * - Gemini generateContent response with parts[].audioTranscription.text or parts[].text
+ */
+export function extractWordAnnotations(data: any, durationSeconds?: number): WordAnnotation[] {
+  if (!data) return [];
+
+  const words: WordAnnotation[] = [];
+
+  // 1. Check Vertex AI / Interactions API format with steps
+  const steps = Array.isArray(data?.steps) ? data.steps : [];
   for (const step of steps) {
     const contents = Array.isArray(step?.content) ? step.content : [];
     for (const content of contents) {
@@ -34,12 +121,72 @@ export function extractWordAnnotations(data: any): WordAnnotation[] {
     }
   }
 
-  return words;
+  if (words.length > 0) {
+    return words;
+  }
+
+  // 2. Check direct annotations array if present
+  if (Array.isArray(data?.annotations) && data.annotations.length > 0) {
+    for (const annotation of data.annotations) {
+      if (annotation && (annotation.start_offset !== undefined || annotation.startOffset !== undefined)) {
+        words.push({
+          text: String(annotation.text || ''),
+          start_offset: String(annotation.start_offset || annotation.startOffset || '0s'),
+          end_offset: String(annotation.end_offset || annotation.endOffset || '0s'),
+          speaker: annotation.speaker ? String(annotation.speaker) : undefined,
+        });
+      }
+    }
+    if (words.length > 0) return words;
+  }
+
+  // 3. Check generateContent response candidates
+  const textPieces: string[] = [];
+  const candidates = Array.isArray(data?.candidates) ? data.candidates : [];
+  for (const candidate of candidates) {
+    const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
+    for (const part of parts) {
+      // Check if word-level timestamps are nested inside audioTranscription
+      if (Array.isArray(part?.audioTranscription?.words)) {
+        for (const w of part.audioTranscription.words) {
+          words.push({
+            text: String(w.text || w.word || ''),
+            start_offset: String(w.start_offset || w.startTime || w.startOffset || '0s'),
+            end_offset: String(w.end_offset || w.endTime || w.endOffset || '0s'),
+            speaker: w.speaker ? String(w.speaker) : undefined,
+          });
+        }
+      }
+
+      const transcriptionText = part?.audioTranscription?.text || part?.text || '';
+      if (transcriptionText.trim()) {
+        textPieces.push(transcriptionText.trim());
+      }
+    }
+  }
+
+  if (words.length > 0) {
+    return words;
+  }
+
+  // 4. Check fallback root text / transcription properties
+  if (typeof data?.text === 'string' && data.text.trim()) {
+    textPieces.push(data.text.trim());
+  } else if (typeof data?.transcription === 'string' && data.transcription.trim()) {
+    textPieces.push(data.transcription.trim());
+  }
+
+  const combinedText = textPieces.join('\n').trim();
+  if (combinedText) {
+    return convertTranscriptTextToAnnotations(combinedText, durationSeconds);
+  }
+
+  return [];
 }
 
 /**
  * Transcribes audio using Gemini 3.5 Transcribe model (`gemini-3.5-transcribe`).
- * Uploads audioBlob to Gemini Files API, calls interactions.create,
+ * Uploads audioBlob to Gemini Files API, calls generateContent,
  * and cleans up the temporary file on completion.
  */
 export async function transcribeAudioWithGemini(
@@ -48,6 +195,7 @@ export async function transcribeAudioWithGemini(
   fileName: string,
   signal: AbortSignal,
   onProgress?: TranscribeProgressCallback,
+  durationSeconds?: number,
 ): Promise<WordAnnotation[]> {
   if (!apiKey || !apiKey.trim()) {
     throw new Error('API key is required for video subtitle transcription.');
@@ -77,37 +225,71 @@ export async function transcribeAudioWithGemini(
     onProgress?.('transcribing');
     logService.info(`[VideoSubtitles] Requesting gemini-3.5-transcribe for ${uploadedFile.uri}`);
 
-    const interactionPayload = {
-      model: 'gemini-3.5-transcribe',
-      input: [
-        {
-          type: 'audio',
-          uri: uploadedFile.uri,
-          mime_type: audioMimeType,
-        },
-      ],
-      generation_config: {
-        transcription_config: {
-          mode: {
-            type: 'verbatim',
-            timestamp_granularities: ['word'],
-          },
-        },
-      },
-    };
+    let transcriptionResult: any = null;
 
-    let interactionResult: any = null;
+    // Try primary path: SDK ai.models.generateContent
+    try {
+      const ai = await getConfiguredApiClient(apiKey);
+      if (ai?.models && typeof ai.models.generateContent === 'function') {
+        const response = await ai.models.generateContent({
+          model: 'gemini-3.5-transcribe',
+          contents: [
+            {
+              parts: [
+                {
+                  fileData: {
+                    fileUri: uploadedFile.uri,
+                    mimeType: audioMimeType,
+                  },
+                },
+              ],
+            },
+          ],
+          config: signal ? ({ abortSignal: signal } as any) : undefined,
+        });
+        transcriptionResult = response;
+      }
+    } catch (sdkError: any) {
+      if (signal?.aborted) {
+        throw new DOMException('Transcription was aborted by user.', 'AbortError');
+      }
+      logService.warn('[VideoSubtitles] SDK generateContent failed, attempting fallback:', sdkError);
+    }
 
-    const ai = await getConfiguredApiClient(apiKey);
-    if (ai?.interactions && typeof ai.interactions.create === 'function') {
-      interactionResult = await ai.interactions.create(interactionPayload as any, { fetchOptions: { signal } } as any);
-    } else {
-      // Fallback to REST call if SDK interactions is not available
+    // Fallback 1: Check interactions.create (for Vertex AI compatibility)
+    if (!transcriptionResult) {
+      try {
+        const ai = await getConfiguredApiClient(apiKey);
+        if (ai?.interactions && typeof (ai as any).interactions.create === 'function') {
+          transcriptionResult = await (ai as any).interactions.create(
+            {
+              model: 'gemini-3.5-transcribe',
+              input: [
+                {
+                  type: 'audio',
+                  uri: uploadedFile.uri,
+                  mime_type: audioMimeType,
+                },
+              ],
+            },
+            { fetchOptions: { signal } },
+          );
+        }
+      } catch (interactionsError: any) {
+        if (signal?.aborted) {
+          throw new DOMException('Transcription was aborted by user.', 'AbortError');
+        }
+        logService.warn('[VideoSubtitles] Interactions API fallback failed, attempting REST generateContent:', interactionsError);
+      }
+    }
+
+    // Fallback 2: Direct REST call to generateContent
+    if (!transcriptionResult) {
       const clientContext = await getConfiguredApiClientContext(apiKey);
       const apiBaseUrl = clientContext?.apiBaseUrl;
       const proxyBaseUrl = clientContext?.proxyBaseUrl;
       const baseUrl = (proxyBaseUrl || apiBaseUrl || 'https://generativelanguage.googleapis.com').replace(/\/+$/, '');
-      const url = `${baseUrl}/v1beta/interactions`;
+      const url = `${baseUrl}/v1beta/models/gemini-3.5-transcribe:generateContent`;
 
       const response = await fetch(url, {
         method: 'POST',
@@ -115,7 +297,20 @@ export async function transcribeAudioWithGemini(
           'Content-Type': 'application/json',
           'x-goog-api-key': apiKey,
         },
-        body: JSON.stringify(interactionPayload),
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  file_data: {
+                    file_uri: uploadedFile.uri,
+                    mime_type: audioMimeType,
+                  },
+                },
+              ],
+            },
+          ],
+        }),
         signal,
       });
 
@@ -124,11 +319,11 @@ export async function transcribeAudioWithGemini(
         throw new Error(`Gemini Transcribe API call failed (${response.status}): ${errText}`);
       }
 
-      interactionResult = await response.json();
+      transcriptionResult = await response.json();
     }
 
-    const annotations = extractWordAnnotations(interactionResult);
-    logService.info(`[VideoSubtitles] Transcription succeeded with ${annotations.length} word annotations`);
+    const annotations = extractWordAnnotations(transcriptionResult, durationSeconds);
+    logService.info(`[VideoSubtitles] Transcription succeeded with ${annotations.length} cues`);
     return annotations;
   } catch (error) {
     logService.error('[VideoSubtitles] Transcription failed:', error);
