@@ -9,24 +9,38 @@ export function useVideoControlsVisibility({ isPlaying, onControlsVisibilityChan
   const [controlsVisible, setControlsVisible] = useState(true);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const wakeControls = useCallback(() => {
-    setControlsVisible(true);
+  const clearHideTimeout = useCallback(() => {
     if (controlsTimeoutRef.current) {
       clearTimeout(controlsTimeoutRef.current);
+      controlsTimeoutRef.current = null;
     }
+  }, []);
+
+  const scheduleAutoHide = useCallback(() => {
+    clearHideTimeout();
     if (isPlaying) {
       controlsTimeoutRef.current = setTimeout(() => {
         setControlsVisible(false);
       }, 2500);
     }
-  }, [isPlaying]);
+  }, [clearHideTimeout, isPlaying]);
+
+  const wakeControls = useCallback(() => {
+    setControlsVisible(true);
+    scheduleAutoHide();
+  }, [scheduleAutoHide]);
 
   useEffect(() => {
     if (!isPlaying) {
       setControlsVisible(true);
-      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      clearHideTimeout();
+    } else {
+      scheduleAutoHide();
     }
-  }, [isPlaying]);
+    return () => {
+      clearHideTimeout();
+    };
+  }, [clearHideTimeout, isPlaying, scheduleAutoHide]);
 
   useEffect(() => {
     onControlsVisibilityChange?.(controlsVisible);
@@ -34,9 +48,10 @@ export function useVideoControlsVisibility({ isPlaying, onControlsVisibilityChan
 
   const handleMouseLeave = useCallback(() => {
     if (isPlaying) {
+      clearHideTimeout();
       setControlsVisible(false);
     }
-  }, [isPlaying]);
+  }, [clearHideTimeout, isPlaying]);
 
   return {
     controlsVisible,

@@ -90,6 +90,7 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
   return (
     <div
       data-testid="video-subtitles-drawer"
+      onMouseMove={(e) => e.stopPropagation()}
       className="w-80 sm:w-96 flex flex-col h-full bg-[#18191c] border-l border-white/10 text-white/90 select-none z-20 flex-shrink-0"
     >
       {/* Drawer Header */}

@@ -152,13 +152,17 @@ export function generateSrtContent(cues: SubtitleCue[]): string {
 
 /**
  * Serializes SubtitleCue[] into standard WebVTT (.vtt) format.
+ * Supports line positioning (defaults to line:84% so cues float above video control bars).
  */
-export function generateVttContent(cues: SubtitleCue[]): string {
+export function generateVttContent(cues: SubtitleCue[], options?: { line?: string }): string {
+  const lineParam = options?.line !== undefined ? options.line : '84%';
+  const lineSuffix = lineParam ? ` line:${lineParam}` : '';
+
   const cuesBody = cues
     .map((cue) => {
       const speakerPrefix = cue.speaker ? `<v ${cue.speaker}>` : '';
       const speakerSuffix = cue.speaker ? '</v>' : '';
-      return `${cue.id}\n${cue.startTimeVtt} --> ${cue.endTimeVtt}\n${speakerPrefix}${cue.text}${speakerSuffix}\n`;
+      return `${cue.id}\n${cue.startTimeVtt} --> ${cue.endTimeVtt}${lineSuffix}\n${speakerPrefix}${cue.text}${speakerSuffix}\n`;
     })
     .join('\n');
 

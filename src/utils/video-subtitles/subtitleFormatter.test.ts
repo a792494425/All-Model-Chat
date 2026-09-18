@@ -126,11 +126,15 @@ describe('subtitleFormatter', () => {
       expect(srt).toContain('2\n00:00:03,000 --> 00:00:04,500\nHow are you?');
     });
 
-    it('generates standard WebVTT format', () => {
+    it('generates standard WebVTT format with line positioning', () => {
       const vtt = generateVttContent(sampleCues);
       expect(vtt.startsWith('WEBVTT')).toBe(true);
-      expect(vtt).toContain('00:00:01.000 --> 00:00:02.500\nHello world.');
-      expect(vtt).toContain('00:00:03.000 --> 00:00:04.500\nHow are you?');
+      expect(vtt).toContain('00:00:01.000 --> 00:00:02.500 line:84%\nHello world.');
+      expect(vtt).toContain('00:00:03.000 --> 00:00:04.500 line:84%\nHow are you?');
+
+      // Test custom line option
+      const vttCustom = generateVttContent(sampleCues, { line: '90%' });
+      expect(vttCustom).toContain('00:00:01.000 --> 00:00:02.500 line:90%\nHello world.');
     });
   });
 

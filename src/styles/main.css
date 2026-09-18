@@ -394,3 +394,14 @@ body,
   gap: 2px;
   margin-left: 4px;
 }
+
+/* Custom video subtitle styling for clean readability */
+video::cue {
+  background-color: rgba(0, 0, 0, 0.78);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
