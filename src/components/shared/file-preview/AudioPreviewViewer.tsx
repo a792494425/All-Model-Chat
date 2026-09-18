@@ -13,34 +13,58 @@ import {
   writeAudioWaveformCache,
 } from '@/utils/media/audioWaveform';
 
-interface AudioPreviewViewerProps {
+export interface AudioPreviewViewerRef {
+  seekTo: (seconds: number) => void;
+  togglePlay: () => void;
+  currentTime: number;
+  duration: number;
+}
+
+export interface AudioPreviewViewerProps {
   file: UploadedFile;
+  onTimeUpdate?: (currentTime: number) => void;
 }
 
 const WAVEFORM_BAR_COUNT = 48;
 
-export const AudioPreviewViewer: React.FC<AudioPreviewViewerProps> = ({ file }) => {
-  const { t } = useI18n();
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const waveformRef = useRef<HTMLDivElement>(null);
+export const AudioPreviewViewer = React.forwardRef<AudioPreviewViewerRef, AudioPreviewViewerProps>(
+  ({ file, onTimeUpdate }, ref) => {
+    const { t } = useI18n();
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const waveformRef = useRef<HTMLDivElement>(null);
 
-  const [waveformBars, setWaveformBars] = useState<number[]>(() => {
-    return (
-      readAudioWaveformCache(file.id) ?? generateDeterministicWaveform(`${file.id}:${file.name}`, WAVEFORM_BAR_COUNT)
-    );
-  });
-
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isLooping, setIsLooping] = useState(false);
-  const [isDraggingSeek, setIsDraggingSeek] = useState(false);
-  const [hoverProgress, setHoverProgress] = useState<number | null>(null);
-
-  const { isPlaying, duration, currentTime, playbackRate, togglePlay, seekTo, toggleSpeed, audioProps } =
-    useAudioPlayback({
-      src: file.dataUrl,
-      audioRef,
+    const [waveformBars, setWaveformBars] = useState<number[]>(() => {
+      return (
+        readAudioWaveformCache(file.id) ?? generateDeterministicWaveform(`${file.id}:${file.name}`, WAVEFORM_BAR_COUNT)
+      );
     });
+
+    const [volume, setVolume] = useState(1);
+    const [isMuted, setIsMuted] = useState(false);
+    const [isLooping, setIsLooping] = useState(false);
+    const [isDraggingSeek, setIsDraggingSeek] = useState(false);
+    const [hoverProgress, setHoverProgress] = useState<number | null>(null);
+
+    const { isPlaying, duration, currentTime, playbackRate, togglePlay, seekTo, toggleSpeed, audioProps } =
+      useAudioPlayback({
+        src: file.dataUrl,
+        audioRef,
+      });
+
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        seekTo,
+        togglePlay,
+        currentTime,
+        duration,
+      }),
+      [seekTo, togglePlay, currentTime, duration],
+    );
+
+    useEffect(() => {
+      onTimeUpdate?.(currentTime);
+    }, [currentTime, onTimeUpdate]);
 
   // Decode audio peaks from file dataUrl or rawFile
   useEffect(() => {
@@ -358,4 +382,6 @@ export const AudioPreviewViewer: React.FC<AudioPreviewViewerProps> = ({ file }) 
       </div>
     </div>
   );
-};
+});
+
+AudioPreviewViewer.displayName = 'AudioPreviewViewer';

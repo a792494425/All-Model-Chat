@@ -204,6 +204,7 @@ describe('FilePreviewModal', () => {
     type: 'audio/mpeg',
     size: 1024,
     dataUrl: 'blob:audio-preview',
+    rawFile: new File(['fake-audio-bytes'], 'clip.mp3', { type: 'audio/mpeg' }),
     uploadState: 'active',
   });
 
@@ -921,6 +922,39 @@ describe('FilePreviewModal', () => {
         expect(document.querySelector('[data-testid="toggle-subtitles-drawer-btn"]')).toBeNull();
         expect(document.querySelector('[data-testid="extract-subtitles-btn"]')).not.toBeNull();
         expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).toBeNull();
+      });
+    });
+
+    it('supports subtitle extraction and drawer for audio files', async () => {
+      mockExtractAudioFromVideo.mockResolvedValue({
+        audioBlob: new Blob(['wav-bytes'], { type: 'audio/wav' }),
+        durationSeconds: 8,
+      });
+      mockTranscribeAudioWithGemini.mockResolvedValue([
+        {
+          text: 'Audio podcast subtitle',
+          start_offset: '0.500s',
+          end_offset: '2.500s',
+        },
+      ]);
+
+      const audioFile = createAudioFile();
+      await act(async () => {
+        renderer.root.render(<FilePreviewModal file={audioFile} onClose={() => {}} />);
+      });
+
+      const extractBtn = document.querySelector('[data-testid="extract-subtitles-btn"]') as HTMLButtonElement;
+      expect(extractBtn).not.toBeNull();
+      expect(extractBtn?.textContent?.trim()).toBe('Extract Subtitles');
+
+      await act(async () => {
+        extractBtn.click();
+      });
+
+      await vi.waitFor(() => {
+        expect(mockExtractAudioFromVideo).toHaveBeenCalledTimes(1);
+        expect(mockTranscribeAudioWithGemini).toHaveBeenCalledTimes(1);
+        expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).not.toBeNull();
       });
     });
   });

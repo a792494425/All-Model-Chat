@@ -8,7 +8,7 @@ import { FilePreviewHeader, type FilePreviewHeaderHandle } from '@/components/sh
 import { ImageViewer } from '@/components/shared/file-preview/ImageViewer';
 import { TextFileViewer } from '@/components/shared/file-preview/TextFileViewer';
 import { VideoPlayer, type VideoPlayerHandle } from '@/components/shared/file-preview/VideoPlayer';
-import { AudioPreviewViewer } from '@/components/shared/file-preview/AudioPreviewViewer';
+import { AudioPreviewViewer, type AudioPreviewViewerRef } from '@/components/shared/file-preview/AudioPreviewViewer';
 import { DocxViewer } from '@/components/shared/file-preview/DocxViewer';
 import { SpreadsheetViewer } from '@/components/shared/file-preview/SpreadsheetViewer';
 import { ZipViewer } from '@/components/shared/file-preview/ZipViewer';
@@ -93,6 +93,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   const [areControlsVisible, setAreControlsVisible] = useState(true);
   const filePreviewHeaderRef = useRef<FilePreviewHeaderHandle>(null);
   const videoPlayerRef = useRef<VideoPlayerHandle>(null);
+  const audioViewerRef = useRef<AudioPreviewViewerRef>(null);
   const modalShellRef = useRef<HTMLDivElement>(null);
   const previewFile = useMemo(
     () => (localPreviewUrl ? { ...file, dataUrl: localPreviewUrl } : file),
@@ -123,6 +124,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   }, [previewFile]);
 
   const { isImage, isPdf, isVideo, isYoutube, isAudio } = getFileKindFlags(file);
+  const isMedia = isVideo || isAudio;
 
   type SubtitlePhase = 'idle' | 'extracting' | 'uploading' | 'transcribing' | 'ready' | 'error';
   const [subtitlePhase, setSubtitlePhase] = useState<SubtitlePhase>('idle');
@@ -130,7 +132,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
   const [subtitleVttBlobUrl, setSubtitleVttBlobUrl] = useState<string | null>(null);
   const [isSubtitlesDrawerOpen, setIsSubtitlesDrawerOpen] = useState(false);
-  const [videoCurrentTime, setVideoCurrentTime] = useState(0);
+  const [mediaCurrentTime, setMediaCurrentTime] = useState(0);
   const [isFromCache, setIsFromCache] = useState(false);
   const subtitleAbortControllerRef = useRef<AbortController | null>(null);
   const currentFileKeyRef = useRef<string | null>(null);
@@ -139,6 +141,17 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   useEffect(() => {
     subtitlePhaseRef.current = subtitlePhase;
   }, [subtitlePhase]);
+
+  const handleSeekMedia = useCallback(
+    (seconds: number) => {
+      if (isVideo) {
+        videoPlayerRef.current?.seekTo(seconds);
+      } else if (isAudio) {
+        audioViewerRef.current?.seekTo(seconds);
+      }
+    },
+    [isVideo, isAudio],
+  );
 
   const [subtitleDisplayMode, setSubtitleDisplayMode] = useState<SubtitleDisplayMode>('bilingual');
   const [isTranslatingSubtitles, setIsTranslatingSubtitles] = useState(false);
@@ -173,14 +186,14 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       setSubtitlePhase('idle');
       setIsFromCache(false);
       setIsSubtitlesDrawerOpen(false);
-      setVideoCurrentTime(0);
+      setMediaCurrentTime(0);
       setSubtitleVttBlobUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return null;
       });
     }
 
-    if (!isVideo || !file) return;
+    if (!isMedia || !file) return;
 
     const loadCached = () => {
       getCachedSubtitles(file).then((cached) => {
@@ -224,7 +237,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       isMounted = false;
       window.removeEventListener('subtitles-cache-updated', handleCacheUpdated);
     };
-  }, [file, isVideo]);
+  }, [file, isMedia]);
 
   useEffect(() => {
     return () => {
@@ -395,7 +408,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   }, [isTranslatingSubtitles, subtitleCues, appSettings, t, file, updateVttBlobUrl]);
 
   const subtitleActions = useMemo(() => {
-    if (!isVideo) return null;
+    if (!isMedia) return null;
 
     if (subtitlePhase === 'extracting' || subtitlePhase === 'uploading' || subtitlePhase === 'transcribing') {
       const label =
@@ -450,8 +463,8 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   }, [
     handleExtractSubtitles,
     isFromCache,
+    isMedia,
     isSubtitlesDrawerOpen,
-    isVideo,
     subtitleCues.length,
     subtitlePhase,
     subtitleProgressPercent,
@@ -634,7 +647,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               onPrev();
             }}
             className={`${navButtonClass} left-2 transition-opacity duration-300 ${
-              isVideo && (!areControlsVisible || isSubtitlesDrawerOpen)
+              (isVideo && !areControlsVisible) || isSubtitlesDrawerOpen
                 ? 'opacity-0 pointer-events-none'
                 : 'opacity-100'
             }`}
@@ -651,7 +664,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               onNext();
             }}
             className={`${navButtonClass} right-2 transition-opacity duration-300 ${
-              isVideo && (!areControlsVisible || isSubtitlesDrawerOpen)
+              (isVideo && !areControlsVisible) || isSubtitlesDrawerOpen
                 ? 'opacity-0 pointer-events-none'
                 : 'opacity-100'
             }`}
@@ -758,7 +771,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
                       testId="file-preview-video"
                       showSegmentBar={false}
                       onControlsVisibilityChange={setAreControlsVisible}
-                      onTimeUpdate={setVideoCurrentTime}
+                      onTimeUpdate={setMediaCurrentTime}
                       onLoadedMetadata={(e) => {
                         const v = e.currentTarget;
                         if (v.videoWidth && v.videoHeight) {
@@ -772,8 +785,8 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               {isSubtitlesDrawerOpen && (
                 <VideoSubtitlesDrawer
                   cues={subtitleCues}
-                  currentTime={videoCurrentTime}
-                  onSeek={(seconds) => videoPlayerRef.current?.seekTo(seconds)}
+                  currentTime={mediaCurrentTime}
+                  onSeek={handleSeekMedia}
                   onClose={() => setIsSubtitlesDrawerOpen(false)}
                   videoFileName={file.name}
                   onReExtract={handleExtractSubtitles}
@@ -804,9 +817,32 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               )}
             </div>
           ) : isAudio ? (
-            previewFile.dataUrl ? (
-              <AudioPreviewViewer file={previewFile} />
-            ) : null
+            <div className="w-full h-full flex flex-row overflow-hidden relative">
+              <div className="flex-1 min-w-0 h-full flex items-center justify-center p-2 sm:p-6 lg:p-8">
+                {previewFile.dataUrl ? (
+                  <AudioPreviewViewer
+                    ref={audioViewerRef}
+                    file={previewFile}
+                    onTimeUpdate={setMediaCurrentTime}
+                  />
+                ) : null}
+              </div>
+              {isSubtitlesDrawerOpen && (
+                <VideoSubtitlesDrawer
+                  cues={subtitleCues}
+                  currentTime={mediaCurrentTime}
+                  onSeek={handleSeekMedia}
+                  onClose={() => setIsSubtitlesDrawerOpen(false)}
+                  videoFileName={file.name}
+                  onReExtract={handleExtractSubtitles}
+                  isFromCache={isFromCache}
+                  onTranslate={handleTranslateSubtitles}
+                  isTranslating={isTranslatingSubtitles}
+                  displayMode={subtitleDisplayMode}
+                  onDisplayModeChange={handleDisplayModeChange}
+                />
+              )}
+            </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-white/50 flex-col gap-2">
               <FileCode2 size={48} />
