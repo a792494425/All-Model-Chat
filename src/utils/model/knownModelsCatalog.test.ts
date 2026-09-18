@@ -55,6 +55,29 @@ describe('knownModelsCatalog', () => {
       expect(KNOWN_MODELS_CATALOG['claude-3-7-sonnet']).toBeDefined();
       expect(KNOWN_MODELS_CATALOG['claude-3-7-sonnet'].capabilities.thinking).toBe(true);
       expect(KNOWN_MODELS_CATALOG['claude-3-7-sonnet'].capabilities.vision).toBe(true);
+
+      expect(KNOWN_MODELS_CATALOG['grok-4.6']).toBeDefined();
+      expect(KNOWN_MODELS_CATALOG['grok-4.6'].contextWindow).toBe(500_000);
+      expect(KNOWN_MODELS_CATALOG['grok-4.6'].capabilities.thinking).toBe(true);
+      expect(KNOWN_MODELS_CATALOG['grok-4.6'].capabilities.vision).toBe(true);
+
+      expect(KNOWN_MODELS_CATALOG['grok-build-0.1']).toBeDefined();
+      expect(KNOWN_MODELS_CATALOG['grok-build-0.1'].contextWindow).toBe(256_000);
+      expect(KNOWN_MODELS_CATALOG['grok-build-0.1'].capabilities.thinking).toBe(true);
+
+      expect(KNOWN_MODELS_CATALOG['grok-4.5']).toBeDefined();
+      expect(KNOWN_MODELS_CATALOG['grok-4.5'].contextWindow).toBe(500_000);
+
+      expect(KNOWN_MODELS_CATALOG['grok-4.3']).toBeDefined();
+      expect(KNOWN_MODELS_CATALOG['grok-4.3'].contextWindow).toBe(1_000_000);
+
+      expect(KNOWN_MODELS_CATALOG['grok-4.20-0309-reasoning']).toBeDefined();
+      expect(KNOWN_MODELS_CATALOG['grok-4.20-0309-reasoning'].contextWindow).toBe(1_000_000);
+      expect(KNOWN_MODELS_CATALOG['grok-4.20-0309-reasoning'].capabilities.thinking).toBe(true);
+
+      expect(KNOWN_MODELS_CATALOG['grok-420-reasoning']).toBeDefined();
+      expect(KNOWN_MODELS_CATALOG['grok-420-reasoning'].contextWindow).toBe(1_000_000);
+      expect(KNOWN_MODELS_CATALOG['grok-420-reasoning'].capabilities.thinking).toBe(true);
     });
   });
 
