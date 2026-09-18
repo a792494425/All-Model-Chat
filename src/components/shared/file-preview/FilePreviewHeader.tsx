@@ -22,6 +22,7 @@ interface FilePreviewHeaderProps {
   editedName?: string;
   onNameChange?: (name: string) => void;
   className?: string;
+  extraActions?: React.ReactNode;
 }
 
 export interface FilePreviewHeaderHandle {
@@ -29,7 +30,10 @@ export interface FilePreviewHeaderHandle {
 }
 
 export const FilePreviewHeader = React.forwardRef<FilePreviewHeaderHandle, FilePreviewHeaderProps>(
-  ({ file, onClose, isEditable = false, onToggleEdit, onSave, editedName, onNameChange, className = '' }, ref) => {
+  (
+    { file, onClose, isEditable = false, onToggleEdit, onSave, editedName, onNameChange, className = '', extraActions },
+    ref,
+  ) => {
     const { t } = useI18n();
     const [isDownloading, setIsDownloading] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
@@ -211,6 +215,8 @@ export const FilePreviewHeader = React.forwardRef<FilePreviewHeaderHandle, FileP
               </Tooltip>
             </>
           )}
+
+          {extraActions}
 
           <ToolbarDivider />
 

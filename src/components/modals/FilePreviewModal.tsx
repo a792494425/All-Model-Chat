@@ -1,7 +1,7 @@
 import { logService } from '@/services/logService';
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type UploadedFile } from '@/types';
-import { ChevronLeft, ChevronRight, FileCode2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileCode2, Sparkles, Subtitles, Loader2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/shared/Modal';
 import { FilePreviewHeader, type FilePreviewHeaderHandle } from '@/components/shared/file-preview/FilePreviewHeader';
@@ -29,6 +29,12 @@ import { toYoutubeEmbedUrl } from '@/utils/file/youtubeUrl';
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';
 import { interpolate } from '@/i18n/interpolate';
 import { isEditableElement } from '@/utils/chat-input/focus';
+import { extractAudioFromVideo } from '@/utils/video-subtitles/extractAudioFromVideo';
+import { transcribeAudioWithGemini } from '@/utils/video-subtitles/geminiTranscribeService';
+import { type SubtitleCue, groupWordsIntoCues, generateVttContent } from '@/utils/video-subtitles/subtitleFormatter';
+import { VideoSubtitlesDrawer } from '@/components/shared/file-preview/video/VideoSubtitlesDrawer';
+import { getGeminiKeyForRequest, formatApiKeyErrorMessage } from '@/utils/apiKeySelection';
+import { toastError, toastSuccess } from '@/stores/toastStore';
 
 const LazyPdfViewer = lazyNamedComponent(() => import('@/components/shared/file-preview/PdfViewerEntry'), 'PdfViewer');
 
@@ -108,6 +114,173 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   }, [previewFile]);
 
   const { isImage, isPdf, isVideo, isYoutube, isAudio } = getFileKindFlags(file);
+
+  type SubtitlePhase = 'idle' | 'extracting' | 'uploading' | 'transcribing' | 'ready' | 'error';
+  const [subtitlePhase, setSubtitlePhase] = useState<SubtitlePhase>('idle');
+  const [subtitleProgressPercent, setSubtitleProgressPercent] = useState<number | undefined>(undefined);
+  const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
+  const [subtitleVttBlobUrl, setSubtitleVttBlobUrl] = useState<string | null>(null);
+  const [isSubtitlesDrawerOpen, setIsSubtitlesDrawerOpen] = useState(false);
+  const [videoCurrentTime, setVideoCurrentTime] = useState(0);
+  const subtitleAbortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      subtitleAbortControllerRef.current?.abort();
+      if (subtitleVttBlobUrl) {
+        URL.revokeObjectURL(subtitleVttBlobUrl);
+      }
+    };
+  }, [subtitleVttBlobUrl]);
+
+  const handleExtractSubtitles = useCallback(async () => {
+    if (subtitlePhase === 'extracting' || subtitlePhase === 'uploading' || subtitlePhase === 'transcribing') {
+      return;
+    }
+
+    let apiKey: string | null = null;
+    const keyResult = getGeminiKeyForRequest(appSettings, { modelId: 'gemini-3.5-transcribe' } as any, {
+      skipIncrement: true,
+    });
+
+    if (!('error' in keyResult)) {
+      apiKey = keyResult.key;
+    } else if (appSettings?.apiKey) {
+      apiKey = appSettings.apiKey;
+    }
+
+    if (!apiKey) {
+      toastError(formatApiKeyErrorMessage('error' in keyResult ? keyResult.error : 'API Key not configured.', t));
+      return;
+    }
+
+    let videoBlob: Blob | null = null;
+    if (file.rawFile instanceof Blob) {
+      videoBlob = file.rawFile;
+    } else if (previewFile.dataUrl) {
+      try {
+        const resp = await fetch(previewFile.dataUrl);
+        videoBlob = await resp.blob();
+      } catch {
+        // Fallback below
+      }
+    }
+
+    if (!videoBlob) {
+      toastError(t('noAudioTrackDetected'));
+      return;
+    }
+
+    const abortController = new AbortController();
+    subtitleAbortControllerRef.current = abortController;
+
+    try {
+      setSubtitlePhase('extracting');
+      setSubtitleProgressPercent(undefined);
+
+      // 1. Extract audio pure client-side via Web Audio API
+      const { audioBlob } = await extractAudioFromVideo(videoBlob, abortController.signal);
+
+      // 2. Transcribe with gemini-3.5-transcribe
+      const annotations = await transcribeAudioWithGemini(
+        apiKey,
+        audioBlob,
+        `${file.name.replace(/\.[^/.]+$/, '')}-audio.wav`,
+        abortController.signal,
+        (phase, percent) => {
+          setSubtitlePhase(phase);
+          setSubtitleProgressPercent(percent);
+        },
+      );
+
+      // 3. Group words into cues and generate VTT Blob URL
+      const cues = groupWordsIntoCues(annotations);
+      setSubtitleCues(cues);
+
+      const vttContent = generateVttContent(cues);
+      const vttBlob = new Blob([vttContent], { type: 'text/vtt;charset=utf-8' });
+      const vttUrl = URL.createObjectURL(vttBlob);
+
+      if (subtitleVttBlobUrl) {
+        URL.revokeObjectURL(subtitleVttBlobUrl);
+      }
+      setSubtitleVttBlobUrl(vttUrl);
+      setSubtitlePhase('ready');
+      setIsSubtitlesDrawerOpen(true);
+      toastSuccess(t('subtitlesReady'));
+    } catch (err: any) {
+      if (abortController.signal.aborted) {
+        setSubtitlePhase('idle');
+        return;
+      }
+      const errMsg = err?.message || String(err);
+      logService.error('[FilePreviewModal] Subtitle extraction failed:', err);
+      setSubtitlePhase('error');
+      toastError(errMsg);
+    }
+  }, [appSettings, file, previewFile, subtitlePhase, subtitleVttBlobUrl, t]);
+
+  const subtitleActions = useMemo(() => {
+    if (!isVideo) return null;
+
+    if (subtitlePhase === 'extracting' || subtitlePhase === 'uploading' || subtitlePhase === 'transcribing') {
+      const label =
+        subtitlePhase === 'extracting'
+          ? t('extractingAudio')
+          : subtitlePhase === 'uploading'
+            ? t('uploadingAudio').replace('{percent}', String(subtitleProgressPercent ?? 0))
+            : t('transcribingSubtitles');
+
+      return (
+        <div
+          data-testid="subtitles-progress-badge"
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg bg-white/10 text-white/90 border border-white/10"
+        >
+          <Loader2 size={13} className="animate-spin text-primary flex-shrink-0" />
+          <span className="truncate max-w-[200px]">{label}</span>
+        </div>
+      );
+    }
+
+    if (subtitlePhase === 'ready') {
+      return (
+        <button
+          type="button"
+          onClick={() => setIsSubtitlesDrawerOpen((prev) => !prev)}
+          className={`px-2.5 py-1 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer ${
+            isSubtitlesDrawerOpen ? 'bg-primary text-white shadow-sm' : 'bg-white/10 hover:bg-white/20 text-white/90'
+          }`}
+          data-testid="toggle-subtitles-drawer-btn"
+          title={t('videoSubtitles')}
+        >
+          <Subtitles size={13} />
+          <span>{t('videoSubtitles')}</span>
+          <span className="text-[10px] font-mono px-1 rounded-full bg-black/20">{subtitleCues.length}</span>
+        </button>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={handleExtractSubtitles}
+        className="px-2.5 py-1 text-xs font-medium rounded-lg bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+        data-testid="extract-subtitles-btn"
+        title={t('extractSubtitles')}
+      >
+        <Sparkles size={13} className="text-primary" />
+        <span>{t('extractSubtitles')}</span>
+      </button>
+    );
+  }, [
+    handleExtractSubtitles,
+    isSubtitlesDrawerOpen,
+    isVideo,
+    subtitleCues.length,
+    subtitlePhase,
+    subtitleProgressPercent,
+    t,
+  ]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -263,6 +436,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
           onSave={handleSave}
           editedName={editedName}
           onNameChange={setEditedName}
+          extraActions={subtitleActions}
           className={`transition-opacity duration-300 ${
             isVideo && !areControlsVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
@@ -379,27 +553,40 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               <LazyPdfViewer file={previewFile} />
             </Suspense>
           ) : isVideo ? (
-            <div className="w-full h-full flex items-center justify-center p-2 sm:p-6 lg:p-8">
-              {previewFile.dataUrl && (
-                <div
-                  className="relative w-full max-w-7xl max-h-[88vh] rounded-2xl shadow-2xl overflow-hidden bg-black/95 ring-1 ring-white/15 flex items-center justify-center transition-all duration-300"
-                  style={videoAspect ? { aspectRatio: `${videoAspect}` } : undefined}
-                >
-                  <VideoPlayer
-                    ref={videoPlayerRef}
-                    src={previewFile.dataUrl}
-                    file={previewFile}
-                    testId="file-preview-video"
-                    showSegmentBar={false}
-                    onControlsVisibilityChange={setAreControlsVisible}
-                    onLoadedMetadata={(e) => {
-                      const v = e.currentTarget;
-                      if (v.videoWidth && v.videoHeight) {
-                        setVideoAspect(v.videoWidth / v.videoHeight);
-                      }
-                    }}
-                  />
-                </div>
+            <div className="w-full h-full flex flex-row overflow-hidden relative">
+              <div className="flex-1 min-w-0 h-full flex items-center justify-center p-2 sm:p-6 lg:p-8">
+                {previewFile.dataUrl && (
+                  <div
+                    className="relative w-full max-w-7xl max-h-[88vh] rounded-2xl shadow-2xl overflow-hidden bg-black/95 ring-1 ring-white/15 flex items-center justify-center transition-all duration-300"
+                    style={videoAspect ? { aspectRatio: `${videoAspect}` } : undefined}
+                  >
+                    <VideoPlayer
+                      ref={videoPlayerRef}
+                      src={previewFile.dataUrl}
+                      subtitlesSrc={subtitleVttBlobUrl ?? undefined}
+                      file={previewFile}
+                      testId="file-preview-video"
+                      showSegmentBar={false}
+                      onControlsVisibilityChange={setAreControlsVisible}
+                      onTimeUpdate={setVideoCurrentTime}
+                      onLoadedMetadata={(e) => {
+                        const v = e.currentTarget;
+                        if (v.videoWidth && v.videoHeight) {
+                          setVideoAspect(v.videoWidth / v.videoHeight);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+              {isSubtitlesDrawerOpen && (
+                <VideoSubtitlesDrawer
+                  cues={subtitleCues}
+                  currentTime={videoCurrentTime}
+                  onSeek={(seconds) => videoPlayerRef.current?.seekTo(seconds)}
+                  onClose={() => setIsSubtitlesDrawerOpen(false)}
+                  videoFileName={file.name}
+                />
               )}
             </div>
           ) : isYoutube ? (

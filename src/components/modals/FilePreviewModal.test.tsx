@@ -3,12 +3,23 @@ import { setupProviderTestRenderer } from '@/test/render/providerRenderer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { UploadedFile } from '@/types';
 
-const { mockCopyFileToClipboard, mockExtractDocxText, mockSettingsState, mockTextFileViewer } = vi.hoisted(() => ({
+const {
+  mockCopyFileToClipboard,
+  mockExtractDocxText,
+  mockExtractAudioFromVideo,
+  mockTranscribeAudioWithGemini,
+  mockSettingsState,
+  mockTextFileViewer,
+} = vi.hoisted(() => ({
   mockCopyFileToClipboard: vi.fn(),
   mockExtractDocxText: vi.fn(),
+  mockExtractAudioFromVideo: vi.fn(),
+  mockTranscribeAudioWithGemini: vi.fn(),
   mockSettingsState: {
     language: 'en',
     appSettings: {
+      useCustomApiConfig: true,
+      apiKey: 'test-api-key',
       customShortcuts: {},
     },
     currentTheme: {
@@ -40,7 +51,7 @@ vi.mock('@/components/shared/Modal', () => ({
 vi.mock('@/components/shared/file-preview/FilePreviewHeader', async () => {
   const React = await import('react');
 
-  const FilePreviewHeader = React.forwardRef<{ showCopyFeedback: () => void }>((_, ref) => {
+  const FilePreviewHeader = React.forwardRef<{ showCopyFeedback: () => void }>((props: any, ref) => {
     const [isCopied, setIsCopied] = React.useState(false);
 
     React.useImperativeHandle(
@@ -52,14 +63,17 @@ vi.mock('@/components/shared/file-preview/FilePreviewHeader', async () => {
     );
 
     return (
-      <button
-        type="button"
-        data-testid="file-preview-copy-button"
-        data-copied={isCopied ? 'true' : 'false'}
-        onClick={() => setIsCopied(true)}
-      >
-        {isCopied ? 'Copied' : 'Copy'}
-      </button>
+      <div data-testid="mock-file-preview-header">
+        <button
+          type="button"
+          data-testid="file-preview-copy-button"
+          data-copied={isCopied ? 'true' : 'false'}
+          onClick={() => setIsCopied(true)}
+        >
+          {isCopied ? 'Copied' : 'Copy'}
+        </button>
+        {props.extraActions}
+      </div>
     );
   });
 
@@ -127,6 +141,14 @@ vi.mock('@/utils/docxPreview', () => ({
     file.name.toLowerCase().endsWith('.docx'),
 }));
 
+vi.mock('@/utils/video-subtitles/extractAudioFromVideo', () => ({
+  extractAudioFromVideo: mockExtractAudioFromVideo,
+}));
+
+vi.mock('@/utils/video-subtitles/geminiTranscribeService', () => ({
+  transcribeAudioWithGemini: mockTranscribeAudioWithGemini,
+}));
+
 import { FilePreviewModal } from './FilePreviewModal';
 
 describe('FilePreviewModal', () => {
@@ -176,6 +198,7 @@ describe('FilePreviewModal', () => {
     type: 'video/mp4',
     size: 4096,
     dataUrl: 'blob:video-preview',
+    rawFile: new File(['fake-video-bytes'], 'video.mp4', { type: 'video/mp4' }),
     uploadState: 'active',
   });
 
@@ -502,5 +525,87 @@ describe('FilePreviewModal', () => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
     });
     expect(onNext).toHaveBeenCalledTimes(1);
+  });
+
+  describe('video subtitle extraction', () => {
+    it('renders extract subtitles button for video files', async () => {
+      await act(async () => {
+        renderer.root.render(<FilePreviewModal file={createVideoFile()} onClose={() => {}} />);
+      });
+
+      const extractBtn = document.querySelector('[data-testid="extract-subtitles-btn"]');
+      expect(extractBtn).not.toBeNull();
+    });
+
+    it('extracts audio, transcribes with Gemini, and displays subtitles drawer', async () => {
+      mockExtractAudioFromVideo.mockResolvedValue({
+        audioBlob: new Blob(['wav-bytes'], { type: 'audio/wav' }),
+        durationSeconds: 5,
+      });
+      mockTranscribeAudioWithGemini.mockResolvedValue([
+        {
+          text: 'Hello world',
+          start_offset: '1.000s',
+          end_offset: '2.500s',
+        },
+      ]);
+
+      await act(async () => {
+        renderer.root.render(<FilePreviewModal file={createVideoFile()} onClose={() => {}} />);
+      });
+
+      const extractBtn = document.querySelector('[data-testid="extract-subtitles-btn"]') as HTMLButtonElement;
+      expect(extractBtn).not.toBeNull();
+
+      await act(async () => {
+        extractBtn.click();
+      });
+
+      await vi.waitFor(() => {
+        expect(mockExtractAudioFromVideo).toHaveBeenCalledTimes(1);
+        expect(mockTranscribeAudioWithGemini).toHaveBeenCalledTimes(1);
+        expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).not.toBeNull();
+      });
+
+      // Toggle drawer closed
+      const toggleBtn = document.querySelector('[data-testid="toggle-subtitles-drawer-btn"]') as HTMLButtonElement;
+      expect(toggleBtn).not.toBeNull();
+
+      await act(async () => {
+        toggleBtn.click();
+      });
+
+      expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).toBeNull();
+
+      // Toggle drawer open again
+      await act(async () => {
+        toggleBtn.click();
+      });
+
+      expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).not.toBeNull();
+    });
+
+    it('shows error state when transcription throws', async () => {
+      mockExtractAudioFromVideo.mockResolvedValue({
+        audioBlob: new Blob(['wav-bytes'], { type: 'audio/wav' }),
+        durationSeconds: 5,
+      });
+      mockTranscribeAudioWithGemini.mockRejectedValue(new Error('Quota exceeded'));
+
+      await act(async () => {
+        renderer.root.render(<FilePreviewModal file={createVideoFile()} onClose={() => {}} />);
+      });
+
+      const extractBtn = document.querySelector('[data-testid="extract-subtitles-btn"]') as HTMLButtonElement;
+      await act(async () => {
+        extractBtn.click();
+      });
+
+      await vi.waitFor(() => {
+        expect(mockExtractAudioFromVideo).toHaveBeenCalledTimes(1);
+        // After failure, extract button should be available again to retry
+        expect(document.querySelector('[data-testid="extract-subtitles-btn"]')).not.toBeNull();
+      });
+    });
   });
 });
