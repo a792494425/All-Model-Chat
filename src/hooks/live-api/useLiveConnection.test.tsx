@@ -63,7 +63,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -91,7 +91,7 @@ describe('useLiveConnection', () => {
     unmount();
   });
 
-  it('sends Gemini 3.1 Flash Live inline content through realtime input', async () => {
+  it('sends Gemini 3.8 Live inline content through realtime input', async () => {
     const sendRealtimeInput = vi.fn();
     const sendClientContent = vi.fn();
     const sessionRef = createLiveSessionRef();
@@ -113,7 +113,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -147,7 +147,7 @@ describe('useLiveConnection', () => {
     unmount();
   });
 
-  it('does not send Gemini 3.1 Flash Live fileData content through sendClientContent', async () => {
+  it('does not send Gemini 3.8 Live fileData content through sendClientContent', async () => {
     const sendRealtimeInput = vi.fn();
     const sendClientContent = vi.fn();
     const sessionRef = createLiveSessionRef();
@@ -169,7 +169,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -275,7 +275,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         liveApiKeyForConnection: 'browser-key',
         tools: [],
@@ -316,7 +316,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -366,7 +366,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(async (callback) => {
@@ -413,7 +413,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -475,7 +475,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -567,7 +567,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -640,7 +640,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -707,7 +707,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -762,7 +762,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -820,7 +820,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -889,7 +889,7 @@ describe('useLiveConnection', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConnection({
         appSettings: createAppSettings(),
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         liveConfig: {},
         tools: [],
         initializeAudio: vi.fn(),
@@ -932,7 +932,7 @@ describe('useLiveConnection', () => {
   // after an audioStreamEnd signal, so the client-side hybrid VAD must stay
   // silent for it while remaining active for conversational live models.
   it.each([
-    { modelId: 'gemini-3.1-flash-live-preview', shouldSignalStreamEnd: true },
+    { modelId: 'gemini-3.8-live', shouldSignalStreamEnd: true },
     { modelId: 'gemini-3.5-live-translate-preview', shouldSignalStreamEnd: false },
   ])(
     'client speech end signals audioStreamEnd=$shouldSignalStreamEnd for $modelId',

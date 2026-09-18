@@ -590,7 +590,7 @@ describe('standardChatStrategy', () => {
       expect.any(Function),
       expect.any(Function),
       streamOnError,
-      streamOnComplete,
+      expect.any(Function),
       'user',
       'openai',
     );

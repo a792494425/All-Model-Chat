@@ -112,7 +112,7 @@ export const executeThirdPartyChat = async ({
   streamOnPart,
   onThoughtChunk,
   streamOnError,
-  streamOnComplete,
+  streamOnComplete: _streamOnComplete,
   wrappedStreamOnComplete,
   nonStreamOnComplete,
   isStreamingEnabled,
@@ -146,7 +146,7 @@ export const executeThirdPartyChat = async ({
     : historyForChat;
   const effectiveFinalParts = !isAnthropic ? await normalizePartsForNonAnthropicProvider(finalParts) : finalParts;
 
-  const hasClientFunctions = Object.keys(combinedClientFunctions).length > 0;
+  const hasClientFunctions = activeModel?.enableTools !== false && Object.keys(combinedClientFunctions).length > 0;
   if (hasClientFunctions) {
     try {
       const thirdPartyOnThoughtChunk = (chunk: string) => onThoughtChunk(chunk, { source: 'third-party' });
@@ -292,7 +292,7 @@ export const executeThirdPartyChat = async ({
               thirdPartyOnPart,
               thirdPartyOnThoughtChunk,
               streamOnError,
-              streamOnComplete,
+              wrappedStreamOnComplete,
               finalRole,
               providerId,
             )
@@ -307,7 +307,7 @@ export const executeThirdPartyChat = async ({
                 thirdPartyOnPart,
                 thirdPartyOnThoughtChunk,
                 streamOnError,
-                streamOnComplete,
+                wrappedStreamOnComplete,
                 finalRole,
                 providerId,
               )
@@ -321,7 +321,7 @@ export const executeThirdPartyChat = async ({
                 thirdPartyOnPart,
                 thirdPartyOnThoughtChunk,
                 streamOnError,
-                streamOnComplete,
+                wrappedStreamOnComplete,
                 finalRole,
                 providerId,
               ),

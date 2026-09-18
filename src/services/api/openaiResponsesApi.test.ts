@@ -537,5 +537,31 @@ describe('generateOpenAIResponsesTurnApi', () => {
       expect(result.parts).toEqual([{ text: 'Tokyo is lovely.' }]);
       expect(result.usage?.totalTokenCount).toBe(9);
     });
+
+    it('accumulates function call arguments when delta event only provides call_id', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+        mockSseResponse([
+          'event: response.output_item.added\ndata: {"type":"response.output_item.added","item":{"id":"item_999","type":"function_call","call_id":"call_calc","name":"calculate","arguments":""}}\n\n',
+          'event: response.function_call_arguments.delta\ndata: {"type":"response.function_call_arguments.delta","call_id":"call_calc","delta":"{\\"expr\\":\\"2+2\\"}"}\n\n',
+          'event: response.completed\ndata: {"type":"response.completed","response":{"status":"completed"}}\n\n',
+        ]),
+      );
+
+      const result = await generateOpenAIResponsesTurnStreamApi(
+        'sk-test-key',
+        'gpt-4o',
+        [{ role: 'user', parts: [{ text: 'Calculate 2+2' }] }],
+        {},
+        new AbortController().signal,
+      );
+
+      expect(result.functionCalls).toEqual([
+        {
+          id: 'call_calc',
+          name: 'calculate',
+          args: { expr: '2+2' },
+        },
+      ]);
+    });
   });
 });

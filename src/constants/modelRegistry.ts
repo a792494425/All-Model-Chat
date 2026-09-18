@@ -51,8 +51,13 @@ const MODEL_REGISTRY: RegisteredModel[] = [
     },
   },
   {
-    id: 'gemini-3.1-flash-live-preview',
-    name: 'Gemini 3.1 Flash Live',
+    id: 'gemini-3.8-live',
+    name: 'Gemini 3.8 Live',
+    groups: ['defaultPinned'],
+  },
+  {
+    id: 'gemini-3.8-live-extended-thinking',
+    name: 'Gemini 3.8 Live Extended Thinking',
     groups: ['defaultPinned'],
   },
   {

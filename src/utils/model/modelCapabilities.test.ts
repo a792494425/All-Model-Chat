@@ -53,7 +53,7 @@ describe('isGemini3Model', () => {
   });
 
   it('returns true for gemini-3.1-flash family ids', () => {
-    expect(isGemini3Model('gemini-3.1-flash-live-preview')).toBe(true);
+    expect(isGemini3Model('gemini-3.1-flash-image')).toBe(true);
     expect(isGemini3Model('gemini-3.5-flash-lite')).toBe(true);
   });
 
@@ -97,8 +97,13 @@ describe('supportsSearchMapsCombination', () => {
 });
 
 describe('getModelCapabilities', () => {
-  it('treats flash live preview models as live audio models', () => {
-    expect(getModelCapabilities('gemini-3.1-flash-live-preview').isNativeAudioModel).toBe(true);
+  it('treats live models as live audio models', () => {
+    expect(getModelCapabilities('gemini-3.8-live').isNativeAudioModel).toBe(true);
+    expect(getModelCapabilities('gemini-3.8-live').isGemini38LiveModel).toBe(true);
+    expect(getModelCapabilities('gemini-3.8-live-extended-thinking').isNativeAudioModel).toBe(true);
+    expect(getModelCapabilities('gemini-3.8-live-extended-thinking').isGemini38LiveModel).toBe(true);
+    expect(getModelCapabilities('gemini-3.8-live-extended-thinking').isGemini38LiveExtendedThinkingModel).toBe(true);
+    expect(getModelCapabilities('gemini-3.8-live-extended-thinking').supportsMinimalThinkingLevel).toBe(false);
   });
 
   it('does not mark Gemini 3.1 Flash TTS Preview as supporting thinking', () => {
@@ -198,7 +203,7 @@ describe('getModelCapabilities', () => {
   it('exposes interaction permissions so UI code does not branch on model families', () => {
     const textCapabilities = getModelCapabilities('gemini-3.1-pro-preview');
     const ttsCapabilities = getModelCapabilities('gemini-3.1-flash-tts-preview');
-    const liveCapabilities = getModelCapabilities('gemini-3.1-flash-live-preview');
+    const liveCapabilities = getModelCapabilities('gemini-3.8-live');
     const geminiImageCapabilities = getModelCapabilities('gemini-3.1-flash-image-preview');
 
     expect(textCapabilities.permissions).toMatchObject({
@@ -243,8 +248,8 @@ describe('getModelCapabilities', () => {
 });
 
 describe('getDefaultThinkingLevelForModel', () => {
-  it('defaults Gemini 3.1 Flash Live to MINIMAL', () => {
-    expect(getDefaultThinkingLevelForModel('gemini-3.1-flash-live-preview')).toBe('MINIMAL');
+  it('does not configure thinking levels for Gemini 3.8 Live', () => {
+    expect(getModelCapabilities('gemini-3.8-live').supportsThinkingLevel).toBe(false);
   });
 
   it('defaults Gemini 3.1 Flash Image to MINIMAL', () => {
@@ -338,7 +343,7 @@ describe('isLiveTranslateModel', () => {
   });
 
   it('returns false for unrelated models', () => {
-    expect(isLiveTranslateModel('gemini-3.1-flash-live-preview')).toBe(false);
+    expect(isLiveTranslateModel('gemini-3.8-live')).toBe(false);
     expect(isLiveTranslateModel('gemini-3.6-flash')).toBe(false);
   });
 });
@@ -401,13 +406,13 @@ describe('specialized audio and image model capability constraints', () => {
   });
 
   it('restricts local python to live models that support function calling', () => {
-    expect(getModelCapabilities('gemini-3.1-flash-live-preview').permissions.canUseLocalPython).toBe(true);
+    expect(getModelCapabilities('gemini-3.8-live').permissions.canUseLocalPython).toBe(true);
     expect(getModelCapabilities('gemini-3.5-live-translate-preview').permissions.canUseLocalPython).toBe(false);
     expect(getModelCapabilities('gemini-3.5-transcribe-live').permissions.canUseLocalPython).toBe(false);
   });
 
   it('restricts Google search to live models that support search grounding', () => {
-    expect(getModelCapabilities('gemini-3.1-flash-live-preview').permissions.canUseGoogleSearch).toBe(true);
+    expect(getModelCapabilities('gemini-3.8-live').permissions.canUseGoogleSearch).toBe(true);
     expect(getModelCapabilities('gemini-3.5-live-translate-preview').permissions.canUseGoogleSearch).toBe(false);
     expect(getModelCapabilities('gemini-3.5-transcribe-live').permissions.canUseGoogleSearch).toBe(false);
   });

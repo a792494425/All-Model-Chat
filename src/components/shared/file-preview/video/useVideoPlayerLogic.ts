@@ -46,6 +46,7 @@ export interface UseVideoPlayerLogicProps {
   annotationTargetTime?: number | null;
   isAnnotationVisible?: boolean;
   onAnnotationVisibilityChange?: (visible: boolean) => void;
+  onAnnotationDismiss?: () => void;
   timelineMarkers?: TimelineMarker[];
   onLoadedMetadata?: (event: SyntheticEvent<HTMLVideoElement, Event>) => void;
   onTimeUpdate?: (currentTime: number) => void;
@@ -69,6 +70,7 @@ export function useVideoPlayerLogic(props: UseVideoPlayerLogicProps, ref: Forwar
     annotationTargetTime = null,
     isAnnotationVisible: controlledIsAnnotationVisible,
     onAnnotationVisibilityChange,
+    onAnnotationDismiss,
     onLoadedMetadata,
     onTimeUpdate,
     onSeeking,
@@ -102,6 +104,7 @@ export function useVideoPlayerLogic(props: UseVideoPlayerLogicProps, ref: Forwar
       annotationTargetTime,
       isAnnotationVisible: controlledIsAnnotationVisible,
       onAnnotationVisibilityChange,
+      onAnnotationDismiss,
     });
 
   const { volume, isMuted, toggleMute, handleVolumeChange, applyVolumeToVideo } = useVideoVolumeSync({

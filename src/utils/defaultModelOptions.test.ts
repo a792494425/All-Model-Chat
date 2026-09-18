@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { getDefaultModelOptions } from './defaultModelOptions';
 
 describe('getDefaultModelOptions', () => {
-  it('includes the current Gemini 3.1 Flash Live model in pinned defaults', () => {
+  it('includes the current Gemini 3.8 Live models in pinned defaults and omits 3.1 Flash Live', () => {
     const models = getDefaultModelOptions();
 
-    expect(models.some((model) => model.id === 'gemini-3.1-flash-live-preview')).toBe(true);
+    expect(models.some((model) => model.id === 'gemini-3.8-live')).toBe(true);
+    expect(models.some((model) => model.id === 'gemini-3.8-live-extended-thinking')).toBe(true);
+    expect(models.some((model) => model.id === 'gemini-3.1-flash-live-preview')).toBe(false);
   });
 
   it('includes Gemini Robotics-ER 2 in pinned defaults', () => {

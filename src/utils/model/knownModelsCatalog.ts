@@ -555,7 +555,7 @@ export const inferModelCapabilities = (
 } => {
   const lower = rawId.toLowerCase();
 
-  const thinking = /r1|o1|o3|claude-3-7|thinking|reasoner|reasoning|qwq|zero/i.test(lower);
+  const thinking = /r1|o1|o3|o4|claude-3-7|thinking|reasoner|reasoning|qwq|zero/i.test(lower);
   const vision = /vision|vl|-v-|4v|4o|pixtral|claude-3|gemini|multimodal/i.test(lower);
   const tools = !/embed|rerank|moderation|tts|whisper|dall-e/i.test(lower);
   const image = /dall-e|midjourney|flux|stable-diffusion|sdxl|imagen|cogview/i.test(lower);
@@ -583,7 +583,7 @@ export const inferModelCapabilities = (
 
   // Guess owner
   let ownedBy: string | undefined;
-  if (lower.includes('gpt') || lower.includes('o1') || lower.includes('o3')) ownedBy = 'openai';
+  if (lower.includes('gpt') || lower.includes('o1') || lower.includes('o3') || lower.includes('o4')) ownedBy = 'openai';
   else if (lower.includes('claude')) ownedBy = 'anthropic';
   else if (lower.includes('deepseek')) ownedBy = 'deepseek';
   else if (lower.includes('qwen') || lower.includes('qwq')) ownedBy = 'qwen';

@@ -639,6 +639,28 @@ describe('chatStore', () => {
       expect(savedArg?.messages[0].files?.[0].uploadState).toBe('active');
     });
 
+    it('persists inactive sessions to dbService when their messages contain the updated file', async () => {
+      const file = createUploadedFile({ id: 'f-inactive', uploadState: 'uploading' });
+      const msg = { id: 'm-in', role: 'user' as const, content: 'see file', timestamp: new Date(), files: [file] };
+      const inactiveSession = makeSession({ id: 's-inactive', messages: [msg] });
+
+      useChatStore.setState({
+        activeSessionId: 's-active',
+        activeMessages: [],
+        savedSessions: [inactiveSession],
+      });
+
+      useChatStore.getState().updateUploadedFile('f-inactive', { uploadState: 'active' });
+
+      await vi.waitFor(() => {
+        expect(dbService.saveSession).toHaveBeenCalled();
+      });
+
+      const savedArg = vi.mocked(dbService.saveSession).mock.calls.find(([s]) => s.id === 's-inactive')?.[0];
+      expect(savedArg).toBeDefined();
+      expect(savedArg?.messages[0].files?.[0].uploadState).toBe('active');
+    });
+
     it('short-circuits and preserves session references for inactive sessions with stripped empty messages', () => {
       const file = createUploadedFile({ id: 'f-other', uploadState: 'uploading' });
       const inactiveSession1 = makeSession({ id: 's1', messages: [] });

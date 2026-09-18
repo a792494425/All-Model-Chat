@@ -90,6 +90,10 @@ describe('knownModelsCatalog', () => {
       const customVision = inferModelCapabilities('org/company-vl-model-1m');
       expect(customVision.capabilities.vision).toBe(true);
       expect(customVision.contextWindow).toBe(1000000);
+
+      const o4Inferred = inferModelCapabilities('openai/o4-mini-preview');
+      expect(o4Inferred.capabilities.thinking).toBe(true);
+      expect(o4Inferred.ownedBy).toBe('openai');
     });
   });
 

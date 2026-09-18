@@ -328,5 +328,54 @@ describe('standardChatThirdParty utilities', () => {
       expect(generateAnthropicTurnStreamApi).toHaveBeenCalled();
       expect(wrappedStreamOnComplete).toHaveBeenCalled();
     });
+
+    it('bypasses tool loop when activeModel has enableTools === false', async () => {
+      const { sendAnthropicMessageStream } = await import('@/services/api/anthropicApi');
+      const { generateAnthropicTurnStreamApi } = await import('@/services/api/anthropicApi');
+
+      const wrappedStreamOnComplete = vi.fn();
+
+      await executeThirdPartyChat({
+        activeProvider: {
+          id: 'p-3',
+          name: 'AnthropicProvider',
+          protocol: 'anthropic',
+          baseUrl: 'https://api.anthropic.com',
+          apiKey: 'test-key',
+          models: [
+            {
+              id: 'claude-3-7-sonnet',
+              name: 'Claude 3.7',
+              enableTools: false,
+            },
+          ],
+        } as any,
+        apiModelId: 'claude-3-7-sonnet',
+        keyToUse: 'test-key',
+        sessionToUpdate: {} as any,
+        historyForChat: [],
+        finalRole: 'user',
+        finalParts: [{ text: 'tools disabled' }],
+        combinedClientFunctions: {
+          testTool: {
+            declaration: { name: 'testTool', description: 'desc', parameters: {} },
+            handler: vi.fn(),
+          },
+        },
+        newAbortController: new AbortController(),
+        generationId: 'gen-4',
+        insertInternalToolMessages: vi.fn(),
+        streamOnPart: vi.fn(),
+        onThoughtChunk: vi.fn(),
+        streamOnError: vi.fn(),
+        streamOnComplete: vi.fn(),
+        wrappedStreamOnComplete,
+        nonStreamOnComplete: vi.fn(),
+        isStreamingEnabled: true,
+      });
+
+      expect(generateAnthropicTurnStreamApi).not.toHaveBeenCalled();
+      expect(sendAnthropicMessageStream).toHaveBeenCalled();
+    });
   });
 });

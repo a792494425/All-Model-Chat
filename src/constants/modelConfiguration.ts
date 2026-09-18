@@ -41,6 +41,11 @@ const REMOVED_MODEL_ID_MIGRATIONS: Readonly<Record<string, string>> = {
   // Robotics ER generation 1 shut down 2026-08-31; migrate to ER 2.
   'gemini-robotics-er-1.6-preview': ROBOTICS_MODEL,
   'models/gemini-robotics-er-1.6-preview': ROBOTICS_MODEL,
+  // Live: Gemini 3.1 Flash Live deprecated; migrate to Gemini 3.8 Live.
+  'gemini-3.1-flash-live-preview': 'gemini-3.8-live',
+  'models/gemini-3.1-flash-live-preview': 'gemini-3.8-live',
+  'gemini-3.1-flash-live': 'gemini-3.8-live',
+  'models/gemini-3.1-flash-live': 'gemini-3.8-live',
 };
 
 export const migrateRemovedModelId = (modelId: string | null | undefined): string | undefined => {

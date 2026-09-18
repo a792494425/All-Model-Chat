@@ -5,6 +5,7 @@ import { useVideoVolumeStore } from '@/stores/videoVolumeStore';
 import { useVideoVolumeSync } from './useVideoVolumeSync';
 import { useVideoFullscreenAndPip } from './useVideoFullscreenAndPip';
 import { useVideoPlayback, PLAYBACK_RATES, FRAME_STEP_SECONDS } from './useVideoPlayback';
+import { useVideoAnnotationState } from './useVideoAnnotationState';
 
 describe('videoLogicHooks', () => {
   let mockVideo: HTMLVideoElement;
@@ -169,6 +170,32 @@ describe('videoLogicHooks', () => {
         result.current.stepFrame('back');
       });
       expect(mockVideo.currentTime).toBeCloseTo(5);
+    });
+  });
+
+  describe('useVideoAnnotationState', () => {
+    it('triggers onAnnotationDismiss and hides annotation when closed', () => {
+      const onAnnotationDismiss = vi.fn();
+      const onAnnotationVisibilityChange = vi.fn();
+
+      const { result } = renderHook(() =>
+        useVideoAnnotationState({
+          annotation: { box2d: [0, 0, 100, 100], snippet: 'Test' },
+          annotationTargetTime: 5,
+          isAnnotationVisible: true,
+          onAnnotationVisibilityChange,
+          onAnnotationDismiss,
+        }),
+      );
+
+      expect(result.current.effectiveAnnotationVisible).toBe(true);
+
+      act(() => {
+        result.current.handleCloseAnnotation();
+      });
+
+      expect(onAnnotationDismiss).toHaveBeenCalledTimes(1);
+      expect(onAnnotationVisibilityChange).toHaveBeenCalledWith(false);
     });
   });
 });

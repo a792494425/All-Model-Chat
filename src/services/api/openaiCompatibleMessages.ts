@@ -199,8 +199,29 @@ const buildOpenAICompatibleMessages = (
     });
   }
 
+  const currentFunctionCalls = parts
+    .filter((p) => Boolean(p.functionCall))
+    .map((p, idx) => ({
+      id: p.functionCall?.id || `call_${idx}`,
+      type: 'function' as const,
+      function: {
+        name: p.functionCall?.name || '',
+        arguments:
+          typeof p.functionCall?.args === 'string' ? p.functionCall.args : JSON.stringify(p.functionCall?.args ?? {}),
+      },
+    }));
+
   const currentFunctionResponses = parts.filter((p) => Boolean(p.functionResponse));
-  if (currentFunctionResponses.length > 0) {
+
+  if (role === 'model' && currentFunctionCalls.length > 0) {
+    const nonCallParts = parts.filter((p) => !p.functionCall);
+    const textContent = partsToOpenAIContent(nonCallParts);
+    messages.push({
+      role: 'assistant',
+      content: hasNonEmptyMessageContent(textContent) ? textContent : null,
+      tool_calls: currentFunctionCalls,
+    });
+  } else if (currentFunctionResponses.length > 0) {
     for (let idx = 0; idx < currentFunctionResponses.length; idx++) {
       const resp = currentFunctionResponses[idx].functionResponse!;
       const rawContent = resp.response;

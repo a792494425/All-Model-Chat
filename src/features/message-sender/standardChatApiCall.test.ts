@@ -569,6 +569,7 @@ describe('performStandardChatApiCall', () => {
       expect.objectContaining({ totalTokenCount: 42 }),
       undefined,
       undefined,
+      [],
     );
   });
 

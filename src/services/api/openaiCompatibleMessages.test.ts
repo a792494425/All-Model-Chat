@@ -420,5 +420,41 @@ describe('openaiCompatibleMessages', () => {
 
       expect(body.messages[0].content).toBe('const a = 1; console.log(a);\nAnalyze this code.');
     });
+
+    it('formats model role with functionCall in trailing parts into assistant message with tool_calls', () => {
+      const body = buildOpenAICompatibleRequestBody(
+        'gpt-4o',
+        [],
+        [
+          { text: 'Let me search' },
+          {
+            functionCall: {
+              name: 'lookup_data',
+              args: { query: 'weather' },
+            },
+          },
+        ],
+        {},
+        'model',
+        false,
+      ) as {
+        messages: Array<{
+          role: string;
+          content: string | null;
+          tool_calls?: Array<{
+            id: string;
+            type: string;
+            function: { name: string; arguments: string };
+          }>;
+        }>;
+      };
+
+      expect(body.messages).toHaveLength(1);
+      expect(body.messages[0].role).toBe('assistant');
+      expect(body.messages[0].content).toBe('Let me search');
+      expect(body.messages[0].tool_calls).toHaveLength(1);
+      expect(body.messages[0].tool_calls?.[0].function.name).toBe('lookup_data');
+      expect(body.messages[0].tool_calls?.[0].function.arguments).toBe('{"query":"weather"}');
+    });
   });
 });

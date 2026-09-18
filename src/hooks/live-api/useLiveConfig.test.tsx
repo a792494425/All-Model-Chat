@@ -8,7 +8,7 @@ import { renderHook } from '@/test/render/renderer';
 const createLiveClientFunctions = (overrides: LiveClientFunctions): LiveClientFunctions => overrides;
 
 const baseChatSettings = createChatSettings({
-  modelId: 'gemini-3.1-flash-live-preview',
+  modelId: 'gemini-3.8-live',
   temperature: 1,
   topP: 0.95,
   topK: 64,
@@ -42,7 +42,7 @@ describe('useLiveConfig', () => {
     unmount();
   });
 
-  it('uses thinkingLevel for Gemini 3.1 Flash Live sessions', () => {
+  it('omits thinkingConfig for Gemini 3.8 Live sessions per official specification', () => {
     const { result, unmount } = renderHook(() =>
       useLiveConfig({
         chatSettings: baseChatSettings,
@@ -50,9 +50,64 @@ describe('useLiveConfig', () => {
       }),
     );
 
+    expect((result.current.liveConfig as LiveConfig).thinkingConfig).toBeUndefined();
+    unmount();
+  });
+
+  it('configures thinkingConfig and NON_BLOCKING tools for Gemini 3.8 Live Extended Thinking', () => {
+    const { result, unmount } = renderHook(() =>
+      useLiveConfig({
+        chatSettings: createChatSettings({
+          ...baseChatSettings,
+          modelId: 'gemini-3.8-live-extended-thinking',
+          thinkingLevel: 'HIGH',
+        }),
+        sessionHandle: null,
+        clientFunctions: createLiveClientFunctions({
+          turn_on_the_lights: {
+            declaration: {
+              name: 'turn_on_the_lights',
+              description: 'Turns on the lights.',
+            },
+            handler: async () => ({ response: 'ok' }),
+          },
+        }),
+      }),
+    );
+
+    expect((result.current.liveConfig as LiveConfig).thinkingConfig).toEqual({
+      thinkingLevel: 'HIGH',
+      includeThoughts: true,
+    });
+    expect((result.current.liveConfig as LiveConfig).tools).toEqual([
+      {
+        functionDeclarations: [
+          {
+            name: 'turn_on_the_lights',
+            description: 'Turns on the lights.',
+            behavior: 'NON_BLOCKING',
+          },
+        ],
+      },
+    ]);
+    unmount();
+  });
+
+  it('configures thinkingBudget for Gemini 2.5 native audio live models', () => {
+    const { result, unmount } = renderHook(() =>
+      useLiveConfig({
+        chatSettings: createChatSettings({
+          ...baseChatSettings,
+          modelId: 'gemini-2.5-flash-native-audio-preview-12-2025',
+          thinkingBudget: 2048,
+        }),
+        sessionHandle: null,
+      }),
+    );
+
     expect((result.current.liveConfig as LiveConfig).thinkingConfig).toEqual({
       includeThoughts: true,
-      thinkingLevel: 'LOW',
+      thinkingBudget: 2048,
     });
     unmount();
   });

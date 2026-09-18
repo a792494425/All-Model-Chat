@@ -24,6 +24,7 @@ export const MarkdownFileViewer: React.FC<MarkdownFileViewerProps> = ({
   content,
   themeId = 'pearl',
   isEditable = false,
+  layout = 'contained',
   onChange,
   onLoad,
 }) => {
@@ -84,7 +85,10 @@ export const MarkdownFileViewer: React.FC<MarkdownFileViewerProps> = ({
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[var(--theme-bg-secondary)] text-[var(--theme-text-primary)]">
+    <div
+      data-layout={layout}
+      className="flex h-full min-h-0 flex-col bg-[var(--theme-bg-secondary)] text-[var(--theme-text-primary)]"
+    >
       <MarkdownFileViewerToolbar
         showSource={showSource}
         isEditable={isEditable}

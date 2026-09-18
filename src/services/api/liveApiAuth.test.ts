@@ -154,7 +154,7 @@ describe('createLiveEphemeralToken', () => {
         useApiProxy: false,
         apiProxyUrl: null,
       },
-      { model: 'gemini-3.1-flash-live-preview', apiKey: 'custom-key' },
+      { model: 'gemini-3.8-live', apiKey: 'custom-key' },
     );
 
     expect(mockFetch).toHaveBeenCalledWith(

@@ -85,7 +85,7 @@ export const useLiveConfig = ({
       };
     }
 
-    const isGemini31FlashLive = capabilities.isGemini31FlashLiveModel;
+    const isGemini38Live = capabilities.isGemini38LiveModel;
 
     // Construct Tools Configuration
     const tools: Tool[] = [];
@@ -95,7 +95,11 @@ export const useLiveConfig = ({
       tools.push({ googleSearch: {} });
     }
 
-    const functionDeclarations = Object.values(clientFunctions ?? {}).map(({ declaration }) => declaration);
+    const functionDeclarations = Object.values(clientFunctions ?? {}).map(({ declaration }) =>
+      capabilities.isGemini38LiveExtendedThinkingModel
+        ? ({ ...declaration, behavior: 'NON_BLOCKING' } as typeof declaration)
+        : declaration,
+    );
     if (functionDeclarations.length > 0) {
       tools.push({ functionDeclarations });
     }
@@ -126,14 +130,20 @@ export const useLiveConfig = ({
       mediaResolution: chatSettings.mediaResolution,
     };
 
-    // Configure Thinking for Native Audio models if enabled in settings
-    // Gemini 3.1 Flash Live uses thinkingLevel; Gemini 2.5 native audio/live
-    // models still use thinkingBudget.
-    if (isGemini31FlashLive) {
+    // Configure Thinking for Native Audio models if enabled in settings.
+    // Gemini 3.8 Live Extended Thinking requires background reasoning via thinkingConfig.
+    // Gemini 3.8 Live uses native interleaved reasoning; thinking_level / thinkingConfig must be omitted.
+    // Gemini 2.5 native audio/live models still use thinkingBudget.
+    if (capabilities.isGemini38LiveExtendedThinkingModel) {
+      const rawLevel = chatSettings.thinkingLevel?.toUpperCase();
+      const thinkingLevel = (rawLevel === 'MEDIUM' || rawLevel === 'HIGH' ? rawLevel : 'LOW') as
+        'LOW' | 'MEDIUM' | 'HIGH';
       liveConfig.thinkingConfig = {
+        thinkingLevel,
         includeThoughts: true,
-        thinkingLevel: chatSettings.thinkingLevel || 'MINIMAL',
       };
+    } else if (isGemini38Live) {
+      // Per Gemini 3.8 Live specification: thinking_level is not supported; omit thinkingConfig.
     } else if (chatSettings.thinkingBudget !== 0) {
       const thinkingConfig: NonNullable<LiveConfig['thinkingConfig']> = {
         includeThoughts: true,

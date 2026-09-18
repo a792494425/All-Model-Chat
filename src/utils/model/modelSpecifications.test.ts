@@ -65,16 +65,16 @@ describe('modelSpecifications', () => {
     expect(spec.thinkingBudgetRange).toBeUndefined();
   });
 
-  it('resolves specifications for Gemini 3.1 Flash Live', () => {
+  it('resolves specifications for Gemini 3.8 Live', () => {
     const model: ModelOption = {
-      id: 'gemini-3.1-flash-live-preview',
-      name: 'Gemini 3.1 Flash Live',
+      id: 'gemini-3.8-live',
+      name: 'Gemini 3.8 Live',
     };
 
     const spec = getModelSpecification(model);
     expect(spec.contextWindow).toContain('128K');
     expect(spec.maxOutput).toContain('64K');
-    expect(spec.thinkingLevelRange).toBe('Minimal ~ High (默认 Minimal)');
+    expect(spec.thinkingLevelRange).toBeUndefined();
     expect(spec.thinkingBudgetRange).toBeUndefined();
   });
 
@@ -230,5 +230,39 @@ describe('modelSpecifications', () => {
     expect(fixedImageSpec.descriptionKey).toBe('modelDescGeminiImage');
     expect(formatThinkingLevelSpec(fixedImageSpec.thinkingLevelSpec, tZh)).toBe('内置思考（不可调节）');
     expect(formatThinkingLevelSpec(fixedImageSpec.thinkingLevelSpec, tEn)).toBe('Built-in (Fixed)');
+
+    const liveExtendedThinkingSpec = getModelSpecification({
+      id: 'gemini-3.8-live-extended-thinking',
+      name: 'Gemini 3.8 Live Extended Thinking',
+    });
+    expect(liveExtendedThinkingSpec.descriptionKey).toBe('modelDescGeminiLiveExtendedThinking');
+    expect(formatThinkingLevelSpec(liveExtendedThinkingSpec.thinkingLevelSpec, tZh)).toBe('低 ~ 高 (默认 低)');
+    expect(formatThinkingLevelSpec(liveExtendedThinkingSpec.thinkingLevelSpec, tEn)).toBe('Low ~ High (Default Low)');
+  });
+
+  it('resolves specifications for Grok 4.6 and Grok reasoning models', () => {
+    const grokSpec = getModelSpecification({ id: 'grok-4.6', name: 'Grok 4.6' });
+    expect(grokSpec.providerDisplayName).toBe('xAI Grok');
+    expect(grokSpec.contextWindow).toContain('500K');
+    expect(grokSpec.isReasoning).toBe(true);
+    expect(grokSpec.isMultimodalVision).toBe(true);
+    expect(grokSpec.descriptionKey).toBe('modelDescGrok');
+
+    const grok4Spec = getModelSpecification({ id: 'grok-4', name: 'Grok 4' });
+    expect(grok4Spec.providerDisplayName).toBe('xAI Grok');
+    expect(grok4Spec.contextWindow).toContain('1M');
+    expect(grok4Spec.isMultimodalVision).toBe(true);
+  });
+
+  it('resolves specifications for o1 and o3 models as OpenAI with 200K context', () => {
+    const o3Spec = getModelSpecification({ id: 'o3-mini', name: 'o3-mini' });
+    expect(o3Spec.providerDisplayName).toBe('OpenAI');
+    expect(o3Spec.contextWindow).toContain('200K');
+    expect(o3Spec.maxOutput).toContain('100K');
+    expect(o3Spec.descriptionKey).toBe('modelDescOpenAIReasoning');
+
+    const o1Spec = getModelSpecification({ id: 'o1-preview', name: 'o1-preview' });
+    expect(o1Spec.providerDisplayName).toBe('OpenAI');
+    expect(o1Spec.contextWindow).toContain('200K');
   });
 });

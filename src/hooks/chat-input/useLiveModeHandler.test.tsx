@@ -90,8 +90,8 @@ describe('useLiveModeHandler', () => {
         setSelectedFiles,
         setAppFileError: vi.fn(),
         appSettings: createAppSettings({ useCustomApiConfig: true, apiKey: 'api-key' }),
-        currentChatSettings: createChatSettings({ modelId: 'gemini-3.1-flash-live' }),
-        currentModelId: 'gemini-3.1-flash-live',
+        currentChatSettings: createChatSettings({ modelId: 'gemini-3.8-live' }),
+        currentModelId: 'gemini-3.8-live',
         mediaResolution: MediaResolution.MEDIA_RESOLUTION_LOW,
         liveApi,
         onAddUserMessage,
@@ -107,7 +107,7 @@ describe('useLiveModeHandler', () => {
     expect(mockBuildContentParts).toHaveBeenCalledWith(
       'hello',
       files,
-      'gemini-3.1-flash-live',
+      'gemini-3.8-live',
       MediaResolution.MEDIA_RESOLUTION_LOW,
     );
     expect(liveApi.sendContent).toHaveBeenCalledWith([
@@ -151,8 +151,8 @@ describe('useLiveModeHandler', () => {
         setSelectedFiles,
         setAppFileError: vi.fn(),
         appSettings: createAppSettings({ useCustomApiConfig: true, apiKey: 'api-key' }),
-        currentChatSettings: createChatSettings({ modelId: 'gemini-3.1-flash-live' }),
-        currentModelId: 'gemini-3.1-flash-live',
+        currentChatSettings: createChatSettings({ modelId: 'gemini-3.8-live' }),
+        currentModelId: 'gemini-3.8-live',
         mediaResolution: MediaResolution.MEDIA_RESOLUTION_LOW,
         liveApi,
         onAddUserMessage: vi.fn(),
@@ -174,7 +174,7 @@ describe('useLiveModeHandler', () => {
     expect(mockBuildContentParts).toHaveBeenCalledWith(
       'hello',
       [refreshedFile],
-      'gemini-3.1-flash-live',
+      'gemini-3.8-live',
       MediaResolution.MEDIA_RESOLUTION_LOW,
     );
     expect(liveApi.sendContent).toHaveBeenCalledWith([

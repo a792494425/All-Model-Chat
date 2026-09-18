@@ -368,6 +368,15 @@ export const headerTranslations = {
     fr: 'Modèle de streaming audio bidirectionnel en temps réel pour une conversation vocale naturelle à faible latence.',
     de: 'Echtzeit-bidirektionales Audio-Streaming-Modell für natürliche Sprachkonversationen mit minimaler Latenz.',
   },
+  modelDescGeminiLiveExtendedThinking: {
+    en: 'High-reasoning audio streaming model with background thinking for complex real-time voice interactions.',
+    zh: '高推理双向音频流式模型，支持后台深度推理与异步工具调用，专为复杂实时语音交互打造。',
+    ja: '複雑なリアルタイム音声対話のための、バックグラウンド思考を備えた高推論双方向音声モデル。',
+    ko: '복잡한 실시간 음성 상호작용을 위한 백그라운드 추론 기능을 갖춘 고추론 오디오 스트리밍 모델입니다.',
+    es: 'Modelo de audio bidireccional de alto razonamiento con pensamiento en segundo plano para interacciones de voz complejas en tiempo real.',
+    fr: 'Modèle audio bidirectionnel à haut raisonnement avec réflexion en arrière-plan pour des interactions vocales complexes en temps réel.',
+    de: 'Bidirektionales Audio-Streaming-Modell mit hoher Argumentationsleistung und Hintergrundüberlegung für komplexe Echtzeit-Sprachinteraktionen.',
+  },
   modelDescGeminiTranscribe: {
     en: 'Specialized speech recognition engine supporting continuous audio stream transcription and speaker turn diarization.',
     zh: '专业语音转写引擎，支持长音频连续流式识别、字级时间戳与说话人分离。',
@@ -475,5 +484,14 @@ export const headerTranslations = {
     es: 'Modelo fundacional bilingüe avanzado compatible con pensamiento profundo y orquestación de herramientas.',
     fr: 'Modèle bilingue avancé supportant la réflexion approfondie et l’orchestration d’outils d’agents.',
     de: 'Fortschrittliches zweisprachiges Basismodell für tiefes Denken und Agenten-Tool-Orchestrierung.',
+  },
+  modelDescGrok: {
+    en: 'xAI frontier model with high-speed reasoning, real-time search knowledge, and deep conversational nuance.',
+    zh: 'xAI 前沿旗舰模型，兼具极速深度推理、实时检索认知与生动多样的对话表现力。',
+    ja: '高速推論、リアルタイム検索による知識、豊かな対話力を備えたxAIのフロンティアモデル。',
+    ko: '고속 추론, 실시간 검색 지식 및 깊이 있는 대화 능력을 갖춘 xAI 프론티어 모델입니다.',
+    es: 'Modelo de frontera de xAI con razonamiento de alta velocidad, conocimiento de búsqueda en tiempo real y rica interacción conversacional.',
+    fr: 'Modèle frontière de xAI alliant raisonnement ultra-rapide, recherche en temps réel et grande richesse conversationnelle.',
+    de: 'xAI-Pioniermodell mit Hochgeschwindigkeits-Argumentation, Echtzeit-Suchwissen und ausgeprägter Dialogtiefe.',
   },
 };

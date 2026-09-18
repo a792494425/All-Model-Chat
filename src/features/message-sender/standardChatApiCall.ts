@@ -158,9 +158,9 @@ export const performStandardChatApiCall = async ({
     return;
   }
 
-  const wrappedStreamOnComplete: typeof streamOnComplete = (usage, grounding, urlContext) => {
+  const wrappedStreamOnComplete: typeof streamOnComplete = (...args) => {
     clearPendingStreamJob(finalSessionId);
-    streamOnComplete(usage, grounding, urlContext);
+    streamOnComplete(...args);
   };
 
   const nonStreamOnComplete = createNonStreamCompleteHandler({

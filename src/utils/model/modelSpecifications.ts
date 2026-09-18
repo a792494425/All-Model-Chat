@@ -1,6 +1,13 @@
 import type { ModelOption, ThinkingLevel } from '@/types';
-import { isGemini3Model, isGemmaModel, isReasoningModel, getModelCapabilities } from './modelCapabilities';
+import {
+  isGemini3Model,
+  isGemmaModel,
+  isReasoningModel,
+  isGrokReasoningModel,
+  getModelCapabilities,
+} from './modelCapabilities';
 import { THINKING_BUDGET_RANGES } from '@/constants/modelConfiguration';
+import { KNOWN_MODELS_CATALOG, formatContextWindow } from './knownModelsCatalog';
 
 export type ModelModalityId = 'vision' | 'audio' | 'video';
 
@@ -58,6 +65,15 @@ const isVisionSupportedModel = (modelId: string): boolean => {
     lower.includes('claude-fable')
   ) {
     return true;
+  }
+  if (lower.includes('grok-4') || lower.includes('grok-build') || lower.includes('grok-2-vision')) {
+    return true;
+  }
+  const catalogEntry =
+    KNOWN_MODELS_CATALOG[modelId] ||
+    KNOWN_MODELS_CATALOG[modelId.replace(/^(models\/|openai\/|anthropic\/|xai\/)/i, '')];
+  if (catalogEntry?.capabilities?.vision !== undefined) {
+    return catalogEntry.capabilities.vision;
   }
   if (lower.includes('vision') || lower.includes('-vl') || lower.includes('/vl')) {
     return true;
@@ -176,9 +192,20 @@ const resolveProviderDisplayName = (model: ModelOption): string => {
 
   const id = model.id.toLowerCase();
   if (id.includes('gemini') || id.includes('gemma') || id.includes('robotics')) return 'Google Gemini';
-  if (id.includes('gpt-') || id.startsWith('o4')) return 'OpenAI';
+  if (
+    id.includes('gpt-') ||
+    id.startsWith('o4') ||
+    id.startsWith('o3') ||
+    id.startsWith('o1') ||
+    id.includes('/o4') ||
+    id.includes('/o3') ||
+    id.includes('/o1')
+  ) {
+    return 'OpenAI';
+  }
   if (id.includes('claude')) return 'Anthropic';
   if (id.includes('deepseek')) return 'DeepSeek';
+  if (id.includes('grok')) return 'xAI Grok';
   if (id.includes('qwen') || id.includes('qwq')) return 'Alibaba Qwen';
   if (id.includes('kimi')) return 'Moonshot Kimi';
   if (id.includes('glm')) return 'Zhipu AI';
@@ -241,8 +268,30 @@ const resolveContextWindow = (modelId: string): { contextWindow: string; maxOutp
     return { contextWindow: '200,000 (200K)', maxOutput: '8,192 (8K)' };
   }
 
+  // Grok family
+  if (lower.includes('grok-4.6') || lower.includes('grok-4.5')) {
+    return { contextWindow: '500,000 (500K)', maxOutput: '131,072 (128K)' };
+  }
+  if (lower.includes('grok-build-0.1')) {
+    return { contextWindow: '256,000 (256K)', maxOutput: '131,072 (128K)' };
+  }
+  if (lower.includes('grok-4') || lower.includes('grok-3')) {
+    return { contextWindow: '1,000,000 (1M)', maxOutput: '131,072 (128K)' };
+  }
+  if (lower.includes('grok-2')) {
+    return { contextWindow: '131,072 (128K)', maxOutput: '8,192 (8K)' };
+  }
+
   // OpenAI family
-  if (lower.includes('gpt-5') || lower.includes('o4')) {
+  if (
+    lower.includes('gpt-5') ||
+    lower.startsWith('o4') ||
+    lower.includes('/o4') ||
+    lower.startsWith('o3') ||
+    lower.includes('/o3') ||
+    lower.startsWith('o1') ||
+    lower.includes('/o1')
+  ) {
     return { contextWindow: '200,000 (200K)', maxOutput: '100,000 (100K)' };
   }
   if (lower.includes('gpt-4o') || lower.includes('gpt-4-turbo')) {
@@ -270,6 +319,17 @@ const resolveContextWindow = (modelId: string): { contextWindow: string; maxOutp
   }
   if (lower.includes('glm')) {
     return { contextWindow: '128,000 (128K)', maxOutput: '4,096 (4K)' };
+  }
+
+  const catalogEntry =
+    KNOWN_MODELS_CATALOG[modelId] ||
+    KNOWN_MODELS_CATALOG[modelId.replace(/^(models\/|openai\/|anthropic\/|xai\/)/i, '')];
+  if (catalogEntry) {
+    const formattedCtx = `${catalogEntry.contextWindow.toLocaleString()} (${formatContextWindow(catalogEntry.contextWindow)})`;
+    const formattedMax = catalogEntry.maxOutputTokens
+      ? `${catalogEntry.maxOutputTokens.toLocaleString()} (${formatContextWindow(catalogEntry.maxOutputTokens)})`
+      : undefined;
+    return { contextWindow: formattedCtx, maxOutput: formattedMax };
   }
 
   return { contextWindow: '32,000 ~ 128,000' };
@@ -311,7 +371,12 @@ const resolveThinkingLevelSpec = (modelId: string): ThinkingLevelSpec | undefine
     return { type: 'range', min: 'LOW', max: 'HIGH', defaultLevel: 'MEDIUM', isRecommended: true };
   }
 
-  // Gemini 3.1 Flash Live
+  // Gemini 3.8 Live Extended Thinking (minimal not supported)
+  if (lower.includes('live-extended-thinking')) {
+    return { type: 'range', min: 'LOW', max: 'HIGH', defaultLevel: 'LOW' };
+  }
+
+  // Deprecated Gemini 3.1 Flash Live (legacy fallback)
   if (lower.includes('flash-live')) {
     return { type: 'range', min: 'MINIMAL', max: 'HIGH', defaultLevel: 'MINIMAL' };
   }
@@ -331,6 +396,11 @@ const resolveThinkingLevelSpec = (modelId: string): ThinkingLevelSpec | undefine
 
   // OpenAI reasoning models (o1, o3, o4)
   if (lower.startsWith('o4') || lower.includes('/o4') || lower.startsWith('o3') || lower.startsWith('o1')) {
+    return { type: 'range', min: 'LOW', max: 'HIGH' };
+  }
+
+  // Grok reasoning models
+  if (isGrokReasoningModel(modelId)) {
     return { type: 'range', min: 'LOW', max: 'HIGH' };
   }
 
@@ -382,10 +452,10 @@ const resolveThinkingLevelRange = (modelId: string): string | undefined => {
   if (!spec) return undefined;
   if (spec.type === 'fixed') return '内置思考（不可调节）';
   const defaultSuffix = spec.defaultLevel
-    ? ` (${spec.isRecommended ? '推荐' : '默认'} ${spec.defaultLevel === 'MINIMAL' ? 'Minimal' : spec.defaultLevel === 'MEDIUM' ? 'Medium' : spec.defaultLevel === 'HIGH' ? 'High' : spec.defaultLevel})`
+    ? ` (${spec.isRecommended ? '推荐' : '默认'} ${spec.defaultLevel === 'MINIMAL' ? 'Minimal' : spec.defaultLevel === 'LOW' ? 'Low' : spec.defaultLevel === 'MEDIUM' ? 'Medium' : spec.defaultLevel === 'HIGH' ? 'High' : spec.defaultLevel})`
     : '';
   if (spec.type === 'discrete' && spec.levels) {
-    return `${spec.levels.map((l) => (l === 'MINIMAL' ? 'Minimal' : l === 'HIGH' ? 'High' : l)).join(' / ')}${defaultSuffix}`;
+    return `${spec.levels.map((l) => (l === 'MINIMAL' ? 'Minimal' : l === 'LOW' ? 'Low' : l === 'HIGH' ? 'High' : l)).join(' / ')}${defaultSuffix}`;
   }
   if (spec.type === 'range' && spec.min && spec.max) {
     const minStr = spec.min === 'MINIMAL' ? 'Minimal' : spec.min === 'LOW' ? 'Low' : spec.min;
@@ -433,13 +503,15 @@ const resolveModelDescriptionKey = (modelId: string): string | undefined => {
   if (lower.includes('gemma')) return 'modelDescGemma4';
   if (lower.includes('live-translate')) return 'modelDescGeminiLiveTranslate';
   if (lower.includes('transcribe')) return 'modelDescGeminiTranscribe';
-  if (lower.includes('flash-live')) return 'modelDescGeminiLive';
+  if (lower.includes('live-extended-thinking')) return 'modelDescGeminiLiveExtendedThinking';
+  if (lower.includes('flash-live') || lower.includes('-live')) return 'modelDescGeminiLive';
   if (lower.includes('tts')) return 'modelDescGeminiTts';
   if (lower.includes('image')) return 'modelDescGeminiImage';
   if (lower.includes('deepseek-r1') || lower.includes('deepseek-reasoner')) return 'modelDescDeepSeekR1';
   if (lower.includes('deepseek')) return 'modelDescDeepSeekGeneral';
   if (lower.includes('claude')) return 'modelDescClaude';
   if (lower.includes('llama')) return 'modelDescLlama';
+  if (lower.includes('grok')) return 'modelDescGrok';
   if (lower.startsWith('o4') || lower.includes('/o4') || lower.startsWith('o3') || lower.startsWith('o1')) {
     return 'modelDescOpenAIReasoning';
   }
@@ -474,6 +546,9 @@ const resolveModelDescription = (modelId: string): string | undefined => {
   }
   if (lower.includes('o4')) {
     return 'OpenAI next-generation reasoning model with deliberative chain-of-thought processing.';
+  }
+  if (lower.includes('grok')) {
+    return 'xAI frontier model with high-speed reasoning, real-time search knowledge, and deep conversational nuance.';
   }
   return undefined;
 };

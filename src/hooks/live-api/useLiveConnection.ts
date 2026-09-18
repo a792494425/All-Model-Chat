@@ -6,14 +6,14 @@ import { logService } from '@/services/logService';
 import type { AppSettings, LiveTranscriptHandler } from '@/types';
 import type { LiveErrorState } from '@/utils/live-api/liveErrorState';
 import { useStateWithRef } from '@/hooks/useStateWithRef';
-import { isGemini31FlashLiveModel, isLiveTranslateModel } from '@/utils/model/modelCapabilities';
+import { isGemini38LiveModel, isLiveTranslateModel } from '@/utils/model/modelCapabilities';
 
 const MAX_RECONNECT_RETRIES = 5;
 const RECONNECT_BASE_DELAY_MS = 1000;
 
 type LiveRealtimeInput = Parameters<LiveSession['sendRealtimeInput']>[0];
 
-const toGemini31FlashLiveRealtimeInput = (part: Part): LiveRealtimeInput | null => {
+const toGemini38LiveRealtimeInput = (part: Part): LiveRealtimeInput | null => {
   if (typeof part.text === 'string' && Object.keys(part).every((key) => key === 'text')) {
     return { text: part.text };
   }
@@ -433,13 +433,13 @@ export const useLiveConnection = ({
       try {
         const session = await sessionRef.current;
         if (!isConnectedRef.current) return false;
-        if (isGemini31FlashLiveModel(modelId)) {
+        if (isGemini38LiveModel(modelId)) {
           const realtimeInputs: LiveRealtimeInput[] = [];
 
           for (const part of parts) {
-            const realtimeInput = toGemini31FlashLiveRealtimeInput(part);
+            const realtimeInput = toGemini38LiveRealtimeInput(part);
             if (!realtimeInput) {
-              logService.warn('Gemini 3.1 Flash Live content cannot be represented as realtime input.', {
+              logService.warn('Gemini 3.8 Live content cannot be represented as realtime input.', {
                 partCount: parts.length,
               });
               return false;
@@ -448,7 +448,7 @@ export const useLiveConnection = ({
           }
 
           realtimeInputs.forEach((realtimeInput) => session.sendRealtimeInput(realtimeInput));
-          logService.info('Sent realtime content to Gemini 3.1 Flash Live', { partCount: parts.length });
+          logService.info('Sent realtime content to Gemini 3.8 Live', { partCount: parts.length });
           return true;
         }
 

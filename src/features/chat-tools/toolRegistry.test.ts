@@ -33,7 +33,7 @@ describe('chat tool registry', () => {
   });
 
   it('filters visible menu tools from permissions instead of model-name checks in components', () => {
-    const liveCapabilities = getModelCapabilities('gemini-3.1-flash-live-preview');
+    const liveCapabilities = getModelCapabilities('gemini-3.8-live');
     const geminiImageCapabilities = getModelCapabilities('gemini-3.1-flash-image-preview');
     const gemmaCapabilities = getModelCapabilities('gemma-3-27b-it');
 
@@ -94,7 +94,7 @@ describe('chat tool registry', () => {
   });
 
   it('hides the keep-thinking tool on Live, TTS, and image-generation models', () => {
-    const liveCapabilities = getModelCapabilities('gemini-3.1-flash-live-preview');
+    const liveCapabilities = getModelCapabilities('gemini-3.8-live');
     const geminiImageCapabilities = getModelCapabilities('gemini-3.1-flash-image-preview');
     const gemmaCapabilities = getModelCapabilities('gemma-3-27b-it');
 

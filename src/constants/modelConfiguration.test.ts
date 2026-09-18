@@ -14,6 +14,13 @@ describe('migrateRemovedModelId', () => {
     expect(migrateRemovedModelId('models/gemini-3.5-flash')).toBe('gemini-3.7-flash');
   });
 
+  it('migrates deprecated gemini-3.1-flash-live ids to gemini-3.8-live', () => {
+    expect(migrateRemovedModelId('gemini-3.1-flash-live-preview')).toBe('gemini-3.8-live');
+    expect(migrateRemovedModelId('models/gemini-3.1-flash-live-preview')).toBe('gemini-3.8-live');
+    expect(migrateRemovedModelId('gemini-3.1-flash-live')).toBe('gemini-3.8-live');
+    expect(migrateRemovedModelId('models/gemini-3.1-flash-live')).toBe('gemini-3.8-live');
+  });
+
   it('preserves current supported models without modifying them', () => {
     expect(migrateRemovedModelId(ROBOTICS_MODEL)).toBe(ROBOTICS_MODEL);
     expect(migrateRemovedModelId('gemini-3.8-flash')).toBe('gemini-3.8-flash');

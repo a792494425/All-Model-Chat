@@ -355,17 +355,30 @@ export const generateOpenAIResponsesTurnStreamApi = async (
       };
     }
 
+    const findFunctionCallEntry = (itemId?: string, callId?: string) => {
+      if (itemId && streamFunctionCalls[itemId]) {
+        return streamFunctionCalls[itemId];
+      }
+      if (callId && streamFunctionCalls[callId]) {
+        return streamFunctionCalls[callId];
+      }
+      if (callId) {
+        return Object.values(streamFunctionCalls).find((entry) => entry.call_id === callId);
+      }
+      return undefined;
+    };
+
     if (event.type === 'response.function_call_arguments.delta' && event.delta) {
-      const key = event.item_id || event.call_id;
-      if (key && streamFunctionCalls[key]) {
-        streamFunctionCalls[key].arguments += event.delta;
+      const entry = findFunctionCallEntry(event.item_id, event.call_id);
+      if (entry) {
+        entry.arguments += event.delta;
       }
     }
 
     if (event.type === 'response.function_call_arguments.done' && event.arguments) {
-      const key = event.item_id || event.call_id;
-      if (key && streamFunctionCalls[key]) {
-        streamFunctionCalls[key].arguments = event.arguments;
+      const entry = findFunctionCallEntry(event.item_id, event.call_id);
+      if (entry) {
+        entry.arguments = event.arguments;
       }
     }
 

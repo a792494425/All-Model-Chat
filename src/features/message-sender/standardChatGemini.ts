@@ -123,7 +123,7 @@ export const executeGeminiChat = async ({
   streamOnPart,
   onThoughtChunk,
   streamOnError,
-  streamOnComplete,
+  streamOnComplete: _streamOnComplete,
   wrappedStreamOnComplete,
   nonStreamOnComplete,
 }: ExecuteGeminiChatParams): Promise<void> => {
@@ -375,7 +375,7 @@ export const executeGeminiChat = async ({
                 if (toolLoopResult.finalTurn.thoughts) {
                   onThoughtChunk(toolLoopResult.finalTurn.thoughts, { recordFirstToken: false });
                 }
-                streamOnComplete(
+                wrappedStreamOnComplete(
                   toolLoopResult.finalTurn.usage,
                   toolLoopResult.finalTurn.grounding,
                   toolLoopResult.finalTurn.urlContext,
@@ -470,7 +470,7 @@ export const executeGeminiChat = async ({
       if (toolLoopResult.finalTurn.thoughts) {
         onThoughtChunk(toolLoopResult.finalTurn.thoughts, { recordFirstToken: false });
       }
-      streamOnComplete(
+      wrappedStreamOnComplete(
         toolLoopResult.finalTurn.usage,
         toolLoopResult.finalTurn.grounding,
         toolLoopResult.finalTurn.urlContext,

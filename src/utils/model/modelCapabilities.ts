@@ -57,14 +57,15 @@ const isNativeAudioModel = (modelId: string): boolean => {
   const lowerId = modelId.toLowerCase();
   return (
     lowerId.includes('native-audio') ||
-    lowerId.includes('-live-') ||
+    lowerId.includes('-live') ||
     lowerId.includes('live-translate') ||
     lowerId.includes('transcribe-live')
   );
 };
 
-export const isGemini31FlashLiveModel = (modelId: string): boolean =>
-  modelId.toLowerCase().includes('gemini-3.1-flash-live');
+export const isGemini38LiveModel = (modelId: string): boolean => modelId.toLowerCase().includes('gemini-3.8-live');
+const isGemini38LiveExtendedThinkingModel = (modelId: string): boolean =>
+  modelId.toLowerCase().includes('live-extended-thinking');
 
 const isGemini31FlashImageModel = (modelId: string): boolean => {
   const lowerId = modelId.toLowerCase();
@@ -134,6 +135,18 @@ export const isOpenAIReasoningModel = (modelId: string): boolean => {
   );
 };
 
+export const isGrokReasoningModel = (modelId: string): boolean => {
+  if (!modelId) return false;
+  const lowerId = modelId.toLowerCase();
+  return (
+    lowerId.includes('grok-4.6') ||
+    lowerId.includes('grok-build-0.1') ||
+    lowerId.includes('grok-4.20-0309-reasoning') ||
+    lowerId.includes('grok-420-reasoning') ||
+    (lowerId.includes('grok') && (lowerId.includes('reasoning') || lowerId.includes('thinking')))
+  );
+};
+
 export const isReasoningModel = (modelId: string): boolean => {
   if (!modelId) return false;
   return (
@@ -144,7 +157,8 @@ export const isReasoningModel = (modelId: string): boolean => {
     isGlmModel(modelId) ||
     isKimiK3Model(modelId) ||
     isAnthropicEffortModel(modelId) ||
-    isAnthropicThinkingModel(modelId)
+    isAnthropicThinkingModel(modelId) ||
+    isGrokReasoningModel(modelId)
   );
 };
 
@@ -180,7 +194,12 @@ export const isGlmModel = (modelId: string): boolean => modelId.toLowerCase().st
 
 const supportsThinkingLevel = (modelId: string): boolean => {
   // GLM-5 series and specialized reasoning models support thinking.
-  if (isGlmModel(modelId) || isQwenReasoningModel(modelId) || isDeepSeekReasoningModel(modelId)) {
+  if (
+    isGlmModel(modelId) ||
+    isQwenReasoningModel(modelId) ||
+    isDeepSeekReasoningModel(modelId) ||
+    isGrokReasoningModel(modelId)
+  ) {
     return true;
   }
   // Third-party reasoning controls mapped in openaiCompatibleMessages / openaiResponsesMessages / anthropicMessages.
@@ -242,7 +261,8 @@ export interface ModelCapabilities {
   supportsThinkingLevel: boolean;
   isGemmaModel: boolean;
   isGemini3FlashModel: boolean;
-  isGemini31FlashLiveModel: boolean;
+  isGemini38LiveModel: boolean;
+  isGemini38LiveExtendedThinkingModel: boolean;
   isGemini31FlashImageModel: boolean;
   isGeminiRoboticsModel: boolean;
   supportsMinimalThinkingLevel: boolean;
@@ -270,7 +290,8 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
   const nativeAudioModel = isNativeAudioModel(modelId);
   const flashModel = lowerId.includes('flash');
   const gemini3FlashModel = isGemini3 && flashModel;
-  const gemini31FlashLiveModel = isGemini31FlashLiveModel(modelId);
+  const gemini38LiveModel = isGemini38LiveModel(modelId);
+  const gemini38LiveExtendedThinkingModel = isGemini38LiveExtendedThinkingModel(modelId);
   const roboticsModel = isGeminiRoboticsModel(modelId);
   const imageGenerationModel = isImageGenerationModel(modelId);
   const canUseTextChatTools = !nativeAudioModel && !imageGenerationModel && !ttsModel && !transcribeModel;
@@ -351,10 +372,12 @@ export const getModelCapabilities = (modelId: string): ModelCapabilities => {
     supportsThinkingLevel: supportsThinkingLevelSelection,
     isGemmaModel: isGemmaModel(modelId),
     isGemini3FlashModel: gemini3FlashModel,
-    isGemini31FlashLiveModel: gemini31FlashLiveModel,
+    isGemini38LiveModel: gemini38LiveModel,
+    isGemini38LiveExtendedThinkingModel: gemini38LiveExtendedThinkingModel,
     isGemini31FlashImageModel: isGemini31FlashImageModel(modelId),
     isGeminiRoboticsModel: roboticsModel,
-    supportsMinimalThinkingLevel: !isGemini3ProTextModel(modelId) && !isGemini37Or38FlashModel(modelId),
+    supportsMinimalThinkingLevel:
+      !isGemini3ProTextModel(modelId) && !isGemini37Or38FlashModel(modelId) && !gemini38LiveExtendedThinkingModel,
     isGemini3ImageModel: gemini3ImageModel,
     isImageGenerationModel: imageGenerationModel,
     isTtsModel: ttsModel,
@@ -405,7 +428,7 @@ const isGemini3ProTextModel = (modelId: string): boolean => {
 
 export const getDefaultThinkingLevelForModel = (modelId: string, fallback?: ThinkingLevel): ThinkingLevel => {
   const lowerId = (modelId || '').toLowerCase();
-  if (isGemini31FlashLiveModel(modelId) || isGemini31FlashImageModel(modelId)) {
+  if (isGemini31FlashImageModel(modelId)) {
     return 'MINIMAL';
   }
 

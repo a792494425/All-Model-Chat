@@ -484,7 +484,7 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
   },
 
   updateUploadedFile: (fileId, patch) => {
-    let affectedActiveSessionId: string | null = null;
+    const changedSessionIds = new Set<string>();
 
     set((state) => {
       let hasInSelected = false;
@@ -509,7 +509,7 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
       });
 
       if (hasActiveChange && state.activeSessionId) {
-        affectedActiveSessionId = state.activeSessionId;
+        changedSessionIds.add(state.activeSessionId);
       }
 
       let hasSessionChange = false;
@@ -530,6 +530,7 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
 
         if (hasMsgChange) {
           hasSessionChange = true;
+          changedSessionIds.add(session.id);
           return { ...session, messages: nextMessages };
         }
         return session;
@@ -546,18 +547,24 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
       };
     });
 
-    if (affectedActiveSessionId) {
-      const activeSession = get().savedSessions.find((s) => s.id === affectedActiveSessionId);
-      if (activeSession) {
-        const fullSession: SavedChatSession = {
-          ...activeSession,
-          messages: get().activeMessages,
-        };
-        dbService
-          .saveSession(fullSession)
-          .catch((persistenceError) =>
-            logService.error('Failed to persist session file update', { error: persistenceError }),
-          );
+    if (changedSessionIds.size > 0) {
+      const currentSessions = get().savedSessions;
+      const currentActiveMessages = get().activeMessages;
+      const currentActiveSessionId = get().activeSessionId;
+
+      for (const sessionId of changedSessionIds) {
+        const session = currentSessions.find((s) => s.id === sessionId);
+        if (session) {
+          const fullSession: SavedChatSession = {
+            ...session,
+            messages: sessionId === currentActiveSessionId ? currentActiveMessages : session.messages,
+          };
+          dbService
+            .saveSession(fullSession)
+            .catch((persistenceError) =>
+              logService.error('Failed to persist session file update', { sessionId, error: persistenceError }),
+            );
+        }
       }
     }
   },

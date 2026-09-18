@@ -19,7 +19,7 @@ const getEntry = (entries: ModelCatalogEntry[], id: string) => {
 describe('buildModelCatalog', () => {
   it('adds category and badge metadata for shared picker rendering', () => {
     const models: ModelOption[] = [
-      { id: 'gemini-3.1-flash-live-preview', name: 'Gemini 3.1 Flash Live Preview', isPinned: true },
+      { id: 'gemini-3.8-live', name: 'Gemini 3.8 Live', isPinned: true },
       { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS Preview' },
       { id: 'gemini-3-pro-image-preview', name: 'Gemini 3 Pro Image Preview' },
       { id: 'gemma-4-31b-it', name: 'Gemma 4 31B IT' },
@@ -28,10 +28,10 @@ describe('buildModelCatalog', () => {
 
     const entries = buildModelCatalog(models);
 
-    expect(getEntry(entries, 'gemini-3.1-flash-live-preview')).toMatchObject({
+    expect(getEntry(entries, 'gemini-3.8-live')).toMatchObject({
       category: 'live',
       group: 'pinned',
-      badgeKeys: expect.arrayContaining(['pinned', 'live', 'flash']),
+      badgeKeys: expect.arrayContaining(['pinned', 'live']),
     });
     expect(getEntry(entries, 'gemini-3.1-flash-tts-preview')).toMatchObject({
       category: 'tts',
@@ -58,14 +58,14 @@ describe('buildModelCatalog', () => {
 
 describe('filterModelCatalog', () => {
   const entries = buildModelCatalog([
-    { id: 'gemini-3.1-flash-live-preview', name: 'Gemini 3.1 Flash Live Preview' },
+    { id: 'gemini-3.8-live', name: 'Gemini 3.8 Live' },
     { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS Preview' },
     { id: 'gemini-3.1-flash-image-preview', name: 'Nano Banana 2' },
   ]);
 
   it('matches name, id, and capability tags', () => {
     expect(filterModelCatalog(entries, 'tts').map((entry) => entry.id)).toEqual(['gemini-3.1-flash-tts-preview']);
-    expect(filterModelCatalog(entries, 'live').map((entry) => entry.id)).toEqual(['gemini-3.1-flash-live-preview']);
+    expect(filterModelCatalog(entries, 'live').map((entry) => entry.id)).toEqual(['gemini-3.8-live']);
     expect(filterModelCatalog(entries, 'nano').map((entry) => entry.id)).toEqual(['gemini-3.1-flash-image-preview']);
   });
 });

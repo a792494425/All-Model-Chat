@@ -334,7 +334,7 @@ describe('useSessionLoader', () => {
       timestamp: 2,
       settings: {
         ...createSession('session-empty', 'Empty Session').settings,
-        modelId: 'gemini-3.1-flash-live-preview',
+        modelId: 'gemini-3.8-live',
         lockedApiKey: null,
         isGoogleSearchEnabled: false,
       },
@@ -359,7 +359,7 @@ describe('useSessionLoader', () => {
 
     const updater = updateAndPersistSessions.mock.calls[0][0];
     const updatedSessions = updater([emptyActiveSession]);
-    expect(updatedSessions[0].settings.modelId).toBe('gemini-3.1-flash-live-preview');
+    expect(updatedSessions[0].settings.modelId).toBe('gemini-3.8-live');
 
     unmount();
   });

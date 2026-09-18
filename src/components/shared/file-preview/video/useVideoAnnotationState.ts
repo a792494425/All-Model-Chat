@@ -6,6 +6,7 @@ export interface UseVideoAnnotationStateProps {
   annotationTargetTime?: number | null;
   isAnnotationVisible?: boolean;
   onAnnotationVisibilityChange?: (visible: boolean) => void;
+  onAnnotationDismiss?: () => void;
 }
 
 export function useVideoAnnotationState({
@@ -13,6 +14,7 @@ export function useVideoAnnotationState({
   annotationTargetTime = null,
   isAnnotationVisible: controlledIsAnnotationVisible,
   onAnnotationVisibilityChange,
+  onAnnotationDismiss,
 }: UseVideoAnnotationStateProps) {
   const isControlledAnnotationVis = controlledIsAnnotationVisible !== undefined;
   const [internalAnnotationVisible, setInternalAnnotationVisible] = useState(false);
@@ -28,7 +30,8 @@ export function useVideoAnnotationState({
     if (isControlledAnnotationVis) {
       onAnnotationVisibilityChange?.(false);
     }
-  }, [isControlledAnnotationVis, onAnnotationVisibilityChange]);
+    onAnnotationDismiss?.();
+  }, [isControlledAnnotationVis, onAnnotationVisibilityChange, onAnnotationDismiss]);
 
   const updateAnnotationVisibility = useCallback(
     (currentTime: number) => {

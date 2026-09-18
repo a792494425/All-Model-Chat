@@ -246,7 +246,7 @@ export const getLiveApiKey = (appSettings: AppSettings, currentChatSettings?: Ch
     }
   }
 
-  const fallbackSettings = currentChatSettings ?? ({ modelId: 'gemini-3.1-flash-live-preview' } as ChatSettings);
+  const fallbackSettings = currentChatSettings ?? ({ modelId: 'gemini-3.8-live' } as ChatSettings);
   const keyResult = getGeminiKeyForRequest(appSettings, fallbackSettings, {
     skipIncrement: true,
     skipUsageLogging: true,

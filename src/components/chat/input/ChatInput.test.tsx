@@ -305,7 +305,7 @@ describe('ChatInput', () => {
     providerValue.input.editingMessageId = null;
     providerValue.input.selectedFiles = selectedFiles;
     providerValue.input.onAddUserMessage = onAddUserMessage;
-    providerValue.input.currentChatSettings.modelId = 'gemini-3.1-flash-live-preview';
+    providerValue.input.currentChatSettings.modelId = 'gemini-3.8-live';
     mockModelCapabilities.value = {
       ...mockModelCapabilities.value,
       isNativeAudioModel: true,
@@ -344,7 +344,7 @@ describe('ChatInput', () => {
 
   it('starts screen sharing and connects Live when the session is not connected', async () => {
     const providerValue = createProviderValue(null);
-    providerValue.input.currentChatSettings.modelId = 'gemini-3.1-flash-live-preview';
+    providerValue.input.currentChatSettings.modelId = 'gemini-3.8-live';
     mockModelCapabilities.value = {
       ...mockModelCapabilities.value,
       isNativeAudioModel: true,
@@ -366,7 +366,7 @@ describe('ChatInput', () => {
 
   it('starts the camera without reconnecting when Live is already connected', async () => {
     const providerValue = createProviderValue(null);
-    providerValue.input.currentChatSettings.modelId = 'gemini-3.1-flash-live-preview';
+    providerValue.input.currentChatSettings.modelId = 'gemini-3.8-live';
     mockLiveApiState.isConnected = true;
     mockModelCapabilities.value = {
       ...mockModelCapabilities.value,
