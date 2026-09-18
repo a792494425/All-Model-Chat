@@ -49,6 +49,7 @@ export const useLibraryViewLogic = ({ onNewChat, onSelectSession }: UseLibraryVi
 
   const previewOriginalDataUrlRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasLoadedFilesRef = useRef(false);
 
   const refreshLibraryFiles = useCallback(async () => {
     const [standalone, historical, deleted] = await Promise.all([
@@ -59,6 +60,7 @@ export const useLibraryViewLogic = ({ onNewChat, onSelectSession }: UseLibraryVi
     setStandaloneFiles(standalone);
     setHistoricalFiles(historical);
     setDeletedFileIds(new Set(deleted));
+    hasLoadedFilesRef.current = true;
   }, []);
 
   useEffect(() => {
@@ -89,6 +91,23 @@ export const useLibraryViewLogic = ({ onNewChat, onSelectSession }: UseLibraryVi
 
     return Array.from(map.values());
   }, [savedSessions, standaloneFiles, historicalFiles, deletedFileIds]);
+
+  // Prune any persisted selectedFileIds that no longer exist once files have been loaded
+  useEffect(() => {
+    if (!hasLoadedFilesRef.current || selectedFileIds.size === 0) return;
+    const existingIds = new Set(allItems.map((item) => item.id));
+    let hasStale = false;
+    for (const id of selectedFileIds) {
+      if (!existingIds.has(id)) {
+        hasStale = true;
+        break;
+      }
+    }
+    if (hasStale) {
+      const pruned = new Set([...selectedFileIds].filter((id) => existingIds.has(id)));
+      useLibraryStore.setState({ selectedFileIds: pruned });
+    }
+  }, [allItems, selectedFileIds]);
 
   const filteredItems = useMemo(() => {
     return filterAndSortLibraryItems(allItems, {

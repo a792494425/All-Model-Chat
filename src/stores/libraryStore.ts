@@ -40,6 +40,16 @@ interface LibraryActions {
   setIsNewDropdownOpen: (isOpen: boolean | ((prev: boolean) => boolean)) => void;
 }
 
+export interface PersistedLibraryPreferences {
+  viewMode: LibraryViewMode;
+  categoryFilter: LibraryCategoryFilter;
+  sourceFilter: LibrarySourceFilter;
+  fileTypeFilter: LibraryFileTypeFilter;
+  sortOption: LibrarySortOption;
+  searchQuery: string;
+  selectedFileIds: string[];
+}
+
 export const useLibraryStore = create<LibraryState & LibraryActions>()(
   persist(
     (set) => ({
@@ -97,7 +107,71 @@ export const useLibraryStore = create<LibraryState & LibraryActions>()(
       partialize: (state) => ({
         viewMode: state.viewMode,
         sortOption: state.sortOption,
+        categoryFilter: state.categoryFilter,
+        sourceFilter: state.sourceFilter,
+        fileTypeFilter: state.fileTypeFilter,
+        searchQuery: state.searchQuery,
+        selectedFileIds: Array.from(state.selectedFileIds),
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = (persistedState ?? {}) as Partial<PersistedLibraryPreferences>;
+        const validCategories: LibraryCategoryFilter[] = ['all', 'image', 'document', 'audio', 'video'];
+        const validSources: LibrarySourceFilter[] = ['all', 'uploaded', 'generated'];
+        const validFileTypes: LibraryFileTypeFilter[] = [
+          'all',
+          'image',
+          'document',
+          'spreadsheet',
+          'presentation',
+          'pdf',
+          'audio',
+          'video',
+        ];
+        const validSortOptions: LibrarySortOption[] = [
+          'date_desc',
+          'date_asc',
+          'name_asc',
+          'name_desc',
+          'size_desc',
+          'size_asc',
+        ];
+        const validViewModes: LibraryViewMode[] = ['list', 'grid'];
+
+        let selectedFileIds = currentState.selectedFileIds;
+        if (persisted.selectedFileIds) {
+          if (Array.isArray(persisted.selectedFileIds)) {
+            selectedFileIds = new Set(persisted.selectedFileIds.filter((id): id is string => typeof id === 'string'));
+          } else if (persisted.selectedFileIds instanceof Set) {
+            selectedFileIds = persisted.selectedFileIds;
+          }
+        }
+
+        return {
+          ...currentState,
+          viewMode:
+            persisted.viewMode && validViewModes.includes(persisted.viewMode)
+              ? persisted.viewMode
+              : currentState.viewMode,
+          sortOption:
+            persisted.sortOption && validSortOptions.includes(persisted.sortOption)
+              ? persisted.sortOption
+              : currentState.sortOption,
+          categoryFilter:
+            persisted.categoryFilter && validCategories.includes(persisted.categoryFilter)
+              ? persisted.categoryFilter
+              : currentState.categoryFilter,
+          sourceFilter:
+            persisted.sourceFilter && validSources.includes(persisted.sourceFilter)
+              ? persisted.sourceFilter
+              : currentState.sourceFilter,
+          fileTypeFilter:
+            persisted.fileTypeFilter && validFileTypes.includes(persisted.fileTypeFilter)
+              ? persisted.fileTypeFilter
+              : currentState.fileTypeFilter,
+          searchQuery: typeof persisted.searchQuery === 'string' ? persisted.searchQuery : currentState.searchQuery,
+          selectedFileIds,
+        };
+      },
     },
   ),
 );
