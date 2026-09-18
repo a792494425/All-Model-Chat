@@ -184,7 +184,8 @@ export type AttachmentAction =
   | 'text'
   | 'screenshot'
   | 'folder'
-  | 'zip';
+  | 'zip'
+  | 'video';
 
 export interface SideViewContent {
   type: 'html' | 'mermaid' | 'graphviz' | 'svg';

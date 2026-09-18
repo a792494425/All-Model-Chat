@@ -4,11 +4,20 @@ import { getTranslator } from '@/i18n/translations';
 import { createAppSettings, createChatSettings } from '@/test/data/factories';
 import type { UploadedFile } from '@/types';
 
-const { transcribeAudioMock, prepareAudioMock, showNotificationMock, getAudioDurationSecondsMock } = vi.hoisted(() => ({
+const {
+  transcribeAudioMock,
+  prepareAudioMock,
+  showNotificationMock,
+  getAudioDurationSecondsMock,
+  extractAudioFromVideoMock,
+  transcribeAudioWithGeminiMock,
+} = vi.hoisted(() => ({
   transcribeAudioMock: vi.fn(),
   prepareAudioMock: vi.fn(),
   showNotificationMock: vi.fn(),
   getAudioDurationSecondsMock: vi.fn(),
+  extractAudioFromVideoMock: vi.fn(),
+  transcribeAudioWithGeminiMock: vi.fn(),
 }));
 
 vi.mock('@/services/api/generation/audioApi', () => ({
@@ -21,6 +30,14 @@ vi.mock('@/features/audio/audioCompression', () => ({
 
 vi.mock('@/features/audio/audioDuration', () => ({
   getAudioDurationSeconds: getAudioDurationSecondsMock,
+}));
+
+vi.mock('@/utils/video-subtitles/extractAudioFromVideo', () => ({
+  extractAudioFromVideo: extractAudioFromVideoMock,
+}));
+
+vi.mock('@/utils/video-subtitles/geminiTranscribeService', () => ({
+  transcribeAudioWithGemini: transcribeAudioWithGeminiMock,
 }));
 
 vi.mock('@/utils/browserCompletionFeedback', () => ({
@@ -55,6 +72,17 @@ describe('transcribeStrategy', () => {
     prepareAudioMock.mockImplementation(async (file) => file);
     transcribeAudioMock.mockResolvedValue('这是转录出来的文字内容');
     getAudioDurationSecondsMock.mockResolvedValue(600);
+    extractAudioFromVideoMock.mockResolvedValue({
+      audioBlob: new Blob(['audio wav data'], { type: 'audio/wav' }),
+      durationSeconds: 42,
+    });
+    transcribeAudioWithGeminiMock.mockResolvedValue([
+      {
+        text: 'こんにちは世界。',
+        start_offset: '0.000s',
+        end_offset: '2.500s',
+      },
+    ]);
     Object.defineProperty(document, 'hidden', { configurable: true, value: true });
   });
 
@@ -120,7 +148,7 @@ describe('transcribeStrategy', () => {
     );
   });
 
-  it('throws error when no audio files are provided', async () => {
+  it('throws error when no media files are provided', async () => {
     const updateAndPersistSessions = vi.fn();
     const setActiveSessionId = vi.fn();
     const runMessageLifecycle = vi.fn();
@@ -142,7 +170,60 @@ describe('transcribeStrategy', () => {
         setActiveSessionId,
         runMessageLifecycle,
       }),
-    ).rejects.toThrow('Gemini 3.5 Transcribe 需要上传音频附件进行转写。');
+    ).rejects.toThrow('Gemini 3.5 Transcribe 需要上传音频或视频文件进行转写。');
+  });
+
+  it('transcribes video attachment, extracts audio, and formats SRT subtitles with timestamps', async () => {
+    const fakeVideoFile: UploadedFile = {
+      id: 'file-video-1',
+      name: 'test-video.mp4',
+      type: 'video/mp4',
+      size: 1024 * 1024,
+      rawFile: new File(['video content'], 'test-video.mp4', { type: 'video/mp4' }),
+      uploadState: 'active',
+    };
+
+    const abortController = new AbortController();
+    const updateAndPersistSessions = vi.fn();
+    const setActiveSessionId = vi.fn();
+    let resultPatch: any = null;
+    const runMessageLifecycle = vi.fn(async ({ execute }) => {
+      const result = await execute();
+      resultPatch = result.patch;
+      return result;
+    });
+
+    await act(async () => {
+      await sendTranscribeMessage({
+        keyToUse: 'api-key',
+        activeSessionId: 'session-1',
+        generationId: 'generation-1',
+        abortController,
+        appSettings: createAppSettings(),
+        currentChatSettings: createChatSettings({
+          modelId: 'gemini-3.5-transcribe',
+        }),
+        text: '',
+        files: [fakeVideoFile],
+        t: getTranslator('zh'),
+        updateAndPersistSessions,
+        setActiveSessionId,
+        runMessageLifecycle,
+      });
+    });
+
+    expect(extractAudioFromVideoMock).toHaveBeenCalledWith(fakeVideoFile.rawFile, abortController.signal);
+    expect(transcribeAudioWithGeminiMock).toHaveBeenCalledWith(
+      'api-key',
+      expect.anything(),
+      'test-video-audio.wav',
+      abortController.signal,
+      undefined,
+      42,
+    );
+    expect(resultPatch.content).toContain('test-video.mp4');
+    expect(resultPatch.content).toContain('```srt');
+    expect(resultPatch.content).toContain('こんにちは世界。');
   });
 
   it('rejects audio longer than 30 minutes when word timestamps are enabled', async () => {

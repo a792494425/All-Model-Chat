@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paperclip, FolderOpen, Library, FileArchive, Layers } from 'lucide-react';
+import { Paperclip, FolderOpen, Library, FileArchive, Layers, Film } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { type AttachmentAction, GEMINI_PROVIDER_ID } from '@/types';
 import {
@@ -75,6 +75,7 @@ export const AttachmentMenu: React.FC = () => {
       : []),
     { labelKey: 'attachMenuMultimodalSearch', icon: <Layers size={menuIconSize} />, action: 'multimodal_search' },
     { labelKey: 'attachMenuLibrary', icon: <Library size={menuIconSize} />, action: 'library' },
+    { labelKey: 'transcribeUploadVideo', icon: <Film size={menuIconSize} />, action: 'video' },
     { labelKey: 'attachMenuUpload', icon: <IconUpload size={menuIconSize} />, action: 'upload' },
   ] as const;
 
@@ -82,6 +83,7 @@ export const AttachmentMenu: React.FC = () => {
     ? menuItems.filter(
         (item) =>
           item.action === 'upload' ||
+          item.action === 'video' ||
           item.action === 'library' ||
           item.action === 'multimodal_search' ||
           item.action === 'recorder' ||

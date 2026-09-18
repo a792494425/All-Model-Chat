@@ -7,6 +7,7 @@ interface ChatInputFileInputs {
   folderInputRef: RefObject<HTMLInputElement>;
   zipInputRef: RefObject<HTMLInputElement>;
   cameraInputRef: RefObject<HTMLInputElement>;
+  videoInputRef?: RefObject<HTMLInputElement>;
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleFolderChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleZipChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -23,6 +24,7 @@ export const HiddenFileInputs: React.FC<HiddenFileInputsProps> = ({
     folderInputRef,
     zipInputRef,
     cameraInputRef,
+    videoInputRef,
     handleFileChange,
     handleFolderChange,
     handleZipChange,
@@ -72,6 +74,15 @@ export const HiddenFileInputs: React.FC<HiddenFileInputsProps> = ({
       capture="environment"
       className="hidden"
       aria-hidden="true"
+    />
+    <input
+      type="file"
+      ref={videoInputRef}
+      onChange={handleFileChange}
+      accept="video/*"
+      className="hidden"
+      aria-hidden="true"
+      multiple
     />
   </>
 );

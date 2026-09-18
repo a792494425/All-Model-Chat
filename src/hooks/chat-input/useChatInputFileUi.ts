@@ -34,6 +34,7 @@ interface UseChatInputFileUiOptions {
   folderInputRef: RefObject<HTMLInputElement>;
   zipInputRef: RefObject<HTMLInputElement>;
   cameraInputRef: RefObject<HTMLInputElement>;
+  videoInputRef?: RefObject<HTMLInputElement>;
   justInitiatedFileOpRef: MutableRefObject<boolean>;
   textareaRef: RefObject<HTMLTextAreaElement>;
   isConverting: boolean;
@@ -53,6 +54,7 @@ export const useChatInputFileUi = ({
   folderInputRef,
   zipInputRef,
   cameraInputRef,
+  videoInputRef,
   justInitiatedFileOpRef,
   textareaRef,
   isConverting,
@@ -142,9 +144,16 @@ export const useChatInputFileUi = ({
         case 'screenshot':
           void onScreenshot();
           break;
+        case 'video':
+          if (videoInputRef?.current) {
+            videoInputRef.current.click();
+          } else {
+            fileInputRef.current?.click();
+          }
+          break;
       }
     },
-    [cameraInputRef, fileInputRef, imageInputRef, onScreenshot, zipInputRef],
+    [cameraInputRef, fileInputRef, imageInputRef, onScreenshot, videoInputRef, zipInputRef],
   );
 
   const handleImportFromLibrary = useCallback(
@@ -377,6 +386,7 @@ export const useChatInputFileUi = ({
       folderInputRef,
       zipInputRef,
       cameraInputRef,
+      videoInputRef,
       handleAttachmentAction,
       handleConfirmCreateTextFile,
       handleAudioRecord,
@@ -404,6 +414,7 @@ export const useChatInputFileUi = ({
       showLibraryPicker,
       showRecorder,
       showTtsContextEditor,
+      videoInputRef,
       zipInputRef,
     ],
   );

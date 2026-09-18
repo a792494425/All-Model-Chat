@@ -11,6 +11,7 @@ interface ChatInputFileRefs {
   folderInputRef: RefObject<HTMLInputElement>;
   zipInputRef: RefObject<HTMLInputElement>;
   cameraInputRef: RefObject<HTMLInputElement>;
+  videoInputRef?: RefObject<HTMLInputElement>;
 }
 
 interface UseChatInputFileParams {
@@ -46,7 +47,7 @@ export const useChatInputFile = ({
   fileRefs,
   justInitiatedFileOpRef,
 }: UseChatInputFileParams) => {
-  const { fileInputRef, imageInputRef, folderInputRef, zipInputRef, cameraInputRef } = fileRefs;
+  const { fileInputRef, imageInputRef, folderInputRef, zipInputRef, cameraInputRef, videoInputRef } = fileRefs;
 
   const filePreProcessing = useFilePreProcessingEffects({
     fileInputRef,
@@ -72,6 +73,7 @@ export const useChatInputFile = ({
     folderInputRef,
     zipInputRef,
     cameraInputRef,
+    videoInputRef,
     justInitiatedFileOpRef,
     textareaRef,
     isConverting: filePreProcessing.isConverting,

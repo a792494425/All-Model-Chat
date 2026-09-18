@@ -203,6 +203,7 @@ export const ChatInputArea: React.FC = () => {
     folderInputRef: modalsState.folderInputRef,
     zipInputRef: modalsState.zipInputRef,
     cameraInputRef: modalsState.cameraInputRef,
+    videoInputRef: modalsState.videoInputRef,
     handleFileChange: handlers.handleFileChange,
     handleFolderChange: handlers.handleFolderChange,
     handleZipChange: handlers.handleZipChange,

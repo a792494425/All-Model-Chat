@@ -179,6 +179,7 @@ export interface ChatInputModalsState {
   folderInputRef: RefObject<HTMLInputElement>;
   zipInputRef: RefObject<HTMLInputElement>;
   cameraInputRef: RefObject<HTMLInputElement>;
+  videoInputRef?: RefObject<HTMLInputElement>;
   handleAttachmentAction: (action: AttachmentAction) => void;
   handleConfirmCreateTextFile: (content: string | Blob, filename: string) => Promise<void>;
   handleAudioRecord: (file: File) => Promise<void>;

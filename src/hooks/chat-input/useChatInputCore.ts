@@ -68,6 +68,7 @@ export const useChatInputCore = () => {
   const folderInputRef = useRef<HTMLInputElement>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const { document: targetDocument } = useWindowContext();
   const insertText = useTextAreaInsert(inputState.textareaRef, inputState.setInputText);
 
@@ -224,6 +225,7 @@ export const useChatInputCore = () => {
       folderInputRef,
       zipInputRef,
       cameraInputRef,
+      videoInputRef,
     },
     targetDocument,
     insertText,

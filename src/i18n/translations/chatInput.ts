@@ -4099,6 +4099,15 @@ export const chatInputTranslations = {
     ko: '오디오 업로드',
     fr: 'Importer un fichier audio',
   },
+  transcribeUploadVideo: {
+    en: 'Video Subtitles',
+    zh: '视频转字幕',
+    ja: '動画字幕抽出',
+    de: 'Video-Untertitel',
+    es: 'Subtítulos de vídeo',
+    ko: '비디오 자막 추출',
+    fr: 'Sous-titres vidéo',
+  },
   transcribeSettings: {
     en: 'Settings',
     zh: '转录设置',

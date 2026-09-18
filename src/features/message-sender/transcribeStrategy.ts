@@ -2,7 +2,11 @@ import { type AppSettings, type ChatSettings as IndividualChatSettings, type Upl
 import { transcribeAudioApi } from '@/services/api/generation/audioApi';
 import { prepareAudioForGeminiTranscription } from '@/features/audio/audioCompression';
 import { getAudioDurationSeconds } from '@/features/audio/audioDuration';
-import { isAudioMimeType } from '@/utils/file/fileTypeClassification';
+import { isAudioMimeType, isVideoMimeType } from '@/utils/file/fileTypeClassification';
+import { extractAudioFromVideo } from '@/utils/video-subtitles/extractAudioFromVideo';
+import { transcribeAudioWithGemini } from '@/utils/video-subtitles/geminiTranscribeService';
+import { groupWordsIntoCues, generateSrtContent } from '@/utils/video-subtitles/subtitleFormatter';
+import { formatDuration } from '@/utils/durationFormat';
 import { runOptimisticMessagePipeline, type MessageLifecycleRunner } from './messagePipeline';
 import type { MessageSenderTranslator, SessionsUpdater } from './messageSenderTypes';
 
@@ -60,9 +64,9 @@ export const sendTranscribeMessage = async ({
   runMessageLifecycle,
   t,
 }: SendTranscribeMessageParams) => {
-  const audioFiles = files.filter((file) => isAudioMimeType(file.type));
-  if (audioFiles.length === 0) {
-    throw new Error(t('messageSenderTranscribeRequiresAudio'));
+  const mediaFiles = files.filter((file) => isAudioMimeType(file.type) || isVideoMimeType(file.type));
+  if (mediaFiles.length === 0) {
+    throw new Error(t('messageSenderTranscribeRequiresMedia') || t('messageSenderTranscribeRequiresAudio'));
   }
 
   await runOptimisticMessagePipeline({
@@ -82,50 +86,105 @@ export const sendTranscribeMessage = async ({
     execute: async () => {
       const results: string[] = [];
 
-      for (const audioFile of audioFiles) {
+      for (const mediaFile of mediaFiles) {
         if (abortController.signal.aborted) {
           const abortError = new Error('aborted');
           abortError.name = 'AbortError';
           throw abortError;
         }
 
-        let fileToTranscribe: File;
-        if (audioFile.rawFile instanceof File) {
-          fileToTranscribe = await prepareAudioForGeminiTranscription(audioFile.rawFile, abortController.signal);
-        } else if (audioFile.rawFile instanceof Blob) {
-          const named = new File([audioFile.rawFile], audioFile.name || 'audio.mp3', {
-            type: audioFile.type || audioFile.rawFile.type || 'audio/mpeg',
-          });
-          fileToTranscribe = await prepareAudioForGeminiTranscription(named, abortController.signal);
-        } else {
-          throw new Error('Audio file data is missing or could not be loaded.');
-        }
+        const isVideo = isVideoMimeType(mediaFile.type);
 
-        await enforceTranscriptionDurationLimit(fileToTranscribe, currentChatSettings, t);
+        if (isVideo) {
+          if (!(mediaFile.rawFile instanceof Blob)) {
+            throw new Error(`Video file data for "${mediaFile.name}" is missing or could not be loaded.`);
+          }
 
-        const promptText = text.trim() ? text.trim() : undefined;
-        const transcribedText = await transcribeAudioApi(keyToUse, fileToTranscribe, currentChatSettings.modelId, {
-          prompt: promptText,
-          systemInstruction: currentChatSettings.transcriptionSystemInstruction?.trim() || undefined,
-          language: currentChatSettings.transcriptionLanguage || undefined,
-          wordTimestamps: currentChatSettings.transcriptionWordTimestamps,
-          speakerLabels: currentChatSettings.transcriptionSpeakerLabels,
-          smartMode: currentChatSettings.transcriptionSmartMode,
-          customVocabulary: currentChatSettings.transcriptionCustomVocabulary?.trim() || undefined,
-          abortSignal: abortController.signal,
-        });
+          const { audioBlob, durationSeconds } = await extractAudioFromVideo(
+            mediaFile.rawFile,
+            abortController.signal,
+          );
 
-        if (abortController.signal.aborted) {
-          const abortError = new Error('aborted');
-          abortError.name = 'AbortError';
-          throw abortError;
-        }
+          if (durationSeconds > MAX_TRANSCRIPTION_DURATION_SECONDS) {
+            throw new Error(t('messageSenderTranscribeDurationExceeded'));
+          }
 
-        const outputText = transcribedText.trim() || t('transcriptionEmptyResult');
-        if (audioFiles.length > 1) {
-          results.push(`### 📄 ${audioFile.name}\n\n${outputText}`);
-        } else {
+          const annotations = await transcribeAudioWithGemini(
+            keyToUse,
+            audioBlob,
+            `${mediaFile.name.replace(/\.[^/.]+$/, '')}-audio.wav`,
+            abortController.signal,
+            undefined,
+            durationSeconds,
+          );
+
+          if (abortController.signal.aborted) {
+            const abortError = new Error('aborted');
+            abortError.name = 'AbortError';
+            throw abortError;
+          }
+
+          const cues = groupWordsIntoCues(annotations);
+          const srtContent = cues.length > 0 ? generateSrtContent(cues) : '';
+          const durationText = durationSeconds > 0 ? formatDuration(durationSeconds) : undefined;
+          const title = t('transcriptionSubtitlesResultTitle') || '视频字幕提取结果';
+
+          let outputText = `### 🎬 ${title}：\`${mediaFile.name}\`\n\n`;
+          if (durationText) {
+            outputText += `> ⏱️ **时长**: ${durationText} | **字幕**: ${cues.length} 句\n\n`;
+          }
+
+          if (cues.length > 0) {
+            const srtBlock = `\`\`\`srt\n${srtContent}\n\`\`\``;
+            const timelineList = cues
+              .map((cue) => `- **[${cue.startTimeSrt} --> ${cue.endTimeSrt}]** ${cue.text}`)
+              .join('\n');
+
+            outputText += `#### 📜 SRT 字幕\n${srtBlock}\n\n#### ⏱️ 逐句时间轴\n${timelineList}`;
+          } else {
+            outputText += t('transcriptionEmptyResult') || '未识别到有效语音内容。';
+          }
+
           results.push(outputText);
+        } else {
+          let fileToTranscribe: File;
+          if (mediaFile.rawFile instanceof File) {
+            fileToTranscribe = await prepareAudioForGeminiTranscription(mediaFile.rawFile, abortController.signal);
+          } else if (mediaFile.rawFile instanceof Blob) {
+            const named = new File([mediaFile.rawFile], mediaFile.name || 'audio.mp3', {
+              type: mediaFile.type || mediaFile.rawFile.type || 'audio/mpeg',
+            });
+            fileToTranscribe = await prepareAudioForGeminiTranscription(named, abortController.signal);
+          } else {
+            throw new Error('Audio file data is missing or could not be loaded.');
+          }
+
+          await enforceTranscriptionDurationLimit(fileToTranscribe, currentChatSettings, t);
+
+          const promptText = text.trim() ? text.trim() : undefined;
+          const transcribedText = await transcribeAudioApi(keyToUse, fileToTranscribe, currentChatSettings.modelId, {
+            prompt: promptText,
+            systemInstruction: currentChatSettings.transcriptionSystemInstruction?.trim() || undefined,
+            language: currentChatSettings.transcriptionLanguage || undefined,
+            wordTimestamps: currentChatSettings.transcriptionWordTimestamps,
+            speakerLabels: currentChatSettings.transcriptionSpeakerLabels,
+            smartMode: currentChatSettings.transcriptionSmartMode,
+            customVocabulary: currentChatSettings.transcriptionCustomVocabulary?.trim() || undefined,
+            abortSignal: abortController.signal,
+          });
+
+          if (abortController.signal.aborted) {
+            const abortError = new Error('aborted');
+            abortError.name = 'AbortError';
+            throw abortError;
+          }
+
+          const outputText = transcribedText.trim() || t('transcriptionEmptyResult');
+          if (mediaFiles.length > 1) {
+            results.push(`### 📄 ${mediaFile.name}\n\n${outputText}`);
+          } else {
+            results.push(outputText);
+          }
         }
       }
 

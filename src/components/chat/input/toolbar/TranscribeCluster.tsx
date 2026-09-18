@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { Mic, SlidersHorizontal, Upload } from 'lucide-react';
+import { Film, Mic, SlidersHorizontal, Upload } from 'lucide-react';
 import {
   TOOLBAR_IMAGE_CLUSTER_CLASS,
   TOOLBAR_TOGGLE_ACTIVE_CLASS,
@@ -79,6 +79,17 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
         >
           <Upload size={14} strokeWidth={1.75} />
           <span>{t('transcribeUploadAudio')}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onAttachmentAction?.('video')}
+          className={TOOLBAR_TOGGLE_IDLE_CLASS}
+          title={t('transcribeUploadVideo')}
+          data-testid="transcribe-video-button"
+        >
+          <Film size={14} strokeWidth={1.75} />
+          <span>{t('transcribeUploadVideo')}</span>
         </button>
 
         <div className="hidden sm:block h-4 w-px bg-[var(--theme-border-secondary)]/60 my-auto" aria-hidden="true" />

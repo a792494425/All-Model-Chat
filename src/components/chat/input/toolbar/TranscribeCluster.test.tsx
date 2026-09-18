@@ -34,11 +34,12 @@ describe('TranscribeCluster', () => {
     );
   };
 
-  it('renders record, upload, language selector, and settings buttons', () => {
+  it('renders record, upload, video subtitles, language selector, and settings buttons', () => {
     renderCluster();
 
     expect(screen.getByTestId('transcribe-record-button')).toBeInTheDocument();
     expect(screen.getByTestId('transcribe-upload-button')).toBeInTheDocument();
+    expect(screen.getByTestId('transcribe-video-button')).toBeInTheDocument();
     expect(screen.getByTestId('transcribe-settings-button')).toBeInTheDocument();
   });
 
@@ -54,6 +55,13 @@ describe('TranscribeCluster', () => {
 
     fireEvent.click(screen.getByTestId('transcribe-upload-button'));
     expect(onAttachmentAction).toHaveBeenCalledWith('upload');
+  });
+
+  it('calls onAttachmentAction with video when video button is clicked', () => {
+    renderCluster();
+
+    fireEvent.click(screen.getByTestId('transcribe-video-button'));
+    expect(onAttachmentAction).toHaveBeenCalledWith('video');
   });
 
   it('opens settings modal and allows toggling options and saving', () => {
