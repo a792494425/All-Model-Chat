@@ -1,22 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Eraser, Image as ImageIcon, Info, SquarePen } from 'lucide-react';
-import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
-import { SMALL_ICON_BUTTON_CLASS } from '@/constants/buttonClasses';
-import {
-  SETTINGS_SECTION_CARD_CLASS,
-  SETTINGS_SECTION_LABEL_CLASS,
-  SETTINGS_VALUE_BADGE_CLASS,
-} from '@/constants/designTokens';
-import { type AppSettings, type AutoTitleLength, MediaResolution } from '@/types';
-import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
-import { bansModelTurnPrefill } from '@/utils/model/modelCapabilities';
-import { useSettingsUiStore } from '@/stores/settingsUiStore';
-import { useI18n } from '@/contexts/I18nContext';
-import { Tooltip } from '@/components/shared/Tooltip';
-import { Select } from '@/components/shared/Select';
-import { ToggleItem } from '@/components/shared/ToggleItem';
-import { Slider } from '@/components/shared/Slider';
-import { TextEditorModal } from '@/components/modals/TextEditorModal';
+import React from 'react';
+import type { AppSettings } from '@/types';
+import { useGenerationSectionLogic } from './generation/useGenerationSectionLogic';
+import { TranscribeInfoCard } from './generation/TranscribeInfoCard';
+import { SystemPromptCard } from './generation/SystemPromptCard';
+import { BasicGenerationParamsCard } from './generation/BasicGenerationParamsCard';
+import { AdvancedGenerationParamsCard } from './generation/AdvancedGenerationParamsCard';
+import { AutoTitleCard } from './generation/AutoTitleCard';
 
 interface GenerationSectionProps {
   isThirdPartyMode?: boolean;
@@ -31,7 +20,6 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
   currentSettings,
   onUpdateSetting,
 }) => {
-  const { t } = useI18n();
   const {
     systemInstruction,
     temperature,
@@ -43,529 +31,80 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
     frequencyPenalty,
     seed,
   } = currentSettings;
+
   const topK = currentSettings.topK ?? 64;
   const isRawModeEnabled = currentSettings.isRawModeEnabled ?? false;
   const hideThinkingInContext = currentSettings.hideThinkingInContext ?? false;
   const alwaysKeepThinkingInContext = currentSettings.alwaysKeepThinkingInContext ?? false;
-  const isAdvancedModeEnabled = useSettingsUiStore((state) => state.isAdvancedModeEnabled);
-  const [isSystemPromptExpanded, setIsSystemPromptExpanded] = useState(false);
-  const [localPrompt, setLocalPrompt] = useState(systemInstruction);
-  const [localStopSequences, setLocalStopSequences] = useState(() =>
-    Array.isArray(stopSequences) ? stopSequences.join(', ') : '',
-  );
-  const skipNextPromptBlurCommitRef = useRef(false);
 
-  useEffect(() => {
-    setLocalPrompt(systemInstruction);
-  }, [systemInstruction]);
-
-  useEffect(() => {
-    setLocalStopSequences(Array.isArray(stopSequences) ? stopSequences.join(', ') : '');
-  }, [stopSequences]);
-
-  const commitPromptIfNeeded = useCallback(() => {
-    if (localPrompt !== systemInstruction) {
-      onUpdateSetting('systemInstruction', localPrompt);
-    }
-  }, [localPrompt, systemInstruction, onUpdateSetting]);
-
-  const handleOpenExpand = () => {
-    setIsSystemPromptExpanded(true);
-  };
-
-  const handleCloseExpand = () => {
-    setIsSystemPromptExpanded(false);
-  };
-
-  const handleSaveExpanded = (newPrompt: string) => {
-    setLocalPrompt(newPrompt);
-    onUpdateSetting('systemInstruction', newPrompt);
-  };
-
-  const handleClearPrompt = () => {
-    setLocalPrompt('');
-    if (localPrompt !== '' || systemInstruction !== '') {
-      onUpdateSetting('systemInstruction', '');
-    }
-  };
-
-  const capabilities = getCachedModelCapabilities(modelId);
-  const isNativeAudio = capabilities.isNativeAudioModel;
-  const isSystemPromptSet = localPrompt.trim() !== '';
-  const inputBaseClasses =
-    'w-full p-2.5 border rounded-lg transition-all duration-200 focus:ring-2 focus:ring-offset-0 text-sm';
+  const {
+    isAdvancedModeEnabled,
+    isSystemPromptExpanded,
+    localPrompt,
+    setLocalPrompt,
+    localStopSequences,
+    setLocalStopSequences,
+    skipNextPromptBlurCommitRef,
+    commitPromptIfNeeded,
+    handleOpenExpand,
+    handleCloseExpand,
+    handleSaveExpanded,
+    handleClearPrompt,
+    handleStopSequencesBlur,
+    capabilities,
+    isNativeAudio,
+    isSystemPromptSet,
+  } = useGenerationSectionLogic({
+    modelId,
+    systemInstruction,
+    stopSequences,
+    onUpdateSetting,
+  });
 
   if (capabilities.isTranscribeModel || capabilities.isLiveTranscribe) {
-    return (
-      <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`} data-settings-item="models-transcribe-info">
-        <div className="flex items-start gap-3 text-sm text-[var(--theme-text-secondary)]">
-          <Info size={18} className="text-[var(--theme-text-accent)] shrink-0 mt-0.5" />
-          <p className="leading-relaxed">{t('settingsTranscribeModelInfo')}</p>
-        </div>
-      </div>
-    );
+    return <TranscribeInfoCard />;
   }
 
   return (
     <div className="space-y-5">
-      <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`} data-settings-item="models-system-prompt">
-        <div className="flex items-center justify-between gap-3">
-          <label
-            htmlFor="system-prompt-input"
-            className="flex min-w-0 items-center gap-2 text-sm font-medium text-[var(--theme-text-primary)]"
-          >
-            <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsSystemPrompt')}</span>
-            <span
-              className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium normal-case tracking-normal border transition-colors ${
-                isSystemPromptSet
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                  : 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] border-[var(--theme-border-secondary)]/50'
-              }`}
-            >
-              {isSystemPromptSet ? t('settingsSystemPromptEnabled') : t('settingsSystemPromptUnset')}
-            </span>
-          </label>
-          <div className="flex shrink-0 items-center gap-1">
-            {isSystemPromptSet && (
-              <button
-                type="button"
-                onClick={handleClearPrompt}
-                className={`${SMALL_ICON_BUTTON_CLASS} flex h-8 w-8 items-center justify-center hover:text-[var(--theme-text-danger)] hover:bg-[var(--theme-bg-danger)]/10`}
-                title={t('settingsClearSystemPrompt')}
-                aria-label={t('settingsClearSystemPrompt')}
-              >
-                <Eraser size={14} />
-              </button>
-            )}
-            <button
-              type="button"
-              onPointerDown={() => {
-                skipNextPromptBlurCommitRef.current = true;
-              }}
-              onClick={handleOpenExpand}
-              className={`${SMALL_ICON_BUTTON_CLASS} flex h-8 w-8 items-center justify-center hover:text-[var(--theme-text-link)]`}
-              title={t('settingsExpandSystemPromptEditor')}
-              aria-label={t('settingsExpandSystemPromptEditor')}
-            >
-              <SquarePen size={14} />
-            </button>
-          </div>
-        </div>
-        <textarea
-          id="system-prompt-input"
-          value={localPrompt}
-          onChange={(event) => setLocalPrompt(event.target.value)}
-          onBlur={() => {
-            if (skipNextPromptBlurCommitRef.current) {
-              skipNextPromptBlurCommitRef.current = false;
-              return;
-            }
-            commitPromptIfNeeded();
-          }}
-          rows={3}
-          className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS} resize-none font-mono text-xs sm:text-sm leading-relaxed min-h-[112px] no-scrollbar md:custom-scrollbar bg-[var(--theme-bg-input)]/50`}
-          placeholder={t('chatBehaviorSystemPromptPlaceholder')}
-          aria-label={t('settingsSystemPromptAria')}
-        />
-      </div>
-
-      <TextEditorModal
-        isOpen={isSystemPromptExpanded}
-        onClose={handleCloseExpand}
-        title={t('settingsSystemPrompt')}
-        value={localPrompt}
-        onChange={handleSaveExpanded}
-        placeholder={t('chatBehaviorSystemPromptPlaceholder')}
-        confirmLabel={t('settingsSaveAndClose')}
+      <SystemPromptCard
+        localPrompt={localPrompt}
+        setLocalPrompt={setLocalPrompt}
+        isSystemPromptSet={isSystemPromptSet}
+        isSystemPromptExpanded={isSystemPromptExpanded}
+        skipNextPromptBlurCommitRef={skipNextPromptBlurCommitRef}
+        commitPromptIfNeeded={commitPromptIfNeeded}
+        handleOpenExpand={handleOpenExpand}
+        handleCloseExpand={handleCloseExpand}
+        handleSaveExpanded={handleSaveExpanded}
+        handleClearPrompt={handleClearPrompt}
       />
 
-      <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-2.5`} data-settings-item="models-temperature">
-        <div className="flex items-center justify-between">
-          <label htmlFor="temperature-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
-            {t('settingsTemperature')}
-            <Tooltip text={t('chatBehaviorTempTooltip')}>
-              <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
-            </Tooltip>
-          </label>
-          <div className="flex items-center gap-2">
-            <span className={SETTINGS_VALUE_BADGE_CLASS}>{Number(temperature).toFixed(2)}</span>
-            <span className="text-[11px] font-medium text-[var(--theme-text-secondary)] hidden sm:inline">
-              {temperature < 0.4
-                ? t('settingsTemperatureStrict')
-                : temperature > 1.2
-                  ? t('settingsTemperatureCreative')
-                  : t('settingsTemperatureBalanced')}
-            </span>
-          </div>
-        </div>
-        <Slider
-          id="temperature-slider"
-          min={0}
-          max={2}
-          step={0.05}
-          value={temperature}
-          onChange={(val) => onUpdateSetting('temperature', val)}
-          ariaLabel={t('settingsTemperature')}
-        />
-        <div className="flex justify-between text-[11px] font-medium text-[var(--theme-text-tertiary)] pt-0.5 select-none">
-          <span>{t('settingsTemperatureStrict')}</span>
-          <span>{t('settingsTemperatureBalanced')}</span>
-          <span>{t('settingsTemperatureCreative')}</span>
-        </div>
-      </div>
-
-      <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-3`} data-settings-item="models-top-p">
-        <div className="flex items-center justify-between">
-          <label htmlFor="top-p-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
-            {t('settingsTopP')}
-            <Tooltip text={t('chatBehaviorTopPTooltip')}>
-              <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
-            </Tooltip>
-          </label>
-          <span className={SETTINGS_VALUE_BADGE_CLASS}>{Number(topP).toFixed(2)}</span>
-        </div>
-        <Slider
-          id="top-p-slider"
-          min={0}
-          max={1}
-          step={0.05}
-          value={topP}
-          onChange={(val) => onUpdateSetting('topP', val)}
-          ariaLabel={t('settingsTopP')}
-        />
-      </div>
+      <BasicGenerationParamsCard temperature={temperature} topP={topP} onUpdateSetting={onUpdateSetting} />
 
       {isAdvancedModeEnabled && (
-        <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-5`} data-settings-item="models-advanced">
-          <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsAdvancedParamsTitle')}</span>
-
-          <div data-settings-item="models-top-k">
-            <div className="flex items-center justify-between mb-2">
-              <label htmlFor="top-k-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
-                {t('settingsTopK')}
-                <Tooltip text={t('settingsTopKTooltip')}>
-                  <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
-                </Tooltip>
-              </label>
-              <span className={SETTINGS_VALUE_BADGE_CLASS}>{topK}</span>
-            </div>
-            <Slider
-              id="top-k-slider"
-              min={0}
-              max={128}
-              step={1}
-              value={topK}
-              onChange={(val) => onUpdateSetting('topK', Math.round(val))}
-              ariaLabel={t('settingsTopK')}
-            />
-          </div>
-
-          <div data-settings-item="models-max-output-tokens">
-            <div className="flex items-center justify-between mb-2">
-              <label
-                htmlFor="max-output-tokens-input"
-                className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}
-              >
-                {t('settingsMaxOutputTokens')}
-                <Tooltip text={t('settingsMaxOutputTokensTooltip')}>
-                  <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
-                </Tooltip>
-              </label>
-              <span className={SETTINGS_VALUE_BADGE_CLASS}>
-                {maxOutputTokens && maxOutputTokens > 0 ? maxOutputTokens : t('settingsDefaultUnset')}
-              </span>
-            </div>
-            <input
-              id="max-output-tokens-input"
-              type="number"
-              min="1"
-              max="1048576"
-              step="256"
-              value={maxOutputTokens ?? ''}
-              onChange={(event) => {
-                const val = event.target.value.trim();
-                const num = val === '' ? undefined : parseInt(val, 10);
-                onUpdateSetting('maxOutputTokens', num && num > 0 ? num : undefined);
-              }}
-              placeholder={t('settingsMaxOutputTokensPlaceholder')}
-              className={`w-full p-2.5 rounded-lg border text-sm font-mono ${SETTINGS_INPUT_CLASS}`}
-            />
-          </div>
-
-          <div data-settings-item="models-stop-sequences">
-            <div className="flex items-center justify-between mb-2">
-              <label
-                htmlFor="stop-sequences-input"
-                className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}
-              >
-                {t('settingsStopSequences')}
-                <Tooltip text={t('settingsStopSequencesTooltip')}>
-                  <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
-                </Tooltip>
-              </label>
-            </div>
-            <input
-              id="stop-sequences-input"
-              type="text"
-              value={localStopSequences}
-              onChange={(event) => setLocalStopSequences(event.target.value)}
-              onBlur={() => {
-                const parsed = localStopSequences
-                  .split(',')
-                  .map((s) => s.trim())
-                  .filter(Boolean);
-                onUpdateSetting('stopSequences', parsed.length > 0 ? parsed : undefined);
-              }}
-              placeholder={t('settingsStopSequencesPlaceholder')}
-              className={`w-full p-2.5 rounded-lg border text-sm font-mono ${SETTINGS_INPUT_CLASS}`}
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 pt-1 border-t border-[var(--theme-border-secondary)]/40">
-            <div data-settings-item="models-presence-penalty" className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="presence-penalty-slider"
-                  className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}
-                >
-                  {t('settingsPresencePenalty')}
-                  <Tooltip text={t('settingsPresencePenaltyTooltip')}>
-                    <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
-                  </Tooltip>
-                </label>
-                <span className={SETTINGS_VALUE_BADGE_CLASS}>
-                  {presencePenalty !== undefined ? Number(presencePenalty).toFixed(2) : '0.00'}
-                </span>
-              </div>
-              <Slider
-                id="presence-penalty-slider"
-                min={-2}
-                max={2}
-                step={0.1}
-                value={presencePenalty ?? 0}
-                onChange={(val) => {
-                  onUpdateSetting('presencePenalty', val === 0 ? undefined : val);
-                }}
-                ariaLabel={t('settingsPresencePenalty')}
-              />
-            </div>
-
-            <div data-settings-item="models-frequency-penalty" className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="frequency-penalty-slider"
-                  className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}
-                >
-                  {t('settingsFrequencyPenalty')}
-                  <Tooltip text={t('settingsFrequencyPenaltyTooltip')}>
-                    <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
-                  </Tooltip>
-                </label>
-                <span className={SETTINGS_VALUE_BADGE_CLASS}>
-                  {frequencyPenalty !== undefined ? Number(frequencyPenalty).toFixed(2) : '0.00'}
-                </span>
-              </div>
-              <Slider
-                id="frequency-penalty-slider"
-                min={-2}
-                max={2}
-                step={0.1}
-                value={frequencyPenalty ?? 0}
-                onChange={(val) => {
-                  onUpdateSetting('frequencyPenalty', val === 0 ? undefined : val);
-                }}
-                ariaLabel={t('settingsFrequencyPenalty')}
-              />
-            </div>
-          </div>
-
-          <div data-settings-item="models-seed" className="pt-1 border-t border-[var(--theme-border-secondary)]/40">
-            <div className="flex items-center justify-between mb-2">
-              <label htmlFor="seed-input" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
-                {t('settingsSeed')}
-                <Tooltip text={t('settingsSeedTooltip')}>
-                  <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
-                </Tooltip>
-              </label>
-              <span className={SETTINGS_VALUE_BADGE_CLASS}>
-                {seed !== undefined ? seed : t('settingsDefaultUnset')}
-              </span>
-            </div>
-            <input
-              id="seed-input"
-              type="number"
-              step="1"
-              value={seed ?? ''}
-              onChange={(event) => {
-                const val = event.target.value.trim();
-                const num = val === '' ? undefined : parseInt(val, 10);
-                onUpdateSetting('seed', num !== undefined && Number.isFinite(num) ? num : undefined);
-              }}
-              placeholder={t('settingsSeedPlaceholder')}
-              className={`w-full p-2.5 rounded-lg border text-sm font-mono ${SETTINGS_INPUT_CLASS}`}
-            />
-          </div>
-
-          {!isThirdPartyMode &&
-            mediaResolution &&
-            !capabilities.isTtsModel &&
-            !capabilities.isLiveTranslate &&
-            !capabilities.isLiveTranscribe &&
-            !capabilities.isTranscribeModel &&
-            !capabilities.isImageGenerationModel && (
-              <div
-                data-settings-item="models-media-resolution"
-                className="pt-1 border-t border-[var(--theme-border-secondary)]/40"
-              >
-                <Select
-                  id="media-resolution-select"
-                  label=""
-                  layout="horizontal"
-                  labelContent={
-                    <span className="flex items-center text-sm font-medium text-[var(--theme-text-primary)]">
-                      <ImageIcon size={14} className="mr-2 text-[var(--theme-text-primary)]" />
-                      {t('settingsMediaResolution')}
-                      <Tooltip
-                        text={
-                          isNativeAudio ? t('settingsMediaResolutionLiveTooltip') : t('settingsMediaResolutionTooltip')
-                        }
-                      >
-                        <Info
-                          size={14}
-                          className="ml-2 text-[var(--theme-text-secondary)] cursor-help"
-                          strokeWidth={1.5}
-                        />
-                      </Tooltip>
-                    </span>
-                  }
-                  value={mediaResolution}
-                  onChange={(event) => onUpdateSetting('mediaResolution', event.target.value as MediaResolution)}
-                >
-                  <option value={MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED}>
-                    {t('mediaResolutionUnspecified')}
-                  </option>
-                  <option value={MediaResolution.MEDIA_RESOLUTION_LOW}>{t('mediaResolutionLow')}</option>
-                  {!isNativeAudio && (
-                    <option value={MediaResolution.MEDIA_RESOLUTION_MEDIUM}>{t('mediaResolutionMedium')}</option>
-                  )}
-                  {!isNativeAudio && (
-                    <option value={MediaResolution.MEDIA_RESOLUTION_HIGH}>{t('mediaResolutionHigh')}</option>
-                  )}
-                </Select>
-              </div>
-            )}
-
-          {!isThirdPartyMode && capabilities.supportsRawReasoningPrefill && !bansModelTurnPrefill(modelId) && (
-            <div className="pt-1 border-t border-[var(--theme-border-secondary)]/40 space-y-1">
-              <div data-settings-item="models-raw-mode">
-                <ToggleItem
-                  label={t('settingsRawModeLabel')}
-                  checked={isRawModeEnabled}
-                  onChange={(value) => onUpdateSetting('isRawModeEnabled', value)}
-                  tooltip={t('settingsRawModeTooltip')}
-                />
-              </div>
-            </div>
-          )}
-
-          {!isThirdPartyMode &&
-            capabilities.supportsThinkingLevel &&
-            !capabilities.isTtsModel &&
-            !capabilities.isTranscribeModel &&
-            !capabilities.isLiveTranscribe &&
-            !capabilities.isLiveTranslate &&
-            !capabilities.isImageGenerationModel && (
-              <div className="pt-1 border-t border-[var(--theme-border-secondary)]/40 space-y-1">
-                <div data-settings-item="models-hide-thinking">
-                  <ToggleItem
-                    label={t('settingsHideThinkingInContextLabel')}
-                    checked={hideThinkingInContext}
-                    onChange={(value) => {
-                      onUpdateSetting('hideThinkingInContext', value);
-                      if (value) onUpdateSetting('alwaysKeepThinkingInContext', false);
-                    }}
-                    tooltip={t('settingsHideThinkingInContextTooltip')}
-                  />
-                </div>
-                <div data-settings-item="models-always-keep-thinking">
-                  <ToggleItem
-                    label={t('settingsAlwaysKeepThinkingInContextLabel')}
-                    checked={alwaysKeepThinkingInContext}
-                    onChange={(value) => {
-                      onUpdateSetting('alwaysKeepThinkingInContext', value);
-                      if (value) onUpdateSetting('hideThinkingInContext', false);
-                    }}
-                    tooltip={t('settingsAlwaysKeepThinkingInContextTooltip')}
-                  />
-                </div>
-              </div>
-            )}
-        </div>
+        <AdvancedGenerationParamsCard
+          modelId={modelId}
+          isThirdPartyMode={isThirdPartyMode}
+          topK={topK}
+          maxOutputTokens={maxOutputTokens}
+          localStopSequences={localStopSequences}
+          setLocalStopSequences={setLocalStopSequences}
+          handleStopSequencesBlur={handleStopSequencesBlur}
+          presencePenalty={presencePenalty}
+          frequencyPenalty={frequencyPenalty}
+          seed={seed}
+          mediaResolution={mediaResolution}
+          isRawModeEnabled={isRawModeEnabled}
+          hideThinkingInContext={hideThinkingInContext}
+          alwaysKeepThinkingInContext={alwaysKeepThinkingInContext}
+          capabilities={capabilities}
+          isNativeAudio={isNativeAudio}
+          onUpdateSetting={onUpdateSetting}
+        />
       )}
 
-      <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-4`} data-settings-item="models-auto-title">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h4 className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsAutoTitleCardTitle')}</h4>
-            <p className="mt-0.5 text-xs text-[var(--theme-text-secondary)]">{t('settingsAutoTitleCardDesc')}</p>
-          </div>
-          <ToggleItem
-            label={t('isAutoTitleEnabled')}
-            checked={currentSettings.isAutoTitleEnabled}
-            onChange={(enabled) => onUpdateSetting('isAutoTitleEnabled', enabled)}
-          />
-        </div>
-
-        {currentSettings.isAutoTitleEnabled && (
-          <div className="pt-3 border-t border-[var(--theme-border-secondary)]/40 space-y-4">
-            <div data-settings-item="models-auto-title-emoji">
-              <ToggleItem
-                label={t('settingsAutoTitleIncludeEmojiLabel')}
-                checked={currentSettings.autoTitleIncludeEmoji ?? true}
-                onChange={(enabled) => onUpdateSetting('autoTitleIncludeEmoji', enabled)}
-                tooltip={t('settingsAutoTitleIncludeEmojiTooltip')}
-              />
-            </div>
-
-            <div className="space-y-1.5" data-settings-item="models-auto-title-length">
-              <label
-                htmlFor="auto-title-length-select"
-                className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]"
-              >
-                {t('settingsAutoTitleLengthLabel')}
-              </label>
-              <Select
-                id="auto-title-length-select"
-                label={t('settingsAutoTitleLengthLabel')}
-                hideLabel
-                value={currentSettings.autoTitleLength ?? 'standard'}
-                onChange={(e) => onUpdateSetting('autoTitleLength', e.target.value as AutoTitleLength)}
-              >
-                <option value="concise">{t('settingsAutoTitleLengthConcise')}</option>
-                <option value="standard">{t('settingsAutoTitleLengthStandard')}</option>
-                <option value="detailed">{t('settingsAutoTitleLengthDetailed')}</option>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5" data-settings-item="models-auto-title-custom-prompt">
-              <label
-                htmlFor="auto-title-custom-prompt"
-                className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]"
-              >
-                {t('settingsAutoTitleCustomPromptLabel')}
-              </label>
-              <input
-                id="auto-title-custom-prompt"
-                type="text"
-                value={currentSettings.autoTitleCustomPrompt ?? ''}
-                onChange={(e) => onUpdateSetting('autoTitleCustomPrompt', e.target.value)}
-                placeholder={t('settingsAutoTitleCustomPromptPlaceholder')}
-                className={`w-full p-2.5 border rounded-lg transition-all duration-200 focus:ring-2 focus:ring-offset-0 text-sm ${SETTINGS_INPUT_CLASS}`}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+      <AutoTitleCard currentSettings={currentSettings} onUpdateSetting={onUpdateSetting} />
     </div>
   );
 };

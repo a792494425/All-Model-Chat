@@ -106,7 +106,19 @@ export function useChatInputExpandSizing({
 }: Options) {
   const minHeight = minHeightProp ?? getChatInputMinHeight(fontSize);
   const compactMinHeight = getCompactChatInputMinHeight(fontSize);
-  const maxHeight = useMemo(() => getExpandedHeightPx(minHeight), [minHeight]);
+  const [viewportHeight, setViewportHeight] = useState(() =>
+    typeof window !== 'undefined' ? window.innerHeight : 800,
+  );
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => setViewportHeight(window.innerHeight);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  const maxHeight = useMemo(
+    () => Math.max(minHeight, Math.max(220, Math.round(viewportHeight * 0.5))),
+    [minHeight, viewportHeight],
+  );
   const frameRef = useRef<HTMLDivElement | null>(null);
   const animRef = useRef<number | null>(null);
   const pendingRef = useRef<boolean | null>(null);
@@ -138,7 +150,11 @@ export function useChatInputExpandSizing({
       clearAnim();
       pendingRef.current = null;
       setAnimatedHeight(null);
-      setManualHeight(clampHeight(h, minHeight, maxHeight));
+      if (h <= minHeight + 4) {
+        setManualHeight(null);
+      } else {
+        setManualHeight(clampHeight(h, minHeight, maxHeight));
+      }
     },
     [clearAnim, maxHeight, minHeight],
   );

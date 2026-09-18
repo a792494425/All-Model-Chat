@@ -14,6 +14,8 @@ export type CapabilityTestState =
   | { status: 'success'; capabilities: McpServerCapabilities }
   | { status: 'error'; error: string };
 
+export type ServerFilter = 'all' | 'enabled' | 'disabled' | 'http' | 'sse' | 'stdio';
+
 export const createMcpServer = (name: string): McpServerConfig => ({
   id: `mcp-${Date.now()}`,
   name,

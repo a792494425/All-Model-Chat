@@ -90,6 +90,23 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
     onCompositionEnd(event.currentTarget.value);
   };
 
+  // Synchronize height with expanded mode without remounting the textarea DOM node
+  useLayoutEffect(() => {
+    const target = textareaRef.current;
+    if (!target) return;
+    if (isExpandedMode) {
+      target.style.setProperty('height', '100%', 'important');
+    } else {
+      target.style.removeProperty('height');
+    }
+  }, [isExpandedMode, textareaRef]);
+
+  const handleHeightChange = () => {
+    if (isExpandedMode && textareaRef.current) {
+      textareaRef.current.style.setProperty('height', '100%', 'important');
+    }
+  };
+
   const minRows = 1;
   const maxRows = isMobile ? 5 : 10;
 
@@ -99,41 +116,28 @@ const ChatTextAreaComponent: React.FC<ChatTextAreaProps> = ({
       onClick={handleShellClick}
       style={contentStyle as React.CSSProperties}
     >
-      {isExpandedMode ? (
-        <textarea
-          ref={textareaRef}
-          defaultValue={value}
-          onChange={onChange}
-          onKeyDown={onKeyDown}
-          onPaste={onPaste}
-          onCompositionStart={handleCompositionStart}
-          onCompositionEnd={handleCompositionEnd}
-          placeholder={placeholder}
-          className={`w-full h-full bg-transparent border-0 resize-none px-1 ${isMobile ? 'pr-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : 'pr-9 custom-scrollbar'} pt-0.5 pb-0 text-base placeholder:text-[var(--theme-text-tertiary)] focus:ring-0 focus:outline-none overflow-y-auto leading-relaxed`}
-          aria-label={t('chatInputTextareaAria')}
-          data-chat-input-textarea="true"
-          onFocus={onFocus}
-          disabled={disabled || isConverting}
-        />
-      ) : (
-        <TextareaAutosize
-          ref={textareaRef as React.Ref<HTMLTextAreaElement>}
-          defaultValue={value}
-          onChange={onChange}
-          onKeyDown={onKeyDown}
-          onPaste={onPaste}
-          onCompositionStart={handleCompositionStart}
-          onCompositionEnd={handleCompositionEnd}
-          placeholder={placeholder}
-          className={`w-full bg-transparent border-0 resize-none px-1 ${isMobile ? 'pr-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : 'pr-9 custom-scrollbar'} pt-0.5 pb-0 text-base placeholder:text-[var(--theme-text-tertiary)] focus:ring-0 focus:outline-none flex-grow leading-relaxed`}
-          minRows={minRows}
-          maxRows={maxRows}
-          aria-label={t('chatInputTextareaAria')}
-          data-chat-input-textarea="true"
-          onFocus={onFocus}
-          disabled={disabled || isConverting}
-        />
-      )}
+      <TextareaAutosize
+        ref={textareaRef as React.Ref<HTMLTextAreaElement>}
+        defaultValue={value}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        onPaste={onPaste}
+        onCompositionStart={handleCompositionStart}
+        onCompositionEnd={handleCompositionEnd}
+        onHeightChange={handleHeightChange}
+        placeholder={placeholder}
+        className={`w-full bg-transparent border-0 resize-none px-1 ${
+          isMobile ? 'pr-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : 'pr-9 custom-scrollbar'
+        } pt-0.5 pb-0 text-base placeholder:text-[var(--theme-text-tertiary)] focus:ring-0 focus:outline-none ${
+          isExpandedMode ? 'h-full overflow-y-auto' : 'flex-grow'
+        } leading-relaxed`}
+        minRows={isExpandedMode ? undefined : minRows}
+        maxRows={isExpandedMode ? undefined : maxRows}
+        aria-label={t('chatInputTextareaAria')}
+        data-chat-input-textarea="true"
+        onFocus={onFocus}
+        disabled={disabled || isConverting}
+      />
     </div>
   );
 };

@@ -32,4 +32,45 @@ describe('useChatInputExpandSizing cherry parity', () => {
     act(() => result.current.handleResizeKeyDown({ key: 'Home', preventDefault: vi.fn() } as any));
     expect(onExpandedChange).toHaveBeenCalledWith(false);
   });
+
+  it('resets manual height when dragged or keyed down to near minHeight to restore auto-sizing', () => {
+    const onExpandedChange = vi.fn();
+    const { result } = renderHook(() =>
+      useChatInputExpandSizing({
+        fontSize: 14,
+        isExpanded: false,
+        onExpandedChange,
+        focusEditor: vi.fn(),
+        minHeight: 46,
+      }),
+    );
+
+    // Increase height via ArrowUp
+    act(() => result.current.handleResizeKeyDown({ key: 'ArrowUp', preventDefault: vi.fn() } as any));
+    expect(result.current.hasCustomHeight).toBe(true);
+
+    // Press Home to jump to minHeight - should clear custom height lock
+    act(() => result.current.handleResizeKeyDown({ key: 'Home', preventDefault: vi.fn() } as any));
+    expect(result.current.hasCustomHeight).toBe(false);
+  });
+
+  it('updates maxHeight dynamically when window is resized', () => {
+    const { result } = renderHook(() =>
+      useChatInputExpandSizing({
+        fontSize: 14,
+        isExpanded: false,
+        onExpandedChange: vi.fn(),
+        focusEditor: vi.fn(),
+        minHeight: 46,
+      }),
+    );
+
+    const initialMax = result.current.maxHeight;
+    act(() => {
+      window.innerHeight = 1400;
+      window.dispatchEvent(new Event('resize'));
+    });
+
+    expect(result.current.maxHeight).toBeGreaterThan(initialMax);
+  });
 });

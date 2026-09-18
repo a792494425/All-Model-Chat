@@ -611,6 +611,53 @@ describe('chatStore', () => {
       // Session 1 messages updated
       expect(useChatStore.getState().savedSessions[0].messages[0].files?.[0].uploadState).toBe('active');
     });
+
+    it('persists active session to DB when updating a file in activeMessages', async () => {
+      const file = createUploadedFile({ id: 'f-active', uploadState: 'uploading' });
+      const msg = {
+        id: 'm1',
+        role: 'user' as const,
+        content: 'active with file',
+        timestamp: new Date(),
+        files: [file],
+      };
+      const session = makeSession({ id: 's1', messages: [] });
+      useChatStore.setState({
+        activeSessionId: 's1',
+        activeMessages: [msg],
+        savedSessions: [session],
+      });
+
+      useChatStore.getState().updateUploadedFile('f-active', { uploadState: 'active' });
+
+      await vi.waitFor(() => {
+        expect(dbService.saveSession).toHaveBeenCalled();
+      });
+
+      const savedArg = vi.mocked(dbService.saveSession).mock.calls.find(([s]) => s.id === 's1')?.[0];
+      expect(savedArg).toBeDefined();
+      expect(savedArg?.messages[0].files?.[0].uploadState).toBe('active');
+    });
+
+    it('short-circuits and preserves session references for inactive sessions with stripped empty messages', () => {
+      const file = createUploadedFile({ id: 'f-other', uploadState: 'uploading' });
+      const inactiveSession1 = makeSession({ id: 's1', messages: [] });
+      const inactiveSession2 = makeSession({ id: 's2', messages: [] });
+
+      useChatStore.setState({
+        activeSessionId: null,
+        activeMessages: [],
+        selectedFiles: [file],
+        savedSessions: [inactiveSession1, inactiveSession2],
+      });
+
+      useChatStore.getState().updateUploadedFile('f-other', { progress: 50 });
+
+      const state = useChatStore.getState();
+      expect(state.selectedFiles[0].progress).toBe(50);
+      expect(state.savedSessions[0]).toBe(inactiveSession1);
+      expect(state.savedSessions[1]).toBe(inactiveSession2);
+    });
   });
 
   describe('atomic session and message actions', () => {

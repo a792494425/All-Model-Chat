@@ -37,6 +37,8 @@ export function useResizeDrag({ onMove, onEnd, cursor = 'col-resize' }: UseResiz
       cleanupRef.current?.();
 
       let active = true;
+      let rafId: number | null = null;
+      let lastMoveEvent: MouseEvent | null = null;
       const previousCursor = document.body.style.cursor;
       const previousUserSelect = document.body.style.userSelect;
 
@@ -46,7 +48,15 @@ export function useResizeDrag({ onMove, onEnd, cursor = 'col-resize' }: UseResiz
 
       const onMouseMove = (moveEvent: MouseEvent) => {
         if (!active) return;
-        onMoveRef.current(moveEvent, cleanup);
+        lastMoveEvent = moveEvent;
+        if (rafId === null) {
+          rafId = requestAnimationFrame(() => {
+            rafId = null;
+            if (active && lastMoveEvent) {
+              onMoveRef.current(lastMoveEvent, cleanup);
+            }
+          });
+        }
       };
 
       let cleanup = () => {};
@@ -58,6 +68,10 @@ export function useResizeDrag({ onMove, onEnd, cursor = 'col-resize' }: UseResiz
       cleanup = () => {
         if (!active) return;
         active = false;
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
         setIsResizing(false);
         document.body.style.cursor = previousCursor;
         document.body.style.userSelect = previousUserSelect;

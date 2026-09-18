@@ -175,4 +175,10 @@ describe('ChatInputArea default spacing', () => {
     expect(source).toContain('isLiveArtifactsPromptActive');
     expect(source).toContain('border-[var(--theme-border-focus)]/50');
   });
+
+  it('does not bind onDoubleClick to editor frame or resize handle to avoid interrupting text selection', () => {
+    const source = fs.readFileSync(chatInputAreaPath, 'utf8');
+
+    expect(source).not.toContain('onDoubleClick');
+  });
 });

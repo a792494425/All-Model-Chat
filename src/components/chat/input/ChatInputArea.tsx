@@ -302,13 +302,12 @@ export const ChatInputArea: React.FC = () => {
                 tabIndex={0}
                 onMouseDown={startResize}
                 onKeyDown={handleResizeKeyDown}
-                onDoubleClick={restoreDefaultHeight}
                 className="group/composer-resize-handle absolute top-0 right-4 left-4 z-30 h-2 cursor-row-resize [-webkit-app-region:no-drag] focus-visible:outline-none flex items-center justify-center"
               >
                 <div className="mx-auto w-10 h-0.5 rounded-full bg-[var(--theme-border-secondary)] opacity-0 transition-all duration-200 group-hover/composer-resize-handle:opacity-100 group-hover/composer-resize-handle:w-16 group-hover/composer-resize-handle:bg-[var(--theme-bg-accent)] group-focus/composer-resize-handle:opacity-100 group-focus/composer-resize-handle:bg-[var(--theme-bg-accent)] group-data-[resizing=true]/composer-resize-handle:bg-[var(--theme-bg-accent)] group-data-[resizing=true]/composer-resize-handle:opacity-100 group-data-[resizing=true]/composer-resize-handle:w-20" />
               </div>
             )}
-            {!isCompact && !isMobile && (
+            {!isMobile && (
               <ChatInputExpandCorner hasCustomHeight={hasCustomHeight} onToggle={handleExpandControlClick} />
             )}
             <ChatFilePreviewList
@@ -333,7 +332,6 @@ export const ChatInputArea: React.FC = () => {
               className="min-w-0 overflow-hidden transition-[height] ease-out flex flex-col"
               onTransitionEnd={handleTransitionEnd}
               style={currentFrameStyle}
-              onDoubleClick={restoreDefaultHeight}
             >
               <ChatTextArea
                 textareaRef={inputState.textareaRef}

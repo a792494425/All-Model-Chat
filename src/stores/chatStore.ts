@@ -484,6 +484,8 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
   },
 
   updateUploadedFile: (fileId, patch) => {
+    let affectedActiveSessionId: string | null = null;
+
     set((state) => {
       let hasInSelected = false;
       const nextSelected = state.selectedFiles.map((file) => {
@@ -506,8 +508,14 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
         return message;
       });
 
+      if (hasActiveChange && state.activeSessionId) {
+        affectedActiveSessionId = state.activeSessionId;
+      }
+
       let hasSessionChange = false;
       const nextSessions = state.savedSessions.map((session) => {
+        if (!session.messages || session.messages.length === 0) return session;
+
         let hasMsgChange = false;
         const nextMessages = session.messages.map((message) => {
           if (message.files && message.files.some((f) => f.id === fileId)) {
@@ -537,6 +545,21 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
         savedSessions: hasSessionChange ? nextSessions : state.savedSessions,
       };
     });
+
+    if (affectedActiveSessionId) {
+      const activeSession = get().savedSessions.find((s) => s.id === affectedActiveSessionId);
+      if (activeSession) {
+        const fullSession: SavedChatSession = {
+          ...activeSession,
+          messages: get().activeMessages,
+        };
+        dbService
+          .saveSession(fullSession)
+          .catch((persistenceError) =>
+            logService.error('Failed to persist session file update', { error: persistenceError }),
+          );
+      }
+    }
   },
 
   removeFilesFromStore: (fileIds) => {

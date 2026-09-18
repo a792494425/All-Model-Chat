@@ -1,24 +1,15 @@
-import { logService } from '@/services/logService';
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useCallback } from 'react';
 import type { SavedChatSession, ChatGroup } from '@/types';
 import { useWindowContext } from '@/contexts/WindowContext';
 import { useI18n } from '@/contexts/I18nContext';
-import { DESKTOP_BREAKPOINT_PX, FOCUS_HISTORY_SEARCH_EVENT } from '@/constants/layout';
-import type { SupportedLanguage } from '@/i18n/languageRegistry';
-import { dbService } from '@/services/db/dbService';
-import { toastInfo, toastError } from '@/stores/toastStore';
-import { useSettingsStore } from '@/stores/settingsStore';
-import { useChatStore } from '@/stores/chatStore';
-import { autoTitleSession } from '@/features/auto-titling/autoTitleSession';
-import { compareSessionOrder } from '@/stores/sessionModels';
-import { SESSION_DRAG_TYPE, isGroupDrag, isSessionDrag, resolveDropPosition } from './sidebarDragTypes';
+import { DESKTOP_BREAKPOINT_PX } from '@/constants/layout';
 import type { HistoryDisplayMode } from '@/stores/uiStore';
+import { useSidebarRenameAndMenu } from './useSidebarRenameAndMenu';
+import { useSidebarDragAndDrop } from './useSidebarDragAndDrop';
+import { useSidebarAutoTitle } from './useSidebarAutoTitle';
+import { useSidebarSearchAndFilter } from './useSidebarSearchAndFilter';
 
 export type { HistoryDisplayMode };
-
-type HistoryTranslator = (key: string) => string;
-
-const TITLE_UPDATE_FEEDBACK_MS = 1500;
 
 interface UseHistorySidebarLogicProps {
   isOpen: boolean;
@@ -35,81 +26,6 @@ interface UseHistorySidebarLogicProps {
   onRegenerateTitleSession?: (sessionId: string) => void | Promise<void>;
 }
 
-// BCP-47 locales for month-name buckets in the sidebar date grouping.
-const DATE_LOCALES: Record<SupportedLanguage, string> = {
-  en: 'en-US',
-  zh: 'zh-CN-u-nu-hanidec',
-  ja: 'ja-JP',
-  ko: 'ko-KR',
-  es: 'es-ES',
-  fr: 'fr-FR',
-  de: 'de-DE',
-};
-
-const categorizeSessionsByDate = (
-  sessions: SavedChatSession[],
-  language: SupportedLanguage,
-  t: HistoryTranslator,
-  now: Date = new Date(),
-) => {
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterdayStart = new Date(todayStart);
-  yesterdayStart.setDate(todayStart.getDate() - 1);
-  const sevenDaysAgoStart = new Date(todayStart);
-  sevenDaysAgoStart.setDate(todayStart.getDate() - 8);
-  const thirtyDaysAgoStart = new Date(todayStart);
-  thirtyDaysAgoStart.setDate(todayStart.getDate() - 30);
-
-  const categories: { [key: string]: SavedChatSession[] } = {};
-
-  const categoryKeys = {
-    today: t('historyToday'),
-    yesterday: t('historyYesterday'),
-    sevenDays: t('history7Days'),
-    thirtyDays: t('history30Days'),
-  };
-
-  sessions.forEach((session) => {
-    const sessionDate = new Date(session.timestamp);
-    let categoryName: string;
-
-    if (sessionDate >= todayStart) {
-      categoryName = categoryKeys.today;
-    } else if (sessionDate >= yesterdayStart) {
-      categoryName = categoryKeys.yesterday;
-    } else if (sessionDate >= sevenDaysAgoStart) {
-      categoryName = categoryKeys.sevenDays;
-    } else if (sessionDate >= thirtyDaysAgoStart) {
-      categoryName = categoryKeys.thirtyDays;
-    } else {
-      categoryName = new Intl.DateTimeFormat(DATE_LOCALES[language] ?? 'en-US', {
-        year: 'numeric',
-        month: 'long',
-      }).format(sessionDate);
-    }
-
-    if (!categories[categoryName]) {
-      categories[categoryName] = [];
-    }
-    categories[categoryName].push(session);
-  });
-
-  const staticOrder = [categoryKeys.today, categoryKeys.yesterday, categoryKeys.sevenDays, categoryKeys.thirtyDays];
-  const monthCategories = Object.keys(categories)
-    .filter((name) => !staticOrder.includes(name))
-    .sort((a, b) => {
-      const dateA = new Date(categories[a][0].timestamp);
-      const dateB = new Date(categories[b][0].timestamp);
-      return dateB.getTime() - dateA.getTime();
-    });
-
-  const categoryOrder = [...staticOrder, ...monthCategories].filter(
-    (name) => categories[name] && categories[name].length > 0,
-  );
-
-  return { categories, categoryOrder };
-};
-
 export const useHistorySidebarLogic = ({
   isOpen,
   onToggle,
@@ -125,394 +41,103 @@ export const useHistorySidebarLogic = ({
   onRegenerateTitleSession: onRegenerateTitleSessionProp,
 }: UseHistorySidebarLogicProps) => {
   const { t, language } = useI18n();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [editingItem, setEditingItem] = useState<{ type: 'session' | 'group'; id: string; title: string } | null>(null);
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const [draggingSessionId, setDraggingSessionId] = useState<string | null>(null);
-  const [draggingGroupId, setDraggingGroupId] = useState<string | null>(null);
-  const [sessionDropIndicator, setSessionDropIndicator] = useState<{
-    id: string;
-    position: 'before' | 'after';
-    willPin: boolean;
-  } | null>(null);
-  const [groupDropIndicator, setGroupDropIndicator] = useState<{
-    id: string;
-    position: 'before' | 'after';
-  } | null>(null);
-  const [newlyTitledSessionIds, setNewlyTitledSessionIds] = useState<ReadonlySet<string>>(new Set());
-  const [searchResults, setSearchResults] = useState<{ query: string; ids: Set<string> } | null>(null);
+  const { window: targetWindow } = useWindowContext();
 
-  const menuRef = useRef<HTMLDivElement>(null);
-  const editInputRef = useRef<HTMLInputElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const prevGeneratingTitleSessionIdsRef = useRef<Set<string>>(new Set());
-  const titleTimersRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const {
+    editingItem,
+    setEditingItem,
+    activeMenu,
+    setActiveMenu,
+    menuRef,
+    editInputRef,
+    handleStartEdit,
+    handleRenameConfirm,
+    handleRenameCancel,
+    handleRenameKeyDown,
+    toggleMenu,
+  } = useSidebarRenameAndMenu({
+    onRenameSession,
+    onRenameGroup,
+  });
 
-  const { document: targetDocument, window: targetWindow } = useWindowContext();
+  const {
+    dragOverId,
+    setDragOverId,
+    draggingSessionId,
+    setDraggingSessionId,
+    draggingGroupId,
+    setDraggingGroupId,
+    sessionDropIndicator,
+    groupDropIndicator,
+    isDragging,
+    handleDragOver,
+    handleDrop,
+    handleMainDragLeave,
+    handleSessionDragStart,
+    handleSessionDragEnd,
+    handleGroupDragStart,
+    handleGroupDragEnd,
+    handleSessionDragOver,
+    handleSessionDropIndicatorClear,
+    handleGroupDragOver,
+  } = useSidebarDragAndDrop({
+    sessions,
+    onMoveSessionToGroup,
+  });
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element | null;
-      if (
-        target?.closest?.('[data-radix-menu-content]') ||
-        target?.closest?.('[data-radix-popper-content-wrapper]') ||
-        target?.closest?.('[role="menu"]') ||
-        target?.closest?.('[role="menuitem"]')
-      ) {
-        return;
-      }
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setActiveMenu(null);
-    };
-    if (activeMenu) targetDocument.addEventListener('mousedown', handleClickOutside);
-    return () => targetDocument.removeEventListener('mousedown', handleClickOutside);
-  }, [activeMenu, targetDocument]);
+  const { newlyTitledSessionIds, handleRegenerateTitle } = useSidebarAutoTitle({
+    sessions,
+    generatingTitleSessionIds,
+    language,
+    t,
+    onRegenerateTitleSessionProp,
+  });
 
-  useEffect(() => {
-    if (!editingItem) return undefined;
-    const focusAndSelect = () => {
-      if (editInputRef.current) {
-        editInputRef.current.focus();
-        editInputRef.current.select();
-      }
-    };
-    focusAndSelect();
-    const frameId = targetWindow.requestAnimationFrame(focusAndSelect);
-    return () => targetWindow.cancelAnimationFrame(frameId);
-  }, [editingItem, targetWindow]);
+  const {
+    searchQuery,
+    setSearchQuery,
+    isSearching,
+    setIsSearching,
+    searchInputRef,
+    filteredSessions,
+    sessionsByGroupId,
+    sortedGroups,
+    categorizedUngroupedSessions,
+    unpinnedUngroupedSessions,
+    categorizedTimeModePinned,
+  } = useSidebarSearchAndFilter({
+    isOpen,
+    onToggle,
+    sessions,
+    groups,
+    displayMode,
+    language,
+    t,
+  });
 
-  useEffect(() => {
-    const handleFocusHistorySearch = () => {
-      if (!isOpen) {
-        onToggle();
-      }
-      setIsSearching(true);
-      targetWindow.setTimeout(() => searchInputRef.current?.focus(), 0);
-    };
-
-    targetDocument.addEventListener(FOCUS_HISTORY_SEARCH_EVENT, handleFocusHistorySearch);
-    return () => targetDocument.removeEventListener(FOCUS_HISTORY_SEARCH_EVENT, handleFocusHistorySearch);
-  }, [isOpen, onToggle, targetDocument, targetWindow]);
-
-  useEffect(() => {
-    const prevIds = prevGeneratingTitleSessionIdsRef.current;
-    const completedIds = new Set<string>();
-    prevIds.forEach((id) => {
-      if (!generatingTitleSessionIds.has(id)) completedIds.add(id);
-    });
-    // 在任何早期返回之前更新 ref，以防止重复检测。
-    prevGeneratingTitleSessionIdsRef.current = generatingTitleSessionIds;
-    if (completedIds.size === 0) return;
-    // Defer the state update outside the effect to satisfy set-state-in-effect.
-    const timer = setTimeout(() => {
-      setNewlyTitledSessionIds((prev) => {
-        const next = new Set(prev);
-        completedIds.forEach((id) => next.add(id));
-        return next;
-      });
-      completedIds.forEach((completedId) => {
-        const existing = titleTimersRef.current.get(completedId);
-        if (existing) clearTimeout(existing);
-        titleTimersRef.current.set(
-          completedId,
-          setTimeout(() => {
-            titleTimersRef.current.delete(completedId);
-            setNewlyTitledSessionIds((prev) => {
-              const next = new Set(prev);
-              next.delete(completedId);
-              return next;
-            });
-          }, TITLE_UPDATE_FEEDBACK_MS),
-        );
-      });
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [generatingTitleSessionIds]);
-
-  // Clean up all pending title animation timers on unmount.
-  useEffect(
-    () => () => {
-      titleTimersRef.current.forEach((timer) => clearTimeout(timer));
-      titleTimersRef.current.clear();
-    },
-    [],
-  );
-
-  // Debounced DB-backed content search.
-  useEffect(() => {
-    const trimmedQuery = searchQuery.trim();
-    if (!trimmedQuery) return;
-
-    const handler = setTimeout(async () => {
-      try {
-        const ids = await dbService.searchSessions(trimmedQuery);
-        setSearchResults({ query: trimmedQuery, ids: new Set(ids) });
-      } catch (searchError) {
-        logService.error('Search error', searchError);
-      }
-    }, 300);
-
-    return () => clearTimeout(handler);
-  }, [searchQuery]);
-
-  const filteredSessions = useMemo(() => {
-    const trimmedQuery = searchQuery.trim();
-    if (!trimmedQuery) return sessions;
-
-    const freshSearchResults = searchResults?.query === trimmedQuery ? searchResults : null;
-    if (freshSearchResults) {
-      return sessions.filter((session) => freshSearchResults.ids.has(session.id));
-    }
-
-    const query = trimmedQuery.toLowerCase();
-    return sessions.filter((session) => {
-      if (session.title.toLowerCase().includes(query)) return true;
-      return session.messages.some((message) => message.content.toLowerCase().includes(query));
-    });
-  }, [sessions, searchQuery, searchResults]);
-
-  const sessionsByGroupId = useMemo(() => {
-    const map = new Map<string | null, SavedChatSession[]>();
-    map.set(null, []);
-    groups.forEach((group) => map.set(group.id, []));
-    filteredSessions.forEach((session) => {
-      const key = session.groupId && map.has(session.groupId) ? session.groupId : null;
-      map.get(key)?.push(session);
-    });
-    map.forEach((sessionList) => sessionList.sort(compareSessionOrder));
-    return map;
-  }, [filteredSessions, groups]);
-
-  const sortedGroups = useMemo(() => {
-    const hasOrderKey = groups.some((group) => group.orderKey);
-    if (hasOrderKey) {
-      return [...groups].sort((leftGroup, rightGroup) => {
-        if (leftGroup.orderKey && rightGroup.orderKey) return leftGroup.orderKey.localeCompare(rightGroup.orderKey);
-        if (leftGroup.orderKey) return -1;
-        if (rightGroup.orderKey) return 1;
-        return rightGroup.timestamp - leftGroup.timestamp;
-      });
-    }
-    return [...groups].sort((leftGroup, rightGroup) => rightGroup.timestamp - leftGroup.timestamp);
-  }, [groups]);
-
-  const categorizedUngroupedSessions = useMemo(() => {
-    // 分组模式的未分组区改成平铺手动列表（见 unpinnedUngroupedSessions），
-    // 日期分类从此只服务时间视图。
-    if (displayMode !== 'time') return { categories: {}, categoryOrder: [] as string[] };
-    const allUnpinned = filteredSessions.filter((session) => !session.isPinned);
-    return categorizeSessionsByDate(allUnpinned, language, t);
-  }, [filteredSessions, displayMode, t, language]);
-
-  const unpinnedUngroupedSessions = useMemo(() => {
-    if (displayMode === 'time') return [];
-    return (sessionsByGroupId.get(null) || []).filter((session) => !session.isPinned);
-  }, [sessionsByGroupId, displayMode]);
-
-  const categorizedTimeModePinned = useMemo(() => {
-    if (displayMode !== 'time') return [];
-    return filteredSessions.filter((session) => session.isPinned);
-  }, [filteredSessions, displayMode]);
-
-  const handleStartEdit = (type: 'session' | 'group', item: SavedChatSession | ChatGroup) => {
-    const title = 'title' in item ? item.title : '';
-    setEditingItem({ type, id: item.id, title });
-    setActiveMenu(null);
-  };
-
-  const handleRenameConfirm = () => {
-    if (!editingItem || !editingItem.title.trim()) {
-      setEditingItem(null);
-      return;
-    }
-    if (editingItem.type === 'session') {
-      onRenameSession(editingItem.id, editingItem.title.trim());
-    } else if (editingItem.type === 'group') {
-      onRenameGroup(editingItem.id, editingItem.title.trim());
-    }
-    setEditingItem(null);
-  };
-
-  const handleRenameCancel = () => {
-    setEditingItem(null);
-  };
-
-  const handleRenameKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter' && !event.nativeEvent.isComposing) handleRenameConfirm();
-    else if (event.key === 'Escape') handleRenameCancel();
-  };
-
-  const toggleMenu = (event: React.MouseEvent, id: string) => {
-    event.stopPropagation();
-    setActiveMenu(activeMenu === id ? null : id);
-  };
-
-  const handleDragOver = (event: React.DragEvent) => {
-    if (!isSessionDrag(event)) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDrop = (event: React.DragEvent, groupId: string | null) => {
-    if (!isSessionDrag(event)) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const sessionId = event.dataTransfer.getData(SESSION_DRAG_TYPE);
-    const isContainerDrop = groupId === 'all-conversations';
-    const targetGroupId = isContainerDrop ? null : groupId;
-    if (sessionId) onMoveSessionToGroup(sessionId, targetGroupId, isContainerDrop ? 'end' : 'top');
-    setDragOverId(null);
-    // 落在容器 / 分组头上的 drop 同样是这次拖拽的终点，一并收尾（dragend 不保证会到）。
-    setDraggingSessionId(null);
-  };
-
-  const handleSessionDragStart = (sessionId: string) => {
-    setDraggingSessionId(sessionId);
-    setDraggingGroupId(null);
-  };
-
-  const handleSessionDragEnd = () => {
-    setDraggingSessionId(null);
-    setDragOverId(null);
-    setSessionDropIndicator(null);
-  };
-
-  const handleGroupDragStart = (groupId: string) => {
-    setDraggingGroupId(groupId);
-    setDraggingSessionId(null);
-  };
-
-  const handleGroupDragEnd = () => {
-    setDraggingGroupId(null);
-    setDragOverId(null);
-    setGroupDropIndicator(null);
-  };
-
-  const handleSessionDragOver = (event: React.DragEvent, sessionId: string) => {
-    if (!isSessionDrag(event)) return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.dataTransfer.dropEffect = 'move';
-    const target = sessions.find((session) => session.id === sessionId);
-    const dragging = draggingSessionId ? sessions.find((session) => session.id === draggingSessionId) : undefined;
-    setSessionDropIndicator({
-      id: sessionId,
-      position: resolveDropPosition(event),
-      willPin: !!target?.isPinned && !dragging?.isPinned,
-    });
-    setDragOverId(null);
-  };
-
-  const handleSessionDropIndicatorClear = () => {
-    setSessionDropIndicator(null);
-  };
-
-  const handleGroupDragOver = (event: React.DragEvent, groupId: string) => {
-    if (!isGroupDrag(event)) return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.dataTransfer.dropEffect = 'move';
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const position = event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
-    setGroupDropIndicator({ id: groupId, position });
-  };
-
-  const handleMainDragLeave = (event: React.DragEvent) => {
-    if (event.currentTarget.contains(event.relatedTarget as Node)) return;
-    setDragOverId(null);
-    setSessionDropIndicator(null);
-    setGroupDropIndicator(null);
-  };
-
-  const handleMiniSearchClick = () => {
+  const handleMiniSearchClick = useCallback(() => {
     onToggle();
     setIsSearching(true);
-  };
+  }, [onToggle, setIsSearching]);
 
-  const handleEmptySpaceClick = (event: React.MouseEvent) => {
-    if (event.target === event.currentTarget) {
-      onToggle();
-    }
-  };
-
-  const handleSessionSelect = (sessionId: string) => {
-    onSelectSession(sessionId);
-    if (targetWindow.innerWidth < DESKTOP_BREAKPOINT_PX) {
-      onAutoClose();
-    }
-  };
-
-  const handleRegenerateTitle = async (sessionId: string) => {
-    if (onRegenerateTitleSessionProp) {
-      await onRegenerateTitleSessionProp(sessionId);
-      return;
-    }
-
-    if (generatingTitleSessionIds.has(sessionId)) {
-      return;
-    }
-
-    let session = sessions.find((s) => s.id === sessionId);
-    if (!session || session.messages.length === 0) {
-      try {
-        const loaded = await dbService.getSession(sessionId);
-        if (loaded) {
-          session = loaded;
-        }
-      } catch (loadSessionError) {
-        logService.warn('Failed to load session for regenerate title', { sessionId, loadSessionError });
+  const handleEmptySpaceClick = useCallback(
+    (event: React.MouseEvent) => {
+      if (event.target === event.currentTarget) {
+        onToggle();
       }
-    }
+    },
+    [onToggle],
+  );
 
-    const { activeSessionId, activeMessages } = useChatStore.getState();
-    if (activeSessionId === sessionId && activeMessages.length > 0 && session) {
-      session = {
-        ...session,
-        messages: activeMessages,
-      };
-    }
-
-    if (!session || session.messages.length === 0) {
-      toastInfo(t('regenerateTitleEmpty'));
-      return;
-    }
-
-    const hasCompletedExchange =
-      session.messages.some((m) => m.role === 'user' && m.content.trim() !== '') &&
-      session.messages.some((m) => m.role === 'model' && m.content.trim() !== '' && !m.stoppedByUser);
-
-    if (!hasCompletedExchange) {
-      toastInfo(t('regenerateTitleEmpty'));
-      return;
-    }
-
-    useChatStore.getState().setGeneratingTitleSessionIds((prev) => new Set(prev).add(sessionId));
-    try {
-      const appSettings = useSettingsStore.getState().appSettings;
-      const success = await autoTitleSession({
-        session,
-        appSettings,
-        language,
-        updateAndPersistSessions: useChatStore.getState().updateAndPersistSessions,
-        force: true,
-      });
-      if (!success) {
-        toastError(t('regenerateTitleFailed'));
+  const handleSessionSelect = useCallback(
+    (sessionId: string) => {
+      onSelectSession(sessionId);
+      if (targetWindow.innerWidth < DESKTOP_BREAKPOINT_PX) {
+        onAutoClose();
       }
-    } catch (regenerateTitleError) {
-      logService.error('Failed to regenerate title', regenerateTitleError);
-      toastError(t('regenerateTitleFailed'));
-    } finally {
-      useChatStore.getState().setGeneratingTitleSessionIds((prev) => {
-        const next = new Set(prev);
-        next.delete(sessionId);
-        return next;
-      });
-    }
-  };
-
-  const isDragging = !!draggingSessionId || !!draggingGroupId;
+    },
+    [onAutoClose, onSelectSession, targetWindow],
+  );
 
   return {
     searchQuery,

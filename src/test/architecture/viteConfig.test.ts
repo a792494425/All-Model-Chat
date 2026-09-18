@@ -16,6 +16,7 @@ const indexEntryPath = path.join(projectRoot, 'src/index.tsx');
 const useChatPath = path.join(projectRoot, 'src/hooks/chat/useChat.ts');
 const standardChatStrategyPath = path.join(projectRoot, 'src/features/message-sender/standardChatStrategy.ts');
 const standardChatApiCallPath = path.join(projectRoot, 'src/features/message-sender/standardChatApiCall.ts');
+const standardChatContextPath = path.join(projectRoot, 'src/features/message-sender/standardChatContext.ts');
 const usePyodidePath = path.join(projectRoot, 'src/features/local-python/usePyodide.ts');
 const pyodideLoaderPath = path.join(projectRoot, 'src/features/local-python/loadPyodideService.ts');
 const standardClientFunctionsPath = path.join(projectRoot, 'src/features/standard-chat/standardClientFunctions.ts');
@@ -323,15 +324,17 @@ describe('Runtime loading boundaries', () => {
     const useChatSource = fs.readFileSync(useChatPath, 'utf8');
     const standardChatStrategySource = fs.readFileSync(standardChatStrategyPath, 'utf8');
     const standardChatApiCallSource = fs.readFileSync(standardChatApiCallPath, 'utf8');
+    const standardChatContextSource = fs.readFileSync(standardChatContextPath, 'utf8');
     const usePyodideSource = fs.readFileSync(usePyodidePath, 'utf8');
 
     expect(fs.existsSync(pyodideLoaderPath)).toBe(true);
     expect(useChatSource).not.toContain("from '@/features/local-python/pyodideService'");
     expect(standardChatStrategySource).not.toContain("from '@/features/local-python/pyodideService'");
     expect(standardChatApiCallSource).not.toContain("from '@/features/local-python/pyodideService'");
+    expect(standardChatContextSource).not.toContain("from '@/features/local-python/pyodideService'");
     expect(usePyodideSource).not.toContain("from '@/features/local-python/pyodideService'");
     expect(useChatSource).toContain("from '@/features/local-python/loadPyodideService'");
-    expect(standardChatApiCallSource).toContain("from '@/features/local-python/loadPyodideService'");
+    expect(standardChatContextSource).toContain("from '@/features/local-python/loadPyodideService'");
     expect(usePyodideSource).toContain("from './loadPyodideService'");
   });
 

@@ -1,18 +1,19 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronDown, ChevronRight, X, Sparkles, RefreshCw, Plus } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { ModelOption, ThirdPartyApiProtocol, ThirdPartyTemplateId } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
-import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { toastSuccess, toastWarning } from '@/stores/toastStore';
-import { enrichModelMetadata, getOrInferModelCapabilities } from '@/utils/model/knownModelsCatalog';
+import { enrichModelMetadata } from '@/utils/model/knownModelsCatalog';
 import type { ConnectionHealthProbeResult } from '@/utils/thirdPartyDiagnostics';
-import { useProviderUiStore } from '@/stores/providerUiStore';
-import { ProviderModelToolbar, type ModelCapabilityTab } from './ProviderModelToolbar';
+import { ProviderModelToolbar } from './ProviderModelToolbar';
 import { ProviderBatchActionBar } from './ProviderBatchActionBar';
 import { ProviderModelRow } from './ProviderModelRow';
+import { ProviderAddModelForm } from './ProviderAddModelForm';
+import { ProviderNoModelsCard } from './ProviderNoModelsCard';
 import { ModelConfigModal } from '@/components/settings/sections/providers/ModelConfigModal';
+import { useProviderModelFilter } from './useProviderModelFilter';
+import { useProviderBatchActions } from './useProviderBatchActions';
 
-const EMPTY_GROUPS_COLLAPSED: Record<string, boolean> = {};
 const EMPTY_PROBE_RESULTS: Record<string, ConnectionHealthProbeResult> = {};
 
 export interface ProviderModelListSectionProps {
@@ -37,7 +38,6 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
   providerId,
   providerName,
   protocol = providerId === 'gemini' ? undefined : 'openai-compatible',
-
   templateId,
   models,
   onUpdateModels,
@@ -53,229 +53,87 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
 }) => {
   const { t } = useI18n();
 
-  // Dialog states
   const [configModalModel, setConfigModalModel] = useState<ModelOption | null>(null);
+  const [isAddingModel, setIsAddingModel] = useState(false);
 
-  // Search & filter states in store
-  const modelSearch = useProviderUiStore((s) => s.modelSearchByConnection[providerId] ?? '');
-  const setModelSearch = (search: string) => useProviderUiStore.getState().setModelSearch(providerId, search);
-  const isModelSearchOpenStored = useProviderUiStore((s) => s.isModelSearchOpenByConnection[providerId] ?? false);
-  const setIsModelSearchOpen = (isOpen: boolean) =>
-    useProviderUiStore.getState().setIsModelSearchOpen(providerId, isOpen);
-  const isModelSearchOpen = isModelSearchOpenStored || Boolean(modelSearch);
+  const {
+    modelSearch,
+    setModelSearch,
+    isModelSearchOpen,
+    setIsModelSearchOpen,
+    activeCapabilityTab,
+    setActiveCapabilityTab,
+    capabilityCounts,
+    filteredModels,
+    groupedModels,
+    groupsCollapsed,
+    toggleGroupCollapse,
+    toggleAllGroups,
+  } = useProviderModelFilter({
+    providerId,
+    providerName,
+    models,
+  });
 
-  const [activeCapabilityTab, setActiveCapabilityTab] = useState<ModelCapabilityTab>('all');
+  const {
+    isBatchMode,
+    setIsBatchMode,
+    selectedModelIds,
+    setSelectedModelIds,
+    isAllVisibleSelected,
+    isPartialSelected,
+    handleToggleSelectAll,
+    handleInvertSelection,
+    handleBatchSetVisible,
+    handleBatchDelete,
+    handleBatchProbeSelected,
+    handleToggleSelectModel,
+    handleExitBatchMode,
+  } = useProviderBatchActions({
+    providerId,
+    models,
+    filteredModels,
+    onUpdateModels,
+    onProbeBatchModels,
+  });
 
-  // Groups collapsed state in store
-  const groupsCollapsed = useProviderUiStore(
-    (s) => s.groupsCollapsedByConnection[providerId] ?? EMPTY_GROUPS_COLLAPSED,
+  const updateSingleModel = useCallback(
+    (modelId: string, updates: Partial<ModelOption>) => {
+      const updated = models.map((model) => (model.id === modelId ? { ...model, ...updates } : model));
+      onUpdateModels(updated);
+    },
+    [models, onUpdateModels],
   );
 
-  // Batch mode state in store
-  const isBatchMode = useProviderUiStore((s) => s.isBatchModeByConnection[providerId] ?? false);
-  const setIsBatchMode = (isBatch: boolean) => useProviderUiStore.getState().setIsBatchMode(providerId, isBatch);
-  const [selectedModelIds, setSelectedModelIds] = useState<Set<string>>(new Set());
+  const deleteSingleModel = useCallback(
+    (modelId: string) => {
+      const updated = models.filter((model) => model.id !== modelId);
+      onUpdateModels(updated);
+      toastSuccess(t('thirdPartyToastDeleted') || 'Model deleted');
+    },
+    [models, onUpdateModels, t],
+  );
 
-  // Add custom model inline
-  const [isAddingModel, setIsAddingModel] = useState(false);
-  const [newModelId, setNewModelId] = useState('');
-  const [newModelName, setNewModelName] = useState('');
-
-  // Keep selectedModelIds cleaned up when models change
-  useEffect(() => {
-    setSelectedModelIds((prev) => {
-      if (prev.size === 0) return prev;
-      const validIds = new Set(models.map((m) => m.id));
-      const next = new Set<string>();
-      for (const id of prev) {
-        if (validIds.has(id)) next.add(id);
-      }
-      return next.size === prev.size ? prev : next;
-    });
-  }, [models]);
-
-  // Capability counts
-  const capabilityCounts = useMemo(() => {
-    const counts: Record<ModelCapabilityTab, number> = {
-      all: models.length,
-      text: 0,
-      vision: 0,
-      thinking: 0,
-      image: 0,
-      embedding: 0,
-      audio: 0,
-      free: 0,
-    };
-    models.forEach((m) => {
-      const caps = { ...getOrInferModelCapabilities(m), ...(m.capabilities || {}) };
-      if (!caps.image && !caps.embedding && !caps.audio) counts.text++;
-      if (caps.vision) counts.vision++;
-      if (caps.thinking || m.enableThinking) counts.thinking++;
-      if (caps.image) counts.image++;
-      if (caps.embedding) counts.embedding++;
-      if (caps.audio) counts.audio++;
-      if (caps.free) counts.free++;
-    });
-    return counts;
-  }, [models]);
-
-  // Filtered models
-  const filteredModels = useMemo(() => {
-    const q = modelSearch.trim().toLowerCase();
-    return models.filter((m) => {
-      if (activeCapabilityTab !== 'all') {
-        const caps = { ...getOrInferModelCapabilities(m), ...(m.capabilities || {}) };
-        if (activeCapabilityTab === 'text' && (caps.image || caps.embedding || caps.audio)) return false;
-        if (activeCapabilityTab === 'vision' && !caps.vision) return false;
-        if (activeCapabilityTab === 'thinking' && !caps.thinking && !m.enableThinking) return false;
-        if (activeCapabilityTab === 'image' && !caps.image) return false;
-        if (activeCapabilityTab === 'embedding' && !caps.embedding) return false;
-        if (activeCapabilityTab === 'audio' && !caps.audio) return false;
-        if (activeCapabilityTab === 'free' && !caps.free) return false;
-      }
-      if (!q) return true;
-      return m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q);
-    });
-  }, [models, activeCapabilityTab, modelSearch]);
-
-  // Grouped models
-  const groupedModels = useMemo(() => {
-    const groups: Record<string, ModelOption[]> = {};
-    filteredModels.forEach((m) => {
-      let groupKey = providerName.toLowerCase();
-      if (m.id.includes('/')) {
-        groupKey = m.id.split('/')[0];
-      } else if (m.id.includes(':')) {
-        groupKey = m.id.split(':')[0];
-      } else if (m.id.startsWith('gpt-')) {
-        groupKey = 'openai';
-      } else if (m.id.startsWith('claude-')) {
-        groupKey = 'anthropic';
-      } else if (m.id.startsWith('deepseek-')) {
-        groupKey = 'deepseek';
-      } else if (m.id.startsWith('qwen')) {
-        groupKey = 'qwen';
+  const handleConfirmAddModel = useCallback(
+    (trimmedId: string, trimmedName: string) => {
+      const existing = models.find((model) => model.id === trimmedId);
+      if (existing) {
+        toastWarning(t('thirdPartyToastModelIdExists') || 'Model ID already exists');
+        return;
       }
 
-      if (!groups[groupKey]) {
-        groups[groupKey] = [];
-      }
-      groups[groupKey].push(m);
-    });
-
-    return groups;
-  }, [providerName, filteredModels]);
-
-  const toggleGroupCollapse = (key: string) => {
-    useProviderUiStore.getState().toggleGroupCollapse(providerId, key);
-  };
-
-  const toggleAllGroups = () => {
-    const groupKeys = Object.keys(groupedModels);
-    const hasAnyOpen = groupKeys.some((k) => !groupsCollapsed[k]);
-    const nextState: Record<string, boolean> = {};
-    groupKeys.forEach((k) => {
-      nextState[k] = hasAnyOpen;
-    });
-    useProviderUiStore.getState().setAllGroupsCollapsed(providerId, nextState);
-  };
-
-  // Single model mutations
-  const updateSingleModel = (modelId: string, updates: Partial<ModelOption>) => {
-    const updated = models.map((m) => (m.id === modelId ? { ...m, ...updates } : m));
-    onUpdateModels(updated);
-  };
-
-  const deleteSingleModel = (modelId: string) => {
-    const updated = models.filter((m) => m.id !== modelId);
-    onUpdateModels(updated);
-    toastSuccess(t('thirdPartyToastDeleted') || 'Model deleted');
-  };
-
-  // Batch actions
-  const isAllVisibleSelected = filteredModels.length > 0 && filteredModels.every((m) => selectedModelIds.has(m.id));
-  const isPartialSelected = !isAllVisibleSelected && filteredModels.some((m) => selectedModelIds.has(m.id));
-
-  const handleToggleSelectAll = () => {
-    if (isAllVisibleSelected) {
-      setSelectedModelIds((prev) => {
-        const next = new Set(prev);
-        filteredModels.forEach((m) => next.delete(m.id));
-        return next;
+      const displayName = trimmedName || trimmedId;
+      const newOption = enrichModelMetadata({
+        id: trimmedId,
+        name: displayName,
       });
-    } else {
-      setSelectedModelIds((prev) => {
-        const next = new Set(prev);
-        filteredModels.forEach((m) => next.add(m.id));
-        return next;
-      });
-    }
-  };
 
-  const handleInvertSelection = () => {
-    setSelectedModelIds((prev) => {
-      const next = new Set(prev);
-      for (const m of filteredModels) {
-        if (next.has(m.id)) {
-          next.delete(m.id);
-        } else {
-          next.add(m.id);
-        }
-      }
-      return next;
-    });
-  };
-
-  const handleBatchSetVisible = (visible: boolean) => {
-    if (selectedModelIds.size === 0) return;
-    const updated = models.map((m) => (selectedModelIds.has(m.id) ? { ...m, visibleInSelector: visible } : m));
-    onUpdateModels(updated);
-    toastSuccess(
-      visible
-        ? t('thirdPartyToastBatchShow', { count: selectedModelIds.size }) || `Showed ${selectedModelIds.size} models`
-        : t('thirdPartyToastBatchHide', { count: selectedModelIds.size }) || `Hidden ${selectedModelIds.size} models`,
-    );
-  };
-
-  const handleBatchDelete = () => {
-    if (selectedModelIds.size === 0) return;
-    const count = selectedModelIds.size;
-    const remaining = models.filter((m) => !selectedModelIds.has(m.id));
-    onUpdateModels(remaining);
-    setSelectedModelIds(new Set());
-    setIsBatchMode(false);
-    toastSuccess(t('thirdPartyToastBatchDeleted', { count }) || `Deleted ${count} models`);
-  };
-
-  const handleBatchProbeSelected = () => {
-    const targetModels = models.filter((m) => selectedModelIds.has(m.id));
-    if (targetModels.length === 0) return;
-    onProbeBatchModels(targetModels);
-  };
-
-  // Add custom model confirm
-  const handleConfirmAddModel = () => {
-    const trimmedId = newModelId.trim();
-    if (!trimmedId) return;
-
-    const trimmedName = newModelName.trim() || trimmedId;
-    const existing = models.find((m) => m.id === trimmedId);
-    if (existing) {
-      toastWarning(t('thirdPartyToastModelIdExists') || 'Model ID already exists');
-      return;
-    }
-
-    const newOption = enrichModelMetadata({
-      id: trimmedId,
-      name: trimmedName,
-    });
-
-    onUpdateModels([...models, newOption]);
-    setNewModelId('');
-    setNewModelName('');
-    setIsAddingModel(false);
-    toastSuccess(t('thirdPartyToastModelAdded', { name: trimmedName }) || `Model ${trimmedName} added`);
-  };
+      onUpdateModels([...models, newOption]);
+      setIsAddingModel(false);
+      toastSuccess(t('thirdPartyToastModelAdded', { name: displayName }) || `Model ${displayName} added`);
+    },
+    [models, onUpdateModels, t],
+  );
 
   return (
     <div className="space-y-3 pt-2" data-settings-item="providers-models">
@@ -316,106 +174,26 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
           onBatchSetVisible={handleBatchSetVisible}
           onBatchProbeSelected={handleBatchProbeSelected}
           onBatchDelete={handleBatchDelete}
-          onExitBatchMode={() => {
-            setSelectedModelIds(new Set());
-            setIsBatchMode(false);
-          }}
+          onExitBatchMode={handleExitBatchMode}
           isCheckingBatch={isProbingBatch}
         />
       )}
 
-      {isAddingModel && (
-        <div className="p-3 rounded-xl border border-[var(--theme-border-focus)]/50 bg-[var(--theme-bg-secondary)]/30 space-y-2.5 animate-in fade-in duration-150">
-          <div className="flex items-center justify-between text-xs font-semibold text-[var(--theme-text-primary)]">
-            <span>{t('thirdPartyAddCustomModel') || 'Add Custom Model'}</span>
-            <button
-              type="button"
-              onClick={() => setIsAddingModel(false)}
-              className="text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]"
-            >
-              <X size={14} />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <input
-              type="text"
-              value={newModelId}
-              onChange={(e) => setNewModelId(e.target.value)}
-              placeholder={t('thirdPartyCustomModelIdPlaceholder') || 'Model ID (e.g. gpt-4o)'}
-              className={`p-2 rounded-lg border text-xs font-mono ${SETTINGS_INPUT_CLASS}`}
-              autoFocus
-            />
-            <input
-              type="text"
-              value={newModelName}
-              onChange={(e) => setNewModelName(e.target.value)}
-              placeholder={t('thirdPartyCustomModelNamePlaceholder') || 'Display Name (optional)'}
-              className={`p-2 rounded-lg border text-xs ${SETTINGS_INPUT_CLASS}`}
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={() => setIsAddingModel(false)}
-              className="px-2.5 py-1 text-xs rounded-lg text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]"
-            >
-              {t('cancel') || 'Cancel'}
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmAddModel}
-              disabled={!newModelId.trim()}
-              className="px-3 py-1 text-xs rounded-lg bg-[var(--theme-border-focus)] text-white disabled:opacity-50 cursor-pointer"
-            >
-              {t('add') || 'Add'}
-            </button>
-          </div>
-        </div>
-      )}
+      <ProviderAddModelForm
+        isOpen={isAddingModel}
+        onClose={() => setIsAddingModel(false)}
+        onAddModel={handleConfirmAddModel}
+      />
 
       <div className="rounded-2xl border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-secondary)]/10 p-2 space-y-3">
         {Object.keys(groupedModels).length === 0 ? (
-          models.length === 0 ? (
-            <div data-testid="provider-no-models-card" className="py-10 px-4 text-center space-y-3.5 max-w-md mx-auto">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--theme-bg-tertiary)]/70 border border-[var(--theme-border-secondary)]/40 flex items-center justify-center mx-auto text-[var(--theme-text-secondary)] shadow-xs">
-                <Sparkles size={22} className="text-amber-500/80" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-sm font-semibold text-[var(--theme-text-primary)]">
-                  {t('thirdPartyNoModelsCardTitle') || 'No Models Configured'}
-                </h4>
-                <p className="text-xs text-[var(--theme-text-secondary)] leading-relaxed">
-                  {t('thirdPartyNoModelsCardDesc') ||
-                    'You can pull available models directly from the remote /v1/models endpoint, or add models manually.'}
-                </p>
-              </div>
-              <div className="flex items-center justify-center gap-2.5 pt-1">
-                {onSyncRemoteModels && (
-                  <button
-                    type="button"
-                    onClick={onSyncRemoteModels}
-                    disabled={isSyncingRemoteModels || isProbingBatch}
-                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--theme-border-focus)] hover:bg-[var(--theme-border-focus)]/90 text-white text-xs font-medium transition-all cursor-pointer disabled:opacity-60 shadow-xs"
-                  >
-                    <RefreshCw size={13} className={isSyncingRemoteModels ? 'animate-spin' : ''} />
-                    <span>{t('thirdPartyFetchModelsAction') || 'Fetch Models (/v1/models)'}</span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setIsAddingModel(true)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[var(--theme-border-secondary)]/70 bg-[var(--theme-bg-secondary)] hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-primary)] text-xs font-medium transition-all cursor-pointer shadow-xs"
-                >
-                  <Plus size={13} />
-                  <span>{t('thirdPartyManualAddModel') || 'Add Manually'}</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="py-8 text-center text-xs text-[var(--theme-text-secondary)]">
-              {t('thirdPartyNoMatchingFilteredModels') || 'No matching models found.'}
-            </div>
-          )
+          <ProviderNoModelsCard
+            totalModelsCount={models.length}
+            onSyncRemoteModels={onSyncRemoteModels}
+            isSyncingRemoteModels={isSyncingRemoteModels}
+            isProbingBatch={isProbingBatch}
+            onOpenAddModel={() => setIsAddingModel(true)}
+          />
         ) : (
           (Object.entries(groupedModels) as Array<[string, ModelOption[]]>).map(([groupKey, groupModels]) => {
             const isCollapsed = groupsCollapsed[groupKey] ?? false;
@@ -441,21 +219,14 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
                         templateId={templateId}
                         isSelected={selectedModelIds.has(model.id)}
                         isBatchMode={isBatchMode}
-                        onToggleSelect={(id) => {
-                          setSelectedModelIds((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(id)) next.delete(id);
-                            else next.add(id);
-                            return next;
-                          });
-                        }}
+                        onToggleSelect={handleToggleSelectModel}
                         onToggleVisible={(id, visible) => updateSingleModel(id, { visibleInSelector: visible })}
                         onToggleThinking={(id, thinking) => updateSingleModel(id, { enableThinking: thinking })}
                         onToggleTools={(id, tools) => updateSingleModel(id, { enableTools: tools })}
                         onProbeSingle={onProbeSingleModel}
                         isProbing={probingModelIds.has(model.id)}
                         probeResult={modelProbeResults[model.id]}
-                        onOpenConfig={(m) => setConfigModalModel(m)}
+                        onOpenConfig={(chosenModel) => setConfigModalModel(chosenModel)}
                         onDelete={deleteSingleModel}
                       />
                     ))}
@@ -471,7 +242,7 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
         isOpen={Boolean(configModalModel)}
         model={configModalModel}
         protocol={protocol}
-        existingModelIds={models.map((m) => m.id)}
+        existingModelIds={models.map((model) => model.id)}
         onClose={() => setConfigModalModel(null)}
         onSave={(updates) => {
           if (configModalModel) {

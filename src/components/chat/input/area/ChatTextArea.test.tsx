@@ -186,4 +186,44 @@ describe('ChatTextArea', () => {
     expect(textarea?.selectionEnd).toBe(5);
     expect(textarea?.value).toBe('hello world!');
   });
+
+  it('preserves the same textarea DOM element when toggling expanded mode', () => {
+    const textareaRef = { current: null } as React.RefObject<HTMLTextAreaElement>;
+    const renderComp = (isFullscreen: boolean) =>
+      renderer.root.render(
+        <ChatTextArea
+          textareaRef={textareaRef}
+          value="Preserve me"
+          onChange={() => {}}
+          onKeyDown={() => {}}
+          onPaste={() => {}}
+          onCompositionStart={() => {}}
+          onCompositionEnd={() => {}}
+          placeholder="Ask anything"
+          disabled={false}
+          isFullscreen={isFullscreen}
+          isMobile={false}
+          initialTextareaHeight={24}
+          isConverting={false}
+        />,
+      );
+
+    act(() => {
+      renderComp(false);
+    });
+    const firstElement = renderer.container.querySelector('textarea[data-chat-input-textarea="true"]');
+
+    act(() => {
+      renderComp(true);
+    });
+    const secondElement = renderer.container.querySelector('textarea[data-chat-input-textarea="true"]');
+
+    act(() => {
+      renderComp(false);
+    });
+    const thirdElement = renderer.container.querySelector('textarea[data-chat-input-textarea="true"]');
+
+    expect(firstElement).toBe(secondElement);
+    expect(firstElement).toBe(thirdElement);
+  });
 });

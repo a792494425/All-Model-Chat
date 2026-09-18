@@ -1,27 +1,14 @@
-import React, { useMemo } from 'react';
-import { Search, Plus, GripVertical, MoreVertical, Edit, Copy, Trash2, Activity, X } from 'lucide-react';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import React from 'react';
+import { Plus } from 'lucide-react';
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { GEMINI_PROVIDER_ID, type ThirdPartyConnection } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
-import { useProviderUiStore } from '@/stores/providerUiStore';
-import { ProviderAvatar } from './ProviderAvatar';
-import { TEMPLATE_PRESETS } from '@/utils/thirdPartyApiProviders';
-import { formatLatency, type ConnectionHealthProbeResult } from '@/utils/thirdPartyDiagnostics';
+import { SortableProviderItem } from './provider-list/SortableProviderItem';
+import { useProviderListLogic } from './provider-list/useProviderListLogic';
+import { ProviderListSearchAndFilter } from './provider-list/ProviderListSearchAndFilter';
+import { OfficialGeminiItem } from './provider-list/OfficialGeminiItem';
+import { UnconfiguredPresetsList } from './provider-list/UnconfiguredPresetsList';
 
 interface ProviderListProps {
   connections: ThirdPartyConnection[];
@@ -39,187 +26,6 @@ interface ProviderListProps {
   };
 }
 
-interface SortableProviderItemProps {
-  connection: ThirdPartyConnection;
-  isSelected: boolean;
-  healthResult?: ConnectionHealthProbeResult;
-  onSelect: () => void;
-  onEdit: () => void;
-  onDuplicate: () => void;
-  onDelete: () => void;
-  onProbe: () => void;
-  t: (key: string) => string;
-}
-
-const SortableProviderItem: React.FC<SortableProviderItemProps> = ({
-  connection,
-  isSelected,
-  healthResult,
-  onSelect,
-  onEdit,
-  onDuplicate,
-  onDelete,
-  onProbe,
-  t,
-}) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: connection.id });
-  const [menuOpen, setMenuOpen] = React.useState(false);
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 20 : 'auto',
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      onClick={onSelect}
-      className={`group relative flex items-center justify-between gap-2 px-2.5 py-2.5 rounded-xl cursor-pointer select-none transition-all ${
-        isSelected
-          ? 'bg-[var(--theme-bg-secondary)] shadow-xs ring-1 ring-[var(--theme-border-focus)]/40 font-medium'
-          : 'hover:bg-[var(--theme-bg-secondary)]/50'
-      } ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
-    >
-      <div className="flex items-center gap-2 min-w-0 flex-1">
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          onClick={(e) => e.stopPropagation()}
-          className="cursor-grab active:cursor-grabbing text-[var(--theme-text-secondary)]/40 hover:text-[var(--theme-text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity p-0.5 -ml-1 focus:outline-none"
-          aria-label="Drag to reorder"
-        >
-          <GripVertical size={15} />
-        </button>
-
-        <ProviderAvatar name={connection.name} templateId={connection.templateId} size={26} icon={connection.icon} />
-
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
-          <span
-            className={`text-sm truncate min-w-0 ${
-              isSelected
-                ? 'text-[var(--theme-text-primary)] font-semibold'
-                : connection.enabled
-                  ? 'text-[var(--theme-text-primary)]'
-                  : 'text-[var(--theme-text-secondary)] line-through opacity-70'
-            }`}
-            title={connection.name}
-          >
-            {connection.name}
-          </span>
-          {connection.notes && (
-            <span
-              className="px-1.5 py-0.2 text-[9px] font-normal leading-none rounded-md bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-secondary)]/40 truncate max-w-[75px] shrink-0"
-              title={connection.notes}
-            >
-              {connection.notes}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-        {healthResult ? (
-          <span
-            className={`px-1.5 py-0.5 text-[10px] font-mono font-medium rounded-md flex items-center gap-1 cursor-default ${
-              healthResult.status === 'success'
-                ? healthResult.latencyMs < 500
-                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                  : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-            }`}
-            title={
-              healthResult.status === 'success'
-                ? `${formatLatency(healthResult.latencyMs)} (${healthResult.grade})`
-                : healthResult.diagnosticTip || healthResult.errorMessage || t('thirdPartyConnectionFailed')
-            }
-          >
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                healthResult.status === 'success'
-                  ? healthResult.latencyMs < 500
-                    ? 'bg-emerald-500'
-                    : 'bg-amber-500'
-                  : 'bg-rose-500'
-              }`}
-            />
-            <span>{healthResult.status === 'success' ? formatLatency(healthResult.latencyMs) : 'ERR'}</span>
-          </span>
-        ) : connection.enabled ? (
-          <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-xs" title={t('enabled')} />
-        ) : (
-          <span className="w-2 h-2 rounded-full bg-[var(--theme-border-secondary)] opacity-40" title={t('disabled')} />
-        )}
-
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="p-1 rounded-md text-[var(--theme-text-secondary)]/60 hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-none"
-          >
-            <MoreVertical size={14} />
-          </button>
-
-          {menuOpen && (
-            <>
-              <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 top-full mt-1 z-40 w-36 rounded-xl border border-[var(--theme-border-primary)] bg-[var(--theme-bg-primary)] p-1 shadow-xl text-xs space-y-0.5 animate-in fade-in duration-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onProbe();
-                  }}
-                  className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-left text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]"
-                >
-                  <Activity size={13} />
-                  <span>{t('thirdPartyTestSpeed')}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onEdit();
-                  }}
-                  className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-left text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]"
-                >
-                  <Edit size={13} />
-                  <span>{t('edit')}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onDuplicate();
-                  }}
-                  className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-left text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]"
-                >
-                  <Copy size={13} />
-                  <span>{t('thirdPartyDuplicate')}</span>
-                </button>
-                <div className="h-[1px] bg-[var(--theme-border-secondary)]/30 my-0.5" />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onDelete();
-                  }}
-                  className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-left text-[var(--theme-text-danger)] hover:bg-[var(--theme-bg-danger)]/10"
-                >
-                  <Trash2 size={13} />
-                  <span>{t('delete')}</span>
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export const ProviderList: React.FC<ProviderListProps> = ({
   connections,
   selectedConnectionId,
@@ -233,196 +39,47 @@ export const ProviderList: React.FC<ProviderListProps> = ({
   geminiStatus,
 }) => {
   const { t } = useI18n();
-  const search = useProviderUiStore((s) => s.listSearchQuery);
-  const setSearch = useProviderUiStore((s) => s.setListSearchQuery);
-  const filterMode = useProviderUiStore((s) => s.listFilterMode);
-  const setFilterMode = useProviderUiStore((s) => s.setListFilterMode);
-  const healthResults = useProviderUiStore((s) => s.healthResultByConnection);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-
-  const configuredTemplateIds = useMemo(() => new Set(connections.map((c) => c.templateId)), [connections]);
-
-  const unconfiguredPresets = useMemo(() => {
-    return TEMPLATE_PRESETS.filter((p) => !configuredTemplateIds.has(p.id));
-  }, [configuredTemplateIds]);
-
-  const enabledCount = useMemo(() => {
-    return connections.filter((c) => c.enabled).length + (geminiStatus?.isConfigured ? 1 : 0);
-  }, [connections, geminiStatus?.isConfigured]);
-
-  const allCount = useMemo(() => {
-    return connections.length + 1 + unconfiguredPresets.length;
-  }, [connections.length, unconfiguredPresets.length]);
-
-  const disabledCount = useMemo(() => {
-    return Math.max(0, allCount - enabledCount);
-  }, [allCount, enabledCount]);
-
-  const filteredConnections = useMemo(() => {
-    return connections
-      .filter((conn) => {
-        if (filterMode === 'enabled') return conn.enabled;
-        if (filterMode === 'disabled') return !conn.enabled;
-        return true;
-      })
-      .filter((conn) => {
-        if (!search.trim()) return true;
-        const q = search.trim().toLowerCase();
-        return (
-          conn.name.toLowerCase().includes(q) ||
-          (conn.notes && conn.notes.toLowerCase().includes(q)) ||
-          conn.templateId.toLowerCase().includes(q) ||
-          conn.models.some((m) => m.id.toLowerCase().includes(q) || (m.name && m.name.toLowerCase().includes(q)))
-        );
-      });
-  }, [connections, filterMode, search]);
-
-  const filteredPresets = useMemo(() => {
-    if (filterMode === 'enabled') return [];
-    return unconfiguredPresets.filter((p) => {
-      if (!search.trim()) return true;
-      const q = search.trim().toLowerCase();
-      return (
-        p.name.toLowerCase().includes(q) ||
-        p.id.toLowerCase().includes(q) ||
-        (p.description && p.description.toLowerCase().includes(q))
-      );
-    });
-  }, [filterMode, unconfiguredPresets, search]);
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = connections.findIndex((c) => c.id === active.id);
-      const newIndex = connections.findIndex((c) => c.id === over.id);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const next = [...connections];
-        const [moved] = next.splice(oldIndex, 1);
-        next.splice(newIndex, 0, moved);
-        onReorder(next.map((c) => c.id));
-      }
-    }
-  };
-
-  const isGeminiMatch = useMemo(() => {
-    if (filterMode === 'enabled' && !geminiStatus?.isConfigured) return false;
-    if (filterMode === 'disabled' && geminiStatus?.isConfigured) return false;
-    if (!search.trim()) return true;
-    const q = search.trim().toLowerCase();
-    return (
-      'google gemini official builtin 官方 内置'.toLowerCase().includes(q) ||
-      t('thirdPartyOfficialProviders').toLowerCase().includes(q)
-    );
-  }, [filterMode, geminiStatus?.isConfigured, search, t]);
+  const {
+    search,
+    setSearch,
+    filterMode,
+    setFilterMode,
+    healthResults,
+    sensors,
+    enabledCount,
+    allCount,
+    disabledCount,
+    filteredConnections,
+    filteredPresets,
+    handleDragEnd,
+    isGeminiMatch,
+  } = useProviderListLogic({
+    connections,
+    geminiStatus,
+    onReorder,
+    officialProvidersText: t('thirdPartyOfficialProviders'),
+  });
 
   return (
     <div className="w-full md:w-64 lg:w-72 flex flex-col h-full bg-[var(--theme-bg-secondary)]/25 border-r border-[var(--theme-border-secondary)]/40 flex-shrink-0 select-none">
-      <div className="p-3 border-b border-[var(--theme-border-secondary)]/30 flex-shrink-0 space-y-2">
-        <div className="relative w-full">
-          <Search
-            size={14}
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-secondary)]/60 pointer-events-none"
-          />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('thirdPartySearchPlaceholder')}
-            className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-secondary)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--theme-border-focus)] transition-colors"
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors"
-            >
-              <X size={12} />
-            </button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1 p-0.5 bg-[var(--theme-bg-tertiary)]/60 rounded-xl">
-          <button
-            type="button"
-            onClick={() => setFilterMode('enabled')}
-            className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center justify-center gap-1 ${
-              filterMode === 'enabled'
-                ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-xs font-semibold'
-                : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
-            }`}
-          >
-            <span>{t('thirdPartyFilterEnabled') || '已启用'}</span>
-            <span className="text-[10px] opacity-60">({enabledCount})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterMode('all')}
-            className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center justify-center gap-1 ${
-              filterMode === 'all'
-                ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-xs font-semibold'
-                : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
-            }`}
-          >
-            <span>{t('thirdPartyFilterAll') || '全部'}</span>
-            <span className="text-[10px] opacity-60">({allCount})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterMode('disabled')}
-            className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center justify-center gap-1 ${
-              filterMode === 'disabled'
-                ? 'bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] shadow-xs font-semibold'
-                : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]'
-            }`}
-          >
-            <span>{t('thirdPartyFilterDisabled') || '未启用'}</span>
-            <span className="text-[10px] opacity-60">({disabledCount})</span>
-          </button>
-        </div>
-      </div>
+      <ProviderListSearchAndFilter
+        search={search}
+        setSearch={setSearch}
+        filterMode={filterMode}
+        setFilterMode={setFilterMode}
+        enabledCount={enabledCount}
+        allCount={allCount}
+        disabledCount={disabledCount}
+      />
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-3">
         {isGeminiMatch && (
-          <div className="space-y-1">
-            <div className="px-2 py-0.5 text-[10px] font-semibold tracking-wider text-[var(--theme-text-secondary)]/60 uppercase">
-              {t('thirdPartyOfficialProviders')}
-            </div>
-            <div
-              onClick={() => onSelectConnection(GEMINI_PROVIDER_ID)}
-              className={`group relative flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl cursor-pointer select-none transition-all ${
-                selectedConnectionId === GEMINI_PROVIDER_ID
-                  ? 'bg-[var(--theme-bg-secondary)] shadow-xs ring-1 ring-[var(--theme-border-focus)]/40 font-medium'
-                  : 'hover:bg-[var(--theme-bg-secondary)]/50'
-              }`}
-            >
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <ProviderAvatar name="Google Gemini" templateId="gemini" size={26} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm truncate font-semibold text-[var(--theme-text-primary)]">
-                      Google Gemini
-                    </span>
-                    <span className="px-1.5 py-0.2 text-[9px] font-medium rounded-full bg-blue-500/15 text-blue-500 shrink-0">
-                      {t('thirdPartyBuiltin')}
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-[var(--theme-text-secondary)]/70 truncate mt-0.5">
-                    {geminiStatus?.useProxy ? t('thirdPartyCustomProxyEndpoint') : t('thirdPartyOfficialEndpoint')}
-                  </div>
-                </div>
-              </div>
-              <span
-                className={`w-2 h-2 rounded-full shrink-0 ${
-                  geminiStatus?.isConfigured ? 'bg-emerald-500' : 'bg-amber-500'
-                }`}
-                title={geminiStatus?.isConfigured ? t('thirdPartyReady') : t('thirdPartyPendingKey')}
-              />
-            </div>
-          </div>
+          <OfficialGeminiItem
+            isSelected={selectedConnectionId === GEMINI_PROVIDER_ID}
+            onSelect={onSelectConnection}
+            geminiStatus={geminiStatus}
+          />
         )}
 
         <div className="space-y-1">
@@ -459,56 +116,11 @@ export const ProviderList: React.FC<ProviderListProps> = ({
           )}
         </div>
 
-        {filteredPresets.length > 0 && (
-          <div className="space-y-1 pt-1 border-t border-[var(--theme-border-secondary)]/30">
-            <div className="flex items-center justify-between px-2 py-0.5">
-              <span className="text-[10px] font-semibold tracking-wider text-[var(--theme-text-secondary)]/60 uppercase">
-                {t('thirdPartyTabPresets') || '预设服务商'}
-              </span>
-              <span className="text-[10px] text-[var(--theme-text-secondary)]/50 font-mono">
-                ({filteredPresets.length})
-              </span>
-            </div>
-
-            {filteredPresets.map((preset) => {
-              const presetKey = `preset:${preset.id}`;
-              const isSelected = selectedConnectionId === presetKey;
-              return (
-                <div
-                  key={preset.id}
-                  data-testid={`preset-item-${preset.id}`}
-                  onClick={() => onSelectConnection(presetKey)}
-                  className={`group relative flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl cursor-pointer select-none transition-all ${
-                    isSelected
-                      ? 'bg-[var(--theme-bg-secondary)] shadow-xs ring-1 ring-[var(--theme-border-focus)]/40 font-medium'
-                      : 'hover:bg-[var(--theme-bg-secondary)]/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <ProviderAvatar name={preset.name} templateId={preset.id} size={26} />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm truncate text-[var(--theme-text-primary)]">{preset.name}</span>
-                        <span className="px-1.5 py-0.2 text-[9px] font-medium rounded-full bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] border border-[var(--theme-border-secondary)]/50 shrink-0">
-                          {t('thirdPartyPresetBadge') || '预设'}
-                        </span>
-                      </div>
-                      {preset.description && (
-                        <div className="text-[10px] text-[var(--theme-text-secondary)]/70 truncate mt-0.5">
-                          {preset.description}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <span
-                    className="w-2 h-2 rounded-full bg-[var(--theme-border-secondary)] opacity-30 shrink-0"
-                    title={t('disabled')}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <UnconfiguredPresetsList
+          filteredPresets={filteredPresets}
+          selectedConnectionId={selectedConnectionId}
+          onSelectConnection={onSelectConnection}
+        />
       </div>
 
       <div className="p-3 border-t border-[var(--theme-border-secondary)]/30 flex-shrink-0 bg-[var(--theme-bg-primary)]/40">
