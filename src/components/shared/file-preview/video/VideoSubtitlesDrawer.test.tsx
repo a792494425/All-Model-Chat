@@ -202,4 +202,41 @@ describe('VideoSubtitlesDrawer', () => {
     expect(cueElements).toHaveLength(1);
     expect(cueElements[0].textContent).toContain('第二句字幕测试');
   });
+
+  it('renders cache badge when isFromCache is true', () => {
+    renderer.render(
+      <VideoSubtitlesDrawer
+        cues={mockCues}
+        currentTime={0}
+        onSeek={vi.fn()}
+        onClose={vi.fn()}
+        videoFileName="sample-video.mp4"
+        isFromCache={true}
+      />,
+    );
+
+    const badge = renderer.container.querySelector('[data-testid="subtitles-cache-badge"]');
+    expect(badge).not.toBeNull();
+  });
+
+  it('calls onReExtract when re-extract button is clicked', () => {
+    const onReExtract = vi.fn();
+    renderer.render(
+      <VideoSubtitlesDrawer
+        cues={mockCues}
+        currentTime={0}
+        onSeek={vi.fn()}
+        onClose={vi.fn()}
+        videoFileName="sample-video.mp4"
+        onReExtract={onReExtract}
+      />,
+    );
+
+    const reExtractBtn = renderer.container.querySelector('button[data-testid="re-extract-subtitles-btn"]')!;
+    expect(reExtractBtn).not.toBeNull();
+
+    fireEvent.click(reExtractBtn);
+    expect(onReExtract).toHaveBeenCalledTimes(1);
+  });
 });
+

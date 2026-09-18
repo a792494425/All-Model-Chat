@@ -1300,4 +1300,22 @@ export const commonTranslations = {
     fr: 'Sous-titres extraits avec succès',
     de: 'Untertitel erfolgreich extrahiert',
   },
+  loadedFromCache: {
+    en: 'Loaded from cache',
+    zh: '从本地缓存加载',
+    ja: 'ローカルキャッシュから読み込みました',
+    ko: '로컬 캐시에서 로드됨',
+    es: 'Cargado desde la caché',
+    fr: 'Chargé depuis le cache',
+    de: 'Aus Cache geladen',
+  },
+  reExtractSubtitles: {
+    en: 'Re-extract Subtitles',
+    zh: '重新提取字幕',
+    ja: '字幕を再抽出',
+    ko: '자막 다시 추출',
+    es: 'Volver a extraer subtítulos',
+    fr: 'Réextraire les sous-titres',
+    de: 'Untertitel erneut extrahieren',
+  },
 };

@@ -5,7 +5,13 @@ import { getAudioDurationSeconds } from '@/features/audio/audioDuration';
 import { isAudioMimeType, isVideoMimeType } from '@/utils/file/fileTypeClassification';
 import { extractAudioFromVideo } from '@/utils/video-subtitles/extractAudioFromVideo';
 import { transcribeAudioWithGemini } from '@/utils/video-subtitles/geminiTranscribeService';
-import { groupWordsIntoCues, generateSrtContent } from '@/utils/video-subtitles/subtitleFormatter';
+import {
+  type SubtitleCue,
+  groupWordsIntoCues,
+  generateSrtContent,
+  generateVttContent,
+} from '@/utils/video-subtitles/subtitleFormatter';
+import { getCachedSubtitles, saveCachedSubtitles } from '@/utils/video-subtitles/subtitleCacheService';
 import { formatDuration } from '@/utils/durationFormat';
 import { runOptimisticMessagePipeline, type MessageLifecycleRunner } from './messagePipeline';
 import type { MessageSenderTranslator, SessionsUpdater } from './messageSenderTypes';
@@ -96,42 +102,68 @@ export const sendTranscribeMessage = async ({
         const isVideo = isVideoMimeType(mediaFile.type);
 
         if (isVideo) {
-          if (!(mediaFile.rawFile instanceof Blob)) {
-            throw new Error(`Video file data for "${mediaFile.name}" is missing or could not be loaded.`);
+          let cues: SubtitleCue[];
+          let srtContent: string;
+          let durationSeconds: number;
+          let isFromCache = false;
+
+          const cached = await getCachedSubtitles(mediaFile);
+          if (cached && cached.cues.length > 0) {
+            cues = cached.cues;
+            srtContent = cached.srtContent;
+            durationSeconds = cached.durationSeconds ?? 0;
+            isFromCache = true;
+          } else {
+            if (!(mediaFile.rawFile instanceof Blob)) {
+              throw new Error(`Video file data for "${mediaFile.name}" is missing or could not be loaded.`);
+            }
+
+            const extracted = await extractAudioFromVideo(
+              mediaFile.rawFile,
+              abortController.signal,
+            );
+            durationSeconds = extracted.durationSeconds;
+
+            if (durationSeconds > MAX_TRANSCRIPTION_DURATION_SECONDS) {
+              throw new Error(t('messageSenderTranscribeDurationExceeded'));
+            }
+
+            const annotations = await transcribeAudioWithGemini(
+              keyToUse,
+              extracted.audioBlob,
+              `${mediaFile.name.replace(/\.[^/.]+$/, '')}-audio.wav`,
+              abortController.signal,
+              undefined,
+              durationSeconds,
+            );
+
+            if (abortController.signal.aborted) {
+              const abortError = new Error('aborted');
+              abortError.name = 'AbortError';
+              throw abortError;
+            }
+
+            cues = groupWordsIntoCues(annotations);
+            srtContent = cues.length > 0 ? generateSrtContent(cues) : '';
+
+            if (cues.length > 0) {
+              const vttContent = generateVttContent(cues);
+              void saveCachedSubtitles(mediaFile, {
+                cues,
+                srtContent,
+                vttContent,
+                durationSeconds,
+              });
+            }
           }
 
-          const { audioBlob, durationSeconds } = await extractAudioFromVideo(
-            mediaFile.rawFile,
-            abortController.signal,
-          );
-
-          if (durationSeconds > MAX_TRANSCRIPTION_DURATION_SECONDS) {
-            throw new Error(t('messageSenderTranscribeDurationExceeded'));
-          }
-
-          const annotations = await transcribeAudioWithGemini(
-            keyToUse,
-            audioBlob,
-            `${mediaFile.name.replace(/\.[^/.]+$/, '')}-audio.wav`,
-            abortController.signal,
-            undefined,
-            durationSeconds,
-          );
-
-          if (abortController.signal.aborted) {
-            const abortError = new Error('aborted');
-            abortError.name = 'AbortError';
-            throw abortError;
-          }
-
-          const cues = groupWordsIntoCues(annotations);
-          const srtContent = cues.length > 0 ? generateSrtContent(cues) : '';
           const durationText = durationSeconds > 0 ? formatDuration(durationSeconds) : undefined;
           const title = t('transcriptionSubtitlesResultTitle') || '视频字幕提取结果';
 
           let outputText = `### 🎬 ${title}：\`${mediaFile.name}\`\n\n`;
           if (durationText) {
-            outputText += `> ⏱️ **时长**: ${durationText} | **字幕**: ${cues.length} 句\n\n`;
+            const cacheTag = isFromCache ? ` | ⚡ *(${t('loadedFromCache') || '从本地缓存加载'})*` : '';
+            outputText += `> ⏱️ **时长**: ${durationText} | **字幕**: ${cues.length} 句${cacheTag}\n\n`;
           }
 
           if (cues.length > 0) {

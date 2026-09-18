@@ -8,6 +8,8 @@ const {
   mockExtractDocxText,
   mockExtractAudioFromVideo,
   mockTranscribeAudioWithGemini,
+  mockGetCachedSubtitles,
+  mockSaveCachedSubtitles,
   mockSettingsState,
   mockTextFileViewer,
 } = vi.hoisted(() => ({
@@ -15,6 +17,8 @@ const {
   mockExtractDocxText: vi.fn(),
   mockExtractAudioFromVideo: vi.fn(),
   mockTranscribeAudioWithGemini: vi.fn(),
+  mockGetCachedSubtitles: vi.fn(),
+  mockSaveCachedSubtitles: vi.fn(),
   mockSettingsState: {
     language: 'en',
     appSettings: {
@@ -149,6 +153,11 @@ vi.mock('@/utils/video-subtitles/geminiTranscribeService', () => ({
   transcribeAudioWithGemini: mockTranscribeAudioWithGemini,
 }));
 
+vi.mock('@/utils/video-subtitles/subtitleCacheService', () => ({
+  getCachedSubtitles: mockGetCachedSubtitles,
+  saveCachedSubtitles: mockSaveCachedSubtitles,
+}));
+
 import { FilePreviewModal } from './FilePreviewModal';
 
 describe('FilePreviewModal', () => {
@@ -207,6 +216,8 @@ describe('FilePreviewModal', () => {
     mockCreatedObjectUrls.length = 0;
     mockRevokedObjectUrls.length = 0;
     mockSettingsState.appSettings.customShortcuts = {};
+    mockGetCachedSubtitles.mockResolvedValue(null);
+    mockSaveCachedSubtitles.mockResolvedValue(undefined);
   });
 
   it('renders extracted docx text in the text preview surface', async () => {
@@ -607,6 +618,75 @@ describe('FilePreviewModal', () => {
         expect(mockExtractAudioFromVideo).toHaveBeenCalledTimes(1);
         // After failure, extract button should be available again to retry
         expect(document.querySelector('[data-testid="extract-subtitles-btn"]')).not.toBeNull();
+      });
+    });
+
+    it('loads cached subtitles automatically on mount and displays ready toggle button', async () => {
+      mockGetCachedSubtitles.mockResolvedValueOnce({
+        cues: [
+          {
+            id: 1,
+            startSeconds: 0,
+            endSeconds: 3,
+            startTimeSrt: '00:00:00,000',
+            endTimeSrt: '00:00:03,000',
+            startTimeVtt: '00:00:00.000',
+            endTimeVtt: '00:00:03.000',
+            text: 'Cached Subtitle',
+          },
+        ],
+        srtContent: '1\n00:00:00,000 --> 00:00:03,000\nCached Subtitle\n',
+        vttContent: 'WEBVTT\n\n1\n00:00:00.000 --> 00:00:03.000\nCached Subtitle\n',
+        durationSeconds: 10,
+        createdAt: Date.now(),
+      });
+
+      await act(async () => {
+        renderer.root.render(<FilePreviewModal file={createVideoFile()} onClose={() => {}} />);
+      });
+
+      await vi.waitFor(() => {
+        const toggleBtn = document.querySelector('[data-testid="toggle-subtitles-drawer-btn"]');
+        expect(toggleBtn).not.toBeNull();
+        expect(toggleBtn?.getAttribute('title')).toContain('Loaded from cache');
+      });
+
+      // Does not call extractAudio or Gemini API because it was loaded from cache
+      expect(mockExtractAudioFromVideo).not.toHaveBeenCalled();
+      expect(mockTranscribeAudioWithGemini).not.toHaveBeenCalled();
+    });
+
+    it('saves extracted subtitles to cache upon completion', async () => {
+      mockExtractAudioFromVideo.mockResolvedValue({
+        audioBlob: new Blob(['wav-bytes'], { type: 'audio/wav' }),
+        durationSeconds: 12,
+      });
+      mockTranscribeAudioWithGemini.mockResolvedValue([
+        {
+          text: 'Saved Subtitle',
+          start_offset: '0.000s',
+          end_offset: '2.000s',
+        },
+      ]);
+
+      await act(async () => {
+        renderer.root.render(<FilePreviewModal file={createVideoFile()} onClose={() => {}} />);
+      });
+
+      const extractBtn = document.querySelector('[data-testid="extract-subtitles-btn"]') as HTMLButtonElement;
+      await act(async () => {
+        extractBtn.click();
+      });
+
+      await vi.waitFor(() => {
+        expect(mockSaveCachedSubtitles).toHaveBeenCalledWith(
+          expect.objectContaining({ name: 'video.mp4' }),
+          expect.objectContaining({
+            durationSeconds: 12,
+            srtContent: expect.stringContaining('Saved Subtitle'),
+            vttContent: expect.stringContaining('Saved Subtitle'),
+          }),
+        );
       });
     });
   });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Download, Copy, Check, X, Search, FileText, Subtitles } from 'lucide-react';
+import { Download, Copy, Check, X, Search, Subtitles, RotateCw, FileText } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import {
   type SubtitleCue,
@@ -14,6 +14,8 @@ export interface VideoSubtitlesDrawerProps {
   onSeek: (seconds: number) => void;
   onClose: () => void;
   videoFileName: string;
+  onReExtract?: () => void;
+  isFromCache?: boolean;
 }
 
 export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
@@ -22,6 +24,8 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
   onSeek,
   onClose,
   videoFileName,
+  onReExtract,
+  isFromCache,
 }) => {
   const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
@@ -96,9 +100,31 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
           <span className="text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-white/10 text-white/70">
             {cues.length}
           </span>
+          {isFromCache && (
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-medium whitespace-nowrap"
+              data-testid="subtitles-cache-badge"
+              title={t('loadedFromCache')}
+            >
+              {t('loadedFromCache')}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1">
+          {/* Re-extract Subtitles */}
+          {onReExtract && (
+            <button
+              type="button"
+              onClick={onReExtract}
+              className="p-1.5 rounded text-xs text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              data-testid="re-extract-subtitles-btn"
+              title={t('reExtractSubtitles')}
+            >
+              <RotateCw size={13} />
+            </button>
+          )}
+
           {/* Download SRT */}
           <button
             type="button"

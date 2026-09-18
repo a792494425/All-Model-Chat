@@ -31,7 +31,13 @@ import { interpolate } from '@/i18n/interpolate';
 import { isEditableElement } from '@/utils/chat-input/focus';
 import { extractAudioFromVideo } from '@/utils/video-subtitles/extractAudioFromVideo';
 import { transcribeAudioWithGemini } from '@/utils/video-subtitles/geminiTranscribeService';
-import { type SubtitleCue, groupWordsIntoCues, generateVttContent } from '@/utils/video-subtitles/subtitleFormatter';
+import {
+  type SubtitleCue,
+  groupWordsIntoCues,
+  generateVttContent,
+  generateSrtContent,
+} from '@/utils/video-subtitles/subtitleFormatter';
+import { getCachedSubtitles, saveCachedSubtitles } from '@/utils/video-subtitles/subtitleCacheService';
 import { VideoSubtitlesDrawer } from '@/components/shared/file-preview/video/VideoSubtitlesDrawer';
 import { getGeminiKeyForRequest, formatApiKeyErrorMessage } from '@/utils/apiKeySelection';
 import { toastError, toastSuccess } from '@/stores/toastStore';
@@ -122,7 +128,30 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   const [subtitleVttBlobUrl, setSubtitleVttBlobUrl] = useState<string | null>(null);
   const [isSubtitlesDrawerOpen, setIsSubtitlesDrawerOpen] = useState(false);
   const [videoCurrentTime, setVideoCurrentTime] = useState(0);
+  const [isFromCache, setIsFromCache] = useState(false);
   const subtitleAbortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!isVideo) return;
+
+    getCachedSubtitles(file).then((cached) => {
+      if (!isMounted || !cached) return;
+      setSubtitleCues(cached.cues);
+      const vttBlob = new Blob([cached.vttContent], { type: 'text/vtt;charset=utf-8' });
+      const vttUrl = URL.createObjectURL(vttBlob);
+      setSubtitleVttBlobUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return vttUrl;
+      });
+      setSubtitlePhase('ready');
+      setIsFromCache(true);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [file, isVideo]);
 
   useEffect(() => {
     return () => {
@@ -177,6 +206,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
     try {
       setSubtitlePhase('extracting');
       setSubtitleProgressPercent(undefined);
+      setIsFromCache(false);
 
       // 1. Extract audio pure client-side via Web Audio API
       const { audioBlob, durationSeconds } = await extractAudioFromVideo(videoBlob, abortController.signal);
@@ -199,6 +229,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       setSubtitleCues(cues);
 
       const vttContent = generateVttContent(cues);
+      const srtContent = generateSrtContent(cues);
       const vttBlob = new Blob([vttContent], { type: 'text/vtt;charset=utf-8' });
       const vttUrl = URL.createObjectURL(vttBlob);
 
@@ -207,8 +238,16 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       }
       setSubtitleVttBlobUrl(vttUrl);
       setSubtitlePhase('ready');
+      setIsFromCache(false);
       setIsSubtitlesDrawerOpen(true);
       toastSuccess(t('subtitlesReady'));
+
+      void saveCachedSubtitles(file, {
+        cues,
+        srtContent,
+        vttContent,
+        durationSeconds,
+      });
     } catch (err: any) {
       if (abortController.signal.aborted) {
         setSubtitlePhase('idle');
@@ -244,6 +283,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
     }
 
     if (subtitlePhase === 'ready') {
+      const titleText = isFromCache ? `${t('videoSubtitles')} (${t('loadedFromCache')})` : t('videoSubtitles');
       return (
         <button
           type="button"
@@ -252,7 +292,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
             isSubtitlesDrawerOpen ? 'bg-sky-600 text-white shadow-sm' : 'bg-white/10 hover:bg-white/20 text-white/90'
           }`}
           data-testid="toggle-subtitles-drawer-btn"
-          title={t('videoSubtitles')}
+          title={titleText}
         >
           <Subtitles size={13} />
           <span>{t('videoSubtitles')}</span>
@@ -275,6 +315,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
     );
   }, [
     handleExtractSubtitles,
+    isFromCache,
     isSubtitlesDrawerOpen,
     isVideo,
     subtitleCues.length,
@@ -587,6 +628,8 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
                   onSeek={(seconds) => videoPlayerRef.current?.seekTo(seconds)}
                   onClose={() => setIsSubtitlesDrawerOpen(false)}
                   videoFileName={file.name}
+                  onReExtract={handleExtractSubtitles}
+                  isFromCache={isFromCache}
                 />
               )}
             </div>

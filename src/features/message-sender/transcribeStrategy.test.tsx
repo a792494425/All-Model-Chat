@@ -11,6 +11,8 @@ const {
   getAudioDurationSecondsMock,
   extractAudioFromVideoMock,
   transcribeAudioWithGeminiMock,
+  getCachedSubtitlesMock,
+  saveCachedSubtitlesMock,
 } = vi.hoisted(() => ({
   transcribeAudioMock: vi.fn(),
   prepareAudioMock: vi.fn(),
@@ -18,6 +20,8 @@ const {
   getAudioDurationSecondsMock: vi.fn(),
   extractAudioFromVideoMock: vi.fn(),
   transcribeAudioWithGeminiMock: vi.fn(),
+  getCachedSubtitlesMock: vi.fn(),
+  saveCachedSubtitlesMock: vi.fn(),
 }));
 
 vi.mock('@/services/api/generation/audioApi', () => ({
@@ -38,6 +42,11 @@ vi.mock('@/utils/video-subtitles/extractAudioFromVideo', () => ({
 
 vi.mock('@/utils/video-subtitles/geminiTranscribeService', () => ({
   transcribeAudioWithGemini: transcribeAudioWithGeminiMock,
+}));
+
+vi.mock('@/utils/video-subtitles/subtitleCacheService', () => ({
+  getCachedSubtitles: getCachedSubtitlesMock,
+  saveCachedSubtitles: saveCachedSubtitlesMock,
 }));
 
 vi.mock('@/utils/browserCompletionFeedback', () => ({
@@ -67,6 +76,15 @@ describe('transcribeStrategy', () => {
     uploadState: 'active',
   };
 
+  const fakeVideoFile: UploadedFile = {
+    id: 'file-video-1',
+    name: 'test-video.mp4',
+    type: 'video/mp4',
+    size: 1024 * 1024,
+    rawFile: new File(['video content'], 'test-video.mp4', { type: 'video/mp4' }),
+    uploadState: 'active',
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     prepareAudioMock.mockImplementation(async (file) => file);
@@ -83,6 +101,8 @@ describe('transcribeStrategy', () => {
         end_offset: '2.500s',
       },
     ]);
+    getCachedSubtitlesMock.mockResolvedValue(null);
+    saveCachedSubtitlesMock.mockResolvedValue(undefined);
     Object.defineProperty(document, 'hidden', { configurable: true, value: true });
   });
 
@@ -174,15 +194,6 @@ describe('transcribeStrategy', () => {
   });
 
   it('transcribes video attachment, extracts audio, and formats SRT subtitles with timestamps', async () => {
-    const fakeVideoFile: UploadedFile = {
-      id: 'file-video-1',
-      name: 'test-video.mp4',
-      type: 'video/mp4',
-      size: 1024 * 1024,
-      rawFile: new File(['video content'], 'test-video.mp4', { type: 'video/mp4' }),
-      uploadState: 'active',
-    };
-
     const abortController = new AbortController();
     const updateAndPersistSessions = vi.fn();
     const setActiveSessionId = vi.fn();
@@ -221,9 +232,73 @@ describe('transcribeStrategy', () => {
       undefined,
       42,
     );
+    expect(saveCachedSubtitlesMock).toHaveBeenCalledWith(
+      fakeVideoFile,
+      expect.objectContaining({
+        durationSeconds: 42,
+        srtContent: expect.stringContaining('こんにちは世界。'),
+        vttContent: expect.stringContaining('こんにちは世界。'),
+      }),
+    );
     expect(resultPatch.content).toContain('test-video.mp4');
     expect(resultPatch.content).toContain('```srt');
     expect(resultPatch.content).toContain('こんにちは世界。');
+  });
+
+  it('reuses cached video subtitles if available without extracting audio', async () => {
+    getCachedSubtitlesMock.mockResolvedValueOnce({
+      cues: [
+        {
+          id: 1,
+          startSeconds: 0,
+          endSeconds: 5,
+          startTimeSrt: '00:00:00,000',
+          endTimeSrt: '00:00:05,000',
+          startTimeVtt: '00:00:00.000',
+          endTimeVtt: '00:00:05.000',
+          text: '从缓存中读取的字幕',
+        },
+      ],
+      srtContent: '1\n00:00:00,000 --> 00:00:05,000\n从缓存中读取的字幕\n',
+      vttContent: 'WEBVTT\n\n1\n00:00:00.000 --> 00:00:05.000\n从缓存中读取的字幕\n',
+      durationSeconds: 5,
+      createdAt: Date.now(),
+    });
+
+    const abortController = new AbortController();
+    const updateAndPersistSessions = vi.fn();
+    const setActiveSessionId = vi.fn();
+    let resultPatch: any = null;
+    const runMessageLifecycle = vi.fn(async ({ execute }) => {
+      const result = await execute();
+      resultPatch = result.patch;
+      return result;
+    });
+
+    await act(async () => {
+      await sendTranscribeMessage({
+        keyToUse: 'api-key',
+        activeSessionId: 'session-1',
+        generationId: 'generation-1',
+        abortController,
+        appSettings: createAppSettings(),
+        currentChatSettings: createChatSettings({
+          modelId: 'gemini-3.5-transcribe',
+        }),
+        text: '',
+        files: [fakeVideoFile],
+        t: getTranslator('zh'),
+        updateAndPersistSessions,
+        setActiveSessionId,
+        runMessageLifecycle,
+      });
+    });
+
+    // Audio extraction and Gemini API should NOT be called
+    expect(extractAudioFromVideoMock).not.toHaveBeenCalled();
+    expect(transcribeAudioWithGeminiMock).not.toHaveBeenCalled();
+    expect(resultPatch.content).toContain('从缓存中读取的字幕');
+    expect(resultPatch.content).toContain('从本地缓存加载');
   });
 
   it('rejects audio longer than 30 minutes when word timestamps are enabled', async () => {
