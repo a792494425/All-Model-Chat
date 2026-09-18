@@ -103,10 +103,28 @@ describe('subtitleCacheService', () => {
       const cached = await getCachedSubtitles({ name: 'error.mp4', size: 999 });
       expect(cached).toBeNull();
     });
+
+    it('dispatches subtitles-cache-updated event when saved', async () => {
+      const listener = vi.fn();
+      window.addEventListener('subtitles-cache-updated', listener);
+
+      const target = { name: 'event-test.mp4', size: 5000 };
+      await saveCachedSubtitles(target, {
+        cues: sampleCues,
+        srtContent: 'SRT',
+        vttContent: 'VTT',
+      });
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      window.removeEventListener('subtitles-cache-updated', listener);
+    });
   });
 
   describe('deleteCachedSubtitles', () => {
-    it('removes the subtitle entry from cache', async () => {
+    it('removes the subtitle entry from cache and dispatches event', async () => {
+      const listener = vi.fn();
+      window.addEventListener('subtitles-cache-updated', listener);
+
       const target = { name: 'to-delete.mp4', size: 3000 };
       await saveCachedSubtitles(target, {
         cues: sampleCues,
@@ -118,6 +136,9 @@ describe('subtitleCacheService', () => {
 
       await deleteCachedSubtitles(target);
       expect(await getCachedSubtitles(target)).toBeNull();
+      // 1 for save, 1 for delete
+      expect(listener).toHaveBeenCalledTimes(2);
+      window.removeEventListener('subtitles-cache-updated', listener);
     });
   });
 });

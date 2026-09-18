@@ -135,21 +135,32 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
     let isMounted = true;
     if (!isVideo) return;
 
-    getCachedSubtitles(file).then((cached) => {
-      if (!isMounted || !cached) return;
-      setSubtitleCues(cached.cues);
-      const vttBlob = new Blob([cached.vttContent], { type: 'text/vtt;charset=utf-8' });
-      const vttUrl = URL.createObjectURL(vttBlob);
-      setSubtitleVttBlobUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return vttUrl;
+    const loadCached = () => {
+      getCachedSubtitles(file).then((cached) => {
+        if (!isMounted || !cached) return;
+        setSubtitleCues(cached.cues);
+        const vttBlob = new Blob([cached.vttContent], { type: 'text/vtt;charset=utf-8' });
+        const vttUrl = URL.createObjectURL(vttBlob);
+        setSubtitleVttBlobUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return vttUrl;
+        });
+        setSubtitlePhase('ready');
+        setIsFromCache(true);
       });
-      setSubtitlePhase('ready');
-      setIsFromCache(true);
-    });
+    };
+
+    loadCached();
+
+    const handleCacheUpdated = () => {
+      loadCached();
+    };
+
+    window.addEventListener('subtitles-cache-updated', handleCacheUpdated);
 
     return () => {
       isMounted = false;
+      window.removeEventListener('subtitles-cache-updated', handleCacheUpdated);
     };
   }, [file, isVideo]);
 

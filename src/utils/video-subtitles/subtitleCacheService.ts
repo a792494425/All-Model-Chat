@@ -71,6 +71,9 @@ export async function saveCachedSubtitles(
       createdAt: Date.now(),
     };
     await setKeyValue(key, payload);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('subtitles-cache-updated', { detail: { target } }));
+    }
   } catch (err) {
     console.warn('[SubtitleCache] Failed to save cached subtitles:', err);
   }
@@ -85,6 +88,9 @@ export async function deleteCachedSubtitles(target: SubtitleCacheTarget): Promis
 
   try {
     await deleteKeyValue(key);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('subtitles-cache-updated', { detail: { target } }));
+    }
   } catch (err) {
     console.warn('[SubtitleCache] Failed to delete cached subtitles:', err);
   }

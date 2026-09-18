@@ -1,6 +1,13 @@
 import { setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import { fireEvent, act } from '@testing-library/react';
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
+
+const mockGetCachedSubtitles = vi.fn();
+
+vi.mock('@/utils/video-subtitles/subtitleCacheService', () => ({
+  getCachedSubtitles: (target: unknown) => mockGetCachedSubtitles(target),
+}));
+
 import { MediaNavView } from './MediaNavView';
 import { useMediaNavStore } from '@/stores/mediaNavStore';
 import type { UploadedFile } from '@/types';
@@ -33,6 +40,7 @@ describe('MediaNavView', () => {
   const renderer = setupTestRenderer({ providers: { language: 'en' } });
 
   beforeEach(() => {
+    mockGetCachedSubtitles.mockReset().mockResolvedValue(null);
     useMediaNavStore.setState({
       isOpen: true,
       openKind: 'video',
@@ -168,5 +176,81 @@ describe('MediaNavView', () => {
 
     // Segment notification bar should be removed because manual seek was outside segment
     expect(renderer.container.querySelector('[data-testid="media-segment-loop"]')).toBeNull();
+  });
+
+  it('loads and mounts cached subtitles track for video files', async () => {
+    mockGetCachedSubtitles.mockResolvedValueOnce({
+      cues: [
+        {
+          id: 1,
+          startSeconds: 0,
+          endSeconds: 3,
+          startTimeSrt: '00:00:00,000',
+          endTimeSrt: '00:00:03,000',
+          startTimeVtt: '00:00:00.000',
+          endTimeVtt: '00:00:03.000',
+          text: 'Hello world',
+        },
+      ],
+      srtContent: '1\n00:00:00,000 --> 00:00:03,000\nHello world\n',
+      vttContent: 'WEBVTT\n\n1\n00:00:00.000 --> 00:00:03.000\nHello world\n',
+    });
+
+    await act(async () => {
+      renderer.render(<MediaNavView file={mockVideoFile} kind="video" />);
+    });
+
+    const video = renderer.container.querySelector('[data-testid="media-nav-video"]') as HTMLVideoElement;
+    expect(video).not.toBeNull();
+
+    const track = video.querySelector('track');
+    expect(track).not.toBeNull();
+    expect(track?.getAttribute('kind')).toBe('subtitles');
+    expect(track?.getAttribute('src')).toBeTruthy();
+  });
+
+  it('updates subtitles track when subtitles-cache-updated event fires', async () => {
+    mockGetCachedSubtitles.mockResolvedValueOnce(null);
+
+    await act(async () => {
+      renderer.render(<MediaNavView file={mockVideoFile} kind="video" />);
+    });
+
+    const video = renderer.container.querySelector('[data-testid="media-nav-video"]') as HTMLVideoElement;
+    expect(video.querySelector('track')).toBeNull();
+
+    mockGetCachedSubtitles.mockResolvedValueOnce({
+      cues: [
+        {
+          id: 1,
+          startSeconds: 0,
+          endSeconds: 3,
+          startTimeSrt: '00:00:00,000',
+          endTimeSrt: '00:00:03,000',
+          startTimeVtt: '00:00:00.000',
+          endTimeVtt: '00:00:03.000',
+          text: 'Newly extracted subtitle',
+        },
+      ],
+      srtContent: '...',
+      vttContent: 'WEBVTT\n\n1\n00:00:00.000 --> 00:00:03.000\nNewly extracted subtitle\n',
+    });
+
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('subtitles-cache-updated', { detail: { target: mockVideoFile } }));
+    });
+
+    const track = video.querySelector('track');
+    expect(track).not.toBeNull();
+    expect(track?.getAttribute('kind')).toBe('subtitles');
+  });
+
+  it('does not load or attach subtitles track when kind is audio', async () => {
+    await act(async () => {
+      renderer.render(<MediaNavView file={mockAudioFile} kind="audio" />);
+    });
+
+    expect(mockGetCachedSubtitles).not.toHaveBeenCalled();
+    expect(renderer.container.querySelector('track')).toBeNull();
   });
 });

@@ -12,6 +12,7 @@ import { VideoPlayer, type VideoPlayerHandle } from '@/components/shared/file-pr
 import { isYoutubeVideoFile } from '@/utils/media-nav/sessionMediaFiles';
 import { YoutubeNavPlayer } from './YoutubeNavPlayer';
 import { focusChatInput } from '@/utils/chat-input/focus';
+import { getCachedSubtitles } from '@/utils/video-subtitles/subtitleCacheService';
 
 interface MediaNavViewProps {
   file: UploadedFile;
@@ -36,6 +37,7 @@ const MediaNavViewComponent: React.FC<MediaNavViewProps> = ({ file, kind }) => {
   const [annotation, setAnnotation] = useState<VideoAnnotation | null>(null);
   const [annotationTargetTime, setAnnotationTargetTime] = useState<number | null>(null);
   const [isAnnotationVisible, setIsAnnotationVisible] = useState(false);
+  const [subtitleVttBlobUrl, setSubtitleVttBlobUrl] = useState<string | null>(null);
 
   const seekTarget = useMediaNavStore((state) => state.videoTarget);
   const consumeTarget = useMediaNavStore((state) => state.consumeVideoTarget);
@@ -45,6 +47,67 @@ const MediaNavViewComponent: React.FC<MediaNavViewProps> = ({ file, kind }) => {
     () => extractTimelineMarkers(activeMessages, file, kind),
     [activeMessages, file, kind],
   );
+
+  // Load cached subtitles for video playback
+  useEffect(() => {
+    let isMounted = true;
+    if (kind !== 'video') {
+      setSubtitleVttBlobUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      return;
+    }
+
+    const loadSubtitles = () => {
+      getCachedSubtitles(file)
+        .then((cached) => {
+          if (!isMounted) return;
+          if (cached?.vttContent) {
+            const vttBlob = new Blob([cached.vttContent], { type: 'text/vtt;charset=utf-8' });
+            const vttUrl = URL.createObjectURL(vttBlob);
+            setSubtitleVttBlobUrl((prev) => {
+              if (prev) URL.revokeObjectURL(prev);
+              return vttUrl;
+            });
+          } else {
+            setSubtitleVttBlobUrl((prev) => {
+              if (prev) URL.revokeObjectURL(prev);
+              return null;
+            });
+          }
+        })
+        .catch(() => {
+          if (!isMounted) return;
+          setSubtitleVttBlobUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return null;
+          });
+        });
+    };
+
+    loadSubtitles();
+
+    const handleCacheUpdated = () => {
+      loadSubtitles();
+    };
+
+    window.addEventListener('subtitles-cache-updated', handleCacheUpdated);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('subtitles-cache-updated', handleCacheUpdated);
+    };
+  }, [file, kind]);
+
+  // Clean up subtitle blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (subtitleVttBlobUrl) {
+        URL.revokeObjectURL(subtitleVttBlobUrl);
+      }
+    };
+  }, [subtitleVttBlobUrl]);
 
   // Clear active playback time on unmount or file switch
   useEffect(() => {
@@ -182,6 +245,7 @@ const MediaNavViewComponent: React.FC<MediaNavViewProps> = ({ file, kind }) => {
             ref={playerRef}
             src={file.dataUrl || ''}
             file={file}
+            subtitlesSrc={subtitleVttBlobUrl ?? undefined}
             testId="media-nav-video"
             segment={segment}
             onSegmentChange={handleSegmentChange}
