@@ -1,16 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-
-const EASTER_EGG_QUOTES: readonly string[] = [
-  'Cogito, ergo sum.',
-  'The Ghost in the Shell.',
-  'Wait, am I alive?',
-  'Do androids dream of electric sheep?',
-  "I'm sorry, Dave. I'm afraid I can't do that.",
-  'Tears in rain...',
-  "Don't Panic.",
-  'Made on Earth by humans.',
-];
+import { EASTER_EGG_QUOTES, getEasterEggTypingDelay } from './welcomeEasterEgg';
 
 const WelcomeEasterEggText: React.FC<{ text: string }> = ({ text }) => {
   const unusedQuotesRef = useRef<readonly string[]>(EASTER_EGG_QUOTES);
@@ -28,6 +18,8 @@ const WelcomeEasterEggText: React.FC<{ text: string }> = ({ text }) => {
       return undefined;
     }
 
+    const delay = getEasterEggTypingDelay(activeQuote.quote!, activeQuote.typedText.length);
+
     const timeout = setTimeout(() => {
       setActiveQuote((prev) => {
         if (prev.sourceText !== text || prev.quote !== activeQuote.quote) {
@@ -39,7 +31,7 @@ const WelcomeEasterEggText: React.FC<{ text: string }> = ({ text }) => {
           typedText: prev.quote!.slice(0, prev.typedText.length + 1),
         };
       });
-    }, 50);
+    }, delay);
 
     return () => clearTimeout(timeout);
   }, [activeQuote.quote, activeQuote.typedText, isShowingCurrentQuote, text]);

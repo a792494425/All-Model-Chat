@@ -7,7 +7,7 @@ import { WelcomeScreen } from './WelcomeScreen';
 const advanceTypewriter = async (characterCount: number) => {
   for (let index = 0; index < characterCount; index += 1) {
     await act(async () => {
-      vi.advanceTimersByTime(50);
+      vi.advanceTimersToNextTimer();
     });
   }
 };
@@ -89,7 +89,7 @@ describe('WelcomeScreen', () => {
     expect(trigger).not.toHaveTextContent('Cogito, ergo sum.');
 
     await act(async () => {
-      vi.advanceTimersByTime(50);
+      vi.advanceTimersByTime(120);
     });
 
     expect(trigger).toHaveTextContent('C');
@@ -152,5 +152,33 @@ describe('WelcomeScreen', () => {
     });
 
     expect(renderer.container.querySelector('button')).toHaveTextContent('有什么可以帮忙的？');
+  });
+
+  it('pauses with dramatic cadence after punctuation during typing', async () => {
+    await act(async () => {
+      renderer.root.render(<WelcomeScreen />);
+    });
+
+    const trigger = renderer.container.querySelector<HTMLButtonElement>('button');
+    await act(async () => {
+      trigger?.click();
+    });
+
+    // Advance until "Cogito," has been typed (7 characters)
+    await advanceTypewriter(7);
+    expect(trigger).toHaveTextContent('Cogito,');
+
+    // Advancing standard 130ms does not immediately show the next character due to the 750ms pause
+    await act(async () => {
+      vi.advanceTimersByTime(130);
+    });
+    expect(trigger).toHaveTextContent('Cogito,');
+    expect(trigger).not.toHaveTextContent('Cogito, ');
+
+    // Advancing the rest of the 750ms delay outputs the space
+    await act(async () => {
+      vi.advanceTimersByTime(620);
+    });
+    expect(trigger?.textContent?.startsWith('Cogito, ')).toBe(true);
   });
 });
