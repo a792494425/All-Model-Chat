@@ -570,8 +570,19 @@ describe('FilePreviewModal', () => {
       ]);
 
       await act(async () => {
-        renderer.root.render(<FilePreviewModal file={createVideoFile()} onClose={() => {}} />);
+        renderer.root.render(
+          <FilePreviewModal
+            file={createVideoFile()}
+            onClose={() => {}}
+            hasNext={true}
+            onNext={vi.fn()}
+          />,
+        );
       });
+
+      const nextBtnBefore = document.querySelector('[data-testid="file-preview-next-btn"]');
+      expect(nextBtnBefore?.className).toContain('right-2');
+      expect(nextBtnBefore?.className).not.toContain('right-[328px]');
 
       const extractBtn = document.querySelector('[data-testid="extract-subtitles-btn"]') as HTMLButtonElement;
       expect(extractBtn).not.toBeNull();
@@ -586,6 +597,9 @@ describe('FilePreviewModal', () => {
         expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).not.toBeNull();
       });
 
+      const nextBtnWithDrawer = document.querySelector('[data-testid="file-preview-next-btn"]');
+      expect(nextBtnWithDrawer?.className).toContain('right-[328px]');
+
       // Toggle drawer closed
       const toggleBtn = document.querySelector('[data-testid="toggle-subtitles-drawer-btn"]') as HTMLButtonElement;
       expect(toggleBtn).not.toBeNull();
@@ -595,6 +609,8 @@ describe('FilePreviewModal', () => {
       });
 
       expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).toBeNull();
+      const nextBtnClosed = document.querySelector('[data-testid="file-preview-next-btn"]');
+      expect(nextBtnClosed?.className).toContain('right-2');
 
       // Toggle drawer open again
       await act(async () => {
@@ -602,6 +618,8 @@ describe('FilePreviewModal', () => {
       });
 
       expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).not.toBeNull();
+      const nextBtnReopened = document.querySelector('[data-testid="file-preview-next-btn"]');
+      expect(nextBtnReopened?.className).toContain('right-[328px]');
     });
 
     it('shows error state when transcription throws', async () => {
