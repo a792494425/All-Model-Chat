@@ -238,5 +238,89 @@ describe('VideoSubtitlesDrawer', () => {
     fireEvent.click(reExtractBtn);
     expect(onReExtract).toHaveBeenCalledTimes(1);
   });
+
+  it('renders translate button and triggers onTranslate on click', () => {
+    const onTranslateMock = vi.fn();
+    renderer.render(
+      <VideoSubtitlesDrawer
+        cues={mockCues}
+        currentTime={0}
+        onSeek={vi.fn()}
+        onClose={vi.fn()}
+        videoFileName="sample-video.mp4"
+        onTranslate={onTranslateMock}
+      />,
+    );
+
+    const translateBtn = renderer.container.querySelector('button[data-testid="translate-subtitles-btn"]')!;
+    expect(translateBtn).not.toBeNull();
+
+    fireEvent.click(translateBtn);
+    expect(onTranslateMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables translate button while isTranslating is true', () => {
+    renderer.render(
+      <VideoSubtitlesDrawer
+        cues={mockCues}
+        currentTime={0}
+        onSeek={vi.fn()}
+        onClose={vi.fn()}
+        videoFileName="sample-video.mp4"
+        onTranslate={vi.fn()}
+        isTranslating={true}
+      />,
+    );
+
+    const translateBtn = renderer.container.querySelector('button[data-testid="translate-subtitles-btn"]') as HTMLButtonElement;
+    expect(translateBtn.disabled).toBe(true);
+  });
+
+  it('displays mode switcher and switches between bilingual, translation, and original modes', () => {
+    const bilingualCues: SubtitleCue[] = [
+      {
+        ...mockCues[0],
+        translation: 'First sentence translation',
+      },
+      {
+        ...mockCues[1],
+        translation: 'Second sentence translation',
+      },
+    ];
+
+    const onDisplayModeChangeMock = vi.fn();
+
+    renderer.render(
+      <VideoSubtitlesDrawer
+        cues={bilingualCues}
+        currentTime={0}
+        onSeek={vi.fn()}
+        onClose={vi.fn()}
+        videoFileName="sample-video.mp4"
+        onDisplayModeChange={onDisplayModeChangeMock}
+      />,
+    );
+
+    // Should show mode switcher buttons
+    const bilingualBtn = renderer.container.querySelector('button[data-testid="subtitles-mode-bilingual"]')!;
+    const transOnlyBtn = renderer.container.querySelector('button[data-testid="subtitles-mode-translation"]')!;
+    const origOnlyBtn = renderer.container.querySelector('button[data-testid="subtitles-mode-original"]')!;
+
+    expect(bilingualBtn).not.toBeNull();
+    expect(transOnlyBtn).not.toBeNull();
+    expect(origOnlyBtn).not.toBeNull();
+
+    // Default should display both original and translation in cue cards
+    expect(renderer.container.textContent).toContain('第一句字幕测试');
+    expect(renderer.container.textContent).toContain('First sentence translation');
+
+    // Switch to translation only
+    fireEvent.click(transOnlyBtn);
+    expect(onDisplayModeChangeMock).toHaveBeenCalledWith('translation');
+
+    // Switch to original only
+    fireEvent.click(origOnlyBtn);
+    expect(onDisplayModeChangeMock).toHaveBeenCalledWith('original');
+  });
 });
 

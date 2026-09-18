@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Download, Copy, Check, X, Search, Subtitles, RotateCw, FileText } from 'lucide-react';
+import { Download, Copy, Check, X, Search, Subtitles, RotateCw, FileText, Languages } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import {
   type SubtitleCue,
+  type SubtitleDisplayMode,
   generateSrtContent,
   generateVttContent,
   downloadTextFile,
@@ -16,6 +17,10 @@ export interface VideoSubtitlesDrawerProps {
   videoFileName: string;
   onReExtract?: () => void;
   isFromCache?: boolean;
+  onTranslate?: () => void | Promise<void>;
+  isTranslating?: boolean;
+  displayMode?: SubtitleDisplayMode;
+  onDisplayModeChange?: (mode: SubtitleDisplayMode) => void;
 }
 
 export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
@@ -26,11 +31,35 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
   videoFileName,
   onReExtract,
   isFromCache,
+  onTranslate,
+  isTranslating,
+  displayMode: controlledDisplayMode,
+  onDisplayModeChange,
 }) => {
   const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const activeCueRef = useRef<HTMLDivElement | null>(null);
+
+  const hasTranslations = useMemo(() => cues.some((c) => Boolean(c.translation)), [cues]);
+
+  const [internalDisplayMode, setInternalDisplayMode] = useState<SubtitleDisplayMode>(
+    hasTranslations ? 'bilingual' : 'original',
+  );
+
+  // Auto-switch to bilingual when translations become available if not controlled
+  useEffect(() => {
+    if (hasTranslations && controlledDisplayMode === undefined && internalDisplayMode === 'original') {
+      setInternalDisplayMode('bilingual');
+    }
+  }, [hasTranslations, controlledDisplayMode, internalDisplayMode]);
+
+  const currentDisplayMode = controlledDisplayMode !== undefined ? controlledDisplayMode : internalDisplayMode;
+
+  const handleModeChange = (mode: SubtitleDisplayMode) => {
+    setInternalDisplayMode(mode);
+    onDisplayModeChange?.(mode);
+  };
 
   // Compute base filename without extension
   const baseFileName = useMemo(() => {
@@ -59,25 +88,48 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
     if (!searchQuery.trim()) return cues;
     const query = searchQuery.toLowerCase().trim();
     return cues.filter(
-      (c) => c.text.toLowerCase().includes(query) || (c.speaker && c.speaker.toLowerCase().includes(query)),
+      (c) =>
+        c.text.toLowerCase().includes(query) ||
+        (c.translation && c.translation.toLowerCase().includes(query)) ||
+        (c.speaker && c.speaker.toLowerCase().includes(query)),
     );
   }, [cues, searchQuery]);
 
   const handleDownloadSrt = () => {
     if (!cues.length) return;
-    const srtContent = generateSrtContent(cues);
-    downloadTextFile(`${baseFileName}.srt`, srtContent, 'text/plain;charset=utf-8');
+    const srtContent = generateSrtContent(cues, { mode: currentDisplayMode });
+    const suffix = currentDisplayMode === 'bilingual' ? '.bilingual' : currentDisplayMode === 'translation' ? '.trans' : '';
+    downloadTextFile(`${baseFileName}${suffix}.srt`, srtContent, 'text/plain;charset=utf-8');
   };
 
   const handleDownloadVtt = () => {
     if (!cues.length) return;
-    const vttContent = generateVttContent(cues);
-    downloadTextFile(`${baseFileName}.vtt`, vttContent, 'text/vtt;charset=utf-8');
+    const vttContent = generateVttContent(cues, { mode: currentDisplayMode });
+    const suffix = currentDisplayMode === 'bilingual' ? '.bilingual' : currentDisplayMode === 'translation' ? '.trans' : '';
+    downloadTextFile(`${baseFileName}${suffix}.vtt`, vttContent, 'text/vtt;charset=utf-8');
   };
 
   const handleCopyText = async () => {
     if (!cues.length) return;
-    const plainText = cues.map((c) => (c.speaker ? `[${c.speaker}] ${c.text}` : c.text)).join('\n');
+    let plainText = '';
+    if (currentDisplayMode === 'bilingual') {
+      plainText = cues
+        .map((c) => {
+          const speakerPrefix = c.speaker ? `[${c.speaker}] ` : '';
+          return c.translation ? `${speakerPrefix}${c.text}\n${c.translation}` : `${speakerPrefix}${c.text}`;
+        })
+        .join('\n\n');
+    } else if (currentDisplayMode === 'translation') {
+      plainText = cues
+        .map((c) => {
+          const speakerPrefix = c.speaker ? `[${c.speaker}] ` : '';
+          return `${speakerPrefix}${c.translation || c.text}`;
+        })
+        .join('\n');
+    } else {
+      plainText = cues.map((c) => (c.speaker ? `[${c.speaker}] ${c.text}` : c.text)).join('\n');
+    }
+
     try {
       await navigator.clipboard.writeText(plainText);
       setIsCopied(true);
@@ -113,6 +165,26 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
         </div>
 
         <div className="flex items-center gap-1">
+          {/* Translate Subtitles */}
+          {onTranslate && (
+            <button
+              type="button"
+              onClick={onTranslate}
+              disabled={cues.length === 0 || isTranslating}
+              className={`p-1.5 rounded text-xs transition-colors cursor-pointer flex items-center gap-1 ${
+                isTranslating
+                  ? 'text-sky-400 bg-sky-500/10 animate-pulse'
+                  : hasTranslations
+                  ? 'text-sky-300 hover:text-white hover:bg-white/10'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+              }`}
+              data-testid="translate-subtitles-btn"
+              title={isTranslating ? t('translatingSubtitles') : t('translateSubtitles')}
+            >
+              <Languages size={13} className={isTranslating ? 'animate-spin' : ''} />
+            </button>
+          )}
+
           {/* Re-extract Subtitles */}
           {onReExtract && (
             <button
@@ -177,6 +249,42 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
         </div>
       </div>
 
+      {/* Mode Switcher Bar */}
+      {hasTranslations && (
+        <div className="flex items-center gap-1 px-3 py-1.5 bg-[#141517]/80 border-b border-white/5 text-[11px] select-none">
+          <button
+            type="button"
+            onClick={() => handleModeChange('bilingual')}
+            data-testid="subtitles-mode-bilingual"
+            className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+              currentDisplayMode === 'bilingual' ? 'bg-sky-500/30 text-sky-200 font-medium' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            {t('subtitlesBilingual')}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleModeChange('translation')}
+            data-testid="subtitles-mode-translation"
+            className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+              currentDisplayMode === 'translation' ? 'bg-sky-500/30 text-sky-200 font-medium' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            {t('subtitlesTranslationOnly')}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleModeChange('original')}
+            data-testid="subtitles-mode-original"
+            className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+              currentDisplayMode === 'original' ? 'bg-sky-500/30 text-sky-200 font-medium' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            {t('subtitlesOriginalOnly')}
+          </button>
+        </div>
+      )}
+
       {/* Search Bar */}
       {cues.length > 0 && (
         <div className="px-3 py-2 border-b border-white/5 bg-[#141517]/50">
@@ -239,7 +347,24 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
                     </span>
                   )}
                 </div>
-                <p className={`text-xs leading-relaxed break-words ${isActive ? 'font-medium' : ''}`}>{cue.text}</p>
+                {currentDisplayMode === 'translation' && cue.translation ? (
+                  <p className={`text-xs leading-relaxed break-words ${isActive ? 'font-medium text-white' : ''}`}>
+                    {cue.translation}
+                  </p>
+                ) : currentDisplayMode === 'bilingual' && cue.translation ? (
+                  <>
+                    <p className={`text-xs leading-relaxed break-words ${isActive ? 'font-medium text-white' : ''}`}>
+                      {cue.text}
+                    </p>
+                    <p className="text-xs leading-relaxed break-words text-sky-300/90 mt-1 pt-1 border-t border-white/5">
+                      {cue.translation}
+                    </p>
+                  </>
+                ) : (
+                  <p className={`text-xs leading-relaxed break-words ${isActive ? 'font-medium text-white' : ''}`}>
+                    {cue.text}
+                  </p>
+                )}
               </div>
             );
           })

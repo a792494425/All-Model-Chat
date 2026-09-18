@@ -5,6 +5,9 @@ export interface CachedSubtitles {
   cues: SubtitleCue[];
   srtContent: string;
   vttContent: string;
+  bilingualVttContent?: string;
+  translatedVttContent?: string;
+  targetLanguage?: string;
   durationSeconds?: number;
   createdAt: number;
 }
@@ -59,6 +62,9 @@ export async function saveCachedSubtitles(
     cues: SubtitleCue[];
     srtContent: string;
     vttContent: string;
+    bilingualVttContent?: string;
+    translatedVttContent?: string;
+    targetLanguage?: string;
     durationSeconds?: number;
   },
 ): Promise<void> {

@@ -158,6 +158,12 @@ vi.mock('@/utils/video-subtitles/subtitleCacheService', () => ({
   saveCachedSubtitles: mockSaveCachedSubtitles,
 }));
 
+const mockTranslateSubtitlesWithGemini = vi.fn();
+
+vi.mock('@/utils/video-subtitles/geminiSubtitleTranslateService', () => ({
+  translateSubtitlesWithGemini: (...args: any[]) => mockTranslateSubtitlesWithGemini(...args),
+}));
+
 import { FilePreviewModal } from './FilePreviewModal';
 
 describe('FilePreviewModal', () => {
@@ -685,6 +691,74 @@ describe('FilePreviewModal', () => {
             durationSeconds: 12,
             srtContent: expect.stringContaining('Saved Subtitle'),
             vttContent: expect.stringContaining('Saved Subtitle'),
+          }),
+        );
+      });
+    });
+
+    it('translates subtitles and saves bilingual cache when translate button is clicked', async () => {
+      mockGetCachedSubtitles.mockResolvedValueOnce({
+        cues: [
+          {
+            id: 1,
+            startSeconds: 0,
+            endSeconds: 3,
+            startTimeSrt: '00:00:00,000',
+            endTimeSrt: '00:00:03,000',
+            startTimeVtt: '00:00:00.000',
+            endTimeVtt: '00:00:03.000',
+            text: 'Original English line',
+          },
+        ],
+        srtContent: '...',
+        vttContent: '...',
+        durationSeconds: 5,
+        createdAt: Date.now(),
+      });
+
+      mockTranslateSubtitlesWithGemini.mockResolvedValueOnce([
+        {
+          id: 1,
+          startSeconds: 0,
+          endSeconds: 3,
+          startTimeSrt: '00:00:00,000',
+          endTimeSrt: '00:00:03,000',
+          startTimeVtt: '00:00:00.000',
+          endTimeVtt: '00:00:03.000',
+          text: 'Original English line',
+          translation: '翻译后的中文台词',
+        },
+      ]);
+
+      await act(async () => {
+        renderer.root.render(<FilePreviewModal file={createVideoFile()} onClose={() => {}} />);
+      });
+
+      // Open drawer
+      await vi.waitFor(() => {
+        const toggleBtn = document.querySelector('[data-testid="toggle-subtitles-drawer-btn"]') as HTMLButtonElement;
+        expect(toggleBtn).not.toBeNull();
+      });
+
+      const toggleBtn = document.querySelector('[data-testid="toggle-subtitles-drawer-btn"]') as HTMLButtonElement;
+      await act(async () => {
+        toggleBtn.click();
+      });
+
+      const translateBtn = document.querySelector('[data-testid="translate-subtitles-btn"]') as HTMLButtonElement;
+      expect(translateBtn).not.toBeNull();
+
+      await act(async () => {
+        translateBtn.click();
+      });
+
+      await vi.waitFor(() => {
+        expect(mockTranslateSubtitlesWithGemini).toHaveBeenCalledTimes(1);
+        expect(mockSaveCachedSubtitles).toHaveBeenCalledWith(
+          expect.objectContaining({ name: 'video.mp4' }),
+          expect.objectContaining({
+            bilingualVttContent: expect.stringContaining('翻译后的中文台词'),
+            translatedVttContent: expect.stringContaining('翻译后的中文台词'),
           }),
         );
       });

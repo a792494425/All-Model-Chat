@@ -136,6 +136,38 @@ describe('subtitleFormatter', () => {
       const vttCustom = generateVttContent(sampleCues, { line: '90%' });
       expect(vttCustom).toContain('00:00:01.000 --> 00:00:02.500 line:90%\nHello world.');
     });
+
+    it('supports bilingual and translation-only mode for SRT and VTT', () => {
+      const bilingualCues = [
+        {
+          ...sampleCues[0],
+          translation: '你好，世界。',
+        },
+        {
+          ...sampleCues[1],
+          translation: '你最近好吗？',
+        },
+      ];
+
+      // Bilingual SRT
+      const bilingualSrt = generateSrtContent(bilingualCues, { mode: 'bilingual' });
+      expect(bilingualSrt).toContain('1\n00:00:01,000 --> 00:00:02,500\nHello world.\n你好，世界。');
+      expect(bilingualSrt).toContain('2\n00:00:03,000 --> 00:00:04,500\nHow are you?\n你最近好吗？');
+
+      // Translation-only SRT
+      const translationSrt = generateSrtContent(bilingualCues, { mode: 'translation' });
+      expect(translationSrt).toContain('1\n00:00:01,000 --> 00:00:02,500\n你好，世界。');
+      expect(translationSrt).not.toContain('Hello world.');
+
+      // Bilingual VTT
+      const bilingualVtt = generateVttContent(bilingualCues, { mode: 'bilingual' });
+      expect(bilingualVtt).toContain('00:00:01.000 --> 00:00:02.500 line:84%\nHello world.\n你好，世界。');
+
+      // Translation-only VTT
+      const translationVtt = generateVttContent(bilingualCues, { mode: 'translation' });
+      expect(translationVtt).toContain('00:00:01.000 --> 00:00:02.500 line:84%\n你好，世界。');
+      expect(translationVtt).not.toContain('Hello world.');
+    });
   });
 
   describe('downloadTextFile', () => {

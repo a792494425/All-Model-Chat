@@ -253,4 +253,34 @@ describe('MediaNavView', () => {
     expect(mockGetCachedSubtitles).not.toHaveBeenCalled();
     expect(renderer.container.querySelector('track')).toBeNull();
   });
+
+  it('prefers bilingualVttContent when present in cache', async () => {
+    mockGetCachedSubtitles.mockResolvedValueOnce({
+      cues: [
+        {
+          id: 1,
+          startSeconds: 0,
+          endSeconds: 3,
+          startTimeSrt: '00:00:00,000',
+          endTimeSrt: '00:00:03,000',
+          startTimeVtt: '00:00:00.000',
+          endTimeVtt: '00:00:03.000',
+          text: 'Hello world',
+          translation: '你好，世界',
+        },
+      ],
+      srtContent: '...',
+      vttContent: 'WEBVTT\n\n1\n00:00:00.000 --> 00:00:03.000\nHello world\n',
+      bilingualVttContent: 'WEBVTT\n\n1\n00:00:00.000 --> 00:00:03.000\nHello world\n你好，世界\n',
+    });
+
+    await act(async () => {
+      renderer.render(<MediaNavView file={mockVideoFile} kind="video" />);
+    });
+
+    const video = renderer.container.querySelector('[data-testid="media-nav-video"]') as HTMLVideoElement;
+    const track = video.querySelector('track');
+    expect(track).not.toBeNull();
+    expect(track?.getAttribute('src')).toBeTruthy();
+  });
 });

@@ -64,7 +64,8 @@ const MediaNavViewComponent: React.FC<MediaNavViewProps> = ({ file, kind }) => {
         .then((cached) => {
           if (!isMounted) return;
           if (cached?.vttContent) {
-            const vttBlob = new Blob([cached.vttContent], { type: 'text/vtt;charset=utf-8' });
+            const vttContentToUse = cached.bilingualVttContent || cached.vttContent;
+            const vttBlob = new Blob([vttContentToUse], { type: 'text/vtt;charset=utf-8' });
             const vttUrl = URL.createObjectURL(vttBlob);
             setSubtitleVttBlobUrl((prev) => {
               if (prev) URL.revokeObjectURL(prev);

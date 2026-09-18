@@ -33,10 +33,12 @@ import { extractAudioFromVideo } from '@/utils/video-subtitles/extractAudioFromV
 import { transcribeAudioWithGemini } from '@/utils/video-subtitles/geminiTranscribeService';
 import {
   type SubtitleCue,
+  type SubtitleDisplayMode,
   groupWordsIntoCues,
   generateVttContent,
   generateSrtContent,
 } from '@/utils/video-subtitles/subtitleFormatter';
+import { translateSubtitlesWithGemini } from '@/utils/video-subtitles/geminiSubtitleTranslateService';
 import { getCachedSubtitles, saveCachedSubtitles } from '@/utils/video-subtitles/subtitleCacheService';
 import { VideoSubtitlesDrawer } from '@/components/shared/file-preview/video/VideoSubtitlesDrawer';
 import { getGeminiKeyForRequest, formatApiKeyErrorMessage } from '@/utils/apiKeySelection';
@@ -131,6 +133,28 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   const [isFromCache, setIsFromCache] = useState(false);
   const subtitleAbortControllerRef = useRef<AbortController | null>(null);
 
+  const [subtitleDisplayMode, setSubtitleDisplayMode] = useState<SubtitleDisplayMode>('bilingual');
+  const [isTranslatingSubtitles, setIsTranslatingSubtitles] = useState(false);
+
+  const updateVttBlobUrl = useCallback((cues: SubtitleCue[], mode: SubtitleDisplayMode) => {
+    if (!cues || cues.length === 0) return;
+    const vttContent = generateVttContent(cues, { mode });
+    const vttBlob = new Blob([vttContent], { type: 'text/vtt;charset=utf-8' });
+    const vttUrl = URL.createObjectURL(vttBlob);
+    setSubtitleVttBlobUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return vttUrl;
+    });
+  }, []);
+
+  const handleDisplayModeChange = useCallback(
+    (mode: SubtitleDisplayMode) => {
+      setSubtitleDisplayMode(mode);
+      updateVttBlobUrl(subtitleCues, mode);
+    },
+    [subtitleCues, updateVttBlobUrl],
+  );
+
   useEffect(() => {
     let isMounted = true;
     if (!isVideo) return;
@@ -139,7 +163,10 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       getCachedSubtitles(file).then((cached) => {
         if (!isMounted || !cached) return;
         setSubtitleCues(cached.cues);
-        const vttBlob = new Blob([cached.vttContent], { type: 'text/vtt;charset=utf-8' });
+        const hasTrans = cached.cues.some((c) => Boolean(c.translation));
+        const targetMode = hasTrans ? subtitleDisplayMode : 'original';
+        const vttContent = generateVttContent(cached.cues, { mode: targetMode });
+        const vttBlob = new Blob([vttContent], { type: 'text/vtt;charset=utf-8' });
         const vttUrl = URL.createObjectURL(vttBlob);
         setSubtitleVttBlobUrl((prev) => {
           if (prev) URL.revokeObjectURL(prev);
@@ -162,7 +189,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       isMounted = false;
       window.removeEventListener('subtitles-cache-updated', handleCacheUpdated);
     };
-  }, [file, isVideo]);
+  }, [file, isVideo, subtitleDisplayMode]);
 
   useEffect(() => {
     return () => {
@@ -270,6 +297,55 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       toastError(errMsg);
     }
   }, [appSettings, file, previewFile, subtitlePhase, subtitleVttBlobUrl, t]);
+
+  const handleTranslateSubtitles = useCallback(async () => {
+    if (isTranslatingSubtitles || subtitleCues.length === 0) return;
+
+    let apiKey: string | null = null;
+    const keyResult = getGeminiKeyForRequest(appSettings, { modelId: 'gemini-2.5-flash' } as any, {
+      skipIncrement: true,
+    });
+    if (!('error' in keyResult)) {
+      apiKey = keyResult.key;
+    } else if (appSettings?.apiKey) {
+      apiKey = appSettings.apiKey;
+    }
+
+    if (!apiKey) {
+      toastError(formatApiKeyErrorMessage('error' in keyResult ? keyResult.error : 'API Key not configured.', t));
+      return;
+    }
+
+    setIsTranslatingSubtitles(true);
+    try {
+      const translatedCues = await translateSubtitlesWithGemini(apiKey, subtitleCues, {
+        targetLanguage: 'Chinese',
+      });
+      setSubtitleCues(translatedCues);
+      setSubtitleDisplayMode('bilingual');
+      updateVttBlobUrl(translatedCues, 'bilingual');
+
+      const srtContent = generateSrtContent(translatedCues);
+      const vttContent = generateVttContent(translatedCues);
+      const bilingualVttContent = generateVttContent(translatedCues, { mode: 'bilingual' });
+      const translatedVttContent = generateVttContent(translatedCues, { mode: 'translation' });
+
+      await saveCachedSubtitles(file, {
+        cues: translatedCues,
+        srtContent,
+        vttContent,
+        bilingualVttContent,
+        translatedVttContent,
+        targetLanguage: 'Chinese',
+      });
+      toastSuccess(t('subtitlesReady'));
+    } catch (err: any) {
+      logService.error('[FilePreviewModal] Subtitle translation failed:', err);
+      toastError(err?.message || t('translateFailed'));
+    } finally {
+      setIsTranslatingSubtitles(false);
+    }
+  }, [isTranslatingSubtitles, subtitleCues, appSettings, t, file, updateVttBlobUrl]);
 
   const subtitleActions = useMemo(() => {
     if (!isVideo) return null;
@@ -641,6 +717,10 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
                   videoFileName={file.name}
                   onReExtract={handleExtractSubtitles}
                   isFromCache={isFromCache}
+                  onTranslate={handleTranslateSubtitles}
+                  isTranslating={isTranslatingSubtitles}
+                  displayMode={subtitleDisplayMode}
+                  onDisplayModeChange={handleDisplayModeChange}
                 />
               )}
             </div>

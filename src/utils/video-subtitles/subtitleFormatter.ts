@@ -15,7 +15,10 @@ export interface SubtitleCue {
   endTimeVtt: string; // "00:00:01.550"
   text: string;
   speaker?: string;
+  translation?: string;
 }
+
+export type SubtitleDisplayMode = 'original' | 'bilingual' | 'translation';
 
 /**
  * Parses offset string (e.g. "1.250s", "12s") to float seconds.
@@ -140,29 +143,51 @@ export function groupWordsIntoCues(words: WordAnnotation[]): SubtitleCue[] {
 
 /**
  * Serializes SubtitleCue[] into standard SubRip (.srt) format.
+ * Supports bilingual (original + translation) or translation-only output.
  */
-export function generateSrtContent(cues: SubtitleCue[]): string {
+export function generateSrtContent(
+  cues: SubtitleCue[],
+  options?: { mode?: SubtitleDisplayMode },
+): string {
+  const mode = options?.mode || 'original';
   return cues
     .map((cue) => {
       const speakerPrefix = cue.speaker ? `[${cue.speaker}] ` : '';
-      return `${cue.id}\n${cue.startTimeSrt} --> ${cue.endTimeSrt}\n${speakerPrefix}${cue.text}\n`;
+      let contentText = `${speakerPrefix}${cue.text}`;
+      if (mode === 'bilingual' && cue.translation) {
+        contentText = `${speakerPrefix}${cue.text}\n${cue.translation}`;
+      } else if (mode === 'translation' && cue.translation) {
+        contentText = `${speakerPrefix}${cue.translation}`;
+      }
+      return `${cue.id}\n${cue.startTimeSrt} --> ${cue.endTimeSrt}\n${contentText}\n`;
     })
     .join('\n');
 }
 
 /**
  * Serializes SubtitleCue[] into standard WebVTT (.vtt) format.
- * Supports line positioning (defaults to line:84% so cues float above video control bars).
+ * Supports line positioning (defaults to line:84% so cues float above video control bars)
+ * and bilingual / translation-only modes.
  */
-export function generateVttContent(cues: SubtitleCue[], options?: { line?: string }): string {
+export function generateVttContent(
+  cues: SubtitleCue[],
+  options?: { line?: string; mode?: SubtitleDisplayMode },
+): string {
   const lineParam = options?.line !== undefined ? options.line : '84%';
   const lineSuffix = lineParam ? ` line:${lineParam}` : '';
+  const mode = options?.mode || 'original';
 
   const cuesBody = cues
     .map((cue) => {
       const speakerPrefix = cue.speaker ? `<v ${cue.speaker}>` : '';
       const speakerSuffix = cue.speaker ? '</v>' : '';
-      return `${cue.id}\n${cue.startTimeVtt} --> ${cue.endTimeVtt}${lineSuffix}\n${speakerPrefix}${cue.text}${speakerSuffix}\n`;
+      let contentLines = `${speakerPrefix}${cue.text}${speakerSuffix}`;
+      if (mode === 'bilingual' && cue.translation) {
+        contentLines = `${speakerPrefix}${cue.text}${speakerSuffix}\n${cue.translation}`;
+      } else if (mode === 'translation' && cue.translation) {
+        contentLines = `${speakerPrefix}${cue.translation}${speakerSuffix}`;
+      }
+      return `${cue.id}\n${cue.startTimeVtt} --> ${cue.endTimeVtt}${lineSuffix}\n${contentLines}\n`;
     })
     .join('\n');
 
