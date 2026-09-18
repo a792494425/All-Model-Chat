@@ -243,7 +243,7 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
   return (
     <div
       onClick={handleClick}
-      className={`flex items-center gap-3 p-2.5 rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] hover:bg-[var(--theme-bg-tertiary)]/50 transition-all shadow-sm hover:shadow max-w-sm sm:max-w-md relative group ${file.error ? 'border-[var(--theme-bg-danger)]/50' : ''} ${isClickable ? 'cursor-pointer' : ''}`}
+      className={`flex items-center gap-3 p-2.5 rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] hover:bg-[var(--theme-bg-tertiary)]/50 transition-all shadow-sm hover:shadow w-full max-w-md sm:max-w-lg relative group ${file.error ? 'border-[var(--theme-bg-danger)]/50' : ''} ${isClickable ? 'cursor-pointer' : ''}`}
     >
       <div className="w-12 h-12 rounded-lg overflow-hidden border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] flex-shrink-0 relative">
         <FileThumbnail file={file} Icon={Icon} colorClass={colorClass} bgClass={bgClass} />
@@ -255,7 +255,10 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
       </div>
 
       <div className="flex-grow min-w-0">
-        <p className="text-sm font-medium text-[var(--theme-text-primary)] truncate" title={file.name}>
+        <p
+          className="text-sm font-medium text-[var(--theme-text-primary)] line-clamp-2 break-all leading-snug"
+          title={file.name}
+        >
           {formatDisplayFileName(file.name)}
         </p>
         <div className="flex items-center gap-1.5 text-xs text-[var(--theme-text-tertiary)]">
@@ -313,7 +316,7 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
         )}
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-shrink-0">
         {isUploading && file.abortController && (
           <button
             type="button"

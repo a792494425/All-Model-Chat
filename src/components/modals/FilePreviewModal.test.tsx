@@ -528,13 +528,15 @@ describe('FilePreviewModal', () => {
   });
 
   describe('video subtitle extraction', () => {
-    it('renders extract subtitles button for video files', async () => {
+    it('renders extract subtitles button for video files with high-contrast classes', async () => {
       await act(async () => {
         renderer.root.render(<FilePreviewModal file={createVideoFile()} onClose={() => {}} />);
       });
 
       const extractBtn = document.querySelector('[data-testid="extract-subtitles-btn"]');
       expect(extractBtn).not.toBeNull();
+      expect(extractBtn).toHaveClass('text-sky-200');
+      expect(extractBtn?.textContent?.trim()).toBe('Extract Subtitles');
     });
 
     it('extracts audio, transcribes with Gemini, and displays subtitles drawer', async () => {

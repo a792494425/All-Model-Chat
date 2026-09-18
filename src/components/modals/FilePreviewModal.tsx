@@ -234,9 +234,9 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       return (
         <div
           data-testid="subtitles-progress-badge"
-          className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg bg-white/10 text-white/90 border border-white/10"
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg bg-sky-500/15 text-sky-200 border border-sky-500/30"
         >
-          <Loader2 size={13} className="animate-spin text-primary flex-shrink-0" />
+          <Loader2 size={13} className="animate-spin text-sky-300 flex-shrink-0" />
           <span className="truncate max-w-[200px]">{label}</span>
         </div>
       );
@@ -248,7 +248,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
           type="button"
           onClick={() => setIsSubtitlesDrawerOpen((prev) => !prev)}
           className={`px-2.5 py-1 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer ${
-            isSubtitlesDrawerOpen ? 'bg-primary text-white shadow-sm' : 'bg-white/10 hover:bg-white/20 text-white/90'
+            isSubtitlesDrawerOpen ? 'bg-sky-600 text-white shadow-sm' : 'bg-white/10 hover:bg-white/20 text-white/90'
           }`}
           data-testid="toggle-subtitles-drawer-btn"
           title={t('videoSubtitles')}
@@ -264,11 +264,11 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       <button
         type="button"
         onClick={handleExtractSubtitles}
-        className="px-2.5 py-1 text-xs font-medium rounded-lg bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+        className="px-2.5 py-1 text-xs font-medium rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 hover:text-white border border-sky-500/40 flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
         data-testid="extract-subtitles-btn"
         title={t('extractSubtitles')}
       >
-        <Sparkles size={13} className="text-primary" />
+        <Sparkles size={13} className="text-sky-300" />
         <span>{t('extractSubtitles')}</span>
       </button>
     );

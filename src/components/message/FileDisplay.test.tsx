@@ -186,4 +186,31 @@ describe('FileDisplay', () => {
     expect(renderer.container.textContent).toContain('1.5 MB/s');
     expect(renderer.container.querySelector('.animate-spin')).not.toBeNull();
   });
+
+  it('allows document file cards to expand and wraps long filenames across two lines with line-clamp-2', () => {
+    act(() => {
+      renderer.root.render(
+        <FileDisplay
+          file={createUploadedFile({
+            id: 'long-video-1',
+            name: '2 X 上的 るな生意気すぎても結局これw httpst.colsY6YwgApx X.mp4',
+            type: 'video/mp4',
+            size: 6186598,
+            dataUrl: 'blob:video',
+          })}
+          onFileClick={() => {}}
+          isFromMessageList
+        />,
+      );
+    });
+
+    const card = renderer.container.querySelector('div.group');
+    expect(card).toHaveClass('max-w-md');
+    expect(card).toHaveClass('sm:max-w-lg');
+
+    const titleEl = renderer.container.querySelector('p');
+    expect(titleEl).toHaveClass('line-clamp-2');
+    expect(titleEl).toHaveClass('break-all');
+    expect(titleEl?.getAttribute('title')).toBe('2 X 上的 るな生意気すぎても結局これw httpst.colsY6YwgApx X.mp4');
+  });
 });

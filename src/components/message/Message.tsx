@@ -77,7 +77,7 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
 
   const widthConstraints =
     message.role === 'user'
-      ? `${CHAT_USER_MESSAGE_INSET_CLASS} max-w-[80%] sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl`
+      ? `${CHAT_USER_MESSAGE_INSET_CLASS} max-w-[88%] sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl`
       : 'max-w-[calc(100%-2.5rem)] sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl';
 
   let bubbleClasses = `flex flex-col min-w-0 transition-all duration-200 ${widthConstraints} message-content-container `;
