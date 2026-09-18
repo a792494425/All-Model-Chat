@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import {
   fetchOpenAIResponsesModels,
+  generateOpenAIResponsesTurnApi,
   sendOpenAIResponsesNonStream,
   sendOpenAIResponsesStream,
 } from './openaiResponsesApi';
@@ -325,5 +326,140 @@ describe('fetchOpenAIResponsesModels', () => {
       { id: 'gpt-4o', name: 'gpt-4o' },
       { id: 'o4-mini', name: 'o4-mini' },
     ]);
+  });
+});
+
+describe('generateOpenAIResponsesTurnApi', () => {
+  it('executes a turn and returns text and tool calls', async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockResponse(
+        JSON.stringify({
+          status: 'completed',
+          output: [
+            {
+              type: 'message',
+              role: 'assistant',
+              content: [{ type: 'text', text: 'Let me fetch that for you.' }],
+            },
+            {
+              type: 'function_call',
+              id: 'fc_1',
+              call_id: 'call_123',
+              name: 'getWeather',
+              arguments: '{"city":"Tokyo"}',
+            },
+          ],
+          usage: { input_tokens: 15, output_tokens: 25, total_tokens: 40 },
+        }),
+      ),
+    );
+
+    const result = await generateOpenAIResponsesTurnApi(
+      'sk-test-key',
+      'gpt-4o',
+      [{ role: 'user', parts: [{ text: "What's the weather in Tokyo?" }] }],
+      { baseUrl: 'https://api.openai.com/v1' },
+      new AbortController().signal,
+    );
+
+    expect(result.parts).toEqual([
+      { text: 'Let me fetch that for you.' },
+      {
+        functionCall: {
+          id: 'call_123',
+          name: 'getWeather',
+          args: { city: 'Tokyo' },
+        },
+      },
+    ]);
+    expect(result.functionCalls).toEqual([
+      {
+        id: 'call_123',
+        name: 'getWeather',
+        args: { city: 'Tokyo' },
+      },
+    ]);
+    expect(result.usage).toEqual({
+      promptTokenCount: 15,
+      candidatesTokenCount: 25,
+      totalTokenCount: 40,
+    });
+  });
+
+  it('handles raw arguments when arguments are not valid JSON', async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockResponse(
+        JSON.stringify({
+          status: 'completed',
+          output: [
+            {
+              type: 'function_call',
+              call_id: 'call_raw',
+              name: 'rawTool',
+              arguments: '{invalid_json',
+            },
+          ],
+        }),
+      ),
+    );
+
+    const result = await generateOpenAIResponsesTurnApi(
+      'sk-test-key',
+      'gpt-4o',
+      [{ role: 'user', parts: [{ text: 'hi' }] }],
+      {},
+      new AbortController().signal,
+    );
+
+    expect(result.functionCalls).toEqual([
+      {
+        id: 'call_raw',
+        name: 'rawTool',
+        args: { raw: '{invalid_json' },
+      },
+    ]);
+  });
+
+  it('throws error when generation is filtered and no content/tools returned', async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockResponse(
+        JSON.stringify({
+          status: 'failed',
+          incomplete_details: { reason: 'content_filter' },
+          output: [],
+        }),
+      ),
+    );
+
+    await expect(
+      generateOpenAIResponsesTurnApi(
+        'sk-test-key',
+        'gpt-4o',
+        [{ role: 'user', parts: [{ text: 'hi' }] }],
+        {},
+        new AbortController().signal,
+      ),
+    ).rejects.toThrow('The model returned no content because generation was filtered (reason: content_filter).');
+  });
+
+  it('throws error when model returns completely empty response', async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockResponse(
+        JSON.stringify({
+          status: 'completed',
+          output: [],
+        }),
+      ),
+    );
+
+    await expect(
+      generateOpenAIResponsesTurnApi(
+        'sk-test-key',
+        'gpt-4o',
+        [{ role: 'user', parts: [{ text: 'hi' }] }],
+        {},
+        new AbortController().signal,
+      ),
+    ).rejects.toThrow('The model returned an empty response.');
   });
 });

@@ -39,7 +39,22 @@ export interface OpenAIResponsesInputMessage {
   content: string | OpenAIResponsesContentPart[];
 }
 
-export type OpenAIResponsesInputItem = OpenAIResponsesInputMessage;
+export interface OpenAIResponsesFunctionCallItem {
+  type: 'function_call';
+  call_id: string;
+  name: string;
+  arguments: string;
+  id?: string;
+}
+
+export interface OpenAIResponsesFunctionCallOutputItem {
+  type: 'function_call_output';
+  call_id: string;
+  output: string;
+}
+
+export type OpenAIResponsesInputItem =
+  OpenAIResponsesInputMessage | OpenAIResponsesFunctionCallItem | OpenAIResponsesFunctionCallOutputItem;
 
 export interface OpenAIResponsesRequestBody {
   [key: string]: unknown;
@@ -77,6 +92,9 @@ export type OpenAIResponsesOutputItem = {
   role?: string;
   content?: OpenAIResponsesOutputContentBlock[] | string;
   summary?: string[];
+  call_id?: string;
+  name?: string;
+  arguments?: string;
 };
 
 export type OpenAIResponsesResponsePayload = {

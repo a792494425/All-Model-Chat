@@ -146,4 +146,57 @@ describe('openaiResponsesMessages', () => {
 
     expect(body.input[0].content).toBe('SELECT * FROM users;\nOptimize this query.');
   });
+
+  it('serializes historical function calls and function responses into Responses API input items', () => {
+    const history = [
+      {
+        role: 'user' as const,
+        parts: [{ text: "What's the weather?" }],
+      },
+      {
+        role: 'model' as const,
+        parts: [
+          { text: 'Checking now...' },
+          {
+            functionCall: {
+              id: 'call_abc',
+              name: 'getWeather',
+              args: { location: 'Tokyo' },
+            },
+          },
+        ],
+      },
+      {
+        role: 'user' as const,
+        parts: [
+          {
+            functionResponse: {
+              id: 'call_abc',
+              name: 'getWeather',
+              response: { temperature: '25C' },
+            },
+          },
+        ],
+      },
+    ];
+
+    const body = buildOpenAIResponsesRequestBody('gpt-4o', history, [{ text: 'Thanks' }], {}, 'user', false);
+
+    expect(body.input).toEqual([
+      { role: 'user', content: "What's the weather?" },
+      { role: 'assistant', content: 'Checking now...' },
+      {
+        type: 'function_call',
+        call_id: 'call_abc',
+        name: 'getWeather',
+        arguments: JSON.stringify({ location: 'Tokyo' }),
+      },
+      {
+        type: 'function_call_output',
+        call_id: 'call_abc',
+        output: JSON.stringify({ temperature: '25C' }),
+      },
+      { role: 'user', content: 'Thanks' },
+    ]);
+  });
 });

@@ -113,6 +113,52 @@ const buildOpenAIResponsesInput = (
   const input: OpenAIResponsesInputItem[] = [];
 
   for (const item of history) {
+    const functionCalls = item.parts
+      .filter((p) => Boolean(p.functionCall))
+      .map((p, idx) => ({
+        type: 'function_call' as const,
+        call_id: p.functionCall?.id || `call_${idx}`,
+        name: p.functionCall?.name || '',
+        arguments:
+          typeof p.functionCall?.args === 'string' ? p.functionCall.args : JSON.stringify(p.functionCall?.args ?? {}),
+      }));
+
+    const functionResponses = item.parts.filter((p) => Boolean(p.functionResponse));
+
+    if (item.role === 'model' && functionCalls.length > 0) {
+      const nonCallParts = item.parts.filter((p) => !p.functionCall);
+      const textContent = partsToOpenAIResponsesContent(nonCallParts);
+      if (hasNonEmptyMessageContent(textContent)) {
+        input.push({
+          role: 'assistant',
+          content: textContent,
+        });
+      }
+      for (const fc of functionCalls) {
+        input.push(fc);
+      }
+      continue;
+    }
+
+    if (functionResponses.length > 0) {
+      for (let idx = 0; idx < functionResponses.length; idx++) {
+        const resp = functionResponses[idx].functionResponse!;
+        const rawContent = resp.response;
+        const contentStr =
+          typeof rawContent === 'string'
+            ? rawContent
+            : typeof (rawContent as Record<string, unknown>)?.response === 'string'
+              ? ((rawContent as Record<string, unknown>).response as string)
+              : JSON.stringify(rawContent ?? {});
+        input.push({
+          type: 'function_call_output',
+          call_id: resp.id || `call_${idx}`,
+          output: contentStr,
+        });
+      }
+      continue;
+    }
+
     const content = partsToOpenAIResponsesContent(item.parts);
     if (!hasNonEmptyMessageContent(content)) {
       continue;
@@ -124,12 +170,54 @@ const buildOpenAIResponsesInput = (
     });
   }
 
-  const currentContent = partsToOpenAIResponsesContent(parts);
-  if (hasNonEmptyMessageContent(currentContent)) {
-    input.push({
-      role: role === 'model' ? 'assistant' : 'user',
-      content: currentContent,
-    });
+  const currentFunctionCalls = parts
+    .filter((p) => Boolean(p.functionCall))
+    .map((p, idx) => ({
+      type: 'function_call' as const,
+      call_id: p.functionCall?.id || `call_${idx}`,
+      name: p.functionCall?.name || '',
+      arguments:
+        typeof p.functionCall?.args === 'string' ? p.functionCall.args : JSON.stringify(p.functionCall?.args ?? {}),
+    }));
+
+  const currentFunctionResponses = parts.filter((p) => Boolean(p.functionResponse));
+
+  if (role === 'model' && currentFunctionCalls.length > 0) {
+    const nonCallParts = parts.filter((p) => !p.functionCall);
+    const textContent = partsToOpenAIResponsesContent(nonCallParts);
+    if (hasNonEmptyMessageContent(textContent)) {
+      input.push({
+        role: 'assistant',
+        content: textContent,
+      });
+    }
+    for (const fc of currentFunctionCalls) {
+      input.push(fc);
+    }
+  } else if (currentFunctionResponses.length > 0) {
+    for (let idx = 0; idx < currentFunctionResponses.length; idx++) {
+      const resp = currentFunctionResponses[idx].functionResponse!;
+      const rawContent = resp.response;
+      const contentStr =
+        typeof rawContent === 'string'
+          ? rawContent
+          : typeof (rawContent as Record<string, unknown>)?.response === 'string'
+            ? ((rawContent as Record<string, unknown>).response as string)
+            : JSON.stringify(rawContent ?? {});
+      input.push({
+        type: 'function_call_output',
+        call_id: resp.id || `call_${idx}`,
+        output: contentStr,
+      });
+    }
+  } else {
+    const currentContent = partsToOpenAIResponsesContent(parts);
+    if (hasNonEmptyMessageContent(currentContent)) {
+      input.push({
+        role: role === 'model' ? 'assistant' : 'user',
+        content: currentContent,
+      });
+    }
   }
 
   return input;

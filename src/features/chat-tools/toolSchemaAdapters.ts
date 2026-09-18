@@ -79,3 +79,22 @@ export const toAnthropicTools = (functions: StandardClientFunctions): AnthropicT
     input_schema: geminiSchemaToJsonSchema(declaration.parameters),
   }));
 };
+
+export interface OpenAIResponsesToolDefinition {
+  type: 'function';
+  name: string;
+  description?: string;
+  parameters: Record<string, unknown>;
+}
+
+/**
+ * Maps StandardClientFunctions into OpenAI Responses API tools format.
+ */
+export const toOpenAIResponsesTools = (functions: StandardClientFunctions): OpenAIResponsesToolDefinition[] => {
+  return Object.entries(functions).map(([key, { declaration }]) => ({
+    type: 'function',
+    name: declaration.name || key,
+    ...(declaration.description ? { description: declaration.description } : {}),
+    parameters: geminiSchemaToJsonSchema(declaration.parameters),
+  }));
+};

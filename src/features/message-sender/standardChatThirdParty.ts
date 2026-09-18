@@ -6,13 +6,17 @@ import {
   sendOpenAICompatibleMessageNonStream,
   sendOpenAICompatibleMessageStream,
 } from '@/services/api/openaiCompatibleApi';
-import { sendOpenAIResponsesNonStream, sendOpenAIResponsesStream } from '@/services/api/openaiResponsesApi';
+import {
+  generateOpenAIResponsesTurnApi,
+  sendOpenAIResponsesNonStream,
+  sendOpenAIResponsesStream,
+} from '@/services/api/openaiResponsesApi';
 import {
   generateAnthropicTurnApi,
   sendAnthropicMessageNonStream,
   sendAnthropicMessageStream,
 } from '@/services/api/anthropicApi';
-import { toOpenAITools, toAnthropicTools } from '@/features/chat-tools/toolSchemaAdapters';
+import { toOpenAITools, toAnthropicTools, toOpenAIResponsesTools } from '@/features/chat-tools/toolSchemaAdapters';
 import { runStandardToolLoop } from '@/features/standard-chat/standardToolLoop';
 import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
 import { isPdfMimeType } from '@/utils/file/fileTypeClassification';
@@ -164,24 +168,36 @@ export const executeThirdPartyChat = async ({
             }),
           ]);
         },
-        runTurn: (contents) =>
-          isAnthropic
-            ? generateAnthropicTurnApi(
-                keyToUse,
-                apiModelId,
-                contents,
-                { ...providerConfig, tools: toAnthropicTools(combinedClientFunctions) },
-                newAbortController.signal,
-                providerId,
-              )
-            : generateOpenAICompatibleTurnApi(
-                keyToUse,
-                apiModelId,
-                contents,
-                { ...providerConfig, tools: toOpenAITools(combinedClientFunctions) },
-                newAbortController.signal,
-                providerId,
-              ),
+        runTurn: (contents) => {
+          if (isAnthropic) {
+            return generateAnthropicTurnApi(
+              keyToUse,
+              apiModelId,
+              contents,
+              { ...providerConfig, tools: toAnthropicTools(combinedClientFunctions) },
+              newAbortController.signal,
+              providerId,
+            );
+          }
+          if (isOpenAIResponses) {
+            return generateOpenAIResponsesTurnApi(
+              keyToUse,
+              apiModelId,
+              contents,
+              { ...providerConfig, tools: toOpenAIResponsesTools(combinedClientFunctions) },
+              newAbortController.signal,
+              providerId,
+            );
+          }
+          return generateOpenAICompatibleTurnApi(
+            keyToUse,
+            apiModelId,
+            contents,
+            { ...providerConfig, tools: toOpenAITools(combinedClientFunctions) },
+            newAbortController.signal,
+            providerId,
+          );
+        },
       });
 
       for (const part of toolLoopResult.finalTurn.parts) {

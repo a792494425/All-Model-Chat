@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { Type } from '@google/genai';
 import type { StandardClientFunctions } from '@/types';
-import { geminiSchemaToJsonSchema, toOpenAITools, toAnthropicTools } from './toolSchemaAdapters';
+import {
+  geminiSchemaToJsonSchema,
+  toOpenAITools,
+  toAnthropicTools,
+  toOpenAIResponsesTools,
+} from './toolSchemaAdapters';
 
 describe('toolSchemaAdapters', () => {
   describe('geminiSchemaToJsonSchema', () => {
@@ -159,6 +164,44 @@ describe('toolSchemaAdapters', () => {
               location: { type: 'string' },
             },
             required: ['location'],
+          },
+        },
+      ]);
+    });
+  });
+
+  describe('toOpenAIResponsesTools', () => {
+    it('converts StandardClientFunctions to OpenAI Responses tools format', () => {
+      const clientFunctions: StandardClientFunctions = {
+        mcp_test_tool: {
+          declaration: {
+            name: 'mcp_test_tool',
+            description: 'A test tool for responses api',
+            parameters: {
+              type: Type.OBJECT,
+              properties: {
+                query: { type: Type.STRING },
+              },
+              required: ['query'],
+            },
+          },
+          handler: async () => ({ response: 'ok' }),
+        },
+      };
+
+      const responsesTools = toOpenAIResponsesTools(clientFunctions);
+
+      expect(responsesTools).toEqual([
+        {
+          type: 'function',
+          name: 'mcp_test_tool',
+          description: 'A test tool for responses api',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: { type: 'string' },
+            },
+            required: ['query'],
           },
         },
       ]);

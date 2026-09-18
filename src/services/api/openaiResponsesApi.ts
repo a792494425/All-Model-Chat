@@ -1,5 +1,6 @@
-import type { UsageMetadata } from '@google/genai';
-import type { ModelOption, NonStreamMessageSender, StreamMessageSender } from '@/types';
+import type { FunctionCall, Part, UsageMetadata } from '@google/genai';
+import type { ChatHistoryItem, ModelOption, NonStreamMessageSender, StreamMessageSender } from '@/types';
+import { readResponseErrorMessage } from '@/utils/errorMessage';
 import { buildOpenAIResponsesRequestBody } from './openaiResponsesMessages';
 import {
   extractOpenAIResponsesFinishReason,
@@ -176,4 +177,100 @@ export const sendOpenAIResponsesStream: StreamMessageSender = async (
       return finalUsage;
     },
   });
+};
+
+export const generateOpenAIResponsesTurnApi = async (
+  apiKey: string,
+  modelId: string,
+  contents: ChatHistoryItem[],
+  config: unknown,
+  abortSignal: AbortSignal,
+  providerId?: string | null,
+) => {
+  const abortError = new Error('aborted');
+  abortError.name = 'AbortError';
+
+  if (abortSignal.aborted) {
+    throw abortError;
+  }
+
+  const responsesConfig = asOpenAIResponsesConfig(config);
+  const url = buildOpenAIResponsesUrl(responsesConfig.baseUrl);
+  const requestBody = buildOpenAIResponsesRequestBody(modelId, contents, [], responsesConfig, 'user', false);
+  const requestInit = createRequestInit(
+    apiKey,
+    requestBody,
+    abortSignal,
+    providerId,
+    responsesConfig.baseUrl,
+    responsesConfig.extraHeaders,
+  );
+
+  const response = await fetch(url, requestInit);
+  if (!response.ok) {
+    throw new Error(await readResponseErrorMessage(response, 'OpenAI Responses'));
+  }
+
+  if (abortSignal.aborted) {
+    throw abortError;
+  }
+
+  const payload = (await response.json()) as OpenAIResponsesResponsePayload;
+  const finishReason = extractOpenAIResponsesFinishReason(payload);
+  const rawText = extractOpenAIResponsesMessageText(payload);
+  const text = rawText && finishReason === 'length' ? appendTruncationNotice(rawText) : rawText;
+  const thoughts = extractOpenAIResponsesMessageThoughts(payload);
+  const usage = mapOpenAIResponsesUsage(payload.usage);
+
+  const toolCalls: FunctionCall[] = (payload.output ?? [])
+    .filter((item) => item.type === 'function_call')
+    .map((item, idx) => {
+      let parsedArgs: Record<string, unknown> = {};
+      if (item.arguments) {
+        try {
+          parsedArgs =
+            typeof item.arguments === 'string'
+              ? JSON.parse(item.arguments)
+              : (item.arguments as Record<string, unknown>);
+        } catch {
+          parsedArgs = { raw: item.arguments };
+        }
+      }
+      return {
+        id: item.call_id || item.id || `call_${idx}`,
+        name: item.name || '',
+        args: parsedArgs,
+      };
+    });
+
+  if (finishReason === 'content_filter' && !text && toolCalls.length === 0) {
+    throw new Error('The model returned no content because generation was filtered (reason: content_filter).');
+  }
+
+  const parts: Part[] = [];
+  if (text) {
+    parts.push({ text });
+  }
+  for (const call of toolCalls) {
+    parts.push({
+      functionCall: call,
+    });
+  }
+
+  if (parts.length === 0 && !thoughts) {
+    throw new Error('The model returned an empty response.');
+  }
+
+  return {
+    modelContent: {
+      role: 'model' as const,
+      parts,
+    },
+    parts,
+    thoughts,
+    usage,
+    grounding: undefined,
+    urlContext: undefined,
+    functionCalls: toolCalls,
+  };
 };
