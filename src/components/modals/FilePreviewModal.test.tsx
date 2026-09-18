@@ -10,6 +10,8 @@ const {
   mockTranscribeAudioWithGemini,
   mockGetCachedSubtitles,
   mockSaveCachedSubtitles,
+  mockToastError,
+  mockToastSuccess,
   mockSettingsState,
   mockTextFileViewer,
 } = vi.hoisted(() => ({
@@ -19,6 +21,8 @@ const {
   mockTranscribeAudioWithGemini: vi.fn(),
   mockGetCachedSubtitles: vi.fn(),
   mockSaveCachedSubtitles: vi.fn(),
+  mockToastError: vi.fn(),
+  mockToastSuccess: vi.fn(),
   mockSettingsState: {
     language: 'en',
     appSettings: {
@@ -42,6 +46,11 @@ const {
 const { mockCreatedObjectUrls, mockRevokedObjectUrls } = vi.hoisted(() => ({
   mockCreatedObjectUrls: [] as string[],
   mockRevokedObjectUrls: [] as string[],
+}));
+
+vi.mock('@/stores/toastStore', () => ({
+  toastError: (...args: any[]) => mockToastError(...args),
+  toastSuccess: (...args: any[]) => mockToastSuccess(...args),
 }));
 
 vi.mock('@/stores/settingsStore', () => ({
@@ -646,6 +655,34 @@ describe('FilePreviewModal', () => {
         expect(mockExtractAudioFromVideo).toHaveBeenCalledTimes(1);
         // After failure, extract button should be available again to retry
         expect(document.querySelector('[data-testid="extract-subtitles-btn"]')).not.toBeNull();
+      });
+    });
+
+    it('shows error toast and does not save cache when transcription yields 0 cues', async () => {
+      mockExtractAudioFromVideo.mockResolvedValue({
+        audioBlob: new Blob(['wav-bytes'], { type: 'audio/wav' }),
+        durationSeconds: 5,
+      });
+      mockTranscribeAudioWithGemini.mockResolvedValue([]);
+
+      await act(async () => {
+        renderer.root.render(<FilePreviewModal file={createVideoFile()} onClose={() => {}} />);
+      });
+
+      const extractBtn = document.querySelector('[data-testid="extract-subtitles-btn"]') as HTMLButtonElement;
+      expect(extractBtn).not.toBeNull();
+
+      await act(async () => {
+        extractBtn.click();
+      });
+
+      await vi.waitFor(() => {
+        expect(mockExtractAudioFromVideo).toHaveBeenCalledTimes(1);
+        expect(mockTranscribeAudioWithGemini).toHaveBeenCalledTimes(1);
+        expect(mockToastError).toHaveBeenCalledWith('No speech detected in audio.');
+        expect(mockToastSuccess).not.toHaveBeenCalled();
+        expect(mockSaveCachedSubtitles).not.toHaveBeenCalled();
+        expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).toBeNull();
       });
     });
 

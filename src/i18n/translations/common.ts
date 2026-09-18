@@ -1291,6 +1291,15 @@ export const commonTranslations = {
     fr: 'Aucune piste audio détectée dans la vidéo.',
     de: 'Keine Audiospur im Video erkannt.',
   },
+  noSpeechDetected: {
+    en: 'No speech detected in audio.',
+    zh: '未在音频中检测到有效语音。',
+    ja: '音声から有効なスピーチが検出されませんでした。',
+    ko: '오디오에서 유효한 음성을 감지하지 못했습니다.',
+    es: 'No se detectó voz válida en el audio.',
+    fr: 'Aucune parole valide détectée dans l’audio.',
+    de: 'Keine gültige Sprache im Audio erkannt.',
+  },
   subtitlesReady: {
     en: 'Subtitles extracted successfully',
     zh: '字幕提取完成',

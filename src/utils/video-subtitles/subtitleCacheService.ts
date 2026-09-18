@@ -68,6 +68,10 @@ export async function saveCachedSubtitles(
     durationSeconds?: number;
   },
 ): Promise<void> {
+  if (!subtitles || !Array.isArray(subtitles.cues) || subtitles.cues.length === 0) {
+    return;
+  }
+
   const key = getSubtitleCacheKey(target);
   if (!key) return;
 

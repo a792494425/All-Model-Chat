@@ -133,6 +133,12 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
   const [videoCurrentTime, setVideoCurrentTime] = useState(0);
   const [isFromCache, setIsFromCache] = useState(false);
   const subtitleAbortControllerRef = useRef<AbortController | null>(null);
+  const currentFileKeyRef = useRef<string | null>(null);
+  const subtitlePhaseRef = useRef(subtitlePhase);
+
+  useEffect(() => {
+    subtitlePhaseRef.current = subtitlePhase;
+  }, [subtitlePhase]);
 
   const [subtitleDisplayMode, setSubtitleDisplayMode] = useState<SubtitleDisplayMode>('bilingual');
   const [isTranslatingSubtitles, setIsTranslatingSubtitles] = useState(false);
@@ -158,32 +164,37 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
 
   useEffect(() => {
     let isMounted = true;
+    const fileKey = file ? `${file.id || file.name}:${file.size ?? 0}` : null;
 
-    // Reset subtitle states when switching to a different file
-    setSubtitleCues([]);
-    setSubtitlePhase('idle');
-    setIsFromCache(false);
-    setIsSubtitlesDrawerOpen(false);
-    setVideoCurrentTime(0);
-    setSubtitleVttBlobUrl((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return null;
-    });
+    // Reset subtitle states only when switching to a different file
+    if (currentFileKeyRef.current !== fileKey) {
+      currentFileKeyRef.current = fileKey;
+      setSubtitleCues([]);
+      setSubtitlePhase('idle');
+      setIsFromCache(false);
+      setIsSubtitlesDrawerOpen(false);
+      setVideoCurrentTime(0);
+      setSubtitleVttBlobUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    }
 
-    if (!isVideo) return;
+    if (!isVideo || !file) return;
 
     const loadCached = () => {
       getCachedSubtitles(file).then((cached) => {
         if (!isMounted) return;
         if (!cached) {
-          setSubtitleCues([]);
-          setSubtitlePhase('idle');
-          setIsFromCache(false);
-          setIsSubtitlesDrawerOpen(false);
-          setSubtitleVttBlobUrl((prev) => {
-            if (prev) URL.revokeObjectURL(prev);
-            return null;
-          });
+          if (subtitlePhaseRef.current === 'idle') {
+            setSubtitleCues([]);
+            setIsFromCache(false);
+            setIsSubtitlesDrawerOpen(false);
+            setSubtitleVttBlobUrl((prev) => {
+              if (prev) URL.revokeObjectURL(prev);
+              return null;
+            });
+          }
           return;
         }
         setSubtitleCues(cached.cues);
@@ -213,7 +224,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       isMounted = false;
       window.removeEventListener('subtitles-cache-updated', handleCacheUpdated);
     };
-  }, [file, isVideo, subtitleDisplayMode]);
+  }, [file, isVideo]);
 
   useEffect(() => {
     return () => {
@@ -288,6 +299,12 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
 
       // 3. Group words into cues and generate VTT Blob URL
       const cues = groupWordsIntoCues(annotations);
+      if (cues.length === 0) {
+        setSubtitlePhase('idle');
+        toastError(t('noSpeechDetected'));
+        return;
+      }
+
       setSubtitleCues(cues);
 
       const vttContent = generateVttContent(cues);

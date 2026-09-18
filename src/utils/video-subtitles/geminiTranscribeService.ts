@@ -146,11 +146,16 @@ export function extractWordAnnotations(data: any, durationSeconds?: number): Wor
   for (const candidate of candidates) {
     const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
     for (const part of parts) {
+      const transcription = part?.audioTranscription || part?.audio_transcription;
+      const rawWords = Array.isArray(transcription?.words) ? transcription.words : [];
+
       // Check if word-level timestamps are nested inside audioTranscription
-      if (Array.isArray(part?.audioTranscription?.words)) {
-        for (const w of part.audioTranscription.words) {
+      if (rawWords.length > 0) {
+        for (const w of rawWords) {
+          const wText = String(w.text || w.word || '').trim();
+          if (!wText) continue;
           words.push({
-            text: String(w.text || w.word || ''),
+            text: wText,
             start_offset: String(w.start_offset || w.startTime || w.startOffset || '0s'),
             end_offset: String(w.end_offset || w.endTime || w.endOffset || '0s'),
             speaker: w.speaker ? String(w.speaker) : undefined,
@@ -158,8 +163,8 @@ export function extractWordAnnotations(data: any, durationSeconds?: number): Wor
         }
       }
 
-      const transcriptionText = part?.audioTranscription?.text || part?.text || '';
-      if (transcriptionText.trim()) {
+      const transcriptionText = transcription?.text || part?.text || '';
+      if (typeof transcriptionText === 'string' && transcriptionText.trim()) {
         textPieces.push(transcriptionText.trim());
       }
     }
@@ -170,10 +175,21 @@ export function extractWordAnnotations(data: any, durationSeconds?: number): Wor
   }
 
   // 4. Check fallback root text / transcription properties
-  if (typeof data?.text === 'string' && data.text.trim()) {
-    textPieces.push(data.text.trim());
-  } else if (typeof data?.transcription === 'string' && data.transcription.trim()) {
-    textPieces.push(data.transcription.trim());
+  let rootText: string | undefined;
+  if (typeof data?.text === 'function') {
+    try {
+      rootText = data.text();
+    } catch {
+      // ignore
+    }
+  } else if (typeof data?.text === 'string') {
+    rootText = data.text;
+  } else if (typeof data?.transcription === 'string') {
+    rootText = data.transcription;
+  }
+
+  if (rootText && rootText.trim()) {
+    textPieces.push(rootText.trim());
   }
 
   const combinedText = textPieces.join('\n').trim();
@@ -226,6 +242,7 @@ export async function transcribeAudioWithGemini(
     logService.info(`[VideoSubtitles] Requesting gemini-3.5-transcribe for ${uploadedFile.uri}`);
 
     let transcriptionResult: any = null;
+    const promptText = 'Transcribe voice input exactly. Include word timestamps in the output.';
 
     // Try primary path: SDK ai.models.generateContent
     try {
@@ -236,6 +253,7 @@ export async function transcribeAudioWithGemini(
           contents: [
             {
               parts: [
+                { text: promptText },
                 {
                   fileData: {
                     fileUri: uploadedFile.uri,
@@ -245,7 +263,12 @@ export async function transcribeAudioWithGemini(
               ],
             },
           ],
-          config: signal ? ({ abortSignal: signal } as any) : undefined,
+          config: {
+            audioTranscriptionConfig: {
+              wordTimestamp: true,
+            },
+            ...(signal ? { abortSignal: signal } : {}),
+          } as any,
         });
         transcriptionResult = response;
       }
@@ -265,6 +288,10 @@ export async function transcribeAudioWithGemini(
             {
               model: 'gemini-3.5-transcribe',
               input: [
+                {
+                  type: 'text',
+                  text: promptText,
+                },
                 {
                   type: 'audio',
                   uri: uploadedFile.uri,
@@ -301,6 +328,7 @@ export async function transcribeAudioWithGemini(
           contents: [
             {
               parts: [
+                { text: promptText },
                 {
                   file_data: {
                     file_uri: uploadedFile.uri,
@@ -310,6 +338,11 @@ export async function transcribeAudioWithGemini(
               ],
             },
           ],
+          generationConfig: {
+            audioTranscriptionConfig: {
+              wordTimestamp: true,
+            },
+          },
         }),
         signal,
       });

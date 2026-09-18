@@ -104,6 +104,53 @@ describe('geminiTranscribeService', () => {
       expect(parseFloat(result[result.length - 1].end_offset)).toBeLessThanOrEqual(10.0);
     });
 
+    it('should correctly extract audio_transcription.words in snake_case format', () => {
+      const mockGenerateContentResponse = {
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  audio_transcription: {
+                    words: [
+                      { word: 'Hello', start_offset: '0.100s', end_offset: '0.500s', speaker: 'spk_1' },
+                      { word: 'world', start_offset: '0.600s', end_offset: '1.000s', speaker: 'spk_1' },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const result = extractWordAnnotations(mockGenerateContentResponse);
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        text: 'Hello',
+        start_offset: '0.100s',
+        end_offset: '0.500s',
+        speaker: 'spk_1',
+      });
+      expect(result[1]).toEqual({
+        text: 'world',
+        start_offset: '0.600s',
+        end_offset: '1.000s',
+        speaker: 'spk_1',
+      });
+    });
+
+    it('should extract text from data.text() function when parts have no word timestamps', () => {
+      const mockResponse = {
+        candidates: [{ content: { parts: [{ text: '' }] } }],
+        text: () => '第一句话。第二句话。',
+      };
+
+      const result = extractWordAnnotations(mockResponse, 6.0);
+      expect(result.length).toBeGreaterThanOrEqual(2);
+      expect(result[0].text).toBe('第一句话。');
+    });
+
     it('should handle missing or malformed steps gracefully', () => {
       expect(extractWordAnnotations(null)).toEqual([]);
       expect(extractWordAnnotations({})).toEqual([]);
@@ -200,6 +247,7 @@ describe('geminiTranscribeService', () => {
           contents: [
             {
               parts: [
+                { text: 'Transcribe voice input exactly. Include word timestamps in the output.' },
                 {
                   fileData: {
                     fileUri: mockUploadedFile.uri,
@@ -209,6 +257,11 @@ describe('geminiTranscribeService', () => {
               ],
             },
           ],
+          config: expect.objectContaining({
+            audioTranscriptionConfig: {
+              wordTimestamp: true,
+            },
+          }),
         }),
       );
 
