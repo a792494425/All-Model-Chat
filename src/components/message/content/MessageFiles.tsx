@@ -98,14 +98,7 @@ export const MessageFiles: React.FC<MessageFilesProps> = ({
           }}
         >
           {documentFiles.map((file) => (
-            <div
-              key={file.id}
-              className={`flex-shrink-0 w-full ${
-                documentFiles.length === 1
-                  ? 'min-w-[240px] sm:min-w-[300px] max-w-md sm:max-w-lg'
-                  : 'min-w-[240px] max-w-[340px] sm:max-w-[400px]'
-              }`}
-            >
+            <div key={file.id} className="min-w-0 w-full max-w-full sm:max-w-md">
               <FileDisplay
                 file={file}
                 onFileClick={onImageClick}

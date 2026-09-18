@@ -57,4 +57,28 @@ describe('MessageFiles', () => {
     expect(images).toHaveLength(1);
     expect(sources).toEqual(['data:image/png;base64,plain-1']);
   });
+
+  it('renders document file items with min-w-0 and max-w-full to prevent bubble overflow', () => {
+    act(() => {
+      renderer.root.render(
+        <MessageFiles
+          files={[
+            createUploadedFile({
+              id: 'doc-1',
+              name: 'video.mp4',
+              type: 'video/mp4',
+              size: 2048,
+            }),
+          ]}
+          onImageClick={() => {}}
+          messageId="message-3"
+          hasContentOrAudio
+        />,
+      );
+    });
+
+    const docContainer = renderer.container.querySelector('.min-w-0.w-full.max-w-full');
+    expect(docContainer).not.toBeNull();
+    expect(docContainer).not.toHaveClass('flex-shrink-0');
+  });
 });

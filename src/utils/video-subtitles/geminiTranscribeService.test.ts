@@ -12,14 +12,6 @@ vi.mock('@/services/api/apiClient', () => ({
   getConfiguredApiClientContext: vi.fn(),
 }));
 
-vi.mock('@/services/logService', () => ({
-  logService: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
 
 import { uploadFileApi, deleteFileApi } from '@/services/api/fileApi';
 import { getConfiguredApiClient, getConfiguredApiClientContext } from '@/services/api/apiClient';

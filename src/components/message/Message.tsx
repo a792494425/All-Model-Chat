@@ -8,6 +8,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useShallow } from 'zustand/react/shallow';
 import { CHAT_USER_MESSAGE_INSET_CLASS } from '@/constants/layout';
+import { useMediaNavStore } from '@/stores/mediaNavStore';
 import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
 import type { UserMessageCollapseController } from './content/userMessageCollapse';
 
@@ -73,17 +74,23 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
   const isModelThinkingOrHasThoughts =
     message.role === 'model' && (message.isLoading || (message.thoughts && props.showThoughts));
 
-  const messageContainerClasses = `flex items-start gap-2 sm:gap-4 group ${isGrouped ? 'mt-1.5' : 'mt-6'} ${message.role === 'user' ? 'justify-end' : 'justify-start'}`;
+  const isMediaNavOpen = useMediaNavStore((state) => state.isOpen);
+
+  const messageContainerClasses = `flex items-start ${isMediaNavOpen ? 'gap-2 sm:gap-3' : 'gap-2 sm:gap-4'} group ${isGrouped ? 'mt-1.5' : 'mt-6'} ${message.role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+  const userMessageInset = isMediaNavOpen ? 'ml-2 sm:ml-4' : CHAT_USER_MESSAGE_INSET_CLASS;
 
   const widthConstraints =
     message.role === 'user'
-      ? `${CHAT_USER_MESSAGE_INSET_CLASS} max-w-[88%] sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl`
+      ? `${userMessageInset} max-w-[88%] sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl`
       : 'max-w-[calc(100%-2.5rem)] sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl';
 
   let bubbleClasses = `flex flex-col min-w-0 transition-all duration-200 ${widthConstraints} message-content-container `;
 
   if (message.role === 'user') {
-    bubbleClasses += 'w-fit px-4 py-3 sm:px-5 sm:py-4 card-shadow ';
+    bubbleClasses += isMediaNavOpen
+      ? 'w-fit px-3.5 py-2.5 sm:px-4 sm:py-3 card-shadow '
+      : 'w-fit px-4 py-3 sm:px-5 sm:py-4 card-shadow ';
     bubbleClasses +=
       'bg-[var(--theme-bg-user-message)] text-[var(--theme-bg-user-message-text)] rounded-2xl border border-[var(--theme-border-secondary)]/30';
     if (isCurrentlyEditing) {

@@ -205,8 +205,8 @@ describe('FileDisplay', () => {
     });
 
     const card = renderer.container.querySelector('div.group');
-    expect(card).toHaveClass('max-w-md');
-    expect(card).toHaveClass('sm:max-w-lg');
+    expect(card).toHaveClass('min-w-0');
+    expect(card).toHaveClass('sm:max-w-md');
 
     const titleEl = renderer.container.querySelector('p');
     expect(titleEl).toHaveClass('line-clamp-2');

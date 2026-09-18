@@ -243,7 +243,7 @@ export const FileDisplay: React.FC<FileDisplayProps> = ({
   return (
     <div
       onClick={handleClick}
-      className={`flex items-center gap-3 p-2.5 rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] hover:bg-[var(--theme-bg-tertiary)]/50 transition-all shadow-sm hover:shadow w-full max-w-md sm:max-w-lg relative group ${file.error ? 'border-[var(--theme-bg-danger)]/50' : ''} ${isClickable ? 'cursor-pointer' : ''}`}
+      className={`flex items-center gap-3 p-2.5 rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] hover:bg-[var(--theme-bg-tertiary)]/50 transition-all shadow-sm hover:shadow min-w-0 w-full max-w-full sm:max-w-md relative group ${file.error ? 'border-[var(--theme-bg-danger)]/50' : ''} ${isClickable ? 'cursor-pointer' : ''}`}
     >
       <div className="w-12 h-12 rounded-lg overflow-hidden border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] flex-shrink-0 relative">
         <FileThumbnail file={file} Icon={Icon} colorClass={colorClass} bgClass={bgClass} />
