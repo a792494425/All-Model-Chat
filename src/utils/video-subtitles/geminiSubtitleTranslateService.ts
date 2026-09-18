@@ -1,10 +1,11 @@
 import { getConfiguredApiClient, getConfiguredApiClientContext } from '@/services/api/apiClient';
 import { logService } from '@/services/logService';
+import { DEFAULT_THOUGHT_TRANSLATION_MODEL_ID } from '@/constants/modelConfiguration';
 import type { SubtitleCue } from './subtitleFormatter';
 
 export interface TranslateSubtitlesOptions {
   targetLanguage?: string; // e.g. 'Chinese' | 'English'
-  modelId?: string; // default: 'gemini-2.5-flash'
+  modelId?: string; // default: DEFAULT_THOUGHT_TRANSLATION_MODEL_ID ('gemini-3.5-flash-lite')
   signal?: AbortSignal;
   onProgress?: (progressPercent: number) => void;
 }
@@ -42,7 +43,7 @@ export async function translateSubtitlesWithGemini(
   }
 
   const targetLanguage = options?.targetLanguage || 'Chinese';
-  const modelId = options?.modelId || 'gemini-2.5-flash';
+  const modelId = options?.modelId || DEFAULT_THOUGHT_TRANSLATION_MODEL_ID;
   const signal = options?.signal;
 
   if (signal?.aborted) {

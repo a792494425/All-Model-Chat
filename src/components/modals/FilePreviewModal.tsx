@@ -42,6 +42,7 @@ import { translateSubtitlesWithGemini } from '@/utils/video-subtitles/geminiSubt
 import { getCachedSubtitles, saveCachedSubtitles } from '@/utils/video-subtitles/subtitleCacheService';
 import { VideoSubtitlesDrawer } from '@/components/shared/file-preview/video/VideoSubtitlesDrawer';
 import { getGeminiKeyForRequest, formatApiKeyErrorMessage } from '@/utils/apiKeySelection';
+import { DEFAULT_THOUGHT_TRANSLATION_MODEL_ID } from '@/constants/modelConfiguration';
 import { toastError, toastSuccess } from '@/stores/toastStore';
 
 const LazyPdfViewer = lazyNamedComponent(() => import('@/components/shared/file-preview/PdfViewerEntry'), 'PdfViewer');
@@ -318,8 +319,14 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
 
     setIsTranslatingSubtitles(true);
     try {
+      const translationModelId =
+        appSettings?.inputTranslationModelId ||
+        appSettings?.thoughtTranslationModelId ||
+        DEFAULT_THOUGHT_TRANSLATION_MODEL_ID;
+
       const translatedCues = await translateSubtitlesWithGemini(apiKey, subtitleCues, {
         targetLanguage: 'Chinese',
+        modelId: translationModelId,
       });
       setSubtitleCues(translatedCues);
       setSubtitleDisplayMode('bilingual');
