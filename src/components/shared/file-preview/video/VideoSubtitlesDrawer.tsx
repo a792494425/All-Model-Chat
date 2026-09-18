@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Download, Copy, Check, X, Search, Subtitles, RotateCw, FileText, Languages } from 'lucide-react';
+import { Download, Copy, Check, X, Search, Subtitles, RotateCw, FileText, Languages, Loader2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import {
   type SubtitleCue,
@@ -171,17 +171,21 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
               type="button"
               onClick={onTranslate}
               disabled={cues.length === 0 || isTranslating}
-              className={`p-1.5 rounded text-xs transition-colors cursor-pointer flex items-center gap-1 ${
+              className={`p-1.5 rounded text-xs transition-colors flex items-center justify-center ${
                 isTranslating
-                  ? 'text-sky-400 bg-sky-500/10 animate-pulse'
+                  ? 'text-sky-400 bg-sky-500/15 cursor-wait'
                   : hasTranslations
-                  ? 'text-sky-300 hover:text-white hover:bg-white/10'
-                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                  ? 'text-sky-300 hover:text-white hover:bg-white/10 cursor-pointer'
+                  : 'text-white/70 hover:text-white hover:bg-white/10 cursor-pointer'
               }`}
               data-testid="translate-subtitles-btn"
               title={isTranslating ? t('translatingSubtitles') : t('translateSubtitles')}
             >
-              <Languages size={13} className={isTranslating ? 'animate-spin' : ''} />
+              {isTranslating ? (
+                <Loader2 size={13} className="animate-spin text-sky-400" />
+              ) : (
+                <Languages size={13} />
+              )}
             </button>
           )}
 
