@@ -574,6 +574,8 @@ describe('FilePreviewModal', () => {
           <FilePreviewModal
             file={createVideoFile()}
             onClose={() => {}}
+            hasPrev={true}
+            onPrev={vi.fn()}
             hasNext={true}
             onNext={vi.fn()}
           />,
@@ -581,8 +583,8 @@ describe('FilePreviewModal', () => {
       });
 
       const nextBtnBefore = document.querySelector('[data-testid="file-preview-next-btn"]');
-      expect(nextBtnBefore?.className).toContain('right-2');
-      expect(nextBtnBefore?.className).not.toContain('right-[328px]');
+      expect(nextBtnBefore?.className).toContain('opacity-100');
+      expect(nextBtnBefore?.className).not.toContain('opacity-0 pointer-events-none');
 
       const extractBtn = document.querySelector('[data-testid="extract-subtitles-btn"]') as HTMLButtonElement;
       expect(extractBtn).not.toBeNull();
@@ -598,7 +600,9 @@ describe('FilePreviewModal', () => {
       });
 
       const nextBtnWithDrawer = document.querySelector('[data-testid="file-preview-next-btn"]');
-      expect(nextBtnWithDrawer?.className).toContain('right-[328px]');
+      const prevBtnWithDrawer = document.querySelector('[data-testid="file-preview-prev-btn"]');
+      expect(nextBtnWithDrawer?.className).toContain('opacity-0 pointer-events-none');
+      expect(prevBtnWithDrawer?.className).toContain('opacity-0 pointer-events-none');
 
       // Toggle drawer closed
       const toggleBtn = document.querySelector('[data-testid="toggle-subtitles-drawer-btn"]') as HTMLButtonElement;
@@ -610,7 +614,7 @@ describe('FilePreviewModal', () => {
 
       expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).toBeNull();
       const nextBtnClosed = document.querySelector('[data-testid="file-preview-next-btn"]');
-      expect(nextBtnClosed?.className).toContain('right-2');
+      expect(nextBtnClosed?.className).toContain('opacity-100');
 
       // Toggle drawer open again
       await act(async () => {
@@ -619,7 +623,7 @@ describe('FilePreviewModal', () => {
 
       expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).not.toBeNull();
       const nextBtnReopened = document.querySelector('[data-testid="file-preview-next-btn"]');
-      expect(nextBtnReopened?.className).toContain('right-[328px]');
+      expect(nextBtnReopened?.className).toContain('opacity-0 pointer-events-none');
     });
 
     it('shows error state when transcription throws', async () => {

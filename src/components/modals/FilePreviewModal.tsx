@@ -586,7 +586,9 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               onPrev();
             }}
             className={`${navButtonClass} left-2 transition-opacity duration-300 ${
-              isVideo && !areControlsVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'
+              isVideo && (!areControlsVisible || isSubtitlesDrawerOpen)
+                ? 'opacity-0 pointer-events-none'
+                : 'opacity-100'
             }`}
             aria-label={t('filePreviewPrevious')}
           >
@@ -600,12 +602,10 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
               event.stopPropagation();
               onNext();
             }}
-            className={`${navButtonClass} ${
-              isVideo && isSubtitlesDrawerOpen
-                ? 'right-[328px] sm:right-[392px] md:right-[418px]'
-                : 'right-2'
-            } transition-all duration-300 ${
-              isVideo && !areControlsVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'
+            className={`${navButtonClass} right-2 transition-opacity duration-300 ${
+              isVideo && (!areControlsVisible || isSubtitlesDrawerOpen)
+                ? 'opacity-0 pointer-events-none'
+                : 'opacity-100'
             }`}
             aria-label={t('filePreviewNext')}
           >
