@@ -158,11 +158,34 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
 
   useEffect(() => {
     let isMounted = true;
+
+    // Reset subtitle states when switching to a different file
+    setSubtitleCues([]);
+    setSubtitlePhase('idle');
+    setIsFromCache(false);
+    setIsSubtitlesDrawerOpen(false);
+    setVideoCurrentTime(0);
+    setSubtitleVttBlobUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+
     if (!isVideo) return;
 
     const loadCached = () => {
       getCachedSubtitles(file).then((cached) => {
-        if (!isMounted || !cached) return;
+        if (!isMounted) return;
+        if (!cached) {
+          setSubtitleCues([]);
+          setSubtitlePhase('idle');
+          setIsFromCache(false);
+          setIsSubtitlesDrawerOpen(false);
+          setSubtitleVttBlobUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return null;
+          });
+          return;
+        }
         setSubtitleCues(cached.cues);
         const hasTrans = cached.cues.some((c) => Boolean(c.translation));
         const targetMode = hasTrans ? subtitleDisplayMode : 'original';
@@ -422,6 +445,14 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (isEditing) return;
 
+      // When subtitle drawer is open, Esc closes the drawer first instead of exiting the entire modal
+      if (event.key === 'Escape' && isSubtitlesDrawerOpen) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setIsSubtitlesDrawerOpen(false);
+        return;
+      }
+
       const activeElement = document.activeElement as HTMLElement | null;
       if (activeElement && isEditableElement(activeElement)) {
         return;
@@ -455,9 +486,9 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [appSettings, handleCopyShortcut, hasNext, hasPrev, isEditing, isPdf, isVideo, onNext, onPrev]);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [appSettings, handleCopyShortcut, hasNext, hasPrev, isEditing, isPdf, isSubtitlesDrawerOpen, isVideo, onNext, onPrev]);
 
   const handleSave = useCallback(() => {
     if (!onSaveText) {

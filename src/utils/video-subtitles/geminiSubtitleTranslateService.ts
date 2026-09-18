@@ -16,12 +16,18 @@ interface TranslationItem {
 }
 
 /**
- * Strips markdown code fences from JSON text if present.
+ * Strips markdown code fences or surrounding text from JSON text if present.
  */
 function cleanJsonText(raw: string): string {
   const trimmed = raw.trim();
-  if (trimmed.startsWith('```')) {
-    return trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenceMatch) {
+    return fenceMatch[1].trim();
+  }
+  const firstBracket = trimmed.indexOf('[');
+  const lastBracket = trimmed.lastIndexOf(']');
+  if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+    return trimmed.substring(firstBracket, lastBracket + 1).trim();
   }
   return trimmed;
 }

@@ -785,5 +785,106 @@ describe('FilePreviewModal', () => {
         );
       });
     });
+
+    it('closes subtitle drawer on Escape key without closing the entire modal', async () => {
+      const onCloseMock = vi.fn();
+      mockGetCachedSubtitles.mockResolvedValue({
+        cues: [
+          {
+            id: 1,
+            startSeconds: 0,
+            endSeconds: 3,
+            startTimeSrt: '00:00:00,000',
+            endTimeSrt: '00:00:03,000',
+            startTimeVtt: '00:00:00.000',
+            endTimeVtt: '00:00:03.000',
+            text: 'Test line',
+          },
+        ],
+        srtContent: '...',
+        vttContent: '...',
+        durationSeconds: 5,
+        createdAt: Date.now(),
+      });
+
+      await act(async () => {
+        renderer.root.render(<FilePreviewModal file={createVideoFile()} onClose={onCloseMock} />);
+      });
+
+      await vi.waitFor(() => {
+        const toggleBtn = document.querySelector('[data-testid="toggle-subtitles-drawer-btn"]') as HTMLButtonElement;
+        expect(toggleBtn).not.toBeNull();
+      });
+
+      // Open drawer
+      const toggleBtn = document.querySelector('[data-testid="toggle-subtitles-drawer-btn"]') as HTMLButtonElement;
+      await act(async () => {
+        toggleBtn.click();
+      });
+      expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).not.toBeNull();
+
+      // Press Escape
+      await act(async () => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      });
+
+      // Subtitle drawer should be closed, but modal onClose should NOT have been called
+      expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).toBeNull();
+      expect(onCloseMock).not.toHaveBeenCalled();
+    });
+
+    it('resets subtitle state when switching to a different file without cached subtitles', async () => {
+      mockGetCachedSubtitles.mockImplementation(async (file: UploadedFile) => {
+        if (file.name === 'video1.mp4') {
+          return {
+            cues: [
+              {
+                id: 1,
+                startSeconds: 0,
+                endSeconds: 3,
+                startTimeSrt: '00:00:00,000',
+                endTimeSrt: '00:00:03,000',
+                startTimeVtt: '00:00:00.000',
+                endTimeVtt: '00:00:03.000',
+                text: 'Video 1 Subtitle',
+              },
+            ],
+            srtContent: '...',
+            vttContent: 'WEBVTT',
+            durationSeconds: 5,
+            createdAt: Date.now(),
+          };
+        }
+        return null;
+      });
+
+      const video1 = createVideoFile();
+      video1.name = 'video1.mp4';
+      video1.id = 'video1';
+
+      const video2 = createVideoFile();
+      video2.name = 'video2.mp4';
+      video2.id = 'video2';
+
+      await act(async () => {
+        renderer.root.render(<FilePreviewModal file={video1} onClose={() => {}} />);
+      });
+
+      await vi.waitFor(() => {
+        expect(document.querySelector('[data-testid="toggle-subtitles-drawer-btn"]')).not.toBeNull();
+      });
+
+      // Switch to video2 (which has no cache)
+      await act(async () => {
+        renderer.root.render(<FilePreviewModal file={video2} onClose={() => {}} />);
+      });
+
+      await vi.waitFor(() => {
+        // Ready button should be gone, extract button should be shown for video2
+        expect(document.querySelector('[data-testid="toggle-subtitles-drawer-btn"]')).toBeNull();
+        expect(document.querySelector('[data-testid="extract-subtitles-btn"]')).not.toBeNull();
+        expect(document.querySelector('[data-testid="video-subtitles-drawer"]')).toBeNull();
+      });
+    });
   });
 });

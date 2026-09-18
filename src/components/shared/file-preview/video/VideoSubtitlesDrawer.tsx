@@ -73,15 +73,15 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
     return found ? found.id : null;
   }, [cues, currentTime]);
 
-  // Auto-scroll to active cue when activeCueId changes
+  // Auto-scroll to active cue when activeCueId changes (and user is not searching)
   useEffect(() => {
-    if (activeCueRef.current) {
+    if (activeCueRef.current && !searchQuery.trim()) {
       activeCueRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'nearest',
       });
     }
-  }, [activeCueId]);
+  }, [activeCueId, searchQuery]);
 
   // Filter cues by search query
   const filteredCues = useMemo(() => {
@@ -298,6 +298,12 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape' && searchQuery) {
+                  e.stopPropagation();
+                  setSearchQuery('');
+                }
+              }}
               placeholder={t('searchSubtitles')}
               className="w-full pl-8 pr-7 py-1 text-xs rounded bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-sky-500/50 focus:bg-white/10 transition-colors"
             />
@@ -343,7 +349,7 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
                       isActive ? 'bg-sky-500/30 text-sky-200 font-semibold' : 'bg-white/10 text-white/60'
                     }`}
                   >
-                    {cue.startTimeVtt.slice(3, 8)}
+                    {cue.startSeconds >= 3600 ? cue.startTimeVtt.slice(0, 8) : cue.startTimeVtt.slice(3, 8)}
                   </span>
                   {cue.speaker && (
                     <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300">
