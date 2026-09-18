@@ -3,21 +3,24 @@ import { toError } from '@/utils/errorMessage';
 import { createMessage } from '@/utils/chat/session';
 import {
   generateOpenAICompatibleTurnApi,
+  generateOpenAICompatibleTurnStreamApi,
   sendOpenAICompatibleMessageNonStream,
   sendOpenAICompatibleMessageStream,
 } from '@/services/api/openaiCompatibleApi';
 import {
   generateOpenAIResponsesTurnApi,
+  generateOpenAIResponsesTurnStreamApi,
   sendOpenAIResponsesNonStream,
   sendOpenAIResponsesStream,
 } from '@/services/api/openaiResponsesApi';
 import {
   generateAnthropicTurnApi,
+  generateAnthropicTurnStreamApi,
   sendAnthropicMessageNonStream,
   sendAnthropicMessageStream,
 } from '@/services/api/anthropicApi';
 import { toOpenAITools, toAnthropicTools, toOpenAIResponsesTools } from '@/features/chat-tools/toolSchemaAdapters';
-import { runStandardToolLoop } from '@/features/standard-chat/standardToolLoop';
+import { runStandardToolLoop, TOOL_LOOP_CAP_NOTICE } from '@/features/standard-chat/standardToolLoop';
 import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
 import { isPdfMimeType } from '@/utils/file/fileTypeClassification';
 import { extractPdfTextFromBase64 } from '@/utils/file/pdfTextExtraction';
@@ -146,10 +149,20 @@ export const executeThirdPartyChat = async ({
   const hasClientFunctions = Object.keys(combinedClientFunctions).length > 0;
   if (hasClientFunctions) {
     try {
+      const thirdPartyOnThoughtChunk = (chunk: string) => onThoughtChunk(chunk, { source: 'third-party' });
+      const thirdPartyOnPart = (part: ContentPart) => streamOnPart(part, { source: 'third-party' });
+      const streamCallbacks = isStreamingEnabled
+        ? {
+            onPart: thirdPartyOnPart,
+            onThoughtChunk: thirdPartyOnThoughtChunk,
+          }
+        : undefined;
+
       const toolLoopResult = await runStandardToolLoop({
         initialContents: appendTurnToHistory(effectiveHistoryForChat, finalRole, effectiveFinalParts),
         clientFunctions: combinedClientFunctions,
         abortSignal: newAbortController.signal,
+        streamCallbacks,
         onToolCallsStarted: (modelContent) => {
           insertInternalToolMessages([
             createMessage('model', '', {
@@ -168,8 +181,19 @@ export const executeThirdPartyChat = async ({
             }),
           ]);
         },
-        runTurn: (contents) => {
+        runTurn: (contents, streamCb) => {
           if (isAnthropic) {
+            if (isStreamingEnabled) {
+              return generateAnthropicTurnStreamApi(
+                keyToUse,
+                apiModelId,
+                contents,
+                { ...providerConfig, tools: toAnthropicTools(combinedClientFunctions) },
+                newAbortController.signal,
+                providerId,
+                streamCb,
+              );
+            }
             return generateAnthropicTurnApi(
               keyToUse,
               apiModelId,
@@ -180,6 +204,17 @@ export const executeThirdPartyChat = async ({
             );
           }
           if (isOpenAIResponses) {
+            if (isStreamingEnabled) {
+              return generateOpenAIResponsesTurnStreamApi(
+                keyToUse,
+                apiModelId,
+                contents,
+                { ...providerConfig, tools: toOpenAIResponsesTools(combinedClientFunctions) },
+                newAbortController.signal,
+                providerId,
+                streamCb,
+              );
+            }
             return generateOpenAIResponsesTurnApi(
               keyToUse,
               apiModelId,
@@ -187,6 +222,17 @@ export const executeThirdPartyChat = async ({
               { ...providerConfig, tools: toOpenAIResponsesTools(combinedClientFunctions) },
               newAbortController.signal,
               providerId,
+            );
+          }
+          if (isStreamingEnabled) {
+            return generateOpenAICompatibleTurnStreamApi(
+              keyToUse,
+              apiModelId,
+              contents,
+              { ...providerConfig, tools: toOpenAITools(combinedClientFunctions) },
+              newAbortController.signal,
+              providerId,
+              streamCb,
             );
           }
           return generateOpenAICompatibleTurnApi(
@@ -200,12 +246,21 @@ export const executeThirdPartyChat = async ({
         },
       });
 
-      for (const part of toolLoopResult.finalTurn.parts) {
-        streamOnPart(part, { recordFirstToken: false, source: 'third-party' });
+      if (toolLoopResult.streamed) {
+        for (const part of toolLoopResult.finalTurn.parts) {
+          if (part.text === TOOL_LOOP_CAP_NOTICE || (!part.text && !part.functionCall)) {
+            streamOnPart(part, { recordFirstToken: false, source: 'third-party' });
+          }
+        }
+      } else {
+        for (const part of toolLoopResult.finalTurn.parts) {
+          streamOnPart(part, { recordFirstToken: false, source: 'third-party' });
+        }
+        if (toolLoopResult.finalTurn.thoughts) {
+          onThoughtChunk(toolLoopResult.finalTurn.thoughts, { recordFirstToken: false, source: 'third-party' });
+        }
       }
-      if (toolLoopResult.finalTurn.thoughts) {
-        onThoughtChunk(toolLoopResult.finalTurn.thoughts, { recordFirstToken: false, source: 'third-party' });
-      }
+
       wrappedStreamOnComplete(
         toolLoopResult.finalTurn.usage,
         toolLoopResult.finalTurn.grounding,

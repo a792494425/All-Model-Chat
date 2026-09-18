@@ -1,5 +1,6 @@
 import type { FunctionCall, Part, UsageMetadata } from '@google/genai';
 import type { ChatHistoryItem, ModelOption, NonStreamMessageSender, StreamMessageSender } from '@/types';
+import type { TurnStreamCallbacks } from '@/features/standard-chat/standardToolLoop';
 import { readResponseErrorMessage } from '@/utils/errorMessage';
 import { buildOpenAICompatibleRequestBody } from './openaiCompatibleMessages';
 import {
@@ -274,6 +275,177 @@ export const generateOpenAICompatibleTurnApi = async (
     parts,
     thoughts,
     usage,
+    grounding: undefined,
+    urlContext: undefined,
+    functionCalls: toolCalls,
+  };
+};
+
+export const generateOpenAICompatibleTurnStreamApi = async (
+  apiKey: string,
+  modelId: string,
+  contents: ChatHistoryItem[],
+  config: unknown,
+  abortSignal: AbortSignal,
+  providerId?: string | null,
+  streamCallbacks?: TurnStreamCallbacks,
+) => {
+  const abortError = new Error('aborted');
+  abortError.name = 'AbortError';
+
+  if (abortSignal.aborted) {
+    throw abortError;
+  }
+
+  const compatibleConfig = asOpenAICompatibleConfig(config);
+  const url = buildOpenAICompatibleChatCompletionsUrl(compatibleConfig.baseUrl);
+  const requestBody = buildOpenAICompatibleRequestBody(modelId, contents, [], compatibleConfig, 'user', true);
+  const requestInit = createRequestInit(
+    apiKey,
+    requestBody,
+    abortSignal,
+    providerId,
+    compatibleConfig.baseUrl,
+    compatibleConfig.extraHeaders,
+  );
+
+  const response = await fetch(url, requestInit);
+  if (!response.ok) {
+    throw new Error(await readResponseErrorMessage(response, 'OpenAI-compatible'));
+  }
+
+  if (abortSignal.aborted) {
+    throw abortError;
+  }
+
+  let text = '';
+  let thoughts = '';
+  let finishReason: string | undefined;
+  let contentFiltered = false;
+  let streamErrorMessage: string | null = null;
+  let finalUsage: UsageMetadata | undefined;
+  const accumulatedToolCalls: Record<number, { id?: string; name?: string; arguments: string }> = {};
+
+  await readOpenAICompatibleStreamEvents(response, abortSignal, (payload) => {
+    if (!streamErrorMessage && payload.error?.message) {
+      streamErrorMessage = payload.error.message;
+    }
+
+    const chunkFinishReason = extractOpenAICompatibleFinishReason(payload);
+    if (chunkFinishReason) {
+      finishReason = chunkFinishReason;
+    }
+    if (finishReason === 'content_filter') {
+      contentFiltered = true;
+    }
+
+    const reasoningContent = extractOpenAICompatibleReasoningDelta(payload);
+    if (reasoningContent) {
+      thoughts += reasoningContent;
+      streamCallbacks?.onThoughtChunk?.(reasoningContent);
+    }
+
+    const content = payload.choices?.[0]?.delta?.content;
+    if (content) {
+      text += content;
+      streamCallbacks?.onPart?.({ text: content });
+    }
+
+    const toolCalls = payload.choices?.[0]?.delta?.tool_calls;
+    if (toolCalls && Array.isArray(toolCalls)) {
+      for (const tc of toolCalls) {
+        const index = tc.index ?? 0;
+        if (!accumulatedToolCalls[index]) {
+          accumulatedToolCalls[index] = { arguments: '' };
+        }
+        const entry = accumulatedToolCalls[index];
+        if (tc.id) {
+          entry.id = (entry.id ?? '') + tc.id;
+        }
+        if (tc.function?.name) {
+          entry.name = (entry.name ?? '') + tc.function.name;
+        }
+        if (tc.function?.arguments) {
+          entry.arguments += tc.function.arguments;
+        }
+      }
+    }
+
+    const choice = payload.choices?.[0];
+    const messageToolCalls = choice?.message?.tool_calls;
+    if (messageToolCalls && Array.isArray(messageToolCalls)) {
+      messageToolCalls.forEach((tc, idx) => {
+        if (!accumulatedToolCalls[idx]) {
+          accumulatedToolCalls[idx] = {
+            id: tc.id,
+            name: tc.function?.name,
+            arguments: tc.function?.arguments || '',
+          };
+        }
+      });
+    }
+
+    const usage = mapOpenAICompatibleUsage(payload.usage);
+    if (usage) {
+      finalUsage = usage;
+    }
+  });
+
+  if (streamErrorMessage) {
+    throw new Error(streamErrorMessage);
+  }
+
+  const toolCalls: FunctionCall[] = Object.keys(accumulatedToolCalls)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .map((idx) => {
+      const tc = accumulatedToolCalls[idx];
+      let parsedArgs: Record<string, unknown> = {};
+      if (tc.arguments) {
+        try {
+          parsedArgs = JSON.parse(tc.arguments);
+        } catch {
+          parsedArgs = { raw: tc.arguments };
+        }
+      }
+      return {
+        id: tc.id || `call_${idx}`,
+        name: tc.name || '',
+        args: parsedArgs,
+      };
+    });
+
+  if (contentFiltered && !text && toolCalls.length === 0) {
+    throw new Error('The model returned no content because generation was filtered (finish_reason: content_filter).');
+  }
+
+  if (finishReason === 'length' && text) {
+    text = appendTruncationNotice(text);
+    streamCallbacks?.onPart?.({ text: TRUNCATION_NOTICE });
+  }
+
+  const parts: Part[] = [];
+  if (text) {
+    parts.push({ text });
+  }
+  for (const call of toolCalls) {
+    parts.push({
+      functionCall: call,
+    });
+  }
+
+  if (parts.length === 0 && !thoughts) {
+    throw new Error('The model returned an empty response.');
+  }
+
+  return {
+    modelContent: {
+      role: 'model' as const,
+      parts,
+    },
+    parts,
+    thoughts: thoughts || undefined,
+    usage: finalUsage,
     grounding: undefined,
     urlContext: undefined,
     functionCalls: toolCalls,

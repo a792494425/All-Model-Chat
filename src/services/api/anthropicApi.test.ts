@@ -4,6 +4,7 @@ import {
   sendAnthropicMessageStream,
   fetchAnthropicModels,
   generateAnthropicTurnApi,
+  generateAnthropicTurnStreamApi,
 } from './anthropicApi';
 import { AUTH_OPTIONAL_API_KEY } from '../../../shared/serverManagedApiKey';
 
@@ -337,6 +338,154 @@ describe('fetchAnthropicModels', () => {
       expect(result.functionCalls).toEqual([]);
       expect(result.parts).toEqual([{ text: 'Here is the final answer.' }]);
       expect(result.usage?.totalTokenCount).toBe(30);
+    });
+  });
+
+  describe('generateAnthropicTurnStreamApi', () => {
+    it('streams thinking and text while accumulating tool_use across chunks', async () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(
+              [
+                'event: message_start',
+                'data: {"type":"message_start","message":{"usage":{"input_tokens":15}}}',
+                '',
+                'event: content_block_start',
+                'data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
+                '',
+                'event: content_block_delta',
+                'data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"Plan: invoke tool."}}',
+                '',
+                'event: content_block_stop',
+                'data: {"type":"content_block_stop","index":0}',
+                '',
+                'event: content_block_start',
+                'data: {"type":"content_block_start","index":1,"content_block":{"type":"text","text":""}}',
+                '',
+                'event: content_block_delta',
+                'data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"Running tool..."}}',
+                '',
+                'event: content_block_stop',
+                'data: {"type":"content_block_stop","index":1}',
+                '',
+                'event: content_block_start',
+                'data: {"type":"content_block_start","index":2,"content_block":{"type":"tool_use","id":"toolu_999","name":"query_db","input":{}}}',
+                '',
+                'event: content_block_delta',
+                'data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"{\\"query\\": "}}',
+                '',
+                'event: content_block_delta',
+                'data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\"SELECT 1\\"}"}}',
+                '',
+                'event: content_block_stop',
+                'data: {"type":"content_block_stop","index":2}',
+                '',
+                'event: message_delta',
+                'data: {"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":25}}',
+                '',
+                'event: message_stop',
+                'data: {"type":"message_stop"}',
+                '',
+              ].join('\n'),
+            ),
+          );
+          controller.close();
+        },
+      });
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+        new Response(stream, { status: 200, headers: { 'content-type': 'text/event-stream' } }),
+      );
+
+      const onPart = vi.fn();
+      const onThoughtChunk = vi.fn();
+
+      const result = await generateAnthropicTurnStreamApi(
+        'sk-ant-key',
+        'claude-3-7-sonnet',
+        [{ role: 'user', parts: [{ text: 'Query DB' }] }],
+        { baseUrl: 'https://api.anthropic.com' },
+        new AbortController().signal,
+        undefined,
+        { onPart, onThoughtChunk },
+      );
+
+      expect(onThoughtChunk).toHaveBeenCalledWith('Plan: invoke tool.');
+      expect(onPart).toHaveBeenCalledWith({ text: 'Running tool...' });
+      expect(result.functionCalls).toEqual([
+        {
+          id: 'toolu_999',
+          name: 'query_db',
+          args: { query: 'SELECT 1' },
+        },
+      ]);
+      expect(result.parts).toEqual([
+        { text: 'Running tool...' },
+        {
+          functionCall: {
+            id: 'toolu_999',
+            name: 'query_db',
+            args: { query: 'SELECT 1' },
+          },
+        },
+      ]);
+      expect(result.thoughts).toBe('Plan: invoke tool.');
+      expect(result.usage?.totalTokenCount).toBe(40);
+    });
+
+    it('streams plain text without tool calls and returns final result', async () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(
+              [
+                'event: message_start',
+                'data: {"type":"message_start","message":{"usage":{"input_tokens":5}}}',
+                '',
+                'event: content_block_start',
+                'data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}',
+                '',
+                'event: content_block_delta',
+                'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Simple answer."}}',
+                '',
+                'event: content_block_stop',
+                'data: {"type":"content_block_stop","index":0}',
+                '',
+                'event: message_delta',
+                'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":4}}',
+                '',
+                'event: message_stop',
+                'data: {"type":"message_stop"}',
+                '',
+              ].join('\n'),
+            ),
+          );
+          controller.close();
+        },
+      });
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+        new Response(stream, { status: 200, headers: { 'content-type': 'text/event-stream' } }),
+      );
+
+      const onPart = vi.fn();
+      const result = await generateAnthropicTurnStreamApi(
+        'sk-ant-key',
+        'claude-3-5-sonnet',
+        [{ role: 'user', parts: [{ text: 'Hello' }] }],
+        { baseUrl: 'https://api.anthropic.com' },
+        new AbortController().signal,
+        undefined,
+        { onPart },
+      );
+
+      expect(onPart).toHaveBeenCalledWith({ text: 'Simple answer.' });
+      expect(result.functionCalls).toEqual([]);
+      expect(result.parts).toEqual([{ text: 'Simple answer.' }]);
+      expect(result.usage?.totalTokenCount).toBe(9);
     });
   });
 });

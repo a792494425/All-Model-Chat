@@ -6,7 +6,7 @@ import { mergeUsageMetadata, mergeUrlContextMetadata } from '@/features/chat-str
 import { getGroundingChunkSource, type GroundingChunkLike, type GroundingSource } from '@/utils/groundingMetadata';
 import { isRecord } from '../../../shared/predicates';
 
-interface StandardToolTurnResult {
+export interface StandardToolTurnResult {
   modelContent: ChatHistoryItem;
   parts: Part[];
   thoughts?: string;
@@ -16,15 +16,20 @@ interface StandardToolTurnResult {
   urlContext?: unknown;
 }
 
+export interface TurnStreamCallbacks {
+  onPart?: (part: Part) => void;
+  onThoughtChunk?: (thought: string) => void;
+}
+
 interface StandardToolLoopMessagePair {
   modelContent: ChatHistoryItem;
   functionResponseParts: Part[];
 }
 
-interface RunStandardToolLoopOptions {
+export interface RunStandardToolLoopOptions {
   initialContents: ChatHistoryItem[];
   clientFunctions: StandardClientFunctions;
-  runTurn: (contents: ChatHistoryItem[]) => Promise<StandardToolTurnResult>;
+  runTurn: (contents: ChatHistoryItem[], streamCallbacks?: TurnStreamCallbacks) => Promise<StandardToolTurnResult>;
   abortSignal?: AbortSignal;
   /**
    * Maximum number of model turns (rounds) before the loop stops gracefully.
@@ -40,6 +45,8 @@ interface RunStandardToolLoopOptions {
   onToolCallsStarted?: (modelContent: ChatHistoryItem) => void;
   /** Fired after an iteration's handlers have all settled, with their response parts. */
   onToolResponsesSettled?: (functionResponseParts: Part[]) => void;
+  /** Optional streaming callbacks forwarded to runTurn for real-time typewriter output. */
+  streamCallbacks?: TurnStreamCallbacks;
 }
 
 interface GroundingCarryover {
@@ -201,7 +208,7 @@ const mergeGroundingForFinalTurn = (finalGrounding: unknown, carryover: Groundin
  */
 export const DEFAULT_TOOL_LOOP_ROUNDS = 50;
 
-const TOOL_LOOP_CAP_NOTICE =
+export const TOOL_LOOP_CAP_NOTICE =
   '[Tool loop stopped: the model kept requesting tool calls after reaching the round limit, so the remaining calls were not executed. Try narrowing the task.]';
 
 export const runStandardToolLoop = async ({
@@ -212,10 +219,12 @@ export const runStandardToolLoop = async ({
   maxToolRounds,
   onToolCallsStarted,
   onToolResponsesSettled,
+  streamCallbacks,
 }: RunStandardToolLoopOptions): Promise<{
   finalTurn: StandardToolTurnResult;
   toolMessages: StandardToolLoopMessagePair[];
   generatedFiles: UploadedFile[];
+  streamed?: boolean;
 }> => {
   const toolMessages: StandardToolLoopMessagePair[] = [];
   const generatedFiles: UploadedFile[] = [];
@@ -225,9 +234,13 @@ export const runStandardToolLoop = async ({
   let aggregatedUrlContext: unknown;
   const maxRounds = maxToolRounds ?? DEFAULT_TOOL_LOOP_ROUNDS;
   let rounds = 0;
+  let isStreamed = false;
 
   for (;;) {
-    const turn = await runTurn(contents);
+    const turn = await runTurn(contents, streamCallbacks);
+    if (streamCallbacks) {
+      isStreamed = true;
+    }
     rounds += 1;
     aggregatedUsage = mergeUsageMetadata(aggregatedUsage, turn.usage);
     aggregatedUrlContext = mergeUrlContextMetadata(aggregatedUrlContext, turn.urlContext);
@@ -243,6 +256,7 @@ export const runStandardToolLoop = async ({
         },
         toolMessages,
         generatedFiles,
+        streamed: isStreamed,
       };
     }
 
@@ -263,6 +277,7 @@ export const runStandardToolLoop = async ({
         },
         toolMessages,
         generatedFiles,
+        streamed: isStreamed,
       };
     }
 

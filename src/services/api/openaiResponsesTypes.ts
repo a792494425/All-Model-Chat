@@ -118,6 +118,8 @@ export type OpenAIResponsesStreamEvent = {
   type: string;
   delta?: string;
   item_id?: string;
+  call_id?: string;
+  arguments?: string;
   output_index?: number;
   content_index?: number;
   response?: OpenAIResponsesResponsePayload;

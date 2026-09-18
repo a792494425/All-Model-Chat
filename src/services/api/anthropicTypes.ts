@@ -55,8 +55,23 @@ export type AnthropicResponsePayload = {
 // SSE stream event payload (message_start / content_block_delta / message_delta etc.)
 export type AnthropicStreamEvent = {
   type: string;
+  index?: number;
   message?: AnthropicResponsePayload;
-  delta?: { type?: string; text?: string; thinking?: string };
+  content_block?: {
+    type?: string;
+    text?: string;
+    thinking?: string;
+    id?: string;
+    name?: string;
+    input?: Record<string, unknown>;
+  };
+  delta?: {
+    type?: string;
+    text?: string;
+    thinking?: string;
+    partial_json?: string;
+    stop_reason?: string;
+  };
   usage?: AnthropicUsage;
   /** Mid-stream failure (e.g. overloaded_error); Anthropic ends the stream after this event. */
   error?: { type?: string; message?: string };

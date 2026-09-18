@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import {
   fetchOpenAIResponsesModels,
   generateOpenAIResponsesTurnApi,
+  generateOpenAIResponsesTurnStreamApi,
   sendOpenAIResponsesNonStream,
   sendOpenAIResponsesStream,
 } from './openaiResponsesApi';
@@ -461,5 +462,80 @@ describe('generateOpenAIResponsesTurnApi', () => {
         new AbortController().signal,
       ),
     ).rejects.toThrow('The model returned an empty response.');
+  });
+
+  describe('generateOpenAIResponsesTurnStreamApi', () => {
+    it('streams reasoning and text while accumulating function_call across stream events', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+        mockSseResponse([
+          'event: response.reasoning_text.delta\ndata: {"type":"response.reasoning_text.delta","delta":"Need to check weather"}\n\n',
+          'event: response.text.delta\ndata: {"type":"response.text.delta","delta":"Fetching weather data..."}\n\n',
+          'event: response.output_item.added\ndata: {"type":"response.output_item.added","item":{"id":"fc_1","type":"function_call","call_id":"call_weather","name":"get_weather","arguments":""}}\n\n',
+          'event: response.function_call_arguments.delta\ndata: {"type":"response.function_call_arguments.delta","item_id":"fc_1","delta":"{\\"city\\": "}\n\n',
+          'event: response.function_call_arguments.delta\ndata: {"type":"response.function_call_arguments.delta","item_id":"fc_1","delta":"\\"Tokyo\\"}"}\n\n',
+          'event: response.completed\ndata: {"type":"response.completed","response":{"status":"completed","usage":{"input_tokens":10,"output_tokens":20,"total_tokens":30}}}\n\n',
+        ]),
+      );
+
+      const onPart = vi.fn();
+      const onThoughtChunk = vi.fn();
+
+      const result = await generateOpenAIResponsesTurnStreamApi(
+        'sk-test-key',
+        'gpt-4o',
+        [{ role: 'user', parts: [{ text: 'Weather in Tokyo' }] }],
+        { baseUrl: 'https://api.openai.com/v1' },
+        new AbortController().signal,
+        undefined,
+        { onPart, onThoughtChunk },
+      );
+
+      expect(onThoughtChunk).toHaveBeenCalledWith('Need to check weather');
+      expect(onPart).toHaveBeenCalledWith({ text: 'Fetching weather data...' });
+      expect(result.functionCalls).toEqual([
+        {
+          id: 'call_weather',
+          name: 'get_weather',
+          args: { city: 'Tokyo' },
+        },
+      ]);
+      expect(result.parts).toEqual([
+        { text: 'Fetching weather data...' },
+        {
+          functionCall: {
+            id: 'call_weather',
+            name: 'get_weather',
+            args: { city: 'Tokyo' },
+          },
+        },
+      ]);
+      expect(result.thoughts).toBe('Need to check weather');
+      expect(result.usage?.totalTokenCount).toBe(30);
+    });
+
+    it('streams normal text response without function_call', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+        mockSseResponse([
+          'event: response.text.delta\ndata: {"type":"response.text.delta","delta":"Tokyo is lovely."}\n\n',
+          'event: response.completed\ndata: {"type":"response.completed","response":{"status":"completed","usage":{"input_tokens":5,"output_tokens":4,"total_tokens":9}}}\n\n',
+        ]),
+      );
+
+      const onPart = vi.fn();
+      const result = await generateOpenAIResponsesTurnStreamApi(
+        'sk-test-key',
+        'gpt-4o',
+        [{ role: 'user', parts: [{ text: 'Tell me about Tokyo' }] }],
+        { baseUrl: 'https://api.openai.com/v1' },
+        new AbortController().signal,
+        undefined,
+        { onPart },
+      );
+
+      expect(onPart).toHaveBeenCalledWith({ text: 'Tokyo is lovely.' });
+      expect(result.functionCalls).toEqual([]);
+      expect(result.parts).toEqual([{ text: 'Tokyo is lovely.' }]);
+      expect(result.usage?.totalTokenCount).toBe(9);
+    });
   });
 });

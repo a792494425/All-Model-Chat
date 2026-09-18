@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ContentPart } from '@/types/chat';
 import {
   executeThirdPartyChat,
@@ -16,18 +16,21 @@ vi.mock('@/utils/file/pdfTextExtraction', () => ({
 
 vi.mock('@/services/api/openaiResponsesApi', () => ({
   generateOpenAIResponsesTurnApi: vi.fn(),
+  generateOpenAIResponsesTurnStreamApi: vi.fn(),
   sendOpenAIResponsesNonStream: vi.fn(),
   sendOpenAIResponsesStream: vi.fn(),
 }));
 
 vi.mock('@/services/api/openaiCompatibleApi', () => ({
   generateOpenAICompatibleTurnApi: vi.fn(),
+  generateOpenAICompatibleTurnStreamApi: vi.fn(),
   sendOpenAICompatibleMessageNonStream: vi.fn(),
   sendOpenAICompatibleMessageStream: vi.fn(),
 }));
 
 vi.mock('@/services/api/anthropicApi', () => ({
   generateAnthropicTurnApi: vi.fn(),
+  generateAnthropicTurnStreamApi: vi.fn(),
   sendAnthropicMessageNonStream: vi.fn(),
   sendAnthropicMessageStream: vi.fn(),
 }));
@@ -116,11 +119,15 @@ describe('standardChatThirdParty utilities', () => {
   });
 
   describe('executeThirdPartyChat with tools', () => {
-    it('dispatches to generateOpenAIResponsesTurnApi when protocol is openai-responses', async () => {
-      const { generateOpenAIResponsesTurnApi } = await import('@/services/api/openaiResponsesApi');
-      const { generateOpenAICompatibleTurnApi } = await import('@/services/api/openaiCompatibleApi');
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
 
-      (generateOpenAIResponsesTurnApi as any).mockResolvedValue({
+    it('dispatches to generateOpenAIResponsesTurnStreamApi when isStreamingEnabled is true', async () => {
+      const { generateOpenAIResponsesTurnStreamApi, generateOpenAIResponsesTurnApi } =
+        await import('@/services/api/openaiResponsesApi');
+
+      (generateOpenAIResponsesTurnStreamApi as any).mockResolvedValue({
         modelContent: { role: 'model', parts: [{ text: 'done' }] },
         parts: [{ text: 'done' }],
         thoughts: undefined,
@@ -163,9 +170,162 @@ describe('standardChatThirdParty utilities', () => {
         isStreamingEnabled: true,
       });
 
+      expect(generateOpenAIResponsesTurnStreamApi).toHaveBeenCalled();
+      expect(generateOpenAIResponsesTurnApi).not.toHaveBeenCalled();
+      expect(wrappedStreamOnComplete).toHaveBeenCalled();
+    });
+
+    it('dispatches to generateOpenAIResponsesTurnApi when isStreamingEnabled is false', async () => {
+      const { generateOpenAIResponsesTurnStreamApi, generateOpenAIResponsesTurnApi } =
+        await import('@/services/api/openaiResponsesApi');
+
+      (generateOpenAIResponsesTurnApi as any).mockResolvedValue({
+        modelContent: { role: 'model', parts: [{ text: 'done non-stream' }] },
+        parts: [{ text: 'done non-stream' }],
+        thoughts: undefined,
+        usage: undefined,
+        functionCalls: [],
+      });
+
+      const streamOnPart = vi.fn();
+      const wrappedStreamOnComplete = vi.fn();
+
+      await executeThirdPartyChat({
+        activeProvider: {
+          id: 'p-1',
+          name: 'ResponsesProvider',
+          protocol: 'openai-responses',
+          baseUrl: 'https://api.openai.com/v1',
+          apiKey: 'test-key',
+        } as any,
+        apiModelId: 'gpt-4o',
+        keyToUse: 'test-key',
+        sessionToUpdate: {} as any,
+        historyForChat: [],
+        finalRole: 'user',
+        finalParts: [{ text: 'use tool' }],
+        combinedClientFunctions: {
+          testTool: {
+            declaration: { name: 'testTool', description: 'desc', parameters: {} },
+            handler: vi.fn(),
+          },
+        },
+        newAbortController: new AbortController(),
+        generationId: 'gen-1',
+        insertInternalToolMessages: vi.fn(),
+        streamOnPart,
+        onThoughtChunk: vi.fn(),
+        streamOnError: vi.fn(),
+        streamOnComplete: vi.fn(),
+        wrappedStreamOnComplete,
+        nonStreamOnComplete: vi.fn(),
+        isStreamingEnabled: false,
+      });
+
       expect(generateOpenAIResponsesTurnApi).toHaveBeenCalled();
-      expect(generateOpenAICompatibleTurnApi).not.toHaveBeenCalled();
-      expect(streamOnPart).toHaveBeenCalledWith({ text: 'done' }, { recordFirstToken: false, source: 'third-party' });
+      expect(generateOpenAIResponsesTurnStreamApi).not.toHaveBeenCalled();
+      expect(streamOnPart).toHaveBeenCalledWith(
+        { text: 'done non-stream' },
+        { recordFirstToken: false, source: 'third-party' },
+      );
+      expect(wrappedStreamOnComplete).toHaveBeenCalled();
+    });
+
+    it('dispatches to generateOpenAICompatibleTurnStreamApi when protocol is openai-compatible and isStreamingEnabled is true', async () => {
+      const { generateOpenAICompatibleTurnStreamApi } = await import('@/services/api/openaiCompatibleApi');
+
+      (generateOpenAICompatibleTurnStreamApi as any).mockResolvedValue({
+        modelContent: { role: 'model', parts: [{ text: 'done stream' }] },
+        parts: [{ text: 'done stream' }],
+        thoughts: undefined,
+        usage: undefined,
+        functionCalls: [],
+      });
+
+      const wrappedStreamOnComplete = vi.fn();
+
+      await executeThirdPartyChat({
+        activeProvider: {
+          id: 'p-2',
+          name: 'OpenAIProvider',
+          protocol: 'openai-compatible',
+          baseUrl: 'https://api.openai.com/v1',
+          apiKey: 'test-key',
+        } as any,
+        apiModelId: 'gpt-4o',
+        keyToUse: 'test-key',
+        sessionToUpdate: {} as any,
+        historyForChat: [],
+        finalRole: 'user',
+        finalParts: [{ text: 'use tool' }],
+        combinedClientFunctions: {
+          testTool: {
+            declaration: { name: 'testTool', description: 'desc', parameters: {} },
+            handler: vi.fn(),
+          },
+        },
+        newAbortController: new AbortController(),
+        generationId: 'gen-2',
+        insertInternalToolMessages: vi.fn(),
+        streamOnPart: vi.fn(),
+        onThoughtChunk: vi.fn(),
+        streamOnError: vi.fn(),
+        streamOnComplete: vi.fn(),
+        wrappedStreamOnComplete,
+        nonStreamOnComplete: vi.fn(),
+        isStreamingEnabled: true,
+      });
+
+      expect(generateOpenAICompatibleTurnStreamApi).toHaveBeenCalled();
+      expect(wrappedStreamOnComplete).toHaveBeenCalled();
+    });
+
+    it('dispatches to generateAnthropicTurnStreamApi when protocol is anthropic and isStreamingEnabled is true', async () => {
+      const { generateAnthropicTurnStreamApi } = await import('@/services/api/anthropicApi');
+
+      (generateAnthropicTurnStreamApi as any).mockResolvedValue({
+        modelContent: { role: 'model', parts: [{ text: 'done anthropic stream' }] },
+        parts: [{ text: 'done anthropic stream' }],
+        thoughts: undefined,
+        usage: undefined,
+        functionCalls: [],
+      });
+
+      const wrappedStreamOnComplete = vi.fn();
+
+      await executeThirdPartyChat({
+        activeProvider: {
+          id: 'p-3',
+          name: 'AnthropicProvider',
+          protocol: 'anthropic',
+          baseUrl: 'https://api.anthropic.com',
+          apiKey: 'test-key',
+        } as any,
+        apiModelId: 'claude-3-7-sonnet',
+        keyToUse: 'test-key',
+        sessionToUpdate: {} as any,
+        historyForChat: [],
+        finalRole: 'user',
+        finalParts: [{ text: 'use tool' }],
+        combinedClientFunctions: {
+          testTool: {
+            declaration: { name: 'testTool', description: 'desc', parameters: {} },
+            handler: vi.fn(),
+          },
+        },
+        newAbortController: new AbortController(),
+        generationId: 'gen-3',
+        insertInternalToolMessages: vi.fn(),
+        streamOnPart: vi.fn(),
+        onThoughtChunk: vi.fn(),
+        streamOnError: vi.fn(),
+        streamOnComplete: vi.fn(),
+        wrappedStreamOnComplete,
+        nonStreamOnComplete: vi.fn(),
+        isStreamingEnabled: true,
+      });
+
+      expect(generateAnthropicTurnStreamApi).toHaveBeenCalled();
       expect(wrappedStreamOnComplete).toHaveBeenCalled();
     });
   });

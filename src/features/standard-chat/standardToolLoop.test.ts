@@ -709,4 +709,33 @@ describe('runStandardToolLoop round cap', () => {
     expect(handler).toHaveBeenCalledTimes(DEFAULT_TOOL_LOOP_ROUNDS - 1);
     expect(result.finalTurn.parts.some((part) => typeof part.text === 'string')).toBe(true);
   });
+
+  it('forwards streamCallbacks to runTurn and returns streamed: true when provided', async () => {
+    const streamCallbacks = {
+      onPart: vi.fn(),
+      onThoughtChunk: vi.fn(),
+    };
+    const runTurn = vi.fn(async (_contents, cb) => {
+      cb?.onThoughtChunk?.('thinking...');
+      cb?.onPart?.({ text: 'streaming answer' });
+      return {
+        modelContent: { role: 'model' as const, parts: [{ text: 'streaming answer' }] },
+        parts: [{ text: 'streaming answer' }],
+        thoughts: 'thinking...',
+        functionCalls: [],
+      };
+    });
+
+    const result = await runStandardToolLoop({
+      initialContents: [{ role: 'user', parts: [{ text: 'Hi' }] }],
+      clientFunctions: {},
+      runTurn,
+      streamCallbacks,
+    });
+
+    expect(runTurn).toHaveBeenCalledWith(expect.any(Array), streamCallbacks);
+    expect(streamCallbacks.onThoughtChunk).toHaveBeenCalledWith('thinking...');
+    expect(streamCallbacks.onPart).toHaveBeenCalledWith({ text: 'streaming answer' });
+    expect(result.streamed).toBe(true);
+  });
 });

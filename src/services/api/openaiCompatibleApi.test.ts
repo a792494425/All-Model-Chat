@@ -4,6 +4,7 @@ import {
   sendOpenAICompatibleMessageNonStream,
   sendOpenAICompatibleMessageStream,
   generateOpenAICompatibleTurnApi,
+  generateOpenAICompatibleTurnStreamApi,
 } from './openaiCompatibleApi';
 import { AUTH_OPTIONAL_API_KEY } from '../../../shared/serverManagedApiKey';
 
@@ -800,6 +801,124 @@ describe('openaiCompatibleApi', () => {
       expect(result.functionCalls).toEqual([]);
       expect(result.parts).toEqual([{ text: 'All done!' }]);
       expect(result.usage?.totalTokenCount).toBe(20);
+    });
+  });
+
+  describe('generateOpenAICompatibleTurnStreamApi', () => {
+    it('streams reasoning and text while accumulating tool_calls across chunks', async () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(
+              [
+                'data: {"choices":[{"delta":{"reasoning_content":"Thinking about files..."}}]}',
+                '',
+                'data: {"choices":[{"delta":{"content":"Checking "}}]}',
+                '',
+                'data: {"choices":[{"delta":{"content":"filesystem...\\n"}}]}',
+                '',
+                'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_read","type":"function","function":{"name":"read_file","arguments":"{\\"path\\": "}}]}}]}',
+                '',
+                'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\\"test.txt\\"}"}}]}}]}',
+                '',
+                'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":12,"completion_tokens":25,"total_tokens":37}}',
+                '',
+                'data: [DONE]',
+                '',
+              ].join('\n'),
+            ),
+          );
+          controller.close();
+        },
+      });
+
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => new Response(stream, { status: 200, headers: { 'content-type': 'text/event-stream' } })),
+      );
+
+      const onPart = vi.fn();
+      const onThoughtChunk = vi.fn();
+
+      const result = await generateOpenAICompatibleTurnStreamApi(
+        'test-key',
+        'gpt-4o',
+        [{ role: 'user', parts: [{ text: 'Read test.txt' }] }],
+        { baseUrl: 'https://api.openai.com/v1' },
+        new AbortController().signal,
+        undefined,
+        { onPart, onThoughtChunk },
+      );
+
+      expect(onThoughtChunk).toHaveBeenCalledWith('Thinking about files...');
+      expect(onPart).toHaveBeenCalledWith({ text: 'Checking ' });
+      expect(onPart).toHaveBeenCalledWith({ text: 'filesystem...\n' });
+
+      expect(result.functionCalls).toEqual([
+        {
+          id: 'call_read',
+          name: 'read_file',
+          args: { path: 'test.txt' },
+        },
+      ]);
+      expect(result.parts).toEqual([
+        { text: 'Checking filesystem...\n' },
+        {
+          functionCall: {
+            id: 'call_read',
+            name: 'read_file',
+            args: { path: 'test.txt' },
+          },
+        },
+      ]);
+      expect(result.thoughts).toBe('Thinking about files...');
+      expect(result.usage?.totalTokenCount).toBe(37);
+    });
+
+    it('streams normal text without tool calls and emits onPart', async () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(
+              [
+                'data: {"choices":[{"delta":{"content":"Hello "}}]}',
+                '',
+                'data: {"choices":[{"delta":{"content":"world!"}}]}',
+                '',
+                'data: {"choices":[{"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":5,"completion_tokens":2,"total_tokens":7}}',
+                '',
+                'data: [DONE]',
+                '',
+              ].join('\n'),
+            ),
+          );
+          controller.close();
+        },
+      });
+
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => new Response(stream, { status: 200, headers: { 'content-type': 'text/event-stream' } })),
+      );
+
+      const onPart = vi.fn();
+      const result = await generateOpenAICompatibleTurnStreamApi(
+        'test-key',
+        'gpt-4o',
+        [{ role: 'user', parts: [{ text: 'Hi' }] }],
+        { baseUrl: 'https://api.openai.com/v1' },
+        new AbortController().signal,
+        undefined,
+        { onPart },
+      );
+
+      expect(onPart).toHaveBeenCalledWith({ text: 'Hello ' });
+      expect(onPart).toHaveBeenCalledWith({ text: 'world!' });
+      expect(result.functionCalls).toEqual([]);
+      expect(result.parts).toEqual([{ text: 'Hello world!' }]);
+      expect(result.usage?.totalTokenCount).toBe(7);
     });
   });
 });
