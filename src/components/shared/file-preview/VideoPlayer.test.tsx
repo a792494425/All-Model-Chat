@@ -174,4 +174,17 @@ describe('VideoPlayer', () => {
     });
     expect(useVideoVolumeStore.getState().isMuted).toBe(false);
   });
+
+  it('renders native subtitle track when subtitlesSrc is provided', () => {
+    renderer.render(
+      <VideoPlayer src="blob:mock-video-url" subtitlesSrc="blob:mock-subtitles-vtt" testId="custom-video-test" />,
+    );
+    const video = renderer.container.querySelector('[data-testid="custom-video-test"]') as HTMLVideoElement;
+    expect(video).not.toBeNull();
+    const track = video.querySelector('track');
+    expect(track).not.toBeNull();
+    expect(track?.getAttribute('src')).toBe('blob:mock-subtitles-vtt');
+    expect(track?.getAttribute('kind')).toBe('subtitles');
+    expect(track?.hasAttribute('default')).toBe(true);
+  });
 });

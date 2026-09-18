@@ -19,6 +19,7 @@ export interface VideoPlayerProps extends UseVideoPlayerLogicProps {
   showControls?: boolean;
   showSegmentBar?: boolean;
   onAnnotationDismiss?: () => void;
+  subtitlesSrc?: string;
 }
 
 export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(function VideoPlayer(props, ref) {
@@ -33,6 +34,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
     showSegmentBar = true,
     annotation = null,
     timelineMarkers,
+    subtitlesSrc,
   } = props;
 
   const logic = useVideoPlayerLogic(props, ref);
@@ -83,7 +85,9 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
             onEnded={logic.handleEnded}
             className={`${videoClassName} ${logic.isPlaying && !logic.controlsVisible ? '!cursor-none' : ''}`}
             data-testid={testId}
-          />
+          >
+            {subtitlesSrc && <track kind="subtitles" src={subtitlesSrc} srcLang="auto" label="Subtitles" default />}
+          </video>
 
           <VideoHighlightOverlay
             annotation={annotation}
