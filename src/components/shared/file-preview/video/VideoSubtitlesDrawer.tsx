@@ -143,28 +143,28 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
     <div
       data-testid="video-subtitles-drawer"
       onMouseMove={(e) => e.stopPropagation()}
-      className="w-80 sm:w-96 flex flex-col h-full bg-[#18191c] border-l border-white/10 text-white/90 select-none z-20 flex-shrink-0"
+      className="w-80 sm:w-96 md:w-[410px] flex flex-col h-full bg-[#18191c] border-l border-white/10 text-white/90 select-none z-20 flex-shrink-0"
     >
       {/* Drawer Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/10 bg-[#141517]">
-        <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/10 bg-[#141517] gap-2">
+        <div className="flex items-center gap-1.5 min-w-0 flex-shrink-0">
           <Subtitles size={16} className="text-sky-400 flex-shrink-0" />
-          <span className="text-sm font-semibold text-white truncate">{t('videoSubtitles')}</span>
-          <span className="text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-white/10 text-white/70">
+          <span className="text-sm font-semibold text-white flex-shrink-0">{t('videoSubtitles')}</span>
+          <span className="text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-white/10 text-white/70 flex-shrink-0">
             {cues.length}
           </span>
           {isFromCache && (
             <span
-              className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-medium whitespace-nowrap"
+              className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-medium flex-shrink-0 whitespace-nowrap"
               data-testid="subtitles-cache-badge"
               title={t('loadedFromCache')}
             >
-              {t('loadedFromCache')}
+              {t('cachedTag')}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {/* Translate Subtitles */}
           {onTranslate && (
             <button
@@ -198,31 +198,31 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
             </button>
           )}
 
-          {/* Download SRT */}
-          <button
-            type="button"
-            onClick={handleDownloadSrt}
-            disabled={cues.length === 0}
-            className="px-2 py-1 rounded text-xs font-medium bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none text-white/90 hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
-            data-testid="download-srt-btn"
-            title={t('downloadSrt')}
-          >
-            <Download size={12} />
-            <span>SRT</span>
-          </button>
-
-          {/* Download VTT */}
-          <button
-            type="button"
-            onClick={handleDownloadVtt}
-            disabled={cues.length === 0}
-            className="px-2 py-1 rounded text-xs font-medium bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none text-white/90 hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
-            data-testid="download-vtt-btn"
-            title={t('downloadVtt')}
-          >
-            <Download size={12} />
-            <span>VTT</span>
-          </button>
+          {/* Download Pill (SRT & VTT) */}
+          <div className="flex items-center bg-white/10 rounded px-1 py-0.5 text-xs">
+            <Download size={11} className="text-white/50 ml-0.5 mr-0.5" />
+            <button
+              type="button"
+              onClick={handleDownloadSrt}
+              disabled={cues.length === 0}
+              className="px-1 py-0.5 rounded text-[11px] font-mono font-medium hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none text-white/90 hover:text-white transition-colors cursor-pointer"
+              data-testid="download-srt-btn"
+              title={t('downloadSrt')}
+            >
+              SRT
+            </button>
+            <span className="text-white/20 text-[10px] mx-0.5">|</span>
+            <button
+              type="button"
+              onClick={handleDownloadVtt}
+              disabled={cues.length === 0}
+              className="px-1 py-0.5 rounded text-[11px] font-mono font-medium hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none text-white/90 hover:text-white transition-colors cursor-pointer"
+              data-testid="download-vtt-btn"
+              title={t('downloadVtt')}
+            >
+              VTT
+            </button>
+          </div>
 
           {/* Copy Plain Text */}
           <button

@@ -1309,6 +1309,15 @@ export const commonTranslations = {
     fr: 'Chargé depuis le cache',
     de: 'Aus Cache geladen',
   },
+  cachedTag: {
+    en: 'Cached',
+    zh: '已缓存',
+    ja: 'キャッシュ済',
+    ko: '캐시됨',
+    es: 'En caché',
+    fr: 'En cache',
+    de: 'Gecacht',
+  },
   reExtractSubtitles: {
     en: 'Re-extract Subtitles',
     zh: '重新提取字幕',
