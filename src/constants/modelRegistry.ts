@@ -1,5 +1,6 @@
 import type { ModelOption } from '@/types';
 import { ROBOTICS_MODEL } from './modelConfiguration';
+import { KNOWN_MODELS_CATALOG } from '@/utils/model/knownModelsCatalog';
 
 type ModelRegistryGroup =
   'defaultPinned' | 'tts' | 'image' | 'liveArtifacts' | 'connectionTest' | 'transcription' | 'liveTranslate';
@@ -119,11 +120,16 @@ const getRegisteredModels = (group: ModelRegistryGroup) =>
   MODEL_REGISTRY.filter((model) => model.groups.includes(group));
 
 export const getModelOptionsForGroup = (group: ModelRegistryGroup, options: { pinned?: boolean } = {}): ModelOption[] =>
-  getRegisteredModels(group).map((model) => ({
-    id: model.id,
-    name: model.groupLabels?.[group] || model.name,
-    ...(options.pinned !== undefined ? { isPinned: options.pinned } : {}),
-  }));
+  getRegisteredModels(group).map((model) => {
+    const catalogEntry = KNOWN_MODELS_CATALOG[model.id];
+    return {
+      id: model.id,
+      name: model.groupLabels?.[group] || model.name,
+      ...(catalogEntry?.contextWindow ? { contextWindow: catalogEntry.contextWindow } : {}),
+      ...(catalogEntry?.capabilities ? { capabilities: catalogEntry.capabilities } : {}),
+      ...(options.pinned !== undefined ? { isPinned: options.pinned } : {}),
+    };
+  });
 
 export const getRegisteredModelName = (modelId: string): string | undefined => {
   const normalized = modelId.replace(/^models\//, '');

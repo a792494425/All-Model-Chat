@@ -145,7 +145,6 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
       onMouseMove={(e) => e.stopPropagation()}
       className="w-80 sm:w-96 md:w-[410px] flex flex-col h-full bg-[#18191c] border-l border-white/10 text-white/90 select-none z-20 flex-shrink-0"
     >
-      {/* Drawer Header */}
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/10 bg-[#141517] gap-2">
         <div className="flex items-center gap-1.5 min-w-0 flex-shrink-0">
           <Subtitles size={16} className="text-sky-400 flex-shrink-0" />
@@ -165,7 +164,6 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
         </div>
 
         <div className="flex items-center gap-1 flex-shrink-0">
-          {/* Translate Subtitles */}
           {onTranslate && (
             <button
               type="button"
@@ -189,7 +187,6 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
             </button>
           )}
 
-          {/* Re-extract Subtitles */}
           {onReExtract && (
             <button
               type="button"
@@ -202,7 +199,6 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
             </button>
           )}
 
-          {/* Download Pill (SRT & VTT) */}
           <div className="flex items-center bg-white/10 rounded px-1 py-0.5 text-xs">
             <Download size={11} className="text-white/50 ml-0.5 mr-0.5" />
             <button
@@ -228,7 +224,6 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
             </button>
           </div>
 
-          {/* Copy Plain Text */}
           <button
             type="button"
             onClick={handleCopyText}
@@ -240,7 +235,6 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
             {isCopied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
           </button>
 
-          {/* Close Drawer */}
           <button
             type="button"
             onClick={onClose}
@@ -253,7 +247,6 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
         </div>
       </div>
 
-      {/* Mode Switcher Bar */}
       {hasTranslations && (
         <div className="flex items-center gap-1 px-3 py-1.5 bg-[#141517]/80 border-b border-white/5 text-[11px] select-none">
           <button
@@ -289,7 +282,6 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
         </div>
       )}
 
-      {/* Search Bar */}
       {cues.length > 0 && (
         <div className="px-3 py-2 border-b border-white/5 bg-[#141517]/50">
           <div className="relative flex items-center">
@@ -320,7 +312,6 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
         </div>
       )}
 
-      {/* Cues List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar">
         {filteredCues.length === 0 ? (
           <div className="h-full min-h-[160px] flex flex-col items-center justify-center text-white/40 text-xs text-center px-4">

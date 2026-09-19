@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import { fireEvent, act } from '@testing-library/react';
 import { VideoSubtitlesDrawer } from './VideoSubtitlesDrawer';
-import type { SubtitleCue } from '@/utils/video-subtitles/subtitleFormatter';
 import * as subtitleFormatter from '@/utils/video-subtitles/subtitleFormatter';
 
 vi.mock('@/utils/video-subtitles/subtitleFormatter', async () => {
@@ -16,7 +15,7 @@ vi.mock('@/utils/video-subtitles/subtitleFormatter', async () => {
 describe('VideoSubtitlesDrawer', () => {
   const renderer = setupTestRenderer({ providers: { language: 'zh' } });
 
-  const mockCues: SubtitleCue[] = [
+  const mockCues: subtitleFormatter.SubtitleCue[] = [
     {
       id: 1,
       startSeconds: 1.0,

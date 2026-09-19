@@ -53,8 +53,14 @@ export interface ModelSpecification {
 
 const isVisionSupportedModel = (modelId: string): boolean => {
   const lower = modelId.toLowerCase();
-  if (lower.includes('tts') || lower.includes('transcribe')) return false;
-  if (lower.includes('gemini')) return true;
+  const catalogEntry =
+    KNOWN_MODELS_CATALOG[modelId] ||
+    KNOWN_MODELS_CATALOG[modelId.replace(/^(models\/|openai\/|anthropic\/|xai\/)/i, '')];
+  if (catalogEntry?.capabilities?.vision !== undefined) {
+    return catalogEntry.capabilities.vision;
+  }
+  if (lower.includes('tts') || lower.includes('transcribe') || lower.includes('live-translate')) return false;
+  if (lower.includes('gemini') || lower.includes('gemma')) return true;
   if (lower.includes('gpt-4o') || lower.includes('gpt-4-turbo') || lower.includes('gpt-5') || lower.includes('o4')) {
     return true;
   }
@@ -68,12 +74,6 @@ const isVisionSupportedModel = (modelId: string): boolean => {
   }
   if (lower.includes('grok-4') || lower.includes('grok-build') || lower.includes('grok-2-vision')) {
     return true;
-  }
-  const catalogEntry =
-    KNOWN_MODELS_CATALOG[modelId] ||
-    KNOWN_MODELS_CATALOG[modelId.replace(/^(models\/|openai\/|anthropic\/|xai\/)/i, '')];
-  if (catalogEntry?.capabilities?.vision !== undefined) {
-    return catalogEntry.capabilities.vision;
   }
   if (lower.includes('vision') || lower.includes('-vl') || lower.includes('/vl')) {
     return true;

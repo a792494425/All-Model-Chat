@@ -5,6 +5,7 @@ import {
   KNOWN_MODELS_CATALOG,
   inferModelCapabilities,
   enrichModelMetadata,
+  getOrInferModelCapabilities,
 } from './knownModelsCatalog';
 
 describe('knownModelsCatalog', () => {
@@ -121,6 +122,66 @@ describe('knownModelsCatalog', () => {
       expect(enriched.name).toBe('custom-internal-model-32k');
       expect(enriched.contextWindow).toBe(32000);
       expect(enriched.visibleInSelector).toBe(true);
+    });
+  });
+
+  describe('Gemini 3 and Gemma model capabilities', () => {
+    it('accurately identifies pure audio models (Transcribe, TTS, Live Translate) without vision tags', () => {
+      const transcribeCaps = getOrInferModelCapabilities({ id: 'gemini-3.5-transcribe' });
+      expect(transcribeCaps.vision).toBe(false);
+      expect(transcribeCaps.audio).toBe(true);
+      expect(transcribeCaps.tools).toBe(false);
+
+      const transcribeLiveCaps = getOrInferModelCapabilities({ id: 'gemini-3.5-transcribe-live' });
+      expect(transcribeLiveCaps.vision).toBe(false);
+      expect(transcribeLiveCaps.audio).toBe(true);
+
+      const liveTranslateCaps = getOrInferModelCapabilities({ id: 'gemini-3.5-live-translate-preview' });
+      expect(liveTranslateCaps.vision).toBe(false);
+      expect(liveTranslateCaps.audio).toBe(true);
+
+      const ttsCaps = getOrInferModelCapabilities({ id: 'gemini-3.1-flash-tts-preview' });
+      expect(ttsCaps.vision).toBe(false);
+      expect(ttsCaps.audio).toBe(true);
+    });
+
+    it('accurately identifies Nano Banana image generation models with image, vision, and thinking tags', () => {
+      const nanoBanana2 = getOrInferModelCapabilities({ id: 'gemini-3.1-flash-image' });
+      expect(nanoBanana2.image).toBe(true);
+      expect(nanoBanana2.vision).toBe(true);
+      expect(nanoBanana2.thinking).toBe(true);
+
+      const nanoBananaLite = getOrInferModelCapabilities({ id: 'gemini-3.1-flash-lite-image' });
+      expect(nanoBananaLite.image).toBe(true);
+      expect(nanoBananaLite.vision).toBe(true);
+      expect(nanoBananaLite.thinking).toBe(true);
+
+      const nanoBananaPro = getOrInferModelCapabilities({ id: 'gemini-3-pro-image' });
+      expect(nanoBananaPro.image).toBe(true);
+      expect(nanoBananaPro.vision).toBe(true);
+      expect(nanoBananaPro.thinking).toBe(true);
+    });
+
+    it('accurately identifies Gemma 4 models with vision and thinking tags', () => {
+      const gemma31b = getOrInferModelCapabilities({ id: 'gemma-4-31b-it' });
+      expect(gemma31b.vision).toBe(true);
+      expect(gemma31b.thinking).toBe(true);
+
+      const gemma26b = getOrInferModelCapabilities({ id: 'gemma-4-26b-a4b-it' });
+      expect(gemma26b.vision).toBe(true);
+      expect(gemma26b.thinking).toBe(true);
+    });
+
+    it('accurately identifies Gemini 3.8 Live models with vision, audio, and thinking tags', () => {
+      const live = getOrInferModelCapabilities({ id: 'gemini-3.8-live' });
+      expect(live.vision).toBe(true);
+      expect(live.audio).toBe(true);
+      expect(live.thinking).toBe(true);
+
+      const liveThinking = getOrInferModelCapabilities({ id: 'gemini-3.8-live-extended-thinking' });
+      expect(liveThinking.vision).toBe(true);
+      expect(liveThinking.audio).toBe(true);
+      expect(liveThinking.thinking).toBe(true);
     });
   });
 });

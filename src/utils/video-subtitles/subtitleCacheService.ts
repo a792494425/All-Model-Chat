@@ -1,5 +1,6 @@
 import { SubtitleCue } from './subtitleFormatter';
 import { getKeyValue, setKeyValue, deleteKeyValue } from '@/services/db/indexedDbAccess';
+import { logService } from '@/services/logService';
 
 export interface CachedSubtitles {
   cues: SubtitleCue[];
@@ -47,8 +48,8 @@ export async function getCachedSubtitles(target: SubtitleCacheTarget): Promise<C
       return null;
     }
     return cached;
-  } catch (err) {
-    console.warn('[SubtitleCache] Failed to load cached subtitles:', err);
+  } catch (loadError) {
+    logService.warn('[SubtitleCache] Failed to load cached subtitles:', loadError);
     return null;
   }
 }
@@ -84,8 +85,8 @@ export async function saveCachedSubtitles(
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('subtitles-cache-updated', { detail: { target } }));
     }
-  } catch (err) {
-    console.warn('[SubtitleCache] Failed to save cached subtitles:', err);
+  } catch (saveError) {
+    logService.warn('[SubtitleCache] Failed to save cached subtitles:', saveError);
   }
 }
 
@@ -101,7 +102,7 @@ export async function deleteCachedSubtitles(target: SubtitleCacheTarget): Promis
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('subtitles-cache-updated', { detail: { target } }));
     }
-  } catch (err) {
-    console.warn('[SubtitleCache] Failed to delete cached subtitles:', err);
+  } catch (deleteError) {
+    logService.warn('[SubtitleCache] Failed to delete cached subtitles:', deleteError);
   }
 }

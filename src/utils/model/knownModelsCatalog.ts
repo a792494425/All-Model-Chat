@@ -358,7 +358,151 @@ export const KNOWN_MODELS_CATALOG: Record<string, CatalogModelSpec> = {
     ownedBy: 'mistral',
   },
 
-  // Google Gemini (via OpenAI compatibility)
+  // Google Gemini (via OpenAI compatibility and Native)
+  'gemini-3.8-flash': {
+    id: 'gemini-3.8-flash',
+    name: 'Gemini 3.8 Flash',
+    contextWindow: 1_048_576,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: true, thinking: true, tools: true },
+    ownedBy: 'google',
+  },
+  'gemini-3.7-flash': {
+    id: 'gemini-3.7-flash',
+    name: 'Gemini 3.7 Flash',
+    contextWindow: 1_048_576,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: true, thinking: true, tools: true },
+    ownedBy: 'google',
+  },
+  'gemini-3.6-flash': {
+    id: 'gemini-3.6-flash',
+    name: 'Gemini 3.6 Flash',
+    contextWindow: 1_048_576,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: true, thinking: true, tools: true },
+    ownedBy: 'google',
+  },
+  'gemini-3.5-flash': {
+    id: 'gemini-3.5-flash',
+    name: 'Gemini 3.5 Flash',
+    contextWindow: 1_048_576,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: true, thinking: true, tools: true },
+    ownedBy: 'google',
+  },
+  'gemini-3.5-flash-lite': {
+    id: 'gemini-3.5-flash-lite',
+    name: 'Gemini 3.5 Flash-Lite',
+    contextWindow: 1_048_576,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: true, thinking: true, tools: true },
+    ownedBy: 'google',
+  },
+  'gemini-3.1-flash-lite': {
+    id: 'gemini-3.1-flash-lite',
+    name: 'Gemini 3.1 Flash-Lite',
+    contextWindow: 1_048_576,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: true, thinking: true, tools: true },
+    ownedBy: 'google',
+  },
+  'gemini-3.1-pro-preview': {
+    id: 'gemini-3.1-pro-preview',
+    name: 'Gemini 3.1 Pro',
+    contextWindow: 1_048_576,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: true, thinking: true, tools: true },
+    ownedBy: 'google',
+  },
+  'gemini-3-flash-preview': {
+    id: 'gemini-3-flash-preview',
+    name: 'Gemini 3 Flash',
+    contextWindow: 1_048_576,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: true, thinking: true, tools: true },
+    ownedBy: 'google',
+  },
+  'gemini-3.8-live': {
+    id: 'gemini-3.8-live',
+    name: 'Gemini 3.8 Live',
+    contextWindow: 131_072,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: true, audio: true, thinking: true, tools: true },
+    ownedBy: 'google',
+  },
+  'gemini-3.8-live-extended-thinking': {
+    id: 'gemini-3.8-live-extended-thinking',
+    name: 'Gemini 3.8 Live Extended Thinking',
+    contextWindow: 131_072,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: true, audio: true, thinking: true, tools: true },
+    ownedBy: 'google',
+  },
+  'gemini-3.5-live-translate-preview': {
+    id: 'gemini-3.5-live-translate-preview',
+    name: 'Gemini 3.5 Live Translate',
+    contextWindow: 131_072,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: false, audio: true, thinking: false, tools: false },
+    ownedBy: 'google',
+  },
+  'gemini-3.5-transcribe': {
+    id: 'gemini-3.5-transcribe',
+    name: 'Gemini 3.5 Transcribe',
+    contextWindow: 32_768,
+    maxOutputTokens: 8_192,
+    capabilities: { vision: false, audio: true, thinking: false, tools: false },
+    ownedBy: 'google',
+  },
+  'gemini-3.5-transcribe-live': {
+    id: 'gemini-3.5-transcribe-live',
+    name: 'Gemini 3.5 Transcribe Live',
+    contextWindow: 32_768,
+    maxOutputTokens: 8_192,
+    capabilities: { vision: false, audio: true, thinking: false, tools: false },
+    ownedBy: 'google',
+  },
+  'gemini-3.1-flash-tts-preview': {
+    id: 'gemini-3.1-flash-tts-preview',
+    name: 'Gemini 3.1 Flash TTS',
+    contextWindow: 8_192,
+    maxOutputTokens: 16_384,
+    capabilities: { vision: false, audio: true, thinking: false, tools: false },
+    ownedBy: 'google',
+  },
+  'gemini-3.1-flash-image': {
+    id: 'gemini-3.1-flash-image',
+    name: 'Nano Banana 2',
+    contextWindow: 131_072,
+    maxOutputTokens: 32_768,
+    capabilities: { vision: true, image: true, thinking: true, tools: false },
+    ownedBy: 'google',
+  },
+  'gemini-3.1-flash-lite-image': {
+    id: 'gemini-3.1-flash-lite-image',
+    name: 'Nano Banana Lite',
+    contextWindow: 65_536,
+    maxOutputTokens: 4_096,
+    capabilities: { vision: true, image: true, thinking: true, tools: false },
+    ownedBy: 'google',
+  },
+  'gemini-3-pro-image': {
+    id: 'gemini-3-pro-image',
+    name: 'Nano Banana Pro',
+    contextWindow: 65_536,
+    maxOutputTokens: 32_768,
+    capabilities: { vision: true, image: true, thinking: true, tools: false },
+    ownedBy: 'google',
+  },
+  'gemini-robotics-er-2-preview': {
+    id: 'gemini-robotics-er-2-preview',
+    name: 'Gemini Robotics-ER 2',
+    contextWindow: 131_072,
+    maxOutputTokens: 65_536,
+    capabilities: { vision: true, thinking: true, tools: true },
+    ownedBy: 'google',
+  },
   'gemini-2.5-pro': {
     id: 'gemini-2.5-pro',
     name: 'Gemini 2.5 Pro',
@@ -381,6 +525,22 @@ export const KNOWN_MODELS_CATALOG: Record<string, CatalogModelSpec> = {
     contextWindow: 1_048_576,
     maxOutputTokens: 8_192,
     capabilities: { vision: true, thinking: false, tools: true },
+    ownedBy: 'google',
+  },
+  'gemma-4-31b-it': {
+    id: 'gemma-4-31b-it',
+    name: 'Gemma 4 31B IT',
+    contextWindow: 256_000,
+    maxOutputTokens: 8_192,
+    capabilities: { vision: true, thinking: true, tools: false },
+    ownedBy: 'google',
+  },
+  'gemma-4-26b-a4b-it': {
+    id: 'gemma-4-26b-a4b-it',
+    name: 'Gemma 4 26B A4B IT',
+    contextWindow: 256_000,
+    maxOutputTokens: 8_192,
+    capabilities: { vision: true, thinking: true, tools: false },
     ownedBy: 'google',
   },
 
@@ -555,12 +715,22 @@ export const inferModelCapabilities = (
 } => {
   const lower = rawId.toLowerCase();
 
-  const thinking = /r1|o1|o3|o4|claude-3-7|thinking|reasoner|reasoning|qwq|zero/i.test(lower);
-  const vision = /vision|vl|-v-|4v|4o|pixtral|claude-3|gemini|multimodal/i.test(lower);
-  const tools = !/embed|rerank|moderation|tts|whisper|dall-e/i.test(lower);
-  const image = /dall-e|midjourney|flux|stable-diffusion|sdxl|imagen|cogview/i.test(lower);
+  const isPureAudio = /tts|transcribe|live-translate/i.test(lower);
+  const isImageGen =
+    /dall-e|midjourney|flux|stable-diffusion|sdxl|imagen|cogview|nano-?banana/i.test(lower) ||
+    /-(image|image-preview)$/i.test(lower);
+
+  const thinking =
+    /r1|o1|o3|o4|claude-3-7|thinking|reasoner|reasoning|qwq|zero/i.test(lower) ||
+    (!isPureAudio && /gemini-3|gemini-2\.5|gemma-4|robotics/i.test(lower));
+  const vision =
+    !isPureAudio &&
+    /vision|vl|-v-|4v|4o|pixtral|claude-3|gemini|gemma|multimodal/i.test(lower);
+  const tools =
+    !/embed|rerank|moderation|tts|whisper|dall-e|transcribe|live-translate/i.test(lower) && !isImageGen;
+  const image = isImageGen;
   const embedding = /embed|bge|text-embedding/i.test(lower);
-  const audio = /tts|whisper|speech|audio|cosyvoice/i.test(lower);
+  const audio = /tts|whisper|speech|audio|cosyvoice|transcribe|live-translate|-live/i.test(lower);
   const free =
     /:free($|[:/])|(\/free$)/i.test(lower) ||
     lower.includes(':free') ||
@@ -610,15 +780,18 @@ export const getOrInferModelCapabilities = (model: {
   capabilities?: ModelCapabilities;
   enableThinking?: boolean;
 }): ModelCapabilities => {
+  const normalizedId = normalizeModelId(model.id);
+  const catalogEntry = KNOWN_MODELS_CATALOG[normalizedId] || KNOWN_MODELS_CATALOG[model.id.toLowerCase()];
   const inferred = inferModelCapabilities(model.id).capabilities;
+  const baseCaps = catalogEntry ? { ...inferred, ...catalogEntry.capabilities } : inferred;
   return {
-    ...inferred,
+    ...baseCaps,
     ...(model.capabilities || {}),
-    thinking: model.capabilities?.thinking ?? model.enableThinking ?? inferred.thinking,
-    free: model.capabilities?.free ?? inferred.free,
-    image: model.capabilities?.image ?? inferred.image,
-    embedding: model.capabilities?.embedding ?? inferred.embedding,
-    audio: model.capabilities?.audio ?? inferred.audio,
+    thinking: model.capabilities?.thinking ?? model.enableThinking ?? baseCaps.thinking,
+    free: model.capabilities?.free ?? baseCaps.free,
+    image: model.capabilities?.image ?? baseCaps.image,
+    embedding: model.capabilities?.embedding ?? baseCaps.embedding,
+    audio: model.capabilities?.audio ?? baseCaps.audio,
   };
 };
 
