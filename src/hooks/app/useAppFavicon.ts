@@ -6,7 +6,7 @@ import {
   type GenerationLease,
 } from '@/features/message-sender/generationLease';
 import { TAB_ID } from '@/stores/sync/tabIdentity';
-import { getTintedFaviconUrl } from '@/utils/faviconTint';
+import { getTintedFaviconUrl } from '@/utils/theme/faviconTint';
 import type { ChatMessage } from '@/types';
 
 // Status colors applied to the favicon silhouette at runtime via canvas tinting.

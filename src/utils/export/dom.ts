@@ -1,6 +1,6 @@
 import { logService } from '@/services/logService';
 import { sanitizeCssColorFunctionsForPngExport } from './cssColorSanitizer';
-import { isDarkThemeId } from '@/utils/themeMode';
+import { isDarkThemeId } from '@/utils/theme/themeMode';
 import { createStaticPreviewSnapshotContainer } from '@/utils/html-preview/previewDocument';
 import { blobToDataUrl } from '@/utils/file/fileEncoding';
 

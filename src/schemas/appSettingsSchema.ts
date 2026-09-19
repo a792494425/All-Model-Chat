@@ -23,7 +23,7 @@ import {
   sanitizeStringRecord,
 } from '../../shared/mcpServerConfig';
 import { isRecord } from '../../shared/predicates';
-import { THEME_IDS } from '@/utils/themeMode';
+import { THEME_IDS } from '@/utils/theme/themeMode';
 
 const parseUnknownWithDefault = <Output>(schema: z.ZodType<Output>, fallback: Output): z.ZodType<Output> =>
   z

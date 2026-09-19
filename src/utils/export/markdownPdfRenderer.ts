@@ -3,7 +3,7 @@ import { jsPDF } from 'jspdf';
 import { CJK_FONT_FILE, CJK_FONT_NAME, loadCjkFontBase64 } from './markdownPdfFonts';
 import { ensurePdfEmbeddableImage, fetchImageAsDataUrl, getImageFormat, getImageSize } from './markdownPdfImages';
 import type { MarkdownNode } from './markdownPdfTypes';
-import { isDarkThemeId } from '@/utils/themeMode';
+import { isDarkThemeId } from '@/utils/theme/themeMode';
 
 type PdfDocument = InstanceType<typeof jsPDF>;
 

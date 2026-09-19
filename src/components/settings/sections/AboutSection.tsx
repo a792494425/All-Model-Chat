@@ -5,7 +5,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { SETTINGS_OUTLINE_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { logService } from '@/services/logService';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { isDarkThemeId } from '@/utils/themeMode';
+import { isDarkThemeId } from '@/utils/theme/themeMode';
 
 import packageJson from '../../../../package.json';
 

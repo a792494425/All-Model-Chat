@@ -8,7 +8,7 @@ import { usePictureInPicture } from '@/hooks/core/usePictureInPicture';
 import { logService } from '@/services/logService';
 import { toastError } from '@/stores/toastStore';
 import { getTranslator } from '@/i18n/translations';
-import { applyThemeToDocument } from '@/utils/themeDom';
+import { applyThemeToDocument } from '@/utils/theme/themeDom';
 import { useUIStore } from '@/stores/uiStore';
 import {
   type AppSettings,

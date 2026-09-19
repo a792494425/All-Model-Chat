@@ -4,7 +4,7 @@ import { type UploadedFile } from '@/types';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { MESSAGE_BLOCK_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { useI18n } from '@/contexts/I18nContext';
-import { isDarkThemeId } from '@/utils/themeMode';
+import { isDarkThemeId } from '@/utils/theme/themeMode';
 
 interface DiagramWrapperProps {
   title: string;

@@ -34,7 +34,7 @@ vi.mock('@/features/message-sender/generationLease', () => ({
   isGenerationLeaseFresh: mockIsGenerationLeaseFresh,
 }));
 
-vi.mock('@/utils/faviconTint', () => ({
+vi.mock('@/utils/theme/faviconTint', () => ({
   getTintedFaviconUrl: mockGetTintedFaviconUrl,
 }));
 

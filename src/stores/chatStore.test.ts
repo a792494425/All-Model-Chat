@@ -34,7 +34,7 @@ vi.mock('@/i18n/translations', () => ({
   getTranslator: vi.fn(),
 }));
 
-vi.mock('@/utils/themeDom', () => ({
+vi.mock('@/utils/theme/themeDom', () => ({
   applyThemeToDocument: vi.fn(),
 }));
 

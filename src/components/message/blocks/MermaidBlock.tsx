@@ -4,7 +4,7 @@ import DOMPurify from 'dompurify';
 import { type SideViewContent, type UploadedFile } from '@/types';
 import { DiagramWrapper } from './parts/DiagramWrapper';
 import { useI18n } from '@/contexts/I18nContext';
-import { isDarkThemeId } from '@/utils/themeMode';
+import { isDarkThemeId } from '@/utils/theme/themeMode';
 import { svgToUploadedFile } from '@/utils/export/svgToUploadedFile';
 import { useDebouncedDiagramRender } from '@/hooks/diagram/useDebouncedDiagramRender';
 import { useDiagramExport } from '@/hooks/diagram/useDiagramExport';

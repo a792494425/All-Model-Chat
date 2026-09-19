@@ -11,7 +11,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useVirtualMcpStore } from '@/stores/mcp/virtualMcpStore';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
-import { THEME_IDS, isKnownThemeId } from '@/utils/themeMode';
+import { THEME_IDS, isKnownThemeId } from '@/utils/theme/themeMode';
 import { AVAILABLE_THEMES } from '@/constants/themeRegistry';
 import { AVAILABLE_TTS_VOICES } from '@/constants/voiceOptions';
 import { APP_LANGUAGE_IDS, LANGUAGE_META, type AppLanguage } from '@/i18n/languageRegistry';

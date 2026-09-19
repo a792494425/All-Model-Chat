@@ -12,7 +12,7 @@ import { dbService } from '@/services/db/dbService';
 import { normalizeLiveArtifactsSystemPrompts } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
 import { sanitizeThirdPartyApiSettings } from '@/utils/third-party/thirdPartyApiProviders';
 import { migrateLegacyAutoOpenHtmlPreview, migrateLegacyOpenAICompatibleInput } from '@/schemas/appSettingsSchema';
-import { type ConcreteThemeId } from '@/utils/themeMode';
+import { type ConcreteThemeId } from '@/utils/theme/themeMode';
 import { resolveUpdaterOrValue, type UpdaterOrValue } from './stateUpdaters';
 import { CHAT_SYNC_CHANNEL_NAME } from '@/stores/sync/chatSyncChannel';
 
