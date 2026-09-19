@@ -5,10 +5,12 @@ import { toast, toastSuccess, toastError, toastInfo, toastWarning } from './stor
 import { initProviderVirtualMcpServer } from './features/settings-assistant/providerVirtualMcpServer';
 import { initSettingsVirtualMcpServer } from './features/settings-mcp/settingsVirtualMcpServer';
 import { initLocalPythonVirtualMcpServer } from './features/local-python/localPythonVirtualMcpServer';
+import { initLocalJsVirtualMcpServer } from './features/local-js/localJsVirtualMcpServer';
 
 initProviderVirtualMcpServer();
 initSettingsVirtualMcpServer();
 initLocalPythonVirtualMcpServer();
+initLocalJsVirtualMcpServer();
 
 if (typeof window !== 'undefined') {
   Object.assign(window, {
