@@ -28,7 +28,7 @@ export type LanguageBadgeConfig = {
 const normalizeLanguage = (language: string) => language.trim().toLowerCase();
 export const LANGUAGE_ICON_SIZE = 20;
 
-export const LANGUAGE_BADGE_ENTRIES: LanguageBadgeEntry[] = [
+const LANGUAGE_BADGE_ENTRIES = [
   {
     aliases: ['py', 'py3', 'python'],
     badgeId: 'python',
@@ -721,4 +721,3 @@ export const getLanguageBadgeConfig = (language: string): LanguageBadgeConfig =>
 export const MATERIAL_ICON_NAMES = Array.from(
   new Set(LANGUAGE_BADGE_ENTRIES.map((entry) => entry.materialIcon).filter((name): name is string => Boolean(name))),
 ).sort();
-

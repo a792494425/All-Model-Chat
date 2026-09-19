@@ -12,8 +12,7 @@ export async function extractAudioFromVideo(videoBlob: Blob, signal?: AbortSigna
     throw new DOMException('The operation was aborted.', 'AbortError');
   }
 
-  const AudioContextClass =
-    window.AudioContext || window.webkitAudioContext;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 
   if (!AudioContextClass) {
     throw new Error('Web Audio API is not supported in this environment.');

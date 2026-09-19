@@ -123,10 +123,7 @@ export const sendTranscribeMessage = async ({
                 throw new Error(`Video file data for "${mediaFile.name}" is missing or could not be loaded.`);
               }
 
-              const extracted = await extractAudioFromVideo(
-                mediaFile.rawFile,
-                abortController.signal,
-              );
+              const extracted = await extractAudioFromVideo(mediaFile.rawFile, abortController.signal);
               audioBlobToTranscribe = extracted.audioBlob;
               resolvedDurationSeconds = extracted.durationSeconds;
             } else {

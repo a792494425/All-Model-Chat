@@ -3,10 +3,7 @@ interface HtmlExportStylesParams {
   safeRootBgColor: string;
 }
 
-export const buildHtmlExportStyles = ({
-  liveArtifactThemeVars,
-  safeRootBgColor,
-}: HtmlExportStylesParams): string => `
+export const buildHtmlExportStyles = ({ liveArtifactThemeVars, safeRootBgColor }: HtmlExportStylesParams): string => `
                 /* Reset & Layout - Light Paper Theme */
                 :root {
                     ${liveArtifactThemeVars};

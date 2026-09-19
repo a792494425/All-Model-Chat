@@ -500,11 +500,7 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
             <div className="w-full h-full flex flex-row overflow-hidden relative">
               <div className="flex-1 min-w-0 h-full flex items-center justify-center p-2 sm:p-6 lg:p-8">
                 {previewFile.dataUrl ? (
-                  <AudioPreviewViewer
-                    ref={audioViewerRef}
-                    file={previewFile}
-                    onTimeUpdate={setMediaCurrentTime}
-                  />
+                  <AudioPreviewViewer ref={audioViewerRef} file={previewFile} onTimeUpdate={setMediaCurrentTime} />
                 ) : null}
               </div>
               {isSubtitlesDrawerOpen && (

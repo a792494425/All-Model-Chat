@@ -13,17 +13,13 @@ describe('useVideoControlsVisibility', () => {
   });
 
   it('starts with controls visible', () => {
-    const { result } = renderHook(() =>
-      useVideoControlsVisibility({ isPlaying: false }),
-    );
+    const { result } = renderHook(() => useVideoControlsVisibility({ isPlaying: false }));
     expect(result.current.controlsVisible).toBe(true);
   });
 
   it('auto-hides controls after 2.5s when playing starts', () => {
     let isPlaying = false;
-    const { result, rerender } = renderHook(() =>
-      useVideoControlsVisibility({ isPlaying }),
-    );
+    const { result, rerender } = renderHook(() => useVideoControlsVisibility({ isPlaying }));
 
     expect(result.current.controlsVisible).toBe(true);
 
@@ -43,9 +39,7 @@ describe('useVideoControlsVisibility', () => {
 
   it('restores controls immediately when video pauses', () => {
     let isPlaying = true;
-    const { result, rerender } = renderHook(() =>
-      useVideoControlsVisibility({ isPlaying }),
-    );
+    const { result, rerender } = renderHook(() => useVideoControlsVisibility({ isPlaying }));
 
     act(() => {
       vi.advanceTimersByTime(2500);
@@ -66,9 +60,7 @@ describe('useVideoControlsVisibility', () => {
   });
 
   it('wakes controls on mouse move and schedules auto-hide', () => {
-    const { result } = renderHook(() =>
-      useVideoControlsVisibility({ isPlaying: true }),
-    );
+    const { result } = renderHook(() => useVideoControlsVisibility({ isPlaying: true }));
 
     act(() => {
       vi.advanceTimersByTime(2500);
@@ -89,9 +81,7 @@ describe('useVideoControlsVisibility', () => {
   });
 
   it('hides controls immediately on handleMouseLeave while playing', () => {
-    const { result } = renderHook(() =>
-      useVideoControlsVisibility({ isPlaying: true }),
-    );
+    const { result } = renderHook(() => useVideoControlsVisibility({ isPlaying: true }));
 
     expect(result.current.controlsVisible).toBe(true);
 

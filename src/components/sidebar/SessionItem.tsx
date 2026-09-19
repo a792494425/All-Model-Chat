@@ -29,7 +29,8 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
   const context = useSidebarItemContext();
 
   const session = props.session;
-  const activeSessionId = props.activeSessionId !== undefined ? props.activeSessionId : (context?.activeSessionId ?? null);
+  const activeSessionId =
+    props.activeSessionId !== undefined ? props.activeSessionId : (context?.activeSessionId ?? null);
   const editingItem = props.editingItem !== undefined ? props.editingItem : (context?.editingItem ?? null);
   const activeMenu = props.activeMenu !== undefined ? props.activeMenu : (context?.activeMenu ?? null);
   const loadingSessionIds = props.loadingSessionIds ?? context?.loadingSessionIds ?? EMPTY_SET;
@@ -50,16 +51,18 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
   const handleRenameKeyDown = props.handleRenameKeyDown ?? context?.handleRenameKeyDown ?? NOOP;
   const setEditingItem = props.setEditingItem ?? context?.setEditingItem ?? NOOP;
   const setActiveMenu = props.setActiveMenu ?? context?.setActiveMenu ?? NOOP;
-  const draggingSessionId = props.draggingSessionId !== undefined ? props.draggingSessionId : (context?.draggingSessionId ?? null);
-  const draggingGroupId = props.draggingGroupId !== undefined ? props.draggingGroupId : (context?.draggingGroupId ?? null);
+  const draggingSessionId =
+    props.draggingSessionId !== undefined ? props.draggingSessionId : (context?.draggingSessionId ?? null);
+  const draggingGroupId =
+    props.draggingGroupId !== undefined ? props.draggingGroupId : (context?.draggingGroupId ?? null);
   const dropIndicator = props.dropIndicator !== undefined ? props.dropIndicator : (context?.dropIndicator ?? null);
   const onSessionDragStart = props.onSessionDragStart ?? context?.onSessionDragStart ?? NOOP;
   const onSessionDragEnd = props.onSessionDragEnd ?? context?.onSessionDragEnd ?? NOOP;
   const onSessionDragOver = props.onSessionDragOver ?? context?.onSessionDragOver;
   const onSessionDropIndicatorClear = props.onSessionDropIndicatorClear ?? context?.onSessionDropIndicatorClear;
   const onReorderSession = props.onReorderSession ?? context?.onReorderSession;
-  const disableNativeDrag = props.disableNativeDrag !== undefined ? props.disableNativeDrag : (context?.disableNativeDrag ?? false);
-
+  const disableNativeDrag =
+    props.disableNativeDrag !== undefined ? props.disableNativeDrag : (context?.disableNativeDrag ?? false);
 
   const [isRightClickAnimating, setIsRightClickAnimating] = useState(false);
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);

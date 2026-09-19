@@ -359,17 +359,10 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
                 />
 
                 {pinnedUngrouped.length > 0 && (
-                  <SessionListGroup
-                    title={t('historyPinned')}
-                    sessions={pinnedUngrouped}
-                    isDragging={isDragging}
-                  />
+                  <SessionListGroup title={t('historyPinned')} sessions={pinnedUngrouped} isDragging={isDragging} />
                 )}
 
-                <SessionListGroup
-                  sessions={unpinnedUngroupedSessions}
-                  isDragging={isDragging}
-                />
+                <SessionListGroup sessions={unpinnedUngroupedSessions} isDragging={isDragging} />
               </div>
             )}
           </div>

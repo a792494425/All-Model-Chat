@@ -1,5 +1,5 @@
-import type { McpToolDefinition } from "@/services/api/mcpApi";
-import { THINKING_LEVELS, TRANSLATION_TARGET_LANGUAGES } from "@/types";
+import type { McpToolDefinition } from '@/services/api/mcpApi';
+import { THINKING_LEVELS, TRANSLATION_TARGET_LANGUAGES } from '@/types';
 
 export const SETTINGS_TOOLS: McpToolDefinition[] = [
   {
@@ -423,4 +423,3 @@ export const SETTINGS_TOOLS: McpToolDefinition[] = [
     },
   },
 ];
-

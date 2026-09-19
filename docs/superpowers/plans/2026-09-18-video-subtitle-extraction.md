@@ -5,6 +5,7 @@
 **Goal:** 为 AMC-WebUI 增加导入视频时自动提取字幕、在视频播放器中同步渲染、在侧边抽屉中点击时间戳交互跳转，并支持一键导出标准 `.srt` 与 `.vtt` 字幕文件的能力。
 
 **Architecture:**
+
 1. 客户端使用 Web Audio API 从视频离线解码音轨并降采样为 16kHz 单声道 WAV Blob（体积压缩 90%）。
 2. 调用 Gemini Files API 上传轻量音频，使用 `gemini-3.5-transcribe` 模型的词级时间戳（`word_info`）及 verbatim 模式获取精准起止偏移量。
 3. 前端基于自然停顿、标点符号与行长阈值进行智能断句聚合，生成标准 `SubtitleCue[]` 数组、`.srt` 与 `.vtt` 字符串。
@@ -26,20 +27,20 @@
 ### Task 1: 纯前端音轨提取器（`extractAudioFromVideo.ts`）
 
 **Files:**
+
 - Create: `src/utils/video-subtitles/extractAudioFromVideo.ts`
 - Test: `src/utils/video-subtitles/extractAudioFromVideo.test.ts`
 
 **Interfaces:**
+
 - Produces:
+
   ```typescript
   export interface AudioExtractionResult {
     audioBlob: Blob;
     durationSeconds: number;
   }
-  export async function extractAudioFromVideo(
-    videoBlob: Blob,
-    signal?: AbortSignal
-  ): Promise<AudioExtractionResult>;
+  export async function extractAudioFromVideo(videoBlob: Blob, signal?: AbortSignal): Promise<AudioExtractionResult>;
   ```
 
 - [ ] **Step 1: 编写测试用例**
@@ -61,16 +62,19 @@
 ### Task 2: 逐词时间戳聚合与 SRT / WebVTT 格式化引擎（`subtitleFormatter.ts`）
 
 **Files:**
+
 - Create: `src/utils/video-subtitles/subtitleFormatter.ts`
 - Test: `src/utils/video-subtitles/subtitleFormatter.test.ts`
 
 **Interfaces:**
+
 - Produces:
+
   ```typescript
   export interface WordAnnotation {
     text: string;
     start_offset: string; // e.g. "1.200s"
-    end_offset: string;   // e.g. "1.550s"
+    end_offset: string; // e.g. "1.550s"
     speaker?: string;
   }
   export interface SubtitleCue {
@@ -78,9 +82,9 @@
     startSeconds: number;
     endSeconds: number;
     startTimeSrt: string; // "00:00:01,200"
-    endTimeSrt: string;   // "00:00:01,550"
+    endTimeSrt: string; // "00:00:01,550"
     startTimeVtt: string; // "00:00:01.200"
-    endTimeVtt: string;   // "00:00:01.550"
+    endTimeVtt: string; // "00:00:01.550"
     text: string;
     speaker?: string;
   }
@@ -111,21 +115,24 @@
 ### Task 3: Gemini 3.5 Transcribe 服务调用与解析（`geminiTranscribeService.ts`）
 
 **Files:**
+
 - Create: `src/utils/video-subtitles/geminiTranscribeService.ts`
 - Test: `src/utils/video-subtitles/geminiTranscribeService.test.ts`
 
 **Interfaces:**
+
 - Consumes:
   - `uploadFileApi` from `@/services/api/fileApi`
   - `getConfiguredApiClient` from `@/services/api/apiClient`
 - Produces:
+
   ```typescript
   export async function transcribeAudioWithGemini(
     apiKey: string,
     audioBlob: Blob,
     fileName: string,
     signal: AbortSignal,
-    onProgress?: (phase: 'uploading' | 'transcribing', progressPercent?: number) => void
+    onProgress?: (phase: 'uploading' | 'transcribing', progressPercent?: number) => void,
   ): Promise<WordAnnotation[]>;
   ```
 
@@ -147,10 +154,12 @@
 ### Task 4: VideoPlayer 原生字幕轨渲染支持（`VideoPlayer.tsx`）
 
 **Files:**
+
 - Modify: `src/components/shared/file-preview/VideoPlayer.tsx`
 - Test: `src/components/shared/file-preview/VideoPlayer.test.tsx`
 
 **Interfaces:**
+
 - Modifies `VideoPlayerProps` 增加 `subtitlesSrc?: string` 属性；
 - 当 `subtitlesSrc` 存在时在 `<video>` 内渲染 `<track kind="subtitles" default />`。
 
@@ -169,11 +178,14 @@
 ### Task 5: 交互式字幕抽屉组件（`VideoSubtitlesDrawer.tsx`）
 
 **Files:**
+
 - Create: `src/components/shared/file-preview/video/VideoSubtitlesDrawer.tsx`
 - Test: `src/components/shared/file-preview/video/VideoSubtitlesDrawer.test.tsx`
 
 **Interfaces:**
+
 - Produces:
+
   ```typescript
   export interface VideoSubtitlesDrawerProps {
     cues: SubtitleCue[];
@@ -204,11 +216,13 @@
 ### Task 6: 视频预览弹窗全流程整合与 i18n 多语言（`FilePreviewModal.tsx`）
 
 **Files:**
+
 - Modify: `src/components/modals/FilePreviewModal.tsx`
 - Modify: `src/i18n/translations/header.ts`（或对应的通用词典）
 - Test: `src/components/modals/FilePreviewModal.test.tsx`
 
 **Interfaces:**
+
 - 在 `FilePreviewModal` 顶部栏增加「✨ 提取字幕」按钮，维护提取进度状态（idle / extracting / uploading / transcribing / ready / error）；
 - 将生成的 VTT 注入 `VideoPlayer`；
 - 当字幕就绪时在右侧并列展示 `VideoSubtitlesDrawer`；

@@ -30,8 +30,7 @@ interface ValidateMessageBeforeSendOptions {
 
 type MessageSendValidationResult = { ok: true } | { ok: false; fileError?: string };
 
-const isHostedGemma4TextImageModel = (modelId: string) =>
-  normalizeModelId(modelId).toLowerCase().includes('gemma-4');
+const isHostedGemma4TextImageModel = (modelId: string) => normalizeModelId(modelId).toLowerCase().includes('gemma-4');
 
 export const validateMessageBeforeSend = ({
   text,
@@ -136,7 +135,10 @@ export const validateMessageBeforeSend = ({
     const hasMediaAttachment = usableFiles.some((file) => isAudioFile(file) || isVideoFile(file));
     if (!hasMediaAttachment && !isContinueMode) {
       logService.warn('Send message blocked: transcribe model requires at least one audio or video attachment.');
-      return { ok: false, fileError: t('messageSenderTranscribeRequiresMedia') || t('messageSenderTranscribeRequiresAudio') };
+      return {
+        ok: false,
+        fileError: t('messageSenderTranscribeRequiresMedia') || t('messageSenderTranscribeRequiresAudio'),
+      };
     }
 
     const hasUnsupportedAttachment = files.some((file) => !isAudioFile(file) && !isVideoFile(file));

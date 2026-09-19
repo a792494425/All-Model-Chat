@@ -98,14 +98,16 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
   const handleDownloadSrt = () => {
     if (!cues.length) return;
     const srtContent = generateSrtContent(cues, { mode: currentDisplayMode });
-    const suffix = currentDisplayMode === 'bilingual' ? '.bilingual' : currentDisplayMode === 'translation' ? '.trans' : '';
+    const suffix =
+      currentDisplayMode === 'bilingual' ? '.bilingual' : currentDisplayMode === 'translation' ? '.trans' : '';
     downloadTextFile(`${baseFileName}${suffix}.srt`, srtContent, 'text/plain;charset=utf-8');
   };
 
   const handleDownloadVtt = () => {
     if (!cues.length) return;
     const vttContent = generateVttContent(cues, { mode: currentDisplayMode });
-    const suffix = currentDisplayMode === 'bilingual' ? '.bilingual' : currentDisplayMode === 'translation' ? '.trans' : '';
+    const suffix =
+      currentDisplayMode === 'bilingual' ? '.bilingual' : currentDisplayMode === 'translation' ? '.trans' : '';
     downloadTextFile(`${baseFileName}${suffix}.vtt`, vttContent, 'text/vtt;charset=utf-8');
   };
 
@@ -173,17 +175,13 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
                 isTranslating
                   ? 'text-sky-400 bg-sky-500/15 cursor-wait'
                   : hasTranslations
-                  ? 'text-sky-300 hover:text-white hover:bg-white/10 cursor-pointer'
-                  : 'text-white/70 hover:text-white hover:bg-white/10 cursor-pointer'
+                    ? 'text-sky-300 hover:text-white hover:bg-white/10 cursor-pointer'
+                    : 'text-white/70 hover:text-white hover:bg-white/10 cursor-pointer'
               }`}
               data-testid="translate-subtitles-btn"
               title={isTranslating ? t('translatingSubtitles') : t('translateSubtitles')}
             >
-              {isTranslating ? (
-                <Loader2 size={13} className="animate-spin text-sky-400" />
-              ) : (
-                <Languages size={13} />
-              )}
+              {isTranslating ? <Loader2 size={13} className="animate-spin text-sky-400" /> : <Languages size={13} />}
             </button>
           )}
 
@@ -254,7 +252,9 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
             onClick={() => handleModeChange('bilingual')}
             data-testid="subtitles-mode-bilingual"
             className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
-              currentDisplayMode === 'bilingual' ? 'bg-sky-500/30 text-sky-200 font-medium' : 'text-white/60 hover:text-white'
+              currentDisplayMode === 'bilingual'
+                ? 'bg-sky-500/30 text-sky-200 font-medium'
+                : 'text-white/60 hover:text-white'
             }`}
           >
             {t('subtitlesBilingual')}
@@ -264,7 +264,9 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
             onClick={() => handleModeChange('translation')}
             data-testid="subtitles-mode-translation"
             className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
-              currentDisplayMode === 'translation' ? 'bg-sky-500/30 text-sky-200 font-medium' : 'text-white/60 hover:text-white'
+              currentDisplayMode === 'translation'
+                ? 'bg-sky-500/30 text-sky-200 font-medium'
+                : 'text-white/60 hover:text-white'
             }`}
           >
             {t('subtitlesTranslationOnly')}
@@ -274,7 +276,9 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
             onClick={() => handleModeChange('original')}
             data-testid="subtitles-mode-original"
             className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
-              currentDisplayMode === 'original' ? 'bg-sky-500/30 text-sky-200 font-medium' : 'text-white/60 hover:text-white'
+              currentDisplayMode === 'original'
+                ? 'bg-sky-500/30 text-sky-200 font-medium'
+                : 'text-white/60 hover:text-white'
             }`}
           >
             {t('subtitlesOriginalOnly')}

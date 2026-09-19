@@ -145,10 +145,7 @@ export function groupWordsIntoCues(words: WordAnnotation[]): SubtitleCue[] {
  * Serializes SubtitleCue[] into standard SubRip (.srt) format.
  * Supports bilingual (original + translation) or translation-only output.
  */
-export function generateSrtContent(
-  cues: SubtitleCue[],
-  options?: { mode?: SubtitleDisplayMode },
-): string {
+export function generateSrtContent(cues: SubtitleCue[], options?: { mode?: SubtitleDisplayMode }): string {
   const mode = options?.mode || 'original';
   return cues
     .map((cue) => {

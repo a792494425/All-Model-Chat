@@ -6,10 +6,9 @@ import {
   LANGUAGE_ICON_SIZE,
   MATERIAL_ICON_NAMES,
   type LanguageBadgeConfig,
-  type LanguageBadgeEntry,
 } from './languageBadges';
 
-export { MATERIAL_ICON_NAMES, type LanguageBadgeConfig, type LanguageBadgeEntry };
+export { MATERIAL_ICON_NAMES };
 
 const renderIcon = (config: LanguageBadgeConfig): React.ReactNode => {
   if (config.materialIcon) {

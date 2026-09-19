@@ -12,7 +12,6 @@ vi.mock('@/services/api/apiClient', () => ({
   getConfiguredApiClientContext: vi.fn(),
 }));
 
-
 import { uploadFileApi, deleteFileApi } from '@/services/api/fileApi';
 import { getConfiguredApiClient, getConfiguredApiClientContext } from '@/services/api/apiClient';
 
@@ -355,7 +354,14 @@ describe('geminiTranscribeService', () => {
       } as any);
 
       try {
-        const result = await transcribeAudioWithGemini(mockApiKey, mockBlob, mockFileName, controller.signal, undefined, 4.0);
+        const result = await transcribeAudioWithGemini(
+          mockApiKey,
+          mockBlob,
+          mockFileName,
+          controller.signal,
+          undefined,
+          4.0,
+        );
         expect(result).toHaveLength(1);
         expect(result[0].text).toBe('Fallback transcript');
         expect(global.fetch).toHaveBeenCalledWith(

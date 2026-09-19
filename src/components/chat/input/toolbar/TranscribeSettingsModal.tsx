@@ -58,7 +58,16 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
       setDraftSmartMode(smartMode);
       setDraftOutputSubtitles(outputSubtitles);
     }
-  }, [isOpen, language, systemInstruction, customVocabulary, wordTimestamps, speakerLabels, smartMode, outputSubtitles]);
+  }, [
+    isOpen,
+    language,
+    systemInstruction,
+    customVocabulary,
+    wordTimestamps,
+    speakerLabels,
+    smartMode,
+    outputSubtitles,
+  ]);
 
   const handleSmartModeChange = (enabled: boolean) => {
     setDraftSmartMode(enabled);
@@ -129,7 +138,10 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
           <div className="space-y-1.5">
             <div className="flex items-center gap-1.5">
               <Languages size={14} className="text-[var(--theme-text-accent)]" />
-              <label htmlFor="transcribe-language-selector" className="text-xs font-semibold text-[var(--theme-text-primary)]">
+              <label
+                htmlFor="transcribe-language-selector"
+                className="text-xs font-semibold text-[var(--theme-text-primary)]"
+              >
                 {t('transcribePrimaryLanguage')}
               </label>
             </div>

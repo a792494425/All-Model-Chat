@@ -48,7 +48,6 @@ export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({
     }
   }, [activeSessionId, isLargeList, sessions]);
 
-
   const VirtuosoList = useMemo(() => {
     return React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
       ({ style, children, ...props }, ref) => (

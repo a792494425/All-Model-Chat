@@ -9,18 +9,21 @@
 ## 1. 背景与目标
 
 当前 AMC-WebUI 已具备完善的媒体文件处理与视频播放基础设施：
+
 - 支持视频文件上传、预览播放（[`VideoPlayer`](file:///Volumes/WD_BLACK/Code/AMC-WebUI/src/components/shared/file-preview/VideoPlayer.tsx)）、时间点跳转（Seek）以及全屏/悬浮预览（[`FilePreviewModal`](file:///Volumes/WD_BLACK/Code/AMC-WebUI/src/components/modals/FilePreviewModal.tsx)）；
 - 具备与 Google Gemini Files API 的断点分片续传能力（`uploadFileApi`）与客户端上下文管理。
 
 但在视频内容理解与二次消费场景下，用户仍缺乏直接从导入的视频中提取字幕、实时对照播放以及导出字幕文件的能力。
 
 Google 官方最新推出的专用语音转写大模型 **`gemini-3.5-transcribe`** 提供了极高精度的 ASR 能力，具备以下关键特性：
+
 1. **词级高精时间戳**（`timestamp_granularities: ["word"]`）：提供精确到毫秒级的底层声学对齐（`start_offset` 与 `end_offset`），彻底杜绝生成式大模型的时间轴漂移；
 2. **说话人分离**（`diarization_mode: "speaker"`）：自动识别区分不同发言人（最高 8 人）；
 3. **多语种自动检测**：覆盖 85+ 种语言并支持语内混杂；
 4. **性价比与速度**：作为专用转写模型，推理极速且专为语音设计。
 
 **设计目标**：
+
 1. **极速轻量传输**：纯前端（浏览器 Web Audio API）秒级提取视频音轨为 16kHz WAV 音频，体积缩减 90%，避免上传巨大视频文件，零服务器转码负担；
 2. **硬件级精准对齐与智能断句**：调用 `gemini-3.5-transcribe` 获得逐词时间戳，并在前端按照自然停顿、语义标点及长度阈值聚合成标准字幕行；
 3. **无缝播放器联动**：提取后实时生成 WebVTT 并作为 `<track>` 挂载至播放器画面；同时在右侧展开交互式时间戳抽屉，支持随视频播放高亮及点击任意句瞬时跳转（Seek）；
@@ -45,7 +48,7 @@ sequenceDiagram
     Modal->>AudioExtract: 传入视频 File / Blob
     Note over AudioExtract: 利用 Web Audio API 离线解码<br/>重采样至 16kHz 单声道并编码为 WAV Blob
     AudioExtract-->>Modal: 返回轻量音频 Blob (体积仅原视频 ~10%)
-    
+
     Modal->>FileAPI: uploadFileApi(audioBlob) 上传至 Gemini Files API
     FileAPI-->>Modal: 轮询至 ACTIVE，返回文件 URI (files/xxx)
 
@@ -79,10 +82,7 @@ export interface AudioExtractionResult {
  * 利用浏览器 Web Audio API 从视频 File / Blob 中离线解码音轨，
  * 转换为 16kHz、单声道、16-bit PCM 的标准 WAV 文件。
  */
-export async function extractAudioFromVideo(
-  videoBlob: Blob,
-  signal?: AbortSignal
-): Promise<AudioExtractionResult>;
+export async function extractAudioFromVideo(videoBlob: Blob, signal?: AbortSignal): Promise<AudioExtractionResult>;
 ```
 
 - **实现要点**：
@@ -99,8 +99,8 @@ export async function extractAudioFromVideo(
 export interface WordAnnotation {
   text: string;
   start_offset: string; // 例如 "1.200s"
-  end_offset: string;   // 例如 "1.550s"
-  speaker?: string;     // 例如 "spk_1"
+  end_offset: string; // 例如 "1.550s"
+  speaker?: string; // 例如 "spk_1"
 }
 
 export async function transcribeAudioWithGemini(
@@ -108,7 +108,7 @@ export async function transcribeAudioWithGemini(
   audioBlob: Blob,
   fileName: string,
   signal: AbortSignal,
-  onProgress?: (phase: 'uploading' | 'transcribing', progress?: number) => void
+  onProgress?: (phase: 'uploading' | 'transcribing', progress?: number) => void,
 ): Promise<WordAnnotation[]>;
 ```
 
@@ -143,14 +143,14 @@ export async function transcribeAudioWithGemini(
 
 ```typescript
 export interface SubtitleCue {
-  id: number;           // 1, 2, 3...
+  id: number; // 1, 2, 3...
   startSeconds: number; // 12.35
-  endSeconds: number;   // 15.80
+  endSeconds: number; // 15.80
   startTimeSrt: string; // "00:00:12,350"
-  endTimeSrt: string;   // "00:00:15,800"
+  endTimeSrt: string; // "00:00:15,800"
   startTimeVtt: string; // "00:00:12.350"
-  endTimeVtt: string;   // "00:00:15.800"
-  text: string;         // "合并后的整行文字"
+  endTimeVtt: string; // "00:00:15.800"
+  text: string; // "合并后的整行文字"
   speaker?: string;
 }
 
@@ -163,7 +163,7 @@ export function downloadTextFile(filename: string, content: string, mimeType: st
 - **断句逻辑约束**：
   1. **停顿切句**：相邻两个词的时间间隙 `(word[i].start - word[i-1].end) > 0.45s`；
   2. **标点切句**：词尾字符包含强终止标点（`.`、`?`、`!`、`。`、`？`、`！`）；
-  3. **字符数限制**：单行中文字符达到 18~22 字，或英文字母达到 60~70 个字符时，在最近的弱标点或空格处切句；
+  3. **字符数限制**：单行中文字符达到 18~~22 字，或英文字母达到 60~~70 个字符时，在最近的弱标点或空格处切句；
   4. **时长限制**：单条字幕时长不超过 5.5 秒。
 
 - **SRT 与 WebVTT 格式标准**：
@@ -175,6 +175,7 @@ export function downloadTextFile(filename: string, content: string, mimeType: st
 ### 3.4 视频播放器原生字幕挂载（`src/components/shared/file-preview/VideoPlayer.tsx`）
 
 在 `VideoPlayerProps` 中扩展 `subtitlesSrc?: string`（传入 VTT Blob URL）：
+
 ```tsx
 <video
   ref={logic.videoRef}
@@ -192,6 +193,7 @@ export function downloadTextFile(filename: string, content: string, mimeType: st
   )}
 </video>
 ```
+
 浏览器原生即刻在视频画面的居中底部渲染高对比度字幕。
 
 ---
@@ -234,6 +236,7 @@ export function downloadTextFile(filename: string, content: string, mimeType: st
 ## 5. 测试与验证策略
 
 采用严密的 TDD 流程：
+
 1. **音频抽取测试（`extractAudioFromVideo.test.ts`）**：
    - Mock Web Audio API，验证音轨解码、重采样以及标准 44 字节 WAV 头的二进制格式正确性；验证无音轨情况下的异常拦截。
 2. **断句聚合与格式化测试（`subtitleFormatter.test.ts`）**：
@@ -251,6 +254,7 @@ export function downloadTextFile(filename: string, content: string, mimeType: st
 ## 6. i18n 国际化设计
 
 在 `src/i18n/translations/` 中补充对应的中英多语言字典：
+
 - `extractSubtitles`: "提取字幕" / "Extract Subtitles"
 - `extractingAudio`: "正在抽取音频..." / "Extracting audio..."
 - `uploadingAudio`: "正在上传音频..." / "Uploading audio..."

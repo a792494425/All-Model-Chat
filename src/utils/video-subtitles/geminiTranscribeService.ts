@@ -14,7 +14,7 @@ export interface TranscribeProgressCallback {
 /**
  * Splits raw transcript text into natural subtitle segments.
  */
-export function splitTranscriptIntoSegments(text: string): string[] {
+function splitTranscriptIntoSegments(text: string): string[] {
   if (!text || typeof text !== 'string') return [];
   const normalized = text.trim();
   if (!normalized) return [];
@@ -54,7 +54,7 @@ export function splitTranscriptIntoSegments(text: string): string[] {
 /**
  * Distributes time across text segments proportionally based on segment length and audio duration.
  */
-export function convertTranscriptTextToAnnotations(text: string, durationSeconds?: number): WordAnnotation[] {
+function convertTranscriptTextToAnnotations(text: string, durationSeconds?: number): WordAnnotation[] {
   const segments = splitTranscriptIntoSegments(text);
   if (segments.length === 0) return [];
 
@@ -251,9 +251,7 @@ export async function transcribeAudioWithGemini(
     logService.info(`[VideoSubtitles] Requesting gemini-3.5-transcribe for ${uploadedFile.uri}`);
 
     let transcriptionResult: any = null;
-    const promptInstructions: string[] = [
-      'Transcribe voice input exactly. Include word timestamps in the output.',
-    ];
+    const promptInstructions: string[] = ['Transcribe voice input exactly. Include word timestamps in the output.'];
 
     const normalizedLanguage = normalizeTranscriptionLanguage(options?.language);
     if (normalizedLanguage) {
@@ -302,9 +300,7 @@ export async function transcribeAudioWithGemini(
               wordTimestamp: true,
               ...(normalizedLanguage ? { languageCodes: [normalizedLanguage] } : {}),
             },
-            ...(options?.systemInstruction?.trim()
-              ? { systemInstruction: options.systemInstruction.trim() }
-              : {}),
+            ...(options?.systemInstruction?.trim() ? { systemInstruction: options.systemInstruction.trim() } : {}),
             ...(signal ? { abortSignal: signal } : {}),
           } as any,
         });
@@ -344,7 +340,10 @@ export async function transcribeAudioWithGemini(
         if (signal?.aborted) {
           throw new DOMException('Transcription was aborted by user.', 'AbortError');
         }
-        logService.warn('[VideoSubtitles] Interactions API fallback failed, attempting REST generateContent:', interactionsError);
+        logService.warn(
+          '[VideoSubtitles] Interactions API fallback failed, attempting REST generateContent:',
+          interactionsError,
+        );
       }
     }
 

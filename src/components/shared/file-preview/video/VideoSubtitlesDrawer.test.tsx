@@ -271,7 +271,9 @@ describe('VideoSubtitlesDrawer', () => {
       />,
     );
 
-    const translateBtn = renderer.container.querySelector('button[data-testid="translate-subtitles-btn"]') as HTMLButtonElement;
+    const translateBtn = renderer.container.querySelector(
+      'button[data-testid="translate-subtitles-btn"]',
+    ) as HTMLButtonElement;
     expect(translateBtn.disabled).toBe(true);
   });
 
@@ -322,4 +324,3 @@ describe('VideoSubtitlesDrawer', () => {
     expect(onDisplayModeChangeMock).toHaveBeenCalledWith('original');
   });
 });
-

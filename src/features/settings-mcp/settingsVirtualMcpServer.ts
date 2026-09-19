@@ -54,7 +54,6 @@ export function sanitizeSettingsForExposure(record: object): Record<string, unkn
   return result;
 }
 
-
 const toMcpResponse = (data: unknown) => ({
   content: [{ type: 'text', text: typeof data === 'string' ? data : JSON.stringify(data, null, 2) }],
   structuredContent: data,

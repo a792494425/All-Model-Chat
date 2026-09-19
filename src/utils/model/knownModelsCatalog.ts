@@ -723,11 +723,8 @@ export const inferModelCapabilities = (
   const thinking =
     /r1|o1|o3|o4|claude-3-7|thinking|reasoner|reasoning|qwq|zero/i.test(lower) ||
     (!isPureAudio && /gemini-3|gemini-2\.5|gemma-4|robotics/i.test(lower));
-  const vision =
-    !isPureAudio &&
-    /vision|vl|-v-|4v|4o|pixtral|claude-3|gemini|gemma|multimodal/i.test(lower);
-  const tools =
-    !/embed|rerank|moderation|tts|whisper|dall-e|transcribe|live-translate/i.test(lower) && !isImageGen;
+  const vision = !isPureAudio && /vision|vl|-v-|4v|4o|pixtral|claude-3|gemini|gemma|multimodal/i.test(lower);
+  const tools = !/embed|rerank|moderation|tts|whisper|dall-e|transcribe|live-translate/i.test(lower) && !isImageGen;
   const image = isImageGen;
   const embedding = /embed|bge|text-embedding/i.test(lower);
   const audio = /tts|whisper|speech|audio|cosyvoice|transcribe|live-translate|-live/i.test(lower);
