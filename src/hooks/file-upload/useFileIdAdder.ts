@@ -22,7 +22,7 @@ import {
 } from '@/utils/file-upload/fileUploadPolicy';
 import { useI18n } from '@/contexts/I18nContext';
 import { isVideoMimeType } from '@/utils/file/fileTypeClassification';
-import { isThirdPartyApiRoute } from '@/utils/chatApiRoute';
+import { isThirdPartyApiRoute } from '@/utils/chat/chatApiRoute';
 import { interpolate, formatI18nErrorMessage } from '@/i18n/interpolate';
 
 interface UseFileIdAdderProps {

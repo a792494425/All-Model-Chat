@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { resolveChatApiRoute, isUnavailableThirdPartyRoute } from '@/utils/chatApiRoute';
+import { resolveChatApiRoute, isUnavailableThirdPartyRoute } from '@/utils/chat/chatApiRoute';
 import { getKeyForRequest, formatApiKeyErrorMessage } from '@/utils/apiKeySelection';
 import { buildGenerationConfig } from '@/services/api/generationConfig';
 import { sendStatelessMessageStreamApi } from '@/services/api/chatApi';

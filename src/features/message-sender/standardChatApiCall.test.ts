@@ -44,7 +44,7 @@ vi.mock('./fileApiReference', () => ({
 vi.mock('@/utils/apiKeySelection', () => ({
   getGeminiKeyForRequest: mocks.getGeminiKeyForRequest,
 }));
-vi.mock('@/utils/chatApiRoute', () => ({
+vi.mock('@/utils/chat/chatApiRoute', () => ({
   resolveChatApiRoute: mocks.resolveChatApiRoute,
   isUnavailableThirdPartyRoute: (route: { unavailable?: string }) => route.unavailable !== undefined,
 }));

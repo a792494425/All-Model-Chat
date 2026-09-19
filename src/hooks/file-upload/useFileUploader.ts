@@ -16,7 +16,7 @@ import {
 import { uploadFileItem } from '@/utils/file-upload/uploadFileItem';
 import { runWithConcurrencyLimit } from '@/utils/file-upload/uploadQueue';
 import { useI18n } from '@/contexts/I18nContext';
-import { isThirdPartyApiRoute } from '@/utils/chatApiRoute';
+import { isThirdPartyApiRoute } from '@/utils/chat/chatApiRoute';
 import { useChatStore } from '@/stores/chatStore';
 
 const MAX_CONCURRENT_FILE_UPLOADS = 3;

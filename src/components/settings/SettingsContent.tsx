@@ -12,7 +12,7 @@ import { AboutSection } from './sections/AboutSection';
 import { ProviderSettingsSection } from './sections/providers/ProviderSettingsSection';
 import { type SettingsTransferProps } from './settingsTypes';
 import type { LogViewerProps } from '@/components/log-viewer/LogViewer';
-import { resolveChatApiRoute } from '@/utils/chatApiRoute';
+import { resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
 import { buildProviderAwareModelList } from '@/utils/third-party/thirdPartyApiProviders';
 interface SettingsContentProps extends SettingsTransferProps {
   activeTab: SettingsTab;

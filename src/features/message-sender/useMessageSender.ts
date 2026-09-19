@@ -14,7 +14,7 @@ import { useChatStore } from '@/stores/chatStore';
 import { toastError } from '@/stores/toastStore';
 import { isServerCodeExecutionMode } from '@/utils/codeExecution';
 import { getModelCapabilities } from '@/utils/model/modelCapabilities';
-import { resolveChatApiRoute } from '@/utils/chatApiRoute';
+import { resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
 import { updateSessionById } from '@/utils/chat/sessionMutations';
 import { sessionHasGeminiFilesApiReferences, usesGeminiFilesApiReference } from '@/utils/chat/geminiFilesApi';
 

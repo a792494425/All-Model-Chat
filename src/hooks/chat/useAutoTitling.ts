@@ -3,7 +3,7 @@ import type { SupportedLanguage } from '@/i18n/languageRegistry';
 import { type AppSettings, type SavedChatSession, type SessionsUpdater } from '@/types';
 import { autoTitleSession, isSessionAutoTitleEligible } from '@/features/auto-titling/autoTitleSession';
 import { getVisibleChatMessages } from '@/utils/chat/visibility';
-import { isThirdPartyApiRoute } from '@/utils/chatApiRoute';
+import { isThirdPartyApiRoute } from '@/utils/chat/chatApiRoute';
 
 interface AutoTitlingProps {
   appSettings: AppSettings;

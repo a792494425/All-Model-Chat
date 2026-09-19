@@ -6,7 +6,7 @@ import { buildMessageTokenStatsView, formatExactTokens } from './tokenStats';
 import { useChatStore } from '@/stores/chatStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
-import { resolveChatApiRoute } from '@/utils/chatApiRoute';
+import { resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
 import { getModelIcon } from '@/components/shared/ModelIcon';
 import { THIRD_PARTY_PROVIDER_LABELS, THIRD_PARTY_TEMPLATE_LABELS } from '@/utils/third-party/thirdPartyApiProviders';
 import { estimateMessageCostUsd, formatCostUsd } from '@/utils/pricing/usagePricing';

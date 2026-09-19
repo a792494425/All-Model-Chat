@@ -40,7 +40,7 @@ vi.mock('@/services/api/chatApi', () => ({
   },
 }));
 
-vi.mock('@/utils/chatApiRoute', () => ({
+vi.mock('@/utils/chat/chatApiRoute', () => ({
   resolveChatApiRoute: () => ({ modelId: 'ask-model', provider: null }),
   isUnavailableThirdPartyRoute: () => false,
 }));

@@ -2,7 +2,7 @@ import { logService } from '@/services/logService';
 import { buildContentParts } from '@/utils/chat/builder';
 import { isServerCodeExecutionMode } from '@/utils/codeExecution';
 import { getModelCapabilities, bansModelTurnPrefill } from '@/utils/model/modelCapabilities';
-import { resolveChatApiRoute } from '@/utils/chatApiRoute';
+import { resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
 import { getLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
 import { resolveAppLanguage } from '@/i18n/languageRegistry';
 import type { UploadedFile } from '@/types';

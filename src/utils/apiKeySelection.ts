@@ -3,7 +3,7 @@ import { API_KEY_LAST_USED_INDEX_BY_TARGET_KEY, API_KEY_LAST_USED_INDEX_KEY } fr
 import { logService } from '@/services/logService';
 import { readPersistentStorageItem, writePersistentStorageItem } from '@/stores/persistentStorage';
 import { safeJsonParse } from './safeJsonParse';
-import { isUnavailableThirdPartyRoute, resolveChatApiRoute } from './chatApiRoute';
+import { isUnavailableThirdPartyRoute, resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
 import { AUTH_OPTIONAL_API_KEY, isAuthOptionalApiKey, SERVER_MANAGED_API_KEY } from '../../shared/serverManagedApiKey';
 
 export { AUTH_OPTIONAL_API_KEY, SERVER_MANAGED_API_KEY };

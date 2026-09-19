@@ -6,7 +6,7 @@ import { getGeminiKeyForRequest } from '@/utils/apiKeySelection';
 import { getModelCapabilities } from '@/utils/model/modelCapabilities';
 import { generateSuggestionsApi } from '@/services/api/generation/textApi';
 import { getVisibleChatMessages } from '@/utils/chat/visibility';
-import { isThirdPartyApiRoute } from '@/utils/chatApiRoute';
+import { isThirdPartyApiRoute } from '@/utils/chat/chatApiRoute';
 
 type MessageUpdater = (
   sessionId: string,

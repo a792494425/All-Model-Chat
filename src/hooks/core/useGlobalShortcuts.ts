@@ -4,7 +4,7 @@ import { useFullscreen } from '@/hooks/ui/useFullscreen';
 import type { AppSettings, ChatSettings, ModelOption, ChatProviderId } from '@/types';
 import { isShortcutPressed } from '@/utils/keyboardShortcuts';
 import { getTabCycleModelIds } from '@/utils/model/modelCatalog';
-import { resolveChatApiRoute } from '@/utils/chatApiRoute';
+import { resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
 import { buildProviderAwareModelList } from '@/utils/third-party/thirdPartyApiProviders';
 import { isEditableElement } from '@/utils/chat-input/focus';
 import { useUIStore } from '@/stores/uiStore';

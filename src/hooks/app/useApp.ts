@@ -20,7 +20,7 @@ import {
   type ThinkingLevel,
 } from '@/types';
 import { buildProviderAwareModelList } from '@/utils/third-party/thirdPartyApiProviders';
-import { resolveChatApiRoute } from '@/utils/chatApiRoute';
+import { resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
 import { useDataExport } from '@/hooks/data-management/useDataExport';
 import { useDataImport } from '@/hooks/data-management/useDataImport';
 import { useChatSessionExport } from '@/hooks/data-management/useChatSessionExport';

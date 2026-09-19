@@ -1,6 +1,6 @@
 import { updateSessionById } from '@/utils/chat/sessionMutations';
 import { clearPendingStreamJob } from '@/features/stream-jobs/amcStreamJobs';
-import { resolveChatApiRoute, isUnavailableThirdPartyRoute } from '@/utils/chatApiRoute';
+import { resolveChatApiRoute, isUnavailableThirdPartyRoute } from '@/utils/chat/chatApiRoute';
 import { prepareStandardChatContext } from './standardChatContext';
 import { executeThirdPartyChat } from './standardChatThirdParty';
 import { executeGeminiChat } from './standardChatGemini';

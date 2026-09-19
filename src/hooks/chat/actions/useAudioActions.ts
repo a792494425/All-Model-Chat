@@ -4,7 +4,7 @@ import { logService } from '@/services/logService';
 import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/apiKeySelection';
 import { transcribeAudioApi } from '@/services/api/generation/audioApi';
 import { useI18n } from '@/contexts/I18nContext';
-import { isThirdPartyApiRoute } from '@/utils/chatApiRoute';
+import { isThirdPartyApiRoute } from '@/utils/chat/chatApiRoute';
 import { usesRemoteFileReference } from '@/utils/chat/fileTransferStrategy';
 import { formatI18nErrorMessage } from '@/i18n/interpolate';
 import { getErrorMessage } from '@/utils/errorMessage';
