@@ -7,12 +7,14 @@ import { initSettingsVirtualMcpServer } from './features/settings-mcp/settingsVi
 import { initLocalPythonVirtualMcpServer } from './features/local-python/localPythonVirtualMcpServer';
 import { initLocalJsVirtualMcpServer } from './features/local-js/localJsVirtualMcpServer';
 import { initChatMemoryVirtualMcpServer } from './features/chat-memory/chatMemoryVirtualMcpServer';
+import { initLibraryVirtualMcpServer } from './features/library-search/libraryVirtualMcpServer';
 
 initProviderVirtualMcpServer();
 initSettingsVirtualMcpServer();
 initLocalPythonVirtualMcpServer();
 initLocalJsVirtualMcpServer();
 initChatMemoryVirtualMcpServer();
+initLibraryVirtualMcpServer();
 
 if (typeof window !== 'undefined') {
   Object.assign(window, {
