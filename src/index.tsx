@@ -6,11 +6,13 @@ import { initProviderVirtualMcpServer } from './features/settings-assistant/prov
 import { initSettingsVirtualMcpServer } from './features/settings-mcp/settingsVirtualMcpServer';
 import { initLocalPythonVirtualMcpServer } from './features/local-python/localPythonVirtualMcpServer';
 import { initLocalJsVirtualMcpServer } from './features/local-js/localJsVirtualMcpServer';
+import { initChatMemoryVirtualMcpServer } from './features/chat-memory/chatMemoryVirtualMcpServer';
 
 initProviderVirtualMcpServer();
 initSettingsVirtualMcpServer();
 initLocalPythonVirtualMcpServer();
 initLocalJsVirtualMcpServer();
+initChatMemoryVirtualMcpServer();
 
 if (typeof window !== 'undefined') {
   Object.assign(window, {
