@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { MarkdownRendererCore, type MarkdownRendererProps } from './MarkdownRendererCore';
-import { baseRemarkPlugins, getBaseRehypePlugins } from '@/utils/markdownConfigBase';
-import { mathRemarkPlugins, getMathRehypePlugins } from '@/utils/markdownMathPlugins';
+import { baseRemarkPlugins, getBaseRehypePlugins, getMathRehypePlugins, mathRemarkPlugins } from '@/utils/markdown';
 import 'katex/dist/katex.min.css';
 
 export const MathMarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo((props) => {

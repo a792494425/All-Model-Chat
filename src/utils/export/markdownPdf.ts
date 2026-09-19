@@ -7,7 +7,7 @@ import { unified } from 'unified';
 import { MarkdownPdfRenderer } from './markdownPdfRenderer';
 import { CJK_TEXT_PATTERN } from './markdownPdfFonts';
 import type { MarkdownNode, MarkdownPdfOptions } from './markdownPdfTypes';
-import { normalizeConvertedMarkdown } from '@/utils/normalizeConvertedMarkdown';
+import { normalizeConvertedMarkdown } from '@/utils/markdown';
 
 export type PdfDocument = InstanceType<typeof jsPDF>;
 

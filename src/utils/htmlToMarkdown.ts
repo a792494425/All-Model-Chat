@@ -2,7 +2,7 @@ import TurndownService from 'turndown';
 import { gfm } from 'turndown-plugin-gfm';
 
 import { logService } from '@/services/logService';
-import { normalizeConvertedMarkdown } from './normalizeConvertedMarkdown';
+import { normalizeConvertedMarkdown } from '@/utils/markdown';
 
 const turndownService = new TurndownService({
   headingStyle: 'atx',

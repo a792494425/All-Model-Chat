@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import type { MarkdownRendererProps } from './MarkdownRendererCore';
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';
-import { hasLikelyTexMathMarkdown } from '@/utils/markdownMathConfig';
+import { hasLikelyTexMathMarkdown } from '@/utils/markdown';
 
 const LazyStandardMarkdownRenderer = lazyNamedComponent(
   () => import('./StandardMarkdownRenderer'),

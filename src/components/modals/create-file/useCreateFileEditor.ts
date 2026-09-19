@@ -2,12 +2,12 @@ import { logService } from '@/services/logService';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { triggerDownload } from '@/utils/export/core';
-import { normalizeConvertedMarkdown } from '@/utils/normalizeConvertedMarkdown';
 import {
   createInlineImagePlaceholder,
   extractInlineImagePlaceholders,
+  normalizeConvertedMarkdown,
   resolveInlineImagePlaceholders,
-} from '@/utils/inlineImagePlaceholders';
+} from '@/utils/markdown';
 import { isImageMimeType } from '@/utils/file/fileTypeClassification';
 import { blobToDataUrl } from '@/utils/file/fileEncoding';
 import { CREATE_TEXT_FILE_EDITOR_LAST_EXTENSION_KEY } from '@/constants/storageKeys';
