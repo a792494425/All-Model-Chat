@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseAnthropicSseEvents } from './anthropicStream';
+import { parseAnthropicSseEvents } from '@/services/api/protocols/anthropic/anthropicStream';
 import { appendSseChunk } from './sseBuffer';
 
 describe('appendSseChunk', () => {

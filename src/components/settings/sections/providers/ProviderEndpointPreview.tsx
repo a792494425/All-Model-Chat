@@ -6,13 +6,13 @@ import {
   buildOpenAICompatibleChatCompletionsUrl,
   buildOpenAICompatibleUpstreamChatCompletionsUrl,
   getOpenAICompatibleBaseUrlWarning,
-} from '@/services/api/openaiCompatibleUrls';
+} from '@/services/api/protocols/openai-compatible/openaiCompatibleUrls';
 import {
   buildOpenAIResponsesUpstreamUrl,
   buildOpenAIResponsesUrl,
   getOpenAIResponsesBaseUrlWarning,
-} from '@/services/api/openaiResponsesUrls';
-import { buildAnthropicMessagesUrl, buildAnthropicUpstreamMessagesUrl } from '@/services/api/anthropicUrls';
+} from '@/services/api/protocols/openai-responses/openaiResponsesUrls';
+import { buildAnthropicMessagesUrl, buildAnthropicUpstreamMessagesUrl } from '@/services/api/protocols/anthropic/anthropicUrls';
 
 type EndpointWarningKind = 'chat-completions-endpoint' | 'models-endpoint' | 'responses-endpoint';
 

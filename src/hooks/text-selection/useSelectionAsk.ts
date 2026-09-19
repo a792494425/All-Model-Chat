@@ -4,9 +4,9 @@ import { resolveChatApiRoute, isUnavailableThirdPartyRoute } from '@/utils/chatA
 import { getKeyForRequest, formatApiKeyErrorMessage } from '@/utils/apiKeySelection';
 import { buildGenerationConfig } from '@/services/api/generationConfig';
 import { sendStatelessMessageStreamApi } from '@/services/api/chatApi';
-import { sendOpenAICompatibleMessageStream } from '@/services/api/openaiCompatibleApi';
-import { sendOpenAIResponsesStream } from '@/services/api/openaiResponsesApi';
-import { sendAnthropicMessageStream } from '@/services/api/anthropicApi';
+import { sendOpenAICompatibleMessageStream } from '@/services/api/protocols/openai-compatible/openaiCompatibleApi';
+import { sendOpenAIResponsesStream } from '@/services/api/protocols/openai-responses/openaiResponsesApi';
+import { sendAnthropicMessageStream } from '@/services/api/protocols/anthropic/anthropicApi';
 import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { useI18n } from '@/contexts/I18nContext';

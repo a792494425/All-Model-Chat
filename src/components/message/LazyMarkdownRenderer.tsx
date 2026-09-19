@@ -1,9 +1,12 @@
 import React, { useEffect, useState, Suspense } from 'react';
-import type { MarkdownRendererProps } from './BaseMarkdownRenderer';
+import type { MarkdownRendererProps } from './MarkdownRendererCore';
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';
 import { hasLikelyTexMathMarkdown } from '@/utils/markdownMathConfig';
 
-const LazyBasicMarkdownRenderer = lazyNamedComponent(() => import('./BasicMarkdownRenderer'), 'BasicMarkdownRenderer');
+const LazyStandardMarkdownRenderer = lazyNamedComponent(
+  () => import('./StandardMarkdownRenderer'),
+  'StandardMarkdownRenderer',
+);
 const LazyMathMarkdownRenderer = lazyNamedComponent(() => import('./MathMarkdownRenderer'), 'MathMarkdownRenderer');
 
 interface LazyMarkdownRendererProps extends MarkdownRendererProps {
@@ -11,14 +14,14 @@ interface LazyMarkdownRendererProps extends MarkdownRendererProps {
 }
 
 /**
- * Chooses between the basic and math-enabled markdown renderers.
+ * Chooses between the standard and math-enabled markdown renderers.
  *
  * Math is only engaged when the message actually looks like it contains TeX
- * (see hasLikelyTexMathMarkdown). To avoid the basic→math flip remounting the
+ * (see hasLikelyTexMathMarkdown). To avoid the standard→math flip remounting the
  * whole tree mid-stream — and downloading the math chunk at the worst moment —
  * the switch only happens once the message has finished loading:
  *
- * - While streaming (isLoading), always render with the basic renderer. When a
+ * - While streaming (isLoading), always render with the standard renderer. When a
  *   math candidate appears, preload the math chunk in the background so the
  *   flip at stream-end is instant (no chunk download stall).
  * - Once loading finishes, flip to the math renderer if a candidate exists.
@@ -44,7 +47,7 @@ export const LazyMarkdownRenderer: React.FC<LazyMarkdownRendererProps> = ({
     }
   }, [content, mathChunkWarmed]);
 
-  // Streaming keeps the basic renderer (no mid-stream remount). The flip to the
+  // Streaming keeps the standard renderer (no mid-stream remount). The flip to the
   // math renderer happens once, after the message has finished loading, and only
   // if a likely math candidate was seen.
   const shouldLoadMathRenderer = !isLoading && hasLikelyTexMathMarkdown(content);
@@ -57,7 +60,7 @@ export const LazyMarkdownRenderer: React.FC<LazyMarkdownRendererProps> = ({
   if (!shouldLoadMathRenderer) {
     return (
       <Suspense fallback={fallback}>
-        <LazyBasicMarkdownRenderer {...props} content={content} isLoading={isLoading} />
+        <LazyStandardMarkdownRenderer {...props} content={content} isLoading={isLoading} />
       </Suspense>
     );
   }

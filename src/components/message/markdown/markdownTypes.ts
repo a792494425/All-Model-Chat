@@ -30,10 +30,12 @@ export interface MarkdownRendererProps {
   hasPendingCodeExecution?: boolean;
 }
 
-export interface BaseMarkdownRendererProps extends MarkdownRendererProps {
+export interface MarkdownRendererCoreProps extends MarkdownRendererProps {
   remarkPlugins: PluggableList;
   rehypePlugins: PluggableList;
 }
+
+export type BaseMarkdownRendererProps = MarkdownRendererCoreProps;
 
 export type MarkdownCodeProps = React.ComponentPropsWithoutRef<'code'> & {
   inline?: boolean;

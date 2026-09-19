@@ -8,7 +8,7 @@ const viteChunksPath = path.join(projectRoot, 'vite/chunks.ts');
 const viteStaticAssetsPath = path.join(projectRoot, 'vite/staticAssets.ts');
 const lazyMarkdownRendererPath = path.join(projectRoot, 'src/components/message/LazyMarkdownRenderer.tsx');
 const mathMarkdownRendererPath = path.join(projectRoot, 'src/components/message/MathMarkdownRenderer.tsx');
-const basicMarkdownRendererPath = path.join(projectRoot, 'src/components/message/BasicMarkdownRenderer.tsx');
+const standardMarkdownRendererPath = path.join(projectRoot, 'src/components/message/StandardMarkdownRenderer.tsx');
 const i18nContextPath = path.join(projectRoot, 'src/contexts/I18nContext.tsx');
 const i18nTranslationsPath = path.join(projectRoot, 'src/i18n/translations.ts');
 const i18nFeatureTranslationsPath = path.join(projectRoot, 'src/i18n/featureTranslations.ts');
@@ -300,11 +300,11 @@ describe('Runtime loading boundaries', () => {
   it('loads both base markdown and math markdown renderers lazily', () => {
     const lazyMarkdownSource = fs.readFileSync(lazyMarkdownRendererPath, 'utf8');
 
-    expect(fs.existsSync(basicMarkdownRendererPath)).toBe(true);
+    expect(fs.existsSync(standardMarkdownRendererPath)).toBe(true);
     expect(fs.existsSync(mathMarkdownRendererPath)).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/components/message/BaseMarkdownRendererEntry.tsx'))).toBe(false);
     expect(fs.existsSync(path.join(projectRoot, 'src/components/message/MarkdownRenderer.tsx'))).toBe(false);
-    expect(lazyMarkdownSource).toContain("import('./BasicMarkdownRenderer')");
+    expect(lazyMarkdownSource).toContain("import('./StandardMarkdownRenderer')");
     expect(lazyMarkdownSource).toContain("import('./MathMarkdownRenderer')");
     expect(lazyMarkdownSource).not.toContain("import('./BaseMarkdownRendererEntry')");
     expect(lazyMarkdownSource).not.toContain("import('./MarkdownRenderer')");

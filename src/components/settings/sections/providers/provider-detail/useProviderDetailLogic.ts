@@ -13,9 +13,9 @@ import {
   runBatchModelHealthCheck,
   type BatchHealthCheckSummary,
 } from '@/utils/model/modelHealthCheck';
-import { fetchOpenAICompatibleModels } from '@/services/api/openaiCompatibleApi';
-import { fetchOpenAIResponsesModels } from '@/services/api/openaiResponsesApi';
-import { fetchAnthropicModels } from '@/services/api/anthropicApi';
+import { fetchOpenAICompatibleModels } from '@/services/api/protocols/openai-compatible/openaiCompatibleApi';
+import { fetchOpenAIResponsesModels } from '@/services/api/protocols/openai-responses/openaiResponsesApi';
+import { fetchAnthropicModels } from '@/services/api/protocols/anthropic/anthropicApi';
 import { AUTH_OPTIONAL_API_KEY, parseApiKeys } from '@/utils/apiKeySelection';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { toastError, toastSuccess, toastWarning } from '@/stores/toastStore';

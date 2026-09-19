@@ -53,15 +53,15 @@ describe('refactor boundary guardrails', () => {
     for (const relativePath of [
       'server/src/clipboardImage.ts',
       'server/src/cors.ts',
-      'server/src/geminiProxy.ts',
-      'server/src/imageProxy.ts',
+      'server/src/proxy/geminiProxy.ts',
+      'server/src/proxy/imageProxy.ts',
     ]) {
       expect(fs.existsSync(path.join(projectRoot, relativePath))).toBe(true);
     }
 
     expect(createServerSource).toContain("from './clipboardImage.js'");
-    expect(createServerSource).toContain("from './geminiProxy.js'");
-    expect(createServerSource).toContain("from './imageProxy.js'");
+    expect(createServerSource).toContain("from './proxy/geminiProxy.js'");
+    expect(createServerSource).toContain("from './proxy/imageProxy.js'");
     expect(createServerSource).not.toContain('MACOS_CLIPBOARD_PNG_SCRIPT');
     expect(createServerSource).not.toContain('STRIPPED_PROXY_REQUEST_HEADERS');
     expect(createServerSource).not.toContain('parseAllowedImageProxyUrl');

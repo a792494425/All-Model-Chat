@@ -1,9 +1,9 @@
 import { getErrorMessage } from './errorMessage';
 import { AUTH_OPTIONAL_API_KEY, parseApiKeys } from './apiKeySelection';
 import { getProxyProviderHeader } from './thirdPartyApiProviders';
-import { sendAnthropicMessageNonStream } from '@/services/api/anthropicApi';
-import { sendOpenAICompatibleMessageNonStream } from '@/services/api/openaiCompatibleApi';
-import { sendOpenAIResponsesNonStream } from '@/services/api/openaiResponsesApi';
+import { sendAnthropicMessageNonStream } from '@/services/api/protocols/anthropic/anthropicApi';
+import { sendOpenAICompatibleMessageNonStream } from '@/services/api/protocols/openai-compatible/openaiCompatibleApi';
+import { sendOpenAIResponsesNonStream } from '@/services/api/protocols/openai-responses/openaiResponsesApi';
 import type { ThirdPartyConnection } from '@/types';
 
 export type LatencyGrade = 'fast' | 'normal' | 'slow' | 'error';

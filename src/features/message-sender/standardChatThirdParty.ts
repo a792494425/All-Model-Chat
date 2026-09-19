@@ -6,19 +6,19 @@ import {
   generateOpenAICompatibleTurnStreamApi,
   sendOpenAICompatibleMessageNonStream,
   sendOpenAICompatibleMessageStream,
-} from '@/services/api/openaiCompatibleApi';
+} from '@/services/api/protocols/openai-compatible/openaiCompatibleApi';
 import {
   generateOpenAIResponsesTurnApi,
   generateOpenAIResponsesTurnStreamApi,
   sendOpenAIResponsesNonStream,
   sendOpenAIResponsesStream,
-} from '@/services/api/openaiResponsesApi';
+} from '@/services/api/protocols/openai-responses/openaiResponsesApi';
 import {
   generateAnthropicTurnApi,
   generateAnthropicTurnStreamApi,
   sendAnthropicMessageNonStream,
   sendAnthropicMessageStream,
-} from '@/services/api/anthropicApi';
+} from '@/services/api/protocols/anthropic/anthropicApi';
 import { toOpenAITools, toAnthropicTools, toOpenAIResponsesTools } from '@/features/chat-tools/toolSchemaAdapters';
 import { runStandardToolLoop, TOOL_LOOP_CAP_NOTICE } from '@/features/standard-chat/standardToolLoop';
 import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';

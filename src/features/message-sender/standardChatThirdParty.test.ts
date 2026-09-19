@@ -14,21 +14,21 @@ vi.mock('@/utils/file/pdfTextExtraction', () => ({
   }),
 }));
 
-vi.mock('@/services/api/openaiResponsesApi', () => ({
+vi.mock('@/services/api/protocols/openai-responses/openaiResponsesApi', () => ({
   generateOpenAIResponsesTurnApi: vi.fn(),
   generateOpenAIResponsesTurnStreamApi: vi.fn(),
   sendOpenAIResponsesNonStream: vi.fn(),
   sendOpenAIResponsesStream: vi.fn(),
 }));
 
-vi.mock('@/services/api/openaiCompatibleApi', () => ({
+vi.mock('@/services/api/protocols/openai-compatible/openaiCompatibleApi', () => ({
   generateOpenAICompatibleTurnApi: vi.fn(),
   generateOpenAICompatibleTurnStreamApi: vi.fn(),
   sendOpenAICompatibleMessageNonStream: vi.fn(),
   sendOpenAICompatibleMessageStream: vi.fn(),
 }));
 
-vi.mock('@/services/api/anthropicApi', () => ({
+vi.mock('@/services/api/protocols/anthropic/anthropicApi', () => ({
   generateAnthropicTurnApi: vi.fn(),
   generateAnthropicTurnStreamApi: vi.fn(),
   sendAnthropicMessageNonStream: vi.fn(),
@@ -125,7 +125,7 @@ describe('standardChatThirdParty utilities', () => {
 
     it('dispatches to generateOpenAIResponsesTurnStreamApi when isStreamingEnabled is true', async () => {
       const { generateOpenAIResponsesTurnStreamApi, generateOpenAIResponsesTurnApi } =
-        await import('@/services/api/openaiResponsesApi');
+        await import('@/services/api/protocols/openai-responses/openaiResponsesApi');
 
       (generateOpenAIResponsesTurnStreamApi as any).mockResolvedValue({
         modelContent: { role: 'model', parts: [{ text: 'done' }] },
@@ -177,7 +177,7 @@ describe('standardChatThirdParty utilities', () => {
 
     it('dispatches to generateOpenAIResponsesTurnApi when isStreamingEnabled is false', async () => {
       const { generateOpenAIResponsesTurnStreamApi, generateOpenAIResponsesTurnApi } =
-        await import('@/services/api/openaiResponsesApi');
+        await import('@/services/api/protocols/openai-responses/openaiResponsesApi');
 
       (generateOpenAIResponsesTurnApi as any).mockResolvedValue({
         modelContent: { role: 'model', parts: [{ text: 'done non-stream' }] },
@@ -232,7 +232,7 @@ describe('standardChatThirdParty utilities', () => {
     });
 
     it('dispatches to generateOpenAICompatibleTurnStreamApi when protocol is openai-compatible and isStreamingEnabled is true', async () => {
-      const { generateOpenAICompatibleTurnStreamApi } = await import('@/services/api/openaiCompatibleApi');
+      const { generateOpenAICompatibleTurnStreamApi } = await import('@/services/api/protocols/openai-compatible/openaiCompatibleApi');
 
       (generateOpenAICompatibleTurnStreamApi as any).mockResolvedValue({
         modelContent: { role: 'model', parts: [{ text: 'done stream' }] },
@@ -281,7 +281,7 @@ describe('standardChatThirdParty utilities', () => {
     });
 
     it('dispatches to generateAnthropicTurnStreamApi when protocol is anthropic and isStreamingEnabled is true', async () => {
-      const { generateAnthropicTurnStreamApi } = await import('@/services/api/anthropicApi');
+      const { generateAnthropicTurnStreamApi } = await import('@/services/api/protocols/anthropic/anthropicApi');
 
       (generateAnthropicTurnStreamApi as any).mockResolvedValue({
         modelContent: { role: 'model', parts: [{ text: 'done anthropic stream' }] },
@@ -330,8 +330,8 @@ describe('standardChatThirdParty utilities', () => {
     });
 
     it('bypasses tool loop when activeModel has enableTools === false', async () => {
-      const { sendAnthropicMessageStream } = await import('@/services/api/anthropicApi');
-      const { generateAnthropicTurnStreamApi } = await import('@/services/api/anthropicApi');
+      const { sendAnthropicMessageStream } = await import('@/services/api/protocols/anthropic/anthropicApi');
+      const { generateAnthropicTurnStreamApi } = await import('@/services/api/protocols/anthropic/anthropicApi');
 
       const wrappedStreamOnComplete = vi.fn();
 

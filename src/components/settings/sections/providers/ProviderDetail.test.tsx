@@ -4,9 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setupStoreStateReset } from '@/test/stores/reset';
 import { createThirdPartyConnection } from '@/test/data/factories';
 import * as modelHealthCheck from '@/utils/model/modelHealthCheck';
-import * as anthropicApi from '@/services/api/anthropicApi';
-import * as openaiCompatibleApi from '@/services/api/openaiCompatibleApi';
-import * as openaiResponsesApi from '@/services/api/openaiResponsesApi';
+import * as anthropicApi from '@/services/api/protocols/anthropic/anthropicApi';
+import * as openaiCompatibleApi from '@/services/api/protocols/openai-compatible/openaiCompatibleApi';
+import * as openaiResponsesApi from '@/services/api/protocols/openai-responses/openaiResponsesApi';
 import { useProviderUiStore } from '@/stores/providerUiStore';
 import { ProviderDetail } from './ProviderDetail';
 

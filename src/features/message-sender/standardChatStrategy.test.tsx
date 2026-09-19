@@ -98,7 +98,7 @@ vi.mock('@/services/api/chatApi', () => ({
   sendStatelessMessageNonStreamApi: mockSendMessageNonStream,
 }));
 
-vi.mock('@/services/api/openaiCompatibleApi', () => ({
+vi.mock('@/services/api/protocols/openai-compatible/openaiCompatibleApi', () => ({
   sendOpenAICompatibleMessageStream: mockSendOpenAICompatibleMessageStream,
   sendOpenAICompatibleMessageNonStream: mockSendOpenAICompatibleMessageNonStream,
 }));

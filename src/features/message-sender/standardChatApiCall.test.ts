@@ -62,16 +62,16 @@ vi.mock('@/services/api/chatApi', () => ({
   sendStatelessMessageNonStreamApi: mocks.sendStatelessMessageNonStreamApi,
   sendStatelessMessageStreamApi: mocks.sendStatelessMessageStreamApi,
 }));
-vi.mock('@/services/api/openaiCompatibleApi', () => ({
+vi.mock('@/services/api/protocols/openai-compatible/openaiCompatibleApi', () => ({
   generateOpenAICompatibleTurnApi: mocks.generateOpenAICompatibleTurnApi,
   sendOpenAICompatibleMessageNonStream: mocks.sendOpenAICompatibleMessageNonStream,
   sendOpenAICompatibleMessageStream: mocks.sendOpenAICompatibleMessageStream,
 }));
-vi.mock('@/services/api/openaiResponsesApi', () => ({
+vi.mock('@/services/api/protocols/openai-responses/openaiResponsesApi', () => ({
   sendOpenAIResponsesNonStream: mocks.sendOpenAIResponsesNonStream,
   sendOpenAIResponsesStream: mocks.sendOpenAIResponsesStream,
 }));
-vi.mock('@/services/api/anthropicApi', () => ({
+vi.mock('@/services/api/protocols/anthropic/anthropicApi', () => ({
   generateAnthropicTurnApi: mocks.generateAnthropicTurnApi,
   sendAnthropicMessageNonStream: mocks.sendAnthropicMessageNonStream,
   sendAnthropicMessageStream: mocks.sendAnthropicMessageStream,

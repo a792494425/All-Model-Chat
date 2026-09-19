@@ -8,16 +8,16 @@ import {
   readMacOsClipboardPng,
 } from './clipboardImage.js';
 import { getCorsHeaders, sendJson } from './cors.js';
-import { GEMINI_PROXY_PREFIX, proxyGeminiRequest, type GeminiProxyConfig } from './geminiProxy.js';
-import { IMAGE_PROXY_PATH, proxyExternalImage } from './imageProxy.js';
-import { createMcpClientBridge } from './mcpClient.js';
-import { handleMcpRequest } from './mcpRoutes.js';
-import type { McpClientBridge } from './mcpTypes.js';
-import { handleEphemeralTokenRequest, EPHEMERAL_TOKEN_PATH, LEGACY_AUTH_TOKENS_PATH } from './ephemeralToken.js';
-import { abortJob, readJobSecret } from './streamJobs.js';
-import { STREAM_ABORT_PREFIX, UNIFIED_STREAM_ABORT_PREFIX } from './streamJobsRoutes.js';
-import { OPENAI_PROXY_PREFIX, proxyThirdPartyRequest, type ThirdPartyProxyConfig } from './thirdPartyProxy.js';
-import { timingSafePasswordEqual } from './passwordSecurity.js';
+import { GEMINI_PROXY_PREFIX, proxyGeminiRequest, type GeminiProxyConfig } from './proxy/geminiProxy.js';
+import { IMAGE_PROXY_PATH, proxyExternalImage } from './proxy/imageProxy.js';
+import { createMcpClientBridge } from './mcp/mcpClient.js';
+import { handleMcpRequest } from './mcp/mcpRoutes.js';
+import type { McpClientBridge } from './mcp/mcpTypes.js';
+import { handleEphemeralTokenRequest, EPHEMERAL_TOKEN_PATH, LEGACY_AUTH_TOKENS_PATH } from './security/ephemeralToken.js';
+import { abortJob, readJobSecret } from './stream-jobs/streamJobs.js';
+import { STREAM_ABORT_PREFIX, UNIFIED_STREAM_ABORT_PREFIX } from './stream-jobs/streamJobsRoutes.js';
+import { OPENAI_PROXY_PREFIX, proxyThirdPartyRequest, type ThirdPartyProxyConfig } from './proxy/thirdPartyProxy.js';
+import { timingSafePasswordEqual } from './security/passwordSecurity.js';
 
 export { readMacOsClipboardPng } from './clipboardImage.js';
 
@@ -275,4 +275,4 @@ export function createServer(config: CreateServerConfig, dependencies: CreateSer
 // Live API uses a WebSocket upgrade, which the HTTP request handler above never
 // sees. The host (index.ts) calls attachLiveWsUpgrade on the returned server to
 // take over /api/live upgrades.
-export { attachLiveWsUpgrade } from './liveWsProxy.js';
+export { attachLiveWsUpgrade } from './proxy/liveWsProxy.js';

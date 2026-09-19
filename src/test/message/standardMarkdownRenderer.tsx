@@ -1,0 +1,31 @@
+import { act, type ComponentProps } from 'react';
+import { vi } from 'vitest';
+import { StandardMarkdownRenderer } from '@/components/message/StandardMarkdownRenderer';
+import type { TestRenderer } from '@/test/render/renderer';
+
+export type StandardMarkdownRendererTestProps = Partial<ComponentProps<typeof StandardMarkdownRenderer>> & {
+  content: string;
+};
+export type BasicMarkdownRendererTestProps = StandardMarkdownRendererTestProps;
+
+export const createStandardMarkdownRendererElement = (props: StandardMarkdownRendererTestProps) => (
+  <StandardMarkdownRenderer
+    isLoading={false}
+    onImageClick={vi.fn()}
+    onOpenHtmlPreview={vi.fn()}
+    expandCodeBlocksByDefault={false}
+    isMermaidRenderingEnabled={false}
+    isGraphvizRenderingEnabled={false}
+    themeId="pearl"
+    onOpenSidePanel={vi.fn()}
+    {...props}
+  />
+);
+export const createBasicMarkdownRendererElement = createStandardMarkdownRendererElement;
+
+export const renderStandardMarkdown = (renderer: TestRenderer, props: StandardMarkdownRendererTestProps) => {
+  act(() => {
+    renderer.render(createStandardMarkdownRendererElement(props));
+  });
+};
+export const renderBasicMarkdown = renderStandardMarkdown;
