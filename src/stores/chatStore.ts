@@ -11,9 +11,9 @@ import { dbService } from '@/services/db/dbService';
 import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { logService } from '@/services/logService';
 import { rehydrateSessionFiles } from '@/utils/chat/session';
-import { syncActiveSessionRoute, type SessionHistoryMode } from './sessionRouteSync';
-import { broadcastSyncMessage } from './chatSyncChannel';
-import { TAB_ID } from './tabIdentity';
+import { syncActiveSessionRoute, type SessionHistoryMode } from '@/stores/sync/sessionRouteSync';
+import { broadcastSyncMessage } from '@/stores/sync/chatSyncChannel';
+import { TAB_ID } from '@/stores/sync/tabIdentity';
 import { sanitizeSessionModel, sortSessionsInPlace } from './sessionModels';
 import {
   updateMessageInSession as updateMessageInSessions,
@@ -28,16 +28,16 @@ import {
 } from '@/features/message-sender/activeGenerationJobs';
 import { abortServerStreamJob } from '@/features/stream-jobs/streamAbort';
 import { clearPendingStreamJob, readPendingStreamJob } from '@/features/stream-jobs/amcStreamJobs';
-import { mergeSessionMetadata } from './sessionRefresh';
+import { mergeSessionMetadata } from '@/stores/sync/sessionRefresh';
 import {
   createVirtualFullSessions,
   getSessionPersistenceChanges,
   stripStoredSessionMessages,
-} from './sessionPersistence';
-import { persistSessionChanges } from './sessionPersistenceEffects';
+} from '@/stores/sync/sessionPersistence';
+import { persistSessionChanges } from '@/stores/sync/sessionPersistenceEffects';
 import { placeNewSessionsAtBucketTop } from './sessionOrder';
-import { setupChatStoreSync } from './chatStoreSync';
-import { setupLastActiveSessionSync } from './lastActiveSessionSync';
+import { setupChatStoreSync } from '@/stores/sync/chatStoreSync';
+import { setupLastActiveSessionSync } from '@/stores/sync/lastActiveSessionSync';
 import { createChatUiSlice, type ChatUiSliceActions, type ChatUiSliceState } from './chatStoreSlices';
 import { resolveUpdaterOrValue, type UpdaterOrValue } from './stateUpdaters';
 import { useChatDraftStore } from './chatDraftStore';

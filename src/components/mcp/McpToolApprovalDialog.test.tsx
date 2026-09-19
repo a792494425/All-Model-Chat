@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { McpToolApprovalDialog } from './McpToolApprovalDialog';
-import { useMcpApprovalStore } from '@/stores/mcpApprovalStore';
+import { useMcpApprovalStore } from '@/stores/mcp/mcpApprovalStore';
 import type { McpApprovalDecision } from '@/features/mcp/toolApproval';
 
 const openApproval = (args: Record<string, unknown> = {}) =>

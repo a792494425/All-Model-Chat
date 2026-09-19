@@ -23,9 +23,9 @@ import {
 import { isServerCodeExecutionMode } from '@/utils/codeExecution';
 import { isGemmaModel, isImageGenerationModel, shouldStripThinkingFromContext } from '@/utils/model/modelCapabilities';
 import { createMcpClientFunctions } from '@/features/mcp/mcpClientFunctions';
-import { requestToolApproval } from '@/stores/mcpApprovalStore';
-import { selectServersForTurn, useMcpRuntimeStore } from '@/stores/mcpRuntimeStore';
-import { useVirtualMcpStore, isVirtualServerActiveForTurn } from '@/stores/virtualMcpStore';
+import { requestToolApproval } from '@/stores/mcp/mcpApprovalStore';
+import { selectServersForTurn, useMcpRuntimeStore } from '@/stores/mcp/mcpRuntimeStore';
+import { useVirtualMcpStore, isVirtualServerActiveForTurn } from '@/stores/mcp/virtualMcpStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { createStandardClientFunctions } from '@/features/standard-chat/standardClientFunctions';
 import { collectLocalPythonInputFiles } from '@/features/local-python/executionFiles';

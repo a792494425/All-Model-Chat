@@ -10,7 +10,7 @@ import {
 import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { interpolate } from '@/i18n/interpolate';
-import { useMcpStatusStore } from '@/stores/mcpStatusStore';
+import { useMcpStatusStore } from '@/stores/mcp/mcpStatusStore';
 import type { McpServerAuthType, McpServerConfig, McpServerTransport } from '@/types';
 import { copyTextToClipboard } from '@/utils/clipboard';
 import { McpCapabilitiesTabs } from './McpCapabilitiesTabs';

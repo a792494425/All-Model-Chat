@@ -43,7 +43,7 @@ vi.mock('@/utils/model/modelSorting', () => ({
 }));
 
 const { chatChannelPostMessage } = vi.hoisted(() => ({ chatChannelPostMessage: vi.fn() }));
-vi.mock('./chatSyncChannel', () => ({
+vi.mock('@/stores/sync/chatSyncChannel', () => ({
   CHAT_SYNC_CHANNEL_NAME: 'all_model_chat_sync_v1',
   getChatSyncChannel: () => ({
     postMessage: chatChannelPostMessage,

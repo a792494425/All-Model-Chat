@@ -14,7 +14,7 @@ import { sanitizeThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
 import { migrateLegacyAutoOpenHtmlPreview, migrateLegacyOpenAICompatibleInput } from '@/schemas/appSettingsSchema';
 import { type ConcreteThemeId } from '@/utils/themeMode';
 import { resolveUpdaterOrValue, type UpdaterOrValue } from './stateUpdaters';
-import { CHAT_SYNC_CHANNEL_NAME } from './chatSyncChannel';
+import { CHAT_SYNC_CHANNEL_NAME } from '@/stores/sync/chatSyncChannel';
 
 const LEGACY_DEFAULT_TRANSCRIPTION_MODEL_ID = 'gemini-3-flash-preview';
 

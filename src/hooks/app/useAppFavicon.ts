@@ -5,7 +5,7 @@ import {
   readGenerationLease,
   type GenerationLease,
 } from '@/features/message-sender/generationLease';
-import { TAB_ID } from '@/stores/tabIdentity';
+import { TAB_ID } from '@/stores/sync/tabIdentity';
 import { getTintedFaviconUrl } from '@/utils/faviconTint';
 import type { ChatMessage } from '@/types';
 

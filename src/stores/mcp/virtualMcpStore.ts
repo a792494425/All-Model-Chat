@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { createSyncedPersist } from './syncedPersist';
+import { createSyncedPersist } from '@/stores/syncedPersist';
 import { getVirtualMcpServers, type VirtualMcpServer } from '@/features/mcp/virtualMcpRegistry';
 import type { McpRuntimeSelection } from './mcpRuntimeStore';
 

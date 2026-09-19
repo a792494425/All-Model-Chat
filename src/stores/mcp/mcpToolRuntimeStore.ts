@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { create } from 'zustand';
 import type { McpToolProgressEvent } from '@/services/api/mcpApi';
-import { isRecord } from '../../shared/predicates';
+import { isRecord } from '../../../shared/predicates';
 
 export type McpToolRunStatus = 'running' | 'success' | 'error' | 'cancelled';
 

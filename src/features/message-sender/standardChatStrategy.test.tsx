@@ -5,7 +5,7 @@ import { createStandardChatProps, type StandardChatPropsOverrides } from '@/test
 import { MediaResolution } from '@/types';
 import { createThirdPartyConnection } from '@/test/data/factories';
 import { createMessage } from '@/utils/chat/session';
-import { useMcpRuntimeStore } from '@/stores/mcpRuntimeStore';
+import { useMcpRuntimeStore } from '@/stores/mcp/mcpRuntimeStore';
 import { getLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
 import type { PreparedModelRequest } from './useModelRequestRunner';
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod';
 import { createSyncedPersist, SYNCED_PERSIST_CHANNEL_NAME, PERSISTED_STATE_ORIGIN_ID } from './syncedPersist';
-import { getChatSyncChannel, _resetSyncChannelForTests } from './chatSyncChannel';
+import { getChatSyncChannel, _resetSyncChannelForTests } from '@/stores/sync/chatSyncChannel';
 import { _resetFlushRegistryForTests } from './persistentStorage';
 
 // Helper to create a mock storage area

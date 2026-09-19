@@ -8,7 +8,7 @@ import { abortActiveGenerationJobsForSession } from '@/features/message-sender/a
 import { GENERATION_LEASE_TTL_MS, readGenerationLease } from '@/features/message-sender/generationLease';
 import { TAB_ID } from './tabIdentity';
 import { getChatSyncChannel } from './chatSyncChannel';
-import type { UpdaterOrValue } from './stateUpdaters';
+import type { UpdaterOrValue } from '@/stores/stateUpdaters';
 
 /** How often to sweep remote loading flags that lost their lease. */
 const SESSION_LOADING_STALE_CHECK_MS = 30_000;

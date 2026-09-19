@@ -4,10 +4,10 @@ import type { AppSettings, McpServerConfig } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { fetchMcpServerCapabilities } from '@/services/api/mcpApi';
 import { McpImportError, dedupeServersById, parseImportJson } from '@/features/mcp/importMcpServers';
-import { useMcpStatusStore } from '@/stores/mcpStatusStore';
+import { useMcpStatusStore } from '@/stores/mcp/mcpStatusStore';
 import { deriveStatus } from '@/features/mcp/mcpStatus';
 import { getVirtualMcpServers, type VirtualMcpServer } from '@/features/mcp/virtualMcpRegistry';
-import { useVirtualMcpStore } from '@/stores/virtualMcpStore';
+import { useVirtualMcpStore } from '@/stores/mcp/virtualMcpStore';
 import { createMcpServer, type CapabilityTestState, type ServerFilter } from './mcpSectionShared';
 
 interface UseMcpSectionLogicProps {

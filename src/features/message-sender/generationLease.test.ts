@@ -7,7 +7,7 @@ import {
   renewGenerationLease,
   tryAcquireGenerationLease,
 } from './generationLease';
-import { TAB_ID } from '@/stores/tabIdentity';
+import { TAB_ID } from '@/stores/sync/tabIdentity';
 
 describe('generationLease', () => {
   beforeEach(() => {

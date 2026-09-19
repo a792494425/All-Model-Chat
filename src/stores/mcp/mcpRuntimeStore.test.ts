@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { selectServersForTurn, useMcpRuntimeStore } from './mcpRuntimeStore';
-import type { McpServerConfig } from '../../shared/mcpServerConfig';
+import type { McpServerConfig } from '../../../shared/mcpServerConfig';
 
 const server = (id: string): McpServerConfig => ({
   id,

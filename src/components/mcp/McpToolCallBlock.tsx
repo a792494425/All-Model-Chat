@@ -14,8 +14,8 @@ import { useI18n } from '@/contexts/I18nContext';
 import { extractMcpResultSegments } from '@/features/mcp/mcpResultSummary';
 import { resolveToolDisplay } from '@/features/mcp/toolDisplayNames';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
-import { useMcpApprovalStore } from '@/stores/mcpApprovalStore';
-import { useMcpToolRun, type McpToolRunEvent } from '@/stores/mcpToolRuntimeStore';
+import { useMcpApprovalStore } from '@/stores/mcp/mcpApprovalStore';
+import { useMcpToolRun, type McpToolRunEvent } from '@/stores/mcp/mcpToolRuntimeStore';
 
 import type { FunctionCall, Part } from '@google/genai';
 

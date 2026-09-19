@@ -9,7 +9,7 @@ import { fetchMcpServerCapabilities } from '@/services/api/mcpApi';
 import { SETTINGS_TOOLS } from './settingsVirtualMcpTools';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useChatStore } from '@/stores/chatStore';
-import { useVirtualMcpStore } from '@/stores/virtualMcpStore';
+import { useVirtualMcpStore } from '@/stores/mcp/virtualMcpStore';
 import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
 import { THEME_IDS, isKnownThemeId } from '@/utils/themeMode';
 import { AVAILABLE_THEMES } from '@/constants/themeRegistry';

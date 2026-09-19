@@ -7,7 +7,7 @@ import {
   AlertDialogDescription,
 } from '@/components/shared/AlertDialog';
 import { useI18n } from '@/contexts/I18nContext';
-import { useMcpApprovalStore } from '@/stores/mcpApprovalStore';
+import { useMcpApprovalStore } from '@/stores/mcp/mcpApprovalStore';
 
 /**
  * ESC and backdrop clicks resolve the pending request as an explicit deny so

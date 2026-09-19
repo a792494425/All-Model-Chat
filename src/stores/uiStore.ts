@@ -11,7 +11,7 @@ import {
   syncActiveSessionRoute,
   syncLibraryRoute,
   type SessionHistoryMode,
-} from './sessionRouteSync';
+} from '@/stores/sync/sessionRouteSync';
 
 const UI_PREFERENCES_STORAGE_KEY = 'all_model_chat_ui_preferences_v1';
 const { storage: uiSyncedStorage } = createSyncedPersist(UI_PREFERENCES_STORAGE_KEY, {

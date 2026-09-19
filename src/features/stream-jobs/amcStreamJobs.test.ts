@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // localStorage must exist for amcStreamJobs. The jsdom vitest environment
 // provides it, but TAB_ID derives from a crypto-backed store; stub it so the
 // owned-variant guard compares against a known tab id.
-vi.mock('@/stores/tabIdentity', () => ({
+vi.mock('@/stores/sync/tabIdentity', () => ({
   TAB_ID: 'test-tab',
 }));
 

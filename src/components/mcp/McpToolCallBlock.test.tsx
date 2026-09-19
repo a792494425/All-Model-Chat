@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { McpToolCallBlock } from './McpToolCallBlock';
 import { toMcpFunctionName } from '@/features/mcp/mcpToolNames';
 import { rememberDiscoveredTools, resetToolDisplayRegistry } from '@/features/mcp/toolDisplayNames';
-import { useMcpApprovalStore } from '@/stores/mcpApprovalStore';
-import { appendMcpToolProgress, beginMcpToolRun, finishMcpToolRun } from '@/stores/mcpToolRuntimeStore';
+import { useMcpApprovalStore } from '@/stores/mcp/mcpApprovalStore';
+import { appendMcpToolProgress, beginMcpToolRun, finishMcpToolRun } from '@/stores/mcp/mcpToolRuntimeStore';
 
 const renderSuccessBlock = () =>
   render(

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { McpServerConfig } from '../../shared/mcpServerConfig';
-import { createSyncedPersist } from './syncedPersist';
+import type { McpServerConfig } from '../../../shared/mcpServerConfig';
+import { createSyncedPersist } from '@/stores/syncedPersist';
 
 const MCP_RUNTIME_STORAGE_KEY = 'all_model_chat_mcp_runtime_v2';
 const { storage: mcpRuntimeSyncedStorage } = createSyncedPersist(MCP_RUNTIME_STORAGE_KEY, {

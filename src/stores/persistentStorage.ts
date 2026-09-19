@@ -1,5 +1,5 @@
 import type { StateStorage } from 'zustand/middleware';
-import { broadcastSyncMessage, getChatSyncChannel, CHAT_SYNC_CHANNEL_NAME } from './chatSyncChannel';
+import { broadcastSyncMessage, getChatSyncChannel, CHAT_SYNC_CHANNEL_NAME } from '@/stores/sync/chatSyncChannel';
 
 export type StorageArea = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 

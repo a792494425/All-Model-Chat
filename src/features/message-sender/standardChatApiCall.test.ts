@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_APP_SETTINGS, DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
-import { useMcpRuntimeStore } from '@/stores/mcpRuntimeStore';
+import { useMcpRuntimeStore } from '@/stores/mcp/mcpRuntimeStore';
 import type { ContentPart } from '@/types';
 import { getLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
 import { performStandardChatApiCall } from './standardChatApiCall';

@@ -1,5 +1,5 @@
 import type { McpServerCapabilities } from '@/services/api/mcpApi';
-import type { McpStatus, McpServerState } from '@/stores/mcpStatusStore';
+import type { McpStatus, McpServerState } from '@/stores/mcp/mcpStatusStore';
 
 export type DeriveStatusResult = Pick<McpStatus, 'state' | 'lastError' | 'version'> & {
   lastCheckedAt: number;

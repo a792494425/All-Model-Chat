@@ -22,7 +22,7 @@ import {
   sortSessionsByPinnedAndTimestamp,
   type SessionLoaderHistoryOptions,
 } from './sessionLoaderSettings';
-import { TAB_ID } from '@/stores/tabIdentity';
+import { TAB_ID } from '@/stores/sync/tabIdentity';
 import { assignAllBucketsOrder } from '@/stores/sessionOrder';
 
 interface LoadInitialSessionDataOptions {

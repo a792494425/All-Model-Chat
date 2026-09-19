@@ -1,4 +1,4 @@
-import { TAB_ID } from '@/stores/tabIdentity';
+import { TAB_ID } from '@/stores/sync/tabIdentity';
 import {
   readPersistentStorageItem,
   writePersistentStorageItem,

@@ -4,7 +4,7 @@ import { act, renderHook } from '@testing-library/react';
 import type { McpServerConfig } from '@/types';
 import { logService } from '@/services/logService';
 import type { McpToolDefinition } from '@/services/api/mcpApi';
-import { useMcpToolRun } from '@/stores/mcpToolRuntimeStore';
+import { useMcpToolRun } from '@/stores/mcp/mcpToolRuntimeStore';
 import { createMcpClientFunctions } from './mcpClientFunctions';
 import { toMcpFunctionName } from './mcpToolNames';
 import type { VirtualMcpServer } from './virtualMcpRegistry';

@@ -5,7 +5,7 @@ import { useModelPreferencesStore } from '@/stores/modelPreferencesStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { useUIStore } from '@/stores/uiStore';
-import { useMcpRuntimeStore } from '@/stores/mcpRuntimeStore';
+import { useMcpRuntimeStore } from '@/stores/mcp/mcpRuntimeStore';
 import { useLibraryStore } from '@/stores/libraryStore';
 import { useProviderUiStore } from '@/stores/providerUiStore';
 

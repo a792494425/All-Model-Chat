@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { McpPickerMenu } from './McpPickerMenu';
 import { renderWithProviders } from '@/test/render/providerRenderer';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useMcpRuntimeStore } from '@/stores/mcpRuntimeStore';
+import { useMcpRuntimeStore } from '@/stores/mcp/mcpRuntimeStore';
 
 const seedSettings = () => {
   useSettingsStore.setState({

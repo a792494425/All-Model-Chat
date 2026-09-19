@@ -8,7 +8,7 @@ import {
   type McpToolsResponse,
 } from '@/services/api/mcpApi';
 import { logService } from '@/services/logService';
-import { beginMcpToolRun, appendMcpToolProgress, finishMcpToolRun } from '@/stores/mcpToolRuntimeStore';
+import { beginMcpToolRun, appendMcpToolProgress, finishMcpToolRun } from '@/stores/mcp/mcpToolRuntimeStore';
 import { toMcpFunctionName } from './mcpToolNames';
 import { isRecord } from '../../../shared/predicates';
 import { extractMcpCallError, summarizeMcpResultForModel } from './mcpResultSummary';

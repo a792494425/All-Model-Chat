@@ -5,9 +5,9 @@ import { IconMcp } from '@/components/icons';
 import { interpolate } from '@/i18n/interpolate';
 import { CHAT_INPUT_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/shared/Popover';
-import { useMcpRuntimeStore } from '@/stores/mcpRuntimeStore';
+import { useMcpRuntimeStore } from '@/stores/mcp/mcpRuntimeStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useVirtualMcpStore } from '@/stores/virtualMcpStore';
+import { useVirtualMcpStore } from '@/stores/mcp/virtualMcpStore';
 import { getVirtualMcpServers } from '@/features/mcp/virtualMcpRegistry';
 
 interface PickerServerItem {

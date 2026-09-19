@@ -9,7 +9,7 @@ import { generateUniqueId } from './ids';
 import { base64ToBlob, blobToBase64 } from '@/utils/file/fileEncoding';
 import { getVisibleChatMessages } from './visibility';
 import { createManagedObjectUrl, releaseManagedObjectUrlsByOwner } from '@/services/objectUrlManager';
-import { TAB_ID } from '@/stores/tabIdentity';
+import { TAB_ID } from '@/stores/sync/tabIdentity';
 import { redactExportedSessionSettings } from '@/utils/secretRedaction';
 import { stripLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
 

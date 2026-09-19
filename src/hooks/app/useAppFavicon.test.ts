@@ -5,7 +5,7 @@ import type { ChatMessage } from '@/types';
 import type { GenerationLease } from '@/features/message-sender/generationLease';
 
 // Fixed tab id so isLocalGeneration's ownership check is deterministic.
-vi.mock('@/stores/tabIdentity', () => ({
+vi.mock('@/stores/sync/tabIdentity', () => ({
   TAB_ID: 'test-tab',
 }));
 

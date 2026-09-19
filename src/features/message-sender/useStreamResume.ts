@@ -10,7 +10,7 @@ import {
   isServerManagedApiEnabledForProxyRequests,
   SERVER_MANAGED_API_KEY,
 } from '@/utils/apiKeySelection';
-import { TAB_ID } from '@/stores/tabIdentity';
+import { TAB_ID } from '@/stores/sync/tabIdentity';
 import {
   isGenerationLeaseHeldByTab,
   releaseGenerationLease,

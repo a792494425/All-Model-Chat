@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '@/test/render/providerRenderer';
 
 // Fixed tab id so the multi-tab guard compares against a known value.
-vi.mock('@/stores/tabIdentity', () => ({
+vi.mock('@/stores/sync/tabIdentity', () => ({
   TAB_ID: 'test-tab',
 }));
 
