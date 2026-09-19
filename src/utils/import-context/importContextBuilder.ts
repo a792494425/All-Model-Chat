@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 
 import { fileToString } from '@/utils/file/fileEncoding';
-import { extractDocxText, isDocxFile } from '@/utils/docxPreview';
+import { extractDocxText, isDocxFile } from '@/utils/document/docxPreview';
 import { attachRelativePath, getFilePath } from './filePath';
 import { buildRootGitignoreMatchers, isIgnoredByGitignore, type IgnoreMatcher } from './ignoreMatcher';
 import { generateRepomixPlainOutput } from './repomixPlainOutput';

@@ -182,7 +182,7 @@ const buildFilePart = async (
         part = { text: `[Document: ${file.name}]\n${file.textContent}` };
       } else if (file.name.toLowerCase().endsWith('.docx')) {
         try {
-          const { extractDocxText } = await import('@/utils/docxPreview');
+          const { extractDocxText } = await import('@/utils/document/docxPreview');
           if (fileSource && fileSource instanceof Blob) {
             const { text } = await extractDocxText(fileSource as File);
             enrichedFile.textContent = text;

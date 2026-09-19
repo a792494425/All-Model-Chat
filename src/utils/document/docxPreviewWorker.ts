@@ -1,5 +1,5 @@
 import * as mammoth from 'mammoth';
-import { getErrorMessage } from './errorMessage';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 type DocxWorkerResponse =
   | {

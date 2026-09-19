@@ -7,7 +7,7 @@ const { extractDocxTextMock } = vi.hoisted(() => ({
   extractDocxTextMock: vi.fn(),
 }));
 
-vi.mock('@/utils/docxPreview', () => ({
+vi.mock('@/utils/document/docxPreview', () => ({
   extractDocxText: extractDocxTextMock,
   isDocxFile: (file: { name: string; type: string }) =>
     file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||

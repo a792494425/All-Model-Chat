@@ -455,6 +455,28 @@ describe('project structure boundaries', () => {
     }
   });
 
+  it('consolidates document and PDF preview runtime tools in src/utils/document', () => {
+    const sourceFiles = listProjectSourceFilesExcept('src', thisTestFile);
+
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/document/docxPreview.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/document/docxPreviewWorker.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/document/pdfRuntime.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/document/pdfWorker.ts'))).toBe(true);
+
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/docxPreview.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/docxPreviewWorker.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/pdfRuntime.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/pdfWorker.ts'))).toBe(false);
+
+    for (const relativePath of sourceFiles) {
+      const source = readProjectFile(relativePath);
+      expect(source, relativePath).not.toContain('@/utils/docxPreview');
+      expect(source, relativePath).not.toContain('@/utils/docxPreviewWorker');
+      expect(source, relativePath).not.toContain('@/utils/pdfRuntime');
+      expect(source, relativePath).not.toContain('@/utils/pdfWorker');
+    }
+  });
+
   it('keeps embedding background services decoupled from UI stores', () => {
     const queueSource = readProjectFile('src/services/embedding/autoIndexingQueue.ts');
 

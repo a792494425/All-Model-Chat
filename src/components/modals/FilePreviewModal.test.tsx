@@ -147,7 +147,7 @@ vi.mock('@/utils/file/fileTypeClassification', () => ({
     file.name.toLowerCase().endsWith('.gz'),
 }));
 
-vi.mock('@/utils/docxPreview', () => ({
+vi.mock('@/utils/document/docxPreview', () => ({
   extractDocxText: mockExtractDocxText,
   isDocxFile: (file: { name: string; type: string }) =>
     file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||

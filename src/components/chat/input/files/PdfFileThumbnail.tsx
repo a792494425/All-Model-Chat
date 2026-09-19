@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Document, Page } from 'react-pdf';
-import { ensurePdfWorkerConfigured } from '@/utils/pdfRuntime';
+import { ensurePdfWorkerConfigured } from '@/utils/document/pdfRuntime';
 import {
   readPdfThumbnailCache,
   writePdfThumbnailCache,

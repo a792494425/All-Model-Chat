@@ -15,7 +15,7 @@ import { ZipViewer } from '@/components/shared/file-preview/ZipViewer';
 import { IconYoutube } from '@/components/icons';
 import { copyFileToClipboard } from '@/utils/file/fileClipboard';
 import { cleanupFilePreviewUrl, fileToBlobUrl } from '@/utils/file/filePreviewUrls';
-import { extractDocxText, isDocxFile } from '@/utils/docxPreview';
+import { extractDocxText, isDocxFile } from '@/utils/document/docxPreview';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { isShortcutPressed } from '@/utils/keyboardShortcuts';
 import {

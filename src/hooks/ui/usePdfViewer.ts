@@ -2,7 +2,7 @@ import { logService } from '@/services/logService';
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { type UploadedFile } from '@/types';
 import { MOBILE_BREAKPOINT_PX } from '@/constants/layout';
-import { ensurePdfWorkerConfigured } from '@/utils/pdfRuntime';
+import { ensurePdfWorkerConfigured } from '@/utils/document/pdfRuntime';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatI18nErrorMessage } from '@/i18n/interpolate';
 import { getRotatedCoords } from '@/utils/media-nav/seekPdf';

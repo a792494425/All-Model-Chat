@@ -18,7 +18,7 @@ vi.mock('react-pdf', () => ({
   },
 }));
 
-vi.mock('@/utils/pdfRuntime', () => ({
+vi.mock('@/utils/document/pdfRuntime', () => ({
   ensurePdfWorkerConfigured: vi.fn(),
 }));
 

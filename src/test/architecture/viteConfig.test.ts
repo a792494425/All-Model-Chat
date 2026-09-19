@@ -33,7 +33,7 @@ const clipboardDataPath = path.join(projectRoot, 'src/utils/chat-input/clipboard
 const useChatInputClipboardPath = path.join(projectRoot, 'src/hooks/chat-input/useChatInputClipboard.ts');
 const useSelectionPositionPath = path.join(projectRoot, 'src/hooks/text-selection/useSelectionPosition.ts');
 const tableBlockPath = path.join(projectRoot, 'src/components/message/blocks/TableBlock.tsx');
-const pdfRuntimePath = path.join(projectRoot, 'src/utils/pdfRuntime.ts');
+const pdfRuntimePath = path.join(projectRoot, 'src/utils/document/pdfRuntime.ts');
 const pdfFileThumbnailPath = path.join(projectRoot, 'src/components/chat/input/files/PdfFileThumbnail.tsx');
 const usePdfViewerPath = path.join(projectRoot, 'src/hooks/ui/usePdfViewer.ts');
 const importContextLoadersPath = path.join(projectRoot, 'src/utils/import-context/loaders.ts');
@@ -112,8 +112,8 @@ describe('vite.config runtime ownership', () => {
     expect(pdfRuntimeSource).toContain("import { pdfjs } from 'react-pdf'");
     expect(pdfRuntimeSource).toContain('configurePdfWorker(pdfjs)');
     expect(pdfRuntimeSource).toContain('pdfWorkerConfigured');
-    expect(thumbnailSource).toContain("from '@/utils/pdfRuntime'");
-    expect(usePdfViewerSource).toContain("from '@/utils/pdfRuntime'");
+    expect(thumbnailSource).toContain("from '@/utils/document/pdfRuntime'");
+    expect(usePdfViewerSource).toContain("from '@/utils/document/pdfRuntime'");
     expect(thumbnailSource).not.toContain('pdfjs');
     expect(usePdfViewerSource).not.toContain('pdfjs');
   });

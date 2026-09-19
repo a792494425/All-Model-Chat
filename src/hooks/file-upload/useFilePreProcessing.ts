@@ -4,7 +4,7 @@ import { logService } from '@/services/logService';
 import { generateUniqueId } from '@/utils/chat/ids';
 import { isAudioMimeType } from '@/utils/file/fileTypeClassification';
 import { compressAudioToMp3 } from '@/features/audio/audioCompression';
-import { isDocxFile } from '@/utils/docxPreview';
+import { isDocxFile } from '@/utils/document/docxPreview';
 import { useI18n } from '@/contexts/I18nContext';
 import { createProcessingPlaceholderFile } from '@/utils/file-upload/fileUploadPolicy';
 import { interpolate } from '@/i18n/interpolate';

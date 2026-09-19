@@ -14,7 +14,7 @@ vi.mock('@/hooks/ui/useCopyToClipboard', () => ({
 
 const ensurePdfWorkerConfiguredMock = vi.fn();
 
-vi.mock('@/utils/pdfRuntime', () => ({
+vi.mock('@/utils/document/pdfRuntime', () => ({
   ensurePdfWorkerConfigured: ensurePdfWorkerConfiguredMock,
 }));
 
