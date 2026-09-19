@@ -1,7 +1,13 @@
 import type { UploadedFile } from '@/types';
 import { logService } from '@/services/logService';
 import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES } from '@/utils/codeExecution';
-import { isAudioMimeType, isImageMimeType, isPdfMimeType, isTextFile } from '@/utils/file/fileTypeClassification';
+import {
+  isAudioFile,
+  isImageMimeType,
+  isPdfMimeType,
+  isTextFile,
+  isVideoFile,
+} from '@/utils/file/fileTypeClassification';
 import { normalizeModelId } from '@/utils/model/modelId';
 import type { MessageSenderTranslator } from './messageSenderTypes';
 
@@ -24,10 +30,8 @@ interface ValidateMessageBeforeSendOptions {
 
 type MessageSendValidationResult = { ok: true } | { ok: false; fileError?: string };
 
-const isHostedGemma4TextImageModel = (modelId: string): boolean => {
-  const normalizedModelId = normalizeModelId(modelId);
-  return normalizedModelId === 'gemma-4-31b-it' || normalizedModelId === 'gemma-4-26b-a4b-it';
-};
+const isHostedGemma4TextImageModel = (modelId: string) =>
+  normalizeModelId(modelId).toLowerCase().includes('gemma-4');
 
 export const validateMessageBeforeSend = ({
   text,
@@ -129,15 +133,15 @@ export const validateMessageBeforeSend = ({
     const usableFiles = files.filter(
       (file) => !file.error && file.uploadState !== 'failed' && file.uploadState !== 'cancelled',
     );
-    const hasAudioAttachment = usableFiles.some((file) => isAudioMimeType(file.type));
-    if (!hasAudioAttachment && !isContinueMode) {
-      logService.warn('Send message blocked: transcribe model requires at least one audio attachment.');
-      return { ok: false, fileError: t('messageSenderTranscribeRequiresAudio') };
+    const hasMediaAttachment = usableFiles.some((file) => isAudioFile(file) || isVideoFile(file));
+    if (!hasMediaAttachment && !isContinueMode) {
+      logService.warn('Send message blocked: transcribe model requires at least one audio or video attachment.');
+      return { ok: false, fileError: t('messageSenderTranscribeRequiresMedia') || t('messageSenderTranscribeRequiresAudio') };
     }
 
-    const hasUnsupportedAttachment = files.some((file) => !isAudioMimeType(file.type));
+    const hasUnsupportedAttachment = files.some((file) => !isAudioFile(file) && !isVideoFile(file));
     if (hasUnsupportedAttachment) {
-      logService.warn('Send message blocked: transcribe model received non-audio attachment types.', {
+      logService.warn('Send message blocked: transcribe model received non-media attachment types.', {
         activeModelId,
         attachmentTypes: files.map((file) => file.type),
       });

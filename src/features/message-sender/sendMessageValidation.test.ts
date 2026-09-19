@@ -34,6 +34,30 @@ describe('validateMessageBeforeSend', () => {
     expect(result.ok).toBe(true);
   });
 
+  it('allows transcribe model when a video file is attached', () => {
+    const uploadingVideo = createUploadedFile({
+      id: 'video-uploading',
+      name: 'clip.mp4',
+      type: 'video/mp4',
+      uploadState: 'uploading',
+      isProcessing: true,
+    });
+
+    const result = validateMessageBeforeSend({
+      text: '',
+      files: [uploadingVideo],
+      permissions: defaultPermissions,
+      isContinueMode: false,
+      isServerCodeExecutionEnabled: false,
+      isGemini3Image: false,
+      isTranscribeModel: true,
+      activeModelId: 'gemini-3.5-transcribe',
+      t,
+    });
+
+    expect(result.ok).toBe(true);
+  });
+
   it('blocks transcribe model if a non-audio file is attached alongside audio', () => {
     const uploadingAudio = createUploadedFile({
       id: 'audio-uploading',
