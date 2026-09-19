@@ -83,11 +83,13 @@ describe('source readability boundaries', () => {
   });
 
   it('models language badge entries directly instead of through an identity helper', () => {
-    const source = readProjectFile('src/components/message/code/LanguageIcon.tsx');
+    const source = readProjectFile('src/components/message/code/languageBadges.ts');
+    const componentSource = readProjectFile('src/components/message/code/LanguageIcon.tsx');
 
     expect(source).toContain('satisfies LanguageBadgeEntry[]');
     expect(source).not.toContain('const languageBadge =');
     expect(source).not.toContain('languageBadge({');
+    expect(componentSource.length).toBeLessThan(3500);
   });
 
   it('keeps architecture guard tests on the shared filesystem helpers', () => {

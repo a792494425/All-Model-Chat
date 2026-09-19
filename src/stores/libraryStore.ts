@@ -138,12 +138,11 @@ export const useLibraryStore = create<LibraryState & LibraryActions>()(
         const validViewModes: LibraryViewMode[] = ['list', 'grid'];
 
         let selectedFileIds = currentState.selectedFileIds;
-        if (persisted.selectedFileIds) {
-          if (Array.isArray(persisted.selectedFileIds)) {
-            selectedFileIds = new Set(persisted.selectedFileIds.filter((id): id is string => typeof id === 'string'));
-          } else if ((persisted.selectedFileIds as unknown) instanceof Set) {
-            selectedFileIds = persisted.selectedFileIds as unknown as Set<string>;
-          }
+        const rawSelectedFileIds: unknown = persisted.selectedFileIds;
+        if (Array.isArray(rawSelectedFileIds)) {
+          selectedFileIds = new Set(rawSelectedFileIds.filter((id): id is string => typeof id === 'string'));
+        } else if (rawSelectedFileIds instanceof Set) {
+          selectedFileIds = rawSelectedFileIds as Set<string>;
         }
 
         return {
