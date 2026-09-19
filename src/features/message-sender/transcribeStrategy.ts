@@ -161,6 +161,12 @@ export const sendTranscribeMessage = async ({
               abortController.signal,
               undefined,
               durationSeconds,
+              {
+                language: currentChatSettings.transcriptionLanguage || undefined,
+                prompt: text.trim() ? text.trim() : undefined,
+                systemInstruction: currentChatSettings.transcriptionSystemInstruction?.trim() || undefined,
+                customVocabulary: currentChatSettings.transcriptionCustomVocabulary?.trim() || undefined,
+              },
             );
 
             if (abortController.signal.aborted) {

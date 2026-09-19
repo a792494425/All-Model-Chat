@@ -32,7 +32,7 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
   const systemInstruction = currentChatSettings.transcriptionSystemInstruction ?? '';
 
   const hasAdvancedConfig = Boolean(
-    language || wordTimestamps || speakerLabels || smartMode || outputSubtitles || customVocabulary.trim() || systemInstruction.trim(),
+    language || wordTimestamps || speakerLabels || smartMode || customVocabulary.trim() || systemInstruction.trim(),
   );
 
   const handleToggleSubtitles = () => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { Select } from '@/components/shared/Select';
+import { normalizeTranscriptionLanguage } from '@/services/api/generation/audioApi';
 
 interface TranscribeLanguageSelectorProps {
   language: string;
@@ -9,10 +10,11 @@ interface TranscribeLanguageSelectorProps {
 
 /**
  * Values are the BCP-47 codes documented for Gemini 3.5 Transcribe; bare legacy
- * codes persisted from older versions are normalized at the API layer.
+ * codes persisted from older versions are normalized at the API and UI layer.
  */
 export const TranscribeLanguageSelector: React.FC<TranscribeLanguageSelectorProps> = ({ language, setLanguage }) => {
   const { t } = useI18n();
+  const normalizedLanguage = normalizeTranscriptionLanguage(language) ?? '';
 
   const options: Array<{ value: string; label: string }> = [
     { value: 'cmn-Hans-CN', label: t('transcribeLangZh') },
@@ -35,7 +37,7 @@ export const TranscribeLanguageSelector: React.FC<TranscribeLanguageSelectorProp
       id="transcribe-language-selector"
       label={t('transcribePrimaryLanguage')}
       hideLabel
-      value={language}
+      value={normalizedLanguage}
       onChange={(e) => setLanguage(e.target.value)}
       className="mb-0"
       wrapperClassName="relative w-full"

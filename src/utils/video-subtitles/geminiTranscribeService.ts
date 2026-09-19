@@ -2,6 +2,7 @@ import type { File as GeminiFile } from '@google/genai';
 import { uploadFileApi, deleteFileApi } from '@/services/api/fileApi';
 import { getConfiguredApiClient, getConfiguredApiClientContext } from '@/services/api/apiClient';
 import { logService } from '@/services/logService';
+import { normalizeTranscriptionLanguage } from '@/services/api/generation/audioApi';
 import type { WordAnnotation } from './subtitleFormatter';
 
 export type { WordAnnotation };
@@ -200,6 +201,13 @@ export function extractWordAnnotations(data: any, durationSeconds?: number): Wor
   return [];
 }
 
+export interface TranscribeAudioWithGeminiOptions {
+  language?: string;
+  prompt?: string;
+  systemInstruction?: string;
+  customVocabulary?: string;
+}
+
 /**
  * Transcribes audio using Gemini 3.5 Transcribe model (`gemini-3.5-transcribe`).
  * Uploads audioBlob to Gemini Files API, calls generateContent,
@@ -212,6 +220,7 @@ export async function transcribeAudioWithGemini(
   signal: AbortSignal,
   onProgress?: TranscribeProgressCallback,
   durationSeconds?: number,
+  options?: TranscribeAudioWithGeminiOptions,
 ): Promise<WordAnnotation[]> {
   if (!apiKey || !apiKey.trim()) {
     throw new Error('API key is required for video subtitle transcription.');
@@ -242,7 +251,32 @@ export async function transcribeAudioWithGemini(
     logService.info(`[VideoSubtitles] Requesting gemini-3.5-transcribe for ${uploadedFile.uri}`);
 
     let transcriptionResult: any = null;
-    const promptText = 'Transcribe voice input exactly. Include word timestamps in the output.';
+    const promptInstructions: string[] = [
+      'Transcribe voice input exactly. Include word timestamps in the output.',
+    ];
+
+    const normalizedLanguage = normalizeTranscriptionLanguage(options?.language);
+    if (normalizedLanguage) {
+      promptInstructions.push(`Primary language: ${normalizedLanguage}.`);
+    }
+
+    const customVocabList = options?.customVocabulary
+      ? options.customVocabulary
+          .split(/[,，\n]/)
+          .map((word) => word.trim())
+          .filter(Boolean)
+          .slice(0, 50)
+      : [];
+
+    if (customVocabList.length > 0) {
+      promptInstructions.push(`Custom vocabulary: ${customVocabList.join(', ')}.`);
+    }
+
+    if (options?.prompt && options.prompt.trim()) {
+      promptInstructions.push(options.prompt.trim());
+    }
+
+    const promptText = promptInstructions.join(' ');
 
     // Try primary path: SDK ai.models.generateContent
     try {
@@ -266,7 +300,11 @@ export async function transcribeAudioWithGemini(
           config: {
             audioTranscriptionConfig: {
               wordTimestamp: true,
+              ...(normalizedLanguage ? { languageCodes: [normalizedLanguage] } : {}),
             },
+            ...(options?.systemInstruction?.trim()
+              ? { systemInstruction: options.systemInstruction.trim() }
+              : {}),
             ...(signal ? { abortSignal: signal } : {}),
           } as any,
         });
@@ -341,8 +379,16 @@ export async function transcribeAudioWithGemini(
           generationConfig: {
             audioTranscriptionConfig: {
               wordTimestamp: true,
+              ...(normalizedLanguage ? { languageCodes: [normalizedLanguage] } : {}),
             },
           },
+          ...(options?.systemInstruction?.trim()
+            ? {
+                system_instruction: {
+                  parts: [{ text: options.systemInstruction.trim() }],
+                },
+              }
+            : {}),
         }),
         signal,
       });

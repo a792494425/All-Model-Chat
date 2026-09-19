@@ -231,6 +231,12 @@ describe('transcribeStrategy', () => {
       abortController.signal,
       undefined,
       42,
+      expect.objectContaining({
+        language: undefined,
+        prompt: undefined,
+        systemInstruction: undefined,
+        customVocabulary: undefined,
+      }),
     );
     expect(saveCachedSubtitlesMock).toHaveBeenCalledWith(
       fakeVideoFile,
@@ -341,6 +347,12 @@ describe('transcribeStrategy', () => {
       abortController.signal,
       undefined,
       600,
+      expect.objectContaining({
+        language: undefined,
+        prompt: undefined,
+        systemInstruction: undefined,
+        customVocabulary: undefined,
+      }),
     );
     expect(saveCachedSubtitlesMock).toHaveBeenCalledWith(
       fakeAudioFile,
