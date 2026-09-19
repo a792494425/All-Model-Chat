@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/shared/Modal';
 import { Link, X, AlertTriangle, CheckCircle, Info, Globe } from 'lucide-react';
-import { parseAndValidateUrlList, formatUrlDisplay, type ParsedUrlItem } from '@/utils/urlContext';
+import { parseAndValidateUrlList, formatUrlDisplay, type ParsedUrlItem } from '@/utils/api/urlContext';
 import { getFavicon } from '@/components/message/grounded-response/groundingSources';
 import { interpolate } from '@/i18n/interpolate';
 import { useChatStore } from '@/stores/chatStore';

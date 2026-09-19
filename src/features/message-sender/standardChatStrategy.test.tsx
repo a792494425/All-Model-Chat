@@ -42,7 +42,7 @@ const {
   })),
 }));
 
-vi.mock('@/utils/apiKeySelection', () => ({
+vi.mock('@/utils/api/apiKeySelection', () => ({
   getKeyForRequest: mockGetKeyForRequest,
 }));
 

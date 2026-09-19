@@ -15,7 +15,7 @@ vi.mock('@/services/api/fileApi', () => ({
   getFileMetadataApi: getFileMetadataApiMock,
 }));
 
-vi.mock('@/utils/apiKeySelection', () => ({
+vi.mock('@/utils/api/apiKeySelection', () => ({
   formatApiKeyErrorMessage: vi.fn((error: string) => error),
   getGeminiKeyForRequest: getGeminiKeyForRequestMock,
 }));

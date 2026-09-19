@@ -9,7 +9,7 @@ import {
 } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { logService } from '@/services/logService';
-import { formatApiKeyErrorMessage } from '@/utils/apiKeySelection';
+import { formatApiKeyErrorMessage } from '@/utils/api/apiKeySelection';
 import { useChatStore } from '@/stores/chatStore';
 import { toastError } from '@/stores/toastStore';
 import { isServerCodeExecutionMode } from '@/utils/code/codeExecution';

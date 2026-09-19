@@ -4,7 +4,7 @@ import type { ApiServerConfig } from '../config.js';
 import { timingSafePasswordEqual } from '../security/passwordSecurity.js';
 
 // Sentinel the browser sends when Live should use the server-managed key
-// (single-sourced in shared/, mirrored by src/utils/apiKeySelection).
+// (single-sourced in shared/, mirrored by src/utils/api/apiKeySelection).
 import { SERVER_MANAGED_API_KEY as SERVER_MANAGED_API_KEY_SENTINEL } from '../../../shared/serverManagedApiKey.js';
 
 const LIVE_WS_PATH_PREFIX = '/api/live';

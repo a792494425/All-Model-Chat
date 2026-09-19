@@ -16,7 +16,7 @@ vi.mock('@/utils/chat/ids', () => ({
   generateUniqueId: generateUniqueIdMock,
 }));
 
-vi.mock('@/utils/apiKeySelection', () => ({
+vi.mock('@/utils/api/apiKeySelection', () => ({
   getKeyForRequest: getKeyForRequestMock,
   getGeminiKeyForRequest: getKeyForRequestMock,
   formatApiKeyErrorMessage: vi.fn((error: string, translate: (translationKey: string) => string) =>

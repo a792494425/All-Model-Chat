@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { type AppSettings, type ChatSettings as IndividualChatSettings, type UploadedFile } from '@/types';
 import { logService } from '@/services/logService';
-import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/apiKeySelection';
+import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/api/apiKeySelection';
 import { transcribeAudioApi } from '@/services/api/generation/audioApi';
 import { useI18n } from '@/contexts/I18nContext';
 import { isThirdPartyApiRoute } from '@/utils/chat/chatApiRoute';

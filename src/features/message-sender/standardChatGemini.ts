@@ -31,7 +31,7 @@ import {
   isFilesApiPermissionDeniedError,
   toFileApiExpirationTime,
 } from '@/utils/chat/geminiFilesApi';
-import { getGeminiKeyForRequest } from '@/utils/apiKeySelection';
+import { getGeminiKeyForRequest } from '@/utils/api/apiKeySelection';
 import { getTranslator } from '@/i18n/translations';
 import { resolveAppLanguage } from '@/i18n/languageRegistry';
 import { applyLiveArtifactsUserDirective } from '@/features/prompts/promptRegistry';

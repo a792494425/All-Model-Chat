@@ -41,7 +41,7 @@ vi.mock('@/stores/chatStore', () => ({
 vi.mock('./fileApiReference', () => ({
   ensureHistoryFilesApiReferences: mocks.ensureHistoryFilesApiReferences,
 }));
-vi.mock('@/utils/apiKeySelection', () => ({
+vi.mock('@/utils/api/apiKeySelection', () => ({
   getGeminiKeyForRequest: mocks.getGeminiKeyForRequest,
 }));
 vi.mock('@/utils/chat/chatApiRoute', () => ({

@@ -2,9 +2,9 @@ import { type AppSettings, type ChatSettings, type ThirdPartyConnection } from '
 import { API_KEY_LAST_USED_INDEX_BY_TARGET_KEY, API_KEY_LAST_USED_INDEX_KEY } from '@/constants/storageKeys';
 import { logService } from '@/services/logService';
 import { readPersistentStorageItem, writePersistentStorageItem } from '@/stores/persistentStorage';
-import { safeJsonParse } from './safeJsonParse';
+import { safeJsonParse } from '@/utils/safeJsonParse';
 import { isUnavailableThirdPartyRoute, resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
-import { AUTH_OPTIONAL_API_KEY, isAuthOptionalApiKey, SERVER_MANAGED_API_KEY } from '../../shared/serverManagedApiKey';
+import { AUTH_OPTIONAL_API_KEY, isAuthOptionalApiKey, SERVER_MANAGED_API_KEY } from '../../../shared/serverManagedApiKey';
 
 export { AUTH_OPTIONAL_API_KEY, SERVER_MANAGED_API_KEY };
 const GEMINI_API_KEY_ROTATION_TARGET = '__gemini__';

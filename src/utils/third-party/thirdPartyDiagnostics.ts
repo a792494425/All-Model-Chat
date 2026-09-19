@@ -1,5 +1,5 @@
 import { getErrorMessage } from '@/utils/errorMessage';
-import { AUTH_OPTIONAL_API_KEY, parseApiKeys } from '@/utils/apiKeySelection';
+import { AUTH_OPTIONAL_API_KEY, parseApiKeys } from '@/utils/api/apiKeySelection';
 import { getProxyProviderHeader } from './thirdPartyApiProviders';
 import { sendAnthropicMessageNonStream } from '@/services/api/protocols/anthropic/anthropicApi';
 import { sendOpenAICompatibleMessageNonStream } from '@/services/api/protocols/openai-compatible/openaiCompatibleApi';

@@ -3,7 +3,7 @@ import { getErrorMessage } from '@/utils/errorMessage';
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import type { AppSettings, ChatSettings } from '@/types';
 import { translateTextApi } from '@/services/api/generation/textApi';
-import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/apiKeySelection';
+import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/api/apiKeySelection';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatI18nErrorMessage } from '@/i18n/interpolate';
 

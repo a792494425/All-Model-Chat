@@ -3,7 +3,7 @@ import { KeyRound } from 'lucide-react';
 
 import { useI18n } from '@/contexts/I18nContext';
 import { type AppSettings, type ChatSettings } from '@/types';
-import { parseApiKeys } from '@/utils/apiKeySelection';
+import { parseApiKeys } from '@/utils/api/apiKeySelection';
 import { maskApiKeyForStorage } from '@/services/logUsageTracker';
 
 import { ObfuscatedApiKey } from './ObfuscatedApiKey';

@@ -7,7 +7,7 @@ import {
 } from '@/types';
 import { logService } from '@/services/logService';
 import { releaseManagedObjectUrl } from '@/services/objectUrlManager';
-import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/apiKeySelection';
+import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/api/apiKeySelection';
 import {
   buildFileUploadPreflight,
   checkBatchNeedsApiKey,

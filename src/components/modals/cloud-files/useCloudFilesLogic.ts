@@ -11,7 +11,7 @@ import {
 import type { File as GeminiFile } from '@google/genai';
 import { useI18n } from '@/contexts/I18nContext';
 import { listFilesApi, deleteFileApi } from '@/services/api/fileApi';
-import { getGeminiKeyForRequest } from '@/utils/apiKeySelection';
+import { getGeminiKeyForRequest } from '@/utils/api/apiKeySelection';
 import { copyTextToClipboard } from '@/utils/clipboard';
 import { logService } from '@/services/logService';
 import type { AppSettings, ChatSettings } from '@/types';

@@ -65,7 +65,7 @@ vi.mock('@/utils/chat/ids', () => ({
   generateUniqueId: vi.fn(() => 'generation-id'),
 }));
 
-vi.mock('@/utils/apiKeySelection', () => ({
+vi.mock('@/utils/api/apiKeySelection', () => ({
   getKeyForRequest: vi.fn(() => ({ key: 'api-key', isNewKey: false })),
   formatApiKeyErrorMessage: vi.fn((error: string, translate: (translationKey: string) => string) => {
     if (error === 'API Key not configured.') return translate('apiRuntimeKeyNotConfigured');

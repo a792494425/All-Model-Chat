@@ -12,7 +12,7 @@ const { mockUseMessageStream, mockTranslateText } = vi.hoisted(() => ({
   mockTranslateText: vi.fn(),
 }));
 
-vi.mock('@/utils/apiKeySelection', () => ({
+vi.mock('@/utils/api/apiKeySelection', () => ({
   getKeyForRequest: vi.fn(() => ({ key: 'api-key', isNewKey: false })),
   getGeminiKeyForRequest: vi.fn(() => ({ key: 'api-key', isNewKey: false })),
 }));

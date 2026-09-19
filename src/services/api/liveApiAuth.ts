@@ -1,7 +1,7 @@
 import type { GoogleGenAI } from '@google/genai';
 import type { AppSettings } from '@/types';
 import { getClient } from './apiClient';
-import { SERVER_MANAGED_API_KEY } from '@/utils/apiKeySelection';
+import { SERVER_MANAGED_API_KEY } from '@/utils/api/apiKeySelection';
 import { resolveLiveClientBaseUrl } from './geminiApiBaseUrl';
 import { type GeminiClientHttpOptions, withHttpOptionHeaders } from './geminiApiVersion';
 import { getServerAuthHeaders } from './apiAuthHeaders';

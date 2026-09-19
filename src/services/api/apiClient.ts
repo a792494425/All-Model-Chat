@@ -9,7 +9,7 @@ import {
   getNormalizedUpstreamBaseUrl,
   toAbsoluteHttpUrl,
 } from './geminiApiBaseUrl';
-import { normalizeGeminiApiBaseUrl } from '@/utils/apiProxyUrl';
+import { normalizeGeminiApiBaseUrl } from '@/utils/api/apiProxyUrl';
 import { type GeminiClientHttpOptions, withHttpOptionHeaders } from './geminiApiVersion';
 import type { InternalGeminiApiClient } from './geminiResumableUpload';
 

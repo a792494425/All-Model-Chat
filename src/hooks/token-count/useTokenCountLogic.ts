@@ -22,7 +22,7 @@ import {
   isServerManagedApiEnabledForProxyRequests,
   parseApiKeys,
   SERVER_MANAGED_API_KEY,
-} from '@/utils/apiKeySelection';
+} from '@/utils/api/apiKeySelection';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatI18nErrorMessage } from '@/i18n/interpolate';
 

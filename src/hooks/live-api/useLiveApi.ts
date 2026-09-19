@@ -10,7 +10,7 @@ import { useLiveFrameCapture } from './useLiveFrameCapture';
 import { resolveLiveErrorText } from '@/utils/live-api/liveErrorState';
 import { useBackgroundKeepAlive } from '@/hooks/core/useBackgroundKeepAlive';
 import { useI18n } from '@/contexts/I18nContext';
-import { getLiveApiKey } from '@/utils/apiKeySelection';
+import { getLiveApiKey } from '@/utils/api/apiKeySelection';
 import { useStateWithRef } from '@/hooks/core/useStateWithRef';
 
 interface UseLiveApiProps {

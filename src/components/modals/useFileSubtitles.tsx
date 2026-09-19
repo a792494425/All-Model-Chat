@@ -3,7 +3,7 @@ import { Loader2, Sparkles, Subtitles } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { logService } from '@/services/logService';
 import { toastError, toastSuccess } from '@/stores/toastStore';
-import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/apiKeySelection';
+import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/api/apiKeySelection';
 import { DEFAULT_THOUGHT_TRANSLATION_MODEL_ID } from '@/constants/modelConfiguration';
 import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { getErrorMessage } from '@/utils/errorMessage';

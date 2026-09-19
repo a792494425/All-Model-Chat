@@ -136,16 +136,25 @@ describe('naming and structure optimization guardrails', () => {
     expect(audioCompressionSource).not.toContain('kbps: 64');
   });
 
-  it('names API key selection helpers after their key-rotation role', () => {
+  it('names API key selection helpers after their key-rotation role and consolidates API tools in src/utils/api', () => {
     const sourceFiles = listProjectSourceFilesExcept('src', thisTestFile);
 
-    expect(fs.existsSync(path.join(projectRoot, 'src/utils/apiKeySelection.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/api/apiKeySelection.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/api/apiProxyUrl.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/api/urlContext.ts'))).toBe(true);
+
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/apiKeySelection.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/apiProxyUrl.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/urlContext.ts'))).toBe(false);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/apiUtils.ts'))).toBe(false);
 
     for (const relativePath of sourceFiles) {
       const source = readProjectFile(relativePath);
       expect(source, relativePath).not.toContain('@/utils/apiUtils');
       expect(source, relativePath).not.toContain('./apiUtils');
+      expect(source, relativePath).not.toContain('@/utils/apiKeySelection');
+      expect(source, relativePath).not.toContain('@/utils/apiProxyUrl');
+      expect(source, relativePath).not.toContain('@/utils/urlContext');
     }
   });
 

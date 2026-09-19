@@ -1,4 +1,4 @@
-import { isYoutubeUrl } from './file/youtubeUrl';
+import { isYoutubeUrl } from '@/utils/file/youtubeUrl';
 
 export const MAX_URL_CONTEXT_COUNT = 20;
 export const MAX_URL_CONTENT_SIZE_MB = 34;

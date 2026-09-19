@@ -14,7 +14,7 @@ vi.mock('@/services/api/generation/textApi', () => ({
   generateSuggestionsApi: generateSuggestionsApiMock,
 }));
 
-vi.mock('@/utils/apiKeySelection', () => ({
+vi.mock('@/utils/api/apiKeySelection', () => ({
   getGeminiKeyForRequest: getGeminiKeyForRequestMock,
 }));
 

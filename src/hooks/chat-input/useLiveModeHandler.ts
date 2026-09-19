@@ -9,7 +9,7 @@ import {
 } from '@/types';
 import { buildContentParts } from '@/utils/chat/builder';
 import { useI18n } from '@/contexts/I18nContext';
-import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/apiKeySelection';
+import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/api/apiKeySelection';
 import { ensureFilesApiReferences, formatFileReferenceErrorMessage } from '@/features/message-sender/fileApiReference';
 
 export interface LiveModeApi {

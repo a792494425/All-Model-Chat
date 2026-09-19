@@ -7,7 +7,7 @@ import {
 } from '@/types';
 import { SUPPORTED_UPLOAD_MIME_TYPES } from '@/constants/fileTypeSupport';
 import { logService } from '@/services/logService';
-import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/apiKeySelection';
+import { formatApiKeyErrorMessage, getGeminiKeyForRequest } from '@/utils/api/apiKeySelection';
 import { generateUniqueId } from '@/utils/chat/ids';
 import { getFileMetadataApi, registerGcsFilesApi } from '@/services/api/fileApi';
 import type { File as GeminiFile } from '@google/genai';

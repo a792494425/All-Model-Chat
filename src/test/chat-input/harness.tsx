@@ -149,7 +149,7 @@ vi.mock('@/hooks/live-api/useLiveApi', () => ({
   useLiveApi: () => mockLiveApiState,
 }));
 
-vi.mock('@/utils/apiKeySelection', () => ({
+vi.mock('@/utils/api/apiKeySelection', () => ({
   getKeyForRequest: mockApiUtils.getKeyForRequest,
   getGeminiKeyForRequest: mockApiUtils.getKeyForRequest,
   formatApiKeyErrorMessage: (error: string, translate: (translationKey: string) => string) => {

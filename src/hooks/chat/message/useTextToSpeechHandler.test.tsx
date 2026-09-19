@@ -16,7 +16,7 @@ const {
   generateSpeechMock: vi.fn(),
 }));
 
-vi.mock('@/utils/apiKeySelection', () => ({
+vi.mock('@/utils/api/apiKeySelection', () => ({
   getKeyForRequest: getKeyForRequestMock,
   getGeminiKeyForRequest: getGeminiKeyForRequestMock,
 }));

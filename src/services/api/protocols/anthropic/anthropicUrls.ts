@@ -1,5 +1,5 @@
 import { resolveThirdPartyBaseUrl } from '@/runtime/runtimeConfig';
-import { trimTrailingSlashes } from '@/utils/apiProxyUrl';
+import { trimTrailingSlashes } from '@/utils/api/apiProxyUrl';
 
 const DEFAULT_ANTHROPIC_BASE_URL = 'https://api.anthropic.com';
 

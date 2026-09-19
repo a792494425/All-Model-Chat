@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import type { Session as LiveSession, LiveServerMessage } from '@google/genai';
 import { getLiveApiClient } from '@/services/api/liveApiAuth';
-import { getLiveApiKey } from '@/utils/apiKeySelection';
+import { getLiveApiKey } from '@/utils/api/apiKeySelection';
 import { audioWorkletCode } from '@/features/audio/audioWorklet';
 import { float32ToPCM16Base64 } from '@/features/audio/audioProcessing';
 import { createManagedObjectUrl, releaseManagedObjectUrl } from '@/services/objectUrlManager';

@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { resolveChatApiRoute, isUnavailableThirdPartyRoute } from '@/utils/chat/chatApiRoute';
-import { getKeyForRequest, formatApiKeyErrorMessage } from '@/utils/apiKeySelection';
+import { getKeyForRequest, formatApiKeyErrorMessage } from '@/utils/api/apiKeySelection';
 import { buildGenerationConfig } from '@/services/api/generationConfig';
 import { sendStatelessMessageStreamApi } from '@/services/api/chatApi';
 import { sendOpenAICompatibleMessageStream } from '@/services/api/protocols/openai-compatible/openaiCompatibleApi';

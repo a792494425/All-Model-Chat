@@ -45,7 +45,7 @@ vi.mock('@/utils/chat/chatApiRoute', () => ({
   isUnavailableThirdPartyRoute: () => false,
 }));
 
-vi.mock('@/utils/apiKeySelection', () => ({
+vi.mock('@/utils/api/apiKeySelection', () => ({
   getKeyForRequest: () => ({ key: 'test-key' }),
   formatApiKeyErrorMessage: (e: unknown) => String(e),
 }));

@@ -8,7 +8,7 @@ import {
   buildGeminiRequestPreviewUrl,
   DEFAULT_GEMINI_API_BASE_URL,
   DEFAULT_GEMINI_PROXY_URL,
-} from '@/utils/apiProxyUrl';
+} from '@/utils/api/apiProxyUrl';
 
 interface ApiProxySettingsProps {
   useApiProxy: boolean;

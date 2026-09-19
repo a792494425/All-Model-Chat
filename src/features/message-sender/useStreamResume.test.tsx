@@ -47,7 +47,7 @@ vi.mock('@/services/api/generationConfig', () => ({
   buildGenerationConfig: mockBuildGenerationConfig,
 }));
 
-vi.mock('@/utils/apiKeySelection', () => ({
+vi.mock('@/utils/api/apiKeySelection', () => ({
   getGeminiKeyForRequest: mockGetGeminiKeyForRequest,
   isServerManagedApiEnabledForProxyRequests: mockIsServerManagedApiEnabledForProxyRequests,
   SERVER_MANAGED_API_KEY: '__SERVER_MANAGED_API_KEY__',

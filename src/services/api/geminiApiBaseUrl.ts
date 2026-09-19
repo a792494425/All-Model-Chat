@@ -1,5 +1,5 @@
 import type { AppSettings } from '@/types';
-import { DEFAULT_GEMINI_API_BASE_URL, normalizeGeminiApiBaseUrl } from '@/utils/apiProxyUrl';
+import { DEFAULT_GEMINI_API_BASE_URL, normalizeGeminiApiBaseUrl } from '@/utils/api/apiProxyUrl';
 import { getGeminiApiProxyBaseUrl, hasDeploymentApiContainer, getLiveApiProxyBaseUrl } from '@/runtime/runtimeConfig';
 
 type GeminiApiBaseUrlSettings = Pick<AppSettings, 'useCustomApiConfig' | 'useApiProxy' | 'apiProxyUrl'>;

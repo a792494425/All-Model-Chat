@@ -10,7 +10,7 @@ import {
   isServerManagedApiEnabledForProxyRequests,
   parseApiKeys,
   SERVER_MANAGED_API_KEY,
-} from '@/utils/apiKeySelection';
+} from '@/utils/api/apiKeySelection';
 import { ApiConfigToggle } from './api-config/ApiConfigToggle';
 import { ApiKeyInput } from './api-config/ApiKeyInput';
 import { ApiProxySettings } from './api-config/ApiProxySettings';

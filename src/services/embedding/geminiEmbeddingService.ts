@@ -1,6 +1,6 @@
 import { getConfiguredApiClient } from '@/services/api/apiClient';
 import { dbService } from '@/services/db/dbService';
-import { parseApiKeys } from '@/utils/apiKeySelection';
+import { parseApiKeys } from '@/utils/api/apiKeySelection';
 import { blobToBase64 } from '@/utils/file/fileEncoding';
 
 export const DEFAULT_EMBEDDING_MODEL = 'gemini-embedding-2';

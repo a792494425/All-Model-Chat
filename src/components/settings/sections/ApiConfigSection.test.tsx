@@ -6,7 +6,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { setupStoreStateReset } from '@/test/stores/reset';
 import type { AppSettings } from '@/types';
-import { SERVER_MANAGED_API_KEY } from '@/utils/apiKeySelection';
+import { SERVER_MANAGED_API_KEY } from '@/utils/api/apiKeySelection';
 import { ApiConfigSection } from './ApiConfigSection';
 
 const { getClientMock, generateContentMock } = vi.hoisted(() => ({

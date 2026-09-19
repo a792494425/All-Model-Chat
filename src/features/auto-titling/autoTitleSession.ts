@@ -1,6 +1,6 @@
 import { type AppSettings, type ChatMessage, type SavedChatSession, type SessionsUpdater } from '@/types';
 import type { SupportedLanguage } from '@/i18n/languageRegistry';
-import { getGeminiKeyForRequest } from '@/utils/apiKeySelection';
+import { getGeminiKeyForRequest } from '@/utils/api/apiKeySelection';
 import { generateTitleApi } from '@/services/api/generation/textApi';
 import { generateSessionTitle } from '@/utils/chat/session';
 import { getVisibleChatMessages } from '@/utils/chat/visibility';

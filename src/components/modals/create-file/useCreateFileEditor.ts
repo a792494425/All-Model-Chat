@@ -14,7 +14,7 @@ import { CREATE_TEXT_FILE_EDITOR_LAST_EXTENSION_KEY } from '@/constants/storageK
 import { readPersistentStorageItem, writePersistentStorageItem } from '@/stores/persistentStorage';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useChatStore } from '@/stores/chatStore';
-import { getGeminiKeyForRequest } from '@/utils/apiKeySelection';
+import { getGeminiKeyForRequest } from '@/utils/api/apiKeySelection';
 import { useI18n } from '@/contexts/I18nContext';
 import { CREATE_FILE_EXTENSION_OPTIONS } from './createFileExtensionOptions';
 import { composeCreateFileName } from './composeCreateFileName';

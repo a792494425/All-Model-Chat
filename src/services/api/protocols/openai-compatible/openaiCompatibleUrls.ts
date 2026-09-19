@@ -1,4 +1,4 @@
-import { DEFAULT_OPENAI_COMPATIBLE_BASE_URL, trimTrailingSlashes } from '@/utils/apiProxyUrl';
+import { DEFAULT_OPENAI_COMPATIBLE_BASE_URL, trimTrailingSlashes } from '@/utils/api/apiProxyUrl';
 import { resolveThirdPartyBaseUrl } from '@/runtime/runtimeConfig';
 
 type OpenAICompatibleBaseUrlWarning = 'chat-completions-endpoint' | 'models-endpoint';
