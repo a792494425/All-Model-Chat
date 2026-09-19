@@ -75,7 +75,7 @@ export const ModelListEditor: React.FC<ModelListEditorProps> = ({
       return;
     }
 
-    const { getDefaultModelOptions } = await import('@/utils/defaultModelOptions');
+    const { getDefaultModelOptions } = await import('@/utils/model/defaultModelOptions');
     setTempModels(toEditableRows(getDefaultModelOptions()));
   };
 

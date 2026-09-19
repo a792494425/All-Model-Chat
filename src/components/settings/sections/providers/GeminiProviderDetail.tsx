@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { SlidersHorizontal, ArrowUpRight } from 'lucide-react';
 import type { AppSettings, ModelOption } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
-import { getDefaultModelOptions } from '@/utils/defaultModelOptions';
+import { getDefaultModelOptions } from '@/utils/model/defaultModelOptions';
 import { useModelPreferencesStore } from '@/stores/modelPreferencesStore';
 import { useProviderUiStore } from '@/stores/providerUiStore';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';

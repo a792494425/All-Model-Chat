@@ -4,7 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import type { AppSettings } from '@/types';
 import { interpolate } from '@/i18n/interpolate';
 import { getRegisteredModelName } from '@/constants/modelRegistry';
-import { getDefaultModelOptions } from '@/utils/defaultModelOptions';
+import { getDefaultModelOptions } from '@/utils/model/defaultModelOptions';
 
 export interface AppearanceLivePreviewProps {
   settings: AppSettings;

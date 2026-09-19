@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { type ModelOption } from '@/types';
 import { sanitizeModelOptions, sortModels } from '@/utils/model/modelSorting';
 import { useModelPreferencesStore } from '@/stores/modelPreferencesStore';
-import { getDefaultModelOptions } from '@/utils/defaultModelOptions';
+import { getDefaultModelOptions } from '@/utils/model/defaultModelOptions';
 
 const reconcileCustomModelsWithDefaults = (
   customModels: ModelOption[],
