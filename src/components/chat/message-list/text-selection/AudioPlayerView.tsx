@@ -2,7 +2,7 @@ import React, { type RefObject } from 'react';
 import { GripVertical, X, Pause, Play } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { GoogleSpinner } from '@/components/icons/GoogleSpinner';
-import { formatClockTime } from '@/utils/formatClockTime';
+import { formatClockTime } from '@/utils/format/formatClockTime';
 import { useAudioPlayback } from '@/features/audio/useAudioPlayback';
 
 interface AudioPlayerViewProps {

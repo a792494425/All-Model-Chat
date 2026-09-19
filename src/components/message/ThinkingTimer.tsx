@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { formatDuration } from '@/utils/durationFormat';
+import { formatDuration } from '@/utils/format/durationFormat';
 
 interface ThinkingTimerProps {
   startTimeMs: number;

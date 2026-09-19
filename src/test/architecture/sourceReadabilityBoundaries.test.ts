@@ -221,7 +221,7 @@ describe('source readability boundaries', () => {
   });
 
   it('keeps compact UI helpers readable through domain names', () => {
-    const durationFormatSource = readProjectFile('src/utils/durationFormat.ts');
+    const durationFormatSource = readProjectFile('src/utils/format/durationFormat.ts');
     const contextUrlsSource = readProjectFile('src/components/message/grounded-response/ContextUrls.tsx');
     const sendControlsSource = readProjectFile('src/components/chat/input/actions/SendControls.tsx');
 

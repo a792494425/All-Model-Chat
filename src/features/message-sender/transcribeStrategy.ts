@@ -12,7 +12,7 @@ import {
   generateVttContent,
 } from '@/utils/video-subtitles/subtitleFormatter';
 import { getCachedSubtitles, saveCachedSubtitles } from '@/utils/video-subtitles/subtitleCacheService';
-import { formatDuration } from '@/utils/durationFormat';
+import { formatDuration } from '@/utils/format/durationFormat';
 import { runOptimisticMessagePipeline, type MessageLifecycleRunner } from './messagePipeline';
 import type { MessageSenderTranslator, SessionsUpdater } from './messageSenderTypes';
 

@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { ScanSearch } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { seekSessionImage } from '@/utils/media-nav/seekImage';
-import { extractTextFromNode } from '@/utils/reactNodeText';
+import { extractTextFromNode } from '@/utils/format/reactNodeText';
 import { useChatStore } from '@/stores/chatStore';
 import { useMediaNavStore } from '@/stores/mediaNavStore';
 import { collectSessionMediaFiles, resolveNamedFile } from '@/utils/media-nav/sessionMediaFiles';

@@ -3,7 +3,7 @@ import { MapPin } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
 import { seekSessionPdf } from '@/utils/media-nav/seekPdf';
-import { extractTextFromNode } from '@/utils/reactNodeText';
+import { extractTextFromNode } from '@/utils/format/reactNodeText';
 import { useMediaNavStore } from '@/stores/mediaNavStore';
 import { useChatStore } from '@/stores/chatStore';
 import { collectSessionMediaFiles, resolveNamedFile } from '@/utils/media-nav/sessionMediaFiles';

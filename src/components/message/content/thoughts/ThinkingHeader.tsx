@@ -2,7 +2,7 @@ import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { ChevronDown } from 'lucide-react';
 import { ThinkingTimer } from '@/components/message/ThinkingTimer';
-import { formatDuration } from '@/utils/durationFormat';
+import { formatDuration } from '@/utils/format/durationFormat';
 import { interpolate } from '@/i18n/interpolate';
 
 interface ThinkingHeaderProps {

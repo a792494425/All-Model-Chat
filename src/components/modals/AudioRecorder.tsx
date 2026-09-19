@@ -13,7 +13,7 @@ import { MAX_RECORDING_SECONDS, RECORDING_DURATION_WARNING_SECONDS } from '@/hoo
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { MODAL_CLOSE_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
-import { formatClockTime } from '@/utils/formatClockTime';
+import { formatClockTime } from '@/utils/format/formatClockTime';
 import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
 import { useSettingsStore } from '@/stores/settingsStore';

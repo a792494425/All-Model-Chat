@@ -174,7 +174,12 @@ describe('naming and structure optimization guardrails', () => {
   it('names single-purpose primitives after their responsibility', () => {
     const sourceFiles = listProjectSourceFilesExcept('src', thisTestFile);
 
-    expect(fs.existsSync(path.join(projectRoot, 'src/utils/durationFormat.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/format/durationFormat.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/format/formatClockTime.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/format/stringHash.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/format/escapeHtml.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/format/reactNodeText.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/format/index.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/file/fileTypeClassification.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform/platform.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform/keyboardShortcuts.ts'))).toBe(true);
@@ -182,6 +187,11 @@ describe('naming and structure optimization guardrails', () => {
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform/staleBuildRecovery.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform/geolocation.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/components/icons/iconPrimitives.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/durationFormat.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/formatClockTime.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/stringHash.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/escapeHtml.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/reactNodeText.ts'))).toBe(false);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform.ts'))).toBe(false);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/keyboardShortcuts.ts'))).toBe(false);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/screenCapture.ts'))).toBe(false);
@@ -195,6 +205,11 @@ describe('naming and structure optimization guardrails', () => {
 
     for (const relativePath of sourceFiles) {
       const source = readProjectFile(relativePath);
+      expect(source, relativePath).not.toContain('@/utils/durationFormat');
+      expect(source, relativePath).not.toContain('@/utils/formatClockTime');
+      expect(source, relativePath).not.toContain('@/utils/stringHash');
+      expect(source, relativePath).not.toContain('@/utils/escapeHtml');
+      expect(source, relativePath).not.toContain('@/utils/reactNodeText');
       expect(source, relativePath).not.toContain('@/utils/dateHelpers');
       expect(source, relativePath).not.toContain('@/utils/fileTypeUtils');
       expect(source, relativePath).not.toContain('@/utils/shortcutUtils');

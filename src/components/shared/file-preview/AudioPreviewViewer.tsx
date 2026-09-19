@@ -3,7 +3,7 @@ import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Repeat, Download, F
 import type { UploadedFile } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatFileSize } from '@/utils/file/fileSize';
-import { formatClockTime } from '@/utils/formatClockTime';
+import { formatClockTime } from '@/utils/format/formatClockTime';
 import { triggerDownload } from '@/utils/export/core';
 import { useAudioPlayback } from '@/features/audio/useAudioPlayback';
 import {

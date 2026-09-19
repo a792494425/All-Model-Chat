@@ -4,7 +4,7 @@ import { Maximize2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { useWindowContext } from '@/contexts/WindowContext';
 import { SMALL_ICON_BUTTON_CLASS } from '@/constants/buttonClasses';
-import { hashString } from '@/utils/stringHash';
+import { hashString } from '@/utils/format/stringHash';
 import {
   buildStreamingHtmlPreviewRenderPayload,
   buildHtmlPreviewSrcDoc,

@@ -1,4 +1,4 @@
-import { escapeHtml } from '@/utils/escapeHtml';
+import { escapeHtml } from '@/utils/format/escapeHtml';
 import { AVAILABLE_THEMES, DEFAULT_THEME_ID } from '@/constants/themeRegistry';
 import { buildLiveArtifactThemeVars } from '@/utils/live-artifacts/liveArtifactThemeTokens';
 import { buildHtmlExportStyles } from './htmlExportStyles';

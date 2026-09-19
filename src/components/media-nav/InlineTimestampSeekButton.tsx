@@ -3,7 +3,7 @@ import { Play } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { seekSessionVideo } from '@/utils/media-nav/seekVideo';
 import { seekSessionAudio } from '@/utils/media-nav/seekAudio';
-import { extractTextFromNode } from '@/utils/reactNodeText';
+import { extractTextFromNode } from '@/utils/format/reactNodeText';
 import { formatTimestamp } from '@/utils/media-nav/timestamp';
 import { Tooltip } from '@/components/shared/Tooltip';
 

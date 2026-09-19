@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AlertTriangle, Check, CheckCircle2, Copy, Download, FileOutput, TimerOff, XCircle } from 'lucide-react';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { triggerDownload } from '@/utils/export/core';
-import { extractTextFromNode } from '@/utils/reactNodeText';
+import { extractTextFromNode } from '@/utils/format/reactNodeText';
 import { MESSAGE_BLOCK_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { type UploadedFile } from '@/types';

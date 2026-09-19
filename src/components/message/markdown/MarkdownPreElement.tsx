@@ -1,6 +1,6 @@
 import React, { type RefObject } from 'react';
 import type { UploadedFile } from '@/types';
-import { extractTextFromNode, findCodeElement } from '@/utils/reactNodeText';
+import { extractTextFromNode, findCodeElement } from '@/utils/format/reactNodeText';
 import { loadNamedComponent } from '@/utils/lazyNamedComponent';
 import { CodeBlock } from '@/components/message/blocks/CodeBlock';
 import { CodeExecutionBlock } from '@/components/message/blocks/CodeExecutionBlock';

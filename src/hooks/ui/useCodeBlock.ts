@@ -1,10 +1,10 @@
 import { useState, useRef, useLayoutEffect, useEffect, useMemo, type ReactNode } from 'react';
 import { useCopyToClipboard } from './useCopyToClipboard';
-import { extractTextFromNode, findCodeElement } from '@/utils/reactNodeText';
+import { extractTextFromNode, findCodeElement } from '@/utils/format/reactNodeText';
 import { getCodeBlockPreviewType } from '@/utils/markdown';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { triggerDownload } from '@/utils/export/core';
-import { hashString } from '@/utils/stringHash';
+import { hashString } from '@/utils/format/stringHash';
 import {
   LANGUAGE_EXTENSION_MAP,
   detectSnippetFilename,

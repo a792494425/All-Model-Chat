@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { UploadedFile } from '@/types';
 import { usePyodide } from '@/features/local-python/usePyodide';
-import { extractTextFromNode } from '@/utils/reactNodeText';
+import { extractTextFromNode } from '@/utils/format/reactNodeText';
 import { isImageMimeType } from '@/utils/file/fileTypeClassification';
 import { createManagedObjectUrl, releaseManagedObjectUrl } from '@/services/objectUrlManager';
 import { useChatStore } from '@/stores/chatStore';

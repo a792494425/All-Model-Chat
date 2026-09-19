@@ -3,7 +3,7 @@ import { logService } from '@/services/logService';
 import { AVAILABLE_THEMES, DEFAULT_THEME_ID, SEMANTIC_SURFACE_MIN_ALPHA } from '@/constants/themeRegistry';
 import type { Theme } from '@/types/theme';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { hashString } from '@/utils/stringHash';
+import { hashString } from '@/utils/format/stringHash';
 import { DOT_MAX_CHARS, DOT_MAX_EDGES, DOT_MAX_NODES, countDotEdges, countDotNodes } from './graphvizLimits';
 
 /**
