@@ -3,7 +3,7 @@ import { executeConfiguredApiRequest } from '@/services/api/apiExecutor';
 import { logService } from '@/services/logService';
 import { blobToBase64 } from '@/utils/file/fileEncoding';
 import { calculateTokenStats } from '@/utils/model/modelUsageStats';
-import { buildExactPricingFromUsageMetadata } from '@/utils/usagePricingTelemetry';
+import { buildExactPricingFromUsageMetadata } from '@/utils/pricing/usagePricingTelemetry';
 import { AVAILABLE_TTS_VOICES } from '@/constants/voiceOptions';
 import { SUPPORTED_AUDIO_MIME_TYPES } from '@/constants/fileTypeSupport';
 import { normalizeMimeType } from '@/utils/file/fileTypeClassification';

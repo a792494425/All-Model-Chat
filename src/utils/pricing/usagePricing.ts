@@ -1,5 +1,5 @@
 import type { ApiUsageExactPricing, ApiUsageModalityTokenCount, ApiUsageRecord } from '@/services/db/dbService';
-import { normalizeModelId } from './model/modelId';
+import { normalizeModelId } from '@/utils/model/modelId';
 
 const TOKENS_PER_MILLION = 1_000_000;
 /** Gemini 3.1 Pro applies higher per-token rates once combined prompt+cache tokens exceed this threshold. */

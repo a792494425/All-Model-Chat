@@ -55,11 +55,11 @@ vi.mock('@/utils/model/modelUsageStats', () => ({
   calculateTokenStats: vi.fn(() => ({})),
 }));
 
-vi.mock('@/utils/usagePricingTelemetry', () => ({
+vi.mock('@/utils/pricing/usagePricingTelemetry', () => ({
   buildExactPricingFromUsageMetadata: vi.fn(() => ({})),
 }));
 
-vi.mock('@/utils/chatPricingEvidence', () => ({
+vi.mock('@/utils/pricing/chatPricingEvidence', () => ({
   resolveChatExactPricing: vi.fn(() => ({})),
 }));
 

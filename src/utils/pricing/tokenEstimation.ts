@@ -1,6 +1,6 @@
 import { MediaResolution } from '@/types';
-import { isGemini3Model } from './model/modelCapabilities';
-import { isVideoMimeType } from './file/fileTypeClassification';
+import { isGemini3Model } from '@/utils/model/modelCapabilities';
+import { isVideoMimeType } from '@/utils/file/fileTypeClassification';
 import { probeMediaDuration } from '@/utils/media/mediaDuration';
 
 // Token cost per video frame for Gemini 3 models, by media resolution.

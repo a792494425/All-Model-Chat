@@ -10,7 +10,7 @@ import {
   SETTINGS_SEGMENTED_TRACK_CLASS,
 } from '@/constants/designTokens';
 import { useUsageStats, type UsageTimeRange } from './useUsageStats';
-import { formatPriceUsd } from '@/utils/usagePricing';
+import { formatPriceUsd } from '@/utils/pricing/usagePricing';
 
 const RANGE_OPTIONS: Array<{ value: UsageTimeRange; labelKey: string }> = [
   { value: 'today', labelKey: 'usageToday' },

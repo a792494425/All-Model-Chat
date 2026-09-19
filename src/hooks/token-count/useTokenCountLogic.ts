@@ -8,7 +8,7 @@ import { generateUniqueId } from '@/utils/chat/ids';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { cleanupFilePreviewUrl, cleanupFilePreviewUrls } from '@/utils/file/filePreviewUrls';
 import { countTokensApi } from '@/services/api/generation/tokenApi';
-import { estimateVideoTokensForFiles } from '@/utils/tokenEstimation';
+import { estimateVideoTokensForFiles } from '@/utils/pricing/tokenEstimation';
 import {
   appendFunctionDeclarationsToTools,
   buildGenerationConfig,
