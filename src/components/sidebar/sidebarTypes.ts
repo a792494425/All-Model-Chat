@@ -1,9 +1,8 @@
-import type { SessionItemProps } from './SessionItem';
+import type { SidebarItemContextValue } from './SidebarItemContext';
 
 /**
- * Everything SessionItem accepts beyond the session itself. Lives in this leaf
- * module (not on GroupItem) because group rows, sortable wrappers, and the
- * limited list all forward these props — importing them from GroupItem would
- * make the sidebar component graph cyclic.
+ * Everything SessionItem accepts beyond the session itself.
+ * Historically forwarded down 5 component layers; now provided via SidebarItemContext
+ * and retained here for backward compatibility with callers and unit tests.
  */
-export type SessionItemPassedProps = Omit<SessionItemProps, 'session'>;
+export type SessionItemPassedProps = Partial<SidebarItemContextValue>;

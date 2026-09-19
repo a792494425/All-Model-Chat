@@ -16,6 +16,7 @@ import { SessionListGroup } from './SessionListGroup';
 import { SidebarGroupSortDnd } from './SidebarGroupSortDnd';
 import { SidebarCollapsedRail } from './SidebarCollapsedRail';
 import { SidebarDisplayModeToggle } from './SidebarDisplayModeToggle';
+import { SidebarItemContext, type SidebarItemContextValue } from './SidebarItemContext';
 
 interface HistorySidebarProps {
   isOpen: boolean;
@@ -166,7 +167,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
   const pinnedUngrouped = ungroupedSessions.filter((session) => session.isPinned);
   const { categories, categoryOrder } = categorizedUngroupedSessions;
 
-  const sessionItemSharedProps = {
+  const sessionItemSharedProps: SidebarItemContextValue = {
     activeSessionId,
     editingItem,
     activeMenu,
@@ -265,126 +266,123 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
           minWidth: isOpen ? (isMobile ? undefined : `${sidebarWidth}px`) : undefined,
         }}
       >
-        <SidebarHeader
-          isOpen={isOpen}
-          onToggle={onToggle}
-          themeId={themeId}
-          brandHref={brandHref}
-          onBrandClick={onBrandClick}
-        />
-        <SidebarActions
-          onNewChat={onNewChat}
-          onCloseSidebar={onAutoClose}
-          onAddNewGroup={onAddNewGroup}
-          isSearching={isSearching}
-          setIsSearching={setIsSearching}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          searchInputRef={searchInputRef}
-          newChatShortcut={newChatShortcut}
-          searchChatsShortcut={searchChatsShortcut}
-          activeSessionId={activeSessionId}
-        />
-        <div
-          ref={scrollContainerRef}
-          className="flex-grow overflow-y-auto custom-scrollbar p-2 cursor-ew-resize"
-          onClick={handleEmptySpaceClick}
-          onDragOver={handleScrollContainerDragOver}
-          onDrop={stopEdgeScroll}
-          onDragLeave={stopEdgeScroll}
-          onDragEnd={stopEdgeScroll}
-        >
-          {onDisplayModeChange && sessions.length > 0 && (
-            <SidebarDisplayModeToggle displayMode={displayMode} onDisplayModeChange={onDisplayModeChange} />
-          )}
-          {sessions.length === 0 && !searchQuery ? (
-            <p className="p-4 text-xs sm:text-sm text-center font-medium text-[var(--theme-text-primary)] cursor-auto">
-              {t('historyEmpty')}
-            </p>
-          ) : displayMode === 'time' ? (
-            <div ref={listParentRef} className="rounded-lg min-h-[50px] cursor-auto">
-              {categorizedTimeModePinned.length > 0 && (
-                <SessionListGroup
-                  title={t('historyPinned')}
-                  sessions={categorizedTimeModePinned}
-                  sessionItemProps={sessionItemSharedProps}
-                  isDragging={isDragging}
-                />
-              )}
-              {categoryOrder.map((categoryName) => (
-                <SessionListGroup
-                  key={categoryName}
-                  title={categoryName}
-                  sessions={categories[categoryName]}
-                  sessionItemProps={sessionItemSharedProps}
-                  isDragging={isDragging}
-                />
-              ))}
-            </div>
-          ) : (
-            <div
-              ref={listParentRef}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, 'all-conversations')}
-              onDragEnter={(e) => {
-                if (!isSessionDrag(e)) return;
-                setDragOverId('all-conversations');
-              }}
-              onDragLeave={handleMainDragLeave}
-              onDragEnd={handleSessionDragEnd}
-              className={`rounded-lg transition-colors min-h-[50px] cursor-auto ${
-                dragOverId === 'all-conversations'
-                  ? 'bg-[color-mix(in_srgb,var(--theme-bg-accent)_12%,transparent)] ring-2 ring-[color-mix(in_srgb,var(--theme-bg-accent)_50%,transparent)] ring-inset'
-                  : ''
-              }`}
-            >
-              <SidebarGroupSortDnd
-                sortedGroups={sortedGroups}
-                sessionsByGroupId={sessionsByGroupId}
-                dragOverId={dragOverId}
-                groupDropIndicator={groupDropIndicator}
-                isDragging={isDragging}
-                handleGroupDragOver={handleGroupDragOver}
-                handleGroupDragStart={handleGroupDragStart}
-                handleGroupDragEnd={handleGroupDragEnd}
-                onReorderGroups={onReorderGroups}
-                onToggleGroupExpansion={onToggleGroupExpansion}
-                onNewChatInGroup={onNewChatInGroup}
-                onAutoClose={onAutoClose}
-                handleGroupStartEdit={(item) => handleStartEdit('group', item)}
-                handleDrop={handleDrop}
-                handleDragOver={handleDragOver}
-                onDeleteGroup={onDeleteGroup}
-                onClearGroup={onClearGroup}
-                sessionItemProps={sessionItemSharedProps}
-              />
-
-              {pinnedUngrouped.length > 0 && (
-                <SessionListGroup
-                  title={t('historyPinned')}
-                  sessions={pinnedUngrouped}
-                  sessionItemProps={sessionItemSharedProps}
-                  isDragging={isDragging}
-                />
-              )}
-
-              <SessionListGroup
-                sessions={unpinnedUngroupedSessions}
-                sessionItemProps={sessionItemSharedProps}
-                isDragging={isDragging}
-              />
-            </div>
-          )}
-        </div>
-        <div className="p-3">
-          <button
-            onClick={onOpenSettingsModal}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[var(--theme-text-primary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] rounded-xl transition-all duration-150 group active:scale-[0.98]"
+        <SidebarItemContext.Provider value={sessionItemSharedProps}>
+          <SidebarHeader
+            isOpen={isOpen}
+            onToggle={onToggle}
+            themeId={themeId}
+            brandHref={brandHref}
+            onBrandClick={onBrandClick}
+          />
+          <SidebarActions
+            onNewChat={onNewChat}
+            onCloseSidebar={onAutoClose}
+            onAddNewGroup={onAddNewGroup}
+            isSearching={isSearching}
+            setIsSearching={setIsSearching}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            searchInputRef={searchInputRef}
+            newChatShortcut={newChatShortcut}
+            searchChatsShortcut={searchChatsShortcut}
+            activeSessionId={activeSessionId}
+          />
+          <div
+            ref={scrollContainerRef}
+            className="flex-grow overflow-y-auto custom-scrollbar p-2 cursor-ew-resize"
+            onClick={handleEmptySpaceClick}
+            onDragOver={handleScrollContainerDragOver}
+            onDrop={stopEdgeScroll}
+            onDragLeave={stopEdgeScroll}
+            onDragEnd={stopEdgeScroll}
           >
-            <Settings size={20} strokeWidth={2.2} className="text-[var(--theme-text-primary)] transition-colors" />
-            <span>{t('settingsTitle')}</span>
-          </button>
-        </div>
+            {onDisplayModeChange && sessions.length > 0 && (
+              <SidebarDisplayModeToggle displayMode={displayMode} onDisplayModeChange={onDisplayModeChange} />
+            )}
+            {sessions.length === 0 && !searchQuery ? (
+              <p className="p-4 text-xs sm:text-sm text-center font-medium text-[var(--theme-text-primary)] cursor-auto">
+                {t('historyEmpty')}
+              </p>
+            ) : displayMode === 'time' ? (
+              <div ref={listParentRef} className="rounded-lg min-h-[50px] cursor-auto">
+                {categorizedTimeModePinned.length > 0 && (
+                  <SessionListGroup
+                    title={t('historyPinned')}
+                    sessions={categorizedTimeModePinned}
+                    isDragging={isDragging}
+                  />
+                )}
+                {categoryOrder.map((categoryName) => (
+                  <SessionListGroup
+                    key={categoryName}
+                    title={categoryName}
+                    sessions={categories[categoryName]}
+                    isDragging={isDragging}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div
+                ref={listParentRef}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, 'all-conversations')}
+                onDragEnter={(e) => {
+                  if (!isSessionDrag(e)) return;
+                  setDragOverId('all-conversations');
+                }}
+                onDragLeave={handleMainDragLeave}
+                onDragEnd={handleSessionDragEnd}
+                className={`rounded-lg transition-colors min-h-[50px] cursor-auto ${
+                  dragOverId === 'all-conversations'
+                    ? 'bg-[color-mix(in_srgb,var(--theme-bg-accent)_12%,transparent)] ring-2 ring-[color-mix(in_srgb,var(--theme-bg-accent)_50%,transparent)] ring-inset'
+                    : ''
+                }`}
+              >
+                <SidebarGroupSortDnd
+                  sortedGroups={sortedGroups}
+                  sessionsByGroupId={sessionsByGroupId}
+                  dragOverId={dragOverId}
+                  groupDropIndicator={groupDropIndicator}
+                  isDragging={isDragging}
+                  handleGroupDragOver={handleGroupDragOver}
+                  handleGroupDragStart={handleGroupDragStart}
+                  handleGroupDragEnd={handleGroupDragEnd}
+                  onReorderGroups={onReorderGroups}
+                  onToggleGroupExpansion={onToggleGroupExpansion}
+                  onNewChatInGroup={onNewChatInGroup}
+                  onAutoClose={onAutoClose}
+                  handleGroupStartEdit={(item) => handleStartEdit('group', item)}
+                  handleDrop={handleDrop}
+                  handleDragOver={handleDragOver}
+                  onDeleteGroup={onDeleteGroup}
+                  onClearGroup={onClearGroup}
+                />
+
+                {pinnedUngrouped.length > 0 && (
+                  <SessionListGroup
+                    title={t('historyPinned')}
+                    sessions={pinnedUngrouped}
+                    isDragging={isDragging}
+                  />
+                )}
+
+                <SessionListGroup
+                  sessions={unpinnedUngroupedSessions}
+                  isDragging={isDragging}
+                />
+              </div>
+            )}
+          </div>
+          <div className="p-3">
+            <button
+              onClick={onOpenSettingsModal}
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[var(--theme-text-primary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] rounded-xl transition-all duration-150 group active:scale-[0.98]"
+            >
+              <Settings size={20} strokeWidth={2.2} className="text-[var(--theme-text-primary)] transition-colors" />
+              <span>{t('settingsTitle')}</span>
+            </button>
+          </div>
+        </SidebarItemContext.Provider>
       </div>
 
       <div

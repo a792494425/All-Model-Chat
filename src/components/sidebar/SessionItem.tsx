@@ -11,81 +11,55 @@ import { LoadingDots } from '@/components/shared/LoadingDots';
 import { useChatStore } from '@/stores/chatStore';
 import { SESSION_DRAG_TYPE, isSessionDrag, resolveDropPosition } from './sidebarDragTypes';
 import { Z_INDEX_TOPMOST_OVERLAY } from '@/constants/layout';
+import { useSidebarItemContext, type SidebarItemContextValue } from './SidebarItemContext';
 
-export interface SessionItemProps {
+export interface SessionItemProps extends Partial<SidebarItemContextValue> {
   session: SavedChatSession;
-  activeSessionId: string | null;
-  editingItem: { type: 'session' | 'group'; id: string; title: string } | null;
-  activeMenu: string | null;
-  loadingSessionIds: Set<string>;
-  generatingTitleSessionIds: Set<string>;
-  newlyTitledSessionIds: ReadonlySet<string>;
-  groups: ChatGroup[];
-  editInputRef: RefObject<HTMLInputElement>;
-  menuRef: RefObject<HTMLDivElement>;
-  onSelectSession: (sessionId: string) => void;
-  onTogglePinSession: (sessionId: string) => void;
-  onDeleteSession: (sessionId: string) => void;
-  onDuplicateSession: (sessionId: string) => void;
-  onOpenExportModal: (sessionId?: string) => void | Promise<void>;
-  onMoveSessionToGroup: (sessionId: string, groupId: string | null) => void;
-  onRegenerateTitleSession?: (sessionId: string) => void;
-  handleStartEdit: (item: SavedChatSession) => void;
-  handleRenameConfirm: () => void;
-  handleRenameKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  setEditingItem: (item: { type: 'session' | 'group'; id: string; title: string } | null) => void;
-  toggleMenu: (e: React.MouseEvent, id: string) => void;
-  setActiveMenu: (id: string | null) => void;
-  setDragOverId: (id: string | null) => void;
-  draggingSessionId: string | null;
-  draggingGroupId?: string | null;
-  dropIndicator?: { id: string; position: 'before' | 'after'; willPin?: boolean } | null;
-  onSessionDragStart: (sessionId: string) => void;
-  onSessionDragEnd: () => void;
-  onSessionDragOver?: (event: React.DragEvent, sessionId: string) => void;
-  onSessionDropIndicatorClear?: () => void;
-  onReorderSession?: (activeId: string, overId: string, position: 'before' | 'after') => void;
-  /** 时间视图下关闭原生拖拽（含落点处理），避免"拖了但排不了"的错觉。 */
-  disableNativeDrag?: boolean;
 }
 
 const RIGHT_CLICK_MENU_FEEDBACK_MS = 200;
+const EMPTY_SET = new Set<string>();
+const EMPTY_GROUPS: ChatGroup[] = [];
+const NOOP = () => {};
+const FALLBACK_INPUT_REF: RefObject<HTMLInputElement> = { current: null };
+const FALLBACK_MENU_REF: RefObject<HTMLDivElement> = { current: null };
 
 export const SessionItem: React.FC<SessionItemProps> = (props) => {
   const { t } = useI18n();
-  const {
-    session,
-    activeSessionId,
-    editingItem,
-    activeMenu,
-    loadingSessionIds,
-    generatingTitleSessionIds,
-    newlyTitledSessionIds,
-    groups,
-    editInputRef,
-    menuRef,
-    onSelectSession,
-    onTogglePinSession,
-    onDeleteSession,
-    onDuplicateSession,
-    onOpenExportModal,
-    onMoveSessionToGroup,
-    onRegenerateTitleSession,
-    handleStartEdit,
-    handleRenameConfirm,
-    handleRenameKeyDown,
-    setEditingItem,
-    setActiveMenu,
-    draggingSessionId,
-    draggingGroupId,
-    dropIndicator,
-    onSessionDragStart,
-    onSessionDragEnd,
-    onSessionDragOver,
-    onSessionDropIndicatorClear,
-    onReorderSession,
-    disableNativeDrag,
-  } = props;
+  const context = useSidebarItemContext();
+
+  const session = props.session;
+  const activeSessionId = props.activeSessionId !== undefined ? props.activeSessionId : (context?.activeSessionId ?? null);
+  const editingItem = props.editingItem !== undefined ? props.editingItem : (context?.editingItem ?? null);
+  const activeMenu = props.activeMenu !== undefined ? props.activeMenu : (context?.activeMenu ?? null);
+  const loadingSessionIds = props.loadingSessionIds ?? context?.loadingSessionIds ?? EMPTY_SET;
+  const generatingTitleSessionIds = props.generatingTitleSessionIds ?? context?.generatingTitleSessionIds ?? EMPTY_SET;
+  const newlyTitledSessionIds = props.newlyTitledSessionIds ?? context?.newlyTitledSessionIds ?? EMPTY_SET;
+  const groups = props.groups ?? context?.groups ?? EMPTY_GROUPS;
+  const editInputRef = props.editInputRef ?? context?.editInputRef ?? FALLBACK_INPUT_REF;
+  const menuRef = props.menuRef ?? context?.menuRef ?? FALLBACK_MENU_REF;
+  const onSelectSession = props.onSelectSession ?? context?.onSelectSession ?? NOOP;
+  const onTogglePinSession = props.onTogglePinSession ?? context?.onTogglePinSession ?? NOOP;
+  const onDeleteSession = props.onDeleteSession ?? context?.onDeleteSession ?? NOOP;
+  const onDuplicateSession = props.onDuplicateSession ?? context?.onDuplicateSession ?? NOOP;
+  const onOpenExportModal = props.onOpenExportModal ?? context?.onOpenExportModal ?? NOOP;
+  const onMoveSessionToGroup = props.onMoveSessionToGroup ?? context?.onMoveSessionToGroup ?? NOOP;
+  const onRegenerateTitleSession = props.onRegenerateTitleSession ?? context?.onRegenerateTitleSession;
+  const handleStartEdit = props.handleStartEdit ?? context?.handleStartEdit ?? NOOP;
+  const handleRenameConfirm = props.handleRenameConfirm ?? context?.handleRenameConfirm ?? NOOP;
+  const handleRenameKeyDown = props.handleRenameKeyDown ?? context?.handleRenameKeyDown ?? NOOP;
+  const setEditingItem = props.setEditingItem ?? context?.setEditingItem ?? NOOP;
+  const setActiveMenu = props.setActiveMenu ?? context?.setActiveMenu ?? NOOP;
+  const draggingSessionId = props.draggingSessionId !== undefined ? props.draggingSessionId : (context?.draggingSessionId ?? null);
+  const draggingGroupId = props.draggingGroupId !== undefined ? props.draggingGroupId : (context?.draggingGroupId ?? null);
+  const dropIndicator = props.dropIndicator !== undefined ? props.dropIndicator : (context?.dropIndicator ?? null);
+  const onSessionDragStart = props.onSessionDragStart ?? context?.onSessionDragStart ?? NOOP;
+  const onSessionDragEnd = props.onSessionDragEnd ?? context?.onSessionDragEnd ?? NOOP;
+  const onSessionDragOver = props.onSessionDragOver ?? context?.onSessionDragOver;
+  const onSessionDropIndicatorClear = props.onSessionDropIndicatorClear ?? context?.onSessionDropIndicatorClear;
+  const onReorderSession = props.onReorderSession ?? context?.onReorderSession;
+  const disableNativeDrag = props.disableNativeDrag !== undefined ? props.disableNativeDrag : (context?.disableNativeDrag ?? false);
+
 
   const [isRightClickAnimating, setIsRightClickAnimating] = useState(false);
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);

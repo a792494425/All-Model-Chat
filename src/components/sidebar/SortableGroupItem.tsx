@@ -1,31 +1,9 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import type { ChatGroup, SavedChatSession } from '@/types';
-import { GroupItem } from './GroupItem';
-import type { SessionItemPassedProps } from './sidebarTypes';
+import { GroupItem, type GroupItemProps } from './GroupItem';
 
-interface SortableGroupItemProps extends SessionItemPassedProps {
-  group: ChatGroup;
-  sessions: SavedChatSession[];
-  dragOverId: string | null;
-  groupDropIndicator?: { id: string; position: 'before' | 'after' } | null;
-  isDragging?: boolean;
-  onToggleGroupExpansion: (groupId: string) => void;
-  handleGroupStartEdit: (item: ChatGroup) => void;
-  handleDrop: (e: React.DragEvent, groupId: string | null) => void;
-  handleDragOver: (e: React.DragEvent) => void;
-  handleGroupDragOver?: (event: React.DragEvent, groupId: string) => void;
-  setDragOverId: (id: string | null) => void;
-  setEditingItem: (item: { type: 'session' | 'group'; id: string; title: string } | null) => void;
-  onDeleteGroup: (groupId: string) => void;
-  onClearGroup?: (groupId: string) => void;
-  onNewChatInGroup: (groupId: string) => void;
-  onReorderGroups?: (activeId: string, overId: string) => void;
-  onGroupDragStart?: (groupId: string) => void;
-  onGroupDragEnd?: () => void;
-  editingItem: { type: 'session' | 'group'; id: string; title: string } | null;
-}
+export type SortableGroupItemProps = GroupItemProps;
 
 export const SortableGroupItem: React.FC<SortableGroupItemProps> = (props) => {
   const { group } = props;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, type RefObject } from 'react';
 import { ChevronDown, GripVertical, MoreHorizontal } from 'lucide-react';
 import { type ChatGroup, type SavedChatSession } from '@/types';
 import { GroupItemMenu } from './GroupItemMenu';
@@ -10,13 +10,16 @@ import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
 import type { SessionItemPassedProps } from './sidebarTypes';
 
+import { useSidebarItemContext } from './SidebarItemContext';
+
 // Auto-expand delay: hold over a collapsed group this long to pop it open.
 const DRAG_HOVER_EXPAND_MS = 600;
+const FALLBACK_INPUT_REF: RefObject<HTMLInputElement> = { current: null };
+const FALLBACK_MENU_REF: RefObject<HTMLDivElement> = { current: null };
 
-interface GroupItemProps extends SessionItemPassedProps {
+export interface GroupItemProps {
   group: ChatGroup;
   sessions: SavedChatSession[];
-  editingItem: { type: 'session' | 'group'; id: string; title: string } | null;
   dragOverId: string | null;
   groupDropIndicator?: { id: string; position: 'before' | 'after' } | null;
   sessionDropIndicator?: { id: string; position: 'before' | 'after'; willPin?: boolean } | null;
@@ -30,8 +33,6 @@ interface GroupItemProps extends SessionItemPassedProps {
   handleDrop: (e: React.DragEvent, groupId: string | null) => void;
   handleDragOver: (e: React.DragEvent) => void;
   handleGroupDragOver?: (event: React.DragEvent, groupId: string) => void;
-  setDragOverId: (id: string | null) => void;
-  setEditingItem: (item: { type: 'session' | 'group'; id: string; title: string } | null) => void;
   onDeleteGroup: (groupId: string) => void;
   onClearGroup?: (groupId: string) => void;
   onNewChatInGroup: (groupId: string) => void;
@@ -39,14 +40,28 @@ interface GroupItemProps extends SessionItemPassedProps {
   draggingGroupId?: string | null;
   onGroupDragStart?: (groupId: string) => void;
   onGroupDragEnd?: () => void;
+  // Optional overrides from Context or tests
+  editingItem?: { type: 'session' | 'group'; id: string; title: string } | null;
+  editInputRef?: RefObject<HTMLInputElement>;
+  menuRef?: RefObject<HTMLDivElement>;
+  activeMenu?: string | null;
+  setActiveMenu?: (id: string | null) => void;
+  setEditingItem?: (item: { type: 'session' | 'group'; id: string; title: string } | null) => void;
+  setDragOverId?: (id: string | null) => void;
+  toggleMenu?: (e: React.MouseEvent, id: string) => void;
+  handleRenameConfirm?: () => void;
+  handleRenameKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  draggingSessionId?: string | null;
+  sessionItemProps?: SessionItemPassedProps;
 }
 
 export const GroupItem: React.FC<GroupItemProps> = (props) => {
   const { t } = useI18n();
+  const context = useSidebarItemContext();
   const {
     group,
     sessions,
-    editingItem,
+    editingItem = context?.editingItem ?? null,
     dragOverId,
     groupDropIndicator,
     isDragging,
@@ -55,23 +70,22 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
     handleDrop,
     handleDragOver,
     handleGroupDragOver,
-    setDragOverId,
-    setEditingItem,
+    setDragOverId = context?.setDragOverId ?? (() => {}),
+    setEditingItem = context?.setEditingItem ?? (() => {}),
     onDeleteGroup,
     onClearGroup,
     onNewChatInGroup,
     onReorderGroups,
-    draggingGroupId,
+    draggingGroupId = context?.draggingGroupId ?? null,
     onGroupDragStart,
     onGroupDragEnd,
-    editInputRef,
-    handleRenameConfirm,
-    handleRenameKeyDown,
-    toggleMenu,
-    activeMenu,
-    menuRef,
-    setActiveMenu,
-    ...sessionItemProps
+    editInputRef = props.editInputRef ?? context?.editInputRef ?? FALLBACK_INPUT_REF,
+    handleRenameConfirm = context?.handleRenameConfirm ?? (() => {}),
+    handleRenameKeyDown = context?.handleRenameKeyDown ?? (() => {}),
+    toggleMenu = context?.toggleMenu ?? (() => {}),
+    activeMenu = context?.activeMenu ?? null,
+    menuRef = props.menuRef ?? context?.menuRef ?? FALLBACK_MENU_REF,
+    setActiveMenu = context?.setActiveMenu ?? (() => {}),
   } = props;
 
   // Auto-expand: while a session is hovered over this group, start a timer that
@@ -98,39 +112,6 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
       clearTimeout(expandTimerRef.current);
       expandTimerRef.current = null;
     }
-  };
-
-  const childSessionItemProps: SessionItemPassedProps = {
-    activeSessionId: sessionItemProps.activeSessionId,
-    editingItem,
-    activeMenu,
-    loadingSessionIds: sessionItemProps.loadingSessionIds,
-    generatingTitleSessionIds: sessionItemProps.generatingTitleSessionIds,
-    newlyTitledSessionIds: sessionItemProps.newlyTitledSessionIds,
-    editInputRef,
-    menuRef,
-    onSelectSession: sessionItemProps.onSelectSession,
-    onTogglePinSession: sessionItemProps.onTogglePinSession,
-    onDeleteSession: sessionItemProps.onDeleteSession,
-    onDuplicateSession: sessionItemProps.onDuplicateSession,
-    onOpenExportModal: sessionItemProps.onOpenExportModal,
-    onMoveSessionToGroup: sessionItemProps.onMoveSessionToGroup,
-    onRegenerateTitleSession: sessionItemProps.onRegenerateTitleSession,
-    groups: sessionItemProps.groups,
-    handleStartEdit: sessionItemProps.handleStartEdit,
-    handleRenameConfirm,
-    handleRenameKeyDown,
-    setEditingItem,
-    toggleMenu,
-    setActiveMenu,
-    setDragOverId,
-    draggingSessionId: sessionItemProps.draggingSessionId,
-    draggingGroupId,
-    dropIndicator: props.sessionDropIndicator ?? sessionItemProps.dropIndicator,
-    onSessionDragStart: sessionItemProps.onSessionDragStart,
-    onSessionDragEnd: sessionItemProps.onSessionDragEnd,
-    onSessionDragOver: props.onSessionDragOver ?? sessionItemProps.onSessionDragOver,
-    onSessionDropIndicatorClear: props.onSessionDropIndicatorClear ?? sessionItemProps.onSessionDropIndicatorClear,
   };
 
   const isMenuOpenInGroup = activeMenu === group.id || sessions?.some((session) => session.id === activeMenu);
@@ -339,9 +320,9 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
         </summary>
         <LimitedSessionList
           sessions={sessions ?? []}
-          sessionItemProps={childSessionItemProps}
+          sessionItemProps={props.sessionItemProps}
           className="pl-1 pb-1"
-          isDragging={!!isDragging || !!sessionItemProps.draggingSessionId || !!draggingGroupId}
+          isDragging={!!isDragging || !!props.draggingSessionId || !!context?.draggingSessionId || !!draggingGroupId}
         />
       </details>
     </div>

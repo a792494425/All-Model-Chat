@@ -4,12 +4,13 @@ import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { type SavedChatSession } from '@/types';
 import { SessionItem } from './SessionItem';
 import { type SessionItemPassedProps } from './sidebarTypes';
+import { useSidebarItemContext } from './SidebarItemContext';
 
 const VIRTUALIZATION_THRESHOLD = 50;
 
 interface LimitedSessionListProps {
   sessions: SavedChatSession[];
-  sessionItemProps: SessionItemPassedProps;
+  sessionItemProps?: SessionItemPassedProps;
   className?: string;
   isDragging?: boolean;
 }
@@ -24,6 +25,7 @@ export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [scrollParent, setScrollParent] = useState<HTMLElement | undefined>(undefined);
+  const context = useSidebarItemContext();
 
   const isLargeList = sessions.length > VIRTUALIZATION_THRESHOLD;
 
@@ -36,7 +38,7 @@ export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({
     }
   }, []);
 
-  const { activeSessionId } = sessionItemProps;
+  const activeSessionId = sessionItemProps?.activeSessionId ?? context?.activeSessionId ?? null;
 
   useEffect(() => {
     if (!isLargeList || !activeSessionId || !virtuosoRef.current) return;
@@ -45,6 +47,7 @@ export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({
       virtuosoRef.current.scrollIntoView({ index, behavior: 'auto', align: 'center' });
     }
   }, [activeSessionId, isLargeList, sessions]);
+
 
   const VirtuosoList = useMemo(() => {
     return React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(

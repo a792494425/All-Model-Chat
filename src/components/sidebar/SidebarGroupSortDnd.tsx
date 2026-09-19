@@ -34,7 +34,7 @@ interface SidebarGroupSortDndProps {
   handleDragOver: (e: React.DragEvent) => void;
   onDeleteGroup: (groupId: string) => void;
   onClearGroup?: (groupId: string) => void;
-  sessionItemProps: SessionItemPassedProps;
+  sessionItemProps?: SessionItemPassedProps;
 }
 
 export const SidebarGroupSortDnd: React.FC<SidebarGroupSortDndProps> = ({
@@ -123,7 +123,7 @@ export const SidebarGroupSortDnd: React.FC<SidebarGroupSortDndProps> = ({
             handleDragOver={handleDragOver}
             onDeleteGroup={onDeleteGroup}
             onClearGroup={onClearGroup}
-            {...sessionItemProps}
+            sessionItemProps={sessionItemProps}
           />
         ))}
       </SortableContext>

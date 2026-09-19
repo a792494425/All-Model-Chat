@@ -6,7 +6,7 @@ import { LimitedSessionList } from './LimitedSessionList';
 interface SessionListGroupProps {
   title?: string;
   sessions: SavedChatSession[];
-  sessionItemProps: SessionItemPassedProps;
+  sessionItemProps?: SessionItemPassedProps;
   isDragging?: boolean;
 }
 
