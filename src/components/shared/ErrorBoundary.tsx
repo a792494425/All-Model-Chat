@@ -2,7 +2,7 @@ import { logService } from '@/services/logService';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { getTranslator } from '@/i18n/translations';
 import { resolveBrowserLanguage } from '@/i18n/languageRegistry';
-import { isStaleBuildError, recoverFromStaleBuild } from '@/utils/staleBuildRecovery';
+import { isStaleBuildError, recoverFromStaleBuild } from '@/utils/platform/staleBuildRecovery';
 
 interface ErrorBoundaryProps {
   children: ReactNode;

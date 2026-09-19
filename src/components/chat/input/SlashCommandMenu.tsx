@@ -4,7 +4,7 @@ import { CommandIcon } from '@/components/icons/CommandIcon';
 import type { SlashCommand as SlashMenuItem } from '@/types/slashCommands';
 import { useI18n } from '@/contexts/I18nContext';
 import { SETTINGS_KBD_KEY_CLASS, SETTINGS_NAV_ACTIVE_CLASS } from '@/constants/designTokens';
-import { isMacPlatform, getModifierKeySymbol } from '@/utils/platform';
+import { isMacPlatform, getModifierKeySymbol } from '@/utils/platform/platform';
 
 interface SlashCommandMenuProps {
   isOpen: boolean;

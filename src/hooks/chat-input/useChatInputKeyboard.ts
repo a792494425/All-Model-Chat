@@ -1,6 +1,6 @@
 import { useCallback, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import type { AppSettings } from '@/types';
-import { isShortcutPressed } from '@/utils/keyboardShortcuts';
+import { isShortcutPressed } from '@/utils/platform/keyboardShortcuts';
 import type { SlashCommandState } from './useSlashCommands';
 
 const IME_PROCESS_KEY_CODE = 229;

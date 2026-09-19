@@ -1,6 +1,6 @@
 import { useEffect, useRef, type Dispatch, type MutableRefObject, type RefObject, type SetStateAction } from 'react';
 import type { AppSettings, InputCommand } from '@/types';
-import { isShortcutPressed } from '@/utils/keyboardShortcuts';
+import { isShortcutPressed } from '@/utils/platform/keyboardShortcuts';
 import { isEditableElement, placeCaretAtEnd } from '@/utils/chat-input/focus';
 
 interface UseChatInputGlobalEffectsParams {

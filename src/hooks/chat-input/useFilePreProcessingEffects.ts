@@ -3,7 +3,7 @@ import { useCallback, useRef, useState, type MutableRefObject, type RefObject } 
 import type { SetSelectedFiles } from '@/types';
 import { generateUniqueId } from '@/utils/chat/ids';
 import { readDirectoryHandle } from '@/utils/import-context/directoryHandleReader';
-import { captureScreenImage } from '@/utils/screenCapture';
+import { captureScreenImage } from '@/utils/platform/screenCapture';
 import { useI18n } from '@/contexts/I18nContext';
 import { createProcessingPlaceholderFile, DIRECTORY_PLACEHOLDER_MIME_TYPE } from '@/utils/file-upload/fileUploadPolicy';
 import { formatI18nErrorMessage, interpolate } from '@/i18n/interpolate';

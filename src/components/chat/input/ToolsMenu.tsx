@@ -24,7 +24,7 @@ import type {
 } from '@/types';
 import { GoogleMapsLocationModal } from './GoogleMapsLocationModal';
 import { UrlContextModal } from './UrlContextModal';
-import { formatLocationDisplay } from '@/utils/geolocation';
+import { formatLocationDisplay } from '@/utils/platform/geolocation';
 import { useChatStore } from '@/stores/chatStore';
 
 interface ToolsMenuProps {

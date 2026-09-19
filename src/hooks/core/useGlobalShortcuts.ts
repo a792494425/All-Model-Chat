@@ -2,7 +2,7 @@ import { useEffect, type Dispatch, type SetStateAction } from 'react';
 import { CHAT_INPUT_TEXTAREA_SELECTOR, FOCUS_HISTORY_SEARCH_EVENT } from '@/constants/layout';
 import { useFullscreen } from '@/hooks/ui/useFullscreen';
 import type { AppSettings, ChatSettings, ModelOption, ChatProviderId } from '@/types';
-import { isShortcutPressed } from '@/utils/keyboardShortcuts';
+import { isShortcutPressed } from '@/utils/platform/keyboardShortcuts';
 import { getTabCycleModelIds } from '@/utils/model/modelCatalog';
 import { resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
 import { buildProviderAwareModelList } from '@/utils/third-party/thirdPartyApiProviders';

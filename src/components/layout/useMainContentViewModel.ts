@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import type { AppViewModel } from '@/hooks/app/useApp';
 import { useUIStore } from '@/stores/uiStore';
-import { getShortcutDisplay } from '@/utils/keyboardShortcuts';
+import { getShortcutDisplay } from '@/utils/platform/keyboardShortcuts';
 import { buildNewTabHref, writeLastActiveSessionSnapshot } from '@/utils/chat/lastActiveSession';
 import { buildSidePanelKey } from './mainContentModels';
 

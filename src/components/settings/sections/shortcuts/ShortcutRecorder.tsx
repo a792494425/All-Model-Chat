@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, RotateCcw } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
-import { formatShortcut, recordKeyCombination } from '@/utils/keyboardShortcuts';
+import { formatShortcut, recordKeyCombination } from '@/utils/platform/keyboardShortcuts';
 
 interface ShortcutRecorderProps {
   value: string;

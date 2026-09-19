@@ -1,6 +1,6 @@
 import { logService } from '@/services/logService';
 import { toastError } from '@/stores/toastStore';
-import { getErrorMessage } from './errorMessage';
+import { getErrorMessage } from '@/utils/errorMessage';
 /**
  * Captures the current screen content as an image Blob.
  * Handles browser support checks, stream acquisition, and fallback to video element capture.

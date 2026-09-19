@@ -36,7 +36,7 @@ import {
   Sparkles,
   Library,
 } from 'lucide-react';
-import { isMacPlatform } from '@/utils/platform';
+import { isMacPlatform } from '@/utils/platform/platform';
 
 export interface GlobalCommandPaletteProps {
   onNewChat?: () => void;

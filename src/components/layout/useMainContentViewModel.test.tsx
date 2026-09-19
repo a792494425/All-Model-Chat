@@ -43,7 +43,7 @@ vi.mock('@/stores/chatStore', () => ({
   useChatStore: mockStores.useChatStoreMock,
 }));
 
-vi.mock('@/utils/keyboardShortcuts', () => ({
+vi.mock('@/utils/platform/keyboardShortcuts', () => ({
   getShortcutDisplay: vi.fn(() => 'shortcut'),
 }));
 

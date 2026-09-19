@@ -2,7 +2,7 @@ import React, { type RefObject } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { User, Bot, Send } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { getShortcutDisplay, isShortcutPressed } from '@/utils/keyboardShortcuts';
+import { getShortcutDisplay, isShortcutPressed } from '@/utils/platform/keyboardShortcuts';
 
 interface ScenarioMessageInputProps {
   role: 'user' | 'model';

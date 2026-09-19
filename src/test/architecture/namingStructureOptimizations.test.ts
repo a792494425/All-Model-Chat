@@ -176,9 +176,17 @@ describe('naming and structure optimization guardrails', () => {
 
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/durationFormat.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/file/fileTypeClassification.ts'))).toBe(true);
-    expect(fs.existsSync(path.join(projectRoot, 'src/utils/keyboardShortcuts.ts'))).toBe(true);
-    expect(fs.existsSync(path.join(projectRoot, 'src/utils/screenCapture.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform/platform.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform/keyboardShortcuts.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform/screenCapture.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform/staleBuildRecovery.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform/geolocation.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/components/icons/iconPrimitives.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/keyboardShortcuts.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/screenCapture.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/staleBuildRecovery.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/geolocation.ts'))).toBe(false);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/dateHelpers.ts'))).toBe(false);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/fileTypeUtils.ts'))).toBe(false);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/shortcutUtils.ts'))).toBe(false);
@@ -192,6 +200,11 @@ describe('naming and structure optimization guardrails', () => {
       expect(source, relativePath).not.toContain('@/utils/shortcutUtils');
       expect(source, relativePath).not.toContain('@/utils/mediaUtils');
       expect(source, relativePath).not.toContain('@/components/icons/iconUtils');
+      expect(source, relativePath).not.toContain('@/utils/keyboardShortcuts');
+      expect(source, relativePath).not.toContain('@/utils/screenCapture');
+      expect(source, relativePath).not.toContain('@/utils/staleBuildRecovery');
+      expect(source, relativePath).not.toContain('@/utils/geolocation');
+      expect(source, relativePath).not.toMatch(/['"]@\/utils\/platform['"]/);
     }
   });
 

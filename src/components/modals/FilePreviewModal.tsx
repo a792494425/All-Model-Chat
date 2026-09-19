@@ -17,7 +17,7 @@ import { copyFileToClipboard } from '@/utils/file/fileClipboard';
 import { cleanupFilePreviewUrl, fileToBlobUrl } from '@/utils/file/filePreviewUrls';
 import { extractDocxText, isDocxFile } from '@/utils/document/docxPreview';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { isShortcutPressed } from '@/utils/keyboardShortcuts';
+import { isShortcutPressed } from '@/utils/platform/keyboardShortcuts';
 import {
   getFileKindFlags,
   isArchiveFile,

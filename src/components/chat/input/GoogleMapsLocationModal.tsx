@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/shared/Modal';
 import { MapPinned, Navigation, X } from 'lucide-react';
-import { PRESET_LOCATIONS, requestBrowserLocation, type PresetLocation } from '@/utils/geolocation';
+import { PRESET_LOCATIONS, requestBrowserLocation, type PresetLocation } from '@/utils/platform/geolocation';
 import type { GeoLocationCoordinates } from '@/types';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import { useSettingsStore } from '@/stores/settingsStore';

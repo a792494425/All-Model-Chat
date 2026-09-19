@@ -5,7 +5,7 @@ import { ChatInput } from '@/components/chat/input/ChatInput';
 import { DragDropOverlay } from '@/components/chat/overlays/DragDropOverlay';
 import { ModelsErrorDisplay } from '@/components/chat/overlays/ModelsErrorDisplay';
 import { useChatArea } from './useChatArea';
-import { getShortcutDisplay } from '@/utils/keyboardShortcuts';
+import { getShortcutDisplay } from '@/utils/platform/keyboardShortcuts';
 import { useChatStore } from '@/stores/chatStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUIStore } from '@/stores/uiStore';

@@ -7,7 +7,7 @@ import { buildNewTabHref } from '@/utils/chat/lastActiveSession';
 import { SIDEBAR_ACTION_LINK_CLASS, SIDEBAR_ACTION_ROW_CLASS } from './sidebarStyles';
 import { useUIStore } from '@/stores/uiStore';
 import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
-import { isMacPlatform } from '@/utils/platform';
+import { isMacPlatform } from '@/utils/platform/platform';
 
 interface SidebarActionsProps {
   onNewChat: () => void;

@@ -505,7 +505,7 @@ describe('translation coverage for protected UI surfaces', () => {
         snippets: ['Sorry, the screenshot could not be captured. Please check the console for errors.'],
       },
       {
-        file: 'src/utils/screenCapture.ts',
+        file: 'src/utils/platform/screenCapture.ts',
         snippets: ['Your browser does not support screen capture.', 'Could not start screen capture:'],
       },
       {

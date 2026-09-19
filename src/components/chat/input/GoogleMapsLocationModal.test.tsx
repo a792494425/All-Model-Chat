@@ -3,7 +3,7 @@ import { describe, expect, it, vi, afterEach } from 'vitest';
 import { setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import { setupStoreStateReset } from '@/test/stores/reset';
 import { GoogleMapsLocationModal } from './GoogleMapsLocationModal';
-import * as geolocation from '@/utils/geolocation';
+import * as geolocation from '@/utils/platform/geolocation';
 
 describe('GoogleMapsLocationModal', () => {
   const renderer = setupTestRenderer({ providers: { language: 'en' } });

@@ -7,7 +7,7 @@ import { CreateFileFooter } from './CreateFileFooter';
 import { PROSE_EDITING_EXTENSIONS } from './createFileExtensionOptions';
 import { TextEditorModalShell } from '@/components/modals/TextEditorModalShell';
 import { ConfirmationModal } from '@/components/modals/ConfirmationModal';
-import { getSaveShortcutHint } from '@/utils/platform';
+import { getSaveShortcutHint } from '@/utils/platform/platform';
 
 interface CreateTextFileEditorProps {
   onConfirm: (content: string | Blob, filename: string) => void;

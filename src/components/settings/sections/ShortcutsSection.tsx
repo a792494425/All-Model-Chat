@@ -9,7 +9,7 @@ import {
 } from '@/constants/designTokens';
 import { FOCUS_VISIBLE_RING_BASE_CLASS } from '@/constants/focusClasses';
 import { type AppSettings, type ModelOption } from '@/types';
-import { formatShortcut } from '@/utils/keyboardShortcuts';
+import { formatShortcut } from '@/utils/platform/keyboardShortcuts';
 import { ShortcutRecorder } from './shortcuts/ShortcutRecorder';
 import { TabCycleModelsCard } from './TabCycleModelsCard';
 import { Select } from '@/components/shared/Select';
