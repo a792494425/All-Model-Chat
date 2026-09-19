@@ -5,7 +5,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { LazyMarkdownRenderer } from '@/components/message/LazyMarkdownRenderer';
 import { isCodeExecutionPendingInContent } from '@/features/chat-streaming/messageStreamParts';
 import { GroundedResponse } from '@/components/message/GroundedResponse';
-import { extractAutoPreviewableBlock, normalizePreviewableMarkdownContent } from '@/utils/previewableMarkdown';
+import { extractAutoPreviewableBlock, normalizePreviewableMarkdownContent } from '@/utils/markdown';
 import { useSmoothStreaming } from '@/hooks/ui/useSmoothStreaming';
 import { useMessageStream } from '@/hooks/ui/useMessageStream';
 import { extractRawThinkingBlocks } from '@/utils/chat/reasoning';

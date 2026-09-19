@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
-import { transformMarkdownTextSegments } from '@/utils/markdownSegments';
 import { stripGemmaThoughtMarkup, wrapReasoningMarkup } from '@/utils/chat/reasoning';
-import { normalizePreviewableMarkdownContent } from '@/utils/previewableMarkdown';
+import { normalizePreviewableMarkdownContent, transformMarkdownTextSegments } from '@/utils/markdown';
 import { extractSingleLiveArtifactFence, normalizeEscapedMathDelimiters } from './markdownContentUtils';
 
 interface UseProcessedMarkdownOptions {

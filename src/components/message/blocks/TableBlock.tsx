@@ -115,7 +115,7 @@ export const TableBlock: React.FC<TableBlockProps> = ({ children, className, nod
         });
         return;
       }
-      const { convertHtmlToMarkdown } = await import('@/utils/htmlToMarkdown');
+      const { convertHtmlToMarkdown } = await import('@/utils/markdown/htmlToMarkdown');
       const markdown = convertHtmlToMarkdown(tableRef.current.outerHTML);
       await copyToClipboard({
         plainText: markdown,

@@ -437,8 +437,10 @@ describe('project structure boundaries', () => {
   it('names markdown utility files by their concrete responsibilities', () => {
     const sourceFiles = listProjectSourceFilesExcept('src', thisTestFile);
 
-    expect(fs.existsSync(path.join(projectRoot, 'src/utils/previewableMarkdown.ts'))).toBe(true);
-    expect(fs.existsSync(path.join(projectRoot, 'src/utils/markdownSegments.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/markdown/previewableMarkdown.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/markdown/markdownSegments.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/previewableMarkdown.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(projectRoot, 'src/utils/markdownSegments.ts'))).toBe(false);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/codeUtils.ts'))).toBe(false);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/markdownUtils.ts'))).toBe(false);
 
@@ -448,6 +450,8 @@ describe('project structure boundaries', () => {
       expect(source, relativePath).not.toContain('@/utils/markdownUtils');
       expect(source, relativePath).not.toContain('./codeUtils');
       expect(source, relativePath).not.toContain('./markdownUtils');
+      expect(source, relativePath).not.toContain('@/utils/previewableMarkdown');
+      expect(source, relativePath).not.toContain('@/utils/markdownSegments');
     }
   });
 

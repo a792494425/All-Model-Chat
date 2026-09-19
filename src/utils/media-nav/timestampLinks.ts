@@ -1,6 +1,6 @@
 import { formatTimestamp, parseTimestamp } from './timestamp';
 import { parseTagAttributes } from './tagAttributes';
-import { transformMarkdownTextSegments } from '@/utils/markdownSegments';
+import { transformMarkdownTextSegments } from '@/utils/markdown';
 
 // Valid timestamp segment: mm:ss (where ss is 00-59) or hh:mm:ss (where mm and ss are 00-59)
 const TIME_SEGMENT_PATTERN = '(?:\\d{1,2}:[0-5]\\d:[0-5]\\d|\\d{1,3}:[0-5]\\d)';

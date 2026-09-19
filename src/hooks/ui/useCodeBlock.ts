@@ -1,7 +1,7 @@
 import { useState, useRef, useLayoutEffect, useEffect, useMemo, type ReactNode } from 'react';
 import { useCopyToClipboard } from './useCopyToClipboard';
 import { extractTextFromNode, findCodeElement } from '@/utils/reactNodeText';
-import { getCodeBlockPreviewType } from '@/utils/previewableMarkdown';
+import { getCodeBlockPreviewType } from '@/utils/markdown';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { triggerDownload } from '@/utils/export/core';
 import { hashString } from '@/utils/stringHash';

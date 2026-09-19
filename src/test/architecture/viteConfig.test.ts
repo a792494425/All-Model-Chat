@@ -240,15 +240,20 @@ describe('vite.config runtime ownership', () => {
     const useCreateFileEditorSource = fs.readFileSync(useCreateFileEditorPath, 'utf8');
 
     expect(clipboardDataSource).not.toContain("from '@/utils/htmlToMarkdown'");
+    expect(clipboardDataSource).not.toContain("from '@/utils/markdown/htmlToMarkdown'");
     expect(useChatInputClipboardSource).not.toContain("from '@/utils/htmlToMarkdown'");
+    expect(useChatInputClipboardSource).not.toContain("from '@/utils/markdown/htmlToMarkdown'");
     expect(useSelectionPositionSource).not.toContain("from '@/utils/htmlToMarkdown'");
+    expect(useSelectionPositionSource).not.toContain("from '@/utils/markdown/htmlToMarkdown'");
     expect(tableBlockSource).not.toContain("from '@/utils/htmlToMarkdown'");
+    expect(tableBlockSource).not.toContain("from '@/utils/markdown/htmlToMarkdown'");
     expect(useCreateFileEditorSource).not.toContain("from '@/utils/htmlToMarkdown'");
+    expect(useCreateFileEditorSource).not.toContain("from '@/utils/markdown/htmlToMarkdown'");
 
-    expect(clipboardDataSource).toContain("import('@/utils/htmlToMarkdown')");
-    expect(useSelectionPositionSource).toContain("import('@/utils/htmlToMarkdown')");
-    expect(tableBlockSource).toContain("import('@/utils/htmlToMarkdown')");
-    expect(useCreateFileEditorSource).toContain("import('@/utils/htmlToMarkdown')");
+    expect(clipboardDataSource).toContain("import('@/utils/markdown/htmlToMarkdown')");
+    expect(useSelectionPositionSource).toContain("import('@/utils/markdown/htmlToMarkdown')");
+    expect(tableBlockSource).toContain("import('@/utils/markdown/htmlToMarkdown')");
+    expect(useCreateFileEditorSource).toContain("import('@/utils/markdown/htmlToMarkdown')");
   });
 
   it('keeps ZIP and folder import builders out of the initial file upload bundles', () => {

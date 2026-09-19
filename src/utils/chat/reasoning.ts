@@ -1,4 +1,4 @@
-import { splitMarkdownSegments, transformMarkdownTextSegments } from '@/utils/markdownSegments';
+import { splitMarkdownSegments, transformMarkdownTextSegments } from '@/utils/markdown';
 import { escapeHtml } from '@/utils/escapeHtml';
 
 const GEMMA_THOUGHT_CHANNEL_REGEX = /<\|channel(?:\|thought>|>thought\s*)([\s\S]*?)\s*<channel\|>/gi;

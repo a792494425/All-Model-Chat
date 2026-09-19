@@ -10,7 +10,7 @@ import {
   isLikelyStreamingLiveArtifactInteractionJson,
   isLiveArtifactInteractionLanguage,
   isLiveArtifactLanguage,
-} from '@/utils/previewableMarkdown';
+} from '@/utils/markdown';
 import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
 import {
   diagnoseLiveArtifactInteraction,

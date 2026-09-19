@@ -91,7 +91,7 @@ export const processChatInputClipboardData = async (
 
   if (htmlContent && options.isPasteRichTextAsMarkdownEnabled) {
     if (hasHtmlTags(htmlContent)) {
-      const { convertHtmlToMarkdown } = await import('@/utils/htmlToMarkdown');
+      const { convertHtmlToMarkdown } = await import('@/utils/markdown/htmlToMarkdown');
       const markdown = convertHtmlToMarkdown(htmlContent);
       if (markdown) {
         return { type: 'markdown', content: markdown };

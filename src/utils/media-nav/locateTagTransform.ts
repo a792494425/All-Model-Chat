@@ -1,4 +1,4 @@
-import { transformMarkdownTextSegments } from '@/utils/markdownSegments';
+import { transformMarkdownTextSegments } from '@/utils/markdown';
 import { parseTagAttributes } from './tagAttributes';
 
 export interface LocateTagPatterns {

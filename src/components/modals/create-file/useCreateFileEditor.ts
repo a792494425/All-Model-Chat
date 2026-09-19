@@ -267,7 +267,7 @@ export const useCreateFileEditor = ({
       const { html, plain } = plan;
 
       void (async () => {
-        const { convertHtmlToMarkdown } = await import('@/utils/htmlToMarkdown');
+        const { convertHtmlToMarkdown } = await import('@/utils/markdown/htmlToMarkdown');
         const markdown = convertHtmlToMarkdown(html);
         const insertion = markdown.trim() ? markdown : plain;
         if (!insertion || !textarea) return;

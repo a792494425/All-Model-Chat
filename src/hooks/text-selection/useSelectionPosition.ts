@@ -131,7 +131,7 @@ export const useSelectionPosition = ({
       }
 
       void (async () => {
-        const { convertHtmlToMarkdown } = await import('@/utils/htmlToMarkdown');
+        const { convertHtmlToMarkdown } = await import('@/utils/markdown/htmlToMarkdown');
         applySelectionState(convertHtmlToMarkdown(html).trim());
       })();
     };

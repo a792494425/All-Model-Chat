@@ -100,7 +100,7 @@ describe('CreateTextFileEditor image insertion', () => {
 
   it('pastes HTML text instead of a companion clipboard image thumbnail', async () => {
     vi.useRealTimers();
-    await import('@/utils/htmlToMarkdown');
+    await import('@/utils/markdown/htmlToMarkdown');
     const onConfirm = vi.fn();
 
     await act(async () => {
@@ -147,7 +147,7 @@ describe('CreateTextFileEditor image insertion', () => {
 
   it('stores data-URL images from pasted HTML as compact placeholders', async () => {
     vi.useRealTimers();
-    await import('@/utils/htmlToMarkdown');
+    await import('@/utils/markdown/htmlToMarkdown');
 
     await act(async () => {
       renderer.render(

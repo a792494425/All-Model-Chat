@@ -9,11 +9,11 @@ import {
   isLiveArtifactInteractionLanguage,
   isLiveArtifactLanguage,
   type PreviewMarkupType,
-} from '@/utils/markdown/previewMarkupPatterns';
+} from './previewMarkupPatterns';
 import {
   normalizePreviewableMarkdownContent,
   type NormalizePreviewableMarkdownOptions,
-} from '@/utils/markdown/previewableNormalization';
+} from './previewableNormalization';
 
 export type { PreviewMarkupType, NormalizePreviewableMarkdownOptions };
 

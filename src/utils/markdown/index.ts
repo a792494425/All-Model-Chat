@@ -8,3 +8,5 @@ export * from './normalizeConvertedMarkdown';
 export * from './previewMarkupPatterns';
 export * from './bareArtifactRegions';
 export * from './previewableNormalization';
+export * from './previewableMarkdown';
+export * from './markdownSegments';
