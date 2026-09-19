@@ -1,7 +1,6 @@
 import type { ModelCapabilities, ModelOption } from '@/types';
-import { KNOWN_MODELS_CATALOG, type CatalogModelSpec } from './catalogs';
+import { KNOWN_MODELS_CATALOG } from './catalogs';
 
-export type { CatalogModelSpec };
 export { KNOWN_MODELS_CATALOG };
 
 /**

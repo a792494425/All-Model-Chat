@@ -6,7 +6,6 @@ import type { TestRenderer } from '@/test/render/renderer';
 export type StandardMarkdownRendererTestProps = Partial<ComponentProps<typeof StandardMarkdownRenderer>> & {
   content: string;
 };
-export type BasicMarkdownRendererTestProps = StandardMarkdownRendererTestProps;
 
 export const createStandardMarkdownRendererElement = (props: StandardMarkdownRendererTestProps) => (
   <StandardMarkdownRenderer
@@ -21,11 +20,9 @@ export const createStandardMarkdownRendererElement = (props: StandardMarkdownRen
     {...props}
   />
 );
-export const createBasicMarkdownRendererElement = createStandardMarkdownRendererElement;
 
 export const renderStandardMarkdown = (renderer: TestRenderer, props: StandardMarkdownRendererTestProps) => {
   act(() => {
     renderer.render(createStandardMarkdownRendererElement(props));
   });
 };
-export const renderBasicMarkdown = renderStandardMarkdown;

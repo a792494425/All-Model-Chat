@@ -1,7 +1,4 @@
-import {
-  extractArtifactSegment,
-  findBareArtifactRegion,
-} from './bareArtifactRegions';
+import { extractArtifactSegment, findBareArtifactRegion } from './bareArtifactRegions';
 import {
   FENCED_CODE_BLOCK_REGEX,
   getPreviewMarkupType,
@@ -29,7 +26,7 @@ export interface NormalizePreviewableMarkdownOptions {
   unwrapMislabeledHtmlBlocks?: boolean;
 }
 
-export const wrapBarePreviewableArtifact = (
+const wrapBarePreviewableArtifact = (
   markdownContent: string,
   options: NormalizePreviewableMarkdownOptions = {},
 ): string => {
@@ -78,7 +75,7 @@ export const wrapBarePreviewableArtifact = (
   return parts.filter(Boolean).join('\n\n');
 };
 
-export const wrapBareLiveArtifactInteraction = (
+const wrapBareLiveArtifactInteraction = (
   markdownContent: string,
   options: NormalizePreviewableMarkdownOptions = {},
 ): string => {
@@ -94,7 +91,7 @@ export const wrapBareLiveArtifactInteraction = (
   return `\`\`\`${LIVE_ARTIFACT_INTERACTION_LANGUAGE}\n${content}\n\`\`\``;
 };
 
-export const unwrapMislabeledHtmlFragmentCodeBlocks = (
+const unwrapMislabeledHtmlFragmentCodeBlocks = (
   markdownContent: string,
   options: NormalizePreviewableMarkdownOptions = {},
 ): string => {
@@ -131,7 +128,7 @@ export const unwrapMislabeledHtmlFragmentCodeBlocks = (
   );
 };
 
-export const normalizeStandaloneRawHtmlFragment = (markdownContent: string): string => {
+const normalizeStandaloneRawHtmlFragment = (markdownContent: string): string => {
   const content = markdownContent.trim();
 
   if (!isStandaloneHtmlFragment(content) && !isLikelyStreamingStandaloneHtmlFragment(content)) {

@@ -232,7 +232,8 @@ describe('standardChatThirdParty utilities', () => {
     });
 
     it('dispatches to generateOpenAICompatibleTurnStreamApi when protocol is openai-compatible and isStreamingEnabled is true', async () => {
-      const { generateOpenAICompatibleTurnStreamApi } = await import('@/services/api/protocols/openai-compatible/openaiCompatibleApi');
+      const { generateOpenAICompatibleTurnStreamApi } =
+        await import('@/services/api/protocols/openai-compatible/openaiCompatibleApi');
 
       (generateOpenAICompatibleTurnStreamApi as any).mockResolvedValue({
         modelContent: { role: 'model', parts: [{ text: 'done stream' }] },

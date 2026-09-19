@@ -308,7 +308,7 @@ export const ChatInputArea: React.FC = () => {
                 <div className="mx-auto w-10 h-0.5 rounded-full bg-[var(--theme-border-secondary)] opacity-0 transition-all duration-200 group-hover/composer-resize-handle:opacity-100 group-hover/composer-resize-handle:w-16 group-hover/composer-resize-handle:bg-[var(--theme-bg-accent)] group-focus/composer-resize-handle:opacity-100 group-focus/composer-resize-handle:bg-[var(--theme-bg-accent)] group-data-[resizing=true]/composer-resize-handle:bg-[var(--theme-bg-accent)] group-data-[resizing=true]/composer-resize-handle:opacity-100 group-data-[resizing=true]/composer-resize-handle:w-20" />
               </div>
             )}
-            {!isMobile && (
+            {!isCompact && !isMobile && (
               <ChatInputExpandCorner hasCustomHeight={hasCustomHeight} onToggle={handleExpandControlClick} />
             )}
             <ChatFilePreviewList

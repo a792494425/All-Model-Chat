@@ -1,8 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import {
-  isLikelyStreamingHtmlArtifact,
-  isLikelyStreamingLiveArtifactInteractionJson,
-} from '@/utils/markdown';
+import { isLikelyStreamingHtmlArtifact, isLikelyStreamingLiveArtifactInteractionJson } from '@/utils/markdown';
 
 const FENCED_CODE_BLOCK_REGEX = /(```[\s\S]*?```|```[\s\S]*$)/g;
 const GFM_TABLE_REGEX = /(?:^|\n)\|[^\n]*\|\s*\n\|(?:\s*:?-{3,}:?\s*\|)+/;

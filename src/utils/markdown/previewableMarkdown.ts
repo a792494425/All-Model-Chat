@@ -10,12 +10,9 @@ import {
   isLiveArtifactLanguage,
   type PreviewMarkupType,
 } from './previewMarkupPatterns';
-import {
-  normalizePreviewableMarkdownContent,
-  type NormalizePreviewableMarkdownOptions,
-} from './previewableNormalization';
+import { normalizePreviewableMarkdownContent } from './previewableNormalization';
 
-export type { PreviewMarkupType, NormalizePreviewableMarkdownOptions };
+export type { PreviewMarkupType };
 
 export {
   isLiveArtifactLanguage,

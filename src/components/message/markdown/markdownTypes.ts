@@ -35,8 +35,6 @@ export interface MarkdownRendererCoreProps extends MarkdownRendererProps {
   rehypePlugins: PluggableList;
 }
 
-export type BaseMarkdownRendererProps = MarkdownRendererCoreProps;
-
 export type MarkdownCodeProps = React.ComponentPropsWithoutRef<'code'> & {
   inline?: boolean;
   children?: React.ReactNode;

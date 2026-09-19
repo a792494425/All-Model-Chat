@@ -7,14 +7,6 @@ import { OPENSOURCE_MODELS } from './opensource';
 import { GOOGLE_MODELS } from './google';
 
 export type { CatalogModelSpec };
-export {
-  OPENAI_MODELS,
-  ANTHROPIC_MODELS,
-  GOOGLE_MODELS,
-  DEEPSEEK_MODELS,
-  DOMESTIC_MODELS,
-  OPENSOURCE_MODELS,
-};
 
 export const KNOWN_MODELS_CATALOG: Record<string, CatalogModelSpec> = {
   ...OPENAI_MODELS,

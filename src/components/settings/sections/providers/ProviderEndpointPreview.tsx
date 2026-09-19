@@ -12,7 +12,10 @@ import {
   buildOpenAIResponsesUrl,
   getOpenAIResponsesBaseUrlWarning,
 } from '@/services/api/protocols/openai-responses/openaiResponsesUrls';
-import { buildAnthropicMessagesUrl, buildAnthropicUpstreamMessagesUrl } from '@/services/api/protocols/anthropic/anthropicUrls';
+import {
+  buildAnthropicMessagesUrl,
+  buildAnthropicUpstreamMessagesUrl,
+} from '@/services/api/protocols/anthropic/anthropicUrls';
 
 type EndpointWarningKind = 'chat-completions-endpoint' | 'models-endpoint' | 'responses-endpoint';
 

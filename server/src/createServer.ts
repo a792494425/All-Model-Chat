@@ -13,7 +13,11 @@ import { IMAGE_PROXY_PATH, proxyExternalImage } from './proxy/imageProxy.js';
 import { createMcpClientBridge } from './mcp/mcpClient.js';
 import { handleMcpRequest } from './mcp/mcpRoutes.js';
 import type { McpClientBridge } from './mcp/mcpTypes.js';
-import { handleEphemeralTokenRequest, EPHEMERAL_TOKEN_PATH, LEGACY_AUTH_TOKENS_PATH } from './security/ephemeralToken.js';
+import {
+  handleEphemeralTokenRequest,
+  EPHEMERAL_TOKEN_PATH,
+  LEGACY_AUTH_TOKENS_PATH,
+} from './security/ephemeralToken.js';
 import { abortJob, readJobSecret } from './stream-jobs/streamJobs.js';
 import { STREAM_ABORT_PREFIX, UNIFIED_STREAM_ABORT_PREFIX } from './stream-jobs/streamJobsRoutes.js';
 import { OPENAI_PROXY_PREFIX, proxyThirdPartyRequest, type ThirdPartyProxyConfig } from './proxy/thirdPartyProxy.js';

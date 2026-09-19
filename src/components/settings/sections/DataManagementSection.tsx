@@ -23,7 +23,11 @@ import {
   SETTINGS_OUTLINE_BUTTON_CLASS,
 } from '@/constants/buttonClasses';
 import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
-import { applyImportedProviders, exportProvidersBackupFile, parseProvidersBackupText } from '@/utils/third-party/thirdPartyBackup';
+import {
+  applyImportedProviders,
+  exportProvidersBackupFile,
+  parseProvidersBackupText,
+} from '@/utils/third-party/thirdPartyBackup';
 import { toastError, toastSuccess, toastWarning } from '@/stores/toastStore';
 import { interpolate } from '@/i18n/interpolate';
 import { fileToString } from '@/utils/file/fileEncoding';

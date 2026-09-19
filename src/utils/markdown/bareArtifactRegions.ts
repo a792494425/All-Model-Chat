@@ -80,16 +80,16 @@ export const extractArtifactSegment = (textContent: string, isStreaming: boolean
  *    "prose + HTML" (`已为你生成：\n<section>…`) is deliberately rendered as
  *    rich markdown in the message flow, not promoted into an artifact frame.
  */
-export const BARE_ARTIFACT_OPENER_REGEX = new RegExp(
+const BARE_ARTIFACT_OPENER_REGEX = new RegExp(
   `^(?:<!doctype\\s+html\\b[^>]*>|<html\\b|<(?:${HTML_FRAGMENT_TAG_NAMES})(?:\\s[^>]*)?>)`,
   'i',
 );
 
 /** A region is only a candidate when a blank line precedes it. */
-export const BLANK_LINE_BEFORE_REGEX = /\n[ \t]*\n[ \t]*$/;
+const BLANK_LINE_BEFORE_REGEX = /\n[ \t]*\n[ \t]*$/;
 
 /** Offsets of every fenced code region, so bare-artifact scanning can skip them. */
-export const getFencedRegionOffsets = (text: string): Array<{ start: number; end: number }> => {
+const getFencedRegionOffsets = (text: string): Array<{ start: number; end: number }> => {
   const regions: Array<{ start: number; end: number }> = [];
   const regex = new RegExp(FENCED_CODE_BLOCK_REGEX.source, 'g');
   let match: RegExpExecArray | null;
@@ -115,10 +115,10 @@ export const getFencedRegionOffsets = (text: string): Array<{ start: number; end
   return regions;
 };
 
-export const isInsideFencedRegion = (offset: number, regions: Array<{ start: number; end: number }>): boolean =>
+const isInsideFencedRegion = (offset: number, regions: Array<{ start: number; end: number }>): boolean =>
   regions.some((region) => offset >= region.start && offset < region.end);
 
-export const VOID_HTML_ELEMENTS = new Set([
+const VOID_HTML_ELEMENTS = new Set([
   'area',
   'base',
   'br',
@@ -140,7 +140,7 @@ export const VOID_HTML_ELEMENTS = new Set([
  * HTML fragment. When tag depth returns to 0 and is followed by prose (or EOF),
  * this returns the offset immediately after the last closed element.
  */
-export const findHtmlFragmentEnd = (text: string, startIndex: number): number | null => {
+const findHtmlFragmentEnd = (text: string, startIndex: number): number | null => {
   const stack: string[] = [];
   let i = startIndex;
   let lastValidEnd: number | null = null;

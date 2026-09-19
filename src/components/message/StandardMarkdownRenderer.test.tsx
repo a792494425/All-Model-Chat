@@ -1,7 +1,10 @@
 import { act } from 'react';
 import { setupTestRenderer } from '@/test/render/renderer';
 import { describe, expect, it, vi } from 'vitest';
-import { renderStandardMarkdown, type StandardMarkdownRendererTestProps } from '@/test/message/standardMarkdownRenderer';
+import {
+  renderStandardMarkdown,
+  type StandardMarkdownRendererTestProps,
+} from '@/test/message/standardMarkdownRenderer';
 import { useMediaNavStore } from '@/stores/mediaNavStore';
 import { useChatStore } from '@/stores/chatStore';
 

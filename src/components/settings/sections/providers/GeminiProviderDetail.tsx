@@ -11,7 +11,11 @@ import { ApiConfigSection } from '@/components/settings/sections/ApiConfigSectio
 import { ProviderModelListSection } from './models/ProviderModelListSection';
 import { getClient } from '@/services/api/apiClient';
 import { parseApiKeys } from '@/utils/api/apiKeySelection';
-import { formatLatency, getLatencyGrade, type ConnectionHealthProbeResult } from '@/utils/third-party/thirdPartyDiagnostics';
+import {
+  formatLatency,
+  getLatencyGrade,
+  type ConnectionHealthProbeResult,
+} from '@/utils/third-party/thirdPartyDiagnostics';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { toastError, toastSuccess, toastWarning } from '@/stores/toastStore';
 

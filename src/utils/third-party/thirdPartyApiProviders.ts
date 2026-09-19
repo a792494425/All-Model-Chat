@@ -24,7 +24,6 @@ import {
   type TemplatePresetMeta,
   THIRD_PARTY_PROVIDER_LABELS,
   THIRD_PARTY_TEMPLATE_LABELS,
-  type ThirdPartyTemplateDefaults,
 } from './presets';
 
 export {
@@ -32,12 +31,6 @@ export {
   THIRD_PARTY_TEMPLATE_LABELS,
   type TemplatePresetMeta,
   TEMPLATE_PRESETS,
-  isThirdPartyProtocol,
-  isThirdPartyTemplateId,
-  cloneModels,
-  type ThirdPartyTemplateDefaults,
-  TEMPLATE_DEFAULTS,
-  LEGACY_TEMPLATE_ID,
   getThirdPartyTemplateDefaults,
   getThirdPartyTemplateLinks,
 };

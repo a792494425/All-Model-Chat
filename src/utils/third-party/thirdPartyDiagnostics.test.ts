@@ -115,7 +115,8 @@ describe('thirdPartyDiagnostics', () => {
     });
 
     it('successfully measures latency for openai-compatible protocol', async () => {
-      const { sendOpenAICompatibleMessageNonStream } = await import('@/services/api/protocols/openai-compatible/openaiCompatibleApi');
+      const { sendOpenAICompatibleMessageNonStream } =
+        await import('@/services/api/protocols/openai-compatible/openaiCompatibleApi');
       vi.mocked(sendOpenAICompatibleMessageNonStream).mockImplementation(
         async (_key, _model, _hist, _parts, _cfg, _sig, _onError, onComplete) => {
           onComplete?.([], undefined, undefined);
@@ -153,7 +154,8 @@ describe('thirdPartyDiagnostics', () => {
     });
 
     it('handles provider error and includes diagnostic tip', async () => {
-      const { sendOpenAICompatibleMessageNonStream } = await import('@/services/api/protocols/openai-compatible/openaiCompatibleApi');
+      const { sendOpenAICompatibleMessageNonStream } =
+        await import('@/services/api/protocols/openai-compatible/openaiCompatibleApi');
       vi.mocked(sendOpenAICompatibleMessageNonStream).mockImplementation(
         async (_key, _model, _hist, _parts, _cfg, _sig, onError) => {
           onError?.(new Error('401 Unauthorized: Invalid API key'));
@@ -179,7 +181,8 @@ describe('thirdPartyDiagnostics', () => {
     });
 
     it('automatically picks a safe chat model if primary connection model is non-chat', async () => {
-      const { sendOpenAICompatibleMessageNonStream } = await import('@/services/api/protocols/openai-compatible/openaiCompatibleApi');
+      const { sendOpenAICompatibleMessageNonStream } =
+        await import('@/services/api/protocols/openai-compatible/openaiCompatibleApi');
       vi.mocked(sendOpenAICompatibleMessageNonStream).mockResolvedValue(undefined as never);
 
       const mixedConn: ThirdPartyConnection = {

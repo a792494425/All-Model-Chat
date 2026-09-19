@@ -2,17 +2,17 @@ export type PreviewMarkupType = 'html' | 'svg';
 
 export const LIVE_ARTIFACT_HTML_LANGUAGE = 'amc-live-artifact-html';
 export const LIVE_ARTIFACT_INTERACTION_LANGUAGE = 'amc-live-artifact-interaction';
-export const HTML_LANGUAGE_ALIASES = new Set(['html', 'htm']);
-export const SVG_LANGUAGE_ALIASES = new Set(['svg']);
+const HTML_LANGUAGE_ALIASES = new Set(['html', 'htm']);
+const SVG_LANGUAGE_ALIASES = new Set(['svg']);
 
 // Trailing whitespace/comments after </html> are tolerated: models sometimes
 // append a closing remark comment to a full document, and rejecting the whole
 // document over it is why such replies fell back to colorless raw HTML. Trailing
 // prose text is still rejected here (the segment extractor handles that case by
 // splitting the artifact off from surrounding text instead).
-export const HTML_DOCUMENT_REGEX = /^(?:<!doctype\s+html\b[^>]*>\s*)?<html\b[\s\S]*<\/html>\s*(?:<!--[\s\S]*-->\s*)*$/i;
-export const HTML_DOCUMENT_START_REGEX = /^(?:<!doctype\s+html\b[^>]*>\s*)?(?:<html\b|<head\b|<body\b)/i;
-export const HTML_DOCTYPE_START_REGEX = /^<!doctype\s+html\b/i;
+const HTML_DOCUMENT_REGEX = /^(?:<!doctype\s+html\b[^>]*>\s*)?<html\b[\s\S]*<\/html>\s*(?:<!--[\s\S]*-->\s*)*$/i;
+const HTML_DOCUMENT_START_REGEX = /^(?:<!doctype\s+html\b[^>]*>\s*)?(?:<html\b|<head\b|<body\b)/i;
+const HTML_DOCTYPE_START_REGEX = /^<!doctype\s+html\b/i;
 export const HTML_FRAGMENT_TAG_NAMES = [
   'article',
   'aside',
@@ -48,12 +48,12 @@ export const HTML_FRAGMENT_TAG_NAMES = [
   'tr',
   'ul',
 ].join('|');
-export const HTML_FRAGMENT_REGEX = new RegExp(`^<(${HTML_FRAGMENT_TAG_NAMES})(?:\\s[^>]*)?>[\\s\\S]*<\\/\\1>$`, 'i');
-export const HTML_FRAGMENT_CONTAINER_REGEX = new RegExp(
+const HTML_FRAGMENT_REGEX = new RegExp(`^<(${HTML_FRAGMENT_TAG_NAMES})(?:\\s[^>]*)?>[\\s\\S]*<\\/\\1>$`, 'i');
+const HTML_FRAGMENT_CONTAINER_REGEX = new RegExp(
   `^<(?:${HTML_FRAGMENT_TAG_NAMES})(?:\\s[^>]*)?>[\\s\\S]*<\\/(?:${HTML_FRAGMENT_TAG_NAMES})>$`,
   'i',
 );
-export const HTML_FRAGMENT_START_REGEX = new RegExp(
+const HTML_FRAGMENT_START_REGEX = new RegExp(
   `^(?:<!--[\\s\\S]*?-->\\s*)?<(?:${HTML_FRAGMENT_TAG_NAMES})(?:\\s[^>]*)?>`,
   'i',
 );
@@ -61,13 +61,13 @@ export const HTML_STRUCTURAL_BLANK_LINE_REGEX = new RegExp(
   `\\n[ \\t]*\\n(?=[ \\t]*(?:<!--|<\\/?(?:${HTML_FRAGMENT_TAG_NAMES})(?:\\s|>|/)))`,
   'gi',
 );
-export const HTML_COMMENT_REGEX = /<!--[\s\S]*?-->/g;
+const HTML_COMMENT_REGEX = /<!--[\s\S]*?-->/g;
 // NOTE: Do not reject fragments that merely mention <script>/<iframe>/… in text.
 // Models often document those tags inside Live Artifacts (e.g. "通过 <iframe> 嵌入"),
 // and string-matching them used to drop the whole reply out of ArtifactFrame into a
 // broken Markdown/HTML code-block view. Executable tags are still stripped by the
 // preview sanitizer when the artifact actually renders.
-export const SVG_DOCUMENT_REGEX = /^<svg\b[\s\S]*<\/svg>$/i;
+const SVG_DOCUMENT_REGEX = /^<svg\b[\s\S]*<\/svg>$/i;
 export const FENCED_CODE_BLOCK_REGEX = /```([^\n`]*)\n?([\s\S]*?)```/g;
 export const OPEN_FENCED_CODE_BLOCK_AT_END_REGEX = /```([^\n`]*)\n?([\s\S]*)$/;
 export const MISLABELED_HTML_FRAGMENT_LANGUAGES = new Set(['css', 'text', 'txt', 'markdown', 'md']);
@@ -75,7 +75,7 @@ export const TOOL_RESULT_FRAGMENT_REGEX = /^<div\b(?=[^>]*\bclass=["'][^"']*\bto
 // Live Artifacts 协议特征:只会出现在模型按 LA 提示词产出的内容里,几乎不可
 // 能出现在"展示源码"的教程文本中。CSS 变量(--amc-live-artifact-*)与声明式
 // 交互属性(data-amc-*)都是 LA 专有,作为解包误标代码块的强信号。
-export const LIVE_ARTIFACT_MARKER_REGEX = /--amc-live-artifact-|data-amc-/i;
+const LIVE_ARTIFACT_MARKER_REGEX = /--amc-live-artifact-|data-amc-/i;
 
 export const normalizeLanguage = (language?: string): string => {
   if (!language) return '';
@@ -128,7 +128,7 @@ export const isLikelyStreamingStandaloneHtmlFragment = (textContent: string): bo
   return HTML_FRAGMENT_START_REGEX.test(normalizedContent);
 };
 
-export const isLikelyStreamingStandaloneHtmlDocument = (textContent: string): boolean => {
+const isLikelyStreamingStandaloneHtmlDocument = (textContent: string): boolean => {
   const normalizedContent = textContent.trim();
 
   if (!normalizedContent) {

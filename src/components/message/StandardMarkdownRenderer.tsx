@@ -10,5 +10,3 @@ export const StandardMarkdownRenderer: React.FC<MarkdownRendererProps> = React.m
 
   return <MarkdownRendererCore {...props} remarkPlugins={baseRemarkPlugins} rehypePlugins={rehypePlugins} />;
 });
-
-export const BasicMarkdownRenderer = StandardMarkdownRenderer;
