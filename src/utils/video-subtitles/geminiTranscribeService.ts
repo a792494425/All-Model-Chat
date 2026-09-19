@@ -72,7 +72,7 @@ export function convertTranscriptTextToAnnotations(text: string, durationSeconds
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     const segRatio = Math.max(1, seg.length) / totalChars;
-    let segDuration = Math.max(0.5, segRatio * availableSpeechTime);
+    const segDuration = Math.max(0.5, segRatio * availableSpeechTime);
 
     const startTime = currentTime;
     const endTime = Math.min(totalDuration, startTime + segDuration);

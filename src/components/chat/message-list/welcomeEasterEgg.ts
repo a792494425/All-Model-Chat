@@ -28,7 +28,7 @@ export function getEasterEggTypingDelay(
   }
 
   const lastChar = quote[typedLength - 1];
-  let baseDelay = 130;
+  let baseDelay: number;
 
   switch (quote) {
     case 'Cogito, ergo sum.': {

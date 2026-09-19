@@ -1,4 +1,4 @@
-import { SubtitleCue } from './subtitleFormatter';
+import type { SubtitleCue } from './subtitleFormatter';
 import { getKeyValue, setKeyValue, deleteKeyValue } from '@/services/db/indexedDbAccess';
 import { logService } from '@/services/logService';
 

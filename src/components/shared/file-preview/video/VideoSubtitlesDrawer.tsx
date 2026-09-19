@@ -111,7 +111,7 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
 
   const handleCopyText = async () => {
     if (!cues.length) return;
-    let plainText = '';
+    let plainText: string;
     if (currentDisplayMode === 'bilingual') {
       plainText = cues
         .map((c) => {
