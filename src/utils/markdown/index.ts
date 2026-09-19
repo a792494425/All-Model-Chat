@@ -5,3 +5,6 @@ export * from './markdownMathConfig';
 export * from './markdownMathPlugins';
 export * from './inlineImagePlaceholders';
 export * from './normalizeConvertedMarkdown';
+export * from './previewMarkupPatterns';
+export * from './bareArtifactRegions';
+export * from './previewableNormalization';
