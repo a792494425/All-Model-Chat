@@ -34,13 +34,31 @@ describe('TranscribeCluster', () => {
     );
   };
 
-  it('renders record, upload, video subtitles, language selector, and settings buttons', () => {
+  it('renders record, upload, video subtitles, subtitle mode, language selector, and settings buttons', () => {
     renderCluster();
 
     expect(screen.getByTestId('transcribe-record-button')).toBeInTheDocument();
     expect(screen.getByTestId('transcribe-upload-button')).toBeInTheDocument();
     expect(screen.getByTestId('transcribe-video-button')).toBeInTheDocument();
+    expect(screen.getByTestId('transcribe-subtitles-toggle-button')).toBeInTheDocument();
     expect(screen.getByTestId('transcribe-settings-button')).toBeInTheDocument();
+  });
+
+  it('toggles subtitle mode when subtitle button is clicked', () => {
+    renderCluster();
+
+    fireEvent.click(screen.getByTestId('transcribe-subtitles-toggle-button'));
+    expect(setCurrentChatSettings).toHaveBeenCalledTimes(1);
+
+    const updater = setCurrentChatSettings.mock.calls[0][0];
+    const updated = updater({
+      ...currentChatSettings,
+      transcriptionOutputSubtitles: false,
+      transcriptionSmartMode: true,
+    });
+
+    expect(updated.transcriptionOutputSubtitles).toBe(true);
+    expect(updated.transcriptionSmartMode).toBe(false);
   });
 
   it('calls onAttachmentAction with recorder when record button is clicked', () => {

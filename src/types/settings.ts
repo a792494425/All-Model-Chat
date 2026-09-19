@@ -282,6 +282,7 @@ export interface ChatSettings {
   transcriptionWordTimestamps?: boolean;
   transcriptionSpeakerLabels?: boolean;
   transcriptionSmartMode?: boolean;
+  transcriptionOutputSubtitles?: boolean;
   transcriptionCustomVocabulary?: string;
   /** Instruction used only for transcription turns; kept separate from the chat `systemInstruction`. */
   transcriptionSystemInstruction?: string;

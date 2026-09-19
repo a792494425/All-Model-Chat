@@ -141,8 +141,8 @@ export const useLibraryStore = create<LibraryState & LibraryActions>()(
         if (persisted.selectedFileIds) {
           if (Array.isArray(persisted.selectedFileIds)) {
             selectedFileIds = new Set(persisted.selectedFileIds.filter((id): id is string => typeof id === 'string'));
-          } else if (persisted.selectedFileIds instanceof Set) {
-            selectedFileIds = persisted.selectedFileIds;
+          } else if ((persisted.selectedFileIds as unknown) instanceof Set) {
+            selectedFileIds = persisted.selectedFileIds as unknown as Set<string>;
           }
         }
 

@@ -2539,6 +2539,15 @@ export const messagesTranslations = {
     es: 'Subtítulos de vídeo',
     ko: '비디오 자막 추출 결과',
   },
+  transcriptionAudioSubtitlesResultTitle: {
+    en: 'Audio Subtitles',
+    zh: '音频字幕提取结果',
+    ja: '音声字幕抽出結果',
+    de: 'Audio-Untertitel',
+    fr: 'Sous-titres audio',
+    es: 'Subtítulos de audio',
+    ko: '오디오 자막 추출 결과',
+  },
   messageSenderTranscribeSupportsAudioOnly: {
     en: 'Gemini 3.5 Transcribe supports audio files only.',
     zh: 'Gemini 3.5 Transcribe 仅支持上传音频文件。',

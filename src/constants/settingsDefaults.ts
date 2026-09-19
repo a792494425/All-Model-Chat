@@ -81,6 +81,7 @@ export const DEFAULT_CHAT_SETTINGS: Omit<ChatSettings, 'lockedApiKey'> & { locke
   transcriptionWordTimestamps: false,
   transcriptionSpeakerLabels: false,
   transcriptionSmartMode: false,
+  transcriptionOutputSubtitles: false,
   transcriptionCustomVocabulary: '',
 };
 

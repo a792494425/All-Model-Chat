@@ -13,12 +13,14 @@ interface TranscribeSettingsModalProps {
   wordTimestamps: boolean;
   speakerLabels: boolean;
   smartMode: boolean;
+  outputSubtitles?: boolean;
   onSave: (settings: {
     systemInstruction: string;
     customVocabulary: string;
     wordTimestamps: boolean;
     speakerLabels: boolean;
     smartMode: boolean;
+    outputSubtitles: boolean;
   }) => void;
 }
 
@@ -30,6 +32,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
   wordTimestamps,
   speakerLabels,
   smartMode,
+  outputSubtitles = false,
   onSave,
 }) => {
   const { t } = useI18n();
@@ -38,6 +41,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
   const [draftWordTimestamps, setDraftWordTimestamps] = useState(wordTimestamps);
   const [draftSpeakerLabels, setDraftSpeakerLabels] = useState(speakerLabels);
   const [draftSmartMode, setDraftSmartMode] = useState(smartMode);
+  const [draftOutputSubtitles, setDraftOutputSubtitles] = useState(outputSubtitles);
 
   useEffect(() => {
     if (isOpen) {
@@ -46,14 +50,16 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
       setDraftWordTimestamps(wordTimestamps);
       setDraftSpeakerLabels(speakerLabels);
       setDraftSmartMode(smartMode);
+      setDraftOutputSubtitles(outputSubtitles);
     }
-  }, [isOpen, systemInstruction, customVocabulary, wordTimestamps, speakerLabels, smartMode]);
+  }, [isOpen, systemInstruction, customVocabulary, wordTimestamps, speakerLabels, smartMode, outputSubtitles]);
 
   const handleSmartModeChange = (enabled: boolean) => {
     setDraftSmartMode(enabled);
     if (enabled) {
       setDraftWordTimestamps(false);
       setDraftSpeakerLabels(false);
+      setDraftOutputSubtitles(false);
     }
   };
 
@@ -71,6 +77,13 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
     }
   };
 
+  const handleOutputSubtitlesChange = (enabled: boolean) => {
+    setDraftOutputSubtitles(enabled);
+    if (enabled) {
+      setDraftSmartMode(false);
+    }
+  };
+
   const handleSave = () => {
     onSave({
       systemInstruction: draftInstruction.trim(),
@@ -78,6 +91,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
       wordTimestamps: draftWordTimestamps,
       speakerLabels: draftSpeakerLabels,
       smartMode: draftSmartMode,
+      outputSubtitles: draftOutputSubtitles,
     });
     onClose();
   };
@@ -106,6 +120,13 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
 
         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
           <div className="space-y-1 rounded-xl border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-secondary)]/30 p-2.5">
+            <ToggleItem
+              label={t('transcribeSubtitleMode')}
+              checked={draftOutputSubtitles}
+              onChange={handleOutputSubtitlesChange}
+              tooltip={t('transcribeSubtitleModeHelp')}
+              small
+            />
             <ToggleItem
               label={t('transcribeWordTimestamps')}
               checked={draftWordTimestamps}

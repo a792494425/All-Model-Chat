@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { Film, Mic, SlidersHorizontal, Upload } from 'lucide-react';
+import { Film, Mic, SlidersHorizontal, Subtitles, Upload } from 'lucide-react';
 import {
   TOOLBAR_IMAGE_CLUSTER_CLASS,
   TOOLBAR_TOGGLE_ACTIVE_CLASS,
@@ -28,15 +28,27 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
   const wordTimestamps = currentChatSettings.transcriptionWordTimestamps ?? false;
   const speakerLabels = currentChatSettings.transcriptionSpeakerLabels ?? false;
   const smartMode = currentChatSettings.transcriptionSmartMode ?? false;
+  const outputSubtitles = currentChatSettings.transcriptionOutputSubtitles ?? false;
   const customVocabulary = currentChatSettings.transcriptionCustomVocabulary ?? '';
   const systemInstruction = currentChatSettings.transcriptionSystemInstruction ?? '';
 
   const hasAdvancedConfig = Boolean(
-    wordTimestamps || speakerLabels || smartMode || customVocabulary.trim() || systemInstruction.trim(),
+    wordTimestamps || speakerLabels || smartMode || outputSubtitles || customVocabulary.trim() || systemInstruction.trim(),
   );
 
   const handleLanguageChange = (newLang: string) => {
     setCurrentChatSettings((prev) => ({ ...prev, transcriptionLanguage: newLang }));
+  };
+
+  const handleToggleSubtitles = () => {
+    setCurrentChatSettings((prev) => {
+      const nextOutputSubtitles = !prev.transcriptionOutputSubtitles;
+      return {
+        ...prev,
+        transcriptionOutputSubtitles: nextOutputSubtitles,
+        ...(nextOutputSubtitles && prev.transcriptionSmartMode ? { transcriptionSmartMode: false } : {}),
+      };
+    });
   };
 
   const handleSaveModalSettings = (settings: {
@@ -45,6 +57,7 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
     wordTimestamps: boolean;
     speakerLabels: boolean;
     smartMode: boolean;
+    outputSubtitles: boolean;
   }) => {
     setCurrentChatSettings((prev) => ({
       ...prev,
@@ -53,6 +66,7 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
       transcriptionWordTimestamps: settings.wordTimestamps,
       transcriptionSpeakerLabels: settings.speakerLabels,
       transcriptionSmartMode: settings.smartMode,
+      transcriptionOutputSubtitles: settings.outputSubtitles,
     }));
   };
 
@@ -92,6 +106,17 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
           <span>{t('transcribeUploadVideo')}</span>
         </button>
 
+        <button
+          type="button"
+          onClick={handleToggleSubtitles}
+          className={outputSubtitles ? TOOLBAR_TOGGLE_ACTIVE_CLASS : TOOLBAR_TOGGLE_IDLE_CLASS}
+          title={t('transcribeSubtitleModeHelp')}
+          data-testid="transcribe-subtitles-toggle-button"
+        >
+          <Subtitles size={14} strokeWidth={1.75} />
+          <span>{t('transcribeSubtitleMode')}</span>
+        </button>
+
         <div className="hidden sm:block h-4 w-px bg-[var(--theme-border-secondary)]/60 my-auto" aria-hidden="true" />
 
         <TranscribeLanguageSelector language={language} setLanguage={handleLanguageChange} />
@@ -117,6 +142,7 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
         wordTimestamps={wordTimestamps}
         speakerLabels={speakerLabels}
         smartMode={smartMode}
+        outputSubtitles={outputSubtitles}
         onSave={handleSaveModalSettings}
       />
     </>

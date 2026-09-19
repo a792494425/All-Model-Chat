@@ -276,7 +276,7 @@ describe('VideoSubtitlesDrawer', () => {
   });
 
   it('displays mode switcher and switches between bilingual, translation, and original modes', () => {
-    const bilingualCues: SubtitleCue[] = [
+    const bilingualCues: subtitleFormatter.SubtitleCue[] = [
       {
         ...mockCues[0],
         translation: 'First sentence translation',

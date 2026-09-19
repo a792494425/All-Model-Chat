@@ -100,8 +100,9 @@ export const sendTranscribeMessage = async ({
         }
 
         const isVideo = isVideoMimeType(mediaFile.type);
+        const shouldOutputSubtitles = isVideo || Boolean(currentChatSettings.transcriptionOutputSubtitles);
 
-        if (isVideo) {
+        if (shouldOutputSubtitles) {
           let cues: SubtitleCue[];
           let srtContent: string;
           let durationSeconds: number;
@@ -114,15 +115,40 @@ export const sendTranscribeMessage = async ({
             durationSeconds = cached.durationSeconds ?? 0;
             isFromCache = true;
           } else {
-            if (!(mediaFile.rawFile instanceof Blob)) {
-              throw new Error(`Video file data for "${mediaFile.name}" is missing or could not be loaded.`);
+            let audioBlobToTranscribe: Blob;
+            let resolvedDurationSeconds: number;
+
+            if (isVideo) {
+              if (!(mediaFile.rawFile instanceof Blob)) {
+                throw new Error(`Video file data for "${mediaFile.name}" is missing or could not be loaded.`);
+              }
+
+              const extracted = await extractAudioFromVideo(
+                mediaFile.rawFile,
+                abortController.signal,
+              );
+              audioBlobToTranscribe = extracted.audioBlob;
+              resolvedDurationSeconds = extracted.durationSeconds;
+            } else {
+              let fileToTranscribe: File;
+              if (mediaFile.rawFile instanceof File) {
+                fileToTranscribe = await prepareAudioForGeminiTranscription(mediaFile.rawFile, abortController.signal);
+              } else if (mediaFile.rawFile instanceof Blob) {
+                const named = new File([mediaFile.rawFile], mediaFile.name || 'audio.mp3', {
+                  type: mediaFile.type || mediaFile.rawFile.type || 'audio/mpeg',
+                });
+                fileToTranscribe = await prepareAudioForGeminiTranscription(named, abortController.signal);
+              } else {
+                throw new Error('Audio file data is missing or could not be loaded.');
+              }
+
+              await enforceTranscriptionDurationLimit(fileToTranscribe, currentChatSettings, t);
+              const detectedDuration = await getAudioDurationSeconds(fileToTranscribe);
+              resolvedDurationSeconds = detectedDuration ?? 0;
+              audioBlobToTranscribe = fileToTranscribe;
             }
 
-            const extracted = await extractAudioFromVideo(
-              mediaFile.rawFile,
-              abortController.signal,
-            );
-            durationSeconds = extracted.durationSeconds;
+            durationSeconds = resolvedDurationSeconds;
 
             if (durationSeconds > MAX_TRANSCRIPTION_DURATION_SECONDS) {
               throw new Error(t('messageSenderTranscribeDurationExceeded'));
@@ -130,7 +156,7 @@ export const sendTranscribeMessage = async ({
 
             const annotations = await transcribeAudioWithGemini(
               keyToUse,
-              extracted.audioBlob,
+              audioBlobToTranscribe,
               `${mediaFile.name.replace(/\.[^/.]+$/, '')}-audio.wav`,
               abortController.signal,
               undefined,
@@ -158,9 +184,12 @@ export const sendTranscribeMessage = async ({
           }
 
           const durationText = durationSeconds > 0 ? formatDuration(durationSeconds) : undefined;
-          const title = t('transcriptionSubtitlesResultTitle') || '视频字幕提取结果';
+          const defaultTitle = isVideo ? '视频字幕提取结果' : '音频字幕提取结果';
+          const titleKey = isVideo ? 'transcriptionSubtitlesResultTitle' : 'transcriptionAudioSubtitlesResultTitle';
+          const title = t(titleKey) || defaultTitle;
+          const icon = isVideo ? '🎬' : '🎙️';
 
-          let outputText = `### 🎬 ${title}：\`${mediaFile.name}\`\n\n`;
+          let outputText = `### ${icon} ${title}：\`${mediaFile.name}\`\n\n`;
           if (durationText) {
             const cacheTag = isFromCache ? ` | ⚡ *(${t('loadedFromCache') || '从本地缓存加载'})*` : '';
             outputText += `> ⏱️ **时长**: ${durationText} | **字幕**: ${cues.length} 句${cacheTag}\n\n`;

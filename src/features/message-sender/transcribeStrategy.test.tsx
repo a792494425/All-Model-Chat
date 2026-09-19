@@ -301,6 +301,119 @@ describe('transcribeStrategy', () => {
     expect(resultPatch.content).toContain('从本地缓存加载');
   });
 
+  it('transcribes audio attachment to SRT subtitles when transcriptionOutputSubtitles is true, saving to cache', async () => {
+    const abortController = new AbortController();
+    const updateAndPersistSessions = vi.fn();
+    const setActiveSessionId = vi.fn();
+    let resultPatch: any = null;
+    const runMessageLifecycle = vi.fn(async ({ execute }) => {
+      const result = await execute();
+      resultPatch = result.patch;
+      return result;
+    });
+
+    await act(async () => {
+      await sendTranscribeMessage({
+        keyToUse: 'api-key',
+        activeSessionId: 'session-1',
+        generationId: 'generation-1',
+        abortController,
+        appSettings: createAppSettings(),
+        currentChatSettings: createChatSettings({
+          modelId: 'gemini-3.5-transcribe',
+          transcriptionOutputSubtitles: true,
+        }),
+        text: '',
+        files: [fakeAudioFile],
+        t: getTranslator('zh'),
+        updateAndPersistSessions,
+        setActiveSessionId,
+        runMessageLifecycle,
+      });
+    });
+
+    expect(extractAudioFromVideoMock).not.toHaveBeenCalled();
+    expect(prepareAudioMock).toHaveBeenCalledWith(fakeAudioFile.rawFile, abortController.signal);
+    expect(transcribeAudioWithGeminiMock).toHaveBeenCalledWith(
+      'api-key',
+      expect.anything(),
+      'test-recording-audio.wav',
+      abortController.signal,
+      undefined,
+      600,
+    );
+    expect(saveCachedSubtitlesMock).toHaveBeenCalledWith(
+      fakeAudioFile,
+      expect.objectContaining({
+        durationSeconds: 600,
+        srtContent: expect.stringContaining('こんにちは世界。'),
+        vttContent: expect.stringContaining('こんにちは世界。'),
+      }),
+    );
+    expect(resultPatch.content).toContain('音频字幕提取结果');
+    expect(resultPatch.content).toContain('test-recording.mp3');
+    expect(resultPatch.content).toContain('```srt');
+    expect(resultPatch.content).toContain('こんにちは世界。');
+    expect(resultPatch.content).toContain('逐句时间轴');
+  });
+
+  it('reuses cached audio subtitles when transcriptionOutputSubtitles is true', async () => {
+    getCachedSubtitlesMock.mockResolvedValueOnce({
+      cues: [
+        {
+          id: 1,
+          startSeconds: 0,
+          endSeconds: 10,
+          startTimeSrt: '00:00:00,000',
+          endTimeSrt: '00:00:10,000',
+          startTimeVtt: '00:00:00.000',
+          endTimeVtt: '00:00:10.000',
+          text: '缓存中的音频字幕',
+        },
+      ],
+      srtContent: '1\n00:00:00,000 --> 00:00:10,000\n缓存中的音频字幕\n',
+      vttContent: 'WEBVTT\n\n1\n00:00:00.000 --> 00:00:10.000\n缓存中的音频字幕\n',
+      durationSeconds: 10,
+      createdAt: Date.now(),
+    });
+
+    const abortController = new AbortController();
+    const updateAndPersistSessions = vi.fn();
+    const setActiveSessionId = vi.fn();
+    let resultPatch: any = null;
+    const runMessageLifecycle = vi.fn(async ({ execute }) => {
+      const result = await execute();
+      resultPatch = result.patch;
+      return result;
+    });
+
+    await act(async () => {
+      await sendTranscribeMessage({
+        keyToUse: 'api-key',
+        activeSessionId: 'session-1',
+        generationId: 'generation-1',
+        abortController,
+        appSettings: createAppSettings(),
+        currentChatSettings: createChatSettings({
+          modelId: 'gemini-3.5-transcribe',
+          transcriptionOutputSubtitles: true,
+        }),
+        text: '',
+        files: [fakeAudioFile],
+        t: getTranslator('zh'),
+        updateAndPersistSessions,
+        setActiveSessionId,
+        runMessageLifecycle,
+      });
+    });
+
+    expect(prepareAudioMock).not.toHaveBeenCalled();
+    expect(transcribeAudioWithGeminiMock).not.toHaveBeenCalled();
+    expect(resultPatch.content).toContain('音频字幕提取结果');
+    expect(resultPatch.content).toContain('缓存中的音频字幕');
+    expect(resultPatch.content).toContain('从本地缓存加载');
+  });
+
   it('rejects audio longer than 30 minutes when word timestamps are enabled', async () => {
     getAudioDurationSecondsMock.mockResolvedValue(31 * 60);
 

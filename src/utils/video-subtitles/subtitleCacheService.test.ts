@@ -4,7 +4,6 @@ import {
   getCachedSubtitles,
   saveCachedSubtitles,
   deleteCachedSubtitles,
-  type CachedSubtitles,
 } from './subtitleCacheService';
 import type { SubtitleCue } from './subtitleFormatter';
 
