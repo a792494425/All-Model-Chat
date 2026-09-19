@@ -15,7 +15,7 @@ import {
   TRANSLATION_TARGET_LANGUAGES,
 } from '@/types';
 import { createEmptyLiveArtifactsSystemPrompts } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
-import { sanitizeThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
+import { sanitizeThirdPartyApiSettings } from '@/utils/third-party/thirdPartyApiProviders';
 import {
   sanitizeMcpAuth,
   sanitizeMcpTimeout,

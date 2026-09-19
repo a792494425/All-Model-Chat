@@ -8,7 +8,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
 import { getModelIcon } from '@/components/shared/ModelIcon';
-import { THIRD_PARTY_PROVIDER_LABELS, THIRD_PARTY_TEMPLATE_LABELS } from '@/utils/thirdPartyApiProviders';
+import { THIRD_PARTY_PROVIDER_LABELS, THIRD_PARTY_TEMPLATE_LABELS } from '@/utils/third-party/thirdPartyApiProviders';
 import { estimateMessageCostUsd, formatCostUsd } from '@/utils/pricing/usagePricing';
 
 const PRIMARY_METRIC_FONT_SIZES = [16, 14, 12, 10] as const;

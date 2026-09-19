@@ -4,7 +4,7 @@ import type { ModelOption, ThirdPartyApiProtocol, ThirdPartyTemplateId } from '@
 import { useI18n } from '@/contexts/I18nContext';
 import { ProviderAvatar } from '@/components/settings/sections/providers/ProviderAvatar';
 import { formatContextWindow, getOrInferModelCapabilities } from '@/utils/model/knownModelsCatalog';
-import { formatLatency, getLatencyBadgeStyles, type ConnectionHealthProbeResult } from '@/utils/thirdPartyDiagnostics';
+import { formatLatency, getLatencyBadgeStyles, type ConnectionHealthProbeResult } from '@/utils/third-party/thirdPartyDiagnostics';
 
 export interface ProviderModelRowProps {
   model: ModelOption;

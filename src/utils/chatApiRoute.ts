@@ -1,5 +1,5 @@
 import { type AppSettings, type ChatSettings, type ThirdPartyConnection, GEMINI_PROVIDER_ID } from '@/types';
-import { findThirdPartyConnection, getEnabledThirdPartyProviders } from './thirdPartyApiProviders';
+import { findThirdPartyConnection, getEnabledThirdPartyProviders } from '@/utils/third-party/thirdPartyApiProviders';
 
 export type ChatApiRouteUnavailable = 'missing' | 'disabled';
 

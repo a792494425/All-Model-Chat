@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { ProviderAvatar } from './ProviderAvatar';
-import { generateColorFromChar, getFirstCharacter } from '@/utils/thirdPartyApiProviders';
+import { generateColorFromChar, getFirstCharacter } from '@/utils/third-party/thirdPartyApiProviders';
 
 describe('ProviderAvatar', () => {
   it('generates consistent color and first character', () => {

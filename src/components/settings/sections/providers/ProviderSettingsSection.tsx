@@ -17,8 +17,8 @@ import {
   duplicateThirdPartyConnection,
   createConnectionFromTemplate,
   createConnectionId,
-} from '@/utils/thirdPartyApiProviders';
-import { probeThirdPartyConnection, formatLatency } from '@/utils/thirdPartyDiagnostics';
+} from '@/utils/third-party/thirdPartyApiProviders';
+import { probeThirdPartyConnection, formatLatency } from '@/utils/third-party/thirdPartyDiagnostics';
 import { toastError, toastSuccess } from '@/stores/toastStore';
 import { ProviderList } from './ProviderList';
 import { ProviderDetail } from './ProviderDetail';

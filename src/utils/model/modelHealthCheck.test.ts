@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ThirdPartyConnection, ModelOption } from '@/types';
-import * as diagnostics from '@/utils/thirdPartyDiagnostics';
+import * as diagnostics from '@/utils/third-party/thirdPartyDiagnostics';
 import { probeSingleModel, runBatchModelHealthCheck } from './modelHealthCheck';
 
 const MOCK_CONNECTION: ThirdPartyConnection = {

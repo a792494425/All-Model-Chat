@@ -1,4 +1,4 @@
-import { THIRD_PARTY_TEMPLATE_LABELS, getThirdPartyTemplateDefaults } from '@/utils/thirdPartyApiProviders';
+import { THIRD_PARTY_TEMPLATE_LABELS, getThirdPartyTemplateDefaults } from '@/utils/third-party/thirdPartyApiProviders';
 import { THIRD_PARTY_TEMPLATE_IDS, type ThirdPartyConnection, type ThirdPartyTemplateId } from '@/types';
 
 /**

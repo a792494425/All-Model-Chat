@@ -18,7 +18,7 @@ import { ApiConnectionTester } from './api-config/ApiConnectionTester';
 import { ServerAccessPasswordInput } from './api-config/ServerAccessPasswordInput';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { useProviderUiStore } from '@/stores/providerUiStore';
-import { getLatencyGrade } from '@/utils/thirdPartyDiagnostics';
+import { getLatencyGrade } from '@/utils/third-party/thirdPartyDiagnostics';
 
 interface ApiConfigSectionProps {
   useCustomApiConfig: boolean;

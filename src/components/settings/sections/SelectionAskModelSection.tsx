@@ -3,7 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import type { AppSettings, ModelOption } from '@/types';
 import { ModelPicker } from '@/components/shared/ModelPicker';
-import { buildProviderAwareModelList } from '@/utils/thirdPartyApiProviders';
+import { buildProviderAwareModelList } from '@/utils/third-party/thirdPartyApiProviders';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
 import { SETTINGS_SECTION_CARD_CLASS, SETTINGS_SECTION_LABEL_CLASS } from '@/constants/designTokens';
 import { FOCUS_VISIBLE_RING_BASE_CLASS } from '@/constants/focusClasses';

@@ -7,8 +7,8 @@ import {
   type ThirdPartyConnection,
   type ThirdPartyTemplateId,
 } from '@/types';
-import { updateThirdPartyConnection } from '@/utils/thirdPartyApiProviders';
-import { probeThirdPartyConnection } from '@/utils/thirdPartyDiagnostics';
+import { updateThirdPartyConnection } from '@/utils/third-party/thirdPartyApiProviders';
+import { probeThirdPartyConnection } from '@/utils/third-party/thirdPartyDiagnostics';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSettingsAssistantStore } from '@/stores/settingsAssistantStore';
 import { isRecord } from '../../../shared/predicates';

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { resolveIconRef } from '@/components/shared/modelIconRegistry';
 import type { ThirdPartyTemplateId } from '@/types';
-import { generateColorFromChar, getFirstCharacter } from '@/utils/thirdPartyApiProviders';
+import { generateColorFromChar, getFirstCharacter } from '@/utils/third-party/thirdPartyApiProviders';
 
 interface ProviderAvatarProps {
   name: string;

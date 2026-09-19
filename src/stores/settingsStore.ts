@@ -10,7 +10,7 @@ import { migrateRemovedModelId } from '@/constants/modelConfiguration';
 import { resolveSupportedModelId } from '@/utils/model/modelSorting';
 import { dbService } from '@/services/db/dbService';
 import { normalizeLiveArtifactsSystemPrompts } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
-import { sanitizeThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
+import { sanitizeThirdPartyApiSettings } from '@/utils/third-party/thirdPartyApiProviders';
 import { migrateLegacyAutoOpenHtmlPreview, migrateLegacyOpenAICompatibleInput } from '@/schemas/appSettingsSchema';
 import { type ConcreteThemeId } from '@/utils/themeMode';
 import { resolveUpdaterOrValue, type UpdaterOrValue } from './stateUpdaters';

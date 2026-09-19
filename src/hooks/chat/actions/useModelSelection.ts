@@ -14,7 +14,7 @@ import {
   findThirdPartyConnection,
   getEnabledThirdPartyProviders,
   resolveProviderForModelId,
-} from '@/utils/thirdPartyApiProviders';
+} from '@/utils/third-party/thirdPartyApiProviders';
 
 interface UseModelSelectionProps {
   appSettings: AppSettings;

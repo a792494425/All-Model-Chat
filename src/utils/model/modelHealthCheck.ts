@@ -3,7 +3,7 @@ import {
   type ConnectionHealthProbeResult,
   probeThirdPartyConnection,
   getModelProbeSafety,
-} from '@/utils/thirdPartyDiagnostics';
+} from '@/utils/third-party/thirdPartyDiagnostics';
 
 export interface BatchHealthCheckProgress {
   completed: number;

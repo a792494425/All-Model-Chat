@@ -1,6 +1,6 @@
 import type { ThirdPartyConnection, ThirdPartyTemplateId } from '@/types';
 import { createConnectionId, sanitizeThirdPartyConnection } from './thirdPartyApiProviders';
-import { REDACTED_SECRET_SENTINEL } from './secretRedaction';
+import { REDACTED_SECRET_SENTINEL } from '@/utils/secretRedaction';
 import { triggerDownload } from '@/utils/export/core';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 

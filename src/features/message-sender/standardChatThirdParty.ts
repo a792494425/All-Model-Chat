@@ -21,7 +21,7 @@ import {
 } from '@/services/api/protocols/anthropic/anthropicApi';
 import { toOpenAITools, toAnthropicTools, toOpenAIResponsesTools } from '@/features/chat-tools/toolSchemaAdapters';
 import { runStandardToolLoop, TOOL_LOOP_CAP_NOTICE } from '@/features/standard-chat/standardToolLoop';
-import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
+import { getProxyProviderHeader } from '@/utils/third-party/thirdPartyApiProviders';
 import { isPdfMimeType } from '@/utils/file/fileTypeClassification';
 import { extractPdfTextFromBase64 } from '@/utils/file/pdfTextExtraction';
 import type {

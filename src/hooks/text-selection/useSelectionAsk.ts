@@ -7,7 +7,7 @@ import { sendStatelessMessageStreamApi } from '@/services/api/chatApi';
 import { sendOpenAICompatibleMessageStream } from '@/services/api/protocols/openai-compatible/openaiCompatibleApi';
 import { sendOpenAIResponsesStream } from '@/services/api/protocols/openai-responses/openaiResponsesApi';
 import { sendAnthropicMessageStream } from '@/services/api/protocols/anthropic/anthropicApi';
-import { getProxyProviderHeader } from '@/utils/thirdPartyApiProviders';
+import { getProxyProviderHeader } from '@/utils/third-party/thirdPartyApiProviders';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';

@@ -13,7 +13,7 @@ import { ProviderSettingsSection } from './sections/providers/ProviderSettingsSe
 import { type SettingsTransferProps } from './settingsTypes';
 import type { LogViewerProps } from '@/components/log-viewer/LogViewer';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
-import { buildProviderAwareModelList } from '@/utils/thirdPartyApiProviders';
+import { buildProviderAwareModelList } from '@/utils/third-party/thirdPartyApiProviders';
 interface SettingsContentProps extends SettingsTransferProps {
   activeTab: SettingsTab;
   currentSettings: AppSettings;

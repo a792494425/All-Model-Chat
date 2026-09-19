@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import type { AppViewModel } from '@/hooks/app/useApp';
 import type { ChatProviderId } from '@/types';
-import { buildProviderAwareModelList } from '@/utils/thirdPartyApiProviders';
+import { buildProviderAwareModelList } from '@/utils/third-party/thirdPartyApiProviders';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
 import { buildNewTabHref } from '@/utils/chat/lastActiveSession';
 import type { ChatHeaderRuntimeValue } from './chatRuntimeTypes';

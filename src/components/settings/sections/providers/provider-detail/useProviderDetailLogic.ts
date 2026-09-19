@@ -2,12 +2,12 @@ import { useState, useRef } from 'react';
 import type { ModelOption, ThirdPartyConnection } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { useProviderUiStore } from '@/stores/providerUiStore';
-import { getThirdPartyTemplateLinks } from '@/utils/thirdPartyApiProviders';
+import { getThirdPartyTemplateLinks } from '@/utils/third-party/thirdPartyApiProviders';
 import {
   probeThirdPartyConnection,
   formatLatency,
   type ConnectionHealthProbeResult,
-} from '@/utils/thirdPartyDiagnostics';
+} from '@/utils/third-party/thirdPartyDiagnostics';
 import {
   probeSingleModel,
   runBatchModelHealthCheck,

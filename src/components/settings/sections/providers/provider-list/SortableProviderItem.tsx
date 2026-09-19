@@ -4,7 +4,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { ThirdPartyConnection } from '@/types';
 import { ProviderAvatar } from '@/components/settings/sections/providers/ProviderAvatar';
-import { formatLatency, type ConnectionHealthProbeResult } from '@/utils/thirdPartyDiagnostics';
+import { formatLatency, type ConnectionHealthProbeResult } from '@/utils/third-party/thirdPartyDiagnostics';
 
 interface SortableProviderItemProps {
   connection: ThirdPartyConnection;

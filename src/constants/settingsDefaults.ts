@@ -23,7 +23,7 @@ import {
 } from './modelConfiguration';
 import { DEFAULT_SAFETY_SETTINGS } from './safetySettings';
 import { DEFAULT_THOUGHT_TRANSLATION_TARGET_LANGUAGE, DEFAULT_TRANSLATION_TARGET_LANGUAGE } from './translationOptions';
-import { createDefaultThirdPartyApiSettings } from '@/utils/thirdPartyApiProviders';
+import { createDefaultThirdPartyApiSettings } from '@/utils/third-party/thirdPartyApiProviders';
 
 export const DEFAULT_SYSTEM_INSTRUCTION = '';
 

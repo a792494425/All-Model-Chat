@@ -5,7 +5,7 @@ import type { AppSettings, ChatSettings, ModelOption, ChatProviderId } from '@/t
 import { isShortcutPressed } from '@/utils/keyboardShortcuts';
 import { getTabCycleModelIds } from '@/utils/model/modelCatalog';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
-import { buildProviderAwareModelList } from '@/utils/thirdPartyApiProviders';
+import { buildProviderAwareModelList } from '@/utils/third-party/thirdPartyApiProviders';
 import { isEditableElement } from '@/utils/chat-input/focus';
 import { useUIStore } from '@/stores/uiStore';
 

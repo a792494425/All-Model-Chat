@@ -10,7 +10,7 @@ import {
   getLatencyBadgeStyles,
   diagnoseConnectionError,
   type ConnectionHealthProbeResult,
-} from '@/utils/thirdPartyDiagnostics';
+} from '@/utils/third-party/thirdPartyDiagnostics';
 
 export interface ProviderConnectionCredentialsProps {
   connection: ThirdPartyConnection;

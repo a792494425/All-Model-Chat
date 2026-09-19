@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GEMINI_PROVIDER_ID } from '@/types';
 import { DEFAULT_LIVE_ARTIFACTS_MODEL_ID } from '@/constants/modelConfiguration';
-import type { ConnectionHealthProbeResult } from '@/utils/thirdPartyDiagnostics';
+import type { ConnectionHealthProbeResult } from '@/utils/third-party/thirdPartyDiagnostics';
 
 const importFreshProviderUiStore = async () => {
   vi.resetModules();

@@ -5,7 +5,7 @@ import gemmaIconUrl from '@/assets/model-icons/gemma.svg';
 import nanoBananaIconUrl from '@/assets/model-icons/nanobanana.svg';
 import customLogoUrl from '@/assets/model-icons/providers/custom.png';
 import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
-import { THIRD_PARTY_PROVIDER_LABELS, THIRD_PARTY_TEMPLATE_LABELS } from '@/utils/thirdPartyApiProviders';
+import { THIRD_PARTY_PROVIDER_LABELS, THIRD_PARTY_TEMPLATE_LABELS } from '@/utils/third-party/thirdPartyApiProviders';
 import { type ModelOption, type ThirdPartyProviderId, type ThirdPartyTemplateId, GEMINI_PROVIDER_ID } from '@/types';
 import {
   CHERRY_MODEL_LOGOS,

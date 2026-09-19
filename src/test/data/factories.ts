@@ -13,7 +13,7 @@ import {
 } from '@/types';
 import { AVAILABLE_THEMES } from '@/constants/themeRegistry';
 import { DEFAULT_TRANSCRIPTION_MODEL_ID } from '@/constants/modelConfiguration';
-import { createDefaultThirdPartyApiSettings, getThirdPartyTemplateDefaults } from '@/utils/thirdPartyApiProviders';
+import { createDefaultThirdPartyApiSettings, getThirdPartyTemplateDefaults } from '@/utils/third-party/thirdPartyApiProviders';
 
 export const createChatSettings = (overrides: Partial<ChatSettings> = {}): ChatSettings => ({
   modelId: 'gemini-3.1-pro-preview',

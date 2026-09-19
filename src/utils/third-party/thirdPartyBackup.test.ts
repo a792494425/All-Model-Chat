@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ThirdPartyConnection } from '@/types';
-import { REDACTED_SECRET_SENTINEL } from './secretRedaction';
+import { REDACTED_SECRET_SENTINEL } from '@/utils/secretRedaction';
 import {
   applyImportedProviders,
   createProvidersBackupPayload,

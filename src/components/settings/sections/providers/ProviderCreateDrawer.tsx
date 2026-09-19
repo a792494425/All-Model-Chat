@@ -7,7 +7,7 @@ import {
   SETTINGS_PRIMARY_ACTION_BUTTON_CLASS,
   SETTINGS_SECONDARY_ACTION_BUTTON_CLASS,
 } from '@/constants/buttonClasses';
-import { createConnectionId, getThirdPartyTemplateDefaults } from '@/utils/thirdPartyApiProviders';
+import { createConnectionId, getThirdPartyTemplateDefaults } from '@/utils/third-party/thirdPartyApiProviders';
 import { ProviderAvatar } from './ProviderAvatar';
 import { ProviderImageUpload } from './ProviderImageUpload';
 

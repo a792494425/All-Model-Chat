@@ -14,7 +14,7 @@ import {
   isDashScopeOfficialEndpoint,
   isDeepSeekOfficialEndpoint,
   isLocalEngineEndpoint,
-} from '@/utils/thirdPartyApiProviders';
+} from '@/utils/third-party/thirdPartyApiProviders';
 import type { OpenAICompatibleChatConfig, OpenAIMessage, OpenAIMessageContent } from './openaiCompatibleTypes';
 import { collapseOnlyTextContent, hasNonEmptyMessageContent } from '@/services/api/chatMessageContent';
 import { appendSamplingParameters } from '@/services/api/requestFactory';

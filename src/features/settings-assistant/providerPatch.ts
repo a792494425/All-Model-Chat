@@ -11,7 +11,7 @@ import {
   createConnectionId,
   nextConnectionName,
   updateThirdPartyConnection,
-} from '@/utils/thirdPartyApiProviders';
+} from '@/utils/third-party/thirdPartyApiProviders';
 
 type PatchUpdateSet = Partial<
   Pick<ThirdPartyConnection, 'name' | 'baseUrl' | 'protocol' | 'enabled' | 'modelId' | 'apiKey'>

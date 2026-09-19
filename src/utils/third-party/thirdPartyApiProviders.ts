@@ -11,7 +11,7 @@ import {
   type ThirdPartyConnection,
   type ThirdPartyTemplateId,
 } from '@/types';
-import { deduplicateModelsById, sanitizeModelOptions } from './model/modelSorting';
+import { deduplicateModelsById, sanitizeModelOptions } from '@/utils/model/modelSorting';
 
 export const THIRD_PARTY_PROVIDER_LABELS: Record<LegacyThirdPartyProviderId, string> = {
   openai: 'OpenAI',

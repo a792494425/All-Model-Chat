@@ -19,7 +19,7 @@ import {
   type Theme,
   type ThinkingLevel,
 } from '@/types';
-import { buildProviderAwareModelList } from '@/utils/thirdPartyApiProviders';
+import { buildProviderAwareModelList } from '@/utils/third-party/thirdPartyApiProviders';
 import { resolveChatApiRoute } from '@/utils/chatApiRoute';
 import { useDataExport } from '@/hooks/data-management/useDataExport';
 import { useDataImport } from '@/hooks/data-management/useDataImport';

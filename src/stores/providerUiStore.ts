@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { DEFAULT_LIVE_ARTIFACTS_MODEL_ID } from '@/constants/modelConfiguration';
-import type { ConnectionHealthProbeResult, LatencyGrade } from '@/utils/thirdPartyDiagnostics';
+import type { ConnectionHealthProbeResult, LatencyGrade } from '@/utils/third-party/thirdPartyDiagnostics';
 import { createSyncedPersist } from './syncedPersist';
 
 export type ProviderListFilterMode = 'all' | 'enabled' | 'disabled';

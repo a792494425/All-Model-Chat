@@ -4,7 +4,7 @@ import type { ModelOption, ThirdPartyApiProtocol, ThirdPartyTemplateId } from '@
 import { useI18n } from '@/contexts/I18nContext';
 import { toastSuccess, toastWarning } from '@/stores/toastStore';
 import { enrichModelMetadata } from '@/utils/model/knownModelsCatalog';
-import type { ConnectionHealthProbeResult } from '@/utils/thirdPartyDiagnostics';
+import type { ConnectionHealthProbeResult } from '@/utils/third-party/thirdPartyDiagnostics';
 import { ProviderModelToolbar } from './ProviderModelToolbar';
 import { ProviderBatchActionBar } from './ProviderBatchActionBar';
 import { ProviderModelRow } from './ProviderModelRow';

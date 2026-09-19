@@ -3,7 +3,7 @@ import { KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import type { ThirdPartyConnection } from '@/types';
 import { useProviderUiStore } from '@/stores/providerUiStore';
-import { TEMPLATE_PRESETS } from '@/utils/thirdPartyApiProviders';
+import { TEMPLATE_PRESETS } from '@/utils/third-party/thirdPartyApiProviders';
 
 interface UseProviderListLogicOptions {
   connections: ThirdPartyConnection[];

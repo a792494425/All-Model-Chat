@@ -1,5 +1,5 @@
 import React from 'react';
-import type { TemplatePresetMeta } from '@/utils/thirdPartyApiProviders';
+import type { TemplatePresetMeta } from '@/utils/third-party/thirdPartyApiProviders';
 import { useI18n } from '@/contexts/I18nContext';
 import { ProviderAvatar } from '@/components/settings/sections/providers/ProviderAvatar';
 
