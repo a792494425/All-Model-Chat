@@ -7,6 +7,10 @@ import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
 import type { VirtualMcpServer } from '@/features/mcp/virtualMcpRegistry';
 import type { McpToolDefinition } from '@/services/api/mcpApi';
 import { copyTextToClipboard } from '@/utils/clipboard';
+import {
+  getVirtualMcpServerDisplayName,
+  getVirtualMcpServerDisplayDescription,
+} from '@/utils/mcp/virtualMcpLocalization';
 import { McpToolSchemaView } from './McpToolSchemaView';
 import { MCP_INPUT_BASE_CLASSES } from './mcpSectionShared';
 
@@ -107,7 +111,9 @@ export const VirtualMcpServerCard: React.FC<VirtualMcpServerCardProps> = ({
             <ChevronRight size={16} strokeWidth={1.8} className="text-[var(--theme-text-tertiary)] shrink-0" />
           )}
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <span className="truncate text-sm font-semibold text-[var(--theme-text-primary)]">{server.name}</span>
+            <span className="truncate text-sm font-semibold text-[var(--theme-text-primary)]">
+              {getVirtualMcpServerDisplayName(server, t)}
+            </span>
             <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
               {t('settingsMcpVirtualBadge')}
             </span>
@@ -158,14 +164,16 @@ export const VirtualMcpServerCard: React.FC<VirtualMcpServerCardProps> = ({
       </div>
 
       {!isExpanded && (
-        <div className="mt-1 truncate pl-6 text-xs text-[var(--theme-text-secondary)]">{server.description}</div>
+        <div className="mt-1 truncate pl-6 text-xs text-[var(--theme-text-secondary)]">
+          {getVirtualMcpServerDisplayDescription(server, t)}
+        </div>
       )}
 
       {isExpanded && (
         <div className="mt-4 space-y-4 border-t border-[var(--theme-border-secondary)]/50 pt-4">
           <div className="rounded-md border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] p-3 text-xs text-[var(--theme-text-secondary)]">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="leading-relaxed">{server.description}</span>
+              <span className="leading-relaxed">{getVirtualMcpServerDisplayDescription(server, t)}</span>
               {testSuccess && (
                 <span className="flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
                   <Check size={13} />

@@ -7,6 +7,10 @@ import { McpImportError, dedupeServersById, parseImportJson } from '@/features/m
 import { useMcpStatusStore } from '@/stores/mcp/mcpStatusStore';
 import { deriveStatus } from '@/features/mcp/mcpStatus';
 import { getVirtualMcpServers, type VirtualMcpServer } from '@/features/mcp/virtualMcpRegistry';
+import {
+  getVirtualMcpServerDisplayName,
+  getVirtualMcpServerDisplayDescription,
+} from '@/utils/mcp/virtualMcpLocalization';
 import { useVirtualMcpStore } from '@/stores/mcp/virtualMcpStore';
 import { createMcpServer, type CapabilityTestState, type ServerFilter } from './mcpSectionShared';
 
@@ -103,14 +107,17 @@ export const useMcpSectionLogic = ({ settings, onUpdate }: UseMcpSectionLogicPro
       if (filter === 'disabled' && isEnabled) return false;
       if (filter === 'http' || filter === 'sse') return false;
       if (!deferredSearch.trim()) return true;
-      const haystack = `${virtualServer.name} ${virtualServer.id} ${virtualServer.description}`.toLowerCase();
+      const displayName = getVirtualMcpServerDisplayName(virtualServer, t);
+      const displayDesc = getVirtualMcpServerDisplayDescription(virtualServer, t);
+      const haystack =
+        `${virtualServer.name} ${virtualServer.id} ${virtualServer.description} ${displayName} ${displayDesc}`.toLowerCase();
       return deferredSearch
         .toLowerCase()
         .split(/\s+/)
         .filter(Boolean)
         .every((token) => haystack.includes(token));
     },
-    [deferredSearch, filter, isVirtualServerEnabled],
+    [deferredSearch, filter, isVirtualServerEnabled, t],
   );
 
   const filteredVirtualServers = virtualServers.filter(filterVirtualServer);

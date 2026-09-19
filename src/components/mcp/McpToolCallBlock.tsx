@@ -13,6 +13,7 @@ import {
 import { useI18n } from '@/contexts/I18nContext';
 import { extractMcpResultSegments } from '@/features/mcp/mcpResultSummary';
 import { resolveToolDisplay } from '@/features/mcp/toolDisplayNames';
+import { getVirtualMcpServerDisplayName } from '@/utils/mcp/virtualMcpLocalization';
 import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { useMcpApprovalStore } from '@/stores/mcp/mcpApprovalStore';
 import { useMcpToolRun, type McpToolRunEvent } from '@/stores/mcp/mcpToolRuntimeStore';
@@ -186,7 +187,9 @@ export const McpToolCallBlock: React.FC<{
       <button onClick={() => setManualExpanded(!expanded)} className="w-full px-3 py-2 text-sm text-left">
         <div className="flex w-full items-center justify-between gap-2">
           <span className="font-mono text-xs truncate min-w-0">
-            {display ? `${display.serverName} : ${display.toolName}` : call.name}
+            {display
+              ? `${getVirtualMcpServerDisplayName({ id: display.serverId, name: display.serverName }, t)} : ${display.toolName}`
+              : call.name}
           </span>
           <span className="flex shrink-0 items-center gap-2">
             {autoApproved && <ShieldCheck data-testid="mcp-shield" className="h-3.5 w-3.5 text-emerald-600" />}

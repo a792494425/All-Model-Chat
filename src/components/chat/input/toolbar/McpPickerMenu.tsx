@@ -9,6 +9,7 @@ import { useMcpRuntimeStore } from '@/stores/mcp/mcpRuntimeStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVirtualMcpStore } from '@/stores/mcp/virtualMcpStore';
 import { getVirtualMcpServers } from '@/features/mcp/virtualMcpRegistry';
+import { getVirtualMcpServerDisplayName } from '@/utils/mcp/virtualMcpLocalization';
 
 interface PickerServerItem {
   id: string;
@@ -114,7 +115,9 @@ export const McpPickerMenu: React.FC<McpPickerMenuProps> = ({ disabled, disabled
         className="w-full text-left px-3.5 py-2 text-sm hover:bg-[var(--theme-bg-tertiary)] focus:outline-none focus-visible:bg-[var(--theme-bg-tertiary)] flex items-center justify-between transition-colors rounded-lg cursor-pointer"
       >
         <div className="flex items-center gap-2 min-w-0 pr-2">
-          <span className="min-w-0 truncate text-[var(--theme-text-primary)]">{server.name}</span>
+          <span className="min-w-0 truncate text-[var(--theme-text-primary)]">
+            {getVirtualMcpServerDisplayName(server, t)}
+          </span>
           {server.isVirtual && (
             <span className="shrink-0 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               {t('mcpPickerVirtualBadge')}
