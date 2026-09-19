@@ -8,7 +8,7 @@ import { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useChatState } from '@/hooks/chat/useChatState';
 import { useLiveApi } from '@/hooks/live-api/useLiveApi';
-import { useTextAreaInsert } from '@/hooks/useTextAreaInsert';
+import { useTextAreaInsert } from '@/hooks/ui/useTextAreaInsert';
 import { useChatInputState } from './useChatInputState';
 import { useChatInputToolStates } from './useChatInputToolStates';
 

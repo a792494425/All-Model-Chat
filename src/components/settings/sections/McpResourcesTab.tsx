@@ -5,7 +5,7 @@ import {
   type McpResourceDefinition,
   type McpResourceTemplateDefinition,
 } from '@/services/api/mcpApi';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { getErrorMessage } from '@/utils/errorMessage';
 import type { McpServerConfig } from '@/types';
 

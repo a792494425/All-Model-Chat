@@ -12,8 +12,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/shared/DropdownMenu';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
+import { useFocusTrap } from '@/hooks/ui/useFocusTrap';
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { Z_INDEX_TABLE_FULLSCREEN } from '@/constants/layout';
 import {

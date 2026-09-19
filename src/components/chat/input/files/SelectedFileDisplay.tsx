@@ -14,7 +14,7 @@ import {
   Ellipsis,
 } from 'lucide-react';
 import { CATEGORY_STYLES, getResolutionColor } from '@/utils/file/fileDisplayStyles';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { formatFileSize } from '@/utils/file/fileSize';
 import { formatDisplayFileName } from '@/utils/file/fileName';
 import { isTextFile } from '@/utils/file/fileTypeClassification';

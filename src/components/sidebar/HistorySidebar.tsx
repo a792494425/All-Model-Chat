@@ -6,7 +6,7 @@ import { SidebarHeader } from './SidebarHeader';
 import { SidebarActions } from './SidebarActions';
 import { Settings } from 'lucide-react';
 import { useHistorySidebarLogic, type HistoryDisplayMode } from './useHistorySidebarLogic';
-import { useIsMobile } from '@/hooks/useDevice';
+import { useIsMobile } from '@/hooks/ui/useDevice';
 import { useUIStore } from '@/stores/uiStore';
 import { isSessionDrag } from './sidebarDragTypes';
 import { useSidebarResize } from './useSidebarResize';

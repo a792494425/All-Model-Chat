@@ -4,7 +4,7 @@ import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { triggerDownload } from '@/utils/export/core';
 import { extractTextFromNode } from '@/utils/reactNodeText';
 import { MESSAGE_BLOCK_BUTTON_CLASS } from '@/constants/buttonClasses';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { type UploadedFile } from '@/types';
 import { FileDisplay } from '@/components/message/FileDisplay';
 import { useI18n } from '@/contexts/I18nContext';

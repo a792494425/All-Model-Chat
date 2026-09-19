@@ -1,5 +1,5 @@
 import { useState, useRef, useLayoutEffect, useEffect, useMemo, type ReactNode } from 'react';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyToClipboard } from './useCopyToClipboard';
 import { extractTextFromNode, findCodeElement } from '@/utils/reactNodeText';
 import { getCodeBlockPreviewType } from '@/utils/previewableMarkdown';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';

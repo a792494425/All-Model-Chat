@@ -2,7 +2,7 @@ import { logService } from '@/services/logService';
 import { type Dispatch, type RefObject, type SetStateAction, useState, useCallback } from 'react';
 import { prepareAudioForGeminiTranscription } from '@/features/audio/audioCompression';
 import { useRecorder } from '@/hooks/core/useRecorder';
-import { useTextAreaInsert } from '@/hooks/useTextAreaInsert';
+import { useTextAreaInsert } from '@/hooks/ui/useTextAreaInsert';
 import { useI18n } from '@/contexts/I18nContext';
 import { formatI18nErrorMessage } from '@/i18n/interpolate';
 import { getErrorMessage } from '@/utils/errorMessage';

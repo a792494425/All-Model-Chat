@@ -20,7 +20,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/shared/DropdownMenu';
-import { useIsMobile } from '@/hooks/useDevice';
+import { useIsMobile } from '@/hooks/ui/useDevice';
 import { useChatInputActionsContext } from './ChatInputContext';
 import { isGemmaModel } from '@/utils/model/modelCapabilities';
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { type ChatMessage } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { TokenDetailsCard } from './TokenDetailsCard';
 import { buildMessageTokenStatsView, buildTokenStatsCopyText, formatCompactTokens } from './tokenStats';
 

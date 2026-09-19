@@ -1,7 +1,7 @@
 import { useI18n } from '@/contexts/I18nContext';
 import React, { useId, useMemo, useRef, useState, useCallback, useEffect, type RefObject } from 'react';
 import { type ModelOption, type ChatProviderId } from '@/types';
-import { useClickOutside } from '@/hooks/useClickOutside';
+import { useClickOutside } from '@/hooks/ui/useClickOutside';
 import { useListboxNavigation } from '@/hooks/ui/useListboxNavigation';
 import {
   buildModelCatalog,

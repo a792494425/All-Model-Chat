@@ -1,6 +1,6 @@
 import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import * as useDeviceModule from '@/hooks/useDevice';
+import * as useDeviceModule from '@/hooks/ui/useDevice';
 import { setupProviderTestRenderer } from '@/test/render/providerRenderer';
 import { ChatInputActionsContext } from './ChatInputContext';
 import { AttachmentMenu } from './AttachmentMenu';

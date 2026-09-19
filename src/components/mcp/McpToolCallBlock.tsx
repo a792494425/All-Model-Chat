@@ -13,7 +13,7 @@ import {
 import { useI18n } from '@/contexts/I18nContext';
 import { extractMcpResultSegments } from '@/features/mcp/mcpResultSummary';
 import { resolveToolDisplay } from '@/features/mcp/toolDisplayNames';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { useMcpApprovalStore } from '@/stores/mcp/mcpApprovalStore';
 import { useMcpToolRun, type McpToolRunEvent } from '@/stores/mcp/mcpToolRuntimeStore';
 

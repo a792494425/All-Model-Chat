@@ -21,7 +21,7 @@ vi.mock('@/services/api/generation/textApi', () => ({
   translateTextApi: mockTranslateText,
 }));
 
-vi.mock('@/hooks/useCopyToClipboard', () => ({
+vi.mock('@/hooks/ui/useCopyToClipboard', () => ({
   useCopyToClipboard: () => ({
     isCopied: false,
     copyToClipboard: vi.fn(),

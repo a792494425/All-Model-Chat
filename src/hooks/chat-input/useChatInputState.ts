@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useReducer, type SetStateAction } from 'react';
 import { useChatDraftStore, type ChatDraft } from '@/stores/chatDraftStore';
 import { resolveUpdaterOrValue } from '@/stores/stateUpdaters';
-import { useIsMobile } from '@/hooks/useDevice';
+import { useIsMobile } from '@/hooks/ui/useDevice';
 import {
   chatInputStateReducer,
   createSetChatInputFlagAction,

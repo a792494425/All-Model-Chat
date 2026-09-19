@@ -5,7 +5,7 @@ import { SelectedFileDisplay } from './SelectedFileDisplay';
 import type { UploadedFile } from '@/types';
 import { createUploadedFile } from '@/test/data/factories';
 
-vi.mock('@/hooks/useCopyToClipboard', () => ({
+vi.mock('@/hooks/ui/useCopyToClipboard', () => ({
   useCopyToClipboard: () => ({
     isCopied: false,
     copyToClipboard: vi.fn(),

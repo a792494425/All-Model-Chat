@@ -157,7 +157,7 @@ describe('MediaNavPanel', () => {
   });
 
   it('renders fixed full-screen without relative class on mobile', async () => {
-    const useDeviceModule = await import('@/hooks/useDevice');
+    const useDeviceModule = await import('@/hooks/ui/useDevice');
     const isMobileSpy = vi.spyOn(useDeviceModule, 'useIsMobile').mockReturnValue(true);
 
     try {

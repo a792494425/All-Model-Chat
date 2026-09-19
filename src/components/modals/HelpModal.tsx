@@ -4,7 +4,7 @@ import { Modal } from '@/components/shared/Modal';
 import { X, HelpCircle, Search, Check, Copy } from 'lucide-react';
 import { CommandIcon } from '@/components/icons/CommandIcon';
 import { type CommandInfo } from '@/types';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { MODAL_CLOSE_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { SETTINGS_SEARCH_INPUT_CLASS } from '@/constants/designTokens';
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';

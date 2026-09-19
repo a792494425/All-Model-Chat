@@ -123,7 +123,7 @@ const mockChatStoreSubscribers = vi.hoisted(
     new Set<(state: Partial<typeof mockChatStoreState>, previousState: Partial<typeof mockChatStoreState>) => void>(),
 );
 
-vi.mock('@/hooks/useDevice', () => ({
+vi.mock('@/hooks/ui/useDevice', () => ({
   useIsDesktop: () => true,
   useIsMobile: () => false,
 }));

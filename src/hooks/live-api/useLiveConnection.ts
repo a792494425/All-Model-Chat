@@ -5,7 +5,7 @@ import { getLiveApiClient, LiveApiAuthConfigurationError } from '@/services/api/
 import { logService } from '@/services/logService';
 import type { AppSettings, LiveTranscriptHandler } from '@/types';
 import type { LiveErrorState } from '@/utils/live-api/liveErrorState';
-import { useStateWithRef } from '@/hooks/useStateWithRef';
+import { useStateWithRef } from '@/hooks/core/useStateWithRef';
 import { isGemini38LiveModel, isLiveTranslateModel } from '@/utils/model/modelCapabilities';
 
 const MAX_RECONNECT_RETRIES = 5;

@@ -3,7 +3,7 @@ import { audioWorkletCode } from '@/features/audio/audioWorklet';
 import { decodeBase64ToArrayBuffer, decodeAudioData } from '@/features/audio/audioProcessing';
 import { logService } from '@/services/logService';
 import { createManagedObjectUrl, releaseManagedObjectUrl } from '@/services/objectUrlManager';
-import { useStateWithRef } from '@/hooks/useStateWithRef';
+import { useStateWithRef } from '@/hooks/core/useStateWithRef';
 
 const HYBRID_VAD_SILENCE_MS = 700;
 const SPEECH_RMS_THRESHOLD = 0.015;

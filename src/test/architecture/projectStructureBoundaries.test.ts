@@ -66,14 +66,27 @@ describe('project structure boundaries', () => {
 
   it('keeps root hooks limited to cross-domain primitives', () => {
     const relocatedDomainHooks = [
+      'src/hooks/useClickOutside.ts',
+      'src/hooks/useCopyToClipboard.ts',
+      'src/hooks/useDevice.ts',
+      'src/hooks/useFocusTrap.ts',
       'src/hooks/useHistorySidebarLogic.ts',
       'src/hooks/useLiveApi.ts',
       'src/hooks/useMessageExport.ts',
       'src/hooks/usePreloadedScenarios.ts',
+      'src/hooks/useResizeDrag.ts',
       'src/hooks/useSlashCommands.ts',
+      'src/hooks/useStateWithRef.ts',
+      'src/hooks/useTextAreaInsert.ts',
       'src/hooks/useVoiceInput.ts',
     ];
     const sourceFiles = listProjectSourceFilesExcept('src', thisTestFile);
+
+    const rootHookFiles = fs
+      .readdirSync(path.join(projectRoot, 'src/hooks'), { withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name);
+    expect(rootHookFiles).toEqual([]);
 
     for (const relativePath of relocatedDomainHooks) {
       expect(fs.existsSync(path.join(projectRoot, relativePath)), relativePath).toBe(false);
@@ -82,7 +95,7 @@ describe('project structure boundaries', () => {
     for (const relativePath of sourceFiles) {
       const source = readProjectFile(relativePath);
       expect(source, relativePath).not.toMatch(
-        /@\/hooks\/use(?:HistorySidebarLogic|LiveApi|MessageExport|PreloadedScenarios|SlashCommands|VoiceInput)/,
+        /@\/hooks\/use(?:ClickOutside|CopyToClipboard|Device|FocusTrap|HistorySidebarLogic|LiveApi|MessageExport|PreloadedScenarios|ResizeDrag|SlashCommands|StateWithRef|TextAreaInsert|VoiceInput)/,
       );
     }
   });

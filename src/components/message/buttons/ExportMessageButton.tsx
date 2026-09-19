@@ -3,7 +3,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { Download } from 'lucide-react';
 import { type ChatMessage } from '@/types';
 import { useMessageExport } from './export/useMessageExport';
-import { useResponsiveValue } from '@/hooks/useDevice';
+import { useResponsiveValue } from '@/hooks/ui/useDevice';
 import { ExportModal } from './export/ExportModal';
 
 interface ExportMessageButtonProps {

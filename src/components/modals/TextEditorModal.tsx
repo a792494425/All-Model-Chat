@@ -3,7 +3,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
 import { X, Check, Copy, CheckCheck, Eye, Edit3, RotateCcw, Eraser } from 'lucide-react';
 import { TextEditorModalShell } from './TextEditorModalShell';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { FOCUS_VISIBLE_RING_SECONDARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { countLines, estimateTokens } from '@/utils/import-context/textStats';
 import { LazyMarkdownRenderer } from '@/components/message/LazyMarkdownRenderer';

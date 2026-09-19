@@ -4,7 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { useChatStore } from '@/stores/chatStore';
 import { useMediaNavStore, type MediaNavKind } from '@/stores/mediaNavStore';
 import { collectSessionMediaFiles, formatMediaNavDisplayName } from '@/utils/media-nav/sessionMediaFiles';
-import { useIsMobile } from '@/hooks/useDevice';
+import { useIsMobile } from '@/hooks/ui/useDevice';
 import { Z_INDEX_SIDE_PANEL_MOBILE, Z_INDEX_TOPMOST_OVERLAY } from '@/constants/layout';
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';

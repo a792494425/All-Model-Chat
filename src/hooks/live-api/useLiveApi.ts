@@ -11,7 +11,7 @@ import { resolveLiveErrorText } from '@/utils/live-api/liveErrorState';
 import { useBackgroundKeepAlive } from '@/hooks/core/useBackgroundKeepAlive';
 import { useI18n } from '@/contexts/I18nContext';
 import { getLiveApiKey } from '@/utils/apiKeySelection';
-import { useStateWithRef } from '@/hooks/useStateWithRef';
+import { useStateWithRef } from '@/hooks/core/useStateWithRef';
 
 interface UseLiveApiProps {
   appSettings: AppSettings;

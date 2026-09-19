@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Check, ChevronDown, ChevronRight, Copy, MessageSquarePlus } from 'lucide-react';
 import { fetchMcpPrompt, type McpPromptDefinition } from '@/services/api/mcpApi';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { useChatStore } from '@/stores/chatStore';
 import { useChatDraftStore } from '@/stores/chatDraftStore';

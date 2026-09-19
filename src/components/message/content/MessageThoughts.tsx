@@ -8,7 +8,7 @@ import { THINKING_STRIP_MAX_SOURCE_LINES } from './thoughts/thinkingStripMetrics
 import { translateTextApi } from '@/services/api/generation/textApi';
 import { DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { DEFAULT_THOUGHT_TRANSLATION_MODEL_ID } from '@/constants/modelConfiguration';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { ThinkingHeader } from './thoughts/ThinkingHeader';
 import { ThinkingStrip } from './thoughts/ThinkingStrip';
 import { ThinkingActions } from './thoughts/ThinkingActions';

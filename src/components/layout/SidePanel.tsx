@@ -4,7 +4,7 @@ import { type SideViewContent } from '@/types';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { triggerDownload, sanitizeFilename } from '@/utils/export/core';
 import { repairIncompleteSvg } from '@/utils/code/codeSnippet';
-import { useIsMobile } from '@/hooks/useDevice';
+import { useIsMobile } from '@/hooks/ui/useDevice';
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { Z_INDEX_SIDE_PANEL_MOBILE, Z_INDEX_TOPMOST_OVERLAY } from '@/constants/layout';
 import { useI18n } from '@/contexts/I18nContext';

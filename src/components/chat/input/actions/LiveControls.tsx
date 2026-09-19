@@ -3,7 +3,7 @@ import { PhoneOff, AudioWaveform, Mic, MicOff, MonitorUp, Video, VideoOff } from
 import { CHAT_INPUT_BUTTON_CLASS } from '@/constants/buttonClasses';
 import { useChatInputActionsContext } from '@/components/chat/input/ChatInputContext';
 import { useI18n } from '@/contexts/I18nContext';
-import { useIsMobile } from '@/hooks/useDevice';
+import { useIsMobile } from '@/hooks/ui/useDevice';
 
 export const LiveControls: React.FC = () => {
   const {

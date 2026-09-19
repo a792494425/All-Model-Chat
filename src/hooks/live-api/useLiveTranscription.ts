@@ -8,7 +8,7 @@ import { createManagedObjectUrl, releaseManagedObjectUrl } from '@/services/obje
 import { logService } from '@/services/logService';
 import type { AppSettings } from '@/types';
 import { toError } from '@/utils/errorMessage';
-import { useStateWithRef } from '@/hooks/useStateWithRef';
+import { useStateWithRef } from '@/hooks/core/useStateWithRef';
 
 export interface LiveTranscriptionOptions {
   modelId?: string;

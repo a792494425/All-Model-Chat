@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { useWindowContext } from '@/contexts/WindowContext';
 import { Z_INDEX_MODAL_BACKDROP } from '@/constants/layout';
-import { getFocusableElements } from '@/hooks/useFocusTrap';
+import { getFocusableElements } from '@/hooks/ui/useFocusTrap';
 
 interface ModalProps {
   isOpen: boolean;

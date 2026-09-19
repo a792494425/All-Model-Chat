@@ -3,7 +3,7 @@ import { setupProviderTestRenderer } from '@/test/render/providerRenderer';
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { createChatInputActionsContextValue } from '@/test/chat-input/contextFixtures';
 import { ChatInputActionsContext } from '@/components/chat/input/ChatInputContext';
-import * as useDeviceModule from '@/hooks/useDevice';
+import * as useDeviceModule from '@/hooks/ui/useDevice';
 import { LiveControls } from './LiveControls';
 
 describe('LiveControls', () => {

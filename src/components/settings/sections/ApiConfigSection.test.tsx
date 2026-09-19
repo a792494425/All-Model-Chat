@@ -14,7 +14,7 @@ const { getClientMock, generateContentMock } = vi.hoisted(() => ({
   generateContentMock: vi.fn(),
 }));
 
-vi.mock('@/hooks/useDevice', () => ({
+vi.mock('@/hooks/ui/useDevice', () => ({
   useResponsiveValue: vi.fn(() => 18),
 }));
 

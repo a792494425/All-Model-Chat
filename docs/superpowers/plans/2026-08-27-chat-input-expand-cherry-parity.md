@@ -165,7 +165,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type TransitionEvent as ReactTransitionEvent,
 } from 'react';
-import { useResizeDrag } from '@/hooks/useResizeDrag';
+import { useResizeDrag } from '@/hooks/ui/useResizeDrag';
 import { getChatInputMinHeight, getCompactChatInputMinHeight } from './chatInputSizing';
 // useTimer 可选：若项目无此 hook，用 window.setTimeout 包一层，key 忽略
 export const CHAT_INPUT_EXPANDED_MAX_HEIGHT = 'max(220px, 50vh)';

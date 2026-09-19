@@ -5,7 +5,7 @@ import { type ChatMessage } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { ExportMessageButton } from './buttons/ExportMessageButton';
 import { MessageCopyButton } from './buttons/MessageCopyButton';
-import { useIsMobile, useResponsiveValue } from '@/hooks/useDevice';
+import { useIsMobile, useResponsiveValue } from '@/hooks/ui/useDevice';
 import { useWindowContext } from '@/contexts/WindowContext';
 import { IconBranch } from '@/components/icons';
 import { stripLocateMarkers } from '@/utils/media-nav/locateMarker';
