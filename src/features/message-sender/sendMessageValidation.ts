@@ -1,6 +1,6 @@
 import type { UploadedFile } from '@/types';
 import { logService } from '@/services/logService';
-import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES } from '@/utils/codeExecution';
+import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES } from '@/utils/code/codeExecution';
 import {
   isAudioFile,
   isImageMimeType,

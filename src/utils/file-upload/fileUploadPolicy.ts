@@ -13,7 +13,7 @@ import {
   type UploadedFile,
   GEMINI_PROVIDER_ID,
 } from '@/types';
-import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES, isServerCodeExecutionMode } from '@/utils/codeExecution';
+import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES, isServerCodeExecutionMode } from '@/utils/code/codeExecution';
 import { isTextFile } from '@/utils/file/fileTypeClassification';
 import { getTranslator, type Translator } from '@/i18n/translations';
 import { interpolate } from '@/i18n/interpolate';

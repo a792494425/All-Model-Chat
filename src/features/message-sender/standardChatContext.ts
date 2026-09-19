@@ -20,7 +20,7 @@ import {
   partsContainPdf,
   partsContainVideo,
 } from '@/utils/media-nav/sessionMediaFiles';
-import { isServerCodeExecutionMode } from '@/utils/codeExecution';
+import { isServerCodeExecutionMode } from '@/utils/code/codeExecution';
 import { isGemmaModel, isImageGenerationModel, shouldStripThinkingFromContext } from '@/utils/model/modelCapabilities';
 import { createMcpClientFunctions } from '@/features/mcp/mcpClientFunctions';
 import { requestToolApproval } from '@/stores/mcp/mcpApprovalStore';

@@ -12,7 +12,7 @@ import { logService } from '@/services/logService';
 import { formatApiKeyErrorMessage } from '@/utils/apiKeySelection';
 import { useChatStore } from '@/stores/chatStore';
 import { toastError } from '@/stores/toastStore';
-import { isServerCodeExecutionMode } from '@/utils/codeExecution';
+import { isServerCodeExecutionMode } from '@/utils/code/codeExecution';
 import { getModelCapabilities } from '@/utils/model/modelCapabilities';
 import { resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
 import { updateSessionById } from '@/utils/chat/sessionMutations';

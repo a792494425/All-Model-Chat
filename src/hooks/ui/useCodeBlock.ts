@@ -10,7 +10,7 @@ import {
   detectSnippetFilename,
   getSnippetMimeType,
   repairIncompleteSvg,
-} from '@/utils/codeSnippet';
+} from '@/utils/code/codeSnippet';
 import { type SideViewContent } from '@/types';
 import { type OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { useI18n } from '@/contexts/I18nContext';

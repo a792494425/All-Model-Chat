@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, type RefObject } from 'react';
 import { useWindowContext } from '@/contexts/WindowContext';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { sanitizeFilename, triggerDownload } from '@/utils/export/core';
-import { repairIncompleteSvg } from '@/utils/codeSnippet';
+import { repairIncompleteSvg } from '@/utils/code/codeSnippet';
 import { useFullscreen } from './useFullscreen';
 import { useHtmlPreviewGraphvizRelay } from './useHtmlPreviewGraphvizRelay';
 import {

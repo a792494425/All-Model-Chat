@@ -94,7 +94,7 @@ import {
   createUploadedFile,
 } from '@/test/data/factories';
 import { useChatStore } from '@/stores/chatStore';
-import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES } from '@/utils/codeExecution';
+import { CODE_EXECUTION_TEXT_FILE_LIMIT_BYTES } from '@/utils/code/codeExecution';
 
 describe('useMessageSender', () => {
   const renderMessageSender = (overrides: MessageSenderPropsOverrides = {}) => {

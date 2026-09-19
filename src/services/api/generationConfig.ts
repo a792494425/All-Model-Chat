@@ -26,7 +26,7 @@ import {
   normalizeImageSizeForModel,
 } from '@/utils/model/modelCapabilities';
 import { normalizeModelId } from '@/utils/model/modelId';
-import { isServerCodeExecutionMode } from '@/utils/codeExecution';
+import { isServerCodeExecutionMode } from '@/utils/code/codeExecution';
 
 // Docs examples always list TEXT before IMAGE; the set order is what the API
 // expects on the wire.

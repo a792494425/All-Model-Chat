@@ -3,7 +3,7 @@ import { getErrorMessage } from '@/utils/errorMessage';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { type UploadedFile, type AppSettings, type ChatProviderId, MediaResolution } from '@/types';
 import { buildContentParts } from '@/utils/chat/builder';
-import { isServerCodeExecutionMode } from '@/utils/codeExecution';
+import { isServerCodeExecutionMode } from '@/utils/code/codeExecution';
 import { generateUniqueId } from '@/utils/chat/ids';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { cleanupFilePreviewUrl, cleanupFilePreviewUrls } from '@/utils/file/filePreviewUrls';

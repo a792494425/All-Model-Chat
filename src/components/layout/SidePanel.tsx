@@ -3,7 +3,7 @@ import { X, Code, Eye, Download, FileCode2, type LucideIcon } from 'lucide-react
 import { type SideViewContent } from '@/types';
 import { createManagedObjectUrl } from '@/services/objectUrlManager';
 import { triggerDownload, sanitizeFilename } from '@/utils/export/core';
-import { repairIncompleteSvg } from '@/utils/codeSnippet';
+import { repairIncompleteSvg } from '@/utils/code/codeSnippet';
 import { useIsMobile } from '@/hooks/useDevice';
 import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasses';
 import { Z_INDEX_SIDE_PANEL_MOBILE, Z_INDEX_TOPMOST_OVERLAY } from '@/constants/layout';

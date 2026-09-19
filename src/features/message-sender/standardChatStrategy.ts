@@ -1,6 +1,6 @@
 import { logService } from '@/services/logService';
 import { buildContentParts } from '@/utils/chat/builder';
-import { isServerCodeExecutionMode } from '@/utils/codeExecution';
+import { isServerCodeExecutionMode } from '@/utils/code/codeExecution';
 import { getModelCapabilities, bansModelTurnPrefill } from '@/utils/model/modelCapabilities';
 import { resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
 import { getLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
