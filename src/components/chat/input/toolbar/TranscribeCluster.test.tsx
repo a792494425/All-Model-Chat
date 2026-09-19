@@ -34,7 +34,7 @@ describe('TranscribeCluster', () => {
     );
   };
 
-  it('renders record, upload, video subtitles, subtitle mode, language selector, and settings buttons', () => {
+  it('renders record, upload, video subtitles, subtitle mode, and settings buttons', () => {
     renderCluster();
 
     expect(screen.getByTestId('transcribe-record-button')).toBeInTheDocument();
@@ -42,6 +42,7 @@ describe('TranscribeCluster', () => {
     expect(screen.getByTestId('transcribe-video-button')).toBeInTheDocument();
     expect(screen.getByTestId('transcribe-subtitles-toggle-button')).toBeInTheDocument();
     expect(screen.getByTestId('transcribe-settings-button')).toBeInTheDocument();
+    expect(document.getElementById('transcribe-language-selector')).not.toBeInTheDocument();
   });
 
   it('toggles subtitle mode when subtitle button is clicked', () => {
@@ -87,6 +88,7 @@ describe('TranscribeCluster', () => {
 
     fireEvent.click(screen.getByTestId('transcribe-settings-button'));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(document.getElementById('transcribe-language-selector')).toBeInTheDocument();
 
     const saveButton = screen.getByRole('button', { name: /save/i });
     fireEvent.click(saveButton);

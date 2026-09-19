@@ -7,7 +7,6 @@ import {
   TOOLBAR_TOGGLE_IDLE_CLASS,
 } from '@/constants/designTokens';
 import { type AttachmentAction, type ChatSettings, type ChatSettingsUpdater } from '@/types';
-import { TranscribeLanguageSelector } from './TranscribeLanguageSelector';
 import { TranscribeSettingsModal } from './TranscribeSettingsModal';
 
 interface TranscribeClusterProps {
@@ -33,12 +32,8 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
   const systemInstruction = currentChatSettings.transcriptionSystemInstruction ?? '';
 
   const hasAdvancedConfig = Boolean(
-    wordTimestamps || speakerLabels || smartMode || outputSubtitles || customVocabulary.trim() || systemInstruction.trim(),
+    language || wordTimestamps || speakerLabels || smartMode || outputSubtitles || customVocabulary.trim() || systemInstruction.trim(),
   );
-
-  const handleLanguageChange = (newLang: string) => {
-    setCurrentChatSettings((prev) => ({ ...prev, transcriptionLanguage: newLang }));
-  };
 
   const handleToggleSubtitles = () => {
     setCurrentChatSettings((prev) => {
@@ -52,6 +47,7 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
   };
 
   const handleSaveModalSettings = (settings: {
+    language: string;
     systemInstruction: string;
     customVocabulary: string;
     wordTimestamps: boolean;
@@ -61,6 +57,7 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
   }) => {
     setCurrentChatSettings((prev) => ({
       ...prev,
+      transcriptionLanguage: settings.language,
       transcriptionSystemInstruction: settings.systemInstruction,
       transcriptionCustomVocabulary: settings.customVocabulary,
       transcriptionWordTimestamps: settings.wordTimestamps,
@@ -119,8 +116,6 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
 
         <div className="hidden sm:block h-4 w-px bg-[var(--theme-border-secondary)]/60 my-auto" aria-hidden="true" />
 
-        <TranscribeLanguageSelector language={language} setLanguage={handleLanguageChange} />
-
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
@@ -137,6 +132,7 @@ export const TranscribeCluster: React.FC<TranscribeClusterProps> = ({
       <TranscribeSettingsModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        language={language}
         systemInstruction={systemInstruction}
         customVocabulary={customVocabulary}
         wordTimestamps={wordTimestamps}

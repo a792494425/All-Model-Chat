@@ -38,9 +38,9 @@ export const TranscribeLanguageSelector: React.FC<TranscribeLanguageSelectorProp
       value={language}
       onChange={(e) => setLanguage(e.target.value)}
       className="mb-0"
-      wrapperClassName="relative min-w-[130px] w-auto"
-      direction="up"
-      size="compact"
+      wrapperClassName="relative w-full"
+      direction="down"
+      size="default"
     >
       <option value="">{t('transcribeLangDetect')}</option>
       {options.map((option) => (

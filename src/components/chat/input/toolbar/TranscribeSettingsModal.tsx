@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { Modal } from '@/components/shared/Modal';
 import { ToggleItem } from '@/components/shared/ToggleItem';
-import { Sparkles, SlidersHorizontal, X } from 'lucide-react';
+import { Sparkles, SlidersHorizontal, Languages, X } from 'lucide-react';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
+import { TranscribeLanguageSelector } from './TranscribeLanguageSelector';
 
 interface TranscribeSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  language?: string;
   systemInstruction: string;
   customVocabulary: string;
   wordTimestamps: boolean;
@@ -15,6 +17,7 @@ interface TranscribeSettingsModalProps {
   smartMode: boolean;
   outputSubtitles?: boolean;
   onSave: (settings: {
+    language: string;
     systemInstruction: string;
     customVocabulary: string;
     wordTimestamps: boolean;
@@ -27,6 +30,7 @@ interface TranscribeSettingsModalProps {
 export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = ({
   isOpen,
   onClose,
+  language = '',
   systemInstruction,
   customVocabulary,
   wordTimestamps,
@@ -36,6 +40,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
   onSave,
 }) => {
   const { t } = useI18n();
+  const [draftLanguage, setDraftLanguage] = useState(language);
   const [draftInstruction, setDraftInstruction] = useState(systemInstruction);
   const [draftVocabulary, setDraftVocabulary] = useState(customVocabulary);
   const [draftWordTimestamps, setDraftWordTimestamps] = useState(wordTimestamps);
@@ -45,6 +50,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
 
   useEffect(() => {
     if (isOpen) {
+      setDraftLanguage(language);
       setDraftInstruction(systemInstruction);
       setDraftVocabulary(customVocabulary);
       setDraftWordTimestamps(wordTimestamps);
@@ -52,7 +58,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
       setDraftSmartMode(smartMode);
       setDraftOutputSubtitles(outputSubtitles);
     }
-  }, [isOpen, systemInstruction, customVocabulary, wordTimestamps, speakerLabels, smartMode, outputSubtitles]);
+  }, [isOpen, language, systemInstruction, customVocabulary, wordTimestamps, speakerLabels, smartMode, outputSubtitles]);
 
   const handleSmartModeChange = (enabled: boolean) => {
     setDraftSmartMode(enabled);
@@ -86,6 +92,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
 
   const handleSave = () => {
     onSave({
+      language: draftLanguage,
       systemInstruction: draftInstruction.trim(),
       customVocabulary: draftVocabulary.trim(),
       wordTimestamps: draftWordTimestamps,
@@ -119,6 +126,17 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
         </div>
 
         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <Languages size={14} className="text-[var(--theme-text-accent)]" />
+              <label htmlFor="transcribe-language-selector" className="text-xs font-semibold text-[var(--theme-text-primary)]">
+                {t('transcribePrimaryLanguage')}
+              </label>
+            </div>
+            <p className="text-xs text-[var(--theme-text-secondary)]">{t('transcribePrimaryLanguageHelp')}</p>
+            <TranscribeLanguageSelector language={draftLanguage} setLanguage={setDraftLanguage} />
+          </div>
+
           <div className="space-y-1 rounded-xl border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-secondary)]/30 p-2.5">
             <ToggleItem
               label={t('transcribeSubtitleMode')}
