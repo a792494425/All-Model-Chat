@@ -139,7 +139,7 @@ describe('ChatArea', () => {
     const pointerLayer = input?.parentElement;
 
     expect(pointerLayer?.className).toContain('pointer-events-auto');
-    expect(pointerLayer?.className).toContain('max-w-[44.35rem]');
+    expect(pointerLayer?.className).toContain('max-w-[var(--chat-content-width,44.35rem)]');
     expect(pointerLayer?.className).toContain('mx-auto');
   });
 

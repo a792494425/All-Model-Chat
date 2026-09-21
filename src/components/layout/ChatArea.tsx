@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Header } from '@/components/header/Header';
 import { MessageList } from '@/components/chat/message-list/MessageList';
 import { ChatInput } from '@/components/chat/input/ChatInput';
+import { ChatWidthControls } from '@/components/chat/width/ChatWidthControls';
 import { DragDropOverlay } from '@/components/chat/overlays/DragDropOverlay';
 import { ModelsErrorDisplay } from '@/components/chat/overlays/ModelsErrorDisplay';
 import { useChatArea } from './useChatArea';
@@ -41,12 +42,14 @@ export const ChatArea: React.FC = () => {
     onTogglePip,
   } = useChatHeaderRuntime();
   const { chatInputContainerRef } = useChatArea();
+  const chatAreaRef = useRef<HTMLDivElement>(null);
 
   const newChatShortcut = useMemo(() => getShortcutDisplay('general.newChat', appSettings), [appSettings]);
   const pipShortcut = useMemo(() => getShortcutDisplay('general.togglePip', appSettings), [appSettings]);
 
   return (
     <div
+      ref={chatAreaRef}
       className="flex flex-col flex-grow min-w-0 h-full overflow-hidden relative chat-bg-enhancement"
       onDragEnter={handleAppDragEnter}
       onDragOver={handleAppDragOver}
@@ -82,8 +85,13 @@ export const ChatArea: React.FC = () => {
 
       <MessageList />
 
+      <ChatWidthControls containerRef={chatAreaRef} />
+
       <div ref={chatInputContainerRef} className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
-        <div className={`pointer-events-auto ${isPipActive ? '' : 'mx-auto w-full max-w-[44.35rem]'}`}>
+        <div
+          className={`pointer-events-auto ${isPipActive ? '' : 'mx-auto w-full max-w-[var(--chat-content-width,44.35rem)]'}`}
+          style={isPipActive ? undefined : { maxWidth: 'var(--chat-content-width, 44.35rem)' }}
+        >
           <ChatInput />
         </div>
       </div>

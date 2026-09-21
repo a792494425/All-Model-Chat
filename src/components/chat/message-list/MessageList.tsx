@@ -143,7 +143,10 @@ const MessageListComponent: React.FC = () => {
         // flow-root contains the message's top margins inside the item wrapper;
         // collapsed-through margins otherwise create gaps Virtuoso never
         // measures, shifting every scroll target (incl. the true bottom) short.
-        <div className="flow-root px-1.5 sm:px-2 md:px-3 max-w-7xl mx-auto w-full">
+        <div
+          className="flow-root pl-2 pr-2 sm:pl-2.5 sm:pr-3 mx-auto w-full"
+          style={{ maxWidth: 'var(--chat-content-width, 80rem)' }}
+        >
           <Message
             key={message.id}
             message={message}
