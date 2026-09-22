@@ -95,7 +95,7 @@ describe('UI clarity regressions', () => {
 
     expect(layout).toContain("CHAT_USER_MESSAGE_INSET_CLASS = 'ml-12 sm:ml-16 md:ml-20'");
     expect(layout).not.toContain('CHAT_MESSAGE_LIST_GUTTER_CLASS');
-    expect(messageList).toContain('px-1.5 sm:px-2 md:px-3');
+    expect(messageList).toContain('pl-2 pr-2 sm:pl-2.5 sm:pr-3');
     expect(messageList).not.toContain('CHAT_MESSAGE_LIST_GUTTER_CLASS');
     expect(message).toContain('CHAT_USER_MESSAGE_INSET_CLASS');
   });

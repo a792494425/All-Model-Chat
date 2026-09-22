@@ -192,5 +192,9 @@ ${STREAM_SANITIZER_SCRIPT}
 
     renderHtml(event.data.html);
   });
+
+  try {
+    parent.postMessage({ channel, event: 'ready' }, '*');
+  } catch {}
 })();
 </script>`;

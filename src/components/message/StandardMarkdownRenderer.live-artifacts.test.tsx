@@ -125,13 +125,13 @@ describe('StandardMarkdownRenderer Live Artifacts', () => {
     expect(iframe?.getAttribute('srcdoc')).toContain('.card{color:red}');
   });
 
-  it('skips syntax highlighting while content is still streaming', () => {
+  it('keeps syntax highlighting stable during streaming to prevent visual flash on completion', () => {
     renderMarkdown({ content: '```js\nconst value = 1;\n```', isLoading: true });
 
-    expect(renderer.container.querySelector('.hljs-keyword')).toBeNull();
+    expect(renderer.container.querySelector('.hljs-keyword')).not.toBeNull();
   });
 
-  it('restores syntax highlighting when streaming is complete', () => {
+  it('retains syntax highlighting when streaming is complete', () => {
     renderMarkdown({ content: '```js\nconst value = 1;\n```', isLoading: false });
 
     expect(renderer.container.querySelector('.hljs-keyword')).not.toBeNull();
@@ -632,8 +632,68 @@ describe('StandardMarkdownRenderer Live Artifacts', () => {
       renderer.root.render(renderArtifact(false));
     });
 
+    const finalIframe = renderer.container.querySelector<HTMLIFrameElement>('iframe[title="HTML Preview"]');
+    expect(finalIframe).toBe(iframe);
+
     expect(renderer.container.querySelector<HTMLElement>('[data-live-artifact-viewport="true"]')?.style.height).toBe(
       '960px',
     );
+  });
+
+  it('keeps the same artifact iframe node when streaming completes for mixed prose and artifact message', () => {
+    const renderMessage = (isLoading: boolean) =>
+      createStandardMarkdownRendererElement({
+        content: 'Here is your preview:\n\n```amc-live-artifact-html\n<div class="card">Content</div>\n```\n\nEnjoy!',
+        messageId: 'mixed-prose-artifact-message',
+        isLoading,
+      });
+
+    act(() => {
+      renderer.root.render(renderMessage(true));
+    });
+
+    const streamingIframe = renderer.container.querySelector<HTMLIFrameElement>('iframe[title="HTML Preview"]');
+    expect(streamingIframe).not.toBeNull();
+
+    act(() => {
+      renderer.root.render(renderMessage(false));
+    });
+
+    const finalIframe = renderer.container.querySelector<HTMLIFrameElement>('iframe[title="HTML Preview"]');
+    expect(finalIframe).not.toBeNull();
+    expect(finalIframe).toBe(streamingIframe);
+  });
+
+  it('keeps the same artifact iframe node when an open artifact code block closes upon stream completion', () => {
+    const renderStream = (content: string, isLoading: boolean) =>
+      createStandardMarkdownRendererElement({
+        content,
+        messageId: 'test-stream-open-to-closed-artifact',
+        isLoading,
+      });
+
+    // While streaming: open fence without closing ```
+    act(() => {
+      renderer.root.render(
+        renderStream('```amc-live-artifact-html\n<!DOCTYPE html><html><body><h1>Streaming</h1></body></html>', true),
+      );
+    });
+
+    const streamingIframe = renderer.container.querySelector<HTMLIFrameElement>('iframe[title="HTML Preview"]');
+    expect(streamingIframe).not.toBeNull();
+
+    // Stream completes: closing ``` arrives and isLoading becomes false
+    act(() => {
+      renderer.root.render(
+        renderStream(
+          '```amc-live-artifact-html\n<!DOCTYPE html><html><body><h1>Streaming</h1></body></html>\n```',
+          false,
+        ),
+      );
+    });
+
+    const finalIframe = renderer.container.querySelector<HTMLIFrameElement>('iframe[title="HTML Preview"]');
+    expect(finalIframe).not.toBeNull();
+    expect(finalIframe).toBe(streamingIframe);
   });
 });

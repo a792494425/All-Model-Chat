@@ -11,7 +11,13 @@ import { svgToUploadedFile } from '@/utils/export/svgToUploadedFile';
 import { useDebouncedDiagramRender } from '@/hooks/diagram/useDebouncedDiagramRender';
 import { useDiagramExport } from '@/hooks/diagram/useDiagramExport';
 
+import { hashString } from '@/utils/format/stringHash';
+
 const GRAPHVIZ_EXPORT_SCALE = 5;
+const graphvizBlockSvgCache = new Map<string, string>();
+
+const getBlockCacheKey = (code: string, themeId: string, layout: 'LR' | 'TB') =>
+  `${themeId}:${layout}:${code.length}:${hashString(code)}`;
 
 interface GraphvizBlockProps {
   code: string;
@@ -44,11 +50,30 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
     return 'TB';
   }, [code, manualLayout]);
 
-  const [svgContent, setSvgContent] = useState('');
-  const [error, setError] = useState('');
-  const [isRendering, setIsRendering] = useState(true);
+  const isMessageLoadingRef = useRef(isMessageLoading);
+  useEffect(() => {
+    isMessageLoadingRef.current = isMessageLoading;
+  }, [isMessageLoading]);
 
-  const [diagramFile, setDiagramFile] = useState<UploadedFile | null>(null);
+  const blockCacheKey = useMemo(
+    () => getBlockCacheKey(code, themeId, effectiveLayout),
+    [code, effectiveLayout, themeId],
+  );
+
+  const initialCachedSvg = useMemo(() => graphvizBlockSvgCache.get(blockCacheKey) ?? '', [blockCacheKey]);
+
+  const [svgContent, setSvgContent] = useState(initialCachedSvg);
+  const [error, setError] = useState('');
+  const [isRendering, setIsRendering] = useState(!initialCachedSvg);
+
+  const [diagramFile, setDiagramFile] = useState<UploadedFile | null>(() =>
+    initialCachedSvg
+      ? svgToUploadedFile(initialCachedSvg, {
+          id: `graphviz-svg-${Math.random().toString(36).substring(2, 9)}`,
+          name: 'graphviz-diagram.svg',
+        })
+      : null,
+  );
   const [showSource, setShowSource] = useState(false);
 
   const diagramContainerRef = useRef<HTMLDivElement>(null);
@@ -69,7 +94,23 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
       return;
     }
 
-    setIsRendering(true);
+    const cached = graphvizBlockSvgCache.get(blockCacheKey);
+    if (cached) {
+      setSvgContent(cached);
+      setDiagramFile(
+        svgToUploadedFile(cached, {
+          id: `graphviz-svg-${Math.random().toString(36).substring(2, 9)}`,
+          name: 'graphviz-diagram.svg',
+        }),
+      );
+      setError('');
+      setIsRendering(false);
+      return;
+    }
+
+    if (!svgContent) {
+      setIsRendering(true);
+    }
 
     const result = await renderDotToSvgCached(code, {
       themeId,
@@ -78,6 +119,7 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
     });
 
     if (result.ok) {
+      graphvizBlockSvgCache.set(blockCacheKey, result.svg);
       setSvgContent(result.svg);
       setDiagramFile(
         svgToUploadedFile(result.svg, {
@@ -92,7 +134,7 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
 
     // Streaming messages keep the spinner up until the stream settles; final
     // messages surface the error fallback.
-    if (isMessageLoading) {
+    if (isMessageLoadingRef.current) {
       setIsRendering(true);
     } else {
       let errorMessage = t('diagramRenderGraphvizFailed');
@@ -105,7 +147,7 @@ export const GraphvizBlock: React.FC<GraphvizBlockProps> = ({
       setSvgContent('');
       setIsRendering(false);
     }
-  }, [code, isMessageLoading, manualLayout, t, themeId]);
+  }, [blockCacheKey, code, manualLayout, svgContent, t, themeId]);
 
   const renderGraphWithLogging = useCallback(() => {
     renderGraph().catch((error) => {

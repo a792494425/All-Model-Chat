@@ -12,7 +12,7 @@ import type { UserMessageCollapseController } from './content/userMessageCollaps
 
 interface MessageContentProps {
   message: ChatMessage;
-  onImageClick: (file: UploadedFile) => void;
+  onImageClick: (file: UploadedFile, messageId?: string) => void;
   onOpenHtmlPreview: OpenHtmlPreviewHandler;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   showThoughts: boolean;

@@ -4,6 +4,7 @@ import {
   HTML_FRAGMENT_TAG_NAMES,
   isLikelyStreamingHtmlArtifact,
   isPromotableBareArtifact,
+  isPromotableStreamingBareFragment,
   OPEN_FENCED_CODE_BLOCK_AT_END_REGEX,
   type PreviewMarkupType,
 } from './previewMarkupPatterns';
@@ -254,7 +255,7 @@ const findHtmlFragmentEnd = (text: string, startIndex: number): number | null =>
   return null;
 };
 
-export const findBareArtifactRegion = (text: string): { start: number; end: number } | null => {
+export const findBareArtifactRegion = (text: string, isStreaming = false): { start: number; end: number } | null => {
   const lines = text.split('\n');
   const fencedRegions = getFencedRegionOffsets(text);
   // Absolute offset of each line so a matched region can be spliced back into
@@ -311,6 +312,8 @@ export const findBareArtifactRegion = (text: string): { start: number; end: numb
             return { start: candidateStart, end };
           }
         }
+      } else if (isStreaming && (!Number.isFinite(followingFenceStart) || text.length <= followingFenceStart)) {
+        return { start: candidateStart, end: text.length };
       }
     }
 
@@ -325,6 +328,8 @@ export const findBareArtifactRegion = (text: string): { start: number; end: numb
             return { start: candidateStart, end };
           }
         }
+      } else if (isStreaming && (!Number.isFinite(followingFenceStart) || text.length <= followingFenceStart)) {
+        return { start: candidateStart, end: text.length };
       }
     }
 
@@ -336,6 +341,10 @@ export const findBareArtifactRegion = (text: string): { start: number; end: numb
         if (isPromotableBareArtifact(candidate)) {
           return { start: candidateStart, end: fragmentEnd };
         }
+      }
+    } else if (isStreaming && isPromotableStreamingBareFragment(candidateText)) {
+      if (!Number.isFinite(followingFenceStart) || text.length <= followingFenceStart) {
+        return { start: candidateStart, end: text.length };
       }
     }
 

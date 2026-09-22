@@ -5,7 +5,12 @@ import { useI18n } from '@/contexts/I18nContext';
 import { LazyMarkdownRenderer } from '@/components/message/LazyMarkdownRenderer';
 import { isCodeExecutionPendingInContent } from '@/features/chat-streaming/messageStreamParts';
 import { GroundedResponse } from '@/components/message/GroundedResponse';
-import { extractAutoPreviewableBlock, normalizePreviewableMarkdownContent } from '@/utils/markdown';
+import {
+  extractAutoPreviewableBlock,
+  normalizePreviewableMarkdownContent,
+  LIVE_ARTIFACT_HTML_LANGUAGE,
+  LIVE_ARTIFACT_INTERACTION_LANGUAGE,
+} from '@/utils/markdown';
 import { useSmoothStreaming } from '@/hooks/ui/useSmoothStreaming';
 import { useMessageStream } from '@/hooks/ui/useMessageStream';
 import { extractRawThinkingBlocks } from '@/utils/chat/reasoning';
@@ -33,7 +38,7 @@ interface MessageTextProps {
   appSettings: MessageAppSettings;
   themeId: string;
   baseFontSize: number;
-  onImageClick: (file: UploadedFile) => void;
+  onImageClick: (file: UploadedFile, messageId?: string) => void;
   onOpenHtmlPreview: OpenHtmlPreviewHandler;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   expandCodeBlocksByDefault: boolean;
@@ -186,14 +191,22 @@ export const MessageText: React.FC<MessageTextProps> = ({
   const shouldSmooth = isLoading && message.role === 'model';
   const displayedContent = useSmoothStreaming(effectiveContent, shouldSmooth);
 
-  const markdownContent = useMemo(
-    () =>
-      normalizePreviewableMarkdownContent(displayedContent, {
-        isStreaming: shouldSmooth,
-        unwrapMislabeledHtmlBlocks: appSettings.unwrapMislabeledHtmlBlocks ?? true,
-      }),
-    [displayedContent, shouldSmooth, appSettings.unwrapMislabeledHtmlBlocks],
-  );
+  const hadStreamingArtifactRef = useRef(false);
+  const isStreamingForArtifact = shouldSmooth || hadStreamingArtifactRef.current;
+
+  const markdownContent = useMemo(() => {
+    const normalized = normalizePreviewableMarkdownContent(displayedContent, {
+      isStreaming: isStreamingForArtifact,
+      unwrapMislabeledHtmlBlocks: appSettings.unwrapMislabeledHtmlBlocks ?? true,
+    });
+    if (
+      normalized.includes(LIVE_ARTIFACT_HTML_LANGUAGE) ||
+      normalized.includes(LIVE_ARTIFACT_INTERACTION_LANGUAGE)
+    ) {
+      hadStreamingArtifactRef.current = true;
+    }
+    return normalized;
+  }, [displayedContent, isStreamingForArtifact, appSettings.unwrapMislabeledHtmlBlocks]);
   // The sandbox round-trip has no tokens to show while Google executes, so the
   // code-exec card would sit silently. The content itself carries the signal:
   // an executableCode block with no following tool-result block means the

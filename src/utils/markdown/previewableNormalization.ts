@@ -50,14 +50,14 @@ const wrapBarePreviewableArtifact = (
   const parts: string[] = [];
 
   while (remaining) {
-    const region = findBareArtifactRegion(remaining);
+    const region = findBareArtifactRegion(remaining, options.isStreaming ?? false);
     if (!region) {
       parts.push(remaining);
       break;
     }
 
     const artifact = remaining.slice(region.start, region.end).trim();
-    const markupType = getPreviewMarkupType(artifact);
+    const markupType = getPreviewMarkupType(artifact) || (options.isStreaming ? 'html' : null);
     if (!markupType) {
       parts.push(remaining);
       break;

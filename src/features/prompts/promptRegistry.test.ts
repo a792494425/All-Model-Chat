@@ -430,6 +430,9 @@ describe('promptRegistry', () => {
 
     expect(prompt).toContain('No "traffic-light" colored table text');
     expect(prompt).toContain('No accent saturation flood');
+    expect(prompt).toContain('No solid saturated badge blocks');
+    expect(prompt).toContain('Solid saturated badge/tag blocks');
+    expect(prompt).toContain('never solid color with white text');
     expect(prompt).toContain('clean centering with vertical breathing room');
     expect(prompt).toContain('Distinguish layout context');
   });

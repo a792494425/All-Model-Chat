@@ -142,6 +142,7 @@ export const sendStandardMessage = async (params: SendStandardMessageParams) => 
     currentChatSettings: settingsForPersistence,
     updateAndPersistSessions,
     setActiveSessionId,
+    setActiveMessages: props.setActiveMessages,
     text: effectiveUserText,
     files: filesToUse.length ? filesToUse : undefined,
     generationId,

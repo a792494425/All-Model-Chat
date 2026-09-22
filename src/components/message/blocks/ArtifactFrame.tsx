@@ -40,6 +40,7 @@ const DEFAULT_FRAME_HEIGHT = 320;
 const MAX_FRAME_HEIGHT_CACHE_ENTRIES = 200;
 const STREAMING_SRC_DOC_THROTTLE_MS = 120;
 const frameHeightCache = new Map<string, number>();
+const runnerModeArtifacts = new Set<string>();
 
 const normalizeFrameHeight = (height: number) => Math.max(MIN_FRAME_HEIGHT, Math.ceil(height));
 
@@ -52,10 +53,15 @@ const getStreamingFrameHeightCacheKey = (cacheKey?: string): string | undefined 
   return cacheKey ? `stream:${cacheKey}` : undefined;
 };
 
-const readCachedFrameHeight = (heightCacheKey: string, fallbackHeightCacheKey?: string): number => {
+const readCachedFrameHeight = (
+  heightCacheKey: string,
+  fallbackHeightCacheKey?: string,
+  prefixCacheKey?: string,
+): number => {
   return (
     frameHeightCache.get(heightCacheKey) ??
     (fallbackHeightCacheKey ? frameHeightCache.get(fallbackHeightCacheKey) : undefined) ??
+    (prefixCacheKey ? frameHeightCache.get(prefixCacheKey) : undefined) ??
     DEFAULT_FRAME_HEIGHT
   );
 };
@@ -98,6 +104,58 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
   const isLoadingRef = useRef(isLoading);
   const lastPostedStreamingHtmlRef = useRef<string | null>(null);
   const streamingFlushTimeoutRef = useRef<number | null>(null);
+
+  const prefixCacheKey = useMemo(() => {
+    const prefix = cacheKey?.split(':')[0];
+    return prefix ? `stream:${prefix}` : undefined;
+  }, [cacheKey]);
+
+  const isRunnerModeInstanceRef = useRef(false);
+  const checkInitialRunnerMode = useCallback(() => {
+    if (isLoading) return true;
+    if (cacheKey && runnerModeArtifacts.has(cacheKey)) return true;
+    const prefix = cacheKey?.split(':')[0];
+    if (prefix && runnerModeArtifacts.has(prefix)) return true;
+    return false;
+  }, [cacheKey, isLoading]);
+
+  const [isRunnerMode, setIsRunnerMode] = useState(checkInitialRunnerMode);
+  const [prevCacheKey, setPrevCacheKey] = useState(cacheKey);
+
+  if (isLoading || isRunnerMode) {
+    isRunnerModeInstanceRef.current = true;
+    if (!isRunnerMode) {
+      setIsRunnerMode(true);
+    }
+    if (cacheKey) {
+      runnerModeArtifacts.add(cacheKey);
+      const prefix = cacheKey.split(':')[0];
+      if (prefix) runnerModeArtifacts.add(prefix);
+    }
+  }
+
+  if (cacheKey !== prevCacheKey) {
+    setPrevCacheKey(cacheKey);
+    if (isRunnerModeInstanceRef.current) {
+      if (!isRunnerMode) setIsRunnerMode(true);
+      if (cacheKey) {
+        runnerModeArtifacts.add(cacheKey);
+        const prefix = cacheKey.split(':')[0];
+        if (prefix) runnerModeArtifacts.add(prefix);
+      }
+    } else {
+      const nextRunner = checkInitialRunnerMode();
+      if (nextRunner !== isRunnerMode) {
+        setIsRunnerMode(nextRunner);
+      }
+    }
+  }
+
+  const isRunnerModeRef = useRef(isRunnerMode);
+  useLayoutEffect(() => {
+    isRunnerModeRef.current = isRunnerMode;
+  }, [isRunnerMode]);
+
   const contentHeightCacheKey = useMemo(() => getContentFrameHeightCacheKey(html, cacheKey), [cacheKey, html]);
   const streamingHeightCacheKey = useMemo(() => getStreamingFrameHeightCacheKey(cacheKey), [cacheKey]);
   const heightCacheKey = isLoading && streamingHeightCacheKey ? streamingHeightCacheKey : contentHeightCacheKey;
@@ -107,18 +165,16 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
   );
   const [frameHeightState, setFrameHeightState] = useState(() => ({
     heightCacheKey,
-    height: readCachedFrameHeight(heightCacheKey, streamingHeightCacheKey),
+    height: readCachedFrameHeight(heightCacheKey, streamingHeightCacheKey, prefixCacheKey),
   }));
   // Incremented when KaTeX finishes loading so the final srcDoc (which embeds
   // rendered math) is recomputed after the first render skipped the formulas.
   const [katexReadyTick, setKatexReadyTick] = useState(0);
   const finalSrcDoc = useMemo(() => {
-    // Guard: while streaming, the iframe renders `streamingSrcDoc` (live,
-    // chunk-by-chunk via postMessage) and `finalSrcDoc` is unused. Building it
-    // every chunk would re-run the full DOMParser + sanitize + inject pipeline
-    // for content the iframe cannot see yet. Deferring the build to the end of
-    // the stream keeps the heavy final pass off the hot path.
-    if (isLoading) {
+    // Guard: while in runner mode, the iframe renders `streamingSrcDoc` (live,
+    // in-place via postMessage) and `finalSrcDoc` is unused. Deferring or skipping
+    // it keeps the heavy DOMParser + sanitize + inject pipeline off the hot path.
+    if (isRunnerMode) {
       return '';
     }
     // katexReadyTick is an intentional invalidation token: reading it ties the
@@ -126,18 +182,18 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
     // is recomputed once the chunk has arrived.
     void katexReadyTick;
     return buildHtmlPreviewSrcDoc(html, { baseFontSize, themeId });
-  }, [baseFontSize, html, isLoading, katexReadyTick, themeId]);
+  }, [baseFontSize, html, isRunnerMode, katexReadyTick, themeId]);
   const frameHeight =
-    frameHeightState.heightCacheKey === heightCacheKey
+    frameHeightState.heightCacheKey === heightCacheKey || (isRunnerMode && frameHeightState.height > 0)
       ? frameHeightState.height
-      : readCachedFrameHeight(heightCacheKey, streamingHeightCacheKey);
-  const srcDoc = isLoading ? streamingSrcDoc : finalSrcDoc;
-  // Stable key preserves the streaming runner across chunk updates, while
-  // forcing Chromium to reload the sandboxed browsing context when switching
-  // from streaming to final mode, when lazy KaTeX becomes ready, or when
-  // content/theme changes.
-  const iframeKey = isLoading
-    ? 'streaming'
+      : readCachedFrameHeight(heightCacheKey, streamingHeightCacheKey, prefixCacheKey);
+  const srcDoc = isRunnerMode ? streamingSrcDoc : finalSrcDoc;
+  // Stable key preserves the iframe DOM node across chunk updates AND across
+  // the stream completion boundary (isLoading: true -> false), eliminating iframe
+  // reload, blank flicker, and scroll reset. It only invalidates when theme,
+  // base font size, or (for static messages) content changes.
+  const iframeKey = isRunnerMode
+    ? `streaming:${themeId ?? ''}:${baseFontSize ?? ''}`
     : `final:${katexReadyTick}:${themeId ?? ''}:${baseFontSize ?? ''}:${contentHeightCacheKey}`;
 
   useLayoutEffect(() => {
@@ -194,7 +250,7 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
       // Named retry loop avoids a useCallback self-reference (react-hooks/immutability).
       const attemptFlush = () => {
         streamingFlushTimeoutRef.current = null;
-        if (!isLoadingRef.current) {
+        if (!isRunnerModeRef.current) {
           return;
         }
 
@@ -212,7 +268,7 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
 
   const flushStreamingHtmlNow = useCallback(
     (force = false) => {
-      if (!isLoadingRef.current) {
+      if (!isRunnerModeRef.current) {
         return;
       }
 
@@ -225,14 +281,19 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
   );
 
   useEffect(() => {
-    if (!isLoading) {
-      clearStreamingFlushTimeout();
-      lastPostedStreamingHtmlRef.current = null;
+    if (!isRunnerMode) {
       return;
     }
 
-    scheduleStreamingHtmlFlush();
-  }, [clearStreamingFlushTimeout, html, isLoading, scheduleStreamingHtmlFlush]);
+    if (isLoading) {
+      scheduleStreamingHtmlFlush();
+    } else {
+      clearStreamingFlushTimeout();
+      // When streaming finishes, flush the final HTML payload immediately
+      // with force=true so the final DOM is reconciled in-place without reloading.
+      flushStreamingHtmlNow(true);
+    }
+  }, [clearStreamingFlushTimeout, flushStreamingHtmlNow, html, isLoading, isRunnerMode, scheduleStreamingHtmlFlush]);
 
   useEffect(() => {
     return () => clearStreamingFlushTimeout();
@@ -263,6 +324,12 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
     };
   }, [isLoading]);
 
+  useEffect(() => {
+    if (isRunnerMode && katexReadyTick > 0) {
+      flushStreamingHtmlNow(true);
+    }
+  }, [flushStreamingHtmlNow, isRunnerMode, katexReadyTick]);
+
   const flushStreamingHtmlOnBridgeReady = useCallback(() => {
     // Prefer refs so remount/load races always flush the latest streaming html.
     flushStreamingHtmlNow(true);
@@ -281,23 +348,22 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
     (height: number) => {
       const nextHeight = normalizeFrameHeight(height);
       cacheFrameHeight(heightCacheKey, nextHeight);
-      // While streaming, only the streaming key is written so the content
-      // (final-html) cache is not polluted with intermediate frame heights.
-      // The streaming key is not derived from the message content, so each
-      // write replaces the same entry instead of churning the LRU.
-      if (!isLoading && heightCacheKey !== contentHeightCacheKey) {
+      if (contentHeightCacheKey && heightCacheKey !== contentHeightCacheKey) {
         cacheFrameHeight(contentHeightCacheKey, nextHeight);
       }
       if (streamingHeightCacheKey && heightCacheKey !== streamingHeightCacheKey) {
         cacheFrameHeight(streamingHeightCacheKey, nextHeight);
       }
+      if (prefixCacheKey) {
+        cacheFrameHeight(prefixCacheKey, nextHeight);
+      }
       setFrameHeightState((currentState) =>
-        currentState.heightCacheKey === heightCacheKey && currentState.height === nextHeight
+        currentState.height === nextHeight && currentState.heightCacheKey === heightCacheKey
           ? currentState
           : { heightCacheKey, height: nextHeight },
       );
     },
-    [contentHeightCacheKey, heightCacheKey, isLoading, streamingHeightCacheKey],
+    [contentHeightCacheKey, heightCacheKey, prefixCacheKey, streamingHeightCacheKey],
   );
 
   const handleDiagramClick = useCallback(
@@ -360,7 +426,7 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
           ref={iframeRef}
           srcDoc={srcDoc}
           title={t('htmlPreviewTitle')}
-          className="h-full w-full border-0 bg-transparent"
+          className={`h-full w-full border-0 bg-transparent ${isLoading ? 'pointer-events-none' : ''}`}
           // SECURITY: allow-same-origin is intentionally omitted (opaque origin).
           // allow-popups enables target="_blank" external links in Live Artifacts.
           sandbox={HTML_PREVIEW_SANDBOX.sanitized}

@@ -1,9 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import ReactMarkdown from 'react-markdown';
-import { CodeBlock } from './blocks/CodeBlock';
 import { useProcessedMarkdown } from './markdown/useProcessedMarkdown';
-import { useMarkdownComponents } from './markdown/useMarkdownComponents';
+import { useMarkdownComponents, MarkdownComponentsContext } from './markdown/useMarkdownComponents';
 import type { MarkdownRendererCoreProps, MarkdownRendererProps } from './markdown/markdownTypes';
 
 export type { MarkdownRendererCoreProps, MarkdownRendererProps };
@@ -42,7 +41,7 @@ export const MarkdownRendererCore: React.FC<MarkdownRendererCoreProps> = React.m
       handlersRef.current = { onImageClick, onOpenHtmlPreview, onLiveArtifactFollowUp, onOpenSidePanel };
     });
 
-    const components = useMarkdownComponents({
+    const { components, contextValue } = useMarkdownComponents({
       handlersRef,
       isInteractive,
       messageId,
@@ -60,7 +59,7 @@ export const MarkdownRendererCore: React.FC<MarkdownRendererCoreProps> = React.m
       previewLabel: t('preview'),
     });
 
-    const { processedContent, singleLiveArtifact } = useProcessedMarkdown({
+    const { processedContent } = useProcessedMarkdown({
       content,
       contentPreNormalized,
       isLoading,
@@ -69,41 +68,18 @@ export const MarkdownRendererCore: React.FC<MarkdownRendererCoreProps> = React.m
       thinkingRawProcessLabel: t('thinkingRawProcess'),
     });
 
-    if (isInteractive && singleLiveArtifact) {
-      return (
-        <div className={isLoading ? 'is-loading' : ''}>
-          <CodeBlock
-            cacheKey={messageId ? `${messageId}:direct-live-artifact` : undefined}
-            files={files}
-            messageId={messageId}
-            className={`language-${singleLiveArtifact.language}`}
-            onOpenHtmlPreview={onOpenHtmlPreview}
-            onLiveArtifactFollowUp={onLiveArtifactFollowUp}
-            onImageClick={onImageClick}
-            expandCodeBlocksByDefault={expandCodeBlocksByDefault}
-            showPreviewControls={isInteractive}
-            isLoading={isLoading}
-            onOpenSidePanel={onOpenSidePanel}
-            liveArtifactFontSize={liveArtifactFontSize}
-            themeId={themeId}
-            liveArtifactsMode={liveArtifactsMode}
-          >
-            <code className={`language-${singleLiveArtifact.language}`}>{singleLiveArtifact.code}</code>
-          </CodeBlock>
-        </div>
-      );
-    }
-
     return (
       <div className={isLoading ? 'is-loading' : ''}>
-        <ReactMarkdown
-          remarkPlugins={remarkPlugins}
-          rehypePlugins={rehypePlugins}
-          components={components}
-          urlTransform={(url) => url}
-        >
-          {processedContent}
-        </ReactMarkdown>
+        <MarkdownComponentsContext.Provider value={contextValue}>
+          <ReactMarkdown
+            remarkPlugins={remarkPlugins}
+            rehypePlugins={rehypePlugins}
+            components={components}
+            urlTransform={(url) => url}
+          >
+            {processedContent}
+          </ReactMarkdown>
+        </MarkdownComponentsContext.Provider>
       </div>
     );
   },

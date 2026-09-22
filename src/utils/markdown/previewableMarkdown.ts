@@ -3,11 +3,14 @@ import {
   getAutoPreviewType,
   getCodeBlockPreviewType,
   getStandaloneDocumentPreviewType,
+  hasStreamingLiveArtifactFence,
   isLikelyHtml,
   isLikelyStreamingHtmlArtifact,
   isLikelyStreamingLiveArtifactInteractionJson,
   isLiveArtifactInteractionLanguage,
   isLiveArtifactLanguage,
+  LIVE_ARTIFACT_HTML_LANGUAGE,
+  LIVE_ARTIFACT_INTERACTION_LANGUAGE,
   type PreviewMarkupType,
 } from './previewMarkupPatterns';
 import { normalizePreviewableMarkdownContent } from './previewableNormalization';
@@ -15,10 +18,13 @@ import { normalizePreviewableMarkdownContent } from './previewableNormalization'
 export type { PreviewMarkupType };
 
 export {
+  LIVE_ARTIFACT_HTML_LANGUAGE,
+  LIVE_ARTIFACT_INTERACTION_LANGUAGE,
   isLiveArtifactLanguage,
   isLiveArtifactInteractionLanguage,
   isLikelyStreamingHtmlArtifact,
   isLikelyStreamingLiveArtifactInteractionJson,
+  hasStreamingLiveArtifactFence,
   getCodeBlockPreviewType,
   getAutoPreviewType,
   normalizePreviewableMarkdownContent,

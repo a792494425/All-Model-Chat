@@ -151,6 +151,13 @@ export const isLikelyStreamingHtmlArtifact = (textContent: string): boolean => {
   );
 };
 
+export const hasStreamingLiveArtifactFence = (textContent: string): boolean => {
+  return (
+    /```(?:amc-live-artifact-html|amc-live-artifact-interaction|html)\b/i.test(textContent) ||
+    LIVE_ARTIFACT_MARKER_REGEX.test(textContent)
+  );
+};
+
 export const isLikelyStreamingLiveArtifactInteractionJson = (textContent: string): boolean => {
   const normalizedContent = textContent.trim();
   const openFenceMatch = normalizedContent.match(OPEN_FENCED_CODE_BLOCK_AT_END_REGEX);
@@ -297,4 +304,8 @@ export const isPromotableBareArtifact = (artifact: string): boolean => {
   }
 
   return LIVE_ARTIFACT_MARKER_REGEX.test(artifact) && isStandaloneHtmlFragment(artifact);
+};
+
+export const isPromotableStreamingBareFragment = (artifact: string): boolean => {
+  return LIVE_ARTIFACT_MARKER_REGEX.test(artifact) && HTML_FRAGMENT_START_REGEX.test(artifact.trimStart());
 };

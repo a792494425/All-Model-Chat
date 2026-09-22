@@ -6,10 +6,10 @@ import 'katex/dist/katex.min.css';
 export const MathMarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo((props) => {
   const rehypePlugins = useMemo(
     () => [
-      ...getBaseRehypePlugins(props.allowHtml ?? false, { syntaxHighlighting: !props.isLoading }),
+      ...getBaseRehypePlugins(props.allowHtml ?? false),
       ...getMathRehypePlugins(),
     ],
-    [props.allowHtml, props.isLoading],
+    [props.allowHtml],
   );
 
   const remarkPlugins = useMemo(() => [...mathRemarkPlugins, ...baseRemarkPlugins], []);

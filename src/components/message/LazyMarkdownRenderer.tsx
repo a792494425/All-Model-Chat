@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useRef, Suspense } from 'react';
 import type { MarkdownRendererProps } from './MarkdownRendererCore';
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';
 import { hasLikelyTexMathMarkdown } from '@/utils/markdown';
@@ -9,6 +9,13 @@ const LazyStandardMarkdownRenderer = lazyNamedComponent(
 );
 const LazyMathMarkdownRenderer = lazyNamedComponent(() => import('./MathMarkdownRenderer'), 'MathMarkdownRenderer');
 
+let isMathRendererLoaded = false;
+void import('./MathMarkdownRenderer')
+  .then(() => {
+    isMathRendererLoaded = true;
+  })
+  .catch(() => {});
+
 interface LazyMarkdownRendererProps extends MarkdownRendererProps {
   fallbackMode?: 'raw' | 'none';
 }
@@ -16,17 +23,9 @@ interface LazyMarkdownRendererProps extends MarkdownRendererProps {
 /**
  * Chooses between the standard and math-enabled markdown renderers.
  *
- * Math is only engaged when the message actually looks like it contains TeX
- * (see hasLikelyTexMathMarkdown). To avoid the standard→math flip remounting the
- * whole tree mid-stream — and downloading the math chunk at the worst moment —
- * the switch only happens once the message has finished loading:
- *
- * - While streaming (isLoading), always render with the standard renderer. When a
- *   math candidate appears, preload the math chunk in the background so the
- *   flip at stream-end is instant (no chunk download stall).
- * - Once loading finishes, flip to the math renderer if a candidate exists.
- *   That single remount is the same one the message already pays at completion
- *   for syntax highlighting, so no extra flicker is introduced.
+ * Once mounted, a message retains its chosen renderer throughout its entire lifecycle.
+ * Switching renderers at stream completion tears down the rendered component subtree,
+ * destroying Live Artifact iframes, resetting scroll positions, and causing visual flash.
  */
 export const LazyMarkdownRenderer: React.FC<LazyMarkdownRendererProps> = ({
   content,
@@ -34,30 +33,30 @@ export const LazyMarkdownRenderer: React.FC<LazyMarkdownRendererProps> = ({
   fallbackMode = 'raw',
   ...props
 }) => {
-  const [mathChunkWarmed, setMathChunkWarmed] = useState(false);
-
-  // While streaming, preload the math chunk as soon as a likely math candidate
-  // appears so the end-of-stream flip does not stall on a download.
   useEffect(() => {
-    if (!mathChunkWarmed && hasLikelyTexMathMarkdown(content)) {
-      setMathChunkWarmed(true);
-      void import('./MathMarkdownRenderer').catch(() => {
-        // Ignore: the chunk will be retried on the next math candidate.
-      });
+    if (!isMathRendererLoaded && hasLikelyTexMathMarkdown(content)) {
+      void import('./MathMarkdownRenderer')
+        .then(() => {
+          isMathRendererLoaded = true;
+        })
+        .catch(() => {});
     }
-  }, [content, mathChunkWarmed]);
+  }, [content]);
 
-  // Streaming keeps the standard renderer (no mid-stream remount). The flip to the
-  // math renderer happens once, after the message has finished loading, and only
-  // if a likely math candidate was seen.
-  const shouldLoadMathRenderer = !isLoading && hasLikelyTexMathMarkdown(content);
+  // Lock in renderer choice on initial mount of this message.
+  // We NEVER switch component types across the isLoading boundary.
+  const chosenRendererRef = useRef<'math' | 'standard' | null>(null);
+  if (chosenRendererRef.current === null) {
+    chosenRendererRef.current =
+      isMathRendererLoaded || hasLikelyTexMathMarkdown(content) ? 'math' : 'standard';
+  }
 
   const fallback =
     fallbackMode === 'raw' ? (
       <div className="whitespace-pre-wrap break-words text-[var(--theme-text-secondary)]">{content}</div>
     ) : null;
 
-  if (!shouldLoadMathRenderer) {
+  if (chosenRendererRef.current === 'standard') {
     return (
       <Suspense fallback={fallback}>
         <LazyStandardMarkdownRenderer {...props} content={content} isLoading={isLoading} />

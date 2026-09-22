@@ -9,6 +9,8 @@ interface DeferredDiagramBlockProps<TProps extends object> {
   eager?: boolean;
 }
 
+const loadedDiagramComponents = new Map<string, React.ComponentType<any>>();
+
 export const DeferredDiagramBlock = <TProps extends object>({
   load,
   componentProps,
@@ -16,8 +18,10 @@ export const DeferredDiagramBlock = <TProps extends object>({
   eager = false,
 }: DeferredDiagramBlockProps<TProps>) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [Component, setComponent] = useState<React.ComponentType<TProps> | null>(null);
-  const [loadRequested, setLoadRequested] = useState(eager);
+  const [Component, setComponent] = useState<React.ComponentType<TProps> | null>(
+    () => (loadedDiagramComponents.get(label) as React.ComponentType<TProps> | undefined) ?? null,
+  );
+  const [loadRequested, setLoadRequested] = useState(eager || loadedDiagramComponents.has(label));
   const isLoading = eager || loadRequested;
 
   useEffect(() => {
@@ -60,6 +64,7 @@ export const DeferredDiagramBlock = <TProps extends object>({
           return;
         }
 
+        loadedDiagramComponents.set(label, module.default);
         setComponent(() => module.default);
       })
       .catch((error) => {

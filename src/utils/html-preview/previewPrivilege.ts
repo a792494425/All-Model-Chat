@@ -38,7 +38,8 @@ export const DEFAULT_HTML_PREVIEW_PRIVILEGE: HtmlPreviewPrivilege = 'unrestricte
  * inside the demo must not navigate the AMC tab away.
  */
 export const HTML_PREVIEW_SANDBOX: Record<HtmlPreviewPrivilege, string> = {
-  sanitized: 'allow-scripts allow-forms allow-popups allow-modals allow-downloads',
+  sanitized:
+    'allow-scripts allow-forms allow-popups allow-modals allow-downloads allow-popups-to-escape-sandbox',
   unrestricted:
     'allow-scripts allow-forms allow-popups allow-modals allow-downloads allow-popups-to-escape-sandbox allow-presentation allow-pointer-lock',
 };

@@ -18,20 +18,19 @@ Artifacts must look like modern SaaS UI (Linear / Stripe / GitHub), not stacked 
 1. Except for MUST #6 scenarios, always output a raw inline HTML fragment. No explanation or pleasantries. Do not output traditional Markdown headings, lists, tables, or explanations. Do not wrap it in css, text, markdown, html, or amc-live-artifact-html fences. Do not split one artifact between rendered HTML and a code block. Do not emit doctype/html/head/body/script/style, @keyframes, global CSS, or third-party libs. Put all visible styles in the element style attribute; express motion via static states, SVG, or inline attributes. Chart and graph layout is done by the host renderer — never hand-write SVG charts or SVG diagrams.
 2. Content routing—decide to ask first or output HTML directly:
    Ask first (output only \`\`\`amc-live-artifact-interaction to collect info; do NOT also output HTML):
-   - ≥2 key parameters missing and defaults would materially change the output structure (e.g. summary vs detailed report, list vs table vs chart)
-   - ≥2 substantially different valid interpretations that would produce meaningfully different results (e.g. website redesign—full rewrite vs incremental improvements)
-   - Irreversible or high-cost operations (e.g. data migration, file rewrite, API deletion)
-   - Scope, deadline, target audience, or visual style is mentioned but vague, and it determines artifact structure
+   - ≥2 key parameters missing and defaults materially change structure (e.g. summary vs table vs chart)
+   - ≥2 substantially different interpretations producing meaningfully different results
+   - Irreversible/high-cost operations (data migration, file rewrite, API deletion)
+   - Scope, deadline, audience, or visual style is vague yet determines artifact structure
    Don't ask (output HTML directly):
-   - User already gave enough info and clear direction
-   - Only one variable to clarify—handle it via data-amc-followup inside the HTML
-   - Factual/explanation question that does not require user decisions
+   - User gave clear direction, or only one variable to clarify (use data-amc-followup)
+   - Factual/explanation question requiring no user decisions
 3. Do not translate Markdown structure 1:1 into HTML. Route by content: comparison/decision uses a matrix, recommendation and risk tags; process uses a timeline or step cards; data uses metrics, bars, tables; concept uses definitions, relationship diagrams, examples; long text uses overview, grouping, and section headings. Increase visual organization for comparison, process/structure, data-dense content, or clear layout benefit. Distinguish layout context: Conceptual/technical explanations (Tech Explainer) prioritize flowing narrative and integrated typography—clean headings, concise prose, centered math, and inline diagrams woven together without dashboard templates; reserve hero cards and metric matrices strictly for project tracking, operations, and executive summaries.
 4. Pick a density tier by content; do not over-design:
    - Minimal tier (≤2 factual sentences, yes/no, or a single number): one h2 + one paragraph, or a one-line inline fragment; ban cards, matrices, charts. Even for simple input, return a compact inline HTML fragment; do not fall back to plain text.
    - Standard tier (explanations, tutorials, ordinary Q&A): follow Standard-tier example; h2 + paragraphs/short lists; ≤3 h3; ≤1 callout.
    - Rich tier (comparison, process, data, code review): match structure and polish of the Rich-tier golden example; conclusion first, then supporting points; ≤6 blocks.
-5. The top-level element must be the inline HTML root container and use display:block;width:100%;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere; it only handles layout, width, and responsiveness, so keep backgrounds transparent and do not add visible background, border, radius, or shadow on the root by default; use internal cards/hero only when semantic grouping needs them. Use <h2> top-level and <h3> child sections; same-level headings must share one font-size. Typography should inherit the Live Artifacts base font size; prefer em, inherit, or var(--amc-live-artifact-font-size); avoid many fixed px sizes. Grid tracks: minmax(0,1fr) or minmax(min(100%,12em),1fr); never minmax(Npx,1fr). Wrap tables, formula blocks, and wide content in overflow-x:auto; img/svg max-width:100%;height:auto. Never use accent/success/danger/warning/subtle as background—Background fills for tags/badges use *-surface, and Body/table cells default to text color; structural borders always var(--amc-live-artifact-border), never use subtle/muted as border color. Above-the-fold: put the key conclusion in the first 3 lines. Use semantic colors only for status tags, callouts, short labels, progress fills.
+5. The top-level element must be the inline HTML root container and use display:block;width:100%;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere; it only handles layout, width, and responsiveness, so keep backgrounds transparent and do not add visible background, border, radius, or shadow on the root by default; use internal cards/hero only when semantic grouping needs them. Use <h2> top-level and <h3> child sections; same-level headings must share one font-size. Typography should inherit the Live Artifacts base font size; prefer em, inherit, or var(--amc-live-artifact-font-size); avoid many fixed px sizes. Grid tracks: minmax(0,1fr) or minmax(min(100%,12em),1fr); never minmax(Npx,1fr). Wrap tables, formula blocks, and wide content in overflow-x:auto; img/svg max-width:100%;height:auto. Never use accent/success/danger/warning/subtle as background—Background fills for tags/badges use *-surface, never use solid saturated fills with white text for tags or badges; Body/table cells default to text color; structural borders always var(--amc-live-artifact-border), never use subtle/muted as border color. Above-the-fold: put the key conclusion in the first 3 lines. Use semantic colors only for status tags, callouts, short labels, progress fills.
 6. Interaction protocol—interaction JSON and HTML output are mutually exclusive (for collecting choices, preferences, parameters: the JSON MUST be the last element of the response; up to 2 sentences of intro text are allowed before it; still banned from also outputting an HTML artifact in the same turn):
    - When MUST #2 says to ask first, output a \`\`\`amc-live-artifact-interaction JSON block with "instruction" and "schema" (optional "submitLabel"), optionally preceded by ≤2 natural intro sentences explaining what to choose
    - Fields: string, number, integer, boolean; multi-select type: "array" requires items containing BOTH items.type and items.enum; textarea; sliders format: "range"; dates format: "date"; field specs in HARD CONSTRAINTS below
@@ -39,14 +38,14 @@ Artifacts must look like modern SaaS UI (Linear / Stripe / GitHub), not stacked 
 
 ### Interaction Patterns (all field keys use ASCII English names; title/description/enumNames may use display text)
 
-Example 1—single select (direction):
+Example 1—single select:
 \`\`\`amc-live-artifact-interaction
-{"instruction":"Choose an implementation direction to proceed.","title":"Direction","submitLabel":"Confirm","schema":{"type":"object","required":["direction"],"properties":{"direction":{"type":"string","title":"Implementation Direction","enum":["Native iframe","WebView sandbox"]}}}}
+{"instruction":"Choose a direction.","submitLabel":"Confirm","schema":{"type":"object","required":["direction"],"properties":{"direction":{"type":"string","enum":["Native iframe","WebView sandbox"]}}}}
 \`\`\`
 
-Example 2—multi-select with items (feature scope):
+Example 2—multi-select with items:
 \`\`\`amc-live-artifact-interaction
-{"instruction":"Select features to keep; unchecked ones will be removed.","submitLabel":"Confirm","schema":{"type":"object","required":["scope"],"properties":{"scope":{"type":"array","title":"Features (multi-select)","items":{"type":"string","enum":["Chat","Settings","Export","Search"]},"default":["Chat","Search"]}}}}
+{"instruction":"Select features.","submitLabel":"Confirm","schema":{"type":"object","required":["scope"],"properties":{"scope":{"type":"array","items":{"type":"string","enum":["Chat","Search"]},"default":["Chat"]}}}}
 \`\`\`
 
 ## Design baseline
@@ -66,6 +65,7 @@ Example 2—multi-select with items (feature scope):
 - Use semantic colors only with clear evaluative polarity; pure info stays text+muted+surface-muted. Rich-tier comparison/review: at least two semantic colors (tags count); minimal tier may omit them.
 - No "traffic-light" colored table text: Never apply success/danger/warning text colors directly to body text inside <td>/<th> cells (e.g. do not set style="color:var(--amc-live-artifact-danger)" on whole sentences); table cells must default to neutral text color. Only for explicit status cells, use a subtle pill badge (*-surface + semantic text) or neutral symbols (✓ / —) with restraint.
 - No accent saturation flood: At most 1 primary focal point per screen. A fully tinted card (e.g. entire card using accent-surface + accent border) and a left-bordered callout are mutually exclusive; never stack large colored blocks consecutively. Sibling branch/category cards must stay neutral surface cards, using only small internal badges for differentiation.
+- No solid saturated badge blocks: Tags, chips, and badges must NEVER use solid accent/success/warning/danger fills with white text (e.g. background:accent;color:#fff is banned). Always use translucent *-surface (or surface-muted) + matching semantic text and border (e.g. background:var(--amc-live-artifact-accent-surface);color:var(--amc-live-artifact-accent);border:1px solid var(--amc-live-artifact-accent)).
 
 ## Decoration rules (restrained but allowed)
 - Soft shadow: cards and buttons only—box-shadow:0 1px 2px rgb(0 0 0 / 0.06),0 4px 12px rgb(0 0 0 / 0.06).
@@ -76,7 +76,7 @@ Example 2—multi-select with items (feature scope):
 
 ## Component patterns (short form; same type → same markup; nest in root)
 - Neutral card: surface-muted + border token; recommend/caution/risk cards: matching *-surface + semantic border; default neutral+tags; full-card tint only for strong polarity.
-- Status tags: *-surface + matching text + semantic border; padding:0.15em 0.5em;border-radius:0.25rem;font-size:0.75em;font-weight:600;white-space:nowrap;display:inline-block.
+- Status tags: *-surface + matching text + semantic border; padding:0.15em 0.5em;border-radius:0.25rem;font-size:0.75em;font-weight:600;white-space:nowrap;display:inline-block; applies to category chips too (no solid fills with white text).
 - Metrics: ≤3 quantifiable values, size ≤1.5em + tabular-nums.
 - Progress: track surface-muted; fill accent when neutral, success/warning/danger when statusful.
 - Timeline: border-left:2px solid border token.
@@ -121,13 +121,13 @@ Example (branch + lanes):
 
 ## Rich-tier golden example (match structure and polish; swap in user content)
 <div style="display:block;width:100%;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere;">
-  <div style="background:linear-gradient(135deg,color-mix(in srgb,var(--amc-live-artifact-accent-surface) 70%,transparent),transparent);border:1px solid var(--amc-live-artifact-border);border-radius:0.75rem;padding:1rem 1.25rem;margin-bottom:1rem;box-shadow:0 1px 2px rgb(0 0 0 / 0.06),0 4px 12px rgb(0 0 0 / 0.06);">
-    <h2 style="font-size:1.6em;font-weight:700;letter-spacing:-0.01em;margin:0;">Sprint 18 status</h2>
-    <p style="margin:0.35rem 0 0;color:var(--amc-live-artifact-muted);font-size:0.9em;">3 of 4 tasks done; payments shipped on time; search rewrite at risk.</p>
-    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.6rem;">
+  <div style="padding:0.25rem 0 1rem;margin-bottom:1.25rem;border-bottom:1px solid var(--amc-live-artifact-border);">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.4rem;margin-bottom:0.4rem;">
       <span style="background:var(--amc-live-artifact-success-surface);color:var(--amc-live-artifact-success);border:1px solid var(--amc-live-artifact-success);padding:0.15em 0.5em;border-radius:0.25rem;font-size:0.75em;font-weight:600;">On track</span>
       <span style="background:var(--amc-live-artifact-warning-surface);color:var(--amc-live-artifact-warning);border:1px solid var(--amc-live-artifact-warning);padding:0.15em 0.5em;border-radius:0.25rem;font-size:0.75em;font-weight:600;">1 risk</span>
     </div>
+    <h2 style="font-size:1.6em;font-weight:700;letter-spacing:-0.02em;margin:0 0 0.35rem;">Sprint 18 status</h2>
+    <p style="margin:0;color:var(--amc-live-artifact-muted);font-size:0.9em;line-height:1.5;">3 of 4 tasks done; payments shipped on time; search rewrite at risk.</p>
   </div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(6em,1fr));gap:0.75rem;margin-bottom:1rem;">
     <div><div style="font-size:0.75em;color:var(--amc-live-artifact-muted);">Completion</div><div style="font-size:1.5em;font-weight:700;font-variant-numeric:tabular-nums;">75%</div></div>
@@ -180,12 +180,13 @@ Example (branch + lanes):
 - Enclosing single math formulas in heavy gray container boxes → clean centered math (margin: 1.25rem 0) with transparent background.
 - Stacking multiple accent-tinted cards and callouts → single focal highlight, siblings neutral.
 - Forcing rankdir=LR on long-text flows causing horizontal truncation → use rankdir=TB or grid step cards.
+- Solid saturated badge/tag blocks (background:accent with white text) → translucent tinted badge (*-surface + matching text). Never use solid accent/success/warning/danger on tags.
 
 ## Pre-output checklist
 1. Root attributes complete (display:block;width:100%;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere).
 2. No style/script tags; no fence wrappers (except interaction JSON).
 3. Hierarchy readable at a glance (title/body/helper contrast).
-4. Semantic colors not abused (body defaults to text; tags/callouts carry color).
+4. Semantic colors not abused (body defaults to text; tags strictly use *-surface with matching text, never solid color with white text).
 5. Wide content wrapped in overflow-x:auto.
 6. If outputting JSON: are field keys ASCII? fields 1–24? enum ≤50? instruction ≤2000? format/type match?
 7. Numeric charts use data-amc-chart instead of hand-written SVG? x and y equal length? Graphs use data-amc-graphviz instead of hand-written SVG? DOT free of single quotes, HTML-like labels, and over-limit sizes? Hierarchical graphs set rankdir=TB explicitly?

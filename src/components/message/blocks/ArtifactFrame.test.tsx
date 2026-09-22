@@ -656,13 +656,20 @@ describe('ArtifactFrame', () => {
     expect(uploadedFile.dataUrl).toContain('data:image/svg+xml;base64,');
   });
 
-  it('re-creates the iframe DOM node when transitioning from streaming to final mode', () => {
+  it('preserves the iframe DOM node and flushes final html in-place when transitioning from streaming to final mode', () => {
     act(() => {
       renderer.root.render(<ArtifactFrame html="<p>Chunk 1</p>" isLoading cacheKey="msg-1" />);
     });
 
     const streamingIframe = renderer.container.querySelector('iframe');
     expect(streamingIframe).not.toBeNull();
+    const initialSrcDoc = streamingIframe!.getAttribute('srcdoc');
+
+    const postMessage = vi.fn();
+    Object.defineProperty(streamingIframe!, 'contentWindow', {
+      configurable: true,
+      value: { postMessage },
+    });
 
     // Streaming updates keep the same iframe DOM node
     act(() => {
@@ -672,7 +679,7 @@ describe('ArtifactFrame', () => {
     const streamingIframe2 = renderer.container.querySelector('iframe');
     expect(streamingIframe2).toBe(streamingIframe);
 
-    // Finishing the stream transitions to a fresh iframe node so Chromium re-renders the browsing context
+    // Finishing the stream preserves the iframe node and posts final html in-place (no reload/flicker)
     act(() => {
       renderer.root.render(
         <ArtifactFrame html="<p>Chunk 1 and 2 with math $x$</p>" isLoading={false} cacheKey="msg-1" />,
@@ -681,7 +688,102 @@ describe('ArtifactFrame', () => {
 
     const finalIframe = renderer.container.querySelector('iframe');
     expect(finalIframe).not.toBeNull();
-    expect(finalIframe).not.toBe(streamingIframe);
-    expect(finalIframe?.getAttribute('srcdoc')).toContain('class="katex"');
+    expect(finalIframe).toBe(streamingIframe);
+    expect(finalIframe?.getAttribute('srcdoc')).toBe(initialSrcDoc);
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channel: HTML_PREVIEW_MESSAGE_CHANNEL,
+        event: HTML_PREVIEW_STREAM_RENDER_EVENT,
+        html: expect.stringContaining('class="katex"'),
+      }),
+      '*',
+    );
+  });
+
+  it('keeps measured height strictly stable when streaming completes even without cacheKey', () => {
+    act(() => {
+      renderer.root.render(<ArtifactFrame html="<p>Streaming chunk</p>" isLoading />);
+    });
+
+    const iframe = renderer.container.querySelector('iframe');
+    expect(iframe).not.toBeNull();
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            channel: HTML_PREVIEW_MESSAGE_CHANNEL,
+            event: 'resize',
+            height: 780,
+          },
+          source: iframe!.contentWindow,
+          origin: 'null',
+        }),
+      );
+    });
+
+    const viewport = renderer.container.querySelector<HTMLElement>('[data-live-artifact-viewport="true"]');
+    expect(viewport?.style.height).toBe('780px');
+
+    // Finish streaming without a cacheKey
+    act(() => {
+      renderer.root.render(<ArtifactFrame html="<p>Streaming completed</p>" isLoading={false} />);
+    });
+
+    // Height must remain 780px and never collapse to 320px
+    expect(viewport?.style.height).toBe('780px');
+  });
+
+  it('keeps iframe node and measured height strictly stable when cacheKey changes on stream completion', () => {
+    act(() => {
+      renderer.root.render(<ArtifactFrame html="<p>Streaming chunk</p>" isLoading cacheKey="msg-1:20" />);
+    });
+
+    const initialIframe = renderer.container.querySelector('iframe');
+    expect(initialIframe).not.toBeNull();
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            channel: HTML_PREVIEW_MESSAGE_CHANNEL,
+            event: 'resize',
+            height: 850,
+          },
+          source: initialIframe!.contentWindow,
+          origin: 'null',
+        }),
+      );
+    });
+
+    const viewport = renderer.container.querySelector<HTMLElement>('[data-live-artifact-viewport="true"]');
+    expect(viewport?.style.height).toBe('850px');
+
+    // Finish streaming with shifted offset cacheKey
+    act(() => {
+      renderer.root.render(
+        <ArtifactFrame html="<p>Streaming chunk completed</p>" isLoading={false} cacheKey="msg-1:55" />,
+      );
+    });
+
+    const finalIframe = renderer.container.querySelector('iframe');
+    expect(finalIframe).toBe(initialIframe);
+    expect(viewport?.style.height).toBe('850px');
+  });
+
+  it('disables pointer events on the iframe during streaming to prevent swallowing parent scroll gestures', () => {
+    act(() => {
+      renderer.root.render(<ArtifactFrame html="<p>Streaming chunk</p>" isLoading />);
+    });
+
+    let iframe = renderer.container.querySelector('iframe');
+    expect(iframe?.className).toContain('pointer-events-none');
+
+    act(() => {
+      renderer.root.render(<ArtifactFrame html="<p>Streaming chunk</p>" isLoading={false} />);
+    });
+
+    iframe = renderer.container.querySelector('iframe');
+    expect(iframe?.className).not.toContain('pointer-events-none');
   });
 });

@@ -1,15 +1,18 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, RotateCw, Camera, Crosshair } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, RotateCw, Camera, Crosshair, Grid2x2 } from 'lucide-react';
 import Panzoom, { type PanzoomObject } from '@panzoom/panzoom';
 import { type UploadedFile } from '@/types';
 import { FloatingToolbar, ToolbarButton, ToolbarDivider } from './FloatingToolbar';
 import { useI18n } from '@/contexts/I18nContext';
 import { ImageHighlightOverlay } from '@/components/media-nav/ImageHighlightOverlay';
 import { useMediaNavStore, type ImageNavHighlight } from '@/stores/mediaNavStore';
+
 import { useChatStore } from '@/stores/chatStore';
 import { exportAnnotatedImage } from '@/utils/media-nav/exportAnnotatedImage';
 import { ImageMinimap } from './image/ImageMinimap';
 import { ImageVisualCropper } from './image/ImageVisualCropper';
+
+export type ImageBgMode = 'default' | 'grid' | 'white' | 'black';
 
 interface ImageViewerProps {
   file: UploadedFile;
@@ -25,6 +28,7 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [rotation, setRotation] = useState(0);
+  const [bgMode, setBgMode] = useState<ImageBgMode>('default');
   const [isVisualCropActive, setIsVisualCropActive] = useState(false);
   const [dimensions, setDimensions] = useState({
     imgW: 0,
@@ -173,6 +177,61 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
     }
   }, []);
 
+  const calculateActualScale = useCallback(() => {
+    const img = imageRef.current;
+    if (!img || img.offsetWidth <= 0 || img.naturalWidth <= 0) return 1;
+    const target = img.naturalWidth / img.offsetWidth;
+    return Math.min(MAX_SCALE, Math.max(MIN_SCALE, target));
+  }, []);
+
+  const isActualSize = useMemo(() => {
+    const actualScale = calculateActualScale();
+    return Math.abs(scale - actualScale) < 0.05;
+  }, [calculateActualScale, scale]);
+
+  const handleToggleActualSize = useCallback(() => {
+    const pz = panzoomRef.current;
+    if (!pz) return;
+    const actualScale = calculateActualScale();
+    if (Math.abs(pz.getScale() - actualScale) < 0.05) {
+      pz.reset({ animate: true });
+      setScale(1);
+      setRotation(0);
+    } else {
+      pz.zoom(actualScale, { animate: true });
+      pz.pan(0, 0, { animate: true });
+      setScale(actualScale);
+    }
+  }, [calculateActualScale]);
+
+  const handleCycleBackground = useCallback(() => {
+    setBgMode((prev) => {
+      if (prev === 'default') return 'grid';
+      if (prev === 'grid') return 'white';
+      if (prev === 'white') return 'black';
+      return 'default';
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      if (
+        activeEl instanceof HTMLInputElement ||
+        activeEl instanceof HTMLTextAreaElement ||
+        activeEl?.getAttribute('contenteditable') === 'true'
+      ) {
+        return;
+      }
+      if (e.key === '1') {
+        e.preventDefault();
+        handleToggleActualSize();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleToggleActualSize]);
+
   const focusHighlight = useCallback(() => {
     if (!currentHighlight || !imageRef.current || !panzoomRef.current || !viewportRef.current) return;
     const { box2d, point } = currentHighlight;
@@ -308,6 +367,52 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
 
   const isMermaidDiagram = file.type === 'image/svg+xml';
 
+  const imageBackgroundStyle = useMemo(() => {
+    if (isMermaidDiagram) {
+      return {
+        backgroundColor: 'white',
+        borderRadius: '4px',
+        boxShadow: '0 0 0 1px rgba(255,255,255,0.1)',
+      };
+    }
+
+    switch (bgMode) {
+      case 'grid':
+        return {
+          backgroundImage: `
+            linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.15) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.15) 75%)
+          `,
+          backgroundSize: '16px 16px',
+          backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
+          backgroundColor: '#18181b',
+          borderRadius: '4px',
+          boxShadow: '0 0 0 1px rgba(255,255,255,0.15)',
+        };
+      case 'white':
+        return {
+          backgroundColor: '#ffffff',
+          borderRadius: '4px',
+          boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
+        };
+      case 'black':
+        return {
+          backgroundColor: '#000000',
+          borderRadius: '4px',
+          boxShadow: '0 0 0 1px rgba(255,255,255,0.15)',
+        };
+      case 'default':
+      default:
+        return {
+          backgroundColor: 'transparent',
+          borderRadius: '0',
+          boxShadow: 'none',
+        };
+    }
+  }, [bgMode, isMermaidDiagram]);
+
   return (
     <div
       ref={viewportRef}
@@ -343,10 +448,8 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
                 maxHeight: '100%',
                 objectFit: 'contain',
                 userSelect: 'none',
-                backgroundColor: isMermaidDiagram ? 'white' : 'transparent',
-                borderRadius: isMermaidDiagram ? '4px' : '0',
-                boxShadow: isMermaidDiagram ? '0 0 0 1px rgba(255,255,255,0.1)' : 'none',
                 pointerEvents: 'none',
+                ...imageBackgroundStyle,
               }}
               onLoad={handleImageLoad}
               draggable={false}
@@ -402,6 +505,17 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
           </button>
 
           <ToolbarButton
+            active={isActualSize}
+            onClick={handleToggleActualSize}
+            title={isActualSize ? t('filePreviewFitToScreen') : t('filePreviewActualSize')}
+            aria-label={isActualSize ? t('filePreviewFitToScreen') : t('filePreviewActualSize')}
+            data-testid="image-actual-size-btn"
+            className="px-1.5 text-[11px] font-mono font-semibold"
+          >
+            1:1
+          </ToolbarButton>
+
+          <ToolbarButton
             onClick={handleZoomIn}
             disabled={scale >= MAX_SCALE}
             title={t('filePreviewZoomIn')}
@@ -422,6 +536,24 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
 
           <ToolbarButton onClick={handleRotateRight} title={t('filePreviewRotate')} aria-label={t('filePreviewRotate')}>
             <RotateCw size={16} strokeWidth={1.5} />
+          </ToolbarButton>
+
+          <ToolbarButton
+            active={bgMode !== 'default'}
+            onClick={handleCycleBackground}
+            title={
+              bgMode === 'default'
+                ? t('filePreviewBgDefault')
+                : bgMode === 'grid'
+                  ? t('filePreviewBgGrid')
+                  : bgMode === 'white'
+                    ? t('filePreviewBgWhite')
+                    : t('filePreviewBgBlack')
+            }
+            aria-label={t('filePreviewBgToggle')}
+            data-testid="image-bg-toggle-btn"
+          >
+            <Grid2x2 size={16} strokeWidth={1.5} />
           </ToolbarButton>
 
           <ToolbarDivider />

@@ -5,7 +5,7 @@ import { type ChatMessage } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { ExportMessageButton } from './buttons/ExportMessageButton';
 import { MessageCopyButton } from './buttons/MessageCopyButton';
-import { useIsMobile, useResponsiveValue } from '@/hooks/ui/useDevice';
+import { useResponsiveValue } from '@/hooks/ui/useDevice';
 import { useWindowContext } from '@/contexts/WindowContext';
 import { IconBranch } from '@/components/icons';
 import { stripLocateMarkers } from '@/utils/media-nav/locateMarker';
@@ -84,7 +84,6 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
 }) => {
   const { t } = useI18n();
   const { document: targetDocument } = useWindowContext();
-  const isMobile = useIsMobile();
   const [isOverflowOpen, setIsOverflowOpen] = useState(false);
   const overflowRef = useRef<HTMLDivElement | null>(null);
   const actionIconSize = useResponsiveValue(15, 16);
@@ -121,9 +120,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
     'p-1.5 rounded-lg text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-border-focus)] opacity-80 hover:opacity-100';
   const menuItemClasses =
     'flex w-full items-center gap-2 px-3 py-2 text-left text-xs whitespace-nowrap text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] focus:outline-none focus-visible:bg-[var(--theme-bg-tertiary)] focus-visible:text-[var(--theme-text-primary)]';
-  const actionsVisibilityClasses = isMobile
-    ? 'opacity-100 translate-y-0 pointer-events-auto'
-    : 'opacity-0 translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto focus-within:opacity-100 focus-within:pointer-events-auto';
+  const actionsVisibilityClasses = 'opacity-100 translate-y-0 pointer-events-auto';
 
   useEffect(() => {
     if (!isOverflowOpen) {

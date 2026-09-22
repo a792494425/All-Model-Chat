@@ -20,6 +20,7 @@ interface StartOptimisticMessageTurnParams {
   currentChatSettings: IndividualChatSettings;
   updateAndPersistSessions: SessionsUpdater;
   setActiveSessionId: (id: string | null) => void;
+  setActiveMessages?: (messages: ChatMessage[]) => void;
   text: string;
   files?: UploadedFile[];
   generationId: string;
@@ -92,6 +93,7 @@ const startOptimisticMessageTurn = ({
   currentChatSettings,
   updateAndPersistSessions,
   setActiveSessionId,
+  setActiveMessages,
   text,
   files,
   generationId,
@@ -178,6 +180,9 @@ const startOptimisticMessageTurn = ({
 
   if (placement.type === 'append-turn' && !activeSessionId) {
     setActiveSessionId(finalSessionId);
+    if (userMessage && modelMessage) {
+      setActiveMessages?.([userMessage, modelMessage]);
+    }
   }
 
   return {

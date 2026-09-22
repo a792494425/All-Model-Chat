@@ -14,6 +14,11 @@ describe('HTML preview privilege', () => {
     expect(HTML_PREVIEW_SANDBOX.unrestricted).not.toContain('allow-top-navigation');
   });
 
+  it('allows popups to escape sandbox so clicked external links open with normal origin', () => {
+    expect(HTML_PREVIEW_SANDBOX.sanitized).toContain('allow-popups-to-escape-sandbox');
+    expect(HTML_PREVIEW_SANDBOX.unrestricted).toContain('allow-popups-to-escape-sandbox');
+  });
+
   it('accepts opaque-origin posts for both tiers and parent-origin posts only when unrestricted', () => {
     const parentOrigin = 'https://app.example';
 

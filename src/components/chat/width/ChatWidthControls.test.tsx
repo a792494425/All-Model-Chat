@@ -2,11 +2,7 @@ import { createRef } from 'react';
 import { act, fireEvent, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChatWidthControls } from './ChatWidthControls';
-import {
-  CHAT_WIDTH_PREF_KEY,
-  readChatWidthPreference,
-  resolveChatContentWidth,
-} from './chatWidthState';
+import { CHAT_WIDTH_PREF_KEY, readChatWidthPreference, resolveChatContentWidth } from './chatWidthState';
 
 describe('ChatWidthControls', () => {
   let origOffsetWidth: PropertyDescriptor | undefined;

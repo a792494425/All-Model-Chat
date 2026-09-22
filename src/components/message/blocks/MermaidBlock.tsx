@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import mermaid from 'mermaid';
 import DOMPurify from 'dompurify';
 import { type SideViewContent, type UploadedFile } from '@/types';
@@ -10,6 +10,8 @@ import { useDebouncedDiagramRender } from '@/hooks/diagram/useDebouncedDiagramRe
 import { useDiagramExport } from '@/hooks/diagram/useDiagramExport';
 import { getErrorMessage } from '@/utils/errorMessage';
 
+import { hashString } from '@/utils/format/stringHash';
+
 // Strip script tags and event handlers from mermaid-rendered SVG before injection.
 // With securityLevel 'strict', mermaid already escapes HTML labels; this is a
 // defense-in-depth guard against any residual script/foreignObject injection.
@@ -20,6 +22,11 @@ const sanitizeMermaidSvg = (svg: string): string =>
     FORBID_TAGS: ['script'],
     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
   });
+
+const mermaidBlockSvgCache = new Map<string, string>();
+
+const getMermaidBlockCacheKey = (code: string, themeId: string) =>
+  `${themeId}:${code.length}:${hashString(code)}`;
 
 interface MermaidBlockProps {
   code: string;
@@ -39,16 +46,61 @@ export const MermaidBlock: React.FC<MermaidBlockProps> = ({
   renderDelayMs = 500,
 }) => {
   const { t } = useI18n();
-  const [svg, setSvg] = useState('');
+
+  const isMessageLoadingRef = useRef(isMessageLoading);
+  useEffect(() => {
+    isMessageLoadingRef.current = isMessageLoading;
+  }, [isMessageLoading]);
+
+  const blockCacheKey = useMemo(
+    () => getMermaidBlockCacheKey(code, themeId),
+    [code, themeId],
+  );
+
+  const initialCachedSvg = useMemo(() => mermaidBlockSvgCache.get(blockCacheKey) ?? '', [blockCacheKey]);
+
+  const [svg, setSvg] = useState(initialCachedSvg);
   const [error, setError] = useState('');
-  const [isRendering, setIsRendering] = useState(true);
-  const [diagramFile, setDiagramFile] = useState<UploadedFile | null>(null);
+  const [isRendering, setIsRendering] = useState(!initialCachedSvg);
+  const [diagramFile, setDiagramFile] = useState<UploadedFile | null>(() =>
+    initialCachedSvg
+      ? svgToUploadedFile(initialCachedSvg, {
+          id: `mermaid-svg-${Math.random().toString(36).substring(2, 9)}`,
+          name: 'mermaid-diagram.svg',
+          size: initialCachedSvg.length,
+        })
+      : null,
+  );
   const [showSource, setShowSource] = useState(false);
   const diagramContainerRef = useRef<HTMLDivElement>(null);
 
   const renderMermaid = useCallback(
     async (isMounted: () => boolean) => {
-      if (!code) return;
+      if (!code) {
+        setSvg('');
+        setError('');
+        setIsRendering(false);
+        return;
+      }
+
+      const cached = mermaidBlockSvgCache.get(blockCacheKey);
+      if (cached) {
+        setSvg(cached);
+        setDiagramFile(
+          svgToUploadedFile(cached, {
+            id: `mermaid-svg-${Math.random().toString(36).substring(2, 9)}`,
+            name: 'mermaid-diagram.svg',
+            size: cached.length,
+          }),
+        );
+        setError('');
+        setIsRendering(false);
+        return;
+      }
+
+      if (!svg) {
+        setIsRendering(true);
+      }
 
       try {
         const id = `mermaid-svg-${Math.random().toString(36).substring(2, 9)}`;
@@ -65,6 +117,7 @@ export const MermaidBlock: React.FC<MermaidBlockProps> = ({
         if (!isMounted()) return;
 
         const sanitizedSvg = sanitizeMermaidSvg(renderedSvg);
+        mermaidBlockSvgCache.set(blockCacheKey, sanitizedSvg);
         setSvg(sanitizedSvg);
 
         setDiagramFile(
@@ -76,7 +129,7 @@ export const MermaidBlock: React.FC<MermaidBlockProps> = ({
       } catch (error) {
         if (!isMounted()) return;
 
-        if (isMessageLoading) {
+        if (isMessageLoadingRef.current) {
           setIsRendering(true);
         } else {
           const errorMessage = getErrorMessage(error, t('diagramRenderMermaidFailed'));
@@ -86,7 +139,7 @@ export const MermaidBlock: React.FC<MermaidBlockProps> = ({
         }
       }
     },
-    [code, isMessageLoading, themeId, t],
+    [blockCacheKey, code, svg, themeId, t],
   );
 
   useDebouncedDiagramRender(renderMermaid, renderDelayMs);

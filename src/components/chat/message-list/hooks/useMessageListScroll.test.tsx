@@ -1219,4 +1219,56 @@ describe('useMessageListScroll', () => {
 
     unmount();
   });
+
+  it('re-asserts bottom lock and real bottom scroll when model stream finishes while at bottom', () => {
+    let messages = [
+      createMessages()[0],
+      {
+        id: 'msg-model-stream',
+        role: 'model' as const,
+        content: 'Streaming chunk...',
+        isLoading: true,
+        timestamp: new Date('2026-05-08T00:01:00.000Z'),
+      },
+    ];
+
+    const { result, rerender, unmount } = renderHook(() =>
+      useMessageListScroll({
+        messages,
+        setScrollContainerRef: vi.fn(),
+        activeSessionId: 'session-stream-end-bottom-lock',
+      }),
+    );
+
+    const scroller = document.createElement('div');
+    Object.defineProperties(scroller, {
+      scrollHeight: { value: 3000, writable: true },
+      clientHeight: { value: 800, writable: true },
+      scrollTop: { value: 2200, writable: true },
+    });
+    const scrollTo = vi.fn();
+    scroller.scrollTo = scrollTo;
+
+    act(() => {
+      result.current.handleScrollerRef(scroller);
+    });
+
+    // Complete the model message stream
+    messages = [
+      messages[0],
+      {
+        ...messages[1],
+        content: 'Streaming completed final text',
+        isLoading: false,
+      },
+    ];
+
+    act(() => {
+      rerender();
+    });
+
+    expect(scrollTo).toHaveBeenCalledWith({ top: 3000 });
+
+    unmount();
+  });
 });

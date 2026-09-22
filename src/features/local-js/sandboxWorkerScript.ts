@@ -56,12 +56,12 @@ self.onmessage = async (event) => {
       logs: logs.join('\\n'),
       result: serialize(rawResult),
     });
-  } catch (err) {
+  } catch (executionError) {
     self.postMessage({
       id,
       status: 'error',
       logs: logs.join('\\n'),
-      error: err instanceof Error ? (err.stack || err.message) : String(err),
+      error: executionError instanceof Error ? (executionError.stack || executionError.message) : String(executionError),
     });
   }
 };

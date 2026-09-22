@@ -127,8 +127,8 @@ const MessageListComponent: React.FC = () => {
   const isGemini3 = useMemo(() => isGemini3Model(currentChatSettings.modelId), [currentChatSettings.modelId]);
   const followOutput = React.useCallback((isAtBottom: boolean) => (isAtBottom ? 'auto' : false), []);
   const VirtuosoFooter = React.useCallback(
-    () => <MessageListFooter messages={visibleMessages} chatInputHeight={chatInputHeight} />,
-    [chatInputHeight, visibleMessages],
+    () => <MessageListFooter chatInputHeight={chatInputHeight} />,
+    [chatInputHeight],
   );
   const virtuosoComponents = React.useMemo(
     () => ({

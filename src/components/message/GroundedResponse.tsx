@@ -19,7 +19,7 @@ interface GroundedResponseProps {
   onOpenHtmlPreview: OpenHtmlPreviewHandler;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   expandCodeBlocksByDefault: boolean;
-  onImageClick: (file: UploadedFile) => void;
+  onImageClick: (file: UploadedFile, messageId?: string) => void;
   isMermaidRenderingEnabled: boolean;
   isGraphvizRenderingEnabled: boolean;
   themeId: string;

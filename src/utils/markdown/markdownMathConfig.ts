@@ -1,3 +1,5 @@
+import { splitMarkdownSegments } from './markdownSegments';
+
 const BLOCK_TEX_MATH_PATTERN = /(^|[^\\])\$\$[\s\S]*?[^\\]\$\$/m;
 const INLINE_TEX_MATH_PATTERN = /(^|[^\\])\$(?!\$)(?:\\.|[^\\$\n])+\$/m;
 
@@ -34,13 +36,27 @@ export const containsTexMathMarkdown = (content: string): boolean =>
  * bare `$5 and $10` (currency) does not force the math renderer onto the
  * message. Used by LazyMarkdownRenderer to decide whether to load the math
  * chunk.
+ *
+ * Excludes code blocks / inline code (`literal` segments) so bash scripts,
+ * template literals, jQuery, or Live Artifact HTML/JS containing `$` never
+ * falsely trigger TeX math mode.
  */
 export const hasLikelyTexMathMarkdown = (content: string): boolean => {
-  const blockMatches = content.match(new RegExp(BLOCK_TEX_MATH_PATTERN.source, 'gm')) ?? [];
+  const segments = splitMarkdownSegments(content);
+  const textOnly = segments
+    .filter((segment) => segment.type === 'text')
+    .map((segment) => segment.value)
+    .join('\n');
+
+  if (!textOnly) {
+    return false;
+  }
+
+  const blockMatches = textOnly.match(new RegExp(BLOCK_TEX_MATH_PATTERN.source, 'gm')) ?? [];
   if (blockMatches.some((match) => isLikelyTexMath(stripEscapedDollarMarkers(match)))) {
     return true;
   }
 
-  const inlineMatches = content.match(new RegExp(INLINE_TEX_MATH_PATTERN.source, 'gm')) ?? [];
+  const inlineMatches = textOnly.match(new RegExp(INLINE_TEX_MATH_PATTERN.source, 'gm')) ?? [];
   return inlineMatches.some((match) => isLikelyTexMath(stripEscapedDollarMarkers(match)));
 };

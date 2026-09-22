@@ -68,6 +68,7 @@ export interface StandardChatProps extends BaseSenderProps {
   userScrolledUpRef: MutableRefObject<boolean>;
   activeSessionId: string | null;
   setActiveSessionId: (id: string | null) => void;
+  setActiveMessages?: (messages: ChatMessage[]) => void;
   getStreamHandlers: GetStreamHandlers;
   sessionKeyMapRef: MutableRefObject<Map<string, string>>;
 }

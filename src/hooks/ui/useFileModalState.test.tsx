@@ -90,4 +90,37 @@ describe('useFileModalState', () => {
 
     unmount();
   });
+
+  it('allows overriding navigation files using galleryFiles option', () => {
+    const defaultFiles = [createUploadedFile({ id: 'def-1', name: 'def.png', type: 'image/png' })];
+    const galleryA = createUploadedFile({ id: 'gal-a', name: 'a.png', type: 'image/png' });
+    const galleryB = createUploadedFile({ id: 'gal-b', name: 'b.png', type: 'image/png' });
+
+    const { result, unmount } = renderHook(() => useFileModalState<string>(defaultFiles));
+
+    act(() => {
+      result.current.openPreview(galleryA, { galleryFiles: [galleryA, galleryB] });
+    });
+
+    expect(result.current.previewFile).toBe(galleryA);
+    expect(result.current.allImages).toHaveLength(2);
+    expect(result.current.currentImageIndex).toBe(0);
+
+    act(() => {
+      result.current.handleNextImage();
+    });
+
+    expect(result.current.previewFile).toBe(galleryB);
+    expect(result.current.currentImageIndex).toBe(1);
+
+    act(() => {
+      result.current.closePreview();
+    });
+
+    expect(result.current.previewFile).toBeNull();
+    // After closing, falls back to default files
+    expect(result.current.allImages).toHaveLength(1);
+
+    unmount();
+  });
 });

@@ -39,6 +39,19 @@ export const useMessageListScroll = ({
       virtuosoRef,
     });
 
+  const lastMsg = messages[messages.length - 1];
+  const isLastMessageLoading = lastMsg?.role === 'model' && Boolean(lastMsg?.isLoading);
+  const prevIsLastMessageLoadingRef = useRef(isLastMessageLoading);
+
+  useEffect(() => {
+    if (prevIsLastMessageLoadingRef.current && !isLastMessageLoading) {
+      if (atBottomRef.current) {
+        scrollToRealBottom();
+      }
+    }
+    prevIsLastMessageLoadingRef.current = isLastMessageLoading;
+  }, [isLastMessageLoading, scrollToRealBottom]);
+
   useEffect(() => {
     activeSessionIdRef.current = activeSessionId;
     resetBottomLock();

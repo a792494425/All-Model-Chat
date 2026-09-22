@@ -253,8 +253,8 @@ export const chatTranslations = {
   },
   mcpVirtualServer_amc_local_javascript_name: {
     en: 'JavaScript Sandbox (Web Worker)',
-    zh: 'JavaScript 代码沙箱 (Web Worker)',
-    ja: 'JavaScript サンドボックス (Web Worker)',
+    zh: 'JavaScript 代码沙箱（Web Worker）',
+    ja: 'JavaScript サンドボックス（Web Worker）',
     ko: 'JavaScript 샌드박스 (Web Worker)',
     es: 'Sandbox de JavaScript (Web Worker)',
     fr: 'Bac à sable JavaScript (Web Worker)',
@@ -271,8 +271,8 @@ export const chatTranslations = {
   },
   mcpVirtualServer_amc_local_python_name: {
     en: 'Python Sandbox (Pyodide)',
-    zh: 'Python 代码沙箱 (Pyodide)',
-    ja: 'Python サンドボックス (Pyodide)',
+    zh: 'Python 代码沙箱（Pyodide）',
+    ja: 'Python サンドボックス（Pyodide）',
     ko: 'Python 샌드박스 (Pyodide)',
     es: 'Sandbox de Python (Pyodide)',
     fr: 'Bac à sable Python (Pyodide)',

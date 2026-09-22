@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import {
   CHAT_DEFAULT_MIN,
   CHAT_WIDTH_PREF_KEY,
@@ -132,7 +132,7 @@ const WidthHandle: React.FC<WidthHandleProps> = (props) => {
 };
 
 export interface ChatWidthControlsProps {
-  containerRef?: React.RefObject<HTMLElement | null>;
+  containerRef?: RefObject<HTMLElement | null>;
 }
 
 export const ChatWidthControls: React.FC<ChatWidthControlsProps> = ({ containerRef }) => {
@@ -221,22 +221,8 @@ export const ChatWidthControls: React.FC<ChatWidthControlsProps> = ({ containerR
   return (
     <>
       <span ref={markerRef} style={{ display: 'none' }} aria-hidden="true" />
-      <WidthHandle
-        side="left"
-        onStart={onStart}
-        onDrag={onDrag}
-        onCommit={onCommit}
-        onEnd={onEnd}
-        onReset={onReset}
-      />
-      <WidthHandle
-        side="right"
-        onStart={onStart}
-        onDrag={onDrag}
-        onCommit={onCommit}
-        onEnd={onEnd}
-        onReset={onReset}
-      />
+      <WidthHandle side="left" onStart={onStart} onDrag={onDrag} onCommit={onCommit} onEnd={onEnd} onReset={onReset} />
+      <WidthHandle side="right" onStart={onStart} onDrag={onDrag} onCommit={onCommit} onEnd={onEnd} onReset={onReset} />
     </>
   );
 };

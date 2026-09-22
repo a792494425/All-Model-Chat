@@ -4,8 +4,9 @@ import { useImageNavigation } from './useImageNavigation';
 
 export const useFilePreviewState = (files: UploadedFile[]) => {
   const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);
+  const [activeGallery, setActiveGallery] = useState<UploadedFile[] | null>(null);
 
-  const allFiles = useMemo(() => files, [files]);
+  const allFiles = useMemo(() => activeGallery ?? files, [activeGallery, files]);
 
   const {
     images: allImages,
@@ -16,6 +17,7 @@ export const useFilePreviewState = (files: UploadedFile[]) => {
 
   const closePreviewFile = useCallback(() => {
     setPreviewFile(null);
+    setActiveGallery(null);
   }, []);
 
   return {
@@ -26,5 +28,6 @@ export const useFilePreviewState = (files: UploadedFile[]) => {
     currentImageIndex,
     handlePrevImage,
     handleNextImage,
+    setActiveGallery,
   };
 };

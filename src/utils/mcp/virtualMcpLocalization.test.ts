@@ -59,8 +59,8 @@ describe('virtualMcpLocalization', () => {
         { id: 'amc_settings_manager', name: 'AMC Settings Manager' },
       ];
 
-      expect(getVirtualMcpServerDisplayName(servers[0], tZh)).toBe('JavaScript 代码沙箱 (Web Worker)');
-      expect(getVirtualMcpServerDisplayName(servers[1], tZh)).toBe('Python 代码沙箱 (Pyodide)');
+      expect(getVirtualMcpServerDisplayName(servers[0], tZh)).toBe('JavaScript 代码沙箱（Web Worker）');
+      expect(getVirtualMcpServerDisplayName(servers[1], tZh)).toBe('Python 代码沙箱（Pyodide）');
       expect(getVirtualMcpServerDisplayName(servers[2], tZh)).toBe('会话历史与长期记忆');
       expect(getVirtualMcpServerDisplayName(servers[3], tZh)).toBe('资料库与个人知识库检索');
       expect(getVirtualMcpServerDisplayName(servers[4], tZh)).toBe('服务商配置助手');

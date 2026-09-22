@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import type { FunctionCall, Part } from '@google/genai';
 import { type ChatMessage, type UploadedFile, type MessageAppSettings, type SideViewContent } from '@/types';
 import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
@@ -20,7 +20,7 @@ interface MessageProps {
   onEditMessage: (messageId: string, mode: 'update' | 'resend') => void;
   onDeleteMessage: (messageId: string) => void;
   onRetryMessage: (messageId: string) => void;
-  onImageClick: (file: UploadedFile) => void;
+  onImageClick: (file: UploadedFile, messageId?: string) => void;
   onOpenHtmlPreview: OpenHtmlPreviewHandler;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   showThoughts: boolean;
@@ -38,7 +38,7 @@ interface MessageProps {
 }
 
 export const Message: React.FC<MessageProps> = React.memo((props) => {
-  const { message, prevMessage } = props;
+  const { message, prevMessage, onImageClick } = props;
   const appSettings = useSettingsStore(
     useShallow((state): MessageAppSettings => ({
       baseFontSize: state.appSettings.baseFontSize,
@@ -81,9 +81,7 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
   const userMessageInset = isMediaNavOpen ? 'ml-2 sm:ml-4' : CHAT_USER_MESSAGE_INSET_CLASS;
 
   const widthConstraints =
-    message.role === 'user'
-      ? `${userMessageInset} max-w-[88%]`
-      : 'flex-1 min-w-0 max-w-[calc(100%-2.5rem)]';
+    message.role === 'user' ? `${userMessageInset} max-w-[88%]` : 'flex-1 min-w-0 max-w-[calc(100%-2.5rem)]';
 
   let bubbleClasses = `flex flex-col min-w-0 transition-all duration-200 ${widthConstraints} message-content-container `;
 
@@ -126,6 +124,13 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
     />
   );
 
+  const handleImageClick = useCallback(
+    (file: UploadedFile, fileMessageId?: string) => {
+      onImageClick(file, fileMessageId || message.id);
+    },
+    [message.id, onImageClick],
+  );
+
   return (
     <div
       className="relative"
@@ -138,7 +143,7 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
         <div className={`${bubbleClasses}`}>
           <MessageContent
             message={message}
-            onImageClick={props.onImageClick}
+            onImageClick={handleImageClick}
             onOpenHtmlPreview={props.onOpenHtmlPreview}
             onLiveArtifactFollowUp={props.onLiveArtifactFollowUp}
             showThoughts={props.showThoughts}

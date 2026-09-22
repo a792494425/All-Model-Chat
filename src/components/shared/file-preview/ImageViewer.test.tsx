@@ -210,4 +210,53 @@ describe('ImageViewer', () => {
 
     expect(screen.queryByTestId('image-highlight-overlay')).toBeNull();
   });
+
+  it('handles 1:1 actual size toggle', async () => {
+    await act(async () => {
+      renderer.render(<ImageViewer file={mockImageFile} />);
+    });
+
+    const actualSizeBtn = screen.getByTestId('image-actual-size-btn');
+    expect(actualSizeBtn).toBeInTheDocument();
+    expect(actualSizeBtn).toHaveTextContent('1:1');
+
+    await act(async () => {
+      fireEvent.click(actualSizeBtn);
+    });
+  });
+
+  it('cycles background modes between default, grid, white, and black', async () => {
+    await act(async () => {
+      renderer.render(<ImageViewer file={mockImageFile} />);
+    });
+
+    const img = screen.getByAltText('Zoomed view of photo.png');
+    const bgBtn = screen.getByTestId('image-bg-toggle-btn');
+    expect(bgBtn).toBeInTheDocument();
+    expect(img.style.backgroundColor).toBe('transparent');
+
+    // Click 1: grid
+    await act(async () => {
+      fireEvent.click(bgBtn);
+    });
+    expect(img.style.backgroundColor).toBe('rgb(24, 24, 27)');
+
+    // Click 2: white
+    await act(async () => {
+      fireEvent.click(bgBtn);
+    });
+    expect(img.style.backgroundColor).toBe('rgb(255, 255, 255)');
+
+    // Click 3: black
+    await act(async () => {
+      fireEvent.click(bgBtn);
+    });
+    expect(img.style.backgroundColor).toBe('rgb(0, 0, 0)');
+
+    // Click 4: back to default
+    await act(async () => {
+      fireEvent.click(bgBtn);
+    });
+    expect(img.style.backgroundColor).toBe('transparent');
+  });
 });

@@ -61,8 +61,9 @@ describe('MessageActions', () => {
     expect(renderer.container.querySelector('[aria-label="Read message aloud"]')).not.toBeInTheDocument();
   });
 
-  it('shows the action column by default on mobile without relying on hover', () => {
-    window.innerWidth = 390;
+  it('shows the action column by default without relying on hover', () => {
+    // Desktop resolution
+    window.innerWidth = 1280;
 
     act(() => {
       renderMessageActions();
@@ -72,6 +73,19 @@ describe('MessageActions', () => {
     expect(actions?.className).toContain('opacity-100');
     expect(actions?.className).not.toContain('opacity-0');
     expect(actions?.className).toContain('pointer-events-auto');
+    expect(actions?.className).not.toContain('group-hover:opacity-100');
+
+    // Mobile resolution
+    window.innerWidth = 390;
+
+    act(() => {
+      renderMessageActions();
+    });
+
+    const mobileActions = renderer.container.querySelector('.message-actions');
+    expect(mobileActions?.className).toContain('opacity-100');
+    expect(mobileActions?.className).not.toContain('opacity-0');
+    expect(mobileActions?.className).toContain('pointer-events-auto');
   });
 
   it('keeps compact message action buttons free of scale transforms', () => {

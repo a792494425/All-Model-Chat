@@ -18,7 +18,9 @@ export const useImageNavigation = (
 
   const currentIndex = useMemo(() => {
     if (!currentFile) return -1;
-    return images.findIndex((f) => f.id === currentFile.id);
+    return images.findIndex(
+      (f) => f.id === currentFile.id || (Boolean(f.dataUrl) && f.dataUrl === currentFile.dataUrl),
+    );
   }, [images, currentFile]);
 
   const handlePrev = useCallback(() => {

@@ -61,16 +61,14 @@ export const MarkdownPreElement: React.FC<MarkdownPreElementProps> = ({
 
   const isServerCodeExecution = typeof rest.className === 'string' && rest.className.includes('code-exec-code');
 
+  const cacheKey = messageId ? `${messageId}:${node?.position?.start?.offset ?? 0}` : undefined;
+
   const codeBlock = (
     <CodeBlock
       {...rest}
       files={files}
       messageId={messageId}
-      cacheKey={
-        messageId && node?.position?.start?.offset !== undefined
-          ? `${messageId}:${node.position.start.offset}`
-          : undefined
-      }
+      cacheKey={cacheKey}
       className={codeClassName}
       onOpenHtmlPreview={(payload) => handlersRef.current?.onOpenHtmlPreview(payload)}
       onLiveArtifactFollowUp={(payload) => handlersRef.current?.onLiveArtifactFollowUp?.(payload)}

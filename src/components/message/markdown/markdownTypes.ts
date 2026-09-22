@@ -8,7 +8,7 @@ export interface MarkdownRendererProps {
   content: string;
   messageId?: string;
   isLoading: boolean;
-  onImageClick: (file: UploadedFile) => void;
+  onImageClick: (file: UploadedFile, messageId?: string) => void;
   onOpenHtmlPreview: OpenHtmlPreviewHandler;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   expandCodeBlocksByDefault: boolean;
@@ -56,7 +56,7 @@ export type MarkdownPreProps = React.ComponentPropsWithoutRef<'pre'> & {
 };
 
 export interface MarkdownHandlers {
-  onImageClick: (file: UploadedFile) => void;
+  onImageClick: (file: UploadedFile, messageId?: string) => void;
   onOpenHtmlPreview: OpenHtmlPreviewHandler;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   onOpenSidePanel: (content: SideViewContent) => void;

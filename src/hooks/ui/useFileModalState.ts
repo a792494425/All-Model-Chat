@@ -4,6 +4,7 @@ import { useFilePreviewState } from './useFilePreviewState';
 
 interface PreviewOptions {
   editable?: boolean;
+  galleryFiles?: UploadedFile[];
 }
 
 export const useFileModalState = <TConfig>(files: UploadedFile[]) => {
@@ -17,14 +18,16 @@ export const useFileModalState = <TConfig>(files: UploadedFile[]) => {
     handlePrevImage,
     handleNextImage,
     setPreviewFile,
+    setActiveGallery,
   } = useFilePreviewState(files);
 
   const openPreview = useCallback(
     (file: UploadedFile, options: PreviewOptions = {}) => {
+      setActiveGallery(options.galleryFiles && options.galleryFiles.length > 0 ? options.galleryFiles : null);
       setPreviewFile(file);
       setIsPreviewEditable(options.editable ?? false);
     },
-    [setPreviewFile],
+    [setActiveGallery, setPreviewFile],
   );
 
   const closePreview = useCallback(() => {

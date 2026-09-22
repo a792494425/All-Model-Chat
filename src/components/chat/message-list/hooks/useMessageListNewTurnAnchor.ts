@@ -53,7 +53,10 @@ export const useMessageListNewTurnAnchor = ({
       }
 
       if (targetIndex !== -1) {
-        if (atBottomRef.current) {
+        const targetMessage = messages[targetIndex];
+        // Only anchor for newly starting model messages that are actively loading.
+        // Completed messages (isLoading: false) must never cause a new-turn anchor or viewport jump.
+        if (targetMessage?.isLoading !== false && atBottomRef.current) {
           const sessionIdForScroll = activeSessionId;
           clearAnchorTimeout();
           anchorTimeoutRef.current = window.setTimeout(() => {
