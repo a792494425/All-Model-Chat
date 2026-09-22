@@ -14,13 +14,14 @@ import {
 import { DEFAULT_HTML_PREVIEW_PRIVILEGE, type HtmlPreviewPrivilege } from '@/utils/html-preview/previewPrivilege';
 import { useI18n } from '@/contexts/I18nContext';
 import { toastError } from '@/stores/toastStore';
-import { type LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
-import { LIVE_ARTIFACT_CLEAR_SELECTION_EVENT } from '@/utils/text-selection/liveArtifactSelection';
+import { type LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
+import { LIVE_ARTIFACT_CLEAR_SELECTION_EVENT } from '@/utils/text-selection/liveUiSelection';
 import { useHtmlPreviewBridge } from './useHtmlPreviewBridge';
 import { formatI18nErrorMessage } from '@/i18n/interpolate';
 
 import { type UploadedFile } from '@/types';
 import { svgToUploadedFile } from '@/utils/export/svgToUploadedFile';
+import { dispatchMediaSeekFromBridge } from '@/utils/media-nav/mediaNavBridgeDispatch';
 
 const ZOOM_STEP = 0.1;
 const MIN_ZOOM = 0.25;
@@ -223,6 +224,10 @@ export const useHtmlPreviewModal = ({
       onFollowUp: onLiveArtifactFollowUp,
       onDiagnostic: handleBridgeDiagnostic,
       onDiagramClick: handleBridgeDiagramClick,
+      onMediaSeek: (payload) => {
+        onClose();
+        dispatchMediaSeekFromBridge(payload);
+      },
     },
   });
 

@@ -123,7 +123,7 @@ describe('seekSessionPdf', () => {
     const updated = updater({
       isPdfNavEnabled: false,
       isVideoNavEnabled: true,
-      systemInstruction: '[Live Artifacts Protocol - zh]\nPrompt content',
+      systemInstruction: '[LiveUI Inline Protocol]\nPrompt content',
     });
     expect(updated.isPdfNavEnabled).toBe(true);
     expect(updated.isVideoNavEnabled).toBe(false);

@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { type UploadedFile, type VideoMetadata, type MediaResolution } from '@/types';
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';
-import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
+import type { LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
 import type { HtmlPreviewRequest } from '@/utils/html-preview/previewPrivilege';
 
 const LazyHtmlPreviewModal = lazyNamedComponent(

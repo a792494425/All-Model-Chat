@@ -4,7 +4,7 @@ import {
   dispatchLiveArtifactClearSelection,
   isLiveArtifactSelectionDetail,
   LIVE_ARTIFACT_SELECTION_EVENT,
-} from '@/utils/text-selection/liveArtifactSelection';
+} from '@/utils/text-selection/liveUiSelection';
 import {
   type ContainerRefLike,
   type SelectionBounds,

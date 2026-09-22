@@ -3,6 +3,7 @@ import { useMediaNavStore } from '@/stores/mediaNavStore';
 import { collectSessionMediaFiles, isImageFile, resolveNamedFile } from './sessionMediaFiles';
 import { parseLocateMarkers, toImageNavHighlight } from './locateMarker';
 import { applyMediaNavKindToSettings } from './mediaNavSettings';
+import { collapseSidebarIfNarrowScreen } from './mediaNavResponsive';
 import { focusChatInput } from '@/utils/chat-input/focus';
 
 export interface SeekSessionImageParams {
@@ -107,6 +108,7 @@ export const seekSessionImage = (params: SeekSessionImageParams): boolean => {
     { messageId: params.messageId, index: 1, total: 1, isActive: true, focusToken: ++focusTokenCounter },
   );
 
+  collapseSidebarIfNarrowScreen();
   store.openAs('image');
   store.setActiveFile(target.id);
   if (allHighlights.length > 1) {

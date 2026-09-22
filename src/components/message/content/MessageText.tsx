@@ -14,7 +14,7 @@ import {
 import { useSmoothStreaming } from '@/hooks/ui/useSmoothStreaming';
 import { useMessageStream } from '@/hooks/ui/useMessageStream';
 import { extractRawThinkingBlocks } from '@/utils/chat/reasoning';
-import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
+import type { LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
   getUserMessageCollapseKey,
@@ -23,8 +23,8 @@ import {
   USER_MESSAGE_COLLAPSE_LINE_THRESHOLD,
   type UserMessageCollapseController,
 } from './userMessageCollapse';
-import { resolveLiveArtifactsFontSize } from '@/utils/live-artifacts/liveArtifactsFontSize';
-import { isLiveArtifactsModeFromSettings } from '@/utils/live-artifacts/liveArtifactsMode';
+import { resolveLiveArtifactsFontSize } from '@/utils/live-ui/liveUiFontSize';
+import { isLiveArtifactsModeFromSettings } from '@/utils/live-ui/liveUiMode';
 import { parseLocateMarkers } from '@/utils/media-nav/locateMarker';
 import { useChatStore } from '@/stores/chatStore';
 import { linkifyTimestamps } from '@/utils/media-nav/timestampLinks';
@@ -135,8 +135,7 @@ export const MessageText: React.FC<MessageTextProps> = ({
   );
 
   const { hasNavigableVideoOrAudio, hasPdfInSession, hasImageInSession } = useMemo(() => {
-    // Live Artifacts must NEVER execute locate conversions or timestamp link rewrites.
-    if (message.role !== 'model' || liveArtifactsMode) {
+    if (message.role !== 'model') {
       return { hasNavigableVideoOrAudio: false, hasPdfInSession: false, hasImageInSession: false };
     }
     const hasVideoOrAudioLocate = locateExtraction.videoLocates.length > 0 || locateExtraction.audioLocates.length > 0;
@@ -152,7 +151,6 @@ export const MessageText: React.FC<MessageTextProps> = ({
       hasImageInSession: hasImageLocate || images.length > 0,
     };
   }, [
-    liveArtifactsMode,
     locateExtraction.audioLocates.length,
     locateExtraction.imageLocates.length,
     locateExtraction.pdfLocates.length,
@@ -161,7 +159,7 @@ export const MessageText: React.FC<MessageTextProps> = ({
   ]);
 
   const effectiveContent = useMemo(() => {
-    if (liveArtifactsMode || (!hasNavigableVideoOrAudio && !hasPdfInSession && !hasImageInSession)) {
+    if (!hasNavigableVideoOrAudio && !hasPdfInSession && !hasImageInSession) {
       return locateExtraction.cleanContent;
     }
     let result = rawThinkingExtraction.content;
@@ -179,7 +177,6 @@ export const MessageText: React.FC<MessageTextProps> = ({
     hasImageInSession,
     hasNavigableVideoOrAudio,
     hasPdfInSession,
-    liveArtifactsMode,
     locateExtraction.cleanContent,
     rawThinkingExtraction.content,
   ]);

@@ -1,5 +1,6 @@
 export const MOBILE_BREAKPOINT_PX = 640;
 export const DESKTOP_BREAKPOINT_PX = 768;
+export const NARROW_SCREEN_MEDIA_NAV_COLLAPSE_THRESHOLD_PX = 1536;
 export const CHAT_INPUT_TEXTAREA_SELECTOR = 'textarea[data-chat-input-textarea="true"]';
 /** Sidebar root, used to keep programmatic focus (e.g. after loading a session) out of an in-progress rename. */
 export const HISTORY_SIDEBAR_ROOT_SELECTOR = '[data-history-sidebar-root="true"]';

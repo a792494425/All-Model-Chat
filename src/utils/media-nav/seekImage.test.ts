@@ -109,7 +109,7 @@ describe('seekSessionImage', () => {
     const updated = updater({
       isImageNavEnabled: false,
       isPdfNavEnabled: true,
-      systemInstruction: '[Live Artifacts Protocol - zh]\nPrompt content',
+      systemInstruction: '[LiveUI Inline Protocol]\nPrompt content',
     });
     expect(updated.isImageNavEnabled).toBe(true);
     expect(updated.isPdfNavEnabled).toBe(false);

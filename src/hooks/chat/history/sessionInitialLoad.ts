@@ -25,7 +25,7 @@ import {
 import { TAB_ID } from '@/stores/sync/tabIdentity';
 import { assignAllBucketsOrder } from '@/stores/sessionOrder';
 
-interface LoadInitialSessionDataOptions {
+export interface LoadInitialSessionDataOptions {
   appSettings: AppSettings;
   setSavedSessions: Dispatch<SetStateAction<SavedChatSession[]>>;
   setSavedGroups: Dispatch<SetStateAction<ChatGroup[]>>;
@@ -257,3 +257,6 @@ export const loadInitialSessionData = async ({
     }
   }
 };
+
+export const sessionInitialLoad = loadInitialSessionData;
+export type SessionInitialLoadOptions = LoadInitialSessionDataOptions;

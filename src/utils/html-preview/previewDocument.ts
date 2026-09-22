@@ -1,6 +1,6 @@
 import { AVAILABLE_THEMES, DEFAULT_THEME_ID } from '@/constants/themeRegistry';
 import { hydrateGraphvizIntoDocument } from '@/features/graphviz/vizRuntime';
-import { buildLiveArtifactThemeVars } from '@/utils/live-artifacts/liveArtifactThemeTokens';
+import { buildLiveArtifactThemeVars } from '@/utils/live-ui/liveUiThemeTokens';
 import { PREVIEW_BRIDGE_SCRIPT } from './previewBridgeScript';
 import { hydrateChartsIntoDocument } from './chartRendererScript';
 import { sanitizeElementTree } from './previewSanitizer';

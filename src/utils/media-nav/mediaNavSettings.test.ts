@@ -60,12 +60,25 @@ describe('mediaNavSettings', () => {
     it('resets Live Artifacts system instruction to default when enabling a media kind', () => {
       const initial = {
         ...DEFAULT_APP_SETTINGS,
-        systemInstruction: '[Live Artifacts Protocol]',
+        systemInstruction: '[LiveUI Inline Protocol]',
       };
 
       const updated = applyMediaNavKindToSettings(initial, 'image');
       expect(updated.isImageNavEnabled).toBe(true);
       expect(updated.systemInstruction).toBe(DEFAULT_SYSTEM_INSTRUCTION);
+    });
+
+    it('preserves Live Artifacts settings when preserveLiveArtifacts is true', () => {
+      const initial = {
+        ...DEFAULT_APP_SETTINGS,
+        isLiveArtifactsEnabled: true,
+        systemInstruction: '[LiveUI Inline Protocol]',
+      };
+
+      const updated = applyMediaNavKindToSettings(initial, 'image', { preserveLiveArtifacts: true });
+      expect(updated.isImageNavEnabled).toBe(true);
+      expect(updated.isLiveArtifactsEnabled).toBe(true);
+      expect(updated.systemInstruction).toBe('[LiveUI Inline Protocol]');
     });
 
     it('preserves custom system instruction when enabling a media kind', () => {

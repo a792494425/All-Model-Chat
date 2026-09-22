@@ -11,3 +11,4 @@ export const getPyodideService = async () => {
 };
 
 export type { PyodideFile };
+export const loadPyodideService = getPyodideService;

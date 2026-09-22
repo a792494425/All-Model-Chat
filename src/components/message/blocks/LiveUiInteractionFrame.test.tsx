@@ -2,10 +2,10 @@ import { act } from 'react';
 import { fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { setupTestRenderer } from '@/test/render/renderer';
-import { LiveArtifactInteractionFrame } from './LiveArtifactInteractionFrame';
-import type { LiveArtifactInteractionSpec } from '@/utils/live-artifacts/liveArtifactInteraction';
+import { LiveUiInteractionFrame } from './LiveUiInteractionFrame';
+import type { LiveArtifactInteractionSpec } from '@/utils/live-ui/liveUiInteraction';
 
-describe('LiveArtifactInteractionFrame', () => {
+describe('LiveUiInteractionFrame', () => {
   const renderer = setupTestRenderer();
 
   it('applies the configured base font size', () => {
@@ -22,7 +22,7 @@ describe('LiveArtifactInteractionFrame', () => {
     } satisfies LiveArtifactInteractionSpec;
 
     act(() => {
-      renderer.root.render(<LiveArtifactInteractionFrame spec={spec} baseFontSize={18} />);
+      renderer.root.render(<LiveUiInteractionFrame spec={spec} baseFontSize={18} />);
     });
 
     expect(
@@ -56,7 +56,7 @@ describe('LiveArtifactInteractionFrame', () => {
     } satisfies LiveArtifactInteractionSpec;
 
     act(() => {
-      renderer.root.render(<LiveArtifactInteractionFrame spec={firstSpec} onFollowUp={handleFollowUp} />);
+      renderer.root.render(<LiveUiInteractionFrame spec={firstSpec} onFollowUp={handleFollowUp} />);
     });
 
     fireEvent.change(renderer.container.querySelector<HTMLInputElement>('input[name="topic"]')!, {
@@ -64,7 +64,7 @@ describe('LiveArtifactInteractionFrame', () => {
     });
 
     act(() => {
-      renderer.root.render(<LiveArtifactInteractionFrame spec={secondSpec} onFollowUp={handleFollowUp} />);
+      renderer.root.render(<LiveUiInteractionFrame spec={secondSpec} onFollowUp={handleFollowUp} />);
     });
 
     expect(renderer.container.querySelector('input[name="topic"]')).toBeNull();
@@ -94,7 +94,7 @@ describe('LiveArtifactInteractionFrame', () => {
     } satisfies LiveArtifactInteractionSpec;
 
     act(() => {
-      renderer.root.render(<LiveArtifactInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
+      renderer.root.render(<LiveUiInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
     });
 
     fireEvent.change(renderer.container.querySelector<HTMLInputElement>('input[name="count"]')!, {
@@ -120,7 +120,7 @@ describe('LiveArtifactInteractionFrame', () => {
     } satisfies LiveArtifactInteractionSpec;
 
     act(() => {
-      renderer.root.render(<LiveArtifactInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
+      renderer.root.render(<LiveUiInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
     });
 
     fireEvent.change(renderer.container.querySelector<HTMLInputElement>('input[name="score"]')!, {
@@ -147,7 +147,7 @@ describe('LiveArtifactInteractionFrame', () => {
     } satisfies LiveArtifactInteractionSpec;
 
     act(() => {
-      renderer.root.render(<LiveArtifactInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
+      renderer.root.render(<LiveUiInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
     });
 
     fireEvent.change(renderer.container.querySelector<HTMLInputElement>('input[name="topic"]')!, {
@@ -174,7 +174,7 @@ describe('LiveArtifactInteractionFrame', () => {
     } satisfies LiveArtifactInteractionSpec;
 
     act(() => {
-      renderer.root.render(<LiveArtifactInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
+      renderer.root.render(<LiveUiInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
     });
 
     fireEvent.change(renderer.container.querySelector<HTMLInputElement>('input[name="topic"]')!, {
@@ -216,7 +216,7 @@ describe('LiveArtifactInteractionFrame', () => {
     } satisfies LiveArtifactInteractionSpec;
 
     act(() => {
-      renderer.root.render(<LiveArtifactInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
+      renderer.root.render(<LiveUiInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
     });
 
     const dueDateInput = renderer.container.querySelector<HTMLInputElement>('input[name="dueDate"]');
@@ -262,7 +262,7 @@ describe('LiveArtifactInteractionFrame', () => {
     } satisfies LiveArtifactInteractionSpec;
 
     act(() => {
-      renderer.root.render(<LiveArtifactInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
+      renderer.root.render(<LiveUiInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
     });
 
     fireEvent.click(renderer.container.querySelector<HTMLInputElement>('input[name="accepted"]')!);
@@ -286,7 +286,7 @@ describe('LiveArtifactInteractionFrame', () => {
     } satisfies LiveArtifactInteractionSpec;
 
     act(() => {
-      renderer.root.render(<LiveArtifactInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
+      renderer.root.render(<LiveUiInteractionFrame spec={spec} onFollowUp={handleFollowUp} />);
     });
 
     fireEvent.change(renderer.container.querySelector<HTMLTextAreaElement>('textarea[name="notes"]')!, {

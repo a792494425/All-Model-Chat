@@ -116,6 +116,36 @@ describe('createSettingsForNewChat', () => {
     expect(settings.visionPromptMode).toBeNull();
   });
 
+  it('resets visual formatting, task suggestions, and media navigation flags when creating new chat', () => {
+    const appSettings = createAppSettings();
+    const templateSession = createSavedChatSession({
+      id: 'template',
+      title: 'Previous Chat',
+      timestamp: Date.now(),
+      messages: [],
+      settings: createChatSettings({
+        isVisualFormattingActive: true,
+        taskSuggestionMode: 'translate',
+        isPdfNavEnabled: true,
+        isVideoNavEnabled: true,
+        isAudioNavEnabled: true,
+        isImageNavEnabled: true,
+      }),
+    });
+
+    const settings = createSettingsForNewChat({
+      appSettings,
+      savedSessions: [templateSession],
+    });
+
+    expect(settings.isVisualFormattingActive).toBe(false);
+    expect(settings.taskSuggestionMode).toBeNull();
+    expect(settings.isPdfNavEnabled).toBe(false);
+    expect(settings.isVideoNavEnabled).toBe(false);
+    expect(settings.isAudioNavEnabled).toBe(false);
+    expect(settings.isImageNavEnabled).toBe(false);
+  });
+
   it('inherits isLiveArtifactsEnabled and visionPromptMode when an explicitTemplateSession is provided', () => {
     const appSettings = createAppSettings({
       isLiveArtifactsEnabled: false,
@@ -139,6 +169,19 @@ describe('createSettingsForNewChat', () => {
 
     expect(settings.isLiveArtifactsEnabled).toBe(true);
     expect(settings.visionPromptMode).toBe('hdGuide');
+  });
+
+  it('strips legacy LiveUI protocol markers from baseSettings.systemInstruction when creating new chat', () => {
+    const appSettings = createAppSettings({
+      systemInstruction: 'You are an architect.\n\n[LiveUI Inline Protocol]\nInternal protocol...',
+    });
+
+    const settings = createSettingsForNewChat({
+      appSettings,
+      savedSessions: [],
+    });
+
+    expect(settings.systemInstruction).toBe('You are an architect.');
   });
 });
 

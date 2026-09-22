@@ -2,6 +2,7 @@ import {
   FENCED_CODE_BLOCK_REGEX,
   getAutoPreviewType,
   getCodeBlockPreviewType,
+  getPreviewMarkupType,
   getStandaloneDocumentPreviewType,
   hasStreamingLiveArtifactFence,
   isLikelyHtml,
@@ -27,6 +28,7 @@ export {
   hasStreamingLiveArtifactFence,
   getCodeBlockPreviewType,
   getAutoPreviewType,
+  getPreviewMarkupType,
   normalizePreviewableMarkdownContent,
   isLikelyHtml,
 };

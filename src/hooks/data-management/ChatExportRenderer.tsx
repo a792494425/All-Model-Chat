@@ -36,6 +36,69 @@ const createExportAppSettings = (session: SavedChatSession, themeId: string): Ap
   showThoughts: false,
 });
 
+export interface ChatExportRendererProps {
+  session: SavedChatSession;
+  themeId: string;
+}
+
+export const ChatExportRenderer: React.FC<ChatExportRendererProps> = ({ session, themeId }) => {
+  const appSettings = createExportAppSettings(session, themeId);
+  const appThemeId = appSettings.themeId;
+  const visibleMessages = getVisibleChatMessages(session.messages);
+
+  return (
+    <I18nProvider>
+      <div
+        className="export-chat-transcript"
+        style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+      >
+        {visibleMessages.map((message) => (
+          <article
+            key={message.id}
+            data-message-id={message.id}
+            data-message-role={message.role}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: message.role === 'user' ? 'flex-end' : 'flex-start',
+              breakInside: 'avoid',
+            }}
+          >
+            <div
+              className="message-content-container"
+              style={{
+                maxWidth: '100%',
+                color: message.role === 'user' ? 'var(--theme-bg-user-message-text)' : 'var(--theme-text-primary)',
+                background: message.role === 'user' ? 'var(--theme-bg-user-message)' : 'transparent',
+                borderRadius: message.role === 'user' ? '1rem 0.25rem 1rem 1rem' : '0',
+                padding: message.role === 'user' ? '0.75rem 1rem' : '0',
+              }}
+            >
+              <MessageContent
+                message={message}
+                onImageClick={noop}
+                onOpenHtmlPreview={noop}
+                showThoughts={appSettings.showThoughts}
+                baseFontSize={appSettings.baseFontSize}
+                expandCodeBlocksByDefault={appSettings.expandCodeBlocksByDefault}
+                isMermaidRenderingEnabled={appSettings.isMermaidRenderingEnabled}
+                isGraphvizRenderingEnabled={appSettings.isGraphvizRenderingEnabled ?? true}
+                onSuggestionClick={noop}
+                appSettings={appSettings}
+                themeId={appThemeId}
+                onOpenSidePanel={noop as (content: SideViewContent) => void}
+                onConfigureFile={noop as (file: UploadedFile, messageId: string) => void}
+                isGemini3={false}
+                diagramLoadMode="eager"
+              />
+            </div>
+          </article>
+        ))}
+      </div>
+    </I18nProvider>
+  );
+};
+
 export const createChatExportElement = async (
   session: SavedChatSession,
   themeId: string,
@@ -49,73 +112,9 @@ export const createChatExportElement = async (
   document.body.appendChild(host);
 
   const root = createRoot(host);
-  const appSettings = createExportAppSettings(session, themeId);
-  const appThemeId = appSettings.themeId;
-  const visibleMessages = getVisibleChatMessages(session.messages);
 
   flushSync(() => {
-    root.render(
-      React.createElement(
-        I18nProvider,
-        null,
-        React.createElement(
-          'div',
-          {
-            className: 'export-chat-transcript',
-            style: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
-          },
-          visibleMessages.map((message) =>
-            React.createElement(
-              'article',
-              {
-                key: message.id,
-                'data-message-id': message.id,
-                'data-message-role': message.role,
-                style: {
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: message.role === 'user' ? 'flex-end' : 'flex-start',
-                  breakInside: 'avoid',
-                },
-              },
-              React.createElement(
-                'div',
-                {
-                  className: 'message-content-container',
-                  style: {
-                    maxWidth: '100%',
-                    color: message.role === 'user' ? 'var(--theme-bg-user-message-text)' : 'var(--theme-text-primary)',
-                    background: message.role === 'user' ? 'var(--theme-bg-user-message)' : 'transparent',
-                    borderRadius: message.role === 'user' ? '1rem 0.25rem 1rem 1rem' : '0',
-                    padding: message.role === 'user' ? '0.75rem 1rem' : '0',
-                  },
-                },
-                React.createElement(MessageContent, {
-                  message,
-                  onImageClick: noop,
-                  onOpenHtmlPreview: noop,
-                  showThoughts: appSettings.showThoughts,
-                  baseFontSize: appSettings.baseFontSize,
-                  expandCodeBlocksByDefault: appSettings.expandCodeBlocksByDefault,
-                  isMermaidRenderingEnabled: appSettings.isMermaidRenderingEnabled,
-                  isGraphvizRenderingEnabled: appSettings.isGraphvizRenderingEnabled ?? true,
-                  onSuggestionClick: noop,
-                  appSettings,
-                  themeId: appThemeId,
-                  onOpenSidePanel: noop as (content: SideViewContent) => void,
-                  onConfigureFile: noop as (file: UploadedFile, messageId: string) => void,
-                  isGemini3: false,
-                  // The export host is rendered offscreen (left: -9999px), so
-                  // IntersectionObserver never fires and deferred diagrams would
-                  // export as their placeholder button. Load them eagerly.
-                  diagramLoadMode: 'eager',
-                }),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    root.render(React.createElement(ChatExportRenderer, { session, themeId }));
   });
 
   await waitForExportContentToSettle(host);

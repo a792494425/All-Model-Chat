@@ -213,3 +213,5 @@ class LogUsageTracker {
 }
 
 export const createLogUsageTracker = (reportError: UsageTrackerErrorReporter) => new LogUsageTracker(reportError);
+export const logUsageTracker = createLogUsageTracker;
+export type { LogUsageTracker };

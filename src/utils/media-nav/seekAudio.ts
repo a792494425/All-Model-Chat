@@ -3,6 +3,7 @@ import { useMediaNavStore } from '@/stores/mediaNavStore';
 import { collectSessionAudioFiles, isAudioFile, resolveNamedFile } from './sessionMediaFiles';
 import { parseLocateMarkers } from './locateMarker';
 import { applyMediaNavKindToSettings } from './mediaNavSettings';
+import { collapseSidebarIfNarrowScreen } from './mediaNavResponsive';
 import { focusChatInput } from '@/utils/chat-input/focus';
 
 export interface SeekSessionAudioParams {
@@ -63,6 +64,7 @@ export const seekSessionAudio = (params: SeekSessionAudioParams): boolean => {
   const target = resolveNamedFile(audios, audioName, store.activeFileId);
   if (!target) return false;
 
+  collapseSidebarIfNarrowScreen();
   store.openAs('audio');
   store.setActiveFile(target.id);
   store.jumpToTime(params.startSeconds, params.endSeconds);

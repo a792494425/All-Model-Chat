@@ -34,3 +34,6 @@ export const createStandardClientFunctions = ({
     },
   };
 };
+
+export const standardClientFunctions = createStandardClientFunctions;
+export type { CreateStandardClientFunctionsOptions };

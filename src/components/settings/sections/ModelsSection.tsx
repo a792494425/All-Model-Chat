@@ -10,7 +10,7 @@ import {
   SETTINGS_SEGMENTED_IDLE_CLASS,
   SETTINGS_SEGMENTED_TRACK_CLASS,
 } from '@/constants/designTokens';
-import { LiveArtifactsSection } from './LiveArtifactsSection';
+import { LiveUiSection } from './LiveUiSection';
 import { GenerationSection } from './GenerationSection';
 import { LanguageVoiceSection } from './LanguageVoiceSection';
 import { SafetySection } from './SafetySection';
@@ -147,7 +147,7 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({
           />
 
           <div data-settings-item="models-live-artifacts">
-            <LiveArtifactsSection
+            <LiveUiSection
               currentSettings={currentSettings}
               currentThemeId={currentThemeId}
               onUpdateSetting={updateSetting}

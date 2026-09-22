@@ -521,3 +521,5 @@ export const executeGeminiChat = async ({
     handleStreamErrorWithAutoRetry,
   );
 };
+
+export const standardChatGemini = executeGeminiChat;

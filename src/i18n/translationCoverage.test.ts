@@ -382,7 +382,7 @@ describe('translation coverage for protected UI surfaces', () => {
         snippets: ['"HTML Content Preview"'],
       },
       {
-        file: 'src/components/message/blocks/ArtifactFrame.tsx',
+        file: 'src/components/message/blocks/LiveUiFrame.tsx',
         snippets: ['Open larger preview'],
       },
       {
@@ -485,7 +485,7 @@ describe('translation coverage for protected UI surfaces', () => {
         ],
       },
       {
-        file: 'src/components/message/blocks/LiveArtifactInteractionFrame.tsx',
+        file: 'src/components/message/blocks/LiveUiInteractionFrame.tsx',
         snippets: ['This field is required.', "'Continue'"],
       },
       {

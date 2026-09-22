@@ -1,4 +1,4 @@
-import { extractArtifactSegment, findBareArtifactRegion } from './bareArtifactRegions';
+import { extractArtifactSegment, findBareArtifactRegion } from './bareLiveUiRegions';
 import {
   FENCED_CODE_BLOCK_REGEX,
   getPreviewMarkupType,

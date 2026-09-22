@@ -9,7 +9,7 @@ import { HtmlPreviewContent } from './html-preview/HtmlPreviewContent';
 import { CodeEditor } from '@/components/shared/CodeEditor';
 import { Copy, Check, AlertTriangle, X } from 'lucide-react';
 import { interpolate } from '@/i18n/interpolate';
-import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
+import type { LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
 import { DEFAULT_HTML_PREVIEW_PRIVILEGE, type HtmlPreviewPrivilege } from '@/utils/html-preview/previewPrivilege';
 import { copyTextToClipboard } from '@/utils/clipboard';
 

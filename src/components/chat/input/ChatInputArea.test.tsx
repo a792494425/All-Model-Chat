@@ -132,11 +132,11 @@ describe('ChatInputArea default spacing', () => {
     expect(designTokensSource).toContain('COMPOSER_SHELL_RADIUS_CLASS = RADIUS_CLASS.pill');
   });
 
-  it('deactivates Live Artifacts when media navigation is toggled on', () => {
+  it('preserves Live Artifacts when media navigation is toggled on', () => {
     const source = fs.readFileSync(chatInputAreaPath, 'utf8');
 
-    expect(source).toContain('chatInput.onDeactivateLiveArtifactsPrompt?.()');
     expect(source).toContain('applyMediaNavKindToSettings');
+    expect(source).toContain('preserveLiveArtifacts: true');
   });
 
   it('guards ChatSuggestions media nav and bbox/guide toggles with isGeminiNative', () => {

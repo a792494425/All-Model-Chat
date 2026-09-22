@@ -14,6 +14,7 @@ import { closeMediaNavPanel, useMediaNavStore, type MediaNavKind } from '@/store
 import { useChatStore } from '@/stores/chatStore';
 import { CHAT_INPUT_MAX_WIDTH_CLASS, FOCUS_BLOCKING_SELECTOR } from '@/constants/layout';
 import { applyMediaNavKindToSettings } from '@/utils/media-nav/mediaNavSettings';
+import { collapseSidebarIfNarrowScreen } from '@/utils/media-nav/mediaNavResponsive';
 import { focusChatInput } from '@/utils/chat-input/focus';
 import { useI18n } from '@/contexts/I18nContext';
 import { useChatInputContext } from './ChatInputContext';
@@ -73,16 +74,25 @@ export const ChatInputArea: React.FC = () => {
     (kind: MediaNavKind, isActive: boolean) => {
       const next = !isActive;
       if (next) {
-        chatInput.onDeactivateLiveArtifactsPrompt?.();
+        collapseSidebarIfNarrowScreen();
         useMediaNavStore.getState().openAs(kind);
       } else {
         closeMediaNavPanel();
       }
-      setCurrentChatSettings((prev) => applyMediaNavKindToSettings(prev, next ? kind : null));
+      setCurrentChatSettings((prev) => ({
+        ...applyMediaNavKindToSettings(prev, next ? kind : null, { preserveLiveArtifacts: true }),
+        ...(next
+          ? {
+              isVisualFormattingActive: false,
+              taskSuggestionMode: null,
+              visionPromptMode: null,
+            }
+          : {}),
+      }));
       focusChatInput(0, { caret: 'end', retries: 4 });
       inputState.textareaRef.current?.focus();
     },
-    [chatInput, setCurrentChatSettings, inputState.textareaRef],
+    [setCurrentChatSettings, inputState.textareaRef],
   );
 
   const handleToggleImageNav = useCallback(

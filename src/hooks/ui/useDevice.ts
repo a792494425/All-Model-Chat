@@ -51,3 +51,13 @@ export const useResponsiveValue = <T>(
 
   return value;
 };
+
+export interface DeviceInfo {
+  isMobile: boolean;
+}
+
+export const useDevice = (): DeviceInfo => {
+  const isMobile = useIsMobile();
+  return { isMobile };
+};
+

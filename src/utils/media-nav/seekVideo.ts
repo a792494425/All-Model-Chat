@@ -4,6 +4,7 @@ import { collectSessionMediaFiles, isNavigableVideoFile, resolveNamedFile } from
 import { parseLocateMarkers } from './locateMarker';
 import { seekSessionAudio } from './seekAudio';
 import { applyMediaNavKindToSettings } from './mediaNavSettings';
+import { collapseSidebarIfNarrowScreen } from './mediaNavResponsive';
 import { focusChatInput } from '@/utils/chat-input/focus';
 
 export interface SeekSessionVideoParams {
@@ -103,6 +104,7 @@ export const seekSessionVideo = (params: SeekSessionVideoParams): boolean => {
   const target = resolveNamedFile(videos, videoName, store.activeFileId);
   if (!target) return false;
 
+  collapseSidebarIfNarrowScreen();
   store.openAs('video');
   store.setActiveFile(target.id);
   store.jumpToTime(params.startSeconds, params.endSeconds, annotation);

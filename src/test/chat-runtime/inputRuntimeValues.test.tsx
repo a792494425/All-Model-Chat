@@ -224,4 +224,91 @@ describe('chat-runtime input visual formatting mode decoupling', () => {
     expect(nextState.isVisualFormattingActive).toBe(false);
     expect(nextState.isLiveArtifactsEnabled).toBe(true);
   });
+
+  it('mutually excludes other modes when visual formatting is activated', () => {
+    const setCurrentChatSettings = vi.fn();
+    const appMembers = stableAppMembers();
+    const chatState = {
+      ...stableChatState(),
+      currentChatSettings: {
+        isLiveArtifactsEnabled: false,
+        isVisualFormattingActive: false,
+        taskSuggestionMode: 'translate' as const,
+        isPdfNavEnabled: true,
+      },
+      setCurrentChatSettings,
+    };
+    const app = makeApp(appMembers, chatState);
+
+    const { result } = renderHook(() =>
+      useChatInputRuntimeValues({
+        app: app as unknown as AppViewModel,
+        availableModels: EMPTY_MODELS,
+        onOpenSettings: vi.fn(),
+        onSelectModel: vi.fn(),
+      }),
+    );
+
+    result.current.onToggleLiveArtifactsPrompt();
+    expect(setCurrentChatSettings).toHaveBeenCalled();
+
+    const updater = setCurrentChatSettings.mock.calls[0][0];
+    const nextState = updater({
+      isVisualFormattingActive: false,
+      isLiveArtifactsEnabled: false,
+      taskSuggestionMode: 'translate',
+      isPdfNavEnabled: true,
+      isVideoNavEnabled: true,
+      isAudioNavEnabled: true,
+      isImageNavEnabled: true,
+      visionPromptMode: 'bbox',
+    });
+
+    expect(nextState.isVisualFormattingActive).toBe(true);
+    expect(nextState.isLiveArtifactsEnabled).toBe(true);
+    expect(nextState.taskSuggestionMode).toBeNull();
+    expect(nextState.isPdfNavEnabled).toBe(false);
+    expect(nextState.isVideoNavEnabled).toBe(false);
+    expect(nextState.isAudioNavEnabled).toBe(false);
+    expect(nextState.isImageNavEnabled).toBe(false);
+    expect(nextState.visionPromptMode).toBeNull();
+  });
+
+  it('deactivates visual formatting when a task suggestion mode is toggled on', () => {
+    const setCurrentChatSettings = vi.fn();
+    const appMembers = stableAppMembers();
+    const chatState = {
+      ...stableChatState(),
+      currentChatSettings: {
+        isLiveArtifactsEnabled: true,
+        isVisualFormattingActive: true,
+        taskSuggestionMode: null,
+      },
+      setCurrentChatSettings,
+    };
+    const app = makeApp(appMembers, chatState);
+
+    const { result } = renderHook(() =>
+      useChatInputRuntimeValues({
+        app: app as unknown as AppViewModel,
+        availableModels: EMPTY_MODELS,
+        onOpenSettings: vi.fn(),
+        onSelectModel: vi.fn(),
+      }),
+    );
+
+    result.current.onToggleTaskSuggestion?.('translate');
+    expect(setCurrentChatSettings).toHaveBeenCalled();
+
+    const updater = setCurrentChatSettings.mock.calls[0][0];
+    const nextState = updater({
+      isVisualFormattingActive: true,
+      taskSuggestionMode: null,
+      isPdfNavEnabled: true,
+    });
+
+    expect(nextState.taskSuggestionMode).toBe('translate');
+    expect(nextState.isVisualFormattingActive).toBe(false);
+    expect(nextState.isPdfNavEnabled).toBe(false);
+  });
 });

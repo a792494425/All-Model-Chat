@@ -89,4 +89,48 @@ describe('resolveHtmlPreviewBridgeEvent', () => {
 
     expect(resolved).toBeNull();
   });
+
+  it('resolves media-seek events with parsed payload', () => {
+    const seekPayload = {
+      kind: 'pdf' as const,
+      page: 5,
+      doc: 'test.pdf',
+      box2d: [100, 200, 300, 400] as [number, number, number, number],
+    };
+
+    const resolved = resolveHtmlPreviewBridgeEvent({
+      event: messageEvent({
+        data: {
+          channel: HTML_PREVIEW_MESSAGE_CHANNEL,
+          event: 'media-seek',
+          payload: seekPayload,
+        },
+      }),
+      iframeWindow,
+      privilege: 'sanitized',
+      parentOrigin,
+    });
+
+    expect(resolved).toEqual({
+      kind: 'media-seek',
+      payload: seekPayload,
+    });
+  });
+
+  it('rejects media-seek events with invalid payload', () => {
+    const resolved = resolveHtmlPreviewBridgeEvent({
+      event: messageEvent({
+        data: {
+          channel: HTML_PREVIEW_MESSAGE_CHANNEL,
+          event: 'media-seek',
+          payload: null,
+        },
+      }),
+      iframeWindow,
+      privilege: 'sanitized',
+      parentOrigin,
+    });
+
+    expect(resolved).toBeNull();
+  });
 });

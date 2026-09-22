@@ -11,7 +11,7 @@ import { getVisibleChatMessages } from './visibility';
 import { createManagedObjectUrl, releaseManagedObjectUrlsByOwner } from '@/services/objectUrlManager';
 import { TAB_ID } from '@/stores/sync/tabIdentity';
 import { redactExportedSessionSettings } from '@/utils/secretRedaction';
-import { stripLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
+import { stripLiveArtifactsUserDirective } from '@/features/prompts/liveUi';
 
 const logSessionWarning = (message: string, data?: unknown) => {
   console.warn(`[session] ${message}`, data);

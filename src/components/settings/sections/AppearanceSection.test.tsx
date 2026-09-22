@@ -48,8 +48,8 @@ describe('AppearanceSection', () => {
     expect(renderer.container.textContent).toContain('Theme');
     expect(renderer.container.textContent).toContain('System');
     expect(renderer.container.textContent).toContain('Reading Size');
-    expect(renderer.container.textContent).toContain('Live Artifacts Base Size');
-    expect(renderer.container.textContent).toContain('default font size for inline Live Artifacts in chat');
+    expect(renderer.container.textContent).toContain('LiveUI Base Size');
+    expect(renderer.container.textContent).toContain('default font size for inline LiveUI in chat');
     expect(renderer.container.textContent).toContain('Input Toolbar');
     expect(renderer.container.textContent).toContain('Chat Behavior');
     expect(renderer.container.textContent).toContain('Clipboard & Paste');
@@ -70,8 +70,8 @@ describe('AppearanceSection', () => {
     expect(renderer.container.textContent).toContain('主题');
     expect(renderer.container.textContent).toContain('系统');
     expect(renderer.container.textContent).toContain('阅读字号');
-    expect(renderer.container.textContent).toContain('Live Artifacts 基础字号');
-    expect(renderer.container.textContent).toContain('聊天内嵌 Live Artifacts 的默认字号');
+    expect(renderer.container.textContent).toContain('LiveUI 基础字号');
+    expect(renderer.container.textContent).toContain('设置聊天内嵌 LiveUI 的默认字号');
     expect(renderer.container.textContent).toContain('输入框工具栏');
     expect(renderer.container.textContent).toContain('对话行为');
     expect(renderer.container.textContent).toContain('剪贴板与粘贴');

@@ -3,29 +3,10 @@ import type { LiveArtifactsPromptMode, TaskSuggestionMode } from '@/types';
 
 import type { SupportedLanguage } from '@/i18n/languageRegistry';
 
-type LiveArtifactsPromptModule = typeof import('./liveArtifacts');
+type LiveArtifactsPromptModule = typeof import('./liveUi');
 
 export const LIVE_ARTIFACTS_PROMPT_MARKERS = [
-  '[Live Artifacts Inline Protocol]',
-  '[Live Artifacts Inline Protocol - zh]',
-  '[Live Artifacts Inline Protocol - en]',
-  '【Live Artifacts 现代化可视化排版指令】',
-  '[Live Artifacts Modern Visual Layout Directive]',
-  // Legacy Live Artifacts markers are recognized so old saved settings can still be toggled off.
-  '[Live Artifacts Protocol]',
-  '[Live Artifacts Protocol - zh]',
-  '[Live Artifacts Protocol - en]',
-  '[Live Artifacts Full HTML Protocol - zh]',
-  '[Live Artifacts Full HTML Protocol - en]',
-  // Legacy Canvas markers are recognized so old saved settings can still be toggled off.
-  '[Canvas Artifact Protocol]',
-  '[Canvas Artifact Protocol - zh]',
-  '[Canvas Artifact Protocol - en]',
-  '[Canvas Artifact Protocol v2]',
-  '[Canvas Artifact Protocol v2 - zh]',
-  '[Canvas Artifact Protocol v2 - en]',
-  '<title>Canvas 助手：响应式视觉指南</title>',
-  '<title>Canvas Assistant: Responsive Visual Guide</title>',
+  '[LiveUI Inline Protocol]',
 ];
 export const BBOX_PROMPT_MARKER = '**任务：** 请作为一位计算机视觉专家';
 export const HD_GUIDE_PROMPT_MARKER = '### 系统提示词：高清引导标注专家';
@@ -33,6 +14,10 @@ export const TASK_SUGGESTION_PROMPT_MARKER = '[Task Directive';
 
 export const isLiveArtifactsSystemInstruction = (instruction?: string | null) =>
   !!instruction && LIVE_ARTIFACTS_PROMPT_MARKERS.some((marker) => instruction.includes(marker));
+
+export const LIVE_UI_PROMPT_MARKERS = LIVE_ARTIFACTS_PROMPT_MARKERS;
+export const isLiveUiSystemInstruction = isLiveArtifactsSystemInstruction;
+
 
 export const isBboxSystemInstruction = (instruction?: string | null) =>
   !!instruction && instruction.includes(BBOX_PROMPT_MARKER);
@@ -49,7 +34,6 @@ const LIVE_ARTIFACT_PROMPT_EXPORT_BY_MODE: Record<
 > = {
   inline: {
     en: 'LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT',
-    zh: 'LIVE_ARTIFACTS_INLINE_SYSTEM_PROMPT',
   },
 };
 
@@ -57,10 +41,12 @@ export const loadLiveArtifactsSystemPrompt = async (
   language: SupportedLanguage = 'en',
   mode: LiveArtifactsPromptMode = 'inline',
 ): Promise<string> => {
-  const prompts = await import('./liveArtifacts');
+  const prompts = await import('./liveUi');
   const key = LIVE_ARTIFACT_PROMPT_EXPORT_BY_MODE[mode][language] ?? LIVE_ARTIFACT_PROMPT_EXPORT_BY_MODE[mode].en;
   return prompts[key] as string;
 };
+
+export const loadLiveUiSystemPrompt = loadLiveArtifactsSystemPrompt;
 
 export const loadDeepSearchSystemPrompt = async () => (await import('./deepSearch')).DEEP_SEARCH_SYSTEM_PROMPT;
 
@@ -103,4 +89,11 @@ export {
   getLiveArtifactsUserDirective,
   applyLiveArtifactsUserDirective,
   stripLiveArtifactsUserDirective,
-} from './liveArtifacts';
+  extractLiveArtifactsDirective,
+  KNOWN_LIVE_ARTIFACTS_USER_DIRECTIVES,
+  getLiveUiUserDirective,
+  applyLiveUiUserDirective,
+  stripLiveUiUserDirective,
+  extractLiveUiDirective,
+  KNOWN_LIVE_UI_USER_DIRECTIVES,
+} from './liveUi';

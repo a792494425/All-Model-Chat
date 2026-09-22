@@ -7,7 +7,7 @@ import {
   type ThinkingLevel,
   GEMINI_PROVIDER_ID,
 } from '@/types';
-import { createEmptyLiveArtifactsSystemPrompts } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
+import { createEmptyLiveArtifactsSystemPrompts } from '@/utils/live-ui/liveUiPromptSettings';
 import { DEFAULT_THEME_ID } from './themeRegistry';
 import {
   DEFAULT_MODEL_ID,

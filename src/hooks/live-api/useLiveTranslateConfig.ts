@@ -1,9 +1,11 @@
-interface LiveTranslateLanguageSettings {
+import { useMemo } from 'react';
+
+export interface LiveTranslateLanguageSettings {
   targetLanguageCode: string; // BCP-47 代码，如 'zh-Hans' / 'en' / 'ja'
   echoTargetLanguage?: boolean; // 输入已是目标语言时是否回放原声，默认 false
 }
 
-interface LiveTranslateConfig {
+export interface LiveTranslateConfig {
   responseModalities: ['AUDIO'];
   inputAudioTranscription: Record<string, never>;
   outputAudioTranscription: Record<string, never>;
@@ -36,3 +38,16 @@ export const buildLiveTranslateConfig = ({
     echoTargetLanguage,
   },
 });
+
+/**
+ * React Hook 包装，缓存 Live Translate 配置对象
+ */
+export const useLiveTranslateConfig = ({
+  targetLanguageCode,
+  echoTargetLanguage,
+}: LiveTranslateLanguageSettings): LiveTranslateConfig => {
+  return useMemo(
+    () => buildLiveTranslateConfig({ targetLanguageCode, echoTargetLanguage }),
+    [targetLanguageCode, echoTargetLanguage],
+  );
+};

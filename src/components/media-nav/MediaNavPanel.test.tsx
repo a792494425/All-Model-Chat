@@ -120,7 +120,7 @@ describe('MediaNavPanel', () => {
     const nextSettings = updater({
       isAudioNavEnabled: false,
       isVideoNavEnabled: true,
-      systemInstruction: '[Live Artifacts Protocol - zh]\nPrompt',
+      systemInstruction: '[LiveUI Inline Protocol]\nPrompt',
     });
     expect(nextSettings.isAudioNavEnabled).toBe(true);
     expect(nextSettings.isVideoNavEnabled).toBe(false);

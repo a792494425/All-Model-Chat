@@ -70,7 +70,7 @@ describe('Header', () => {
     });
 
     const liveArtifactsButton = renderer.container.querySelector(
-      'button[aria-label="Enable Live Artifacts rendering"]',
+      'button[aria-label="Enable LiveUI rendering"]',
     );
 
     expect(liveArtifactsButton).not.toBeNull();

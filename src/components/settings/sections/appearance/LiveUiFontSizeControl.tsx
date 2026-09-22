@@ -8,19 +8,21 @@ import {
   LIVE_ARTIFACTS_CUSTOM_FONT_SIZE_MAX,
   LIVE_ARTIFACTS_CUSTOM_FONT_SIZE_MIN,
   clampLiveArtifactsCustomFontSize,
-} from '@/utils/live-artifacts/liveArtifactsFontSize';
+} from '@/utils/live-ui/liveUiFontSize';
 import {
   SETTINGS_SECTION_CARD_CLASS,
   SETTINGS_SECTION_LABEL_CLASS,
   SETTINGS_VALUE_BADGE_CLASS,
 } from '@/constants/designTokens';
 
-interface LiveArtifactsFontSizeControlProps {
+export interface LiveUiFontSizeControlProps {
   settings: AppSettings;
   onUpdate: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void;
 }
 
-export const LiveArtifactsFontSizeControl: React.FC<LiveArtifactsFontSizeControlProps> = ({ settings, onUpdate }) => {
+export type LiveArtifactsFontSizeControlProps = LiveUiFontSizeControlProps;
+
+export const LiveUiFontSizeControl: React.FC<LiveUiFontSizeControlProps> = ({ settings, onUpdate }) => {
   const { t } = useI18n();
   const customFontSize = clampLiveArtifactsCustomFontSize(settings.liveArtifactsCustomFontSize ?? 16);
 
@@ -58,3 +60,5 @@ export const LiveArtifactsFontSizeControl: React.FC<LiveArtifactsFontSizeControl
     </div>
   );
 };
+
+export const LiveArtifactsFontSizeControl = LiveUiFontSizeControl;

@@ -14,7 +14,7 @@ import {
   THINKING_LEVELS,
   TRANSLATION_TARGET_LANGUAGES,
 } from '@/types';
-import { createEmptyLiveArtifactsSystemPrompts } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
+import { createEmptyLiveArtifactsSystemPrompts } from '@/utils/live-ui/liveUiPromptSettings';
 import { sanitizeThirdPartyApiSettings } from '@/utils/third-party/thirdPartyApiProviders';
 import {
   sanitizeMcpAuth,

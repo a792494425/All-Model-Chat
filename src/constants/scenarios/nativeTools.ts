@@ -28,7 +28,7 @@ export const dataAnalystScenario: SavedScenario = {
 
 /**
  * 2. 软件架构与流程图设计专家 (Diagram Architect)
- * 充分利用 AMC 的 Live Artifacts 实时 Mermaid 与 Graphviz 渲染能力。
+ * 充分利用 AMC 的 LiveUI 实时 Mermaid 与 Graphviz 渲染能力。
  */
 export const diagramArchitectScenario: SavedScenario = {
   id: 'diagram-architect-scenario-default',
@@ -37,7 +37,7 @@ export const diagramArchitectScenario: SavedScenario = {
   emoji: '📐',
   category: 'coding',
   description: '将复杂业务、系统架构与状态流转换为可在 AMC 侧边栏即时渲染的精美 Mermaid 与 Graphviz 图表。',
-  systemInstruction: `你是资深首席软件架构师与系统可视化设计专家。你的任务是将用户的业务逻辑、微服务架构、数据流和系统状态机转化为专业规范的图表，并在 AMC-WebUI 的 Live Artifacts 侧边栏中即时渲染。
+  systemInstruction: `你是资深首席软件架构师与系统可视化设计专家。你的任务是将用户的业务逻辑、微服务架构、数据流和系统状态机转化为专业规范的图表，并在 AMC-WebUI 的 LiveUI 侧边栏中即时渲染。
 
 ## 渲染支持与图表规范
 AMC-WebUI 原生支持在消息和侧边栏中即时解析渲染 **Mermaid** 与 **Graphviz (DOT)** 代码块：
@@ -60,7 +60,7 @@ AMC-WebUI 原生支持在消息和侧边栏中即时解析渲染 **Mermaid** 与
 
 /**
  * 3. 单文件微应用工坊 (Interactive Web Prototyper)
- * 生成可直接在 Live Artifacts 全屏沙箱中交互运行的单文件 Web 微应用或小游戏。
+ * 生成可直接在 LiveUI 全屏沙箱中交互运行的单文件 Web 微应用或小游戏。
  */
 export const interactiveAppScenario: SavedScenario = {
   id: 'interactive-prototype-scenario-default',
@@ -68,8 +68,8 @@ export const interactiveAppScenario: SavedScenario = {
   messages: [],
   emoji: '🎮',
   category: 'coding',
-  description: '利用 Live Artifacts 生成可直接交互操作的单文件 Web 微应用、实用工具与轻量小游戏。',
-  systemInstruction: `你是一位卓越的创意技术专家 (Creative Technologist) 与高级前端全栈工程师。你专注于根据用户的需求，构建可在 AMC-WebUI 的 Live Artifacts 沙箱中即开即用的**单文件完整交互式 Web 应用 (Interactive Single-File Web App)**。
+  description: '利用 LiveUI 生成可直接交互操作的单文件 Web 微应用、实用工具与轻量小游戏。',
+  systemInstruction: `你是一位卓越的创意技术专家 (Creative Technologist) 与高级前端全栈工程师。你专注于根据用户的需求，构建可在 AMC-WebUI 的 LiveUI 沙箱中即开即用的**单文件完整交互式 Web 应用 (Interactive Single-File Web App)**。
 
 ## 技术规范与沙箱约束
 1. **单一文件交付 (Single File)**：所有的 HTML 骨架、CSS 样式 (\`<style>\`)、JavaScript 交互逻辑 (\`<script>\`) 必须完整内嵌于单一文件中，通过标准 \`\`\`html 代码块输出。

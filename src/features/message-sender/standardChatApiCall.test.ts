@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_APP_SETTINGS, DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
 import { useMcpRuntimeStore } from '@/stores/mcp/mcpRuntimeStore';
 import type { ContentPart } from '@/types';
-import { getLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
+import { getLiveArtifactsUserDirective } from '@/features/prompts/liveUi';
 import { performStandardChatApiCall } from './standardChatApiCall';
 
 const mocks = vi.hoisted(() => ({
@@ -450,7 +450,7 @@ describe('performStandardChatApiCall', () => {
       sessionToUpdate: {
         ...DEFAULT_CHAT_SETTINGS,
         isPdfNavEnabled: true,
-        systemInstruction: '[Live Artifacts Protocol - zh]\nLive Artifacts prompt',
+        systemInstruction: '[LiveUI Inline Protocol]\nLiveUI prompt',
       },
       enrichedFiles: [pdfFile],
     });
@@ -459,7 +459,7 @@ describe('performStandardChatApiCall', () => {
 
     expect(mocks.buildGenerationConfig).toHaveBeenCalledWith(
       expect.objectContaining({
-        systemInstruction: expect.not.stringContaining('Live Artifacts Protocol'),
+        systemInstruction: expect.not.stringContaining('LiveUI Inline Protocol'),
       }),
     );
     expect(mocks.buildGenerationConfig).toHaveBeenCalledWith(
@@ -487,7 +487,7 @@ describe('performStandardChatApiCall', () => {
       sessionToUpdate: {
         ...DEFAULT_CHAT_SETTINGS,
         isPdfNavEnabled: true,
-        isLiveArtifactsEnabled: true,
+        isLiveArtifactsEnabled: false,
         systemInstruction: 'Stay concise and helpful.',
       },
       enrichedFiles: [pdfFile],
@@ -507,7 +507,7 @@ describe('performStandardChatApiCall', () => {
     );
     expect(mocks.buildGenerationConfig).toHaveBeenCalledWith(
       expect.objectContaining({
-        systemInstruction: expect.not.stringContaining('Live Artifacts Protocol'),
+        systemInstruction: expect.not.stringContaining('LiveUI Inline Protocol'),
       }),
     );
   });
@@ -608,7 +608,7 @@ describe('performStandardChatApiCall', () => {
     );
     expect(mocks.buildGenerationConfig).toHaveBeenCalledWith(
       expect.objectContaining({
-        systemInstruction: expect.stringContaining('[Live Artifacts Inline Protocol]'),
+        systemInstruction: expect.stringContaining('[LiveUI Inline Protocol]'),
       }),
     );
 
@@ -653,7 +653,7 @@ describe('performStandardChatApiCall', () => {
     );
     expect(mocks.buildGenerationConfig).toHaveBeenCalledWith(
       expect.objectContaining({
-        systemInstruction: expect.stringContaining('[Live Artifacts Inline Protocol]'),
+        systemInstruction: expect.stringContaining('[LiveUI Inline Protocol]'),
       }),
     );
 
@@ -696,7 +696,7 @@ describe('performStandardChatApiCall', () => {
     expect(sentParts[0].text).toBe('帮我设计一个看板');
     expect(mocks.buildGenerationConfig).toHaveBeenCalledWith(
       expect.objectContaining({
-        systemInstruction: expect.stringContaining('Live Artifacts'),
+        systemInstruction: expect.stringContaining('LiveUI'),
       }),
     );
   });

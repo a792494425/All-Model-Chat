@@ -14,7 +14,7 @@ import {
   HTML_PREVIEW_STREAM_RENDER_EVENT,
   loadKatex,
 } from '@/utils/html-preview/previewDocument';
-import { ArtifactFrame } from './ArtifactFrame';
+import { LiveUiFrame } from './LiveUiFrame';
 
 vi.mock('@/features/graphviz/vizRuntime', () => ({
   renderDotToSvgCached: vi.fn(),
@@ -40,7 +40,7 @@ const createRect = (overrides: Partial<DOMRect> = {}): DOMRect =>
     ...overrides,
   }) as DOMRect;
 
-describe('ArtifactFrame', () => {
+describe('LiveUiFrame', () => {
   const renderer = setupTestRenderer();
 
   beforeEach(() => {
@@ -53,7 +53,7 @@ describe('ArtifactFrame', () => {
 
   it('injects the configured base font size into static artifact documents', () => {
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section><p>Artifact text</p></section>" baseFontSize={18} />);
+      renderer.root.render(<LiveUiFrame html="<section><p>Artifact text</p></section>" baseFontSize={18} />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -67,7 +67,7 @@ describe('ArtifactFrame', () => {
 
     act(() => {
       renderer.root.render(
-        <ArtifactFrame html="<section><p>Artifact text</p></section>" onOpenPreview={onOpenPreview} />,
+        <LiveUiFrame html="<section><p>Artifact text</p></section>" onOpenPreview={onOpenPreview} />,
       );
     });
 
@@ -84,7 +84,7 @@ describe('ArtifactFrame', () => {
   it('hides the larger-preview action while the artifact is still streaming', () => {
     act(() => {
       renderer.root.render(
-        <ArtifactFrame html="<section><p>Artifact text</p></section>" isLoading onOpenPreview={vi.fn()} />,
+        <LiveUiFrame html="<section><p>Artifact text</p></section>" isLoading onOpenPreview={vi.fn()} />,
       );
     });
 
@@ -93,7 +93,7 @@ describe('ArtifactFrame', () => {
 
   it('injects transparent Live Artifact theme tokens into static artifact documents', () => {
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section><p>Artifact text</p></section>" themeId="onyx" />);
+      renderer.root.render(<LiveUiFrame html="<section><p>Artifact text</p></section>" themeId="onyx" />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -112,7 +112,7 @@ describe('ArtifactFrame', () => {
   it('injects the configured base font size into streaming artifact documents', () => {
     act(() => {
       renderer.root.render(
-        <ArtifactFrame html="<section><p>Artifact text</p></section>" baseFontSize={20} isLoading />,
+        <LiveUiFrame html="<section><p>Artifact text</p></section>" baseFontSize={20} isLoading />,
       );
     });
 
@@ -126,7 +126,7 @@ describe('ArtifactFrame', () => {
   it('injects transparent Live Artifact theme tokens into streaming artifact documents', () => {
     act(() => {
       renderer.root.render(
-        <ArtifactFrame html="<section><p>Artifact text</p></section>" themeId="graphite" isLoading />,
+        <LiveUiFrame html="<section><p>Artifact text</p></section>" themeId="graphite" isLoading />,
       );
     });
 
@@ -150,7 +150,7 @@ describe('ArtifactFrame', () => {
 
     try {
       act(() => {
-        renderer.root.render(<ArtifactFrame html="<section><p>Artifact text</p></section>" />);
+        renderer.root.render(<LiveUiFrame html="<section><p>Artifact text</p></section>" />);
       });
 
       const iframe = renderer.container.querySelector('iframe');
@@ -203,7 +203,7 @@ describe('ArtifactFrame', () => {
     vi.useFakeTimers();
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section>First chunk</section>" isLoading />);
+      renderer.root.render(<LiveUiFrame html="<section>First chunk</section>" isLoading />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -218,7 +218,7 @@ describe('ArtifactFrame', () => {
     });
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section>Second chunk</section>" isLoading />);
+      renderer.root.render(<LiveUiFrame html="<section>Second chunk</section>" isLoading />);
     });
 
     expect(iframe!.getAttribute('srcdoc')).toBe(initialSrcDoc);
@@ -241,7 +241,7 @@ describe('ArtifactFrame', () => {
 
   it('reposts the latest streaming html when the sandboxed iframe reports ready', () => {
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section>Ready payload</section>" isLoading />);
+      renderer.root.render(<LiveUiFrame html="<section>Ready payload</section>" isLoading />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -279,7 +279,7 @@ describe('ArtifactFrame', () => {
     vi.useFakeTimers();
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section>Deferred chunk</section>" isLoading />);
+      renderer.root.render(<LiveUiFrame html="<section>Deferred chunk</section>" isLoading />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -319,7 +319,7 @@ describe('ArtifactFrame', () => {
     vi.useFakeTimers();
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section>Starting</section>" isLoading />);
+      renderer.root.render(<LiveUiFrame html="<section>Starting</section>" isLoading />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -331,7 +331,7 @@ describe('ArtifactFrame', () => {
     });
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html={String.raw`<section><p>Action \(a_t\)</p></section>`} isLoading />);
+      renderer.root.render(<LiveUiFrame html={String.raw`<section><p>Action \(a_t\)</p></section>`} isLoading />);
     });
 
     act(() => {
@@ -353,7 +353,7 @@ describe('ArtifactFrame', () => {
     vi.useFakeTimers();
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section>Chunk 1</section>" isLoading />);
+      renderer.root.render(<LiveUiFrame html="<section>Chunk 1</section>" isLoading />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -364,7 +364,7 @@ describe('ArtifactFrame', () => {
     });
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section>Chunk 2</section>" isLoading />);
+      renderer.root.render(<LiveUiFrame html="<section>Chunk 2</section>" isLoading />);
     });
 
     act(() => {
@@ -372,7 +372,7 @@ describe('ArtifactFrame', () => {
     });
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section>Chunk 3</section>" isLoading />);
+      renderer.root.render(<LiveUiFrame html="<section>Chunk 3</section>" isLoading />);
     });
 
     act(() => {
@@ -399,7 +399,7 @@ describe('ArtifactFrame', () => {
     } as unknown as Window;
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section><p>Artifact text</p></section>" />);
+      renderer.root.render(<LiveUiFrame html="<section><p>Artifact text</p></section>" />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -430,7 +430,7 @@ describe('ArtifactFrame', () => {
     });
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section><p>Artifact</p></section>" />);
+      renderer.root.render(<LiveUiFrame html="<section><p>Artifact</p></section>" />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -458,7 +458,7 @@ describe('ArtifactFrame', () => {
     try {
       act(() => {
         renderer.root.render(
-          <ArtifactFrame html="<section><img src='https://example.com/missing.png' alt='Missing'></section>" />,
+          <LiveUiFrame html="<section><img src='https://example.com/missing.png' alt='Missing'></section>" />,
         );
       });
 
@@ -502,7 +502,7 @@ describe('ArtifactFrame', () => {
     const iframeWindowStub = { postMessage } as unknown as Window;
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<div data-amc-graphviz='digraph { A -> B }'></div>" themeId="pearl" />);
+      renderer.root.render(<LiveUiFrame html="<div data-amc-graphviz='digraph { A -> B }'></div>" themeId="pearl" />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -550,7 +550,7 @@ describe('ArtifactFrame', () => {
     const iframeWindowStub = { postMessage } as unknown as Window;
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<div data-amc-graphviz='digraph { A -> B }'></div>" />);
+      renderer.root.render(<LiveUiFrame html="<div data-amc-graphviz='digraph { A -> B }'></div>" />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -588,7 +588,7 @@ describe('ArtifactFrame', () => {
     const iframeWindowStub = { postMessage } as unknown as Window;
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section>Text</section>" />);
+      renderer.root.render(<LiveUiFrame html="<section>Text</section>" />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -621,7 +621,7 @@ describe('ArtifactFrame', () => {
     const iframeWindowStub = { postMessage } as unknown as Window;
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<section>Diagram</section>" onImageClick={onImageClick} />);
+      renderer.root.render(<LiveUiFrame html="<section>Diagram</section>" onImageClick={onImageClick} />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -658,7 +658,7 @@ describe('ArtifactFrame', () => {
 
   it('preserves the iframe DOM node and flushes final html in-place when transitioning from streaming to final mode', () => {
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<p>Chunk 1</p>" isLoading cacheKey="msg-1" />);
+      renderer.root.render(<LiveUiFrame html="<p>Chunk 1</p>" isLoading cacheKey="msg-1" />);
     });
 
     const streamingIframe = renderer.container.querySelector('iframe');
@@ -673,7 +673,7 @@ describe('ArtifactFrame', () => {
 
     // Streaming updates keep the same iframe DOM node
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<p>Chunk 1 and 2</p>" isLoading cacheKey="msg-1" />);
+      renderer.root.render(<LiveUiFrame html="<p>Chunk 1 and 2</p>" isLoading cacheKey="msg-1" />);
     });
 
     const streamingIframe2 = renderer.container.querySelector('iframe');
@@ -682,7 +682,7 @@ describe('ArtifactFrame', () => {
     // Finishing the stream preserves the iframe node and posts final html in-place (no reload/flicker)
     act(() => {
       renderer.root.render(
-        <ArtifactFrame html="<p>Chunk 1 and 2 with math $x$</p>" isLoading={false} cacheKey="msg-1" />,
+        <LiveUiFrame html="<p>Chunk 1 and 2 with math $x$</p>" isLoading={false} cacheKey="msg-1" />,
       );
     });
 
@@ -702,7 +702,7 @@ describe('ArtifactFrame', () => {
 
   it('keeps measured height strictly stable when streaming completes even without cacheKey', () => {
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<p>Streaming chunk</p>" isLoading />);
+      renderer.root.render(<LiveUiFrame html="<p>Streaming chunk</p>" isLoading />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -727,7 +727,7 @@ describe('ArtifactFrame', () => {
 
     // Finish streaming without a cacheKey
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<p>Streaming completed</p>" isLoading={false} />);
+      renderer.root.render(<LiveUiFrame html="<p>Streaming completed</p>" isLoading={false} />);
     });
 
     // Height must remain 780px and never collapse to 320px
@@ -736,7 +736,7 @@ describe('ArtifactFrame', () => {
 
   it('keeps iframe node and measured height strictly stable when cacheKey changes on stream completion', () => {
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<p>Streaming chunk</p>" isLoading cacheKey="msg-1:20" />);
+      renderer.root.render(<LiveUiFrame html="<p>Streaming chunk</p>" isLoading cacheKey="msg-1:20" />);
     });
 
     const initialIframe = renderer.container.querySelector('iframe');
@@ -762,7 +762,7 @@ describe('ArtifactFrame', () => {
     // Finish streaming with shifted offset cacheKey
     act(() => {
       renderer.root.render(
-        <ArtifactFrame html="<p>Streaming chunk completed</p>" isLoading={false} cacheKey="msg-1:55" />,
+        <LiveUiFrame html="<p>Streaming chunk completed</p>" isLoading={false} cacheKey="msg-1:55" />,
       );
     });
 
@@ -773,14 +773,14 @@ describe('ArtifactFrame', () => {
 
   it('disables pointer events on the iframe during streaming to prevent swallowing parent scroll gestures', () => {
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<p>Streaming chunk</p>" isLoading />);
+      renderer.root.render(<LiveUiFrame html="<p>Streaming chunk</p>" isLoading />);
     });
 
     let iframe = renderer.container.querySelector('iframe');
     expect(iframe?.className).toContain('pointer-events-none');
 
     act(() => {
-      renderer.root.render(<ArtifactFrame html="<p>Streaming chunk</p>" isLoading={false} />);
+      renderer.root.render(<LiveUiFrame html="<p>Streaming chunk</p>" isLoading={false} />);
     });
 
     iframe = renderer.container.querySelector('iframe');

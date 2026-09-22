@@ -7,7 +7,7 @@ import { MessageThoughts } from './content/MessageThoughts';
 import { McpToolCallGroup } from '@/components/mcp/McpToolCallGroup';
 import { MessageText } from './content/MessageText';
 import { MessageFooter } from './content/MessageFooter';
-import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
+import type { LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
 import type { UserMessageCollapseController } from './content/userMessageCollapse';
 
 interface MessageContentProps {

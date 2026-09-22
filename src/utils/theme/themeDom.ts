@@ -1,7 +1,7 @@
 import { AVAILABLE_THEMES } from '@/constants/themeRegistry';
 import type { AppSettings } from '@/types';
 import type { Theme, ThemeColors } from '@/types/theme';
-import { buildLiveArtifactThemeVars } from '@/utils/live-artifacts/liveArtifactThemeTokens';
+import { buildLiveArtifactThemeVars } from '@/utils/live-ui/liveUiThemeTokens';
 
 /** When the OS asks for more contrast, promote muted text toward higher ranks. */
 const withPreferredContrast = (colors: ThemeColors, prefersMoreContrast: boolean): ThemeColors => {

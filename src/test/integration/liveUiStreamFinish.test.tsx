@@ -5,7 +5,7 @@ import { MessageText } from '@/components/message/content/MessageText';
 import { createAppSettings } from '@/test/data/factories';
 import type { ChatMessage } from '@/types';
 
-describe('Live Artifact stream completion integration', () => {
+describe('LiveUI stream completion integration', () => {
   const renderer = setupProviderTestRenderer({ providers: { language: 'zh' } });
 
   beforeAll(async () => {

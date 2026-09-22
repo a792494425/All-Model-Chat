@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { diagnoseLiveArtifactInteraction } from './liveArtifactInteractionDiagnosis';
+import { diagnoseLiveArtifactInteraction } from './liveUiInteractionDiagnosis';
 import {
   hasLiveArtifactInteractionShape,
   getLiveArtifactInteractionFields,
   getLiveArtifactInteractionDefaultValue,
   buildLiveArtifactInteractionPayload,
-} from './liveArtifactInteraction';
+} from './liveUiInteraction';
 
 describe('liveArtifactInteractionDiagnosis', () => {
   it('successfully diagnoses and normalizes a valid spec', () => {

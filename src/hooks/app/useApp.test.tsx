@@ -235,7 +235,8 @@ describe('useApp', () => {
       await result.current.handleSuggestionClick('organize', 'Create an interactive HTML board');
     });
 
-    expect(currentAppSettings.systemInstruction).toBe(LIVE_ARTIFACTS_PROMPT);
+    expect(currentAppSettings.isLiveArtifactsEnabled).toBe(true);
+    expect(currentAppSettings.systemInstruction).toBe('');
     expect(currentChatState.activeChat).toBeUndefined();
 
     currentChatState.activeChat = {
@@ -253,7 +254,8 @@ describe('useApp', () => {
     rerender();
     rerender();
 
-    expect(currentChatState.activeChat.settings.systemInstruction).toBe(LIVE_ARTIFACTS_PROMPT);
+    expect(currentChatState.activeChat.settings.isLiveArtifactsEnabled).toBe(true);
+    expect(currentChatState.activeChat.settings.systemInstruction).toBe('');
 
     unmount();
   });

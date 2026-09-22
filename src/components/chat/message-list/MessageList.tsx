@@ -22,7 +22,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import {
   formatLiveArtifactFollowupPrompt,
   type LiveArtifactFollowupPayload,
-} from '@/utils/live-artifacts/liveArtifactFollowup';
+} from '@/utils/live-ui/liveUiFollowup';
 
 const MessageListComponent: React.FC = () => {
   const appSettings = useSettingsStore((state) => state.appSettings);

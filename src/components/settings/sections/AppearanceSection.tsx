@@ -3,7 +3,7 @@ import { type AppSettings } from '@/types';
 import { AppearanceLivePreview } from './appearance/AppearanceLivePreview';
 import { ThemeLanguageSelector } from './appearance/ThemeLanguageSelector';
 import { FontSizeControl } from './appearance/FontSizeControl';
-import { LiveArtifactsFontSizeControl } from './appearance/LiveArtifactsFontSizeControl';
+import { LiveUiFontSizeControl } from './appearance/LiveUiFontSizeControl';
 import { InterfaceToggles } from './appearance/InterfaceToggles';
 
 interface AppearanceSectionProps {
@@ -20,7 +20,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({ settings, 
 
       <FontSizeControl settings={settings} onUpdate={onUpdate} />
 
-      <LiveArtifactsFontSizeControl settings={settings} onUpdate={onUpdate} />
+      <LiveUiFontSizeControl settings={settings} onUpdate={onUpdate} />
 
       <InterfaceToggles settings={settings} onUpdate={onUpdate} />
     </div>

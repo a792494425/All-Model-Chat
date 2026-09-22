@@ -9,7 +9,7 @@ import { useChatStore } from '@/stores/chatStore';
 import { useShallow } from 'zustand/react/shallow';
 import { CHAT_USER_MESSAGE_INSET_CLASS } from '@/constants/layout';
 import { useMediaNavStore } from '@/stores/mediaNavStore';
-import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
+import type { LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
 import type { UserMessageCollapseController } from './content/userMessageCollapse';
 
 interface MessageProps {

@@ -53,7 +53,7 @@ const buildInitialHistorySidebarState = () => {
 
 export type HistoryDisplayMode = 'group' | 'time';
 
-interface UIState {
+export interface UIState {
   isSettingsModalOpen: boolean;
   isPreloadedMessagesModalOpen: boolean;
   isHistorySidebarOpen: boolean;
@@ -70,7 +70,7 @@ export type SetActiveViewOptions = {
   history?: SessionHistoryMode;
 };
 
-interface UIActions {
+export interface UIActions {
   setIsSettingsModalOpen: (value: UpdaterOrValue<boolean>) => void;
   setIsPreloadedMessagesModalOpen: (value: UpdaterOrValue<boolean>) => void;
   setIsHistorySidebarOpen: (value: UpdaterOrValue<boolean>) => void;
@@ -209,3 +209,7 @@ export const useUIStore = create<UIState & UIActions>()(
 );
 
 registerActiveViewGetter(() => useUIStore.getState().activeView);
+
+export const useUiStore = useUIStore;
+export type UiState = UIState;
+export type UiActions = UIActions;

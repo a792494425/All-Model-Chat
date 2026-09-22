@@ -3,6 +3,7 @@ import { GRAPHVIZ_RENDERER_SCRIPT } from './graphvizRendererScript';
 import {
   HTML_PREVIEW_COPY_EVENT,
   HTML_PREVIEW_DIAGNOSTIC_EVENT,
+  HTML_PREVIEW_MEDIA_SEEK_EVENT,
   HTML_PREVIEW_MESSAGE_CHANNEL,
 } from './previewMessageProtocol';
 
@@ -408,6 +409,125 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
     return label || null;
   };
 
+  const parseBox2d = (value) => {
+    if (!value) return undefined;
+    const parts = String(value).split(',').map((p) => parseFloat(p.trim())).filter((n) => !Number.isNaN(n));
+    return parts.length === 4 ? parts : undefined;
+  };
+
+  const parsePoint = (value) => {
+    if (!value) return undefined;
+    const parts = String(value).split(',').map((p) => parseFloat(p.trim())).filter((n) => !Number.isNaN(n));
+    return parts.length === 2 ? parts : undefined;
+  };
+
+  const parseTimestampSeconds = (timeStr) => {
+    if (!timeStr) return undefined;
+    const trimmed = String(timeStr).trim();
+    if (!trimmed) return undefined;
+    const directNum = parseFloat(trimmed);
+    if (!Number.isNaN(directNum) && !trimmed.includes(':')) {
+      return directNum;
+    }
+    const parts = trimmed.split(':').map((p) => parseFloat(p.trim()));
+    if (parts.some((p) => Number.isNaN(p))) return undefined;
+    if (parts.length === 2) {
+      return parts[0] * 60 + parts[1];
+    }
+    if (parts.length === 3) {
+      return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+    return undefined;
+  };
+
+  const readMediaSeekPayload = (target) => {
+    if (!(target instanceof Element)) return null;
+    const trigger = target.closest(
+      '[data-amc-seek-page],[data-seek-page],[data-amc-seek-time],[data-seek-time],[data-amc-seek-image],[data-seek-image],[data-amc-seek-kind],[data-seek-kind],a[href^="#amc-seek:"],a[href^="#seek:"],image-locate,pdf-locate,video-locate,audio-locate'
+    );
+    if (!trigger) return null;
+
+    let kind = trigger.getAttribute('data-amc-seek-kind') || trigger.getAttribute('data-seek-kind') || undefined;
+    let pageRaw = trigger.getAttribute('data-amc-seek-page') || trigger.getAttribute('data-seek-page');
+    let timeRaw = trigger.getAttribute('data-amc-seek-time') || trigger.getAttribute('data-seek-time');
+    let imageRaw = trigger.getAttribute('data-amc-seek-image') || trigger.getAttribute('data-seek-image');
+    let doc = trigger.getAttribute('data-amc-seek-doc') || trigger.getAttribute('data-seek-doc') || undefined;
+    let boxRaw = trigger.getAttribute('data-amc-seek-box') || trigger.getAttribute('data-seek-box');
+    let pointRaw = trigger.getAttribute('data-amc-seek-point') || trigger.getAttribute('data-seek-point');
+    let arrow = trigger.getAttribute('data-amc-seek-arrow') || trigger.getAttribute('data-seek-arrow') || undefined;
+    let label = trigger.getAttribute('data-amc-seek-label') || trigger.getAttribute('data-seek-label') || undefined;
+    let snippet = trigger.getAttribute('data-amc-seek-snippet') || trigger.getAttribute('data-seek-snippet') || trigger.textContent?.trim() || undefined;
+
+    const tagName = trigger.tagName.toLowerCase();
+    if (tagName === 'image-locate') {
+      kind = 'image';
+      doc = trigger.getAttribute('file') || trigger.getAttribute('image') || trigger.getAttribute('doc') || doc;
+      boxRaw = trigger.getAttribute('box') || trigger.getAttribute('box_2d') || boxRaw;
+      pointRaw = trigger.getAttribute('point') || pointRaw;
+      arrow = trigger.getAttribute('arrow') || arrow;
+      label = trigger.getAttribute('label') || label;
+      snippet = trigger.getAttribute('snippet') || trigger.textContent?.trim() || snippet;
+    } else if (tagName === 'pdf-locate') {
+      kind = 'pdf';
+      pageRaw = trigger.getAttribute('page') || pageRaw;
+      doc = trigger.getAttribute('doc') || trigger.getAttribute('file') || doc;
+      boxRaw = trigger.getAttribute('box') || trigger.getAttribute('box_2d') || boxRaw;
+      pointRaw = trigger.getAttribute('point') || pointRaw;
+      snippet = trigger.getAttribute('snippet') || trigger.textContent?.trim() || snippet;
+    } else if (tagName === 'video-locate') {
+      kind = 'video';
+      timeRaw = trigger.getAttribute('start') || trigger.getAttribute('time') || timeRaw;
+      doc = trigger.getAttribute('video') || trigger.getAttribute('doc') || trigger.getAttribute('file') || doc;
+      boxRaw = trigger.getAttribute('box') || trigger.getAttribute('box_2d') || boxRaw;
+      pointRaw = trigger.getAttribute('point') || pointRaw;
+      snippet = trigger.getAttribute('snippet') || trigger.textContent?.trim() || snippet;
+    } else if (tagName === 'audio-locate') {
+      kind = 'audio';
+      timeRaw = trigger.getAttribute('start') || trigger.getAttribute('time') || timeRaw;
+      doc = trigger.getAttribute('audio') || trigger.getAttribute('doc') || trigger.getAttribute('file') || doc;
+      snippet = trigger.getAttribute('snippet') || trigger.textContent?.trim() || snippet;
+    }
+
+    const href = trigger.getAttribute('href');
+    if (href && (href.startsWith('#amc-seek:') || href.startsWith('#seek:'))) {
+      const match = href.replace(/^#(amc-)?seek:/, '').split(':');
+      if (match.length >= 2) {
+        const prefix = match[0].toLowerCase();
+        const value = match[1];
+        if (prefix === 'pdf' || prefix === 'page') {
+          kind = kind || 'pdf';
+          pageRaw = pageRaw || value;
+        } else if (prefix === 'video' || prefix === 'time') {
+          kind = kind || 'video';
+          timeRaw = timeRaw || value;
+        } else if (prefix === 'audio') {
+          kind = kind || 'audio';
+          timeRaw = timeRaw || value;
+        } else if (prefix === 'image') {
+          kind = kind || 'image';
+          imageRaw = imageRaw || value;
+        }
+      }
+    }
+
+    const page = pageRaw ? parseInt(pageRaw, 10) : undefined;
+    const seconds = timeRaw ? parseTimestampSeconds(timeRaw) : undefined;
+    const box2d = parseBox2d(boxRaw);
+    const point = parsePoint(pointRaw);
+
+    if (page !== undefined && !Number.isNaN(page)) {
+      return { kind: kind || 'pdf', page, doc, box2d, point, snippet };
+    }
+    if (seconds !== undefined && !Number.isNaN(seconds)) {
+      return { kind: kind || 'video', seconds, doc, box2d, point, snippet };
+    }
+    if (imageRaw !== undefined || kind === 'image' || box2d !== undefined || point !== undefined || arrow !== undefined) {
+      return { kind: 'image', doc: doc || imageRaw, box2d, point, arrow, label, snippet };
+    }
+
+    return null;
+  };
+
   document.addEventListener('click', (event) => {
     // Only honor real user gestures. A preview's own script can dispatch a
     // synthetic click (element.click()) — without this check it could trigger a
@@ -420,6 +540,13 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
     if (copyText) {
       event.preventDefault();
       notify(${JSON.stringify(HTML_PREVIEW_COPY_EVENT)}, { text: copyText });
+      return;
+    }
+
+    const seekPayload = readMediaSeekPayload(event.target);
+    if (seekPayload) {
+      event.preventDefault();
+      notify(${JSON.stringify(HTML_PREVIEW_MEDIA_SEEK_EVENT)}, seekPayload);
       return;
     }
 

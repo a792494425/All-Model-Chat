@@ -167,7 +167,7 @@ describe('project structure boundaries', () => {
       'src/hooks/data-management/ChatExportRenderer.tsx',
       'src/utils/model/modelCapabilities.ts',
       'src/utils/file/fileTypeClassification.ts',
-      'src/utils/live-artifacts/liveArtifactFollowup.ts',
+      'src/utils/live-ui/liveUiFollowup.ts',
       'src/test/layout/fixtures.tsx',
     ];
     const removedPaths = [
@@ -340,7 +340,7 @@ describe('project structure boundaries', () => {
       ['src/hooks/file-upload/uploadQueue.ts', 'src/utils/file-upload/uploadQueue.ts'],
       ['src/hooks/live-api/liveClientFunctions.ts', 'src/utils/live-api/liveClientFunctions.ts'],
       ['src/hooks/live-api/liveErrorState.ts', 'src/utils/live-api/liveErrorState.ts'],
-      ['src/hooks/text-selection/liveArtifactSelection.ts', 'src/utils/text-selection/liveArtifactSelection.ts'],
+      ['src/hooks/text-selection/liveUiSelection.ts', 'src/utils/text-selection/liveUiSelection.ts'],
       ['src/hooks/text-selection/selectionClipboard.ts', 'src/utils/text-selection/selectionClipboard.ts'],
     ];
     const sourceFiles = listProjectSourceFilesExcept('src', thisTestFile);

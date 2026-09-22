@@ -89,3 +89,5 @@ export const resolveStandardChatTurn = ({
     shouldSkipApiCall: promptParts.length === 0,
   };
 };
+
+export const standardChatTurn = resolveStandardChatTurn;

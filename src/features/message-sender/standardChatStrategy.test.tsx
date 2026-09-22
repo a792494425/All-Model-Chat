@@ -6,7 +6,7 @@ import { MediaResolution } from '@/types';
 import { createThirdPartyConnection } from '@/test/data/factories';
 import { createMessage } from '@/utils/chat/session';
 import { useMcpRuntimeStore } from '@/stores/mcp/mcpRuntimeStore';
-import { getLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
+import { getLiveArtifactsUserDirective } from '@/features/prompts/liveUi';
 import type { PreparedModelRequest } from './useModelRequestRunner';
 
 const {

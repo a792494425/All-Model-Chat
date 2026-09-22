@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-test('Live Artifacts helper toggles on from an edge tap after hover', async ({ page }) => {
+test('LiveUI helper toggles on from an edge tap after hover', async ({ page }) => {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
 
   const liveArtifactsButton = page.getByRole('button', {
-    name: /Enable Live Artifacts rendering|开启 Live Artifacts 协议与工件渲染/,
+    name: /Enable LiveUI rendering|开启 LiveUI 协议与组件渲染/,
   });
 
   await expect(liveArtifactsButton).toBeVisible();
@@ -30,7 +30,7 @@ test('Live Artifacts helper toggles on from an edge tap after hover', async ({ p
 
   await expect(
     page.getByRole('button', {
-      name: /Live Artifacts rendering is active|Live Artifacts 协议与工件渲染已开启/,
+      name: /LiveUI rendering is active|LiveUI 协议与组件渲染已开启/,
     }),
   ).toBeVisible();
 });

@@ -2,15 +2,13 @@ import type { LiveArtifactsPromptMode } from '@/types';
 import { isLiveArtifactsSystemInstruction } from '@/features/prompts/promptRegistry';
 
 /**
- * Determine if Live Artifacts mode is active from the app settings and
+ * Determine if Live UI mode is active from the app settings and
  * current chat settings. This is a convenience wrapper for CommonComponentData.
  *
  * Marker recognition is delegated to promptRegistry.isLiveArtifactsSystemInstruction
- * so every caller (this, useAppPromptModes, ...) agrees on which markers count —
- * including legacy Live Artifacts / Canvas markers. This only adds the
- * override-prompt comparisons on top of that shared baseline.
+ * so every caller agrees on which markers count.
  */
-export function isLiveArtifactsModeFromSettings(args: {
+export function isLiveUiModeFromSettings(args: {
   isLiveArtifactsEnabled?: boolean | null;
   isVisualFormattingActive?: boolean | null;
   systemInstruction?: string | null;
@@ -58,3 +56,6 @@ export function isLiveArtifactsModeFromSettings(args: {
 
   return false;
 }
+
+// Backward-compatible alias
+export const isLiveArtifactsModeFromSettings = isLiveUiModeFromSettings;

@@ -1,23 +1,25 @@
 import React, { useCallback } from 'react';
 import { AlertTriangle, RefreshCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
-import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
+import type { LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
 import type {
   LiveArtifactInteractionDiagnosis,
   LiveArtifactInteractionParseError,
-} from '@/utils/live-artifacts/liveArtifactInteraction';
+} from '@/utils/live-ui/liveUiInteraction';
 import { interpolate } from '@/i18n/interpolate';
 
-interface LiveArtifactInteractionDiagnosticProps {
+export interface LiveUiInteractionDiagnosticProps {
   diagnosis: LiveArtifactInteractionDiagnosis;
   rawJson: string;
   baseFontSize?: number;
   onFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
 }
 
+export type LiveArtifactInteractionDiagnosticProps = LiveUiInteractionDiagnosticProps;
+
 const ERROR_ICON_COLOR = 'var(--theme-text-danger)';
 
-export const LiveArtifactInteractionDiagnostic: React.FC<LiveArtifactInteractionDiagnosticProps> = ({
+export const LiveUiInteractionDiagnostic: React.FC<LiveUiInteractionDiagnosticProps> = ({
   diagnosis,
   rawJson,
   baseFontSize,
@@ -138,3 +140,5 @@ export const LiveArtifactInteractionDiagnostic: React.FC<LiveArtifactInteraction
 function renderError(error: LiveArtifactInteractionParseError): string {
   return error.message;
 }
+
+export const LiveArtifactInteractionDiagnostic = LiveUiInteractionDiagnostic;

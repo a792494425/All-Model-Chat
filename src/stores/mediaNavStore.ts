@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { restoreSidebarIfAutoCollapsed } from '@/utils/media-nav/mediaNavResponsive';
 
 export interface PdfNavHighlight {
   messageId?: string;
@@ -109,7 +110,10 @@ export const useMediaNavStore = create<MediaNavState>((set) => ({
   currentPlayTime: null,
   width: MEDIA_NAV_DEFAULT_WIDTH,
   openAs: (kind) => set({ isOpen: true, openKind: kind }),
-  close: () => set({ isOpen: false, openKind: null, currentPlayTime: null }),
+  close: () => {
+    restoreSidebarIfAutoCollapsed();
+    set({ isOpen: false, openKind: null, currentPlayTime: null });
+  },
   setActiveFile: (fileId) =>
     set({
       activeFileId: fileId,

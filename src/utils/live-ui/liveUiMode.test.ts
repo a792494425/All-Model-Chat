@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isLiveArtifactsModeFromSettings } from './liveArtifactsMode';
+import { isLiveArtifactsModeFromSettings } from './liveUiMode';
 
 describe('isLiveArtifactsModeFromSettings', () => {
   it('returns true when isVisualFormattingActive is true regardless of isLiveArtifactsEnabled', () => {
@@ -50,7 +50,7 @@ describe('isLiveArtifactsModeFromSettings', () => {
   it('detects live artifacts system prompt markers in systemInstruction', () => {
     expect(
       isLiveArtifactsModeFromSettings({
-        systemInstruction: 'Prefix\n\n[Live Artifacts Inline Protocol]\nRules...',
+        systemInstruction: 'Prefix\n\n[LiveUI Inline Protocol]\nRules...',
       }),
     ).toBe(true);
 

@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import type { AppViewModel } from '@/hooks/app/useApp';
 import { useChatStore } from '@/stores/chatStore';
+import { closeMediaNavPanel } from '@/stores/mediaNavStore';
 import type { ModelOption, TaskSuggestionMode, UploadedFile } from '@/types';
 import type { ChatInputRuntimeValue } from './chatRuntimeTypes';
 
@@ -84,10 +85,26 @@ export const useChatInputRuntimeValues = ({
 
   const onToggleTaskSuggestion = useCallback(
     (mode: TaskSuggestionMode) => {
-      setCurrentChatSettings((prev) => ({
-        ...prev,
-        taskSuggestionMode: prev.taskSuggestionMode === mode ? null : mode,
-      }));
+      setCurrentChatSettings((prev) => {
+        const nextMode = prev.taskSuggestionMode === mode ? null : mode;
+        if (nextMode) {
+          closeMediaNavPanel();
+        }
+        return {
+          ...prev,
+          taskSuggestionMode: nextMode,
+          ...(nextMode
+            ? {
+                isVisualFormattingActive: false,
+                isPdfNavEnabled: false,
+                isVideoNavEnabled: false,
+                isAudioNavEnabled: false,
+                isImageNavEnabled: false,
+                visionPromptMode: null,
+              }
+            : {}),
+        };
+      });
     },
     [setCurrentChatSettings],
   );
@@ -97,10 +114,23 @@ export const useChatInputRuntimeValues = ({
   const handleToggleVisualFormatting = useCallback(() => {
     setCurrentChatSettings((prev) => {
       const next = !prev.isVisualFormattingActive;
+      if (next) {
+        closeMediaNavPanel();
+      }
       return {
         ...prev,
         isVisualFormattingActive: next,
-        ...(next ? { isLiveArtifactsEnabled: true } : {}),
+        ...(next
+          ? {
+              isLiveArtifactsEnabled: true,
+              taskSuggestionMode: null,
+              isPdfNavEnabled: false,
+              isVideoNavEnabled: false,
+              isAudioNavEnabled: false,
+              isImageNavEnabled: false,
+              visionPromptMode: null,
+            }
+          : {}),
       };
     });
   }, [setCurrentChatSettings]);

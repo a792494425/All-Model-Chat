@@ -94,7 +94,7 @@ describe('StandardMarkdownRenderer Live Artifacts', () => {
     expect(renderer.container.querySelector('[title="codeFullscreenModal"]')).toBeNull();
   });
 
-  it('keeps explicit html code blocks in code block chrome instead of artifact frames', () => {
+  it('renders explicit html code blocks inside artifact frames in the message bubble', () => {
     const document =
       '<!DOCTYPE html><html><head><title>Demo Artifact</title></head><body><main>Hello</main></body></html>';
 
@@ -102,11 +102,9 @@ describe('StandardMarkdownRenderer Live Artifacts', () => {
 
     const iframe = renderer.container.querySelector('iframe[title="HTML Preview"]');
 
-    expect(renderer.container.querySelector('[data-live-artifact-frame="true"]')).toBeNull();
-    expect(iframe).toBeNull();
-    expect(renderer.container.querySelector('pre')).not.toBeNull();
-    expect(renderer.container.querySelector('[data-code-header-toolbar]')).not.toBeNull();
-    expect(renderer.container.textContent).toContain('Demo Artifact');
+    expect(renderer.container.querySelector('[data-live-artifact-frame="true"]')).not.toBeNull();
+    expect(iframe).not.toBeNull();
+    expect(iframe?.getAttribute('srcdoc')).toContain('Demo Artifact');
   });
 
   it('renders fenced Live Artifacts that include style tags inside artifact frames', () => {
@@ -695,5 +693,39 @@ describe('StandardMarkdownRenderer Live Artifacts', () => {
     const finalIframe = renderer.container.querySelector<HTMLIFrameElement>('iframe[title="HTML Preview"]');
     expect(finalIframe).not.toBeNull();
     expect(finalIframe).toBe(streamingIframe);
+  });
+
+  it('renders interaction forms or diagnostic cards even when LiveUI mode is disabled for explicit interaction fences', () => {
+    const invalidInteraction = '```amc-live-artifact-interaction\n{invalid-json}\n```';
+    renderMarkdown({
+      content: invalidInteraction,
+      liveArtifactsMode: false,
+    });
+
+    expect(renderer.container.querySelector('[data-live-artifact-interaction-diagnostic="true"]')).not.toBeNull();
+  });
+
+  it('does not hijack generic json code blocks as interactions when LiveUI mode is disabled', () => {
+    const genericJson = '```json\n{"instruction": "test", "schema": {}}\n```';
+    renderMarkdown({
+      content: genericJson,
+      liveArtifactsMode: false,
+    });
+
+    expect(renderer.container.querySelector('[data-live-artifact-interaction="true"]')).toBeNull();
+    expect(renderer.container.querySelector('pre')).not.toBeNull();
+  });
+
+  it('renders html artifacts inside bubble even when liveArtifactsMode is false', () => {
+    const document = '<!DOCTYPE html><html><body><p>Always Render</p></body></html>';
+    renderMarkdown({
+      content: `\`\`\`html\n${document}\n\`\`\``,
+      liveArtifactsMode: false,
+    });
+
+    const iframe = renderer.container.querySelector('iframe[title="HTML Preview"]');
+    expect(renderer.container.querySelector('[data-live-artifact-frame="true"]')).not.toBeNull();
+    expect(iframe).not.toBeNull();
+    expect(iframe?.getAttribute('srcdoc')).toContain('Always Render');
   });
 });

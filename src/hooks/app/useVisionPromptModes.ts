@@ -28,6 +28,7 @@ export const useVisionPromptModes = ({
           ...prev,
           visionPromptMode,
           isCodeExecutionEnabled,
+          ...(visionPromptMode ? { isVisualFormattingActive: false } : {}),
         };
       });
     },

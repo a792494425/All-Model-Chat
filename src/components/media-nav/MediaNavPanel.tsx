@@ -10,6 +10,7 @@ import { FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS } from '@/constants/focusClasse
 import { lazyNamedComponent } from '@/utils/lazyNamedComponent';
 import type { UploadedFile } from '@/types';
 import { applyMediaNavKindToSettings } from '@/utils/media-nav/mediaNavSettings';
+import { collapseSidebarIfNarrowScreen, restoreSidebarIfAutoCollapsed } from '@/utils/media-nav/mediaNavResponsive';
 import { focusChatInput } from '@/utils/chat-input/focus';
 import { MediaNavView } from './MediaNavView';
 import { ImageViewer } from '@/components/shared/file-preview/ImageViewer';
@@ -92,6 +93,18 @@ const MediaNavPanelComponent: React.FC = () => {
       setActiveFile(entries[0].file.id);
     }
   }, [entries, activeFileId, openKind, setActiveFile]);
+
+  // When media navigation panel is opened on narrow screens (<= 1536px),
+  // automatically collapse the history sidebar to protect the chat layout width.
+  // When closing, restore the sidebar if it was automatically collapsed.
+  useEffect(() => {
+    if (isOpen) {
+      collapseSidebarIfNarrowScreen();
+    }
+    return () => {
+      restoreSidebarIfAutoCollapsed();
+    };
+  }, [isOpen]);
 
   const activeEntry: MediaEntry | undefined = useMemo(() => {
     if (openKind) {

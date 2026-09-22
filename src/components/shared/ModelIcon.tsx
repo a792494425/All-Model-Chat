@@ -198,3 +198,12 @@ export const getModelIcon = (model: ModelOption | undefined) => {
     />
   );
 };
+
+export interface ModelIconProps {
+  model?: ModelOption;
+}
+
+export const ModelIcon: React.FC<ModelIconProps> = ({ model }) => {
+  return getModelIcon(model);
+};
+

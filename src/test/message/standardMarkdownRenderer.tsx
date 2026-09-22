@@ -17,6 +17,7 @@ export const createStandardMarkdownRendererElement = (props: StandardMarkdownRen
     isGraphvizRenderingEnabled={false}
     themeId="pearl"
     onOpenSidePanel={vi.fn()}
+    liveArtifactsMode={props.liveArtifactsMode ?? true}
     {...props}
   />
 );

@@ -2,7 +2,7 @@ import type React from 'react';
 import type { PluggableList } from 'unified';
 import type { UploadedFile, SideViewContent } from '@/types';
 import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
-import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
+import type { LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
 
 export interface MarkdownRendererProps {
   content: string;

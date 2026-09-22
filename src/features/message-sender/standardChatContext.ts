@@ -5,8 +5,8 @@ import {
   buildPdfLocateDirective,
   buildVideoLocateDirective,
 } from '@/utils/media-nav/locateMarker';
-import { isLiveArtifactsModeFromSettings } from '@/utils/live-artifacts/liveArtifactsMode';
-import { getLiveArtifactsSystemPromptOverride } from '@/utils/live-artifacts/liveArtifactsPromptSettings';
+import { isLiveArtifactsModeFromSettings } from '@/utils/live-ui/liveUiMode';
+import { getLiveArtifactsSystemPromptOverride } from '@/utils/live-ui/liveUiPromptSettings';
 import { composeSystemInstruction } from '@/features/prompts/promptCompositor';
 import { applyLiveArtifactsUserDirective } from '@/features/prompts/promptRegistry';
 import {
@@ -244,3 +244,5 @@ export const prepareStandardChatContext = async ({
     combinedClientFunctions,
   };
 };
+
+export const standardChatContext = prepareStandardChatContext;

@@ -8,17 +8,19 @@ import { loadLiveArtifactsSystemPrompt } from '@/features/prompts/promptRegistry
 import {
   getLiveArtifactsSystemPromptValue,
   updateLiveArtifactsSystemPromptForMode,
-} from '@/utils/live-artifacts/liveArtifactsPromptSettings';
+} from '@/utils/live-ui/liveUiPromptSettings';
 import type { AppSettings } from '@/types';
 import type { SettingsUpdateHandler } from '@/components/settings/settingsTypes';
 
-interface LiveArtifactsSectionProps {
+export interface LiveUiSectionProps {
   currentSettings: AppSettings;
   currentThemeId: string;
   onUpdateSetting: SettingsUpdateHandler;
 }
 
-export const LiveArtifactsSection: React.FC<LiveArtifactsSectionProps> = ({ currentSettings, onUpdateSetting }) => {
+export type LiveArtifactsSectionProps = LiveUiSectionProps;
+
+export const LiveUiSection: React.FC<LiveUiSectionProps> = ({ currentSettings, onUpdateSetting }) => {
   const { language, t } = useI18n();
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
   const [builtInPromptState, setBuiltInPromptState] = useState({ key: '', value: '' });
@@ -140,3 +142,5 @@ export const LiveArtifactsSection: React.FC<LiveArtifactsSectionProps> = ({ curr
     </div>
   );
 };
+
+export const LiveArtifactsSection = LiveUiSection;

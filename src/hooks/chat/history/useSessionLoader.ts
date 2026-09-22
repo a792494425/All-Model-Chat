@@ -27,6 +27,7 @@ import {
   type SessionLoaderHistoryOptions,
 } from './sessionLoaderSettings';
 import { focusChatInput } from '@/utils/chat-input/focus';
+import { closeMediaNavPanel } from '@/stores/mediaNavStore';
 
 interface StartNewChatOptions extends SessionLoaderHistoryOptions {
   /** 新会话要归属的分组 id；不传保持原行为（未分组）。 */
@@ -231,6 +232,7 @@ export const useSessionLoader = ({
           );
         }
 
+        closeMediaNavPanel();
         focusChatInput(0);
         return;
       }
@@ -254,6 +256,7 @@ export const useSessionLoader = ({
 
       setEditingMessageId(null);
 
+      closeMediaNavPanel();
       focusChatInput(0);
     },
     [

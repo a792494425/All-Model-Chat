@@ -14,12 +14,14 @@ export const hasActiveMediaNavSettings = (settings: Partial<ChatSettings>): bool
 export interface ApplyMediaNavOptions {
   /** If true, keep other already-enabled media navigation flags active (for multi-media sessions). Default is false. */
   preserveOtherMediaKinds?: boolean;
+  /** If true, preserve Live Artifacts mode when enabling media navigation (enables coexistence). Default is true. */
+  preserveLiveArtifacts?: boolean;
 }
 
 /**
  * Immutably updates ChatSettings with an active media navigation kind (or none if null).
  * When options.preserveOtherMediaKinds is true, enables the requested kind while preserving other active kinds.
- * Mutually exclusive Live Artifacts system instruction is reset to default when enabling any media kind.
+ * When options.preserveLiveArtifacts is false, resets Live Artifacts to default.
  */
 export const applyMediaNavKindToSettings = <T extends ChatSettings>(
   prev: T,
@@ -37,6 +39,7 @@ export const applyMediaNavKindToSettings = <T extends ChatSettings>(
   }
 
   const preserve = Boolean(options?.preserveOtherMediaKinds);
+  const preserveLiveArtifacts = Boolean(options?.preserveLiveArtifacts);
 
   return {
     ...prev,
@@ -44,9 +47,13 @@ export const applyMediaNavKindToSettings = <T extends ChatSettings>(
     isVideoNavEnabled: kind === 'video' ? true : preserve ? Boolean(prev.isVideoNavEnabled) : false,
     isAudioNavEnabled: kind === 'audio' ? true : preserve ? Boolean(prev.isAudioNavEnabled) : false,
     isImageNavEnabled: kind === 'image' ? true : preserve ? Boolean(prev.isImageNavEnabled) : false,
-    isLiveArtifactsEnabled: false,
-    ...(isLiveArtifactsSystemInstruction(prev.systemInstruction)
-      ? { systemInstruction: DEFAULT_SYSTEM_INSTRUCTION }
-      : {}),
+    ...(preserveLiveArtifacts
+      ? {}
+      : {
+          isLiveArtifactsEnabled: false,
+          ...(isLiveArtifactsSystemInstruction(prev.systemInstruction)
+            ? { systemInstruction: DEFAULT_SYSTEM_INSTRUCTION }
+            : {}),
+        }),
   };
 };

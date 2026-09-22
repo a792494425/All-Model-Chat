@@ -3,6 +3,7 @@ import { sanitizeSessionModel as sanitizeSessionModelWithFallback, sortSessionsI
 import type { SetActiveSessionOptions } from '@/stores/chatStore';
 import type { LastActiveSessionSnapshot } from '@/utils/chat/lastActiveSession';
 import type { AppSettings, ChatSettings, SavedChatSession } from '@/types';
+import { stripLegacyFeatureMarkers } from '@/features/prompts/promptCompositor';
 
 export type SessionLoaderHistoryOptions = Pick<SetActiveSessionOptions, 'history'>;
 
@@ -32,6 +33,7 @@ export const createSettingsForNewChat = ({
   const baseSettings: ChatSettings = {
     ...DEFAULT_CHAT_SETTINGS,
     ...appSettings,
+    systemInstruction: stripLegacyFeatureMarkers(appSettings.systemInstruction),
     lockedApiKey: null,
   };
 
@@ -50,14 +52,20 @@ export const createSettingsForNewChat = ({
     // thinkingBudget/thinkingLevel、ttsVoice、mediaResolution，以及所有工具开关
     // （Google Search / Maps / Code Execution / Pyodide / URL Context / Deep Search / Keep Thinking）。
     ...sanitizedTemplateSettings,
-    // systemInstruction 属于会话内容（如场景提示词），沿用全局默认，保持现有语义。
-    systemInstruction: baseSettings.systemInstruction,
+    // systemInstruction 属于会话内容（如场景提示词），沿用全局默认，剥离陈旧遗留协议标记保持纯净人设。
+    systemInstruction: stripLegacyFeatureMarkers(baseSettings.systemInstruction),
     isLiveArtifactsEnabled: explicitTemplateSession
       ? (sanitizedTemplateSettings.isLiveArtifactsEnabled ?? baseSettings.isLiveArtifactsEnabled ?? false)
       : (baseSettings.isLiveArtifactsEnabled ?? false),
+    isVisualFormattingActive: false,
     visionPromptMode: explicitTemplateSession
       ? (sanitizedTemplateSettings.visionPromptMode ?? baseSettings.visionPromptMode ?? null)
       : (baseSettings.visionPromptMode ?? null),
+    taskSuggestionMode: null,
+    isPdfNavEnabled: false,
+    isVideoNavEnabled: false,
+    isAudioNavEnabled: false,
+    isImageNavEnabled: false,
     // 锁定 API Key 始终重置，新聊天重新轮换。
     lockedApiKey: null,
   };

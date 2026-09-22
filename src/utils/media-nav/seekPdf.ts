@@ -3,6 +3,7 @@ import { useMediaNavStore } from '@/stores/mediaNavStore';
 import { collectSessionMediaFiles, isPdfFile, resolveNamedFile } from './sessionMediaFiles';
 import { parseLocateMarkers, toPdfNavHighlight } from './locateMarker';
 import { applyMediaNavKindToSettings } from './mediaNavSettings';
+import { collapseSidebarIfNarrowScreen } from './mediaNavResponsive';
 import { focusChatInput } from '@/utils/chat-input/focus';
 
 export interface SeekSessionPdfParams {
@@ -152,6 +153,7 @@ export const seekSessionPdf = (params: SeekSessionPdfParams): boolean => {
   const target = resolveNamedFile(pdfs, docName, store.activeFileId);
   if (!target) return false;
 
+  collapseSidebarIfNarrowScreen();
   store.openAs('pdf');
   store.setActiveFile(target.id);
   store.setHighlight(

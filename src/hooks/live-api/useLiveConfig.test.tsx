@@ -177,7 +177,7 @@ describe('useLiveConfig', () => {
       useLiveConfig({
         chatSettings: createChatSettings({
           ...baseChatSettings,
-          systemInstruction: 'Voice persona\n\n[Live Artifacts Inline Protocol - zh]\nVisual rules...',
+          systemInstruction: 'Voice persona\n\n[LiveUI Inline Protocol]\nVisual rules...',
         }),
         sessionHandle: null,
       }),

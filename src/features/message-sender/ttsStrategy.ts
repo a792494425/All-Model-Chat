@@ -4,7 +4,7 @@ import { pcmBase64ToWavUrl } from '@/features/audio/audioProcessing';
 import { runOptimisticMessagePipeline, type MessageLifecycleRunner } from './messagePipeline';
 import type { MessageSenderTranslator, SessionsUpdater } from './messageSenderTypes';
 
-interface SendTtsMessageParams {
+export interface SendTtsMessageParams {
   keyToUse: string;
   activeSessionId: string | null;
   generationId: string;
@@ -75,3 +75,5 @@ export const sendTtsMessage = async ({
     },
   });
 };
+
+export const ttsStrategy = sendTtsMessage;

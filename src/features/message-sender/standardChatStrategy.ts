@@ -3,7 +3,7 @@ import { buildContentParts } from '@/utils/chat/builder';
 import { isServerCodeExecutionMode } from '@/utils/code/codeExecution';
 import { getModelCapabilities, bansModelTurnPrefill } from '@/utils/model/modelCapabilities';
 import { resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
-import { getLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
+import { getLiveArtifactsUserDirective } from '@/features/prompts/liveUi';
 import { resolveAppLanguage } from '@/i18n/languageRegistry';
 import type { UploadedFile } from '@/types';
 import { runOptimisticMessagePipeline, type MessageLifecycleRunner } from './messagePipeline';
@@ -19,7 +19,7 @@ import { formatMessageSenderText } from './i18nFormat';
 import type { GetStreamHandlers, StandardChatProps } from './messageSenderTypes';
 import type { PreparedModelRequest } from './useModelRequestRunner';
 
-interface SendStandardMessageParams {
+export interface SendStandardMessageParams {
   props: Omit<StandardChatProps, 'getStreamHandlers'>;
   getStreamHandlers: GetStreamHandlers;
   runMessageLifecycle: MessageLifecycleRunner;
@@ -294,3 +294,5 @@ export const sendStandardMessage = async (params: SendStandardMessageParams) => 
     },
   });
 };
+
+export const standardChatStrategy = sendStandardMessage;

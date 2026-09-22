@@ -103,6 +103,7 @@ describe('LazyMarkdownRenderer', () => {
         <LazyMarkdownRenderer
           content={artifactContent}
           isLoading={true}
+          liveArtifactsMode={true}
           allowHtml={true}
           onImageClick={vi.fn()}
           onOpenHtmlPreview={vi.fn()}
@@ -124,6 +125,7 @@ describe('LazyMarkdownRenderer', () => {
         <LazyMarkdownRenderer
           content={artifactContent}
           isLoading={false}
+          liveArtifactsMode={true}
           allowHtml={true}
           onImageClick={vi.fn()}
           onOpenHtmlPreview={vi.fn()}

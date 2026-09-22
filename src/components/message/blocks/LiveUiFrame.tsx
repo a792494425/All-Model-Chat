@@ -1,6 +1,6 @@
 import { logService } from '@/services/logService';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Maximize2 } from 'lucide-react';
+import { Check, Copy, Maximize2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { useWindowContext } from '@/contexts/WindowContext';
 import { SMALL_ICON_BUTTON_CLASS } from '@/constants/buttonClasses';
@@ -18,13 +18,14 @@ import {
 import { HTML_PREVIEW_SANDBOX } from '@/utils/html-preview/previewPrivilege';
 import { useHtmlPreviewBridge } from '@/hooks/ui/useHtmlPreviewBridge';
 import { useHtmlPreviewGraphvizRelay } from '@/hooks/ui/useHtmlPreviewGraphvizRelay';
-import { type LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
-import { LIVE_ARTIFACT_CLEAR_SELECTION_EVENT } from '@/utils/text-selection/liveArtifactSelection';
+import { type LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
+import { LIVE_ARTIFACT_CLEAR_SELECTION_EVENT } from '@/utils/text-selection/liveUiSelection';
+import { dispatchMediaSeekFromBridge } from '@/utils/media-nav/mediaNavBridgeDispatch';
 import { type UploadedFile } from '@/types';
 import { svgToUploadedFile } from '@/utils/export/svgToUploadedFile';
 import { copyTextToClipboard } from '@/utils/clipboard';
 
-interface ArtifactFrameProps {
+export interface LiveUiFrameProps {
   html: string;
   cacheKey?: string;
   isLoading?: boolean;
@@ -34,6 +35,8 @@ interface ArtifactFrameProps {
   onOpenPreview?: () => void;
   onImageClick?: (file: UploadedFile) => void;
 }
+
+export type ArtifactFrameProps = LiveUiFrameProps;
 
 const MIN_FRAME_HEIGHT = 120;
 const DEFAULT_FRAME_HEIGHT = 320;
@@ -81,7 +84,7 @@ const cacheFrameHeight = (heightCacheKey: string, height: number) => {
   }
 };
 
-export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
+export const LiveUiFrame: React.FC<LiveUiFrameProps> = ({
   html,
   cacheKey,
   isLoading = false,
@@ -389,6 +392,7 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
       onCopy: copyToParentClipboard,
       onFollowUp,
       onDiagramClick: handleDiagramClick,
+      onMediaSeek: (payload) => dispatchMediaSeekFromBridge(payload),
     },
   });
 
@@ -406,6 +410,32 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
     targetWindow.addEventListener(LIVE_ARTIFACT_CLEAR_SELECTION_EVENT, handleClearSelection);
     return () => targetWindow.removeEventListener(LIVE_ARTIFACT_CLEAR_SELECTION_EVENT, handleClearSelection);
   }, [targetWindow]);
+
+  const [isCopied, setIsCopied] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleCopySource = useCallback(() => {
+    if (!html || isCopied) return;
+    void copyTextToClipboard(html, targetWindow.document).then((success) => {
+      if (success) {
+        setIsCopied(true);
+        if (copyTimerRef.current) {
+          clearTimeout(copyTimerRef.current);
+        }
+        copyTimerRef.current = setTimeout(() => {
+          setIsCopied(false);
+        }, 2000);
+      }
+    });
+  }, [html, isCopied, targetWindow.document]);
 
   return (
     <div
@@ -438,17 +468,36 @@ export const ArtifactFrame: React.FC<ArtifactFrameProps> = ({
           }}
         />
       </div>
-      {onOpenPreview && !isLoading && (
-        <button
-          type="button"
-          className={`${SMALL_ICON_BUTTON_CLASS} absolute right-2 top-2 z-10 border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)]/90 shadow-sm opacity-100 sm:opacity-0 sm:group-hover/artifact:opacity-100 sm:focus-visible:opacity-100 sm:group-focus-within/artifact:opacity-100`}
-          title={t('htmlPreviewOpenLarger')}
-          aria-label={t('htmlPreviewOpenLarger')}
-          onClick={onOpenPreview}
-        >
-          <Maximize2 size={16} strokeWidth={2} />
-        </button>
+      {!isLoading && (
+        <div className="absolute right-2 top-2 z-10 flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover/artifact:opacity-100 sm:focus-visible:opacity-100 sm:group-focus-within/artifact:opacity-100">
+          <button
+            type="button"
+            className={`${SMALL_ICON_BUTTON_CLASS} border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)]/90 shadow-sm`}
+            title={isCopied ? t('copied') : t('copy')}
+            aria-label={isCopied ? t('copied') : t('copy')}
+            onClick={handleCopySource}
+          >
+            {isCopied ? (
+              <Check size={16} className="text-[var(--theme-text-success)] icon-animate-pop" strokeWidth={2} />
+            ) : (
+              <Copy size={16} strokeWidth={2} />
+            )}
+          </button>
+          {onOpenPreview && (
+            <button
+              type="button"
+              className={`${SMALL_ICON_BUTTON_CLASS} border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)]/90 shadow-sm`}
+              title={t('htmlPreviewOpenLarger')}
+              aria-label={t('htmlPreviewOpenLarger')}
+              onClick={onOpenPreview}
+            >
+              <Maximize2 size={16} strokeWidth={2} />
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
 };
+
+export const ArtifactFrame = LiveUiFrame;

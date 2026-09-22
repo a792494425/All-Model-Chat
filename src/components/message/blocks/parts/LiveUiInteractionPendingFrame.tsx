@@ -1,11 +1,13 @@
 import React from 'react';
 
-interface LiveArtifactInteractionPendingFrameProps {
+export interface LiveUiInteractionPendingFrameProps {
   label: string;
   baseFontSize?: number;
 }
 
-export const LiveArtifactInteractionPendingFrame: React.FC<LiveArtifactInteractionPendingFrameProps> = ({
+export type LiveArtifactInteractionPendingFrameProps = LiveUiInteractionPendingFrameProps;
+
+export const LiveUiInteractionPendingFrame: React.FC<LiveUiInteractionPendingFrameProps> = ({
   label,
   baseFontSize,
 }) => (
@@ -26,3 +28,6 @@ export const LiveArtifactInteractionPendingFrame: React.FC<LiveArtifactInteracti
     </div>
   </div>
 );
+
+export const LiveArtifactInteractionPendingFrame = LiveUiInteractionPendingFrame;
+

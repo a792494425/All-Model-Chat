@@ -12,6 +12,7 @@ import {
   loadLocalPythonSystemPrompt,
   loadTaskSuggestionSystemPrompt,
 } from './promptRegistry';
+import { buildLiveUiMediaCitationDirective } from './liveUiMediaCitation';
 
 export interface PromptCompositorContext {
   /** User-defined persona or instruction (clean, un-augmented). */
@@ -91,9 +92,8 @@ export const composeSystemInstruction = async (context: PromptCompositorContext)
   }
 
   // Layer 2: Feature protocols
-  // If media locate directives are active, omit Live Artifacts to avoid conflicting markers.
   const hasLocateDirectives = (context.locateDirectives?.length ?? 0) > 0;
-  if (context.isLiveArtifactsEnabled && !hasLocateDirectives) {
+  if (context.isLiveArtifactsEnabled) {
     const customPrompt = context.customLiveArtifactsPrompt?.trim();
     if (customPrompt) {
       segments.push(customPrompt);
@@ -105,6 +105,11 @@ export const composeSystemInstruction = async (context: PromptCompositorContext)
       if (laPrompt?.trim()) {
         segments.push(laPrompt.trim());
       }
+    }
+
+    // When media locate directives are active alongside Live UI, inject lightweight citation protocol
+    if (hasLocateDirectives) {
+      segments.push(buildLiveUiMediaCitationDirective(context.language ?? 'zh', context.locateDirectives));
     }
   }
 
@@ -143,7 +148,9 @@ export const composeSystemInstruction = async (context: PromptCompositorContext)
   }
 
   // Layer 4: Media locate directives
-  if (hasLocateDirectives) {
+  // Only append raw text locate directives (e.g. <pdf-locate>) when NOT in Live UI mode,
+  // preventing contradictory output formats for the model.
+  if (hasLocateDirectives && !context.isLiveArtifactsEnabled) {
     const locateText = context.locateDirectives!.filter(Boolean).join('\n\n');
     if (locateText) {
       segments.push(locateText);
@@ -152,3 +159,5 @@ export const composeSystemInstruction = async (context: PromptCompositorContext)
 
   return segments.length > 0 ? segments.join('\n\n') : undefined;
 };
+
+export const promptCompositor = composeSystemInstruction;

@@ -304,7 +304,7 @@ describe('codebase maintainability guardrails', () => {
     const settingsContentSource = readProjectFile('src/components/settings/SettingsContent.tsx');
     const modelsSectionSource = readProjectFile('src/components/settings/sections/ModelsSection.tsx');
     const languageVoiceSectionSource = readProjectFile('src/components/settings/sections/LanguageVoiceSection.tsx');
-    const liveArtifactsSectionSource = readProjectFile('src/components/settings/sections/LiveArtifactsSection.tsx');
+    const liveArtifactsSectionSource = readProjectFile('src/components/settings/sections/LiveUiSection.tsx');
 
     for (const source of [languageVoiceSectionSource, liveArtifactsSectionSource]) {
       expect(source).toContain('currentSettings: AppSettings;');

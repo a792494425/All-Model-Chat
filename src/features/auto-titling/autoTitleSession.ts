@@ -6,7 +6,7 @@ import { generateSessionTitle } from '@/utils/chat/session';
 import { getVisibleChatMessages } from '@/utils/chat/visibility';
 import { dbService } from '@/services/db/dbService';
 import { logService } from '@/services/logService';
-import { stripLiveArtifactsUserDirective } from '@/features/prompts/liveArtifacts';
+import { stripLiveArtifactsUserDirective } from '@/features/prompts/liveUi';
 
 const TITLE_SOURCE_MAX_CHARS = 2000;
 const clampForTitle = (text: string) =>

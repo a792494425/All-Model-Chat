@@ -4,7 +4,7 @@ import { loadLiveArtifactsSystemPrompt } from '@/features/prompts/promptRegistry
 import { focusChatInput } from '@/utils/chat-input/focus';
 import type { AppSettings, ChatSettings, InputCommand, SavedChatSession } from '@/types';
 import { useVisionPromptModes } from './useVisionPromptModes';
-import { useLiveArtifactsPromptMode } from './useLiveArtifactsPromptMode';
+import { useLiveUiPromptMode } from './useLiveUiPromptMode';
 
 interface UseAppPromptModesOptions {
   language?: SupportedLanguage;
@@ -41,7 +41,7 @@ export const useAppPromptModes = ({
     handleLoadLiveArtifactsPromptAndSave,
     handleDeactivateLiveArtifactsPrompt,
     toggleLiveArtifactsPrompt,
-  } = useLiveArtifactsPromptMode({
+  } = useLiveUiPromptMode({
     language,
     appSettings,
     setAppSettings,

@@ -3,22 +3,24 @@ import type { SideViewContent, UploadedFile } from '@/types';
 import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { useCodeBlock } from '@/hooks/ui/useCodeBlock';
 import { CodeHeader } from './parts/CodeHeader';
-import { ArtifactFrame } from './ArtifactFrame';
+import { LiveUiFrame } from './LiveUiFrame';
 import { useI18n } from '@/contexts/I18nContext';
 import { logService } from '@/services/logService';
 import {
+  getPreviewMarkupType,
+  isLikelyStreamingHtmlArtifact,
   isLikelyStreamingLiveArtifactInteractionJson,
   isLiveArtifactInteractionLanguage,
   isLiveArtifactLanguage,
 } from '@/utils/markdown';
-import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
+import type { LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
 import {
   diagnoseLiveArtifactInteraction,
   hasLiveArtifactInteractionShape,
-} from '@/utils/live-artifacts/liveArtifactInteraction';
-import { LiveArtifactInteractionFrame } from './LiveArtifactInteractionFrame';
-import { LiveArtifactInteractionDiagnostic } from './LiveArtifactInteractionDiagnostic';
-import { LiveArtifactInteractionPendingFrame } from './parts/LiveArtifactInteractionPendingFrame';
+} from '@/utils/live-ui/liveUiInteraction';
+import { LiveUiInteractionFrame } from './LiveUiInteractionFrame';
+import { LiveUiInteractionDiagnostic } from './LiveUiInteractionDiagnostic';
+import { LiveUiInteractionPendingFrame } from './parts/LiveUiInteractionPendingFrame';
 import { useCodeGutterSelection } from './parts/useCodeGutterSelection';
 import { useCodeBlockPyodide } from './parts/useCodeBlockPyodide';
 import { CodeBlockConsoleOutput } from './parts/CodeBlockConsoleOutput';
@@ -95,7 +97,8 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
   const showPreviewControls = isInteractive && showPreview;
   const isInteractionFence = isLiveArtifactInteractionLanguage(sourceLanguage);
   const isLikelyJsonShape = isInteractionFence || hasLiveArtifactInteractionShape(resolvedCodeText);
-  const shouldDiagnoseInteraction = isLikelyJsonShape && (isInteractionFence || props.liveArtifactsMode);
+  const isLiveUiActive = Boolean(props.liveArtifactsMode);
+  const shouldDiagnoseInteraction = (isLiveUiActive || isInteractionFence) && isLikelyJsonShape;
 
   const diagnosis = useMemo(() => {
     if (!shouldDiagnoseInteraction || !resolvedCodeText) return null;
@@ -115,11 +118,21 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
   }, [diagnosis, props.cacheKey, isInteractionFence]);
 
   const isStreamingInteractionCandidate =
-    isInteractionFence && Boolean(props.isLoading) && isLikelyStreamingLiveArtifactInteractionJson(resolvedCodeText);
+    isInteractionFence &&
+    Boolean(props.isLoading) &&
+    isLikelyStreamingLiveArtifactInteractionJson(resolvedCodeText);
+
+  const isLiveArtifactHtml = isLiveArtifactLanguage(sourceLanguage);
+  const isHtmlLanguage = sourceLanguage === 'html' || sourceLanguage === 'htm';
+  const isRecognizedHtmlContent =
+    isLiveArtifactHtml ||
+    (isHtmlLanguage &&
+      (getPreviewMarkupType(resolvedCodeText) === 'html' ||
+        (Boolean(props.isLoading) && isLikelyStreamingHtmlArtifact(resolvedCodeText))));
 
   const showInlineHtmlPreview =
     showPreviewControls &&
-    isLiveArtifactLanguage(sourceLanguage) &&
+    isRecognizedHtmlContent &&
     previewMarkupType === 'html' &&
     (resolvedCodeText.trim().length > 0 || Boolean(props.isLoading));
 
@@ -129,12 +142,12 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
   });
 
   if (isInteractive && isStreamingInteractionCandidate) {
-    return <LiveArtifactInteractionPendingFrame label={t('thinkingText')} baseFontSize={props.liveArtifactFontSize} />;
+    return <LiveUiInteractionPendingFrame label={t('thinkingText')} baseFontSize={props.liveArtifactFontSize} />;
   }
 
-  if (isInteractive && diagnosis && diagnosis.errors.length > 0 && (isInteractionFence || props.liveArtifactsMode)) {
+  if (isInteractive && diagnosis && diagnosis.errors.length > 0 && (isLiveUiActive || isInteractionFence)) {
     return (
-      <LiveArtifactInteractionDiagnostic
+      <LiveUiInteractionDiagnostic
         diagnosis={diagnosis}
         rawJson={resolvedCodeText}
         baseFontSize={props.liveArtifactFontSize}
@@ -143,9 +156,9 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
     );
   }
 
-  if (isInteractive && interactionSpec && (isInteractionFence || props.liveArtifactsMode)) {
+  if (isInteractive && interactionSpec) {
     return (
-      <LiveArtifactInteractionFrame
+      <LiveUiInteractionFrame
         spec={interactionSpec}
         baseFontSize={props.liveArtifactFontSize}
         onFollowUp={props.onLiveArtifactFollowUp}
@@ -155,7 +168,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
 
   if (showInlineHtmlPreview) {
     return (
-      <ArtifactFrame
+      <LiveUiFrame
         html={resolvedCodeText}
         cacheKey={props.cacheKey}
         isLoading={props.isLoading}

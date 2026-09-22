@@ -2,11 +2,12 @@ import { useEffect, type RefObject } from 'react';
 import { logService } from '@/services/logService';
 import { resolveHtmlPreviewBridgeEvent } from '@/utils/html-preview/previewParentBridge';
 import type { HtmlPreviewPrivilege } from '@/utils/html-preview/previewPrivilege';
-import type { LiveArtifactFollowupPayload } from '@/utils/live-artifacts/liveArtifactFollowup';
+import type { LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
+import type { HtmlPreviewMediaSeekPayload } from '@/utils/html-preview/previewMessageProtocol';
 import {
   createRelayedLiveArtifactSelectionDetail,
   dispatchLiveArtifactSelection,
-} from '@/utils/text-selection/liveArtifactSelection';
+} from '@/utils/text-selection/liveUiSelection';
 
 /**
  * Branch handlers for the HTML preview postMessage bridge. Every branch that
@@ -33,6 +34,8 @@ export interface HtmlPreviewBridgeHandlers {
   onDiagnostic?: (payload: unknown) => void;
   /** A rendered diagram in the preview iframe was clicked for fullscreen inspection. */
   onDiagramClick?: (payload: { svg: string; title?: string }) => void;
+  /** A media location anchor (page, timestamp, bounding box) was clicked in the preview iframe. */
+  onMediaSeek?: (payload: HtmlPreviewMediaSeekPayload) => void;
 }
 
 interface UseHtmlPreviewBridgeOptions {
@@ -71,7 +74,7 @@ export const useHtmlPreviewBridge = ({
 }: UseHtmlPreviewBridgeOptions) => {
   // Destructure so effect re-subscription tracks the individual handler
   // identities rather than the (usually fresh-per-render) container object.
-  const { onReady, onResize, onEscape, onCopy, onFollowUp, onDiagnostic, onDiagramClick } = handlers;
+  const { onReady, onResize, onEscape, onCopy, onFollowUp, onDiagnostic, onDiagramClick, onMediaSeek } = handlers;
 
   useEffect(() => {
     if (!enabled) {
@@ -139,6 +142,11 @@ export const useHtmlPreviewBridge = ({
         onDiagramClick?.({ svg: resolved.svg, title: resolved.title });
         return;
       }
+
+      if (resolved.kind === 'media-seek') {
+        onMediaSeek?.(resolved.payload);
+        return;
+      }
     };
 
     targetWindow.addEventListener('message', handleMessage);
@@ -153,6 +161,7 @@ export const useHtmlPreviewBridge = ({
     onDiagramClick,
     onEscape,
     onFollowUp,
+    onMediaSeek,
     onReady,
     onResize,
     privilege,

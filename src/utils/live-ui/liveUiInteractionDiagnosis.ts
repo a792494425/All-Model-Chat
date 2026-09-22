@@ -8,7 +8,7 @@ import type {
   LiveArtifactInteractionPropertyType,
   LiveArtifactInteractionScalarPropertyType,
   LiveArtifactInteractionSpec,
-} from './liveArtifactInteractionTypes';
+} from './liveUiInteractionTypes';
 
 const MAX_FIELDS = 24;
 const MAX_TEXT_LENGTH = 2000;
@@ -769,3 +769,5 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
 
   return { spec: resultSpec, errors, repairs };
 };
+
+export const diagnoseLiveUiInteraction = diagnoseLiveArtifactInteraction;

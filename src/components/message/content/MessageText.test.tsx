@@ -568,7 +568,7 @@ describe('MessageText', () => {
     expect(renderedContent).toContain('box=100%2C200%2C300%2C400');
   });
 
-  it('does not perform locate or timestamp link conversions when Live Artifacts mode is enabled', () => {
+  it('preserves locate link conversions when Live Artifacts mode is enabled alongside media navigation', () => {
     const content =
       '<div style="color:var(--amc-live-artifact-text)">' +
       '时间为 05:59，<image-locate image="chart.png" box_2d="[100,200,300,400]">关键图表</image-locate>' +
@@ -602,9 +602,9 @@ describe('MessageText', () => {
     });
 
     const renderedContent = renderer.container.querySelector('[data-testid="markdown-renderer"]')?.textContent;
-    // Live Artifacts must not contain #video-seek or #image-seek
+    expect(renderedContent).toContain('#image-seek');
+    expect(renderedContent).toContain('file=chart.png');
     expect(renderedContent).not.toContain('#video-seek');
-    expect(renderedContent).not.toContain('#image-seek');
     expect(renderedContent).toContain('05:59');
   });
 

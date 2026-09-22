@@ -9,21 +9,23 @@ import {
   type PreviewMarkupType,
 } from './previewMarkupPatterns';
 
-export type ArtifactSegment = {
+export type LiveUiSegment = {
   html: string;
   markupType: PreviewMarkupType;
   suffix: string;
 };
 
+export type ArtifactSegment = LiveUiSegment;
+
 /**
- * Locates a self-contained HTML/SVG artifact in the content, tolerating optional
+ * Locates a self-contained HTML/SVG LiveUI element in the content, tolerating optional
  * trailing prose after `</html>` (comments are also tolerated by the whole-content
  * path via HTML_DOCUMENT_REGEX). Leading prose + a bare fragment is intentionally
  * NOT treated as an artifact here: inline "prose + HTML" is rendered as rich
  * markdown in the message DOM (with theme tokens available via the main-page
- * --amc-live-artifact-* variables), not promoted into a Live Artifact frame.
+ * --amc-live-artifact-* variables), not promoted into a LiveUI frame.
  */
-export const extractArtifactSegment = (textContent: string, isStreaming: boolean): ArtifactSegment | null => {
+export const extractLiveUiSegment = (textContent: string, isStreaming: boolean): LiveUiSegment | null => {
   const trimmed = textContent.trim();
   if (!trimmed) {
     return null;
@@ -59,6 +61,9 @@ export const extractArtifactSegment = (textContent: string, isStreaming: boolean
   const suffix = trimmed.slice(htmlCloseIndex + '</html>'.length).trim();
   return { html: doc, markupType: docType, suffix };
 };
+
+export const extractArtifactSegment = extractLiveUiSegment;
+
 
 /**
  * A model reply is often prose PLUS a bare artifact (`引导语 + <div …>`), not a
@@ -255,7 +260,7 @@ const findHtmlFragmentEnd = (text: string, startIndex: number): number | null =>
   return null;
 };
 
-export const findBareArtifactRegion = (text: string, isStreaming = false): { start: number; end: number } | null => {
+export const findBareLiveUiRegion = (text: string, isStreaming = false): { start: number; end: number } | null => {
   const lines = text.split('\n');
   const fencedRegions = getFencedRegionOffsets(text);
   // Absolute offset of each line so a matched region can be spliced back into
@@ -377,3 +382,6 @@ export const findBareArtifactRegion = (text: string, isStreaming = false): { sta
 
   return null;
 };
+
+export const findBareArtifactRegion = findBareLiveUiRegion;
+

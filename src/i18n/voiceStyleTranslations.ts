@@ -152,3 +152,6 @@ export const ttsStyleTranslations: TranslationMap = {
   },
   tts_style_warm: { en: 'Warm', zh: '温暖', ja: '温かい', ko: '따뜻한', es: 'Cálido', fr: 'Chaleureux', de: 'Warm' },
 };
+
+export const voiceStyleTranslations = ttsStyleTranslations;
+

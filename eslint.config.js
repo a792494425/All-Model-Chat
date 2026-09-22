@@ -99,6 +99,7 @@ export default tseslint.config(
       'src/components/message/code/LanguageIcon.tsx',
       'src/contexts/I18nContext.tsx',
       'src/contexts/WindowContext.tsx',
+      'src/hooks/data-management/ChatExportRenderer.tsx',
     ],
     rules: {
       'react-refresh/only-export-components': 'off',

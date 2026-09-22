@@ -373,3 +373,5 @@ export const executeThirdPartyChat = async ({
     streamOnError,
   );
 };
+
+export const standardChatThirdParty = executeThirdPartyChat;

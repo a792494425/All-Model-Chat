@@ -29,8 +29,8 @@ import { createDeferred, renderHook } from '@/test/render/renderer';
 import { useMediaNavStore } from '@/stores/mediaNavStore';
 import { useChatDraftStore } from '@/stores/chatDraftStore';
 
-const LIVE_ARTIFACTS_PROMPT = '[Live Artifacts Protocol - zh]\nLive Artifacts prompt';
-const LIVE_ARTIFACTS_PROMPT_EN = '[Live Artifacts Protocol - en]\nLive Artifacts prompt';
+const LIVE_ARTIFACTS_PROMPT = '[LiveUI Inline Protocol]\nLiveUI prompt';
+const LIVE_ARTIFACTS_PROMPT_EN = '[LiveUI Inline Protocol]\nLiveUI prompt';
 
 type UseAppPromptModesTestOptions = Parameters<typeof useAppPromptModes>[0];
 
@@ -138,7 +138,9 @@ describe('useAppPromptModes', () => {
     expect(mockLoadLiveArtifactsSystemPrompt).toHaveBeenCalledWith('en', 'inline');
     expect(setAppSettings).toHaveBeenCalledWith(expect.any(Function));
     const appSettingsUpdater = setAppSettings.mock.calls.at(-1)?.[0] as (prev: AppSettings) => AppSettings;
-    expect(appSettingsUpdater(createAppSettings()).systemInstruction).toBe(LIVE_ARTIFACTS_PROMPT_EN);
+    const updatedSettings = appSettingsUpdater(createAppSettings());
+    expect(updatedSettings.isLiveArtifactsEnabled).toBe(true);
+    expect(updatedSettings.systemInstruction).toBe('');
 
     unmount();
   });
@@ -167,7 +169,9 @@ describe('useAppPromptModes', () => {
 
     expect(mockLoadLiveArtifactsSystemPrompt).toHaveBeenCalledWith('en', 'inline');
     const appSettingsUpdater = setAppSettings.mock.calls.at(-1)?.[0] as (prev: AppSettings) => AppSettings;
-    expect(appSettingsUpdater(createAppSettings()).systemInstruction).toBe(LIVE_ARTIFACTS_PROMPT_EN);
+    const updatedSettings = appSettingsUpdater(createAppSettings());
+    expect(updatedSettings.isLiveArtifactsEnabled).toBe(true);
+    expect(updatedSettings.systemInstruction).toBe('');
 
     unmount();
   });
@@ -226,7 +230,9 @@ describe('useAppPromptModes', () => {
     expect(mockLoadLiveArtifactsSystemPrompt).not.toHaveBeenCalled();
     expect(setAppSettings).toHaveBeenCalledWith(expect.any(Function));
     const appSettingsUpdater = setAppSettings.mock.calls.at(-1)?.[0] as (prev: AppSettings) => AppSettings;
-    expect(appSettingsUpdater(createAppSettings()).systemInstruction).toBe(customPrompt);
+    const updatedSettings = appSettingsUpdater(createAppSettings());
+    expect(updatedSettings.isLiveArtifactsEnabled).toBe(true);
+    expect(updatedSettings.systemInstruction).toBe('');
 
     unmount();
   });
@@ -614,7 +620,7 @@ describe('useAppPromptModes', () => {
     unmount();
   });
 
-  it('automatically deactivates Live Artifacts when PDF navigation is enabled', async () => {
+  it('keeps Live Artifacts active when PDF navigation is enabled for coexistence', async () => {
     const setAppSettings = vi.fn();
     const setCurrentChatSettings = vi.fn();
     const options = {
@@ -642,17 +648,14 @@ describe('useAppPromptModes', () => {
     });
     rerender();
 
-    expect(result.current.isLiveArtifactsPromptActive).toBe(false);
-    expect(setAppSettings).toHaveBeenCalledWith(expect.any(Function));
-    expect(setCurrentChatSettings).toHaveBeenCalledWith(expect.any(Function));
-
-    const chatSettingsUpdater = setCurrentChatSettings.mock.calls.at(-1)?.[0] as (prev: ChatSettings) => ChatSettings;
-    expect(chatSettingsUpdater(options.currentChatSettings).systemInstruction).toBe('');
+    // Live Artifacts must remain active for coexistence
+    expect(result.current.isLiveArtifactsPromptActive).toBe(true);
+    expect(setAppSettings).not.toHaveBeenCalled();
 
     unmount();
   });
 
-  it('automatically deactivates Live Artifacts when image, video, or audio navigation is enabled', async () => {
+  it('keeps Live Artifacts active when image, video, or audio navigation is enabled for coexistence', async () => {
     for (const kind of ['isImageNavEnabled', 'isVideoNavEnabled', 'isAudioNavEnabled'] as const) {
       const setAppSettings = vi.fn();
       const setCurrentChatSettings = vi.fn();
@@ -680,7 +683,9 @@ describe('useAppPromptModes', () => {
       });
       rerender();
 
-      expect(result.current.isLiveArtifactsPromptActive).toBe(false);
+      // Live Artifacts must remain active for coexistence
+      expect(result.current.isLiveArtifactsPromptActive).toBe(true);
+      expect(setAppSettings).not.toHaveBeenCalled();
       unmount();
     }
   });
@@ -716,7 +721,7 @@ describe('useAppPromptModes', () => {
     unmount();
   });
 
-  it('closes media navigation panel and resets navigation flags when activating Live Artifacts', async () => {
+  it('preserves open media navigation panel and flags when activating Live Artifacts for coexistence', async () => {
     act(() => {
       useMediaNavStore.getState().openAs('pdf');
     });
@@ -745,14 +750,12 @@ describe('useAppPromptModes', () => {
       await result.current.handleLoadLiveArtifactsPromptAndSave();
     });
 
-    expect(useMediaNavStore.getState().isOpen).toBe(false);
+    expect(useMediaNavStore.getState().isOpen).toBe(true);
     expect(setCurrentChatSettings).toHaveBeenCalledWith(expect.any(Function));
     const updater = setCurrentChatSettings.mock.calls[0][0] as (prev: ChatSettings) => ChatSettings;
     const nextSettings = updater(options.currentChatSettings);
-    expect(nextSettings.isPdfNavEnabled).toBe(false);
-    expect(nextSettings.isVideoNavEnabled).toBe(false);
-    expect(nextSettings.isAudioNavEnabled).toBe(false);
-    expect(nextSettings.isImageNavEnabled).toBe(false);
+    expect(nextSettings.isLiveArtifactsEnabled).toBe(true);
+    expect(nextSettings.isPdfNavEnabled).toBe(true);
 
     unmount();
   });
@@ -786,6 +789,10 @@ describe('useAppPromptModes', () => {
     expect(chatUpdater(createLiveArtifactsChatSettings({ isLiveArtifactsEnabled: false })).isLiveArtifactsEnabled).toBe(
       true,
     );
+    expect(
+      chatUpdater(createLiveArtifactsChatSettings({ isLiveArtifactsEnabled: false, isVisualFormattingActive: false }))
+        .isVisualFormattingActive,
+    ).toBe(false);
 
     unmount();
   });
@@ -929,9 +936,9 @@ describe('useAppPromptModes', () => {
       await result.current.handleLoadLiveArtifactsPromptAndSave();
     });
 
-    // Must be active and not auto-deactivated
+    // Must be active and media nav panel should remain open for coexistence
     expect(result.current.isLiveArtifactsPromptActive).toBe(true);
-    expect(useMediaNavStore.getState().isOpen).toBe(false);
+    expect(useMediaNavStore.getState().isOpen).toBe(true);
 
     unmount();
   });
@@ -1010,7 +1017,7 @@ describe('useAppPromptModes', () => {
     unmount();
   });
 
-  it('atomically disables media navigation flags in currentChatSettings when activating Live Artifacts', async () => {
+  it('preserves media navigation flags in currentChatSettings when activating Live Artifacts for coexistence', async () => {
     const setCurrentChatSettings = vi.fn();
     const options = {
       appSettings: createAppSettings(),
@@ -1045,10 +1052,10 @@ describe('useAppPromptModes', () => {
     const updater = setCurrentChatSettings.mock.calls.at(-1)?.[0] as (prev: ChatSettings) => ChatSettings;
     const nextSettings = updater(options.currentChatSettings);
     expect(nextSettings.isLiveArtifactsEnabled).toBe(true);
-    expect(nextSettings.isPdfNavEnabled).toBe(false);
-    expect(nextSettings.isVideoNavEnabled).toBe(false);
-    expect(nextSettings.isAudioNavEnabled).toBe(false);
-    expect(nextSettings.isImageNavEnabled).toBe(false);
+    expect(nextSettings.isPdfNavEnabled).toBe(true);
+    expect(nextSettings.isVideoNavEnabled).toBe(true);
+    expect(nextSettings.isAudioNavEnabled).toBe(true);
+    expect(nextSettings.isImageNavEnabled).toBe(true);
 
     unmount();
   });
@@ -1130,8 +1137,8 @@ describe('useAppPromptModes', () => {
       await result.current.handleSuggestionClick('organize', 'Organize this into HTML.');
     });
 
-    // Media nav panel should have been closed
-    expect(useMediaNavStore.getState().isOpen).toBe(false);
+    // Media nav panel should remain open for coexistence
+    expect(useMediaNavStore.getState().isOpen).toBe(true);
 
     // Apply updated state to options and rerender
     options.appSettings = appSettings;
@@ -1139,10 +1146,10 @@ describe('useAppPromptModes', () => {
     options.activeChat = createLiveArtifactsSession({ id: 'session-1' }, currentSettings);
     rerender();
 
-    // Live Artifacts must remain active and not be auto-deactivated by mutual exclusion
+    // Live Artifacts must remain active and coexist with media navigation
     expect(result.current.isLiveArtifactsPromptActive).toBe(true);
     expect(currentSettings.isLiveArtifactsEnabled).toBe(true);
-    expect(currentSettings.isPdfNavEnabled).toBe(false);
+    expect(currentSettings.isPdfNavEnabled).toBe(true);
 
     // Toggling Live Artifacts off later should safely restore the previous custom instruction
     act(() => {
@@ -1237,7 +1244,7 @@ describe('useAppPromptModes', () => {
   });
 
   it('preserves user instruction when deactivating if instruction contains user text before legacy protocol', () => {
-    const combinedPrompt = 'You are a chemistry expert.\n\n[Live Artifacts Inline Protocol - zh]\nProtocol...';
+    const combinedPrompt = 'You are a chemistry expert.\n\n[LiveUI Inline Protocol]\nProtocol...';
     let currentSettings = createLiveArtifactsChatSettings({
       isLiveArtifactsEnabled: true,
       systemInstruction: combinedPrompt,

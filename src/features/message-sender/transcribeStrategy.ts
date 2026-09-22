@@ -39,7 +39,7 @@ const enforceTranscriptionDurationLimit = async (
   }
 };
 
-interface SendTranscribeMessageParams {
+export interface SendTranscribeMessageParams {
   keyToUse: string;
   activeSessionId: string | null;
   generationId: string;
@@ -270,3 +270,5 @@ export const sendTranscribeMessage = async ({
     },
   });
 };
+
+export const transcribeStrategy = sendTranscribeMessage;

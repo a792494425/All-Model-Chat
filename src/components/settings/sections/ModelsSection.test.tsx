@@ -176,14 +176,14 @@ describe('ModelsSection', () => {
       renderer.root.render(<StatefulModelsSection />);
     });
 
-    expect(renderer.container.textContent).toContain('Live Artifacts');
+    expect(renderer.container.textContent).toContain('LiveUI');
     expect(renderer.container.textContent).not.toContain('Auto-open Live Artifacts');
     expect(renderer.container.textContent).not.toContain('Live Artifacts Model');
     expect(renderer.container.textContent).not.toContain('Live Artifacts Prompt Version');
     expect(renderer.container.textContent).not.toContain('Inline HTML Only');
     expect(renderer.container.textContent).not.toContain('Full or Inline HTML');
     expect(renderer.container.textContent).not.toContain('Complete HTML Only');
-    expect(renderer.container.textContent).toContain('Live Artifacts Prompt');
+    expect(renderer.container.textContent).toContain('LiveUI Prompt');
 
     const promptToggle = renderer.container.querySelector<HTMLButtonElement>('#live-artifacts-prompt-toggle');
     expect(promptToggle?.getAttribute('aria-expanded')).toBe('false');
@@ -248,7 +248,7 @@ describe('ModelsSection', () => {
 
     await vi.waitFor(() => {
       const promptValue = renderer.container.querySelector<HTMLTextAreaElement>('#live-artifacts-prompt-input')?.value;
-      expect(promptValue).toContain('[Live Artifacts Inline Protocol]');
+      expect(promptValue).toContain('[LiveUI Inline Protocol]');
       expect(promptValue).not.toContain('Current Page Theme');
       expect(promptValue).not.toContain('light theme');
     });

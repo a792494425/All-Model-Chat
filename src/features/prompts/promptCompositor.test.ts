@@ -20,7 +20,7 @@ describe('stripLegacyFeatureMarkers', () => {
   });
 
   it('strips legacy Live Artifacts protocol if the entire instruction is the protocol', () => {
-    expect(stripLegacyFeatureMarkers('[Live Artifacts Inline Protocol - zh]\nSome rules...')).toBe('');
+    expect(stripLegacyFeatureMarkers('[LiveUI Inline Protocol]\nSome rules...')).toBe('');
   });
 
   it('strips legacy BBox marker if the entire instruction is bbox prompt', () => {
@@ -29,7 +29,7 @@ describe('stripLegacyFeatureMarkers', () => {
 
   it('preserves user instruction when followed by legacy Live Artifacts protocol', () => {
     expect(
-      stripLegacyFeatureMarkers('You are a financial analyst.\n\n[Live Artifacts Inline Protocol - zh]\nSome rules...'),
+      stripLegacyFeatureMarkers('You are a financial analyst.\n\n[LiveUI Inline Protocol]\nSome rules...'),
     ).toBe('You are a financial analyst.');
   });
 
@@ -96,13 +96,24 @@ describe('composeSystemInstruction', () => {
     expect(result).toBe('Custom Persona');
   });
 
-  it('omits Live Artifacts when media locate directives are active, but preserves user instruction', async () => {
+  it('includes Live Artifacts and media citation directive when media locate directives are active', async () => {
     const result = await composeSystemInstruction({
       userInstruction: 'My Custom Prompt',
       isLiveArtifactsEnabled: true,
       locateDirectives: ['[PDF_LOCATE: page 5]', '[VIDEO_LOCATE: 01:23]'],
     });
-    // Live Artifacts is suppressed to avoid conflict with locate markers, but user instruction is preserved!
+    expect(result).toContain('My Custom Prompt');
+    expect(result).toContain('[MOCK_LA_INLINE]');
+    expect(result).toContain('Live UI 媒体引用与跳转交互规范');
+    expect(result).not.toContain('[PDF_LOCATE: page 5]');
+  });
+
+  it('emits raw media locate directives when Live Artifacts is disabled', async () => {
+    const result = await composeSystemInstruction({
+      userInstruction: 'My Custom Prompt',
+      isLiveArtifactsEnabled: false,
+      locateDirectives: ['[PDF_LOCATE: page 5]', '[VIDEO_LOCATE: 01:23]'],
+    });
     expect(result).toBe('My Custom Prompt\n\n[PDF_LOCATE: page 5]\n\n[VIDEO_LOCATE: 01:23]');
     expect(result).not.toContain('[MOCK_LA_INLINE]');
   });

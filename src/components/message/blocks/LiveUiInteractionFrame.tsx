@@ -4,7 +4,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import {
   isLiveArtifactFollowupStateWithinLimit,
   type LiveArtifactFollowupPayload,
-} from '@/utils/live-artifacts/liveArtifactFollowup';
+} from '@/utils/live-ui/liveUiFollowup';
 import {
   buildLiveArtifactInteractionPayload,
   getLiveArtifactInteractionDefaultValue,
@@ -15,15 +15,17 @@ import {
   type LiveArtifactInteractionProperty,
   type LiveArtifactInteractionSpec,
   type LiveArtifactInteractionValue,
-} from '@/utils/live-artifacts/liveArtifactInteraction';
+} from '@/utils/live-ui/liveUiInteraction';
 
 const FIELD_ERROR_CLASS = 'mt-1 block text-[0.75em] text-[var(--theme-text-danger)]';
 
-interface LiveArtifactInteractionFrameProps {
+export interface LiveUiInteractionFrameProps {
   spec: LiveArtifactInteractionSpec;
   baseFontSize?: number;
   onFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
 }
+
+export type LiveArtifactInteractionFrameProps = LiveUiInteractionFrameProps;
 
 interface LiveArtifactInteractionFormProps extends LiveArtifactInteractionFrameProps {
   fields: LiveArtifactInteractionField[];
@@ -422,7 +424,7 @@ const LiveArtifactInteractionForm: React.FC<LiveArtifactInteractionFormProps> = 
   );
 };
 
-export const LiveArtifactInteractionFrame: React.FC<LiveArtifactInteractionFrameProps> = ({
+export const LiveUiInteractionFrame: React.FC<LiveUiInteractionFrameProps> = ({
   spec,
   baseFontSize,
   onFollowUp,
@@ -440,3 +442,6 @@ export const LiveArtifactInteractionFrame: React.FC<LiveArtifactInteractionFrame
     />
   );
 };
+
+export const LiveArtifactInteractionFrame = LiveUiInteractionFrame;
+

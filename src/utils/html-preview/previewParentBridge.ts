@@ -1,14 +1,16 @@
 import {
   type LiveArtifactFollowupPayload,
   normalizeLiveArtifactFollowupPayload,
-} from '@/utils/live-artifacts/liveArtifactFollowup';
+} from '@/utils/live-ui/liveUiFollowup';
 import {
   HTML_PREVIEW_COPY_EVENT,
   HTML_PREVIEW_DIAGNOSTIC_EVENT,
   HTML_PREVIEW_DIAGRAM_CLICK_EVENT,
   HTML_PREVIEW_GRAPHVIZ_RENDER_REQUEST_EVENT,
   HTML_PREVIEW_GRAPHVIZ_RENDER_RESPONSE_EVENT,
+  HTML_PREVIEW_MEDIA_SEEK_EVENT,
   HTML_PREVIEW_MESSAGE_CHANNEL,
+  type HtmlPreviewMediaSeekPayload,
 } from './previewMessageProtocol';
 import { isHtmlPreviewMessageOriginAllowed, type HtmlPreviewPrivilege } from './previewPrivilege';
 
@@ -29,7 +31,8 @@ type HtmlPreviewBridgeResolution =
   | { kind: 'copy'; text: string }
   | { kind: 'diagnostic'; payload: unknown }
   | { kind: 'graphviz-request'; id: string; dot: string }
-  | { kind: 'diagram-click'; svg: string; title?: string };
+  | { kind: 'diagram-click'; svg: string; title?: string }
+  | { kind: 'media-seek'; payload: HtmlPreviewMediaSeekPayload };
 
 export const resolveHtmlPreviewBridgeEvent = ({
   event,
@@ -114,6 +117,13 @@ export const resolveHtmlPreviewBridgeEvent = ({
           ? (payload as { title: string }).title.trim()
           : undefined;
       return { kind: 'diagram-click', svg, title: title || undefined };
+    }
+    case HTML_PREVIEW_MEDIA_SEEK_EVENT: {
+      const payload = data.payload as HtmlPreviewMediaSeekPayload | null;
+      if (!payload || typeof payload !== 'object') {
+        return null;
+      }
+      return { kind: 'media-seek', payload };
     }
     default:
       return null;

@@ -1,6 +1,6 @@
 import { escapeHtml } from '@/utils/format/escapeHtml';
 import { AVAILABLE_THEMES, DEFAULT_THEME_ID } from '@/constants/themeRegistry';
-import { buildLiveArtifactThemeVars } from '@/utils/live-artifacts/liveArtifactThemeTokens';
+import { buildLiveArtifactThemeVars } from '@/utils/live-ui/liveUiThemeTokens';
 import { buildHtmlExportStyles } from './htmlExportStyles';
 import { buildHtmlExportRuntime } from './htmlExportRuntime';
 
