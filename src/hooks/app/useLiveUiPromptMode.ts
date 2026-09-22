@@ -214,8 +214,8 @@ export const useLiveUiPromptMode = ({
       if (!configuredLiveArtifactsSystemPrompt && loadBuiltInLiveArtifactsPrompt) {
         try {
           await loadBuiltInLiveArtifactsPrompt();
-        } catch (err) {
-          logService.warn('Live UI prompt load skipped or failed:', err);
+        } catch (promptLoadError) {
+          logService.warn('Live UI prompt load skipped or failed:', promptLoadError);
         }
       }
 

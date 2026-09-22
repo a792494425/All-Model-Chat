@@ -9,7 +9,10 @@ export { NARROW_SCREEN_MEDIA_NAV_COLLAPSE_THRESHOLD_PX };
  */
 let autoCollapsedByMediaNav = false;
 let isProgrammaticSidebarChange = false;
-let lastSidebarOpenState = typeof useUIStore !== 'undefined' ? useUIStore.getState().isHistorySidebarOpen : false;
+let lastSidebarOpenState =
+  typeof useUIStore !== 'undefined' && typeof useUIStore.getState === 'function'
+    ? useUIStore.getState().isHistorySidebarOpen
+    : false;
 
 // Listen to UI store changes. If the user manually toggles the sidebar
 // (e.g. clicks the sidebar expand/collapse button) while media navigation is open,
