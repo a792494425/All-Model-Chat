@@ -30,17 +30,12 @@ describe('hasLikelyTexMathMarkdown', () => {
   });
 
   it('ignores code blocks containing dollar signs and template literals', () => {
-    expect(
-      hasLikelyTexMathMarkdown('```bash\n$ git status\n$ npm run build\n```'),
-    ).toBe(false);
+    expect(hasLikelyTexMathMarkdown('```bash\n$ git status\n$ npm run build\n```')).toBe(false);
 
     expect(
       hasLikelyTexMathMarkdown('```html\n<script>\nconst el = $("#app");\nconst text = `${foo}`;\n</script>\n```'),
     ).toBe(false);
 
-    expect(
-      hasLikelyTexMathMarkdown('Here is code:\n`$foo = $bar;`\nDone.'),
-    ).toBe(false);
+    expect(hasLikelyTexMathMarkdown('Here is code:\n`$foo = $bar;`\nDone.')).toBe(false);
   });
 });
-

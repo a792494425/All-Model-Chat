@@ -7,10 +7,7 @@ describe('LazyMarkdownRenderer', () => {
   const renderer = setupTestRenderer();
 
   beforeAll(async () => {
-    await Promise.all([
-      import('./StandardMarkdownRenderer'),
-      import('./MathMarkdownRenderer'),
-    ]);
+    await Promise.all([import('./StandardMarkdownRenderer'), import('./MathMarkdownRenderer')]);
   });
 
   it('keeps the same renderer without unmounting when streaming finishes on content with math markers', async () => {
@@ -53,7 +50,9 @@ describe('LazyMarkdownRenderer', () => {
     });
 
     // Root rendered element should not be unmounted or replaced by raw text fallback
-    expect(renderer.container.querySelector('.whitespace-pre-wrap.break-words.text-\\[var\\(--theme-text-secondary\\)\\]')).toBeNull();
+    expect(
+      renderer.container.querySelector('.whitespace-pre-wrap.break-words.text-\\[var\\(--theme-text-secondary\\)\\]'),
+    ).toBeNull();
   });
 
   it('never flashes fallback raw text when streaming completes for live artifact html', async () => {
@@ -91,7 +90,9 @@ describe('LazyMarkdownRenderer', () => {
       );
     });
 
-    expect(renderer.container.querySelector('.whitespace-pre-wrap.break-words.text-\\[var\\(--theme-text-secondary\\)\\]')).toBeNull();
+    expect(
+      renderer.container.querySelector('.whitespace-pre-wrap.break-words.text-\\[var\\(--theme-text-secondary\\)\\]'),
+    ).toBeNull();
   });
 
   it('strictly preserves the child DOM node and iframe across the isLoading stream boundary', async () => {
@@ -141,4 +142,3 @@ describe('LazyMarkdownRenderer', () => {
     expect(finalIframe).toBe(initialIframe);
   });
 });
-

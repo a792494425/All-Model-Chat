@@ -17,7 +17,7 @@ describe('Live Artifact stream completion integration', () => {
 
   it('preserves the artifact iframe DOM node and does not reload when isLoading flips to false', async () => {
     const rawArtifact = '<div id="live-root" style="padding: 20px;"><h1>Streaming Title</h1></div>';
-    
+
     const messageLoading: ChatMessage = {
       id: 'msg-stream-1',
       role: 'model',
@@ -84,7 +84,8 @@ describe('Live Artifact stream completion integration', () => {
 
   it('preserves the artifact iframe when the message has prose before the artifact and closes an open fence', async () => {
     const streamingContent = '为您创建的交互式组件如下：\n\n```amc-live-artifact-html\n<div class="test">Streaming';
-    const finishedContent = '为您创建的交互式组件如下：\n\n```amc-live-artifact-html\n<div class="test">Streaming</div>\n```';
+    const finishedContent =
+      '为您创建的交互式组件如下：\n\n```amc-live-artifact-html\n<div class="test">Streaming</div>\n```';
 
     const messageLoading: ChatMessage = {
       id: 'msg-stream-2',
@@ -151,8 +152,10 @@ describe('Live Artifact stream completion integration', () => {
   });
 
   it('preserves the artifact iframe when the message has prose before an unclosed bare HTML fragment', async () => {
-    const streamingContent = '为您创建的交互式组件如下：\n\n<div style="--amc-live-artifact-accent: #3b82f6;" class="test">Streaming';
-    const finishedContent = '为您创建的交互式组件如下：\n\n<div style="--amc-live-artifact-accent: #3b82f6;" class="test">Streaming</div>';
+    const streamingContent =
+      '为您创建的交互式组件如下：\n\n<div style="--amc-live-artifact-accent: #3b82f6;" class="test">Streaming';
+    const finishedContent =
+      '为您创建的交互式组件如下：\n\n<div style="--amc-live-artifact-accent: #3b82f6;" class="test">Streaming</div>';
 
     const messageLoading: ChatMessage = {
       id: 'msg-stream-3',

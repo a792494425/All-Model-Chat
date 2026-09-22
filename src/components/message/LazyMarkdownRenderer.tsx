@@ -47,8 +47,7 @@ export const LazyMarkdownRenderer: React.FC<LazyMarkdownRendererProps> = ({
   // We NEVER switch component types across the isLoading boundary.
   const chosenRendererRef = useRef<'math' | 'standard' | null>(null);
   if (chosenRendererRef.current === null) {
-    chosenRendererRef.current =
-      isMathRendererLoaded || hasLikelyTexMathMarkdown(content) ? 'math' : 'standard';
+    chosenRendererRef.current = isMathRendererLoaded || hasLikelyTexMathMarkdown(content) ? 'math' : 'standard';
   }
 
   const fallback =

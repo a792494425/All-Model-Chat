@@ -25,8 +25,7 @@ const sanitizeMermaidSvg = (svg: string): string =>
 
 const mermaidBlockSvgCache = new Map<string, string>();
 
-const getMermaidBlockCacheKey = (code: string, themeId: string) =>
-  `${themeId}:${code.length}:${hashString(code)}`;
+const getMermaidBlockCacheKey = (code: string, themeId: string) => `${themeId}:${code.length}:${hashString(code)}`;
 
 interface MermaidBlockProps {
   code: string;
@@ -52,10 +51,7 @@ export const MermaidBlock: React.FC<MermaidBlockProps> = ({
     isMessageLoadingRef.current = isMessageLoading;
   }, [isMessageLoading]);
 
-  const blockCacheKey = useMemo(
-    () => getMermaidBlockCacheKey(code, themeId),
-    [code, themeId],
-  );
+  const blockCacheKey = useMemo(() => getMermaidBlockCacheKey(code, themeId), [code, themeId]);
 
   const initialCachedSvg = useMemo(() => mermaidBlockSvgCache.get(blockCacheKey) ?? '', [blockCacheKey]);
 

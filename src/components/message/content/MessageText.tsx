@@ -199,10 +199,7 @@ export const MessageText: React.FC<MessageTextProps> = ({
       isStreaming: isStreamingForArtifact,
       unwrapMislabeledHtmlBlocks: appSettings.unwrapMislabeledHtmlBlocks ?? true,
     });
-    if (
-      normalized.includes(LIVE_ARTIFACT_HTML_LANGUAGE) ||
-      normalized.includes(LIVE_ARTIFACT_INTERACTION_LANGUAGE)
-    ) {
+    if (normalized.includes(LIVE_ARTIFACT_HTML_LANGUAGE) || normalized.includes(LIVE_ARTIFACT_INTERACTION_LANGUAGE)) {
       hadStreamingArtifactRef.current = true;
     }
     return normalized;

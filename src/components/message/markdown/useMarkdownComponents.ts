@@ -12,7 +12,7 @@ import { MarkdownComponentsContext, type MarkdownComponentsContextValue } from '
 
 export { MarkdownComponentsContext, type MarkdownComponentsContextValue };
 
-export const STATIC_MARKDOWN_COMPONENTS: Components = {
+const STATIC_MARKDOWN_COMPONENTS: Components = {
   code: MarkdownCode as Components['code'],
   img: MarkdownImg as Components['img'],
   table: MarkdownTable as Components['table'],

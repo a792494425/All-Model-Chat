@@ -19,6 +19,7 @@
     "src/components/shared/Popover.tsx": ["exports"],
     "src/utils/export/**": ["exports"],
     "src/stores/syncedPersist.ts": ["types"],
-    "vite/staticAssets.ts": ["exports"]
+    "vite/staticAssets.ts": ["exports"],
+    "src/components/chat/width/chatWidthState.ts": ["exports"]
   }
 }
