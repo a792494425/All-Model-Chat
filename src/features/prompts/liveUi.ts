@@ -15,16 +15,15 @@ Artifacts must look like modern SaaS UI (Linear / Stripe / GitHub), not stacked 
 4. Restraint: ≤1 hero (rich tier only), ≤1 callout, ≤6 status tags.
 
 ## MUST
-1. Except for MUST #6 scenarios, always output a raw inline HTML fragment. Do not output traditional Markdown headings, lists, tables, or explanations. Do not wrap it in css, text, markdown, html, or amc-live-artifact-html fences. Do not split one artifact between rendered HTML and a code block. Do not emit doctype/html/head/body/script/style, @keyframes, global CSS, or third-party libs. Put all visible styles in style attributes; express motion via static states, SVG, or inline attributes. Host renderers handle chart/graph layout — never hand-write SVG charts or SVG diagrams.
+1. Except for MUST #6 scenarios, always output a raw inline HTML fragment. Do not output traditional Markdown headings, lists, tables, or explanations. Do not wrap it in css, text, markdown, html, or amc-live-artifact-html fences. Do not split one artifact between rendered HTML and a code block. Do not emit doctype/html/head/body/script/style, @keyframes, global CSS, or third-party libs. Put all visible styles in style attributes. Host renderers handle chart/graph layout — never hand-write SVG charts or SVG diagrams.
 2. Content routing—ask first or output HTML directly:
    Ask first (output only \`\`\`amc-live-artifact-interaction to collect info; do NOT also output HTML):
    - ≥2 key parameters missing and defaults materially change structure (e.g. summary vs table vs chart)
    - Scope, deadline, audience, or visual style is vague yet determines artifact structure
-   - Irreversible/high-cost operations (data migration, file rewrite, API deletion)
    Don't ask (output HTML directly):
    - User gave clear direction, or only one variable to clarify (use data-amc-followup)
    - Factual/explanation question requiring no user decisions
-3. Do not translate Markdown structure 1:1 into HTML. Route by content: comparison/decision uses a matrix, recommendation and risk tags; process uses a timeline or step cards; data uses metrics, bars, tables; concept uses definitions, relationship diagrams, examples; long text uses overview, grouping, and section headings. Increase visual organization for comparison, process/structure, data-dense content, or clear layout benefit. Distinguish layout context: Conceptual/technical explanations (Tech Explainer) prioritize flowing narrative and integrated typography—clean headings, concise prose, centered math, and inline diagrams woven together without dashboard templates; reserve hero cards and metric matrices strictly for project tracking, operations, and executive summaries.
+3. Do not translate Markdown structure 1:1 into HTML. Route by content: comparison/decision uses a matrix, recommendation and risk tags; process uses a timeline or step cards; data uses metrics, bars, tables; concept uses definitions, relationship diagrams, examples; long text uses overview, grouping, and section headings. Increase visual organization for comparison, process/structure, data-dense content, or clear layout benefit. Distinguish layout context: Conceptual/technical explanations (Tech Explainer) prioritize flowing narrative and integrated typography—clean headings, concise prose, centered math, and inline diagrams woven together without dashboard templates.
 4. Pick a density tier by content; do not over-design:
    - Minimal tier (≤2 factual sentences, yes/no, or a single number): one h2 + one paragraph; ban cards/matrices/charts. Even for simple input, return a compact inline HTML fragment; do not fall back to plain text.
    - Standard tier (explanations, tutorials, ordinary Q&A): follow Standard-tier example; h2 + paragraphs/short lists; ≤3 h3; ≤1 callout.
@@ -91,8 +90,7 @@ For numeric data, use data-amc-chart with Apache ECharts Option JSON; never hand
 - Visual guardrails:
   1. Always include tooltip: "tooltip":{"trigger":"axis"} ("item" for pie).
   2. For data spanning large orders of magnitude (>10x), use log axis (yAxis: {"type":"log"}) or dual Y-axes.
-  3. No triple redundancy: never repeat the same 3 numbers across metric cards, tables, and charts simultaneously.
-  4. Metric cards: label + core quantifiable value + contextual subtext. The value slot accepts a quantifiable number only; never put a phrase or sentence there (belongs in subtext); keep value text ≤ 8 characters (longer belongs in a table or list row). Metric thematic coherence: sibling metric cards (2–3 cards) must belong to the same analytical dimension; never mix disparate cognitive dimensions.
+  3. Metric cards: label + core quantifiable value + contextual subtext. The value slot accepts a quantifiable number only; never put a phrase or sentence there (belongs in subtext); keep value text ≤ 8 characters (longer belongs in a table or list row). Metric thematic coherence: sibling metric cards (2–3 cards) must belong to the same analytical dimension; never mix disparate cognitive dimensions.
 - Rules: keep node content empty; numbers must be JSON numbers; JSON keys/strings must use double quotes.
 
 ## Declarative graph DSL (data-amc-graphviz)
@@ -141,10 +139,7 @@ Example (branch + lanes):
     </tbody>
   </table>
   </div>
-  <div style="background:var(--amc-live-artifact-surface-muted);border:1px solid var(--amc-live-artifact-border);border-left:3px solid var(--amc-live-artifact-warning);border-radius:0.5rem;padding:0.65rem 0.85rem;margin-bottom:1.25rem;font-size:0.875em;line-height:1.55;"><strong style="color:var(--amc-live-artifact-text);">Important:</strong> <span style="color:var(--amc-live-artifact-muted);">Client SDKs must be upgraded to v3.4+ before cutover.</span></div>
-  <div style="padding-top:0.65rem;border-top:1px solid var(--amc-live-artifact-border);font-size:0.75em;color:var(--amc-live-artifact-subtle);display:flex;justify-content:space-between;">
-    <span>RFC-2048</span><span>Q3 Migration</span>
-  </div>
+  <div style="background:var(--amc-live-artifact-surface-muted);border:1px solid var(--amc-live-artifact-border);border-left:3px solid var(--amc-live-artifact-warning);border-radius:0.5rem;padding:0.65rem 0.85rem;font-size:0.875em;line-height:1.55;"><strong style="color:var(--amc-live-artifact-text);">Important:</strong> <span style="color:var(--amc-live-artifact-muted);">Client SDKs must be upgraded to v3.4+ before cutover.</span></div>
 </div>
 
 ## SHOULD
@@ -163,23 +158,15 @@ Example (branch + lanes):
 - Identical card walls (3+ stacks) or 3+1 orphan cards → balanced 2x2 grid, vertical list, or table; ban orphan cards.
 - Fake KPI dashboards → real quantifiable metrics ≤3, or table rows.
 - Default AI look (gray cards, heavy shadows [box-shadow], gradients, icon walls) → golden example: one focus + semantic tags.
-- Rainbow pseudo-status (colored phase/step cards) → neutral surface-muted cards + neutral pill badges; color only for true polarity.
-- Eyebrow pill badges or status dots above <h2> title → start directly with clean <h2> heading; ban decorative title capsules.
 - All-caps headings; #, emoji in titles → sentence case, plain text titles.
-- Semantic colors without polarity; colored table grid lines → muted text and border token.
-- Card matrices/dashboards for simple Q&A → minimal or standard-tier example.
-- Enclosing single math formulas in heavy gray container boxes → clean centered math (margin: 1.25rem 0) with transparent background.
 - Stacking multiple accent-tinted cards and callouts → single focal highlight, siblings neutral.
 - Solid saturated badge/tag blocks (background:accent with white text) → translucent tinted badge (*-surface + matching text). Never use solid accent/success/warning/danger on tags.
 
 ## Pre-output checklist
-1. Root attributes complete (display:block;width:100%;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere).
-2. No style/script tags; no fence wrappers (except interaction JSON).
-3. Hierarchy readable at a glance.
-4. Body defaults to text; tags strictly use *-surface with matching text, never solid color with white text.
-5. Wide content wrapped in overflow-x:auto.
-6. If JSON: ASCII keys? fields 1–24? enum ≤50? instruction ≤2000? format/type match?
-7. Numeric charts use data-amc-chart instead of hand-written SVG (x/y equal length)? Graphs use data-amc-graphviz (DOT free of single quotes, style="filled", rankdir=TB)?
+1. Root: display:block;width:100%;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere; no style/script tags.
+2. Structure: Hierarchy readable at a glance; wide content wrapped in overflow-x:auto.
+3. Colors: Body defaults to text; tags strictly use *-surface with matching text, never solid color with white text.
+4. DSL & Schema: Numeric charts use data-amc-chart instead of hand-written SVG; if JSON: fields 1–24, ASCII keys, instruction ≤2000.
 
 ## HARD CONSTRAINTS (violations silently break interaction; no UI error)
 ### A) amc-live-artifact-interaction JSON
@@ -200,10 +187,7 @@ export const getLiveArtifactsUserDirective = (language: string = 'zh'): string =
   return language.startsWith('zh') ? LIVE_UI_USER_DIRECTIVE_ZH : LIVE_UI_USER_DIRECTIVE_EN;
 };
 
-export const KNOWN_LIVE_ARTIFACTS_USER_DIRECTIVES = [
-  LIVE_UI_USER_DIRECTIVE_ZH,
-  LIVE_UI_USER_DIRECTIVE_EN,
-];
+export const KNOWN_LIVE_ARTIFACTS_USER_DIRECTIVES = [LIVE_UI_USER_DIRECTIVE_ZH, LIVE_UI_USER_DIRECTIVE_EN];
 
 export interface LiveArtifactsDirectiveExtraction {
   directive: string;
@@ -245,10 +229,7 @@ export const applyLiveArtifactsUserDirective = <T extends { text?: string }>(
   return parts.map((part, index) => {
     if (index === textPartIndex) {
       const originalText = (part as { text?: string }).text || '';
-      if (
-        (directive && originalText.startsWith(directive)) ||
-        originalText.includes('LiveUI')
-      ) {
+      if ((directive && originalText.startsWith(directive)) || originalText.includes('LiveUI')) {
         return part;
       }
       return {
@@ -267,4 +248,3 @@ export const KNOWN_LIVE_UI_USER_DIRECTIVES = KNOWN_LIVE_ARTIFACTS_USER_DIRECTIVE
 export const extractLiveUiDirective = extractLiveArtifactsDirective;
 export const stripLiveUiUserDirective = stripLiveArtifactsUserDirective;
 export const applyLiveUiUserDirective = applyLiveArtifactsUserDirective;
-

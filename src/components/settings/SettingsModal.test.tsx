@@ -88,25 +88,24 @@ describe('SettingsModal', () => {
     expect(document.body.textContent).not.toContain('Chat');
   });
 
-  it('renders shortcuts in its own sidebar group', async () => {
+  it('renders tabs directly in a flat sidebar navigation without group headers', async () => {
     await renderSettingsModal();
 
-    const groupTabLabels = Array.from(document.querySelectorAll('[data-settings-group]')).map((group) =>
-      Array.from(group.querySelectorAll('[role="tab"]')).map((tab) => tab.textContent?.trim()),
+    const groups = document.querySelectorAll('[data-settings-group]');
+    expect(groups).toHaveLength(0);
+
+    const tabs = Array.from(document.querySelectorAll('[role="tablist"] [role="tab"]')).map((tab) =>
+      tab.textContent?.trim(),
     );
-
-    expect(groupTabLabels).toEqual([
-      ['Providers & APIs', 'Models', 'MCP'],
-      ['Interface & Interaction', 'Data & App', 'Shortcuts'],
-      ['About'],
+    expect(tabs).toEqual([
+      'Providers & APIs',
+      'Models',
+      'MCP',
+      'Interface & Interaction',
+      'Data & App',
+      'Shortcuts',
+      'About',
     ]);
-
-    const groupElements = Array.from(document.querySelectorAll('[data-settings-group]'));
-    // Sidebar groups separate with spacing only — hairline dividers were removed
-    // from the left menu by design.
-    for (const group of groupElements) {
-      expect(group.className).not.toContain('border-t');
-    }
   });
 
   it('places the desktop close control in the content pane, not the sidebar', async () => {

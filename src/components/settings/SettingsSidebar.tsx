@@ -36,23 +36,7 @@ interface SettingsSidebarProps {
   searchActiveOptionId?: string | null;
 }
 
-const SIDEBAR_GROUPS: Array<{ id: string; titleKey?: string; tabIds: SettingsTab[] }> = [
-  {
-    id: 'ai',
-    titleKey: 'settingsGroupAi',
-    tabIds: ['providers', 'models', 'mcp'],
-  },
-  {
-    id: 'system',
-    titleKey: 'settingsGroupSystem',
-    tabIds: ['interface', 'data', 'shortcuts'],
-  },
-  {
-    id: 'about',
-    titleKey: 'settingsGroupAbout',
-    tabIds: ['about'],
-  },
-];
+const SIDEBAR_TAB_ORDER: SettingsTab[] = ['providers', 'models', 'mcp', 'interface', 'data', 'shortcuts', 'about'];
 
 export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   tabs,
@@ -71,12 +55,14 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   const { t } = useI18n();
   const isAdvancedModeEnabled = useSettingsUiStore((state) => state.isAdvancedModeEnabled);
   const toggleAdvancedMode = useSettingsUiStore((state) => state.toggleAdvancedMode);
-  const tabsById = new Map(tabs.map((tab) => [tab.id, tab]));
-  const groupedTabs = SIDEBAR_GROUPS.map((group) => ({
-    id: group.id,
-    titleKey: group.titleKey,
-    tabs: group.tabIds.map((tabId) => tabsById.get(tabId)).filter((tab): tab is SettingsTabDescriptor => !!tab),
-  })).filter((group) => group.tabs.length > 0);
+  const tabsById = React.useMemo(() => new Map(tabs.map((tab) => [tab.id, tab])), [tabs]);
+  const visibleTabs = React.useMemo(() => {
+    const ordered = SIDEBAR_TAB_ORDER.map((tabId) => tabsById.get(tabId)).filter(
+      (tab): tab is SettingsTabDescriptor => !!tab,
+    );
+    const remaining = tabs.filter((tab) => !SIDEBAR_TAB_ORDER.includes(tab.id) && tab.id !== 'api');
+    return [...ordered, ...remaining];
+  }, [tabs, tabsById]);
   const isSearching = searchQuery.trim().length > 0;
 
   const renderTabButton = (tab: SettingsTabDescriptor) => {
@@ -145,23 +131,10 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
         </div>
       ) : (
         <nav
-          className="flex flex-1 gap-1 overflow-x-auto px-4 pb-2 pt-1 md:flex-col md:gap-3 md:overflow-x-hidden md:overflow-y-auto md:px-3 md:pb-3 md:pt-1 no-scrollbar md:custom-scrollbar"
+          className="flex flex-1 gap-1 overflow-x-auto px-4 pb-2 pt-1 md:flex-col md:gap-1 md:overflow-x-hidden md:overflow-y-auto md:px-3 md:pb-3 md:pt-1 no-scrollbar md:custom-scrollbar"
           role="tablist"
         >
-          {groupedTabs.map((group, idx) => (
-            <div
-              key={group.id}
-              data-settings-group={group.id}
-              className={`flex flex-shrink-0 md:w-full md:flex-col gap-1 md:gap-1 ${idx > 0 ? 'md:pt-2' : ''}`}
-            >
-              {group.titleKey && (
-                <div className="hidden md:block px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]/50 select-none">
-                  {t(group.titleKey)}
-                </div>
-              )}
-              {group.tabs.map(renderTabButton)}
-            </div>
-          ))}
+          {visibleTabs.map(renderTabButton)}
         </nav>
       )}
 
