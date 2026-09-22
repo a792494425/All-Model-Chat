@@ -475,7 +475,7 @@ describe('promptRegistry', () => {
 
     const enDirective = getLiveArtifactsUserDirective('en');
     expect(enDirective).toBe(
-      'Please use LiveUI to present the following content as a structured, responsive, and elegant HTML card, while preserving all important information:',
+      'Please use LiveUI to present the following content as a structured, responsive, and elegant HTML artifact, while preserving all important information:',
     );
   });
 

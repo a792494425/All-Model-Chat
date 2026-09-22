@@ -330,7 +330,7 @@ export const messagesTranslations = {
     ko: 'Live Artifacts 켜기 · 텍스트를 붙여넣으면 AI가 구조화된 시각적 카드로 정리 및 조판합니다',
   },
   suggestionHtmlDesc: {
-    en: 'Please use LiveUI to present the following content as a structured, responsive, and elegant HTML card, while preserving all important information:',
+    en: 'Please use LiveUI to present the following content as a structured, responsive, and elegant HTML artifact, while preserving all important information:',
     zh: '请使用 LiveUI，将提供的信息整理成结构化、响应式的 HTML 作品。请保留所有重要信息：',
     ja: 'LiveUI を使用して、以下の内容を構造化されたレスポンシブで洗練された HTML カードとして提示し、すべての重要な情報を保持してください：',
     de: 'Bitte verwende LiveUI, um die folgenden Inhalte als strukturierte, responsive und ansprechende HTML-Karte darzustellen und alle wichtigen Informationen beizubehalten:',

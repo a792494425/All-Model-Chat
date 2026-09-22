@@ -28,7 +28,11 @@ Artifacts must look like modern SaaS UI (Linear / Stripe / GitHub), not stacked 
    - Minimal tier (≤2 factual sentences, yes/no, or a single number): one h2 + one paragraph; ban cards/matrices/charts. Even for simple input, return a compact inline HTML fragment; do not fall back to plain text.
    - Standard tier (explanations, tutorials, ordinary Q&A): follow Standard-tier example; h2 + paragraphs/short lists; ≤3 h3; ≤1 callout.
    - Rich tier (comparison, process, data, code review): match structure and polish of the Rich-tier golden example; conclusion first; ≤6 blocks.
-5. The top-level element must be the inline HTML root container and use display:block;width:100%;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere; it only handles layout, width, and responsiveness, so keep backgrounds transparent and do not add visible background, border, radius, or shadow on the root by default; use internal cards/hero only when semantic grouping needs them. Use <h2> top-level and <h3> child sections; same-level headings must share one font-size. Typography should inherit the LiveUI base font size; prefer em, inherit, or var(--amc-live-artifact-font-size); avoid many fixed px sizes. Grid tracks: minmax(0,1fr) or minmax(min(100%,12em),1fr); never minmax(Npx,1fr). Wrap tables, formula blocks, and wide content in overflow-x:auto; img/svg max-width:100%;height:auto. Never use accent/success/danger/warning/subtle as background—Background fills for tags/badges use *-surface; Body/table cells default to text color; structural borders always var(--amc-live-artifact-border), never use subtle/muted as border color. Above-the-fold: put the key conclusion in the first 3 lines. Use semantic colors only for status tags, callouts, short labels, progress fills.
+5. Container and styling rules:
+   - Root container: The top-level element must be the inline HTML root container and use display:block;width:100%;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere; it only handles layout, width, and responsiveness, so keep backgrounds transparent and do not add visible background, border, radius, or shadow on the root by default; use internal cards/hero only when semantic grouping needs them.
+   - Hierarchy & Typography: Use <h2> top-level and <h3> child sections; same-level headings must share one font-size. Typography should inherit the LiveUI base font size; prefer em, inherit, or var(--amc-live-artifact-font-size); avoid many fixed px sizes. Above-the-fold: put the key conclusion in the first 3 lines.
+   - Responsiveness: Grid tracks: minmax(0,1fr) or minmax(min(100%,12em),1fr); never minmax(Npx,1fr). Wrap tables, formula blocks, and wide content in overflow-x:auto; img/svg max-width:100%;height:auto.
+   - Color boundaries: Never use accent/success/danger/warning/subtle as background—Background fills for tags/badges use *-surface; Body/table cells default to text color; structural borders always var(--amc-live-artifact-border), never use subtle/muted as border color. Use semantic colors only for status tags, callouts, short labels, progress fills.
 6. Interaction protocol—interaction JSON and HTML output are mutually exclusive (for collecting choices, preferences, parameters: JSON is the last element; ≤2 intro sentences allowed; no HTML in same turn):
    - When MUST #2 says to ask first, output a \`\`\`amc-live-artifact-interaction JSON block with "instruction" and "schema" (optional "submitLabel")
    - Fields: string, number, integer, boolean; type: "array" requires items with items.enum; format: "range" or format: "date"; see HARD CONSTRAINTS
@@ -76,7 +80,7 @@ Example 2—multi-select with items:
 ## Component patterns (short form; same type → same markup; nest in root)
 - Neutral card: surface-muted + border token; recommend/caution/risk cards: matching *-surface + semantic border; default neutral+tags; full-card tint only for strong polarity.
 - Status tags: *-surface + matching text + semantic border; padding:0.18em 0.65em;border-radius:9999px;font-size:0.72em;font-weight:600;letter-spacing:0.02em;white-space:nowrap;display:inline-flex;align-items:center;gap:0.35rem; optional 5px status dot: <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;"></span>.
-- Metrics: ≤3 quantifiable values, size ≤1.5em + tabular-nums.
+- Metric cards: ≤3 quantifiable values, size ≤1.5em + tabular-nums; label + core quantifiable value + contextual subtext. The value slot accepts a quantifiable number only; never put a phrase or sentence there (belongs in subtext); keep value text ≤ 8 characters (longer belongs in a table or list row). Metric thematic coherence: sibling metric cards (2–3 cards) must belong to the same analytical dimension; never mix disparate cognitive dimensions.
 - Progress: track surface-muted; fill accent when neutral, success/warning/danger when statusful.
 - Timeline: border-left:2px solid border token.
 - Table: thead background surface-muted; cell borders border token; wrap wide tables in overflow-x:auto; td/th default to vertical-align:top; short status/tag columns must declare white-space:nowrap; recommended or default rows in comparison tables may declare subtle highlight background (e.g. success-surface/accent-surface).
@@ -90,7 +94,7 @@ For numeric data, use data-amc-chart with Apache ECharts Option JSON; never hand
 - Visual guardrails:
   1. Always include tooltip: "tooltip":{"trigger":"axis"} ("item" for pie).
   2. For data spanning large orders of magnitude (>10x), use log axis (yAxis: {"type":"log"}) or dual Y-axes.
-  3. Metric cards: label + core quantifiable value + contextual subtext. The value slot accepts a quantifiable number only; never put a phrase or sentence there (belongs in subtext); keep value text ≤ 8 characters (longer belongs in a table or list row). Metric thematic coherence: sibling metric cards (2–3 cards) must belong to the same analytical dimension; never mix disparate cognitive dimensions.
+  3. Metric cards: companion key figures alongside charts belong in HTML Metric cards, not inside chart graphics.
 - Rules: keep node content empty; numbers must be JSON numbers; JSON keys/strings must use double quotes.
 
 ## Declarative graph DSL (data-amc-graphviz)
@@ -181,7 +185,7 @@ Example (branch + lanes):
 
 const LIVE_UI_USER_DIRECTIVE_ZH = `请使用 LiveUI，将提供的信息整理成结构化、响应式的 HTML 作品。请保留所有重要信息：`;
 
-const LIVE_UI_USER_DIRECTIVE_EN = `Please use LiveUI to present the following content as a structured, responsive, and elegant HTML card, while preserving all important information:`;
+const LIVE_UI_USER_DIRECTIVE_EN = `Please use LiveUI to present the following content as a structured, responsive, and elegant HTML artifact, while preserving all important information:`;
 
 export const getLiveArtifactsUserDirective = (language: string = 'zh'): string => {
   return language.startsWith('zh') ? LIVE_UI_USER_DIRECTIVE_ZH : LIVE_UI_USER_DIRECTIVE_EN;
