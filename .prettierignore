@@ -11,3 +11,6 @@ tmp-live-artifact-demo/
 docs-site/.astro/
 docs-site/dist/
 *.min.js
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
