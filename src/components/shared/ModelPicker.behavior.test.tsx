@@ -242,4 +242,26 @@ describe('ModelPicker behavior', () => {
 
     expect(hovercard?.textContent).toContain('Gemma 4 31B IT');
   });
+
+  it('filters out models with visibleInSelector false unless currently selected', () => {
+    act(() => {
+      renderer.root.render(
+        renderPicker({
+          models: [
+            { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
+            { id: 'gemini-hidden', name: 'Hidden Model', visibleInSelector: false },
+          ],
+          selectedId: 'gemini-3-flash-preview',
+        }),
+      );
+    });
+
+    act(() => {
+      renderer.container
+        .querySelector('[data-testid="model-picker-trigger"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(renderer.container.textContent).not.toContain('Hidden Model');
+  });
 });

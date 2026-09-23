@@ -7,20 +7,10 @@ import { TEMPLATE_PRESETS } from '@/utils/third-party/thirdPartyApiProviders';
 
 interface UseProviderListLogicOptions {
   connections: ThirdPartyConnection[];
-  geminiStatus?: {
-    isConfigured: boolean;
-    useProxy: boolean;
-  };
   onReorder: (orderedIds: string[]) => void;
-  officialProvidersText: string;
 }
 
-export const useProviderListLogic = ({
-  connections,
-  geminiStatus,
-  onReorder,
-  officialProvidersText,
-}: UseProviderListLogicOptions) => {
+export const useProviderListLogic = ({ connections, onReorder }: UseProviderListLogicOptions) => {
   const search = useProviderUiStore((s) => s.listSearchQuery);
   const setSearch = useProviderUiStore((s) => s.setListSearchQuery);
   const filterMode = useProviderUiStore((s) => s.listFilterMode);
@@ -39,11 +29,11 @@ export const useProviderListLogic = ({
   }, [configuredTemplateIds]);
 
   const enabledCount = useMemo(() => {
-    return connections.filter((c) => c.enabled).length + (geminiStatus?.isConfigured ? 1 : 0);
-  }, [connections, geminiStatus?.isConfigured]);
+    return connections.filter((c) => c.enabled).length;
+  }, [connections]);
 
   const allCount = useMemo(() => {
-    return connections.length + 1 + unconfiguredPresets.length;
+    return connections.length + unconfiguredPresets.length;
   }, [connections.length, unconfiguredPresets.length]);
 
   const disabledCount = useMemo(() => {
@@ -99,17 +89,6 @@ export const useProviderListLogic = ({
     [connections, onReorder],
   );
 
-  const isGeminiMatch = useMemo(() => {
-    if (filterMode === 'enabled' && !geminiStatus?.isConfigured) return false;
-    if (filterMode === 'disabled' && geminiStatus?.isConfigured) return false;
-    if (!search.trim()) return true;
-    const q = search.trim().toLowerCase();
-    return (
-      'google gemini official builtin 官方 内置'.toLowerCase().includes(q) ||
-      officialProvidersText.toLowerCase().includes(q)
-    );
-  }, [filterMode, geminiStatus?.isConfigured, search, officialProvidersText]);
-
   return {
     search,
     setSearch,
@@ -123,6 +102,5 @@ export const useProviderListLogic = ({
     filteredConnections,
     filteredPresets,
     handleDragEnd,
-    isGeminiMatch,
   };
 };

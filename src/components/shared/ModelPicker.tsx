@@ -54,7 +54,11 @@ export const ModelPicker: React.FC<ModelPickerProps> = ({
     setShowBottomFade(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
   }, []);
 
-  const catalog = useMemo(() => buildModelCatalog(models), [models]);
+  const effectiveModels = useMemo(
+    () => models.filter((model) => model.visibleInSelector !== false || model.id === selectedId),
+    [models, selectedId],
+  );
+  const catalog = useMemo(() => buildModelCatalog(effectiveModels), [effectiveModels]);
   const filteredEntries = useMemo(() => filterModelCatalog(catalog, ''), [catalog]);
 
   const sections = useMemo(() => buildModelCatalogSections(filteredEntries), [filteredEntries]);

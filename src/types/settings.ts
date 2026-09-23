@@ -15,6 +15,9 @@ export interface ModelCapabilities {
   free?: boolean;
 }
 
+export const THINKING_LEVELS = ['NONE', 'MINIMAL', 'LOW', 'MEDIUM', 'HIGH', 'XHIGH', 'MAX'] as const;
+export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
+
 export interface ModelParameters {
   temperature?: number;
   maxOutputTokens?: number;
@@ -26,6 +29,7 @@ export interface ModelParameters {
   seed?: number;
   reasoningEffort?: 'none' | 'low' | 'medium' | 'high';
   thinkingBudget?: number;
+  thinkingLevel?: ThinkingLevel;
 }
 
 export interface ModelOption {
@@ -182,9 +186,6 @@ export interface ThirdPartyApiSettings {
   connections: ThirdPartyConnection[];
 }
 
-/** All valid thinking levels — used for both type checking and runtime validation. */
-export const THINKING_LEVELS = ['NONE', 'MINIMAL', 'LOW', 'MEDIUM', 'HIGH', 'XHIGH', 'MAX'] as const;
-export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
 /** All valid live artifacts prompt modes — used for both type checking and runtime validation. */
 export const LIVE_ARTIFACTS_PROMPT_MODES = ['inline'] as const;
 export type LiveArtifactsPromptMode = (typeof LIVE_ARTIFACTS_PROMPT_MODES)[number];

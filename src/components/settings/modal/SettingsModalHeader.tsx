@@ -2,13 +2,7 @@ import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { interpolate } from '@/i18n/interpolate';
 import { X } from 'lucide-react';
-import {
-  SETTINGS_SEGMENTED_ACTIVE_CLASS,
-  SETTINGS_SEGMENTED_IDLE_CLASS,
-  SETTINGS_SEGMENTED_TRACK_CLASS,
-} from '@/constants/designTokens';
 import { MODAL_CLOSE_BUTTON_CLASS } from '@/constants/buttonClasses';
-import type { SettingsScope } from '@/components/layout/mainContentModels';
 import type { SettingsTab } from '@/stores/settingsUiStore';
 
 interface SettingsModalHeaderProps {
@@ -16,10 +10,6 @@ interface SettingsModalHeaderProps {
   activeTabLabelKey?: string;
   isSearching: boolean;
   searchResultsCount: number;
-  activeTabUsesScope: boolean;
-  visibleScope: SettingsScope;
-  canEditCurrentChat: boolean;
-  onScopeChange: (scope: SettingsScope) => void;
   onClose: () => void;
 }
 
@@ -28,10 +18,6 @@ export const SettingsModalHeader: React.FC<SettingsModalHeaderProps> = ({
   activeTabLabelKey,
   isSearching,
   searchResultsCount,
-  activeTabUsesScope,
-  visibleScope,
-  canEditCurrentChat,
-  onScopeChange,
   onClose,
 }) => {
   const { t } = useI18n();
@@ -59,30 +45,6 @@ export const SettingsModalHeader: React.FC<SettingsModalHeaderProps> = ({
           </span>
         )}
         <div className="flex items-center gap-2 sm:gap-3 ml-auto">
-          {activeTabUsesScope && (
-            <div className={SETTINGS_SEGMENTED_TRACK_CLASS} role="group" aria-label={t('settingsScopeDefaults')}>
-              <button
-                type="button"
-                onClick={() => onScopeChange('defaults')}
-                className={
-                  visibleScope === 'defaults' ? SETTINGS_SEGMENTED_ACTIVE_CLASS : SETTINGS_SEGMENTED_IDLE_CLASS
-                }
-              >
-                {t('settingsScopeDefaults')}
-              </button>
-              <button
-                type="button"
-                onClick={() => canEditCurrentChat && onScopeChange('currentChat')}
-                disabled={!canEditCurrentChat}
-                title={!canEditCurrentChat ? t('settingsScopeCurrentChatUnavailable') : undefined}
-                className={
-                  visibleScope === 'currentChat' ? SETTINGS_SEGMENTED_ACTIVE_CLASS : SETTINGS_SEGMENTED_IDLE_CLASS
-                }
-              >
-                {t('settingsScopeCurrentChat')}
-              </button>
-            </div>
-          )}
           <button
             type="button"
             onClick={onClose}

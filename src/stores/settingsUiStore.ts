@@ -48,9 +48,11 @@ const normalizeSettingsTab = (savedTab: string | null): SettingsTab | null => {
       return 'interface';
     case 'shortcuts':
       return 'shortcuts';
+    case 'gemini':
+    case 'official':
     case 'api':
     case 'account':
-      return 'api';
+      return 'gemini';
     case 'mcp':
       return 'mcp';
     case 'data':
@@ -63,13 +65,15 @@ const normalizeSettingsTab = (savedTab: string | null): SettingsTab | null => {
 };
 
 const readLegacyActiveTab = () =>
-  normalizeSettingsTab(readPersistentStorageItem(LEGACY_SETTINGS_TAB_STORAGE_KEY)) ?? 'models';
+  normalizeSettingsTab(readPersistentStorageItem(LEGACY_SETTINGS_TAB_STORAGE_KEY)) ?? 'gemini';
 
 const readLegacyScrollPositions = (): Partial<Record<SettingsTab, number>> => {
   const scrollPositions: Partial<Record<SettingsTab, number>> = {};
 
   SETTINGS_TABS.forEach((tab) => {
-    const rawPosition = readPersistentStorageItem(`chatSettingsScroll_${tab}`);
+    const rawPosition =
+      readPersistentStorageItem(`chatSettingsScroll_${tab}`) ??
+      (tab === 'gemini' ? readPersistentStorageItem('chatSettingsScroll_api') : null);
     if (!rawPosition) {
       return;
     }
@@ -102,7 +106,7 @@ export const useSettingsUiStore = create<SettingsUiState & SettingsUiActions>()(
           }
 
           return {
-            activeTab: state.activeTab === 'models' ? readLegacyActiveTab() : state.activeTab,
+            activeTab: state.activeTab === 'gemini' ? readLegacyActiveTab() : state.activeTab,
             scrollPositions: {
               ...readLegacyScrollPositions(),
               ...state.scrollPositions,

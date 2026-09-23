@@ -64,4 +64,16 @@ describe('GeminiProviderDetail', () => {
     expect(screen.getByText(/Thinking Budget Tokens|思考预算/i)).toBeInTheDocument();
     expect(screen.queryByText(/Reasoning Effort/i)).not.toBeInTheDocument();
   });
+
+  it('renders Gemini safety settings and does not render duplicate LiveUI section', () => {
+    const { container } = render(
+      <GeminiProviderDetail
+        settings={{ apiKey: 'test-key', useCustomApiConfig: true } as any}
+        onUpdateSettings={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('[data-settings-item="gemini-safety"]')).toBeInTheDocument();
+    expect(container.querySelector('[data-settings-item="models-live-artifacts"]')).not.toBeInTheDocument();
+  });
 });

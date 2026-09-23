@@ -38,10 +38,13 @@ export const ModelListView: React.FC<ModelListViewProps> = ({
   }, [availableModels, updateBottomFade]);
 
   const sections = useMemo(() => {
-    const catalog = buildModelCatalog(availableModels);
+    const effectiveModels = availableModels.filter(
+      (model) => model.visibleInSelector !== false || model.id === selectedModelId,
+    );
+    const catalog = buildModelCatalog(effectiveModels);
     const filteredEntries = filterModelCatalog(catalog, '');
     return buildModelCatalogSections(filteredEntries);
-  }, [availableModels]);
+  }, [availableModels, selectedModelId]);
 
   return (
     <div

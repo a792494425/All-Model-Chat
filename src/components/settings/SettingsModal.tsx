@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { type AppSettings, type ChatSettings, type ModelOption } from '@/types';
 import { Modal } from '@/components/shared/Modal';
@@ -9,13 +9,7 @@ import { SettingsContent } from './SettingsContent';
 import { SettingsSearchResults } from './SettingsSearchResults';
 import { type SettingsTransferProps } from './settingsTypes';
 import type { LogViewerProps } from '@/components/log-viewer/LogViewer';
-import {
-  buildSettingsForModal,
-  type SettingsScope,
-  splitScopedSettingsUpdate,
-} from '@/components/layout/mainContentModels';
 import { useSettingsTransferActions } from '@/hooks/data-management/useSettingsTransferActions';
-import type { SettingsTab } from '@/stores/settingsUiStore';
 import { useSettingsModalSearch } from './modal/useSettingsModalSearch';
 import { SettingsModalHeader } from './modal/SettingsModalHeader';
 
@@ -44,11 +38,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   currentSettings,
   currentThemeId,
-  currentChatSettings,
-  hasActiveSession = false,
+  currentChatSettings: _currentChatSettings,
+  hasActiveSession: _hasActiveSession = false,
   availableModels,
   onSave,
-  onSaveCurrentChatSettings,
+  onSaveCurrentChatSettings: _onSaveCurrentChatSettings,
   onClearAllHistory,
   onClearCache,
   onOpenLogViewer,
@@ -60,68 +54,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const { t } = useI18n();
   const [liveSettings, setLiveSettings] = useState(currentSettings);
-  const [liveCurrentChatSettings, setLiveCurrentChatSettings] = useState(currentChatSettings);
-  const [settingsScope, setSettingsScope] = useState<SettingsScope>('defaults');
-
-  const canEditCurrentChat = hasActiveSession && Boolean(liveCurrentChatSettings) && Boolean(onSaveCurrentChatSettings);
-  const chatScopedTabs = useMemo(() => new Set<SettingsTab>(['models']), []);
 
   useEffect(() => {
     setLiveSettings(currentSettings);
   }, [currentSettings]);
 
-  useEffect(() => {
-    setLiveCurrentChatSettings(currentChatSettings);
-  }, [currentChatSettings]);
-
-  useEffect(() => {
-    if (!canEditCurrentChat && settingsScope === 'currentChat') {
-      setSettingsScope('defaults');
-    }
-  }, [canEditCurrentChat, settingsScope]);
-
-  const effectiveScope = canEditCurrentChat ? settingsScope : 'defaults';
-
-  const scopedSettings = useMemo(
-    () =>
-      buildSettingsForModal({
-        appSettings: liveSettings,
-        activeSessionId: canEditCurrentChat ? 'active' : null,
-        currentChatSettings: liveCurrentChatSettings,
-        scope: effectiveScope,
-      }),
-    [canEditCurrentChat, effectiveScope, liveCurrentChatSettings, liveSettings],
-  );
-  const settingsTransferActions = useSettingsTransferActions();
-
-  const saveScopedSettings = useCallback(
+  const handleSaveSettings = useCallback(
     (nextSettings: AppSettings) => {
-      const previousSettings = buildSettingsForModal({
-        appSettings: liveSettings,
-        activeSessionId: canEditCurrentChat ? 'active' : null,
-        currentChatSettings: liveCurrentChatSettings,
-        scope: effectiveScope,
-      });
-      const splitUpdate = splitScopedSettingsUpdate({
-        scope: effectiveScope,
-        previousSettings,
-        nextSettings,
-        appSettings: liveSettings,
-        currentChatSettings: liveCurrentChatSettings,
-      });
-
-      if (splitUpdate.nextAppSettings) {
-        setLiveSettings(splitUpdate.nextAppSettings);
-        onSave(splitUpdate.nextAppSettings);
-      }
-
-      if (splitUpdate.nextChatSettings && onSaveCurrentChatSettings) {
-        setLiveCurrentChatSettings(splitUpdate.nextChatSettings);
-        onSaveCurrentChatSettings(splitUpdate.nextChatSettings);
-      }
+      setLiveSettings(nextSettings);
+      onSave(nextSettings);
     },
-    [canEditCurrentChat, effectiveScope, liveCurrentChatSettings, liveSettings, onSave, onSaveCurrentChatSettings],
+    [onSave],
   );
+
+  const settingsTransferActions = useSettingsTransferActions();
 
   const {
     activeTab,
@@ -142,8 +88,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     tabs,
   } = useSettingsLogic({
     isOpen,
-    currentSettings: scopedSettings,
-    onSave: saveScopedSettings,
+    currentSettings: liveSettings,
+    onSave: handleSaveSettings,
     onClearAllHistory,
     onClearCache,
     onImportHistory: settingsTransferActions.onImportHistory,
@@ -173,14 +119,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   });
 
   const activeTabLabelKey = tabs.find((tab) => tab.id === activeTab)?.labelKey;
-  const activeTabUsesScope = !isSearching && chatScopedTabs.has(activeTab);
-  const visibleScope = activeTabUsesScope ? settingsScope : 'defaults';
-
-  useEffect(() => {
-    if (!activeTabUsesScope && settingsScope !== 'defaults') {
-      setSettingsScope('defaults');
-    }
-  }, [activeTabUsesScope, settingsScope]);
 
   if (!isOpen) return null;
 
@@ -193,7 +131,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         enterAnimationClassName=""
         ariaLabel={t('settingsTitle')}
         contentClassName="w-full h-[100dvh] sm:h-[85vh] sm:max-h-[800px] sm:w-[90vw] max-w-6xl sm:rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl bg-[var(--theme-bg-primary)] transition-all"
-        initialFocusRef={searchInputRef}
+        initialFocusRef={activeTabRef}
       >
         <SettingsSidebar
           tabs={tabs}
@@ -224,10 +162,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               activeTabLabelKey={activeTabLabelKey}
               isSearching={isSearching}
               searchResultsCount={searchResults.length}
-              activeTabUsesScope={activeTabUsesScope}
-              visibleScope={visibleScope}
-              canEditCurrentChat={canEditCurrentChat}
-              onScopeChange={setSettingsScope}
               onClose={onClose}
             />
             {isSearching ? (
@@ -242,7 +176,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             ) : (
               <SettingsContent
                 activeTab={activeTab}
-                currentSettings={scopedSettings}
+                currentSettings={liveSettings}
                 currentThemeId={currentThemeId}
                 availableModels={availableModels}
                 updateSetting={updateSetting}
@@ -265,9 +199,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onImportScenarios={onImportScenarios}
                 onExportScenarios={onExportScenarios}
                 onCloseModal={onClose}
-                activeModelBadgeLabel={
-                  activeTabUsesScope && visibleScope === 'defaults' ? t('settingsDefaultModelBadge') : undefined
-                }
+                activeModelBadgeLabel={t('settingsDefaultModelBadge')}
               />
             )}
           </div>

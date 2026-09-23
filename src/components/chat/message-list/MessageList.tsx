@@ -19,10 +19,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useChatState } from '@/hooks/chat/useChatState';
 import { useChatInputRuntime, useChatMessageListRuntime } from '@/components/layout/chat-runtime/ChatRuntimeContext';
 import { useI18n } from '@/contexts/I18nContext';
-import {
-  formatLiveArtifactFollowupPrompt,
-  type LiveArtifactFollowupPayload,
-} from '@/utils/live-ui/liveUiFollowup';
+import { formatLiveArtifactFollowupPrompt, type LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
 
 const MessageListComponent: React.FC = () => {
   const appSettings = useSettingsStore((state) => state.appSettings);

@@ -278,10 +278,16 @@ describe('ProviderDetail', () => {
 
     const bar = renderer.container.querySelector('[data-testid="batch-action-bar"]');
     const deleteBtn = Array.from(bar!.querySelectorAll('button')).find((b) => b.textContent?.includes('删除'));
-    expect(deleteBtn).toBeDefined();
-
     act(() => {
       deleteBtn?.click();
+    });
+
+    const confirmButtons = Array.from(document.querySelectorAll('button')).filter(
+      (b) => b.textContent?.trim() === '删除',
+    );
+    const modalConfirmBtn = confirmButtons[confirmButtons.length - 1];
+    act(() => {
+      modalConfirmBtn?.click();
     });
 
     expect(onUpdateConnection).toHaveBeenCalledWith({
@@ -314,6 +320,14 @@ describe('ProviderDetail', () => {
 
     act(() => {
       deleteBtn?.click();
+    });
+
+    const confirmButtons = Array.from(document.querySelectorAll('button')).filter(
+      (b) => b.textContent?.trim() === '删除',
+    );
+    const modalConfirmBtn = confirmButtons[confirmButtons.length - 1];
+    act(() => {
+      modalConfirmBtn?.click();
     });
 
     expect(onUpdateConnection).toHaveBeenCalledWith({

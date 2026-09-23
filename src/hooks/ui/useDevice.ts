@@ -60,4 +60,3 @@ export const useDevice = (): DeviceInfo => {
   const isMobile = useIsMobile();
   return { isMobile };
 };
-

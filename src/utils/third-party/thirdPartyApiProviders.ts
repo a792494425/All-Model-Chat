@@ -296,9 +296,18 @@ export const buildProviderAwareModelList = (
       })),
   );
 
-  const models = [...deduplicateModelsById(baseModels), ...thirdPartyModels];
+  const isCurrentGeminiSession =
+    !session?.providerId || session?.providerId === GEMINI_PROVIDER_ID || session?.providerId === 'gemini';
+  const filteredBaseModels = deduplicateModelsById(baseModels).filter((model) => {
+    if (model.visibleInSelector === false) {
+      return isCurrentGeminiSession && session?.modelId === model.id;
+    }
+    return true;
+  });
+
+  const models = [...filteredBaseModels, ...thirdPartyModels];
   const sessionProviderId = session?.providerId;
-  if (!sessionProviderId || sessionProviderId === GEMINI_PROVIDER_ID) {
+  if (!sessionProviderId || sessionProviderId === GEMINI_PROVIDER_ID || sessionProviderId === 'gemini') {
     return models;
   }
 

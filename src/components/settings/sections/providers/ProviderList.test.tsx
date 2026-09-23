@@ -20,7 +20,7 @@ describe('ProviderList', () => {
     }),
   ];
 
-  it('renders official provider and configured connections', () => {
+  it('renders configured connections and does not render official Gemini', () => {
     act(() => {
       renderer.render(
         <ProviderList
@@ -33,12 +33,11 @@ describe('ProviderList', () => {
           onDuplicateConnection={vi.fn()}
           onDeleteConnection={vi.fn()}
           onProbeConnection={vi.fn()}
-          geminiStatus={{ isConfigured: true, useProxy: false }}
         />,
       );
     });
 
-    expect(renderer.container.textContent).toContain('Google Gemini');
+    expect(renderer.container.textContent).not.toContain('Google Gemini');
     expect(renderer.container.textContent).toContain('DeepSeek');
   });
 
@@ -57,7 +56,6 @@ describe('ProviderList', () => {
           onDuplicateConnection={vi.fn()}
           onDeleteConnection={vi.fn()}
           onProbeConnection={vi.fn()}
-          geminiStatus={{ isConfigured: true, useProxy: false }}
         />,
       );
     });
@@ -87,7 +85,6 @@ describe('ProviderList', () => {
           onDuplicateConnection={vi.fn()}
           onDeleteConnection={vi.fn()}
           onProbeConnection={vi.fn()}
-          geminiStatus={{ isConfigured: true, useProxy: false }}
         />,
       );
     });
@@ -129,7 +126,6 @@ describe('ProviderList', () => {
           onDuplicateConnection={vi.fn()}
           onDeleteConnection={vi.fn()}
           onProbeConnection={vi.fn()}
-          geminiStatus={{ isConfigured: true, useProxy: false }}
         />,
       );
     });

@@ -9,7 +9,7 @@ const makeResult = (id: string, overrides: Partial<SettingsSearchResult> = {}): 
   tab: 'interface',
   labelKey: id,
   label: id,
-  tabLabel: 'Interface & Interaction',
+  tabLabel: 'Appearance',
   groupLabel: 'Input Toolbar',
   description: `${id} description`,
   ...overrides,
@@ -81,7 +81,7 @@ describe('SettingsSearchResults', () => {
     });
 
     const text = renderer.container.textContent ?? '';
-    expect(text).toContain('Interface & Interaction');
+    expect(text).toContain('Appearance');
     expect(text).toContain('Input Toolbar');
   });
 
@@ -97,7 +97,7 @@ describe('SettingsSearchResults', () => {
     });
 
     const headings = Array.from(renderer.container.querySelectorAll('h3')).map((h) => h.textContent);
-    expect(headings.some((h) => h?.startsWith('Models') && h.includes('(5)'))).toBe(true);
+    expect(headings.some((h) => h?.startsWith('Chat & Generation') && h.includes('(5)'))).toBe(true);
     expect(headings.some((h) => h?.startsWith('API') && h.includes('(5)'))).toBe(true);
   });
 
@@ -115,7 +115,7 @@ describe('SettingsSearchResults', () => {
     // Grouped mode: the group heading carries the tab name; items only show groupLabel.
     const crumbText = renderer.container.querySelector('ul')?.textContent ?? '';
     expect(crumbText).toContain('Model Settings');
-    expect(crumbText).not.toContain('Interface & Interaction');
+    expect(crumbText).not.toContain('Appearance');
   });
 
   it('marks the flat selectedIndex item across group boundaries with data-selected', () => {

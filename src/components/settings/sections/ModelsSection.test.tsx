@@ -2,7 +2,6 @@ import { act, type ComponentProps, useState } from 'react';
 import { setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { setupStoreStateReset } from '@/test/stores/reset';
 import { ModelsSection } from './ModelsSection';
 import type { ApiMode, AppSettings } from '@/types';
@@ -108,38 +107,18 @@ describe('ModelsSection', () => {
     );
   });
 
-  it('keeps safety settings inside models settings and collapsed by default', async () => {
-    const onUpdateSettings = vi.fn();
-    const safetySettings = useSettingsStore.getState().appSettings.safetySettings;
-
+  it('does not render Gemini safety settings in the general models tab', async () => {
     await renderModelsSection({
       currentSettings: {
         ...useSettingsStore.getState().appSettings,
-        safetySettings,
       },
-      onUpdateSettings,
     });
 
-    const toggleButton = renderer.container.querySelector<HTMLButtonElement>(
-      'button[aria-label="Toggle safety settings"]',
-    );
-
-    expect(toggleButton).not.toBeNull();
-    expect(toggleButton?.getAttribute('aria-expanded')).toBe('false');
-    expect(renderer.container.textContent).toContain('Safety Settings');
+    expect(
+      renderer.container.querySelector<HTMLButtonElement>('button[aria-label="Toggle safety settings"]'),
+    ).toBeNull();
+    expect(renderer.container.textContent).not.toContain('Safety Settings');
     expect(renderer.container.querySelector('[data-testid="safety-section"]')).toBeNull();
-
-    await act(async () => {
-      toggleButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(toggleButton?.getAttribute('aria-expanded')).toBe('true');
-    expect(renderer.container.querySelector('[data-testid="safety-section"]')).not.toBeNull();
-    expect(mockSafetySection.lastProps!.safetySettings).toBe(safetySettings);
-
-    mockSafetySection.lastProps!.setSafetySettings([]);
-
-    expect(onUpdateSettings).toHaveBeenCalledWith({ safetySettings: [] });
   });
 
   it('keeps Live Artifacts settings inside models settings', async () => {
@@ -335,7 +314,7 @@ describe('ModelsSection', () => {
     expect(mockModelSelector.lastProps!.defaultModels).toBe(defaultModels);
     expect(renderer.container.textContent).toContain('Default System Prompt');
     expect(renderer.container.textContent).toContain('Temperature');
-    expect(renderer.container.textContent).toContain('Top P');
+    expect(renderer.container.textContent).not.toContain('Top P');
     expect(renderer.container.textContent).not.toContain('Top K');
     expect(renderer.container.textContent).not.toContain('Live Artifacts');
     expect(renderer.container.textContent).not.toContain('Safety Settings');
@@ -345,9 +324,7 @@ describe('ModelsSection', () => {
     ).toBeNull();
   });
 
-  it('renders direct navigation to providers tab without redundant active model card', async () => {
-    const setActiveTabSpy = vi.spyOn(useSettingsUiStore.getState(), 'setActiveTab');
-
+  it('does not render redundant active model card or duplicate provider jump button', async () => {
     await renderModelsSection({
       modelId: 'gemini-3.1-pro-preview',
       availableModels: [{ id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview' }],
@@ -362,12 +339,6 @@ describe('ModelsSection', () => {
     const manageBtn = Array.from(renderer.container.querySelectorAll('button')).find((b) =>
       b.textContent?.includes('Manage Providers & Models'),
     );
-    expect(manageBtn).toBeDefined();
-
-    await act(async () => {
-      manageBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(setActiveTabSpy).toHaveBeenCalledWith('providers');
+    expect(manageBtn).toBeUndefined();
   });
 });

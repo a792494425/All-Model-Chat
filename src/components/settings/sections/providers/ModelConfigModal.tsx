@@ -88,7 +88,11 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({
               setReasoningEffort={logic.setReasoningEffort}
               thinkingBudget={logic.thinkingBudget}
               setThinkingBudget={logic.setThinkingBudget}
+              thinkingLevel={logic.thinkingLevel}
+              setThinkingLevel={logic.setThinkingLevel}
               isOpenAI={logic.isOpenAI}
+              isGemini={logic.isGemini}
+              isGemini3={logic.isGemini3}
             />
           )}
         </div>

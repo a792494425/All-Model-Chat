@@ -23,7 +23,7 @@ describe('settingsUiStore', () => {
 
     const { useSettingsUiStore } = await importFreshSettingsUiStore();
 
-    expect(useSettingsUiStore.getState().scrollPositions.api).toBe(42);
+    expect(useSettingsUiStore.getState().scrollPositions.gemini).toBe(42);
   });
 
   it('supports toggling advanced mode state', async () => {

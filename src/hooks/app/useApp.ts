@@ -241,10 +241,6 @@ export const useApp = (): AppViewModel => {
 
   const handleSaveCurrentChatSettings = useCallback(
     (newSettings: ChatSettings) => {
-      if (!activeSessionId) {
-        return;
-      }
-
       if (newSettings.modelId !== currentChatSettings.modelId) {
         handleSelectModelInHeader(newSettings.modelId);
       }
@@ -255,7 +251,7 @@ export const useApp = (): AppViewModel => {
         lockedApiKey: prevChatSettings.lockedApiKey ?? null,
       }));
     },
-    [activeSessionId, currentChatSettings.modelId, handleSelectModelInHeader, setCurrentChatSettings],
+    [currentChatSettings.modelId, handleSelectModelInHeader, setCurrentChatSettings],
   );
 
   const {

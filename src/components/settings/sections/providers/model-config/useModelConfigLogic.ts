@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import type { ModelCapabilities, ModelOption, ModelParameters, ThirdPartyApiProtocol } from '@/types';
+import type { ModelCapabilities, ModelOption, ModelParameters, ThinkingLevel, ThirdPartyApiProtocol } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { copyTextToClipboard } from '@/utils/clipboard';
 import { toastError, toastSuccess } from '@/stores/toastStore';
 import { getOrInferModelCapabilities } from '@/utils/model/knownModelsCatalog';
+import { isGemini3Model } from '@/utils/model/modelCapabilities';
 
 export type TabType = 'info' | 'parameters';
 
@@ -42,6 +43,7 @@ export function useModelConfigLogic({
   const [seed, setSeed] = useState<number | undefined>(undefined);
   const [reasoningEffort, setReasoningEffort] = useState<'none' | 'low' | 'medium' | 'high' | undefined>(undefined);
   const [thinkingBudget, setThinkingBudget] = useState<number | undefined>(undefined);
+  const [thinkingLevel, setThinkingLevel] = useState<ThinkingLevel | undefined>(undefined);
 
   useEffect(() => {
     if (model) {
@@ -64,10 +66,13 @@ export function useModelConfigLogic({
       setSeed(p?.seed);
       setReasoningEffort(p?.reasoningEffort);
       setThinkingBudget(p?.thinkingBudget);
+      setThinkingLevel(p?.thinkingLevel);
     }
   }, [model]);
 
   const isOpenAI = protocol === 'openai-compatible' || protocol === 'openai-responses';
+  const isGemini = protocol === 'gemini' || model?.providerId === 'gemini' || (!protocol && !model?.providerId);
+  const isGemini3 = isGemini && isGemini3Model(id.trim() || model?.id || '');
 
   const handleCopyId = async () => {
     await copyTextToClipboard(id);
@@ -87,6 +92,7 @@ export function useModelConfigLogic({
     setSeed(undefined);
     setReasoningEffort(undefined);
     setThinkingBudget(undefined);
+    setThinkingLevel(undefined);
   };
 
   const toggleCapability = (key: keyof ModelCapabilities) => {
@@ -119,11 +125,14 @@ export function useModelConfigLogic({
     if (typeof maxOutputTokens === 'number' && !isNaN(maxOutputTokens)) params.maxOutputTokens = maxOutputTokens;
     if (typeof topP === 'number' && !isNaN(topP)) params.topP = topP;
     if (typeof topK === 'number' && !isNaN(topK)) params.topK = topK;
-    if (typeof presencePenalty === 'number' && !isNaN(presencePenalty)) params.presencePenalty = presencePenalty;
-    if (typeof frequencyPenalty === 'number' && !isNaN(frequencyPenalty)) params.frequencyPenalty = frequencyPenalty;
+    if (!isGemini) {
+      if (typeof presencePenalty === 'number' && !isNaN(presencePenalty)) params.presencePenalty = presencePenalty;
+      if (typeof frequencyPenalty === 'number' && !isNaN(frequencyPenalty)) params.frequencyPenalty = frequencyPenalty;
+    }
     if (trimmedStops.length > 0) params.stopSequences = trimmedStops;
     if (typeof seed === 'number' && !isNaN(seed)) params.seed = seed;
     if (reasoningEffort) params.reasoningEffort = reasoningEffort;
+    if (thinkingLevel) params.thinkingLevel = thinkingLevel;
     if (typeof thinkingBudget === 'number' && !isNaN(thinkingBudget) && thinkingBudget > 0) {
       params.thinkingBudget = thinkingBudget;
     }
@@ -175,7 +184,11 @@ export function useModelConfigLogic({
     setReasoningEffort,
     thinkingBudget,
     setThinkingBudget,
+    thinkingLevel,
+    setThinkingLevel,
     isOpenAI,
+    isGemini,
+    isGemini3,
     handleCopyId,
     handleResetParameters,
     toggleCapability,

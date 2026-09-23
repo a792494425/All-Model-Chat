@@ -48,10 +48,7 @@ export const ChatExportRenderer: React.FC<ChatExportRendererProps> = ({ session,
 
   return (
     <I18nProvider>
-      <div
-        className="export-chat-transcript"
-        style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
-      >
+      <div className="export-chat-transcript" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         {visibleMessages.map((message) => (
           <article
             key={message.id}

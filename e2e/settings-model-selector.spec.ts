@@ -46,19 +46,21 @@ test('editing the system prompt still persists when switching to models and sele
     .getByRole('button', { name: 'Settings', exact: true })
     .click();
 
-  await page.getByRole('tab', { name: 'Models' }).click();
+  await page.getByRole('tab', { name: 'Chat & Generation' }).click();
 
   const textarea = page.locator('#system-prompt-input');
   await expect(textarea).toBeVisible();
   await textarea.click();
   await textarea.fill('Persist this prompt while selecting a model');
 
+  await page.getByTestId('settings-change-model-button').click();
   const targetButton = page.getByTestId('settings-model-option-gemini-native:gemma-4-31b-it');
 
   await targetButton.scrollIntoViewIfNeeded();
   await targetButton.click();
 
-  await expect(targetButton).toContainText('New chat default');
+  await expect(page.getByTestId('settings-default-model-name')).toContainText('Gemma 4 31B IT');
+  await expect(page.getByTestId('settings-default-model-badge')).toContainText('New chat default');
 
   await expect(textarea).toHaveValue('Persist this prompt while selecting a model');
 
@@ -69,6 +71,10 @@ test('editing the system prompt still persists when switching to models and sele
     .click();
 
   await expect(textarea).toHaveValue('Persist this prompt while selecting a model');
+  await expect(page.getByTestId('settings-default-model-name')).toContainText('Gemma 4 31B IT');
+  await expect(page.getByTestId('settings-default-model-badge')).toContainText('New chat default');
+
+  await page.getByTestId('settings-change-model-button').click();
   await expect(page.getByTestId('settings-model-option-gemini-native:gemma-4-31b-it')).toContainText(
     'New chat default',
   );
@@ -88,7 +94,7 @@ test('workspace settings content does not expose a horizontal scrollbar', async 
     .getByRole('button', { name: 'Settings', exact: true })
     .click();
 
-  await page.getByRole('tab', { name: 'Interface & Interaction' }).click();
+  await page.getByRole('tab', { name: 'Appearance' }).click();
 
   const settingsScroller = page.locator('main > div').first();
 

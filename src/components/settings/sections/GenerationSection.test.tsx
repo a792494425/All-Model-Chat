@@ -104,6 +104,8 @@ describe('GenerationSection', () => {
   });
 
   it('shows numeric parameter values as neutral badges instead of link-colored text', async () => {
+    useSettingsUiStore.setState({ isAdvancedModeEnabled: true });
+
     await act(async () => {
       renderer.root.render(
         <GenerationSection modelId="gemini-2.5-flash" currentSettings={baseSettings} onUpdateSetting={vi.fn()} />,
@@ -127,6 +129,7 @@ describe('GenerationSection', () => {
       );
     });
 
+    expect(renderer.container.querySelector('#top-p-slider')).toBeNull();
     expect(renderer.container.querySelector('#top-k-slider')).toBeNull();
     expect(renderer.container.textContent).not.toContain('Show Advanced Parameters');
 
@@ -134,6 +137,7 @@ describe('GenerationSection', () => {
       useSettingsUiStore.setState({ isAdvancedModeEnabled: true });
     });
 
+    expect(renderer.container.querySelector('#top-p-slider')).not.toBeNull();
     expect(renderer.container.querySelector('#top-k-slider')).not.toBeNull();
   });
 

@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import {
-  GEMINI_PROVIDER_ID,
   type AppSettings,
   type ThirdPartyApiSettings,
   type ThirdPartyConnection,
@@ -17,13 +16,13 @@ import {
   duplicateThirdPartyConnection,
   createConnectionFromTemplate,
   createConnectionId,
+  TEMPLATE_PRESETS,
 } from '@/utils/third-party/thirdPartyApiProviders';
 import { probeThirdPartyConnection, formatLatency } from '@/utils/third-party/thirdPartyDiagnostics';
 import { toastError, toastSuccess } from '@/stores/toastStore';
 import { ProviderList } from './ProviderList';
 import { ProviderDetail } from './ProviderDetail';
 import { ProviderCreateDrawer } from './ProviderCreateDrawer';
-import { GeminiProviderDetail } from './GeminiProviderDetail';
 import { useProviderUiStore } from '@/stores/providerUiStore';
 
 interface ProviderSettingsSectionProps {
@@ -49,23 +48,21 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
 
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
-  const geminiStatus = useMemo(() => {
-    const hasKey = Boolean(settings.apiKey?.trim() || settings.serverManagedApi);
-    return {
-      isConfigured: hasKey,
-      useProxy: Boolean(settings.useApiProxy && settings.apiProxyUrl),
-    };
-  }, [settings.apiKey, settings.serverManagedApi, settings.useApiProxy, settings.apiProxyUrl]);
+  const configuredTemplateIds = useMemo(() => new Set(connections.map((c) => c.templateId)), [connections]);
+  const unconfiguredPresets = useMemo(() => {
+    return TEMPLATE_PRESETS.filter((p) => !configuredTemplateIds.has(p.id));
+  }, [configuredTemplateIds]);
 
   const selectedConnectionId = useMemo(() => {
-    if (initialSelectedId) return initialSelectedId;
-    if (storedSelectedConnectionId === GEMINI_PROVIDER_ID) return GEMINI_PROVIDER_ID;
-    if (storedSelectedConnectionId?.startsWith('preset:')) return storedSelectedConnectionId;
-    if (storedSelectedConnectionId && connections.some((c) => c.id === storedSelectedConnectionId)) {
-      return storedSelectedConnectionId;
+    if (initialSelectedId && initialSelectedId !== 'gemini') return initialSelectedId;
+    if (storedSelectedConnectionId && storedSelectedConnectionId !== 'gemini') {
+      if (storedSelectedConnectionId.startsWith('preset:')) return storedSelectedConnectionId;
+      if (connections.some((c) => c.id === storedSelectedConnectionId)) {
+        return storedSelectedConnectionId;
+      }
     }
-    return connections[0]?.id || GEMINI_PROVIDER_ID;
-  }, [initialSelectedId, storedSelectedConnectionId, connections]);
+    return connections[0]?.id || (unconfiguredPresets[0] ? `preset:${unconfiguredPresets[0].id}` : null);
+  }, [initialSelectedId, storedSelectedConnectionId, connections, unconfiguredPresets]);
 
   React.useEffect(() => {
     if (initialSelectedId) {
@@ -80,19 +77,18 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
     }
   }, [selectedConnectionId, storedSelectedConnectionId, setSelectedConnectionId]);
 
-  const isGeminiSelected = selectedConnectionId === GEMINI_PROVIDER_ID;
-
   const updateThirdPartyApi = (next: ThirdPartyApiSettings) => {
     onUpdateSettings({ thirdPartyApi: next });
   };
 
   const isVirtualPreset = Boolean(selectedConnectionId && selectedConnectionId.startsWith('preset:'));
-  const virtualTemplateId = isVirtualPreset
-    ? (selectedConnectionId.replace('preset:', '') as ThirdPartyTemplateId)
-    : null;
+  const virtualTemplateId =
+    isVirtualPreset && selectedConnectionId
+      ? (selectedConnectionId.replace('preset:', '') as ThirdPartyTemplateId)
+      : null;
 
   const draftPresetConnection = useMemo<ThirdPartyConnection | null>(() => {
-    if (!virtualTemplateId) return null;
+    if (!virtualTemplateId || !selectedConnectionId) return null;
     const templateConn = createConnectionFromTemplate(virtualTemplateId, connections, selectedConnectionId);
     return {
       ...templateConn,
@@ -106,7 +102,7 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
     return connections.find((c) => c.id === selectedConnectionId) ?? null;
   }, [isVirtualPreset, draftPresetConnection, connections, selectedConnectionId]);
 
-  const isDetailVisibleOnMobile = isMobileDetailOpen && (Boolean(selectedConnection) || isGeminiSelected);
+  const isDetailVisibleOnMobile = isMobileDetailOpen && Boolean(selectedConnection);
 
   const handleSelectConnection = (id: string) => {
     setSelectedConnectionId(id);
@@ -135,15 +131,17 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
   };
 
   const handleDelete = (id: string) => {
+    const fallbackPresetId = unconfiguredPresets[0] ? `preset:${unconfiguredPresets[0].id}` : null;
     if (id.startsWith('preset:')) {
-      setSelectedConnectionId(connections[0]?.id || GEMINI_PROVIDER_ID);
+      setSelectedConnectionId(connections[0]?.id || fallbackPresetId);
       return;
     }
     const target = connections.find((c) => c.id === id);
     updateThirdPartyApi(removeThirdPartyConnection(currentSettings, id));
     if (selectedConnectionId === id) {
       const remaining = connections.filter((c) => c.id !== id);
-      setSelectedConnectionId(remaining[0]?.id ?? GEMINI_PROVIDER_ID);
+      const nextId = remaining[0]?.id || (target?.templateId ? `preset:${target.templateId}` : fallbackPresetId);
+      setSelectedConnectionId(nextId);
     }
     useProviderUiStore.getState().cleanupConnectionUi(id);
     if (target) {
@@ -219,29 +217,10 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
             onDuplicateConnection={handleDuplicate}
             onDeleteConnection={handleDelete}
             onProbeConnection={handleProbe}
-            geminiStatus={geminiStatus}
           />
         </div>
         <div className={`flex-1 min-w-0 h-full flex flex-col ${isDetailVisibleOnMobile ? 'flex' : 'hidden md:flex'}`}>
-          {isGeminiSelected ? (
-            <div className="flex-1 flex flex-col h-full min-h-0">
-              <div className="md:hidden p-2 border-b border-[var(--theme-border-secondary)]/30 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={handleBackToListOnMobile}
-                  className="flex items-center gap-1 text-xs text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]"
-                >
-                  <ChevronLeft size={14} />
-                  <span>{t('thirdPartyBackToList')}</span>
-                </button>
-              </div>
-              <GeminiProviderDetail
-                settings={settings}
-                onUpdateSettings={onUpdateSettings}
-                onCloseModal={onCloseModal}
-              />
-            </div>
-          ) : selectedConnection ? (
+          {selectedConnection ? (
             <div className="flex-1 flex flex-col h-full min-h-0">
               <div className="md:hidden p-2 border-b border-[var(--theme-border-secondary)]/30 flex-shrink-0">
                 <button

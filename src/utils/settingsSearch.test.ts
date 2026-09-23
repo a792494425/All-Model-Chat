@@ -120,24 +120,24 @@ describe('groupSettingsSearchResults', () => {
 
   it('groups above the threshold by tab in sidebar order, preserving in-group order', () => {
     const results: SettingsSearchResult[] = [
-      makeResult('api-1', 'api'),
+      makeResult('gemini-1', 'gemini'),
       makeResult('data-1', 'data'),
       makeResult('models-1', 'models'),
-      makeResult('api-2', 'api'),
+      makeResult('gemini-2', 'gemini'),
       makeResult('data-2', 'data'),
       makeResult('models-2', 'models'),
-      makeResult('api-3', 'api'),
+      makeResult('gemini-3', 'gemini'),
       makeResult('data-3', 'data'),
       makeResult('models-3', 'models'),
     ];
 
     const groups = groupSettingsSearchResults(results);
 
-    // 9 results (threshold + 1) → grouped, in sidebar order (models → interface → api → …).
-    expect(groups.map((group) => group.tab)).toEqual(['models', 'api', 'data']);
+    // 9 results (threshold + 1) → grouped, in sidebar order (gemini → models → data).
+    expect(groups.map((group) => group.tab)).toEqual(['gemini', 'models', 'data']);
     expect(groups.map((group) => group.results.map((r) => r.id))).toEqual([
+      ['gemini-1', 'gemini-2', 'gemini-3'],
       ['models-1', 'models-2', 'models-3'],
-      ['api-1', 'api-2', 'api-3'],
       ['data-1', 'data-2', 'data-3'],
     ]);
   });

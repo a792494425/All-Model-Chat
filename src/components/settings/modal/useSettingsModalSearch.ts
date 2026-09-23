@@ -7,6 +7,7 @@ import { ANCHOR_SCROLL_LOCK_MS } from '@/hooks/settings/useSettingsLogic';
 
 const ADVANCED_SETTINGS_ITEM_IDS = new Set([
   'models-advanced',
+  'models-top-p',
   'models-top-k',
   'models-max-output-tokens',
   'models-stop-sequences',

@@ -2,7 +2,6 @@ import React from 'react';
 import type { ApiMode, AppSettings, ModelOption } from '@/types';
 import { type SettingsTab } from '@/stores/settingsUiStore';
 import { getDefaultModelOptions } from '@/utils/model/defaultModelOptions';
-import { ApiConfigSection } from './sections/ApiConfigSection';
 import { AppearanceSection } from './sections/AppearanceSection';
 import { DataManagementSection } from './sections/DataManagementSection';
 import { ModelsSection } from './sections/ModelsSection';
@@ -10,6 +9,7 @@ import { McpSection } from './sections/McpSection';
 import { ShortcutsSection } from './sections/ShortcutsSection';
 import { AboutSection } from './sections/AboutSection';
 import { ProviderSettingsSection } from './sections/providers/ProviderSettingsSection';
+import { GeminiProviderDetail } from './sections/providers/GeminiProviderDetail';
 import { type SettingsTransferProps } from './settingsTypes';
 import type { LogViewerProps } from '@/components/log-viewer/LogViewer';
 import { resolveChatApiRoute } from '@/utils/chat/chatApiRoute';
@@ -121,11 +121,21 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({
   return (
     <div
       className={
-        activeTab === 'providers'
+        activeTab === 'providers' || activeTab === 'gemini' || activeTab === 'api'
           ? 'w-full h-full flex-1 flex flex-col min-h-0 overflow-hidden'
           : 'max-w-3xl mx-auto w-full'
       }
     >
+      {(activeTab === 'gemini' || activeTab === 'api') && (
+        <div className="w-full h-full flex-1 flex flex-col min-h-0 overflow-hidden">
+          <GeminiProviderDetail
+            settings={currentSettings}
+            onUpdateSettings={handleBatchUpdate}
+            onCloseModal={onCloseModal}
+          />
+        </div>
+      )}
+
       {activeTab === 'models' && (
         <div className={animClass}>
           <ModelsSection
@@ -157,24 +167,6 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({
       {activeTab === 'interface' && (
         <div className={animClass}>
           <AppearanceSection settings={currentSettings} onUpdate={updateSetting} />
-        </div>
-      )}
-
-      {activeTab === 'api' && (
-        <div className={animClass}>
-          <ApiConfigSection
-            useCustomApiConfig={currentSettings.useCustomApiConfig}
-            setUseCustomApiConfig={(useCustomApiConfig) => updateSetting('useCustomApiConfig', useCustomApiConfig)}
-            apiKey={currentSettings.apiKey}
-            setApiKey={(apiKey) => updateSetting('apiKey', apiKey)}
-            apiProxyUrl={currentSettings.apiProxyUrl}
-            setApiProxyUrl={(apiProxyUrl) => updateSetting('apiProxyUrl', apiProxyUrl)}
-            useApiProxy={currentSettings.useApiProxy ?? false}
-            setUseApiProxy={(useApiProxy) => updateSetting('useApiProxy', useApiProxy)}
-            serverManagedApi={currentSettings.serverManagedApi ?? false}
-            settings={currentSettings}
-            onUpdate={updateSetting}
-          />
         </div>
       )}
 

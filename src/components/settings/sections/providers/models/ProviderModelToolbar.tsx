@@ -1,5 +1,16 @@
 import React from 'react';
-import { ChevronsUpDown, Search, ListChecks, Activity, RefreshCw, Plus, Loader2, Square, X } from 'lucide-react';
+import {
+  ChevronsUpDown,
+  Search,
+  ListChecks,
+  Activity,
+  RefreshCw,
+  Plus,
+  RotateCcw,
+  Loader2,
+  Square,
+  X,
+} from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 
 export type ModelCapabilityTab = 'all' | 'text' | 'vision' | 'thinking' | 'image' | 'embedding' | 'audio' | 'free';
@@ -40,6 +51,7 @@ export interface ProviderModelToolbarProps {
   onSyncModels?: () => void;
   isSyncingModels?: boolean;
   onOpenAddModel: () => void;
+  onResetDefaultModels?: () => void;
 }
 
 export const ProviderModelToolbar: React.FC<ProviderModelToolbarProps> = ({
@@ -62,6 +74,7 @@ export const ProviderModelToolbar: React.FC<ProviderModelToolbarProps> = ({
   onSyncModels,
   isSyncingModels = false,
   onOpenAddModel,
+  onResetDefaultModels,
 }) => {
   const { t } = useI18n();
 
@@ -152,6 +165,18 @@ export const ProviderModelToolbar: React.FC<ProviderModelToolbarProps> = ({
                   ? t('thirdPartySyncingModels') || 'Fetching...'
                   : t('thirdPartySyncModels') || 'Fetch Models'}
               </span>
+            </button>
+          )}
+
+          {onResetDefaultModels && (
+            <button
+              type="button"
+              onClick={onResetDefaultModels}
+              disabled={isCheckingBatch}
+              className="p-1.5 rounded-xl border border-[var(--theme-border-secondary)]/70 bg-[var(--theme-bg-secondary)]/50 hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              title={t('thirdPartyResetDefaultModelsTooltip') || '恢复官方预设模型列表'}
+            >
+              <RotateCcw size={14} />
             </button>
           )}
 

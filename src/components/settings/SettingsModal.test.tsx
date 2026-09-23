@@ -2,7 +2,7 @@ import { act, type ComponentProps } from 'react';
 import { fireEvent } from '@testing-library/react';
 import { setupProviderTestRenderer as setupTestRenderer } from '@/test/render/providerRenderer';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_APP_SETTINGS, DEFAULT_CHAT_SETTINGS } from '@/constants/settingsDefaults';
+import { DEFAULT_APP_SETTINGS } from '@/constants/settingsDefaults';
 import { ensureFeatureTranslations } from '@/i18n/featureTranslations';
 import { setupStoreStateReset } from '@/test/stores/reset';
 import { useSettingsUiStore } from '@/stores/settingsUiStore';
@@ -57,7 +57,7 @@ describe('SettingsModal', () => {
     const scrollingDesktopTitle = document.querySelector('main > div h2');
 
     expect(fixedDesktopTitle).toBeNull();
-    expect(scrollingDesktopTitle?.textContent).toBe('API');
+    expect(scrollingDesktopTitle?.textContent).toBe('Google Gemini');
     expect(document.body.textContent).toContain('Test Connection');
   });
 
@@ -77,15 +77,16 @@ describe('SettingsModal', () => {
     const tabLabels = Array.from(document.querySelectorAll('[role="tab"]')).map((tab) => tab.textContent?.trim());
 
     expect(tabLabels).toEqual([
-      'Providers & APIs',
-      'Models',
+      'Google Gemini',
+      'Third-Party Providers',
+      'Chat & Generation',
       'MCP',
-      'Interface & Interaction',
-      'Data & App',
+      'Appearance',
+      'Data',
       'Shortcuts',
       'About',
     ]);
-    expect(document.body.textContent).not.toContain('Chat');
+    expect(tabLabels).not.toContain('Chat');
   });
 
   it('renders tabs directly in a flat sidebar navigation without group headers', async () => {
@@ -98,11 +99,12 @@ describe('SettingsModal', () => {
       tab.textContent?.trim(),
     );
     expect(tabs).toEqual([
-      'Providers & APIs',
-      'Models',
+      'Google Gemini',
+      'Third-Party Providers',
+      'Chat & Generation',
       'MCP',
-      'Interface & Interaction',
-      'Data & App',
+      'Appearance',
+      'Data',
       'Shortcuts',
       'About',
     ]);
@@ -119,9 +121,8 @@ describe('SettingsModal', () => {
     expect(contentClose?.className).toContain('md:inline-flex');
   });
 
-  it('routes scoped chat changes to current chat settings', async () => {
+  it('saves global settings directly without showing a scope toggle', async () => {
     const onSave = vi.fn();
-    const onSaveCurrentChatSettings = vi.fn();
 
     localStorage.setItem('chatSettingsLastTab', 'models');
     await renderSettingsModal({
@@ -129,22 +130,20 @@ describe('SettingsModal', () => {
         ...DEFAULT_APP_SETTINGS,
         modelId: 'default-model',
       },
-      currentChatSettings: {
-        ...DEFAULT_CHAT_SETTINGS,
-        modelId: 'current-model',
-      },
-      hasActiveSession: true,
       availableModels: [
-        { id: 'current-model', name: 'Current Model' },
+        { id: 'default-model', name: 'Default Model' },
         { id: 'next-chat-model', name: 'Next Chat Model' },
       ],
       onSave,
-      onSaveCurrentChatSettings,
     });
 
+    expect(document.body.textContent).not.toContain('Current Chat');
+    expect(document.body.textContent).not.toContain('New Chat Defaults');
+    expect(document.querySelector('[data-testid="settings-default-model-name"]')?.textContent).toBe('Default Model');
+
     await act(async () => {
-      Array.from(document.querySelectorAll('button'))
-        .find((button) => button.textContent === 'Current Chat')
+      document
+        .querySelector<HTMLButtonElement>('[data-testid="settings-change-model-button"]')
         ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
 
@@ -154,27 +153,7 @@ describe('SettingsModal', () => {
         ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
 
-    expect(onSaveCurrentChatSettings).toHaveBeenCalledWith(expect.objectContaining({ modelId: 'next-chat-model' }));
-    expect(onSave).not.toHaveBeenCalled();
-  });
-
-  it('shows the scope toggle only on chat-scoped settings tabs', async () => {
-    localStorage.setItem('chatSettingsLastTab', 'models');
-    await renderSettingsModal({
-      currentChatSettings: DEFAULT_CHAT_SETTINGS,
-      hasActiveSession: true,
-      onSaveCurrentChatSettings: vi.fn(),
-    });
-
-    expect(document.body.textContent).toContain('Current Chat');
-
-    await act(async () => {
-      Array.from(document.querySelectorAll('[role="tab"]'))
-        .find((tab) => tab.textContent?.includes('Interface & Interaction'))
-        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(document.body.textContent).not.toContain('Current Chat');
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ modelId: 'next-chat-model' }));
   });
 
   it('searches settings and navigates to the matching section', async () => {
@@ -375,9 +354,16 @@ describe('SettingsModal', () => {
     await renderSettingsModal();
 
     const scrollingDesktopTitle = document.querySelector('main > div h2');
-    expect(scrollingDesktopTitle?.textContent).toBe('Providers & APIs');
+    expect(scrollingDesktopTitle?.textContent).toBe('Third-Party Providers');
 
     const closeButton = document.querySelector('main button[aria-label="Close"]');
     expect(closeButton).not.toBeNull();
+  });
+
+  it('does not auto-focus the search input when opening settings', async () => {
+    await renderSettingsModal();
+
+    const searchInput = document.querySelector<HTMLInputElement>('input[aria-label="Search settings"]');
+    expect(document.activeElement).not.toBe(searchInput);
   });
 });

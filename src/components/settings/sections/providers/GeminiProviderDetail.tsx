@@ -9,6 +9,8 @@ import { useSettingsUiStore } from '@/stores/settingsUiStore';
 import { ProviderAvatar } from './ProviderAvatar';
 import { ApiConfigSection } from '@/components/settings/sections/ApiConfigSection';
 import { ProviderModelListSection } from './models/ProviderModelListSection';
+import { SafetySection } from '@/components/settings/sections/SafetySection';
+import { ConfirmationModal } from '@/components/modals/ConfirmationModal';
 import { getClient } from '@/services/api/apiClient';
 import { parseApiKeys } from '@/utils/api/apiKeySelection';
 import {
@@ -46,10 +48,18 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
   const [probingModelIds, setProbingModelIds] = useState<Set<string>>(new Set());
   const [isCheckingBatch, setIsCheckingBatch] = useState(false);
   const [batchProgress, setBatchProgress] = useState<{ completed: number; total: number } | null>(null);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const batchAbortControllerRef = useRef<AbortController | null>(null);
 
   const handleUpdateModels = (updated: ModelOption[]) => {
     useModelPreferencesStore.getState().setCustomModels(updated);
+  };
+
+  const handleConfirmResetModels = () => {
+    const defaults = getDefaultModelOptions();
+    handleUpdateModels(defaults);
+    toastSuccess(t('thirdPartyResetDefaultModelsSuccess') || '已恢复官方预设模型列表');
+    setIsResetConfirmOpen(false);
   };
 
   const handleSingleModelProbe = async (modelId: string) => {
@@ -188,6 +198,7 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
           <ProviderModelListSection
             providerId="gemini"
             providerName="Gemini"
+            protocol="gemini"
             models={effectiveModels}
             onUpdateModels={handleUpdateModels}
 
@@ -198,8 +209,34 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
             modelProbeResults={modelProbeResults}
             onStopProbe={handleStopBatchHealthCheck}
             batchProgress={batchProgress}
+            onResetDefaultModels={() => setIsResetConfirmOpen(true)}
           />
         </div>
+
+        <div
+          data-settings-item="gemini-safety"
+          className="rounded-2xl border border-[var(--theme-border-secondary)]/40 bg-[var(--theme-bg-secondary)]/10 p-5"
+        >
+          <SafetySection
+            safetySettings={settings.safetySettings}
+            setSafetySettings={(safetySettings) => onUpdateSettings({ safetySettings })}
+            showIntro={true}
+          />
+        </div>
+
+        <ConfirmationModal
+          isOpen={isResetConfirmOpen}
+          onClose={() => setIsResetConfirmOpen(false)}
+          onConfirm={handleConfirmResetModels}
+          title={t('thirdPartyResetDefaultModelsConfirmTitle') || '恢复官方预设模型列表'}
+          message={
+            t('thirdPartyResetDefaultModelsConfirmMessage') ||
+            '确定要将模型列表恢复为 Google Gemini 官方推荐预设吗？这将还原官方的 15 个核心模型及其默认可见性与能力配置，并移除您手动添加的自定义模型。'
+          }
+          confirmLabel={t('thirdPartyResetDefaultModelsConfirmTitle') || '恢复预设'}
+          cancelLabel={t('cancel') || '取消'}
+          isDanger={false}
+        />
       </div>
     </div>
   );

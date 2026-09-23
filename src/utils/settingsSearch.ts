@@ -118,5 +118,12 @@ export const groupSettingsSearchResults = (
   });
 
   // Follow sidebar tab order; preserve catalog order within each group.
-  return tabOrder.filter((tab) => byTab.has(tab)).map((tab) => ({ tab, results: byTab.get(tab)! }));
+  const orderedTabs = tabOrder.filter((tab) => byTab.has(tab));
+  for (const tab of byTab.keys()) {
+    if (!orderedTabs.includes(tab)) {
+      orderedTabs.push(tab);
+    }
+  }
+
+  return orderedTabs.map((tab) => ({ tab, results: byTab.get(tab)! }));
 };

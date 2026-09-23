@@ -58,21 +58,31 @@ export const SortableProviderItem: React.FC<SortableProviderItemProps> = ({
           {...listeners}
           onClick={(e) => e.stopPropagation()}
           className="cursor-grab active:cursor-grabbing text-[var(--theme-text-secondary)]/40 hover:text-[var(--theme-text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity p-0.5 -ml-1 focus:outline-none"
-          aria-label="Drag to reorder"
+          aria-label={t('dragToReorder')}
         >
           <GripVertical size={15} />
         </button>
 
-        <ProviderAvatar name={connection.name} templateId={connection.templateId} size={26} icon={connection.icon} />
+        <ProviderAvatar
+          name={connection.name}
+          templateId={connection.templateId}
+          size={26}
+          icon={connection.icon}
+          className={!connection.enabled ? 'grayscale opacity-75' : undefined}
+        />
 
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+        <div
+          className={`flex items-center gap-1.5 min-w-0 flex-1 transition-opacity ${
+            connection.enabled ? 'opacity-100' : 'opacity-50 group-hover:opacity-75'
+          }`}
+        >
           <span
             className={`text-sm truncate min-w-0 ${
               isSelected
                 ? 'text-[var(--theme-text-primary)] font-semibold'
                 : connection.enabled
                   ? 'text-[var(--theme-text-primary)]'
-                  : 'text-[var(--theme-text-secondary)] line-through opacity-70'
+                  : 'text-[var(--theme-text-secondary)]'
             }`}
             title={connection.name}
           >

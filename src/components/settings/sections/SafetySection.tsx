@@ -116,16 +116,72 @@ export const SafetySection: React.FC<SafetySectionProps> = ({
     [setSafetySettings],
   );
 
+  const handleSetAllOff = useCallback(() => {
+    const allOff = ALL_CATEGORIES.map((category) => ({
+      category,
+      threshold: HarmBlockThreshold.OFF,
+    }));
+    setSafetySettings(allOff);
+    const nextMap = {} as SliderValueMap;
+    ALL_CATEGORIES.forEach((cat) => {
+      nextMap[cat] = 0;
+    });
+    setSliderValues(nextMap);
+  }, [setSafetySettings]);
+
+  const handleResetDefault = useCallback(() => {
+    setSafetySettings(DEFAULT_SAFETY_SETTINGS);
+    setSliderValues(buildSliderMap(DEFAULT_SAFETY_SETTINGS));
+  }, [setSafetySettings]);
+
   return (
     <div className="space-y-6">
-      {showIntro && (
-        <div className="flex items-start gap-3 p-4 bg-[var(--theme-bg-secondary)] border border-[var(--theme-border-secondary)] rounded-xl">
-          <Shield size={24} className="text-[var(--theme-text-link)] flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-base font-semibold text-[var(--theme-text-primary)]">{t('safetyTitle')}</h3>
-            <p className="text-sm text-[var(--theme-text-secondary)] mt-1 leading-relaxed opacity-90">
-              {t('safetyDescription')}
-            </p>
+      {showIntro ? (
+        <div className="flex items-start justify-between gap-3 p-4 bg-[var(--theme-bg-secondary)] border border-[var(--theme-border-secondary)] rounded-xl">
+          <div className="flex items-start gap-3">
+            <Shield size={24} className="text-[var(--theme-text-link)] flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-base font-semibold text-[var(--theme-text-primary)]">{t('safetyTitle')}</h3>
+              <p className="text-sm text-[var(--theme-text-secondary)] mt-1 leading-relaxed opacity-90">
+                {t('safetyDescription')}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 ml-4">
+            <button
+              type="button"
+              onClick={handleSetAllOff}
+              className="px-2.5 py-1 text-xs font-medium rounded-lg border border-[var(--theme-border-secondary)] hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors cursor-pointer"
+            >
+              {t('safetySetAllOff')}
+            </button>
+            <button
+              type="button"
+              onClick={handleResetDefault}
+              className="px-2.5 py-1 text-xs font-medium rounded-lg border border-[var(--theme-border-secondary)] hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors cursor-pointer"
+            >
+              {t('safetyResetDefault')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between pb-1">
+          <span className="text-xs text-[var(--theme-text-secondary)]">{t('safetyDescription')}</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleSetAllOff}
+              className="px-2.5 py-1 text-xs font-medium rounded-lg border border-[var(--theme-border-secondary)] hover:bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors cursor-pointer"
+            >
+              {t('safetySetAllOff')}
+            </button>
+            <button
+              type="button"
+              onClick={handleResetDefault}
+              className="px-2.5 py-1 text-xs font-medium rounded-lg border border-[var(--theme-border-secondary)] hover:bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors cursor-pointer"
+            >
+              {t('safetyResetDefault')}
+            </button>
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { KeyRound, LayoutPanelLeft, SlidersHorizontal, X, Server } from 'lucide-react';
+import { KeyRound, LayoutPanelLeft, SlidersHorizontal, X, Cloud, Sparkles } from 'lucide-react';
 import { type SettingsTab, type SettingsTabDescriptor, useSettingsUiStore } from '@/stores/settingsUiStore';
 import { IconAbout, IconData, IconKeyboard, IconMcp } from '@/components/icons';
 import { Toggle } from '@/components/shared/Toggle';
@@ -9,8 +9,9 @@ import { SettingsSearchBar } from './SettingsSearchBar';
 import { interpolate } from '@/i18n/interpolate';
 
 const SETTINGS_TAB_ICONS: Record<SettingsTab, React.ElementType> = {
+  gemini: Sparkles,
+  providers: Cloud,
   models: SlidersHorizontal,
-  providers: Server,
   interface: LayoutPanelLeft,
   api: KeyRound,
   mcp: IconMcp,
@@ -36,7 +37,16 @@ interface SettingsSidebarProps {
   searchActiveOptionId?: string | null;
 }
 
-const SIDEBAR_TAB_ORDER: SettingsTab[] = ['providers', 'models', 'mcp', 'interface', 'data', 'shortcuts', 'about'];
+const SIDEBAR_TAB_ORDER: SettingsTab[] = [
+  'gemini',
+  'providers',
+  'models',
+  'mcp',
+  'interface',
+  'data',
+  'shortcuts',
+  'about',
+];
 
 export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   tabs,
@@ -67,7 +77,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
 
   const renderTabButton = (tab: SettingsTabDescriptor) => {
     const Icon = SETTINGS_TAB_ICONS[tab.id];
-    const isActive = !isSearching && (activeTab === tab.id || (activeTab === 'api' && tab.id === 'providers'));
+    const isActive = !isSearching && (activeTab === tab.id || (activeTab === 'api' && tab.id === 'gemini'));
 
     return (
       <button

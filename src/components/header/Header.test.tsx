@@ -69,9 +69,7 @@ describe('Header', () => {
       );
     });
 
-    const liveArtifactsButton = renderer.container.querySelector(
-      'button[aria-label="Enable LiveUI rendering"]',
-    );
+    const liveArtifactsButton = renderer.container.querySelector('button[aria-label="Enable LiveUI rendering"]');
 
     expect(liveArtifactsButton).not.toBeNull();
     expect(liveArtifactsButton?.className).toContain('w-9');

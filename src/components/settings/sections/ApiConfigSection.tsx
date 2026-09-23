@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { ChevronDown, ChevronRight, Server } from 'lucide-react';
+import { ChevronDown, ChevronRight, Cloud } from 'lucide-react';
 import type { AppSettings } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { DEFAULT_LIVE_ARTIFACTS_MODEL_ID } from '@/constants/modelConfiguration';
@@ -365,7 +365,7 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-start sm:items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--theme-accent-primary)]/10 text-[var(--theme-accent-primary)]">
-              <Server size={18} />
+              <Cloud size={18} />
             </div>
             <div>
               <div className="text-sm font-medium text-[var(--theme-text-primary)]">{t('settingsTabProviders')}</div>

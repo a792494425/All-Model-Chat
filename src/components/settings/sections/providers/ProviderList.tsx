@@ -2,12 +2,11 @@ import React from 'react';
 import { Plus } from 'lucide-react';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { GEMINI_PROVIDER_ID, type ThirdPartyConnection } from '@/types';
+import { type ThirdPartyConnection } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { SortableProviderItem } from './provider-list/SortableProviderItem';
 import { useProviderListLogic } from './provider-list/useProviderListLogic';
 import { ProviderListSearchAndFilter } from './provider-list/ProviderListSearchAndFilter';
-import { OfficialGeminiItem } from './provider-list/OfficialGeminiItem';
 import { UnconfiguredPresetsList } from './provider-list/UnconfiguredPresetsList';
 
 interface ProviderListProps {
@@ -20,10 +19,6 @@ interface ProviderListProps {
   onDuplicateConnection: (connection: ThirdPartyConnection) => void;
   onDeleteConnection: (id: string) => void;
   onProbeConnection: (connection: ThirdPartyConnection) => void;
-  geminiStatus?: {
-    isConfigured: boolean;
-    useProxy: boolean;
-  };
 }
 
 export const ProviderList: React.FC<ProviderListProps> = ({
@@ -36,7 +31,6 @@ export const ProviderList: React.FC<ProviderListProps> = ({
   onDuplicateConnection,
   onDeleteConnection,
   onProbeConnection,
-  geminiStatus,
 }) => {
   const { t } = useI18n();
 
@@ -53,12 +47,9 @@ export const ProviderList: React.FC<ProviderListProps> = ({
     filteredConnections,
     filteredPresets,
     handleDragEnd,
-    isGeminiMatch,
   } = useProviderListLogic({
     connections,
-    geminiStatus,
     onReorder,
-    officialProvidersText: t('thirdPartyOfficialProviders'),
   });
 
   return (
@@ -74,14 +65,6 @@ export const ProviderList: React.FC<ProviderListProps> = ({
       />
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-3">
-        {isGeminiMatch && (
-          <OfficialGeminiItem
-            isSelected={selectedConnectionId === GEMINI_PROVIDER_ID}
-            onSelect={onSelectConnection}
-            geminiStatus={geminiStatus}
-          />
-        )}
-
         <div className="space-y-1">
           <div className="flex items-center justify-between px-2 py-0.5">
             <span className="text-[10px] font-semibold tracking-wider text-[var(--theme-text-secondary)]/60 uppercase">

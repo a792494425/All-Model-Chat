@@ -18,6 +18,7 @@ import type { getCachedModelCapabilities } from '@/stores/modelCapabilitiesStore
 interface AdvancedGenerationParamsCardProps {
   modelId: string;
   isThirdPartyMode?: boolean;
+  topP: number;
   topK: number;
   maxOutputTokens?: number;
   localStopSequences: string;
@@ -38,6 +39,7 @@ interface AdvancedGenerationParamsCardProps {
 export const AdvancedGenerationParamsCard: React.FC<AdvancedGenerationParamsCardProps> = ({
   modelId,
   isThirdPartyMode = false,
+  topP,
   topK,
   maxOutputTokens,
   localStopSequences,
@@ -59,6 +61,27 @@ export const AdvancedGenerationParamsCard: React.FC<AdvancedGenerationParamsCard
   return (
     <div className={`${SETTINGS_SECTION_CARD_CLASS} space-y-5`} data-settings-item="models-advanced">
       <span className={SETTINGS_SECTION_LABEL_CLASS}>{t('settingsAdvancedParamsTitle')}</span>
+
+      <div data-settings-item="models-top-p">
+        <div className="flex items-center justify-between mb-2">
+          <label htmlFor="top-p-slider" className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}>
+            {t('settingsTopP')}
+            <Tooltip text={t('chatBehaviorTopPTooltip')}>
+              <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
+            </Tooltip>
+          </label>
+          <span className={SETTINGS_VALUE_BADGE_CLASS}>{Number(topP).toFixed(2)}</span>
+        </div>
+        <Slider
+          id="top-p-slider"
+          min={0}
+          max={1}
+          step={0.05}
+          value={topP}
+          onChange={(val) => onUpdateSetting('topP', val)}
+          ariaLabel={t('settingsTopP')}
+        />
+      </div>
 
       <div data-settings-item="models-top-k">
         <div className="flex items-center justify-between mb-2">
@@ -134,19 +157,27 @@ export const AdvancedGenerationParamsCard: React.FC<AdvancedGenerationParamsCard
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 pt-1 border-t border-[var(--theme-border-secondary)]/40">
-        <div data-settings-item="models-presence-penalty" className="space-y-2">
+        <div
+          data-settings-item="models-presence-penalty"
+          className={`space-y-2 ${!isThirdPartyMode ? 'opacity-60' : ''}`}
+        >
           <div className="flex items-center justify-between">
             <label
               htmlFor="presence-penalty-slider"
               className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}
             >
-              {t('settingsPresencePenalty')}
+              <span>{t('settingsPresencePenalty')}</span>
+              {!isThirdPartyMode && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] font-normal">
+                  {t('settingsThirdPartyOnly') || '第三方专享'}
+                </span>
+              )}
               <Tooltip text={t('settingsPresencePenaltyTooltip')}>
                 <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
               </Tooltip>
             </label>
             <span className={SETTINGS_VALUE_BADGE_CLASS}>
-              {presencePenalty !== undefined ? Number(presencePenalty).toFixed(2) : '0.00'}
+              {!isThirdPartyMode ? '-' : presencePenalty !== undefined ? Number(presencePenalty).toFixed(2) : '0.00'}
             </span>
           </div>
           <Slider
@@ -154,6 +185,7 @@ export const AdvancedGenerationParamsCard: React.FC<AdvancedGenerationParamsCard
             min={-2}
             max={2}
             step={0.1}
+            disabled={!isThirdPartyMode}
             value={presencePenalty ?? 0}
             onChange={(val) => {
               onUpdateSetting('presencePenalty', val === 0 ? undefined : val);
@@ -162,19 +194,27 @@ export const AdvancedGenerationParamsCard: React.FC<AdvancedGenerationParamsCard
           />
         </div>
 
-        <div data-settings-item="models-frequency-penalty" className="space-y-2">
+        <div
+          data-settings-item="models-frequency-penalty"
+          className={`space-y-2 ${!isThirdPartyMode ? 'opacity-60' : ''}`}
+        >
           <div className="flex items-center justify-between">
             <label
               htmlFor="frequency-penalty-slider"
               className={`${SETTINGS_SECTION_LABEL_CLASS} flex items-center gap-2`}
             >
-              {t('settingsFrequencyPenalty')}
+              <span>{t('settingsFrequencyPenalty')}</span>
+              {!isThirdPartyMode && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)] font-normal">
+                  {t('settingsThirdPartyOnly') || '第三方专享'}
+                </span>
+              )}
               <Tooltip text={t('settingsFrequencyPenaltyTooltip')}>
                 <Info size={14} className="text-[var(--theme-text-secondary)] cursor-help" strokeWidth={1.5} />
               </Tooltip>
             </label>
             <span className={SETTINGS_VALUE_BADGE_CLASS}>
-              {frequencyPenalty !== undefined ? Number(frequencyPenalty).toFixed(2) : '0.00'}
+              {!isThirdPartyMode ? '-' : frequencyPenalty !== undefined ? Number(frequencyPenalty).toFixed(2) : '0.00'}
             </span>
           </div>
           <Slider
@@ -182,6 +222,7 @@ export const AdvancedGenerationParamsCard: React.FC<AdvancedGenerationParamsCard
             min={-2}
             max={2}
             step={0.1}
+            disabled={!isThirdPartyMode}
             value={frequencyPenalty ?? 0}
             onChange={(val) => {
               onUpdateSetting('frequencyPenalty', val === 0 ? undefined : val);

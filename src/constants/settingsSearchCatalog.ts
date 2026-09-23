@@ -303,13 +303,6 @@ const modelsEntries: SettingsSearchEntry[] = [
     groupKey: 'settingsTabLanguageVoice',
   },
   {
-    id: 'models-safety',
-    tab: 'models',
-    labelKey: 'safetyTitle',
-    descriptionKey: 'safetyDescription',
-    groupKey: 'settingsTabModels',
-  },
-  {
     id: 'models-live-artifacts',
     tab: 'models',
     labelKey: 'settingsTabLiveArtifacts',
@@ -331,32 +324,39 @@ const modelsEntries: SettingsSearchEntry[] = [
   },
 ];
 
-const apiEntries: SettingsSearchEntry[] = [
+const geminiEntries: SettingsSearchEntry[] = [
   {
     id: 'api-config',
-    tab: 'api',
+    tab: 'gemini',
     labelKey: 'settingsApiConfig',
-    groupKey: 'settingsTabApi',
+    groupKey: 'settingsTabGemini',
   },
   {
     id: 'server-access-password',
-    tab: 'api',
+    tab: 'gemini',
     labelKey: 'settingsServerAccessPassword',
     descriptionKey: 'settingsServerAccessPasswordHelp',
-    groupKey: 'settingsTabApi',
+    groupKey: 'settingsTabGemini',
   },
   {
     id: 'api-provider',
-    tab: 'api',
+    tab: 'gemini',
     labelKey: 'settingsTabProviders',
     descriptionKey: 'apiThirdPartyRedirectDesc',
-    groupKey: 'settingsTabApi',
+    groupKey: 'settingsTabGemini',
   },
   {
     id: 'api-proxy',
-    tab: 'api',
+    tab: 'gemini',
     labelKey: 'settingsApiProxyLabel',
-    groupKey: 'settingsTabApi',
+    groupKey: 'settingsTabGemini',
+  },
+  {
+    id: 'gemini-safety',
+    tab: 'gemini',
+    labelKey: 'safetyTitle',
+    descriptionKey: 'safetyDescription',
+    groupKey: 'settingsTabGemini',
   },
 ];
 
@@ -531,7 +531,7 @@ const providerEntries: SettingsSearchEntry[] = [
 export const SETTINGS_SEARCH_CATALOG: SettingsSearchEntry[] = [
   ...modelsEntries,
   ...providerEntries,
-  ...apiEntries,
+  ...geminiEntries,
   ...mcpEntries,
   ...interfaceEntries,
   ...dataEntries,

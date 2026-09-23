@@ -362,6 +362,71 @@ describe('buildProviderAwareModelList', () => {
     });
     expect(result[0].missingApiKey).toBeUndefined();
   });
+
+  it('filters out base models when visibleInSelector is false and not the current session model', () => {
+    const appSettings = createAppSettings({
+      thirdPartyApi: { connections: [] },
+    });
+
+    const baseModels = [
+      { id: 'gemini-3-flash', name: 'Gemini 3 Flash' },
+      { id: 'gemini-3.1-flash-image', name: 'Nano Banana 2', visibleInSelector: false },
+    ];
+
+    const result = buildProviderAwareModelList(appSettings, baseModels, {
+      modelId: 'gemini-3-flash',
+      providerId: 'gemini',
+    });
+
+    expect(result.map((m) => m.id)).toEqual(['gemini-3-flash']);
+  });
+
+  it('keeps base model with visibleInSelector false if it is the current session model', () => {
+    const appSettings = createAppSettings({
+      thirdPartyApi: { connections: [] },
+    });
+
+    const baseModels = [
+      { id: 'gemini-3-flash', name: 'Gemini 3 Flash' },
+      { id: 'gemini-3.1-flash-image', name: 'Nano Banana 2', visibleInSelector: false },
+    ];
+
+    const result = buildProviderAwareModelList(appSettings, baseModels, {
+      modelId: 'gemini-3.1-flash-image',
+      providerId: 'gemini',
+    });
+
+    expect(result.map((m) => m.id)).toContain('gemini-3.1-flash-image');
+  });
+
+  it('filters out third-party model when visibleInSelector is false unless active in session', () => {
+    const appSettings = createAppSettings({
+      thirdPartyApi: {
+        connections: [
+          createThirdPartyConnection({
+            id: 'openai',
+            enabled: true,
+            models: [
+              { id: 'gpt-4o', name: 'GPT-4o' },
+              { id: 'o1-mini', name: 'o1 Mini', visibleInSelector: false },
+            ],
+          }),
+        ],
+      },
+    });
+
+    const withoutActive = buildProviderAwareModelList(appSettings, [], {
+      modelId: 'gpt-4o',
+      providerId: 'openai',
+    });
+    expect(withoutActive.map((m) => m.id)).toEqual(['gpt-4o']);
+
+    const withActive = buildProviderAwareModelList(appSettings, [], {
+      modelId: 'o1-mini',
+      providerId: 'openai',
+    });
+    expect(withActive.map((m) => m.id)).toContain('o1-mini');
+  });
 });
 
 describe('getThirdPartyConnectionStatus', () => {

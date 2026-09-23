@@ -80,12 +80,13 @@ export const GenerationSection: React.FC<GenerationSectionProps> = ({
         handleClearPrompt={handleClearPrompt}
       />
 
-      <BasicGenerationParamsCard temperature={temperature} topP={topP} onUpdateSetting={onUpdateSetting} />
+      <BasicGenerationParamsCard temperature={temperature} onUpdateSetting={onUpdateSetting} />
 
       {isAdvancedModeEnabled && (
         <AdvancedGenerationParamsCard
           modelId={modelId}
           isThirdPartyMode={isThirdPartyMode}
+          topP={topP}
           topK={topK}
           maxOutputTokens={maxOutputTokens}
           localStopSequences={localStopSequences}

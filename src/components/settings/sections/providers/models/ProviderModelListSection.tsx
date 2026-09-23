@@ -2,6 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { ModelOption, ThirdPartyApiProtocol, ThirdPartyTemplateId } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
+import { interpolate } from '@/i18n/interpolate';
+import { ConfirmationModal } from '@/components/modals/ConfirmationModal';
 import { toastSuccess, toastWarning } from '@/stores/toastStore';
 import { enrichModelMetadata } from '@/utils/model/knownModelsCatalog';
 import type { ConnectionHealthProbeResult } from '@/utils/third-party/thirdPartyDiagnostics';
@@ -19,7 +21,7 @@ const EMPTY_PROBE_RESULTS: Record<string, ConnectionHealthProbeResult> = {};
 export interface ProviderModelListSectionProps {
   providerId: string;
   providerName: string;
-  protocol?: ThirdPartyApiProtocol;
+  protocol?: ThirdPartyApiProtocol | 'gemini';
   templateId?: ThirdPartyTemplateId;
   models: ModelOption[];
   onUpdateModels: (updated: ModelOption[]) => void;
@@ -32,6 +34,7 @@ export interface ProviderModelListSectionProps {
   batchProgress?: { completed: number; total: number } | null;
   onSyncRemoteModels?: () => void;
   isSyncingRemoteModels?: boolean;
+  onResetDefaultModels?: () => void;
 }
 
 export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> = ({
@@ -50,6 +53,7 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
   batchProgress = null,
   onSyncRemoteModels,
   isSyncingRemoteModels = false,
+  onResetDefaultModels,
 }) => {
   const { t } = useI18n();
 
@@ -97,6 +101,9 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
     onProbeBatchModels,
   });
 
+  const [modelPendingDelete, setModelPendingDelete] = useState<ModelOption | null>(null);
+  const [isBatchDeleteConfirmOpen, setIsBatchDeleteConfirmOpen] = useState(false);
+
   const updateSingleModel = useCallback(
     (modelId: string, updates: Partial<ModelOption>) => {
       const updated = models.map((model) => (model.id === modelId ? { ...model, ...updates } : model));
@@ -113,6 +120,22 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
     },
     [models, onUpdateModels, t],
   );
+
+  const handleRequestDeleteModel = useCallback(
+    (modelId: string) => {
+      const target = models.find((m) => m.id === modelId);
+      if (target) {
+        setModelPendingDelete(target);
+      }
+    },
+    [models],
+  );
+
+  const handleConfirmDeleteSingle = useCallback(() => {
+    if (!modelPendingDelete) return;
+    deleteSingleModel(modelPendingDelete.id);
+    setModelPendingDelete(null);
+  }, [deleteSingleModel, modelPendingDelete]);
 
   const handleConfirmAddModel = useCallback(
     (trimmedId: string, trimmedName: string) => {
@@ -161,6 +184,7 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
         onSyncModels={onSyncRemoteModels}
         isSyncingModels={isSyncingRemoteModels}
         onOpenAddModel={() => setIsAddingModel(true)}
+        onResetDefaultModels={onResetDefaultModels}
       />
 
       {(isBatchMode || selectedModelIds.size > 0) && (
@@ -173,7 +197,7 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
           onInvertSelection={handleInvertSelection}
           onBatchSetVisible={handleBatchSetVisible}
           onBatchProbeSelected={handleBatchProbeSelected}
-          onBatchDelete={handleBatchDelete}
+          onBatchDelete={() => setIsBatchDeleteConfirmOpen(true)}
           onExitBatchMode={handleExitBatchMode}
           isCheckingBatch={isProbingBatch}
         />
@@ -223,11 +247,12 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
                         onToggleVisible={(id, visible) => updateSingleModel(id, { visibleInSelector: visible })}
                         onToggleThinking={(id, thinking) => updateSingleModel(id, { enableThinking: thinking })}
                         onToggleTools={(id, tools) => updateSingleModel(id, { enableTools: tools })}
+                        onTogglePin={(id, pinned) => updateSingleModel(id, { isPinned: pinned })}
                         onProbeSingle={onProbeSingleModel}
                         isProbing={probingModelIds.has(model.id)}
                         probeResult={modelProbeResults[model.id]}
                         onOpenConfig={(chosenModel) => setConfigModalModel(chosenModel)}
-                        onDelete={deleteSingleModel}
+                        onDelete={handleRequestDeleteModel}
                       />
                     ))}
                   </div>
@@ -249,6 +274,35 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
             updateSingleModel(configModalModel.id, updates);
           }
         }}
+      />
+
+      <ConfirmationModal
+        isOpen={Boolean(modelPendingDelete)}
+        onClose={() => setModelPendingDelete(null)}
+        onConfirm={handleConfirmDeleteSingle}
+        title={t('thirdPartyDeleteModelConfirmTitle') || '删除模型'}
+        message={interpolate(t('thirdPartyDeleteModelConfirmMessage'), {
+          name: modelPendingDelete?.name || modelPendingDelete?.id || '',
+        })}
+        confirmLabel={t('delete') || '删除'}
+        cancelLabel={t('cancel') || '取消'}
+        isDanger={true}
+      />
+
+      <ConfirmationModal
+        isOpen={isBatchDeleteConfirmOpen}
+        onClose={() => setIsBatchDeleteConfirmOpen(false)}
+        onConfirm={() => {
+          handleBatchDelete();
+          setIsBatchDeleteConfirmOpen(false);
+        }}
+        title={t('thirdPartyBatchDeleteModelConfirmTitle') || '批量删除模型'}
+        message={interpolate(t('thirdPartyBatchDeleteModelConfirmMessage'), {
+          count: selectedModelIds.size.toString(),
+        })}
+        confirmLabel={t('delete') || '删除'}
+        cancelLabel={t('cancel') || '取消'}
+        isDanger={true}
       />
     </div>
   );

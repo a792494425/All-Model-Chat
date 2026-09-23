@@ -85,8 +85,8 @@ describe('codebase maintainability guardrails', () => {
     expect(mainContentSource).not.toContain('buildHistorySidebarProps(');
     expect(mainContentSource).not.toContain('buildChatAreaModel(');
     expect(mainContentSource).toContain('useMainContentViewModel');
-    expect(settingsModalSource).toContain('buildSettingsForModal');
-    expect(settingsModalSource).toContain('splitScopedSettingsUpdate');
+    expect(settingsModalSource).not.toContain('buildSettingsForModal');
+    expect(settingsModalSource).not.toContain('splitScopedSettingsUpdate');
     expect(mainContentViewModelSource).toContain('buildSidePanelKey');
     expect(mainContentModelsSource).not.toContain('export const buildHistorySidebarProps =');
     expect(mainContentModelsSource).not.toContain('export const buildChatAreaModel =');

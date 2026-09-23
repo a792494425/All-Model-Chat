@@ -1,13 +1,14 @@
-export type SettingsTab = 'models' | 'providers' | 'interface' | 'api' | 'mcp' | 'data' | 'shortcuts' | 'about';
+export type SettingsTab =
+  'gemini' | 'providers' | 'models' | 'interface' | 'mcp' | 'data' | 'shortcuts' | 'about' | 'api';
 export type SettingsTabDescriptor = { id: SettingsTab; labelKey: string };
 
 /** All settings tabs in sidebar order. */
 export const SETTINGS_TABS: SettingsTab[] = [
-  'models',
+  'gemini',
   'providers',
-  'interface',
-  'api',
+  'models',
   'mcp',
+  'interface',
   'data',
   'shortcuts',
   'about',
@@ -15,8 +16,9 @@ export const SETTINGS_TABS: SettingsTab[] = [
 
 /** Localized label key for each settings tab. */
 export const SETTINGS_TAB_LABEL_KEYS: Record<SettingsTab, string> = {
-  models: 'settingsTabModels',
+  gemini: 'settingsTabGemini',
   providers: 'settingsTabProviders',
+  models: 'settingsTabModels',
   interface: 'settingsTabInterface',
   api: 'settingsTabApi',
   mcp: 'settingsTabMcp',

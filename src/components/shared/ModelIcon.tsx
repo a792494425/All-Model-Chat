@@ -206,4 +206,3 @@ export interface ModelIconProps {
 export const ModelIcon: React.FC<ModelIconProps> = ({ model }) => {
   return getModelIcon(model);
 };
-

@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { SETTINGS_INPUT_CLASS } from '@/constants/formClasses';
+import type { ThinkingLevel } from '@/types';
 
 export interface ModelConfigParametersTabProps {
   temperature: number | undefined;
@@ -24,7 +25,11 @@ export interface ModelConfigParametersTabProps {
   setReasoningEffort: (val: 'none' | 'low' | 'medium' | 'high' | undefined) => void;
   thinkingBudget: number | undefined;
   setThinkingBudget: (val: number | undefined) => void;
+  thinkingLevel?: ThinkingLevel;
+  setThinkingLevel?: (val: ThinkingLevel | undefined) => void;
   isOpenAI: boolean;
+  isGemini?: boolean;
+  isGemini3?: boolean;
 }
 
 export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> = ({
@@ -48,7 +53,11 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
   setReasoningEffort,
   thinkingBudget,
   setThinkingBudget,
+  thinkingLevel,
+  setThinkingLevel,
   isOpenAI,
+  isGemini = false,
+  isGemini3 = false,
 }) => {
   const { t } = useI18n();
 
@@ -147,7 +156,7 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
           <input
             type="number"
             min="0"
-            max="100"
+            max="128"
             step="1"
             placeholder={t('settingsDefault')}
             value={topK ?? ''}
@@ -167,15 +176,19 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             <span>
               {isOpenAI
                 ? t('settingsModelConfigReasoningEffort') || 'Reasoning Effort'
-                : t('settingsModelConfigThinkingBudget') || 'Thinking Budget Tokens'}
+                : isGemini3
+                  ? t('settingsModelConfigThinkingLevel') || 'Thinking Level'
+                  : t('settingsModelConfigThinkingBudget') || 'Thinking Budget Tokens'}
             </span>
           </div>
           <span className="text-[11px] font-mono text-[var(--theme-text-secondary)]">
             {isOpenAI
               ? (reasoningEffort ?? t('settingsModelConfigEffortDefault') ?? 'Default')
-              : thinkingBudget
-                ? `${thinkingBudget} tokens`
-                : t('settingsDefault')}
+              : isGemini3
+                ? (thinkingLevel ?? t('settingsDefault') ?? 'Default')
+                : thinkingBudget
+                  ? `${thinkingBudget} tokens`
+                  : t('settingsDefault')}
           </span>
         </div>
 
@@ -193,6 +206,33 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
                   key={String(item.id)}
                   type="button"
                   onClick={() => setReasoningEffort(item.id)}
+                  className={`py-1.5 px-2 rounded-lg border text-xs font-medium transition-colors cursor-pointer text-center ${
+                    isSelected
+                      ? 'bg-[var(--theme-border-focus)] text-white border-transparent'
+                      : 'border-[var(--theme-border-secondary)]/50 bg-[var(--theme-bg-secondary)]/40 hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)]'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        ) : isGemini3 ? (
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+            {[
+              { id: undefined, label: t('settingsDefault') || 'Default' },
+              { id: 'NONE' as const, label: t('thinkingLevelNone') || 'Off' },
+              { id: 'MINIMAL' as const, label: t('thinkingLevelMinimal') || 'Minimal' },
+              { id: 'LOW' as const, label: t('thinkingLevelLow') || 'Low' },
+              { id: 'MEDIUM' as const, label: t('thinkingLevelMedium') || 'Medium' },
+              { id: 'HIGH' as const, label: t('thinkingLevelHigh') || 'High' },
+            ].map((item) => {
+              const isSelected = thinkingLevel === item.id;
+              return (
+                <button
+                  key={String(item.id)}
+                  type="button"
+                  onClick={() => setThinkingLevel?.(item.id)}
                   className={`py-1.5 px-2 rounded-lg border text-xs font-medium transition-colors cursor-pointer text-center ${
                     isSelected
                       ? 'bg-[var(--theme-border-focus)] text-white border-transparent'
@@ -235,12 +275,19 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${isGemini ? 'opacity-50' : ''}`}>
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="font-medium text-[var(--theme-text-primary)]">{t('settingsPresencePenalty')}</label>
+            <label className="font-medium text-[var(--theme-text-primary)] flex items-center gap-1.5">
+              <span>{t('settingsPresencePenalty')}</span>
+              {isGemini && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)]">
+                  {t('settingsGeminiUnsupportedPenalty') || 'Gemini 协议不支持'}
+                </span>
+              )}
+            </label>
             <span className="font-mono text-[var(--theme-text-secondary)]">
-              {presencePenalty !== undefined ? presencePenalty.toFixed(2) : t('settingsDefault')}
+              {isGemini ? '-' : presencePenalty !== undefined ? presencePenalty.toFixed(2) : t('settingsDefault')}
             </span>
           </div>
           <input
@@ -248,17 +295,25 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             min="-2"
             max="2"
             step="0.1"
+            disabled={isGemini}
             value={presencePenalty ?? 0}
             onChange={(e) => setPresencePenalty(parseFloat(e.target.value))}
-            className="w-full accent-[var(--theme-border-focus)] cursor-pointer"
+            className="w-full accent-[var(--theme-border-focus)] cursor-pointer disabled:cursor-not-allowed"
           />
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="font-medium text-[var(--theme-text-primary)]">{t('settingsFrequencyPenalty')}</label>
+            <label className="font-medium text-[var(--theme-text-primary)] flex items-center gap-1.5">
+              <span>{t('settingsFrequencyPenalty')}</span>
+              {isGemini && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--theme-bg-secondary)] text-[var(--theme-text-secondary)]">
+                  {t('settingsGeminiUnsupportedPenalty') || 'Gemini 协议不支持'}
+                </span>
+              )}
+            </label>
             <span className="font-mono text-[var(--theme-text-secondary)]">
-              {frequencyPenalty !== undefined ? frequencyPenalty.toFixed(2) : t('settingsDefault')}
+              {isGemini ? '-' : frequencyPenalty !== undefined ? frequencyPenalty.toFixed(2) : t('settingsDefault')}
             </span>
           </div>
           <input
@@ -266,9 +321,10 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             min="-2"
             max="2"
             step="0.1"
+            disabled={isGemini}
             value={frequencyPenalty ?? 0}
             onChange={(e) => setFrequencyPenalty(parseFloat(e.target.value))}
-            className="w-full accent-[var(--theme-border-focus)] cursor-pointer"
+            className="w-full accent-[var(--theme-border-focus)] cursor-pointer disabled:cursor-not-allowed"
           />
         </div>
       </div>

@@ -300,7 +300,9 @@ export const AudioPreviewViewer = React.forwardRef<AudioPreviewViewerRef, AudioP
                     ? 'text-[var(--theme-text-primary)] bg-[var(--theme-bg-tertiary)] border border-[var(--theme-border-secondary)]'
                     : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]'
                 }`}
-                title={isLooping ? `${t('audioPlayerLoop')}: ${t('enabled')}` : `${t('audioPlayerLoop')}: ${t('disabled')}`}
+                title={
+                  isLooping ? `${t('audioPlayerLoop')}: ${t('enabled')}` : `${t('audioPlayerLoop')}: ${t('disabled')}`
+                }
                 aria-label={t('audioPlayerLoop')}
               >
                 <Repeat size={16} />

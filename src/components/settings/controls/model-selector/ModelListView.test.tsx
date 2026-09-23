@@ -117,4 +117,21 @@ describe('ModelListView', () => {
 
     expect(onSelectModel).not.toHaveBeenCalled();
   });
+
+  it('filters out models with visibleInSelector false unless currently selected', () => {
+    act(() => {
+      renderer.root.render(
+        <ModelListView
+          availableModels={[
+            { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
+            { id: 'gemini-hidden', name: 'Hidden Model', visibleInSelector: false },
+          ]}
+          selectedModelId="gemini-3-flash-preview"
+          onSelectModel={vi.fn()}
+        />,
+      );
+    });
+
+    expect(renderer.container.textContent).not.toContain('Hidden Model');
+  });
 });
