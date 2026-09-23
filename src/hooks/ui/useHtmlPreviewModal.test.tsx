@@ -629,4 +629,44 @@ describe('useHtmlPreviewModal', () => {
 
     unmount();
   });
+
+  it('extracts preview title from title tag, h1/h2 headings, or falls back to default', () => {
+    const iframeRef = { current: null } as unknown as RefObject<HTMLIFrameElement>;
+
+    const { result: withTitle } = renderHook(
+      () =>
+        useHtmlPreviewModal({
+          isOpen: true,
+          onClose: vi.fn(),
+          htmlContent: '<html><head><title>Custom Report</title></head><body>Hello</body></html>',
+          iframeRef,
+        }),
+      { attachToDocument: true, wrapper: HtmlPreviewWrapper },
+    );
+    expect(withTitle.current.getPreviewTitle()).toBe('Custom Report');
+
+    const { result: withH2 } = renderHook(
+      () =>
+        useHtmlPreviewModal({
+          isOpen: true,
+          onClose: vi.fn(),
+          htmlContent: '<div><h2>Claude Opus 5.5 Analysis</h2><p>Content</p></div>',
+          iframeRef,
+        }),
+      { attachToDocument: true, wrapper: HtmlPreviewWrapper },
+    );
+    expect(withH2.current.getPreviewTitle()).toBe('Claude Opus 5.5 Analysis');
+
+    const { result: withFallback } = renderHook(
+      () =>
+        useHtmlPreviewModal({
+          isOpen: true,
+          onClose: vi.fn(),
+          htmlContent: '<div><p>Just text without heading</p></div>',
+          iframeRef,
+        }),
+      { attachToDocument: true, wrapper: HtmlPreviewWrapper },
+    );
+    expect(withFallback.current.getPreviewTitle()).toBe('HTML Preview');
+  });
 });

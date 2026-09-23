@@ -74,7 +74,7 @@ export const whenKatexReady = (): Promise<void> => {
 // allow-same-origin for message-bubble artifacts, keeping them on an opaque
 // origin so scripted content cannot reach the parent page's origin.
 const PREVIEW_CONTENT_SECURITY_POLICY =
-  "default-src 'none'; img-src https: data: blob:; style-src 'unsafe-inline' https:; script-src 'unsafe-inline' http: https: blob:; font-src https: data:; media-src https: data: blob:; connect-src http: https: data: blob:; worker-src blob:; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
+  "default-src 'none'; img-src http: https: data: blob:; style-src 'unsafe-inline' http: https:; script-src 'unsafe-inline' http: https: blob:; font-src http: https: data:; media-src http: https: data: blob:; connect-src http: https: data: blob:; worker-src blob:; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
 const PREVIEW_CONTENT_SECURITY_POLICY_META = `<meta http-equiv="Content-Security-Policy" content="${PREVIEW_CONTENT_SECURITY_POLICY}">`;
 const PREVIEW_BASE_FONT_SIZE_ATTRIBUTE = 'data-amc-live-artifact-base-font-size';
 const PREVIEW_THEME_ATTRIBUTE = 'data-amc-live-artifact-theme';
@@ -329,7 +329,7 @@ const resolvePreviewTheme = (themeId?: string) => {
 
 const buildPreviewThemeStyle = (
   themeId?: string,
-  options: { varsOnly?: boolean; baseFontSize?: number } = {},
+  options: { varsOnly?: boolean; baseFontSize?: number; isExpanded?: boolean } = {},
 ): string => {
   const theme = resolvePreviewTheme(themeId);
   const colorScheme = theme.isDark ? 'dark' : 'light';
@@ -366,10 +366,13 @@ const buildPreviewThemeStyle = (
   const tableAndTagStyles = `table td,table th{vertical-align:top;}span[style*="border-radius"][style*="padding"]{white-space:nowrap;display:inline-block;}`;
   const scrollbarStyles = `*{scrollbar-width:thin;scrollbar-color:var(--amc-live-artifact-border) transparent;}*::-webkit-scrollbar{width:5px;height:5px;}*::-webkit-scrollbar-track{background:transparent;}*::-webkit-scrollbar-thumb{background:var(--amc-live-artifact-border);border-radius:9999px;}*::-webkit-scrollbar-thumb:hover{background:var(--amc-live-artifact-muted);}`;
   const graphvizStyles = `[data-amc-graphviz][data-amc-graphviz-state="rendered"]{cursor:zoom-in;}[data-amc-graphviz][data-amc-graphviz-state="pending"]{min-height:96px;display:flex;align-items:center;justify-content:center;background:var(--amc-live-artifact-surface-muted,rgba(0,0,0,0.03));border-radius:0.5rem;}[data-amc-graphviz][data-amc-graphviz-state="pending"]::after{content:"";width:18px;height:18px;border:2px solid var(--amc-live-artifact-border,rgba(0,0,0,0.1));border-top-color:var(--amc-live-artifact-accent,#3b82f6);border-radius:50%;animation:amc-gv-spin 0.8s linear infinite;}@keyframes amc-gv-spin{to{transform:rotate(360deg);}}`;
-  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};}html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}body{overflow-x:auto;}${overflowGuard}${tableAndTagStyles}${scrollbarStyles}${graphvizStyles}</style>`;
+  const layoutStyles = options.isExpanded
+    ? `html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}body{box-sizing:border-box;max-width:1120px;margin:0 auto!important;}@media (max-width:640px){body{padding:16px 16px 36px 16px!important;}}@media (min-width:641px){body{padding:28px 36px 56px 36px!important;}}`
+    : `html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}`;
+  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};}${layoutStyles}body{overflow-x:auto;}${overflowGuard}${tableAndTagStyles}${scrollbarStyles}${graphvizStyles}</style>`;
 };
 
-const injectPreviewTheme = (srcDoc: string, themeId?: string): string => {
+const injectPreviewTheme = (srcDoc: string, themeId?: string, options: { isExpanded?: boolean } = {}): string => {
   // Guard on the <style> ELEMENT carrying the theme marker, not the bare marker
   // string or the attribute text. A model output that merely references the
   // attribute (e.g. shows `data-amc-live-artifact-theme` in a demo) must not
@@ -383,7 +386,7 @@ const injectPreviewTheme = (srcDoc: string, themeId?: string): string => {
     return srcDoc;
   }
 
-  return injectIntoParsedDocument(parsedDocument, { headElements: [buildPreviewThemeStyle(themeId)] });
+  return injectIntoParsedDocument(parsedDocument, { headElements: [buildPreviewThemeStyle(themeId, options)] });
 };
 
 const buildPreviewBaseFontSizeStyle = (baseFontSize?: number): string => {
@@ -447,11 +450,14 @@ const injectEchartsScript = (srcDoc: string): string => {
   return injectIntoParsedDocument(parsedDocument, { headElements: [ECHARTS_SCRIPT_TAG] });
 };
 
-const prepareHtmlPreviewSrcDoc = (srcDoc: string, options: { baseFontSize?: number; themeId?: string } = {}): string =>
+const prepareHtmlPreviewSrcDoc = (
+  srcDoc: string,
+  options: { baseFontSize?: number; themeId?: string; isExpanded?: boolean } = {},
+): string =>
   injectEchartsScript(
     renderPreviewMath(
       injectPreviewBaseFontSize(
-        injectPreviewTheme(injectPreviewSecurityPolicy(srcDoc), options.themeId),
+        injectPreviewTheme(injectPreviewSecurityPolicy(srcDoc), options.themeId, { isExpanded: options.isExpanded }),
         options.baseFontSize,
       ),
     ),
@@ -486,16 +492,14 @@ const appendBridgeScriptToDocument = (parsedDocument: Document): string => {
   return `<!DOCTYPE html>${parsedDocument.documentElement.outerHTML}`;
 };
 
-type HtmlPreviewSrcDocOptions = {
+export type HtmlPreviewSrcDocOptions = {
   baseFontSize?: number;
   themeId?: string;
   privilege?: HtmlPreviewPrivilege;
+  isExpanded?: boolean;
 };
 
-const buildSanitizedHtmlPreviewSrcDoc = (
-  htmlContent: string,
-  options: { baseFontSize?: number; themeId?: string } = {},
-): string => {
+const buildSanitizedHtmlPreviewSrcDoc = (htmlContent: string, options: HtmlPreviewSrcDocOptions = {}): string => {
   if (!htmlContent) {
     const srcDoc = `<!DOCTYPE html><html><body></body></html>`;
     return prepareHtmlPreviewSrcDoc(srcDoc, options);
@@ -543,7 +547,9 @@ export const buildHtmlPreviewSrcDoc = (htmlContent: string, options: HtmlPreview
   return buildSanitizedHtmlPreviewSrcDoc(htmlContent, options);
 };
 
-export const buildStreamingHtmlPreviewSrcDoc = (options: { baseFontSize?: number; themeId?: string } = {}): string => {
+export const buildStreamingHtmlPreviewSrcDoc = (
+  options: { baseFontSize?: number; themeId?: string; isExpanded?: boolean } = {},
+): string => {
   const srcDoc = `<!DOCTYPE html><html><body><div data-amc-stream-preview-root="true"></div></body></html>`;
   const parsedDocument = parsePreviewDocument(srcDoc);
   if (!parsedDocument) {
@@ -621,6 +627,8 @@ export const createStaticPreviewSnapshotContainer = async (
     left: '0',
     top: '0',
     width: '1200px',
+    padding: '32px 36px',
+    boxSizing: 'border-box',
     transform: 'translateX(-200vw)',
     pointerEvents: 'none',
     zIndex: '-1',
@@ -697,6 +705,11 @@ export const buildStandaloneHtmlArtifact = async (
       await whenKatexReady();
       if (renderMathInDocument(parsedDocument)) {
         injectKatexStyles(parsedDocument);
+        const cdnLink = parsedDocument.createElement('link');
+        cdnLink.setAttribute('rel', 'stylesheet');
+        cdnLink.setAttribute('href', 'https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css');
+        cdnLink.setAttribute('crossorigin', 'anonymous');
+        parsedDocument.head.appendChild(cdnLink);
       }
     } catch {
       // Continue without math rendering if KaTeX unavailable
@@ -753,6 +766,7 @@ export const buildStandaloneHtmlArtifact = async (
   const themeStyle = buildPreviewThemeStyle(options.themeId, {
     varsOnly: false,
     baseFontSize: options.baseFontSize,
+    isExpanded: true,
   });
   const themeTemplate = parsedDocument.createElement('template');
   themeTemplate.innerHTML = `${themeStyle}<style>html,body{background-color:${theme.colors.bgPrimary}!important;}</style>`;

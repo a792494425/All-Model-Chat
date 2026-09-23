@@ -64,7 +64,6 @@ export const extractLiveUiSegment = (textContent: string, isStreaming: boolean):
 
 export const extractArtifactSegment = extractLiveUiSegment;
 
-
 /**
  * A model reply is often prose PLUS a bare artifact (`引导语 + <div …>`), not a
  * single artifact. `extractArtifactSegment` only fires when the artifact is the
@@ -384,4 +383,3 @@ export const findBareLiveUiRegion = (text: string, isStreaming = false): { start
 };
 
 export const findBareArtifactRegion = findBareLiveUiRegion;
-

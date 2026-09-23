@@ -8,10 +8,7 @@ export const clampLiveUiCustomFontSize = (value: number): number => {
     return 16;
   }
 
-  return Math.min(
-    LIVE_UI_CUSTOM_FONT_SIZE_MAX,
-    Math.max(LIVE_UI_CUSTOM_FONT_SIZE_MIN, Math.round(value)),
-  );
+  return Math.min(LIVE_UI_CUSTOM_FONT_SIZE_MAX, Math.max(LIVE_UI_CUSTOM_FONT_SIZE_MIN, Math.round(value)));
 };
 
 export const resolveLiveUiFontSize = (settings: Pick<AppSettings, 'liveArtifactsCustomFontSize'>): number => {

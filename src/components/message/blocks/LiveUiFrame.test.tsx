@@ -91,6 +91,15 @@ describe('LiveUiFrame', () => {
     expect(renderer.container.querySelector('button[title="Open larger preview"]')).toBeNull();
   });
 
+  it('does not render a copy source button on the artifact frame', () => {
+    act(() => {
+      renderer.root.render(<LiveUiFrame html="<section><p>Artifact text</p></section>" onOpenPreview={vi.fn()} />);
+    });
+
+    expect(renderer.container.querySelector('button[title="Copy"]')).toBeNull();
+    expect(renderer.container.querySelector('button[aria-label="Copy"]')).toBeNull();
+  });
+
   it('injects transparent Live Artifact theme tokens into static artifact documents', () => {
     act(() => {
       renderer.root.render(<LiveUiFrame html="<section><p>Artifact text</p></section>" themeId="onyx" />);
@@ -111,9 +120,7 @@ describe('LiveUiFrame', () => {
 
   it('injects the configured base font size into streaming artifact documents', () => {
     act(() => {
-      renderer.root.render(
-        <LiveUiFrame html="<section><p>Artifact text</p></section>" baseFontSize={20} isLoading />,
-      );
+      renderer.root.render(<LiveUiFrame html="<section><p>Artifact text</p></section>" baseFontSize={20} isLoading />);
     });
 
     const iframe = renderer.container.querySelector('iframe');
@@ -125,9 +132,7 @@ describe('LiveUiFrame', () => {
 
   it('injects transparent Live Artifact theme tokens into streaming artifact documents', () => {
     act(() => {
-      renderer.root.render(
-        <LiveUiFrame html="<section><p>Artifact text</p></section>" themeId="graphite" isLoading />,
-      );
+      renderer.root.render(<LiveUiFrame html="<section><p>Artifact text</p></section>" themeId="graphite" isLoading />);
     });
 
     const iframe = renderer.container.querySelector('iframe');

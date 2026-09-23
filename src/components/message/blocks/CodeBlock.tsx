@@ -14,10 +14,7 @@ import {
   isLiveArtifactLanguage,
 } from '@/utils/markdown';
 import type { LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
-import {
-  diagnoseLiveArtifactInteraction,
-  hasLiveArtifactInteractionShape,
-} from '@/utils/live-ui/liveUiInteraction';
+import { diagnoseLiveArtifactInteraction, hasLiveArtifactInteractionShape } from '@/utils/live-ui/liveUiInteraction';
 import { LiveUiInteractionFrame } from './LiveUiInteractionFrame';
 import { LiveUiInteractionDiagnostic } from './LiveUiInteractionDiagnostic';
 import { LiveUiInteractionPendingFrame } from './parts/LiveUiInteractionPendingFrame';
@@ -118,9 +115,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
   }, [diagnosis, props.cacheKey, isInteractionFence]);
 
   const isStreamingInteractionCandidate =
-    isInteractionFence &&
-    Boolean(props.isLoading) &&
-    isLikelyStreamingLiveArtifactInteractionJson(resolvedCodeText);
+    isInteractionFence && Boolean(props.isLoading) && isLikelyStreamingLiveArtifactInteractionJson(resolvedCodeText);
 
   const isLiveArtifactHtml = isLiveArtifactLanguage(sourceLanguage);
   const isHtmlLanguage = sourceLanguage === 'html' || sourceLanguage === 'htm';

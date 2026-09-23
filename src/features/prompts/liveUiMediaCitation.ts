@@ -26,7 +26,8 @@ export const buildLiveUiMediaCitationDirective = (
   activeLocateDirectives: string[] = [],
 ): string => {
   const hasDirectives = activeLocateDirectives.length > 0;
-  const isImageActive = !hasDirectives || activeLocateDirectives.some((d) => /image[- ]?locate|visual grounding/i.test(d));
+  const isImageActive =
+    !hasDirectives || activeLocateDirectives.some((d) => /image[- ]?locate|visual grounding/i.test(d));
   const isPdfActive = !hasDirectives || activeLocateDirectives.some((d) => /pdf[- ]?locate/i.test(d));
   const isVideoActive = !hasDirectives || activeLocateDirectives.some((d) => /video[- ]?locate/i.test(d));
   const isAudioActive = !hasDirectives || activeLocateDirectives.some((d) => /audio[- ]?locate/i.test(d));
@@ -111,7 +112,9 @@ export const buildLiveUiMediaCitationDirective = (
       );
     }
 
-    sections.push('客户端已内置交互监听器，用户点击卡片或按钮中的这些属性时，右侧多媒体查看器将自动联动响应（跳转页码、定位时间戳或高亮标注目标）。');
+    sections.push(
+      '客户端已内置交互监听器，用户点击卡片或按钮中的这些属性时，右侧多媒体查看器将自动联动响应（跳转页码、定位时间戳或高亮标注目标）。',
+    );
     return sections.join('\n\n');
   }
 

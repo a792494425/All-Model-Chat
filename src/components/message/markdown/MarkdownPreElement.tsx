@@ -70,7 +70,7 @@ export const MarkdownPreElement: React.FC<MarkdownPreElementProps> = ({
       messageId={messageId}
       cacheKey={cacheKey}
       className={codeClassName}
-      onOpenHtmlPreview={(payload) => handlersRef.current?.onOpenHtmlPreview(payload)}
+      onOpenHtmlPreview={(payload, options) => handlersRef.current?.onOpenHtmlPreview(payload, options)}
       onLiveArtifactFollowUp={(payload) => handlersRef.current?.onLiveArtifactFollowUp?.(payload)}
       onImageClick={(file) => handlersRef.current?.onImageClick(file)}
       expandCodeBlocksByDefault={expandCodeBlocksByDefault}

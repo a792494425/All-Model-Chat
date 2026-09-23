@@ -28,9 +28,9 @@ describe('stripLegacyFeatureMarkers', () => {
   });
 
   it('preserves user instruction when followed by legacy Live Artifacts protocol', () => {
-    expect(
-      stripLegacyFeatureMarkers('You are a financial analyst.\n\n[LiveUI Inline Protocol]\nSome rules...'),
-    ).toBe('You are a financial analyst.');
+    expect(stripLegacyFeatureMarkers('You are a financial analyst.\n\n[LiveUI Inline Protocol]\nSome rules...')).toBe(
+      'You are a financial analyst.',
+    );
   });
 
   it('preserves user instruction when followed by legacy BBox prompt', () => {

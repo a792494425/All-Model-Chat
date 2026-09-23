@@ -107,6 +107,32 @@ describe('StandardMarkdownRenderer Live Artifacts', () => {
     expect(iframe?.getAttribute('srcdoc')).toContain('Demo Artifact');
   });
 
+  it('forwards sanitized privilege and theme options when expanding a live artifact preview', () => {
+    const onOpenHtmlPreview = vi.fn();
+    const document =
+      '<!DOCTYPE html><html><head><title>Demo Artifact</title></head><body><main>Live Artifact</main></body></html>';
+
+    renderMarkdown({
+      content: `\`\`\`html\n${document}\n\`\`\``,
+      onOpenHtmlPreview,
+      themeId: 'onyx',
+      liveArtifactFontSize: 18,
+    });
+
+    const expandButton = renderer.container.querySelector('button[title="Open larger preview"]') as HTMLButtonElement;
+    expect(expandButton).not.toBeNull();
+
+    act(() => {
+      expandButton.click();
+    });
+
+    expect(onOpenHtmlPreview).toHaveBeenCalledWith(`${document}\n`, {
+      privilege: 'sanitized',
+      themeId: 'onyx',
+      baseFontSize: 18,
+    });
+  });
+
   it('renders fenced Live Artifacts that include style tags inside artifact frames', () => {
     const fragment = '<section><style>.card{color:red}</style><div class="card">Styled Live Artifact</div></section>';
 

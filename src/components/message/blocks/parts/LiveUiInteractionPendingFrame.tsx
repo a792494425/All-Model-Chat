@@ -30,4 +30,3 @@ export const LiveUiInteractionPendingFrame: React.FC<LiveUiInteractionPendingFra
 );
 
 export const LiveArtifactInteractionPendingFrame = LiveUiInteractionPendingFrame;
-

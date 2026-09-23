@@ -55,8 +55,10 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
     });
   });
   window.addEventListener('securitypolicyviolation', (event) => {
+    const directive = event.effectiveDirective || event.violatedDirective || 'CSP';
     notifyDiagnostic({
       type: 'csp-violation',
+      message: directive + ': ' + (event.blockedURI || 'blocked resource'),
       blockedURI: event.blockedURI,
       violatedDirective: event.violatedDirective,
       effectiveDirective: event.effectiveDirective,

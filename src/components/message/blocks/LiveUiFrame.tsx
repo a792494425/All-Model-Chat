@@ -1,6 +1,6 @@
 import { logService } from '@/services/logService';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Check, Copy, Maximize2 } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { useWindowContext } from '@/contexts/WindowContext';
 import { SMALL_ICON_BUTTON_CLASS } from '@/constants/buttonClasses';
@@ -411,32 +411,6 @@ export const LiveUiFrame: React.FC<LiveUiFrameProps> = ({
     return () => targetWindow.removeEventListener(LIVE_ARTIFACT_CLEAR_SELECTION_EVENT, handleClearSelection);
   }, [targetWindow]);
 
-  const [isCopied, setIsCopied] = useState(false);
-  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (copyTimerRef.current) {
-        clearTimeout(copyTimerRef.current);
-      }
-    };
-  }, []);
-
-  const handleCopySource = useCallback(() => {
-    if (!html || isCopied) return;
-    void copyTextToClipboard(html, targetWindow.document).then((success) => {
-      if (success) {
-        setIsCopied(true);
-        if (copyTimerRef.current) {
-          clearTimeout(copyTimerRef.current);
-        }
-        copyTimerRef.current = setTimeout(() => {
-          setIsCopied(false);
-        }, 2000);
-      }
-    });
-  }, [html, isCopied, targetWindow.document]);
-
   return (
     <div
       data-live-artifact-frame="true"
@@ -468,32 +442,17 @@ export const LiveUiFrame: React.FC<LiveUiFrameProps> = ({
           }}
         />
       </div>
-      {!isLoading && (
+      {!isLoading && onOpenPreview && (
         <div className="absolute right-2 top-2 z-10 flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover/artifact:opacity-100 sm:focus-visible:opacity-100 sm:group-focus-within/artifact:opacity-100">
           <button
             type="button"
             className={`${SMALL_ICON_BUTTON_CLASS} border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)]/90 shadow-sm`}
-            title={isCopied ? t('copied') : t('copy')}
-            aria-label={isCopied ? t('copied') : t('copy')}
-            onClick={handleCopySource}
+            title={t('htmlPreviewOpenLarger')}
+            aria-label={t('htmlPreviewOpenLarger')}
+            onClick={onOpenPreview}
           >
-            {isCopied ? (
-              <Check size={16} className="text-[var(--theme-text-success)] icon-animate-pop" strokeWidth={2} />
-            ) : (
-              <Copy size={16} strokeWidth={2} />
-            )}
+            <Maximize2 size={16} strokeWidth={2} />
           </button>
-          {onOpenPreview && (
-            <button
-              type="button"
-              className={`${SMALL_ICON_BUTTON_CLASS} border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)]/90 shadow-sm`}
-              title={t('htmlPreviewOpenLarger')}
-              aria-label={t('htmlPreviewOpenLarger')}
-              onClick={onOpenPreview}
-            >
-              <Maximize2 size={16} strokeWidth={2} />
-            </button>
-          )}
         </div>
       )}
     </div>

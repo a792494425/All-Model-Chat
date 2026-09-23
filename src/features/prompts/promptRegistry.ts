@@ -5,9 +5,7 @@ import type { SupportedLanguage } from '@/i18n/languageRegistry';
 
 type LiveArtifactsPromptModule = typeof import('./liveUi');
 
-export const LIVE_ARTIFACTS_PROMPT_MARKERS = [
-  '[LiveUI Inline Protocol]',
-];
+export const LIVE_ARTIFACTS_PROMPT_MARKERS = ['[LiveUI Inline Protocol]'];
 export const BBOX_PROMPT_MARKER = '**任务：** 请作为一位计算机视觉专家';
 export const HD_GUIDE_PROMPT_MARKER = '### 系统提示词：高清引导标注专家';
 export const TASK_SUGGESTION_PROMPT_MARKER = '[Task Directive';
@@ -17,7 +15,6 @@ export const isLiveArtifactsSystemInstruction = (instruction?: string | null) =>
 
 export const LIVE_UI_PROMPT_MARKERS = LIVE_ARTIFACTS_PROMPT_MARKERS;
 export const isLiveUiSystemInstruction = isLiveArtifactsSystemInstruction;
-
 
 export const isBboxSystemInstruction = (instruction?: string | null) =>
   !!instruction && instruction.includes(BBOX_PROMPT_MARKER);

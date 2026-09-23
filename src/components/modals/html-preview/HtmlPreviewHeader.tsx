@@ -83,7 +83,7 @@ export const HtmlPreviewHeader: React.FC<HtmlPreviewHeaderProps> = ({
         <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--theme-bg-tertiary)]/45 text-[var(--theme-text-tertiary)]">
           <IconHtml5 size={20} />
         </div>
-        <div className="flex flex-col min-w-0 max-w-[120px] xs:max-w-[160px] sm:max-w-[200px] md:max-w-[260px]">
+        <div className="flex flex-col min-w-0 max-w-[120px] xs:max-w-[160px] sm:max-w-[200px] md:max-w-[280px] lg:max-w-[420px] xl:max-w-[560px]">
           <h2
             id="html-preview-modal-title"
             className="text-sm font-semibold text-[var(--theme-text-primary)] truncate"

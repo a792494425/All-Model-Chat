@@ -199,6 +199,9 @@ export const HtmlPreviewModal: React.FC<HtmlPreviewModalProps> = ({
               {diagnostics.map((diag, idx) => (
                 <div key={idx} className="p-2 rounded bg-white/5 border border-white/5 text-[11px] leading-relaxed">
                   <div className="text-rose-400 font-bold">{diag.message || diag.type}</div>
+                  {diag.blockedURI && (
+                    <div className="text-neutral-400 truncate mt-0.5 font-mono">Blocked: {diag.blockedURI}</div>
+                  )}
                   {diag.source && (
                     <div className="text-neutral-400 truncate mt-0.5">
                       {diag.source}

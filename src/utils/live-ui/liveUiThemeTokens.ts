@@ -56,4 +56,3 @@ export const buildLiveArtifactThemeVars = (colors: ThemeColors): string => {
 };
 
 export const buildLiveUiThemeVars = buildLiveArtifactThemeVars;
-

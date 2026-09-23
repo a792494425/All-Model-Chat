@@ -424,11 +424,7 @@ const LiveArtifactInteractionForm: React.FC<LiveArtifactInteractionFormProps> = 
   );
 };
 
-export const LiveUiInteractionFrame: React.FC<LiveUiInteractionFrameProps> = ({
-  spec,
-  baseFontSize,
-  onFollowUp,
-}) => {
+export const LiveUiInteractionFrame: React.FC<LiveUiInteractionFrameProps> = ({ spec, baseFontSize, onFollowUp }) => {
   const specSignature = JSON.stringify(spec);
   const fields = getLiveArtifactInteractionFields(spec);
 
@@ -444,4 +440,3 @@ export const LiveUiInteractionFrame: React.FC<LiveUiInteractionFrameProps> = ({
 };
 
 export const LiveArtifactInteractionFrame = LiveUiInteractionFrame;
-

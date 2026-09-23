@@ -64,7 +64,7 @@ describe('htmlPreview utilities', () => {
     expect(srcDoc).toContain('http-equiv="Content-Security-Policy"');
     expect(srcDoc).toContain("default-src 'none'");
     expect(srcDoc).toContain("script-src 'unsafe-inline'");
-    expect(srcDoc).toContain('img-src https: data: blob:');
+    expect(srcDoc).toContain('img-src http: https: data: blob:');
     expect(srcDoc).toContain('connect-src http: https: data: blob:');
     expect(srcDoc).toContain("frame-src 'none'");
     expect(srcDoc).toContain("object-src 'none'");
@@ -78,8 +78,8 @@ describe('htmlPreview utilities', () => {
     );
 
     expect(srcDoc).toContain("script-src 'unsafe-inline' http: https: blob:");
-    expect(srcDoc).toContain("style-src 'unsafe-inline' https:");
-    expect(srcDoc).toContain('font-src https: data:');
+    expect(srcDoc).toContain("style-src 'unsafe-inline' http: https:");
+    expect(srcDoc).toContain('font-src http: https: data:');
     expect(srcDoc).toContain('connect-src http: https: data: blob:');
     expect(srcDoc).toContain('worker-src blob:');
   });
@@ -489,6 +489,21 @@ describe('htmlPreview utilities', () => {
     const srcDoc = buildHtmlPreviewSrcDoc('<section>wide</section>');
 
     expect(srcDoc).toContain('body{overflow-x:auto;}');
+  });
+
+  it('injects compact layout styles by default without outer body padding', () => {
+    const srcDoc = buildHtmlPreviewSrcDoc('<section>content</section>');
+
+    expect(srcDoc).toContain('html,body{margin:0;padding:0;');
+    expect(srcDoc).not.toContain('max-width:1120px');
+  });
+
+  it('injects comfortable reading margins and max-width canvas when isExpanded is true', () => {
+    const srcDoc = buildHtmlPreviewSrcDoc('<section>content</section>', { isExpanded: true });
+
+    expect(srcDoc).toContain('max-width:1120px;margin:0 auto!important;');
+    expect(srcDoc).toContain('padding:28px 36px 56px 36px!important;');
+    expect(srcDoc).toContain('padding:16px 16px 36px 16px!important;');
   });
 
   it('builds unrestricted code-block previews without CSP, sanitization, or theme height clamps', () => {

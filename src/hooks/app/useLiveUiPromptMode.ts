@@ -109,8 +109,8 @@ export const useLiveUiPromptMode = ({
       ? true
       : currentChatSettings.isLiveArtifactsEnabled === false
         ? false
-        : (Boolean(currentChatSettings.isVisualFormattingActive) ||
-           isConfiguredLiveArtifactsSystemInstruction(currentChatSettings.systemInstruction)),
+        : Boolean(currentChatSettings.isVisualFormattingActive) ||
+          isConfiguredLiveArtifactsSystemInstruction(currentChatSettings.systemInstruction),
   );
 
   const isLiveArtifactsPromptActive = liveArtifactsPromptOverrideActive ?? persistedLiveArtifactsPromptActive;
@@ -149,8 +149,8 @@ export const useLiveUiPromptMode = ({
         ? true
         : currentChatSettings.isLiveArtifactsEnabled === false
           ? false
-          : (Boolean(currentChatSettings.isVisualFormattingActive) ||
-             isConfiguredLiveArtifactsSystemInstruction(currentChatSettings.systemInstruction)),
+          : Boolean(currentChatSettings.isVisualFormattingActive) ||
+            isConfiguredLiveArtifactsSystemInstruction(currentChatSettings.systemInstruction),
     );
 
     if (actualActive === liveArtifactsPromptOverrideState.active) {
@@ -199,12 +199,7 @@ export const useLiveUiPromptMode = ({
     }));
 
     setPendingLiveArtifactsPromptActivation(null);
-  }, [
-    activeChat,
-    activeSessionId,
-    pendingLiveArtifactsPromptActivation,
-    setCurrentChatSettings,
-  ]);
+  }, [activeChat, activeSessionId, pendingLiveArtifactsPromptActivation, setCurrentChatSettings]);
 
   const activateLiveArtifactsPrompt = useCallback(
     async (targetSessionId: string | null) => {
@@ -314,7 +309,7 @@ export const useLiveUiPromptMode = ({
       return {
         ...prev,
         isLiveArtifactsEnabled: false,
-        systemInstruction: isLegacyPrompt ? (strippedPrompt || previousAppPrompt || '') : prev.systemInstruction,
+        systemInstruction: isLegacyPrompt ? strippedPrompt || previousAppPrompt || '' : prev.systemInstruction,
       };
     });
 
@@ -325,7 +320,7 @@ export const useLiveUiPromptMode = ({
         ...prev,
         isLiveArtifactsEnabled: false,
         isVisualFormattingActive: false,
-        systemInstruction: isLegacyPrompt ? (strippedPrompt || previousSessionPrompt || '') : prev.systemInstruction,
+        systemInstruction: isLegacyPrompt ? strippedPrompt || previousSessionPrompt || '' : prev.systemInstruction,
       };
     });
 
@@ -340,7 +335,9 @@ export const useLiveUiPromptMode = ({
               ...session.settings,
               isLiveArtifactsEnabled: false,
               isVisualFormattingActive: false,
-              systemInstruction: isLegacyPrompt ? (strippedPrompt || previousSessionPrompt || '') : session.settings.systemInstruction,
+              systemInstruction: isLegacyPrompt
+                ? strippedPrompt || previousSessionPrompt || ''
+                : session.settings.systemInstruction,
             },
           };
         }),

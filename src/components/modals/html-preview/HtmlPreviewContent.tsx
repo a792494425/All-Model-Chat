@@ -72,7 +72,12 @@ export const HtmlPreviewContent: React.FC<HtmlPreviewContentProps> = ({
   const isDeviceFramed = deviceMode === 'tablet' || deviceMode === 'mobile';
   const srcDoc = useMemo(() => {
     void katexReadyTick;
-    return buildHtmlPreviewSrcDoc(htmlContent, { privilege, themeId, baseFontSize });
+    return buildHtmlPreviewSrcDoc(htmlContent, {
+      privilege,
+      themeId,
+      baseFontSize,
+      isExpanded: true,
+    });
   }, [baseFontSize, htmlContent, katexReadyTick, privilege, themeId]);
 
   const frameInner = (

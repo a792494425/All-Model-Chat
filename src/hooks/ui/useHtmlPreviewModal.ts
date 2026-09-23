@@ -56,6 +56,9 @@ export interface HtmlPreviewDiagnostic {
   column?: number;
   url?: string;
   tagName?: string;
+  blockedURI?: string;
+  violatedDirective?: string;
+  effectiveDirective?: string;
 }
 
 const MAX_PREVIEW_CONTENT_HEIGHT = 200_000;
@@ -263,11 +266,18 @@ export const useHtmlPreviewModal = ({
   }, [isOpen, onClose, initialTrueFullscreenRequest, enterTrueFullscreen, isTrueFullscreen, targetDocument, iframeRef]);
 
   const getPreviewTitle = useCallback(() => {
-    let title = t('htmlPreviewTitle');
+    const title = t('htmlPreviewTitle');
     try {
       const titleMatch = htmlContent?.match(/<title[^>]*>([^<]+)<\/title>/i);
-      if (titleMatch && titleMatch[1]) {
-        title = titleMatch[1].trim();
+      if (titleMatch && titleMatch[1]?.trim()) {
+        return titleMatch[1].trim();
+      }
+      const headingMatch = htmlContent?.match(/<h[12][^>]*>([\s\S]+?)<\/h[12]>/i);
+      if (headingMatch && headingMatch[1]?.trim()) {
+        const stripped = headingMatch[1].replace(/<[^>]+>/g, '').trim();
+        if (stripped) {
+          return stripped;
+        }
       }
     } catch {
       // Fall back to the default preview title if parsing fails.
