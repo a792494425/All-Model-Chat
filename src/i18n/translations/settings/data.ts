@@ -37,7 +37,7 @@ const dataSettings = {
   },
   settingsDataProviders: {
     en: 'API Providers',
-    zh: 'API 供应商',
+    zh: 'API 服务商',
     ja: 'API プロバイダー',
     ko: 'API 공급자',
     es: 'Proveedores de API',
@@ -73,7 +73,7 @@ const dataSettings = {
   },
   settingsResetConfirm: {
     en: 'Are you sure you want to reset all settings to their default values? This does not affect chat history, API keys, third-party API providers, or MCP servers. Your current changes will be lost.',
-    zh: '您确定要将所有设置重置为默认值吗？这不会影响您的聊天记录、API 密钥、第三方 API 提供商配置和 MCP 服务器。您当前的更改将丢失。',
+    zh: '您确定要将所有设置重置为默认值吗？这不会影响您的聊天记录、API 密钥、第三方 API 服务商配置和 MCP 服务器。您当前的更改将丢失。',
     ja: 'すべての設定をデフォルト値にリセットしてもよろしいですか？チャット履歴、APIキー、サードパーティAPIプロバイダー、MCPサーバーには影響しません。現在の変更は失われます。',
     ko: '모든 설정을 기본값으로 초기화하시겠습니까? 채팅 기록, API 키, 타사 API 제공자 또는 MCP 서버에는 영향을 주지 않습니다. 현재 변경 사항은 손실됩니다.',
     es: '¿Seguro que quieres restablecer todos los ajustes a sus valores predeterminados? Esto no afecta al historial de chats, claves de API, proveedores de API de terceros ni servidores MCP. Se perderán los cambios actuales.',
@@ -270,13 +270,13 @@ const dataSettings = {
     de: 'Systemprotokolle zur Fehlerbehebung im lokalen Speicher behalten. Standardmäßig deaktiviert.',
   },
   logViewerLoggingDisabledHint: {
-    en: 'Logging is off. Enable it in Settings → Data & App to record new logs.',
-    zh: '日志记录当前已关闭。前往 设置 → 数据与应用 开启后才会记录新日志。',
-    ja: 'ログ記録はオフです。設定 → データとアプリで有効にすると、新しいログが記録されます。',
-    ko: '로깅이 꺼져 있습니다. 설정 → 데이터 및 앱에서 활성화하면 새 로그가 기록됩니다.',
-    es: 'El registro está desactivado. Actívalo en Ajustes → Datos y aplicación para guardar nuevos registros.',
-    fr: 'La journalisation est désactivée. Activez-la dans Paramètres → Données et application pour enregistrer de nouveaux journaux.',
-    de: 'Protokollierung ist deaktiviert. Aktiviere sie unter Einstellungen → Daten & App, um neue Protokolle aufzuzeichnen.',
+    en: 'Logging is off. Enable it in Settings → Data to record new logs.',
+    zh: '日志记录当前已关闭。前往 设置 → 数据 开启后才会记录新日志。',
+    ja: 'ログ記録はオフです。設定 → データで有効にすると、新しいログが記録されます。',
+    ko: '로깅이 꺼져 있습니다. 설정 → 데이터에서 활성화하면 새 로그가 기록됩니다.',
+    es: 'El registro está desactivado. Actívalo en Ajustes → Datos para guardar nuevos registros.',
+    fr: 'La journalisation est désactivée. Activez-la dans Paramètres → Données pour enregistrer de nouveaux journaux.',
+    de: 'Protokollierung ist deaktiviert. Aktiviere sie unter Einstellungen → Daten, um neue Protokolle aufzuzeichnen.',
   },
   settingsLocalAppData: {
     en: 'Current Local App Data',

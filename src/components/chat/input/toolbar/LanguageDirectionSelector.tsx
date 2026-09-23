@@ -63,14 +63,14 @@ export const LanguageDirectionSelector: React.FC = () => {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search…"
+                placeholder={t('search')}
                 className="flex-1 bg-transparent text-xs text-[var(--theme-text-primary)] outline-none placeholder:text-[var(--theme-text-tertiary)]"
                 autoFocus
               />
             </div>
             <div className="overflow-y-auto flex-1">
               {filtered.length === 0 && (
-                <div className="px-3 py-3 text-xs text-[var(--theme-text-tertiary)]">No matches</div>
+                <div className="px-3 py-3 text-xs text-[var(--theme-text-tertiary)]">{t('commandPaletteEmpty')}</div>
               )}
               {filtered.map((o) => (
                 <button

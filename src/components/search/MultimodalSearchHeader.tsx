@@ -71,7 +71,7 @@ export const MultimodalSearchHeader: React.FC<MultimodalSearchHeaderProps> = ({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t('close')}
           className="p-1.5 rounded-full text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors cursor-pointer"
         >
           <X size={18} />

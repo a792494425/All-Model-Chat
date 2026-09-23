@@ -78,7 +78,7 @@ export const MultimodalSearchInputBar: React.FC<MultimodalSearchInputBarProps> =
                 setSearchQuery('');
                 void executeSearch();
               }}
-              aria-label="Clear input"
+              aria-label={t('clear')}
               className="p-1 text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] rounded-full transition-colors cursor-pointer mr-1"
             >
               <X size={15} />
@@ -121,7 +121,8 @@ export const MultimodalSearchInputBar: React.FC<MultimodalSearchInputBarProps> =
             type="button"
             onClick={clearSearchImage}
             className="p-1 rounded-full text-[var(--theme-text-tertiary)] hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
-            title="Remove query image"
+            title={t('multimodalSearchRemoveImage')}
+            aria-label={t('multimodalSearchRemoveImage')}
           >
             <X size={13} />
           </button>

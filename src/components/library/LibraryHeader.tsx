@@ -43,8 +43,8 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({ onUploadFiles, onC
           <button
             onClick={onClose}
             className="p-1.5 -ml-1 rounded-full text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors"
-            title="Back"
-            aria-label="Back"
+            title={t('back')}
+            aria-label={t('back')}
           >
             <ChevronLeft size={22} strokeWidth={2.2} />
           </button>

@@ -72,7 +72,9 @@ export const CloudFilesErrorState: React.FC<CloudFilesErrorStateProps> = ({
       {showErrorDetails && (
         <div className="mt-4 p-3 w-full rounded-xl bg-[var(--theme-bg-tertiary)]/60 border border-[var(--theme-border-secondary)] text-left">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-medium text-[var(--theme-text-secondary)] font-mono">Raw error</span>
+            <span className="text-[11px] font-medium text-[var(--theme-text-secondary)] font-mono">
+              {t('cloudFilesRawError')}
+            </span>
             <button
               type="button"
               onClick={(e) => onCopyId(fetchError, e)}

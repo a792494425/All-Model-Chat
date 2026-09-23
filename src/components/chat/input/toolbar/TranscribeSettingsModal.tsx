@@ -185,7 +185,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
 
           <div className="space-y-1.5">
             <label htmlFor="transcribe-instruction" className="text-xs font-semibold text-[var(--theme-text-primary)]">
-              {t('settingsSystemPrompt')}
+              {t('transcribeSystemInstruction')}
             </label>
             <p className="text-xs text-[var(--theme-text-secondary)]">{t('transcribeSystemInstructionHelp')}</p>
             <textarea
@@ -194,7 +194,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
               onChange={(e) => setDraftInstruction(e.target.value)}
               rows={3}
               className={`w-full p-2.5 border rounded-lg text-xs leading-relaxed min-h-[72px] resize-none ${SETTINGS_INPUT_CLASS} bg-[var(--theme-bg-input)]`}
-              placeholder={t('chatBehaviorSystemPromptPlaceholder')}
+              placeholder={t('transcribeSystemInstructionPlaceholder')}
             />
           </div>
 

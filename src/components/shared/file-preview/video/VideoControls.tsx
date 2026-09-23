@@ -157,8 +157,8 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
             onSeek(Number.parseFloat(e.target.value));
           }}
           className="relative z-20 w-full h-1 group-hover/timeline:h-1.5 appearance-none bg-transparent outline-none cursor-pointer accent-white transition-all"
-          aria-label="Seek timeline"
-          title="Seek (← / →)"
+          aria-label={t('videoSeekTimeline')}
+          title={`${t('videoSeekTimeline')} (← / →)`}
         />
       </div>
 

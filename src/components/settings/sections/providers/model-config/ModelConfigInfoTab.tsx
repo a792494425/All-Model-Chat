@@ -74,7 +74,8 @@ export const ModelConfigInfoTab: React.FC<ModelConfigInfoTabProps> = ({
             type="button"
             onClick={handleCopyId}
             className="p-2 rounded-xl border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-secondary)]/40 hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors"
-            title="Copy Model ID"
+            title={t('settingsModelConfigCopyId')}
+            aria-label={t('settingsModelConfigCopyId')}
           >
             {copiedId ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
           </button>

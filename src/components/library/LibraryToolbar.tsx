@@ -165,7 +165,7 @@ export const LibraryToolbar: React.FC<LibraryToolbarProps> = ({
           <Popover open={isFilterMenuOpen} onOpenChange={setIsFilterMenuOpen}>
             <PopoverTrigger asChild>
               <button
-                aria-label="Filter"
+                aria-label={t('filter')}
                 className={`p-2 rounded-lg transition-colors cursor-pointer ${
                   hasAdvancedFilters || isFilterMenuOpen
                     ? 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-primary)]'

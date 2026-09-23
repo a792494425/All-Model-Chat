@@ -1,4 +1,5 @@
 import React, { useCallback, useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { useI18n } from '@/contexts/I18nContext';
 import {
   CHAT_DEFAULT_MIN,
   CHAT_WIDTH_PREF_KEY,
@@ -9,6 +10,7 @@ import {
 
 interface WidthHandleProps {
   side: 'left' | 'right';
+  title?: string;
   onStart: () => number;
   onDrag: (width: number) => void;
   onCommit: (width: number) => void;
@@ -126,7 +128,7 @@ const WidthHandle: React.FC<WidthHandleProps> = (props) => {
       onLostPointerCapture={onPointerCancel}
       onWheel={onWheel}
       onDoubleClick={onDoubleClick}
-      title="拖拽调节宽度，双击恢复默认"
+      title={props.title}
     />
   );
 };
@@ -136,7 +138,9 @@ export interface ChatWidthControlsProps {
 }
 
 export const ChatWidthControls: React.FC<ChatWidthControlsProps> = ({ containerRef }) => {
+  const { t } = useI18n();
   const markerRef = useRef<HTMLSpanElement>(null);
+  const handleTitle = t('chatWidthResizeHint');
 
   const getContainer = useCallback((): HTMLElement | null => {
     return containerRef?.current ?? (markerRef.current?.parentElement as HTMLElement | null);
@@ -221,8 +225,24 @@ export const ChatWidthControls: React.FC<ChatWidthControlsProps> = ({ containerR
   return (
     <>
       <span ref={markerRef} style={{ display: 'none' }} aria-hidden="true" />
-      <WidthHandle side="left" onStart={onStart} onDrag={onDrag} onCommit={onCommit} onEnd={onEnd} onReset={onReset} />
-      <WidthHandle side="right" onStart={onStart} onDrag={onDrag} onCommit={onCommit} onEnd={onEnd} onReset={onReset} />
+      <WidthHandle
+        side="left"
+        title={handleTitle}
+        onStart={onStart}
+        onDrag={onDrag}
+        onCommit={onCommit}
+        onEnd={onEnd}
+        onReset={onReset}
+      />
+      <WidthHandle
+        side="right"
+        title={handleTitle}
+        onStart={onStart}
+        onDrag={onDrag}
+        onCommit={onCommit}
+        onEnd={onEnd}
+        onReset={onReset}
+      />
     </>
   );
 };

@@ -96,6 +96,32 @@ for (const rel of translationFiles) {
         placeholderErrors.push(rel);
       }
     }
+
+    // Typography checks
+    if (zhStr.includes('...')) {
+      console.error(`ASCII ellipsis in Chinese in ${rel}: "${zhStr}"`);
+      hasError = true;
+    }
+    if (/[\u4e00-\u9fff]:/.test(zhStr)) {
+      console.error(`ASCII colon after Chinese in ${rel}: "${zhStr}"`);
+      hasError = true;
+    }
+    if (/[()]/.test(zhStr) && /[\u4e00-\u9fff]/.test(zhStr)) {
+      console.error(`ASCII parentheses in Chinese in ${rel}: "${zhStr}"`);
+      hasError = true;
+    }
+    if (jaStr.includes('...')) {
+      console.error(`ASCII ellipsis in Japanese in ${rel}: "${jaStr}"`);
+      hasError = true;
+    }
+    if (/[\u3040-\u30ff\u4e00-\u9fff]:/.test(jaStr)) {
+      console.error(`ASCII colon after Japanese in ${rel}: "${jaStr}"`);
+      hasError = true;
+    }
+    if (/[()]/.test(jaStr) && /[\u3040-\u30ff\u4e00-\u9fff]/.test(jaStr)) {
+      console.error(`ASCII parentheses in Japanese in ${rel}: "${jaStr}"`);
+      hasError = true;
+    }
   }
 
   // Fallback: if an entry doesn't match the 7-lang regex (e.g. multiline formatting

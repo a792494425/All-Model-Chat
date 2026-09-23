@@ -265,7 +265,7 @@ export const LibraryListView: React.FC<LibraryListViewProps> = ({
                 type="checkbox"
                 checked={allSelected}
                 onChange={handleMasterCheckboxChange}
-                aria-label="Select all"
+                aria-label={t('librarySelectAll')}
                 className="w-4 h-4 rounded border-[var(--theme-border-secondary)] text-[var(--theme-accent)] focus:ring-[var(--theme-border-focus)] cursor-pointer"
               />
             </th>

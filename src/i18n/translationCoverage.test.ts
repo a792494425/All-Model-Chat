@@ -6,6 +6,7 @@ import path from 'path';
 import { describe, expect, it } from 'vitest';
 import { SUPPORTED_LANGUAGES } from './languageRegistry';
 import { ensureAllFeatureTranslations, getTranslator, translations } from './translations';
+import { discoverTranslationFiles } from '../../scripts/lib/i18nFiles.mjs';
 
 const projectRoot = path.resolve(__dirname, '../..');
 
@@ -853,5 +854,29 @@ describe('translation coverage for protected UI surfaces', () => {
 
     const missingKeys = [...usedKeys].filter((key) => !(key in translations));
     expect(missingKeys).toEqual([]);
+  });
+
+  it('does not have conflicting duplicate translation keys across files', () => {
+    const translationFiles = (discoverTranslationFiles as (root: string) => string[])(projectRoot);
+    const keyDefinitions: Record<string, { file: string; en: string }[]> = {};
+    const keyRegex = /^\s*([a-zA-Z0-9_]+):\s*\{\s*\n?\s*en:\s*(['"`])((?:\\.|(?!\2).)*)\2/gm;
+
+    for (const rel of translationFiles) {
+      const full = path.join(projectRoot, rel);
+      const content = fs.readFileSync(full, 'utf8');
+      let m: RegExpExecArray | null;
+      while ((m = keyRegex.exec(content)) !== null) {
+        const k = m[1];
+        if (!keyDefinitions[k]) keyDefinitions[k] = [];
+        keyDefinitions[k].push({ file: rel, en: m[3] });
+      }
+    }
+
+    const allowedDuplicates = new Set(['settingsMcpVirtualBadge', 'settingsTitle']);
+    const duplicateOffenders = Object.entries(keyDefinitions)
+      .filter(([k, defs]) => defs.length > 1 && !allowedDuplicates.has(k))
+      .map(([k, defs]) => `${k} defined in: ${defs.map((d) => d.file).join(', ')}`);
+
+    expect(duplicateOffenders).toEqual([]);
   });
 });

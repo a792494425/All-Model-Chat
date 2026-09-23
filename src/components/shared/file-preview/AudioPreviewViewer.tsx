@@ -300,8 +300,8 @@ export const AudioPreviewViewer = React.forwardRef<AudioPreviewViewerRef, AudioP
                     ? 'text-[var(--theme-text-primary)] bg-[var(--theme-bg-tertiary)] border border-[var(--theme-border-secondary)]'
                     : 'text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)]'
                 }`}
-                title={isLooping ? 'Loop: On' : 'Loop: Off'}
-                aria-label="Loop playback"
+                title={isLooping ? `${t('audioPlayerLoop')}: ${t('enabled')}` : `${t('audioPlayerLoop')}: ${t('disabled')}`}
+                aria-label={t('audioPlayerLoop')}
               >
                 <Repeat size={16} />
               </button>
@@ -312,8 +312,8 @@ export const AudioPreviewViewer = React.forwardRef<AudioPreviewViewerRef, AudioP
                 type="button"
                 onClick={() => handleSkip(-5)}
                 className="p-2 rounded-full text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors active:scale-90"
-                title="Rewind 5s"
-                aria-label="Rewind 5 seconds"
+                title={t('audioPlayerRewind5s')}
+                aria-label={t('audioPlayerRewind5s')}
               >
                 <RotateCcw size={18} />
               </button>
@@ -336,8 +336,8 @@ export const AudioPreviewViewer = React.forwardRef<AudioPreviewViewerRef, AudioP
                 type="button"
                 onClick={() => handleSkip(5)}
                 className="p-2 rounded-full text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors active:scale-90"
-                title="Forward 5s"
-                aria-label="Forward 5 seconds"
+                title={t('audioPlayerForward5s')}
+                aria-label={t('audioPlayerForward5s')}
               >
                 <RotateCw size={18} />
               </button>
@@ -349,8 +349,8 @@ export const AudioPreviewViewer = React.forwardRef<AudioPreviewViewerRef, AudioP
                   type="button"
                   onClick={handleToggleMute}
                   className="p-1.5 rounded-lg text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors"
-                  title={isMuted ? 'Unmute' : 'Mute'}
-                  aria-label={isMuted ? 'Unmute' : 'Mute'}
+                  title={isMuted ? t('videoUnmute') : t('videoMute')}
+                  aria-label={isMuted ? t('videoUnmute') : t('videoMute')}
                 >
                   {isMuted || volume === 0 ? <VolumeX size={17} /> : <Volume2 size={17} />}
                 </button>
@@ -363,8 +363,8 @@ export const AudioPreviewViewer = React.forwardRef<AudioPreviewViewerRef, AudioP
                   value={isMuted ? 0 : volume}
                   onChange={handleVolumeChange}
                   className="w-16 h-1.5 bg-[var(--theme-border-secondary)] rounded-lg appearance-none cursor-pointer accent-neutral-900 dark:accent-neutral-100 focus:outline-none"
-                  title={`Volume: ${Math.round((isMuted ? 0 : volume) * 100)}%`}
-                  aria-label="Volume slider"
+                  title={`${t('audioPlayerVolumeSlider')}: ${Math.round((isMuted ? 0 : volume) * 100)}%`}
+                  aria-label={t('audioPlayerVolumeSlider')}
                 />
               </div>
 

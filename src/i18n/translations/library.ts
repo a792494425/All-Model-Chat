@@ -460,6 +460,15 @@ export const libraryTranslations: TranslationMap = {
     fr: 'Recherche combinée image et texte',
     de: 'Kombinierte Bild- und Textsuche',
   },
+  multimodalSearchRemoveImage: {
+    en: 'Remove query image',
+    zh: '移除检索参考图片',
+    ja: '検索画像を削除',
+    ko: '검색 이미지 제거',
+    es: 'Eliminar imagen de búsqueda',
+    fr: "Supprimer l'image de recherche",
+    de: 'Suchbild entfernen',
+  },
   multimodalSearchDropImage: {
     en: 'Drop image here to search',
     zh: '拖拽图片至此处以图搜图',
@@ -507,7 +516,7 @@ export const libraryTranslations: TranslationMap = {
   },
   multimodalSearchNoResults: {
     en: 'No matching media found. Try different keywords or update the index.',
-    zh: '未找到相关素材，尝试调整搜索描述或先更新向量索引',
+    zh: '未找到相关素材，尝试调整搜索描述或先更新向量索引。',
     ja: '一致するメディアが見つかりませんでした。キーワードを変更するかインデックスを更新してください。',
     ko: '일치하는 미디어를 찾을 수 없습니다. 키워드를 변경하거나 인덱스를 업데이트하세요.',
     es: 'No se encontraron medios coincidentes. Intenta con otras palabras o actualiza el índice.',

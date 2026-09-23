@@ -117,7 +117,7 @@ export const UrlContextModal: React.FC<UrlContextModalProps> = ({
                 <span>{interpolate(t('urlContextValidCount'), { count: validUrls.length })}</span>
                 {items.length !== validUrls.length && (
                   <span className="text-[var(--theme-text-danger)] text-[11px]">
-                    {items.length - validUrls.length} invalid
+                    {interpolate(t('urlContextInvalidCount'), { count: items.length - validUrls.length })}
                   </span>
                 )}
               </div>
