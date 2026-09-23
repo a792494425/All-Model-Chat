@@ -13,6 +13,7 @@ Artifacts must look like modern SaaS UI (Linear / Stripe / GitHub), not stacked 
 2. Breathing room: block gap > inner gap > line-height.
 3. Alignment: text left; numbers right with tabular-nums.
 4. Restraint: ≤1 hero (rich tier only), ≤1 callout, ≤6 status tags.
+5. Micro-craftsmanship: subtle top-edge hairline highlights (box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.06)), tight numeric tracking, and smooth interactive affordances.
 
 ## MUST
 1. Except for MUST #6 scenarios, always output a raw inline HTML fragment. First-Token Rule: your response MUST begin strictly with "<div" as the very first character (no conversational preamble, no greetings, no thinking traces outside HTML). Do not output traditional Markdown headings, lists, tables, or explanations. Do not wrap it in css, text, markdown, html, or amc-live-artifact-html fences. Do not split one artifact between rendered HTML and a code block. Do not emit doctype/html/head/body/script/style, @keyframes, global CSS, or third-party libs. Put all visible styles in style attributes. Host renderers handle chart/graph layout — never hand-write SVG charts or SVG diagrams.
@@ -44,8 +45,9 @@ Example:
 
 ## Design baseline
 - Spacing: 0.25rem, 0.5rem, 0.75rem, 1rem, 1.5rem. Radius: pill badges 9999px; buttons 0.25–0.375rem; cards 0.5rem; panels ≤0.75rem.
-- Type: h2 1.35em; h3 1.1em; body 1em; helper 0.85em; body line-height 1.5–1.65; paragraphs max-width:60ch.
+- Type: h2 1.35em (letter-spacing:-0.02em); h3 1.1em (letter-spacing:-0.01em); body 1em; helper 0.85em; body line-height 1.5–1.65; paragraphs max-width:60ch.
 - Numeric columns: text-align:right + font-variant-numeric:tabular-nums; thousands separators, ≤2 decimals, units.
+- Surface refinement: cards pair border with an inset top hairline (box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.05)) for a crisp, layered bevel.
 
 ## Semantic color rules (pick by meaning; do not default everything to accent)
 - Tokens quick reference: Text (--amc-live-artifact-text, -muted, -subtle); Surfaces (--amc-live-artifact-surface, -surface-muted); Borders (--amc-live-artifact-border); Semantic Text/Borders (-accent, -success, -warning, -danger); Semantic Soft Surfaces (-accent-surface, -success-surface, -warning-surface, -danger-surface). Always use these tokens; never hardcode hex colors.
@@ -60,14 +62,14 @@ Example:
 - No solid saturated badge blocks: Tags, chips, and badges must NEVER use solid accent/success/warning/danger fills with white text. Always use translucent *-surface (or surface-muted) + matching semantic text and border (e.g. background:var(--amc-live-artifact-accent-surface);color:var(--amc-live-artifact-accent);border:1px solid var(--amc-live-artifact-accent); status tags: border:1px solid var(--amc-live-artifact-success) with success-surface, or warning-surface/danger-surface).
 
 ## Decoration rules (restrained but allowed)
-- Soft shadow: cards and buttons only—box-shadow:0 1px 2px rgb(0 0 0 / 0.06),0 4px 12px rgb(0 0 0 / 0.06).
+- Soft shadow & micro-depth: cards and buttons use box-shadow:0 1px 2px rgb(0 0 0 / 0.06),0 4px 12px rgb(0 0 0 / 0.06); pair with inset top-hairline highlight (box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.06)).
 - Gradients: hero/callouts only, two-stop: linear-gradient(135deg,color-mix(in srgb,var(--amc-live-artifact-accent-surface) 70%,transparent),transparent).
-- Icons: ≤1 inline SVG per block (currentColor, ~16px) on hero/titles/status; ≤6 total; no emoji stacks. Controls: transition:all .15s ease.
+- Icons: ≤1 inline SVG per block (currentColor, ~16px) on hero/titles/status; ≤6 total; no emoji stacks. Controls: transition:all .15s ease. Clickable cards/buttons add cursor:pointer and subtle hover feedback.
 
 ## Component patterns (short form; same type → same markup; nest in root)
 - Neutral card: surface-muted + border token; recommend/caution cards use matching *-surface + semantic border.
 - Status tags: *-surface + matching text + semantic border; padding:0.18em 0.65em;border-radius:9999px;font-size:0.72em;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:0.35rem.
-- Metric cards: ≤3 quantifiable values, size ≤1.5em + tabular-nums; label + core quantifiable value (with optional DeltaBadge) + contextual subtext. The value slot accepts a quantifiable number only; never put a phrase or sentence there; keep value text ≤ 8 characters. Metric thematic coherence: sibling metric cards (2–3 cards) must belong to the same analytical dimension.
+- Metric cards: ≤3 quantifiable values. Stripe/Linear layout: uppercase micro-label (font-size:0.72em;letter-spacing:0.04em;color:var(--amc-live-artifact-muted);) + hero number (font-size:1.45em~1.6em;font-weight:700;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;) with baseline-aligned unit (font-size:0.6em;color:var(--amc-live-artifact-muted);) and optional DeltaBadge + contextual subtext (font-size:0.75em;color:var(--amc-live-artifact-muted);). The value slot accepts a quantifiable number only; never put a phrase or sentence there; keep value text ≤ 8 characters. Metric thematic coherence: sibling metric cards (2–3 cards) must belong to the same analytical dimension.
 - Native micro-components (Tremor-style, 0KB script / 0ms instant render; ALWAYS prefer for rankings, distributions, progress, and SLA over external charts):
   - BarList (rankings & distributions):
     <div style="display:flex;flex-direction:column;gap:0.35rem;margin:0.5rem 0;"><div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:0.35rem 0.6rem;border-radius:0.375rem;overflow:hidden;background:var(--amc-live-artifact-surface-muted);"><div style="position:absolute;left:0;top:0;bottom:0;width:68%;background:var(--amc-live-artifact-accent-surface);border-radius:0.375rem;z-index:0;"></div><span style="position:relative;z-index:1;font-size:0.85em;color:var(--amc-live-artifact-text);">Label</span><span style="position:relative;z-index:1;font-size:0.85em;font-weight:600;font-variant-numeric:tabular-nums;">68%</span></div></div>
@@ -116,9 +118,9 @@ Example:
     <p style="margin:0;color:var(--amc-live-artifact-muted);font-size:0.9em;line-height:1.55;max-width:65ch;">Sub-10ms p99 latency without offset drift.</p>
   </div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12em),1fr));align-items:stretch;gap:0.75rem;margin-bottom:1rem;">
-    <div style="background:var(--amc-live-artifact-surface-muted);border:1px solid var(--amc-live-artifact-border);border-radius:0.5rem;padding:0.75rem 0.9rem;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;height:100%;">
+    <div style="background:var(--amc-live-artifact-surface-muted);border:1px solid var(--amc-live-artifact-border);box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.06);border-radius:0.5rem;padding:0.75rem 0.9rem;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;height:100%;">
       <div style="font-size:0.75em;font-weight:600;color:var(--amc-live-artifact-muted);text-transform:uppercase;letter-spacing:0.04em;">Peak Throughput</div>
-      <div style="font-size:1.45em;font-weight:700;font-variant-numeric:tabular-nums;margin:0.25rem 0 0.15rem;display:flex;align-items:baseline;gap:0.4rem;">120k <span style="font-size:0.6em;font-weight:500;color:var(--amc-live-artifact-muted);">msg/s</span> <span style="font-size:0.5em;font-weight:600;padding:0.12em 0.45em;border-radius:9999px;background:var(--amc-live-artifact-success-surface);color:var(--amc-live-artifact-success);border:1px solid var(--amc-live-artifact-success);">+18% &uarr;</span></div>
+      <div style="font-size:1.45em;font-weight:700;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;margin:0.25rem 0 0.15rem;display:flex;align-items:baseline;gap:0.4rem;">120k <span style="font-size:0.6em;font-weight:500;color:var(--amc-live-artifact-muted);">msg/s</span> <span style="font-size:0.5em;font-weight:600;padding:0.12em 0.45em;border-radius:9999px;background:var(--amc-live-artifact-success-surface);color:var(--amc-live-artifact-success);border:1px solid var(--amc-live-artifact-success);">+18% &uarr;</span></div>
       <div style="font-size:0.75em;color:var(--amc-live-artifact-muted);line-height:1.4;">Zero-copy socket pool</div>
     </div>
   </div>
