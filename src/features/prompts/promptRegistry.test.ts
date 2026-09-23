@@ -465,6 +465,17 @@ describe('promptRegistry', () => {
     expect(prompt).toContain('Partition traffic distribution');
   });
 
+  it('enforces table sticky headers, text truncation defense, and archetype decoupling in LiveUI system prompt', async () => {
+    const prompt = await loadLiveArtifactsSystemPrompt();
+
+    expect(prompt).toContain('position:sticky;top:0;z-index:1');
+    expect(prompt).toContain('Text truncation defense');
+    expect(prompt).toContain('overflow:hidden;text-overflow:ellipsis;white-space:nowrap;');
+    expect(prompt).toContain('Executive Dashboard vs Deep Technical Explainer');
+    expect(prompt).toContain('STRICT BAN: never force metric KPI cards or synthetic scorecards onto conceptual/explanatory questions');
+    expect(prompt).toContain('Fake KPI dashboards on explanatory questions');
+  });
+
   it('recognizes task suggestion instruction markers', () => {
     expect(isTaskSuggestionSystemInstruction('[Task Directive - translate]\n### Bilingual Translation')).toBe(true);
     expect(isTaskSuggestionSystemInstruction('[Task Directive]')).toBe(true);
