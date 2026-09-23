@@ -6,6 +6,7 @@ dist/
 build/
 docs-site/.astro/
 docs-site/dist/
+docs/superpowers/
 
 # Environment variables
 .env
