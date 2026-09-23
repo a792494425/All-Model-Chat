@@ -6,6 +6,7 @@ import {
   buildUnrestrictedHtmlPreviewSrcDoc,
   buildStandaloneHtmlArtifact,
   createStaticPreviewSnapshotContainer,
+  balanceFourItemGrids,
   loadKatex,
   HTML_PREVIEW_DIAGNOSTIC_EVENT,
   HTML_PREVIEW_MESSAGE_CHANNEL,
@@ -209,6 +210,72 @@ describe('htmlPreview utilities', () => {
     expect(srcDoc).toContain(
       'span[style*="border-radius"][style*="padding"]{white-space:nowrap;display:inline-block;}',
     );
+  });
+
+  it('enforces 2x2 grid symmetry and injects grid symmetry guard for 4-item cards to prevent 3+1 orphan layout', () => {
+    const fourCardHtml = `
+      <section>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12em),1fr));gap:0.75rem;">
+          <div class="card">Card 1</div>
+          <div class="card">Card 2</div>
+          <div class="card">Card 3</div>
+          <div class="card">Card 4</div>
+        </div>
+      </section>
+    `;
+    const srcDoc = buildHtmlPreviewSrcDoc(fourCardHtml);
+
+    // Verifies CSS symmetry guard injection
+    expect(srcDoc).toContain(
+      ':where(div,section,article)[style*="grid"][style*="auto-fit"]:has(> :nth-child(4):last-child)',
+    );
+    expect(srcDoc).toContain('grid-template-columns:repeat(2,minmax(0,1fr))!important;');
+
+    // Verifies DOM-level normalization in the rendered body
+    expect(srcDoc).toContain('grid-template-columns:repeat(2,minmax(0,1fr))');
+    expect(srcDoc).not.toContain('repeat(auto-fit,minmax(min(100%,12em),1fr))');
+  });
+
+  it('preserves non-4 card grids and custom multi-column pipelines without unwanted rewriting', () => {
+    const threeCardHtml = `
+      <section>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12em),1fr));gap:0.75rem;">
+          <div>Card 1</div>
+          <div>Card 2</div>
+          <div>Card 3</div>
+        </div>
+      </section>
+    `;
+    const srcDocThree = buildHtmlPreviewSrcDoc(threeCardHtml);
+    expect(srcDocThree).toContain('repeat(auto-fit,minmax(min(100%,12em),1fr))');
+
+    const fourStepPipelineHtml = `
+      <section>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;">
+          <div>Step 1</div>
+          <div>Step 2</div>
+          <div>Step 3</div>
+          <div>Step 4</div>
+        </div>
+      </section>
+    `;
+    const srcDocPipeline = buildHtmlPreviewSrcDoc(fourStepPipelineHtml);
+    expect(srcDocPipeline).toContain('repeat(4,1fr)');
+  });
+
+  it('balanceFourItemGrids directly normalizes 4-item auto-fit, auto-fill, and repeat(3) grid containers', () => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(
+      `<div>
+        <div id="target" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:1rem;">
+          <div>A</div><div>B</div><div>C</div><div>D</div>
+        </div>
+      </div>`,
+      'text/html',
+    );
+    balanceFourItemGrids(doc);
+    const target = doc.getElementById('target');
+    expect(target?.getAttribute('style')).toContain('grid-template-columns:repeat(2,minmax(0,1fr))');
   });
 
   it('injects a declarative Live Artifact follow-up click bridge', () => {

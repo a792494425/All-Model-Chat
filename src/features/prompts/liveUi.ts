@@ -84,7 +84,7 @@ Example 2—multi-select with items:
 - Progress: track surface-muted; fill accent when neutral, success/warning/danger when statusful.
 - Timeline: border-left:2px solid border token.
 - Table: thead background surface-muted; cell borders border token; wrap wide tables in overflow-x:auto; td/th default to vertical-align:top; short status/tag columns must declare white-space:nowrap; recommended or default rows in comparison tables may declare subtle highlight background (e.g. success-surface/accent-surface).
-- Grid: repeat(auto-fit,minmax(min(100%,12em),1fr)); multi-card grid containers declare align-items:stretch; cards use display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;height:100% to ensure equal-height alignment. Grid symmetry: 4 items must use a balanced 2x2 grid (grid-template-columns:repeat(2,minmax(0,1fr))) or a vertical list/timeline; never produce a 3+1 orphan card layout.
+- Grid symmetry & columns: Exactly 4 items MUST use a balanced 2x2 grid (grid-template-columns:repeat(2,minmax(0,1fr))); NEVER use auto-fit for 4 items as wide screens cause 3+1 orphan card layouts. For 2, 3, or dynamic items, use repeat(auto-fit,minmax(min(100%,12em),1fr)). Multi-card grid containers declare align-items:stretch; cards use display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;height:100% to ensure equal-height alignment.
 
 ## Declarative chart DSL (data-amc-chart)
 For numeric data, use data-amc-chart with Apache ECharts Option JSON; never hand-write SVG charts.
@@ -159,7 +159,7 @@ Example (branch + lanes):
 - Keep design responsive, readable, compact; restrained colors; readable inside chat bubble; no dashboard noise. Layout serves the content, not decoration. Prefer tables/aligned rows for parallel concepts.
 
 ## Anti-patterns and replacements
-- Identical card walls (3+ stacks) or 3+1 orphan cards → balanced 2x2 grid, vertical list, or table; ban orphan cards.
+- Identical card walls (3+ stacks) or 3+1 orphan cards → exactly 4 items MUST use a balanced 2x2 grid (grid-template-columns:repeat(2,minmax(0,1fr))); ban 3+1 orphan cards.
 - Fake KPI dashboards → real quantifiable metrics ≤3, or table rows.
 - Default AI look (gray cards, heavy shadows [box-shadow], gradients, icon walls) → golden example: one focus + semantic tags.
 - All-caps headings; #, emoji in titles → sentence case, plain text titles.

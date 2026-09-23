@@ -366,10 +366,11 @@ const buildPreviewThemeStyle = (
   const tableAndTagStyles = `table td,table th{vertical-align:top;}span[style*="border-radius"][style*="padding"]{white-space:nowrap;display:inline-block;}`;
   const scrollbarStyles = `*{scrollbar-width:thin;scrollbar-color:var(--amc-live-artifact-border) transparent;}*::-webkit-scrollbar{width:5px;height:5px;}*::-webkit-scrollbar-track{background:transparent;}*::-webkit-scrollbar-thumb{background:var(--amc-live-artifact-border);border-radius:9999px;}*::-webkit-scrollbar-thumb:hover{background:var(--amc-live-artifact-muted);}`;
   const graphvizStyles = `[data-amc-graphviz][data-amc-graphviz-state="rendered"]{cursor:zoom-in;}[data-amc-graphviz][data-amc-graphviz-state="pending"]{min-height:96px;display:flex;align-items:center;justify-content:center;background:var(--amc-live-artifact-surface-muted,rgba(0,0,0,0.03));border-radius:0.5rem;}[data-amc-graphviz][data-amc-graphviz-state="pending"]::after{content:"";width:18px;height:18px;border:2px solid var(--amc-live-artifact-border,rgba(0,0,0,0.1));border-top-color:var(--amc-live-artifact-accent,#3b82f6);border-radius:50%;animation:amc-gv-spin 0.8s linear infinite;}@keyframes amc-gv-spin{to{transform:rotate(360deg);}}`;
+  const gridSymmetryStyles = `@media (min-width: 520px){:where(div,section,article)[style*="grid"][style*="auto-fit"]:has(> :nth-child(4):last-child),:where(div,section,article)[style*="grid"][style*="auto-fill"]:has(> :nth-child(4):last-child){grid-template-columns:repeat(2,minmax(0,1fr))!important;}}@media (max-width: 519px){:where(div,section,article)[style*="grid"]:has(> :nth-child(4):last-child){grid-template-columns:1fr!important;}}`;
   const layoutStyles = options.isExpanded
     ? `html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}body{box-sizing:border-box;max-width:1120px;margin:0 auto!important;}@media (max-width:640px){body{padding:16px 16px 36px 16px!important;}}@media (min-width:641px){body{padding:28px 36px 56px 36px!important;}}`
     : `html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}`;
-  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};}${layoutStyles}body{overflow-x:auto;}${overflowGuard}${tableAndTagStyles}${scrollbarStyles}${graphvizStyles}</style>`;
+  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};}${layoutStyles}body{overflow-x:auto;}${overflowGuard}${tableAndTagStyles}${scrollbarStyles}${graphvizStyles}${gridSymmetryStyles}</style>`;
 };
 
 const injectPreviewTheme = (srcDoc: string, themeId?: string, options: { isExpanded?: boolean } = {}): string => {
@@ -463,6 +464,32 @@ const prepareHtmlPreviewSrcDoc = (
     ),
   );
 
+/**
+ * Normalizes 4-item grid containers that use auto-fit/auto-fill to a balanced 2x2 grid,
+ * preventing 3+1 orphan card layouts when models ignore prompt instructions.
+ */
+export const balanceFourItemGrids = (root: ParentNode): void => {
+  root.querySelectorAll<HTMLElement>(':where(div,section,article)[style*="grid"]').forEach((element) => {
+    if (element.children.length !== 4) return;
+    const style = element.getAttribute('style') || '';
+    if (!style) return;
+    if (
+      style.includes('auto-fit') ||
+      style.includes('auto-fill') ||
+      /repeat\s*\(\s*3\s*,/i.test(style)
+    ) {
+      if (/grid-template-columns\s*:[^;]+/i.test(style)) {
+        element.setAttribute(
+          'style',
+          style.replace(/grid-template-columns\s*:[^;]+/i, 'grid-template-columns:repeat(2,minmax(0,1fr))'),
+        );
+      } else {
+        element.setAttribute('style', `${style.replace(/;?\s*$/, ';')}grid-template-columns:repeat(2,minmax(0,1fr));`);
+      }
+    }
+  });
+};
+
 export const buildStreamingHtmlPreviewRenderPayload = (htmlContent: string): string => {
   return renderPreviewMath(htmlContent);
 };
@@ -474,6 +501,7 @@ const sanitizePreviewHtml = (htmlContent: string): string => {
 
   const parsedDocument = new DOMParser().parseFromString(htmlContent, 'text/html');
   sanitizeElementTree(parsedDocument);
+  balanceFourItemGrids(parsedDocument);
   return `<!DOCTYPE html>${parsedDocument.documentElement.outerHTML}`;
 };
 
@@ -530,6 +558,7 @@ const buildUnrestrictedPreviewDocument = (htmlContent: string): string => {
     return htmlContent;
   }
 
+  balanceFourItemGrids(parsedDocument);
   return injectEchartsScript(appendBridgeScriptToDocument(parsedDocument));
 };
 
@@ -588,6 +617,7 @@ export const createStaticPreviewSnapshotContainer = async (
   if (options.sanitize !== false) {
     sanitizeElementTree(parsedDocument);
   }
+  balanceFourItemGrids(parsedDocument);
   // Sanitize any modern CSS color functions in styles, inline attributes, and SVG attributes
   // so html2canvas doesn't crash on color(), oklab(), etc.
   sanitizeDocumentStylesForPngExport(parsedDocument);
