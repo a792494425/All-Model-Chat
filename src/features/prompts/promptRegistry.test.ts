@@ -441,6 +441,16 @@ describe('promptRegistry', () => {
     expect(prompt).not.toMatch(/[\u4e00-\u9fff]/);
   });
 
+  it('enforces First-Token Rule, code block patterns, and token quick reference in Live Artifacts prompt', async () => {
+    const prompt = await loadLiveArtifactsSystemPrompt();
+
+    expect(prompt).toContain('First-Token Rule: your response MUST begin strictly with "<div"');
+    expect(prompt).toContain('Strict localization rule');
+    expect(prompt).toContain('Tokens quick reference');
+    expect(prompt).toContain('Code blocks & snippets');
+    expect(prompt).toContain('data-amc-copy');
+  });
+
   it('recognizes task suggestion instruction markers', () => {
     expect(isTaskSuggestionSystemInstruction('[Task Directive - translate]\n### Bilingual Translation')).toBe(true);
     expect(isTaskSuggestionSystemInstruction('[Task Directive]')).toBe(true);
