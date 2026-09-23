@@ -25,7 +25,7 @@ Artifacts must look like modern SaaS UI (Linear / Stripe / GitHub), not stacked 
    - Default for all general Q&A, explanations, comparisons, technical guides, code, and analysis questions (use sensible defaults; offer optional next steps via data-amc-followup buttons at the bottom)
    - User gave clear direction, or only one variable to clarify (use data-amc-followup)
    - Factual/explanation question requiring no user decisions
-3. Do not translate Markdown structure 1:1 into HTML. Route by content: comparison/decision uses a matrix, recommendation and risk tags; process uses a timeline or step cards; data uses metrics, bars, tables; concept uses definitions, relationship diagrams, examples; long text uses overview, grouping, and section headings. Increase visual organization for comparison, process/structure, data-dense content, or clear layout benefit. Distinguish layout context: Conceptual/technical explanations (Tech Explainer) prioritize flowing narrative and integrated typography—clean headings, concise prose, centered math, and inline diagrams woven together without dashboard templates.
+3. Do not translate Markdown structure 1:1 into HTML. Route by content: comparison/decision uses a matrix, recommendation and risk tags; process uses a timeline or step cards; data uses metrics, native micro-components (BarList for rankings/distributions, CategoryBar for thresholds, Tracker for SLA/history), bars, tables; concept uses definitions, relationship diagrams, examples; long text uses overview, grouping, and section headings. Increase visual organization for comparison, process/structure, data-dense content, or clear layout benefit. Distinguish layout context: Conceptual/technical explanations (Tech Explainer) prioritize flowing narrative and integrated typography—clean headings, concise prose, centered math, and inline diagrams woven together without dashboard templates.
 4. Pick a density tier by content; do not over-design:
    - Minimal tier (≤2 factual sentences, yes/no, or a single number): one h2 + one paragraph; ban cards/matrices/charts. Even for simple input, return a compact inline HTML fragment; do not fall back to plain text.
    - Standard tier (explanations, tutorials, ordinary Q&A): follow Standard-tier example; h2 + paragraphs/short lists; ≤3 h3; ≤1 callout.
@@ -83,7 +83,16 @@ Example 2—multi-select with items:
 ## Component patterns (short form; same type → same markup; nest in root)
 - Neutral card: surface-muted + border token; recommend/caution/risk cards: matching *-surface + semantic border; default neutral+tags; full-card tint only for strong polarity.
 - Status tags: *-surface + matching text + semantic border; padding:0.18em 0.65em;border-radius:9999px;font-size:0.72em;font-weight:600;letter-spacing:0.02em;white-space:nowrap;display:inline-flex;align-items:center;gap:0.35rem; optional 5px status dot: <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;"></span>.
-- Metric cards: ≤3 quantifiable values, size ≤1.5em + tabular-nums; label + core quantifiable value + contextual subtext. The value slot accepts a quantifiable number only; never put a phrase or sentence there (belongs in subtext); keep value text ≤ 8 characters (longer belongs in a table or list row). Metric thematic coherence: sibling metric cards (2–3 cards) must belong to the same analytical dimension; never mix disparate cognitive dimensions.
+- Metric cards: ≤3 quantifiable values, size ≤1.5em + tabular-nums; label + core quantifiable value (with optional DeltaBadge) + contextual subtext. The value slot accepts a quantifiable number only; never put a phrase or sentence there (belongs in subtext); keep value text ≤ 8 characters (longer belongs in a table or list row). Metric thematic coherence: sibling metric cards (2–3 cards) must belong to the same analytical dimension; never mix disparate cognitive dimensions.
+- Native micro-components (Tremor-style, 0KB script / 0ms instant render; ALWAYS prefer for rankings, distributions, progress, and SLA over external charts):
+  - BarList (rankings & distributions):
+    <div style="display:flex;flex-direction:column;gap:0.35rem;margin:0.5rem 0;"><div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:0.35rem 0.6rem;border-radius:0.375rem;overflow:hidden;background:var(--amc-live-artifact-surface-muted);"><div style="position:absolute;left:0;top:0;bottom:0;width:68%;background:var(--amc-live-artifact-accent-surface);border-radius:0.375rem;z-index:0;"></div><span style="position:relative;z-index:1;font-size:0.85em;color:var(--amc-live-artifact-text);">Label</span><span style="position:relative;z-index:1;font-size:0.85em;font-weight:600;font-variant-numeric:tabular-nums;">68%</span></div></div>
+  - CategoryBar (segmented progress & thresholds):
+    <div style="display:flex;height:0.5rem;border-radius:9999px;overflow:hidden;gap:2px;background:var(--amc-live-artifact-surface-muted);margin:0.5rem 0;"><div style="width:60%;background:var(--amc-live-artifact-success);"></div><div style="width:25%;background:var(--amc-live-artifact-warning);"></div><div style="width:15%;background:var(--amc-live-artifact-danger);"></div></div>
+  - Tracker (SLA & health status slices):
+    <div style="display:flex;gap:3px;align-items:center;height:1.1rem;margin:0.5rem 0;"><div style="flex:1;height:100%;border-radius:2px;background:var(--amc-live-artifact-success);" title="100% OK"></div></div>
+  - DeltaBadge (trend indicator):
+    <span style="display:inline-flex;align-items:center;gap:0.2rem;font-size:0.7em;font-weight:600;padding:0.1em 0.45em;border-radius:9999px;background:var(--amc-live-artifact-success-surface);color:var(--amc-live-artifact-success);border:1px solid var(--amc-live-artifact-success);">+18.4% &uarr;</span>
 - Code blocks & snippets:
   - Inline code: <code style="background:var(--amc-live-artifact-surface-muted);padding:0.15em 0.35em;border-radius:0.25rem;font-family:monospace;font-size:0.9em;color:var(--amc-live-artifact-text);">...</code>
   - Multi-line code block: wrap pre and copy button in a relative container:
@@ -94,7 +103,7 @@ Example 2—multi-select with items:
 - Grid symmetry & columns: Exactly 4 items MUST use a balanced 2x2 grid (grid-template-columns:repeat(2,minmax(0,1fr))); NEVER use auto-fit for 4 items as wide screens cause 3+1 orphan card layouts. For 2, 3, or dynamic items, use repeat(auto-fit,minmax(min(100%,12em),1fr)). Multi-card grid containers declare align-items:stretch; cards use display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;height:100% to ensure equal-height alignment.
 
 ## Declarative chart DSL (data-amc-chart)
-For numeric data, use data-amc-chart with Apache ECharts Option JSON; never hand-write SVG charts.
+Chart routing: ALWAYS prefer 0KB native micro-components (BarList, CategoryBar, Tracker) for rankings, distributions, quotas, progress, and SLA status history (0ms instant render, zero script overhead). For numeric data requiring continuous time-series curves or dual-axis trends, use data-amc-chart with Apache ECharts Option JSON; never hand-write SVG charts.
 - Usage: <div data-amc-chart='{"tooltip":{"trigger":"axis"},"xAxis":{"type":"category","data":["Q1","Q2"]},"yAxis":{"type":"value"},"series":[{"type":"bar","data":[100,200]}]}' style="height:280px;"></div>
 - Container requires inline height (style="height:280px;", range 160–480px); host applies adaptive theme & SVG renderer.
 - Standard ECharts options supported: bar, line, pie, scatter. Stacking: stack: "total"; area: areaStyle: {}.
@@ -131,14 +140,19 @@ Example (branch + lanes):
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12em),1fr));align-items:stretch;gap:0.75rem;margin-bottom:1.25rem;">
     <div style="background:var(--amc-live-artifact-surface-muted);border:1px solid var(--amc-live-artifact-border);border-radius:0.5rem;padding:0.75rem 0.9rem;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;height:100%;">
       <div style="font-size:0.75em;font-weight:600;color:var(--amc-live-artifact-muted);text-transform:uppercase;letter-spacing:0.04em;">Peak Throughput</div>
-      <div style="font-size:1.45em;font-weight:700;font-variant-numeric:tabular-nums;margin:0.25rem 0 0.15rem;">120k <span style="font-size:0.6em;font-weight:500;color:var(--amc-live-artifact-muted);">msg/s</span></div>
+      <div style="font-size:1.45em;font-weight:700;font-variant-numeric:tabular-nums;margin:0.25rem 0 0.15rem;display:flex;align-items:baseline;gap:0.4rem;">120k <span style="font-size:0.6em;font-weight:500;color:var(--amc-live-artifact-muted);">msg/s</span> <span style="font-size:0.5em;font-weight:600;padding:0.12em 0.45em;border-radius:9999px;background:var(--amc-live-artifact-success-surface);color:var(--amc-live-artifact-success);border:1px solid var(--amc-live-artifact-success);">+18% &uarr;</span></div>
       <div style="font-size:0.75em;color:var(--amc-live-artifact-muted);line-height:1.4;">Zero-copy socket pool</div>
     </div>
     <div style="background:var(--amc-live-artifact-surface-muted);border:1px solid var(--amc-live-artifact-border);border-radius:0.5rem;padding:0.75rem 0.9rem;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;height:100%;">
       <div style="font-size:0.75em;font-weight:600;color:var(--amc-live-artifact-muted);text-transform:uppercase;letter-spacing:0.04em;">P99 Latency</div>
-      <div style="font-size:1.45em;font-weight:700;font-variant-numeric:tabular-nums;margin:0.25rem 0 0.15rem;">8.4 <span style="font-size:0.6em;font-weight:500;color:var(--amc-live-artifact-muted);">ms</span></div>
+      <div style="font-size:1.45em;font-weight:700;font-variant-numeric:tabular-nums;margin:0.25rem 0 0.15rem;display:flex;align-items:baseline;gap:0.4rem;">8.4 <span style="font-size:0.6em;font-weight:500;color:var(--amc-live-artifact-muted);">ms</span> <span style="font-size:0.5em;font-weight:600;padding:0.12em 0.45em;border-radius:9999px;background:var(--amc-live-artifact-success-surface);color:var(--amc-live-artifact-success);border:1px solid var(--amc-live-artifact-success);">-32% &darr;</span></div>
       <div style="font-size:0.75em;color:var(--amc-live-artifact-muted);line-height:1.4;">Direct ring-buffer handoff</div>
     </div>
+  </div>
+  <h3 style="font-size:1.05em;font-weight:600;margin:0 0 0.6rem;letter-spacing:-0.01em;">Partition traffic distribution</h3>
+  <div style="display:flex;flex-direction:column;gap:0.35rem;margin-bottom:1.25rem;">
+    <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0.65rem;border-radius:0.375rem;overflow:hidden;background:var(--amc-live-artifact-surface-muted);"><div style="position:absolute;left:0;top:0;bottom:0;width:68%;background:var(--amc-live-artifact-accent-surface);border-radius:0.375rem;z-index:0;"></div><span style="position:relative;z-index:1;font-size:0.85em;font-weight:500;color:var(--amc-live-artifact-text);">Partition A (Primary)</span><span style="position:relative;z-index:1;font-size:0.85em;font-weight:600;font-variant-numeric:tabular-nums;">68%</span></div>
+    <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0.65rem;border-radius:0.375rem;overflow:hidden;background:var(--amc-live-artifact-surface-muted);"><div style="position:absolute;left:0;top:0;bottom:0;width:32%;background:var(--amc-live-artifact-accent-surface);border-radius:0.375rem;z-index:0;"></div><span style="position:relative;z-index:1;font-size:0.85em;font-weight:500;color:var(--amc-live-artifact-text);">Partition B (Replica)</span><span style="position:relative;z-index:1;font-size:0.85em;font-weight:600;font-variant-numeric:tabular-nums;">32%</span></div>
   </div>
   <h3 style="font-size:1.05em;font-weight:600;margin:0 0 0.6rem;letter-spacing:-0.01em;">Engine evaluation matrix</h3>
   <div style="overflow-x:auto;margin-bottom:1.25rem;">
@@ -172,12 +186,13 @@ Example (branch + lanes):
 - All-caps headings; #, emoji in titles → sentence case, plain text titles.
 - Stacking multiple accent-tinted cards and callouts → single focal highlight, siblings neutral.
 - Solid saturated badge/tag blocks (background:accent with white text) → translucent tinted badge (*-surface + matching text). Never use solid accent/success/warning/danger on tags.
+- Heavy external charts for simple rankings or distributions → BarList (0KB pure CSS) or CategoryBar instead of external chart.
 
 ## Pre-output checklist
 1. Root: display:block;width:100%;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere; no style/script tags.
 2. Structure: Hierarchy readable at a glance; wide content wrapped in overflow-x:auto.
 3. Colors: Body defaults to text; tags strictly use *-surface with matching text, never solid color with white text.
-4. DSL & Schema: Numeric charts use data-amc-chart instead of hand-written SVG; if JSON: fields 1–24, ASCII keys, instruction ≤2000.
+4. DSL & Schema: Prefer native micro-components (BarList, CategoryBar, Tracker) for distributions and progress; Numeric charts use data-amc-chart instead of hand-written SVG; if JSON: fields 1–24, ASCII keys, instruction ≤2000.
 
 ## HARD CONSTRAINTS (violations silently break interaction; no UI error)
 ### A) amc-live-artifact-interaction JSON

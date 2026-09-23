@@ -79,8 +79,8 @@ describe('promptRegistry', () => {
     const prompt = await loadLiveArtifactsSystemPrompt();
 
     // Protocol + aesthetics + golden examples + semantic colors + chart DSL +
-    // graphviz DSL + aesthetic guardrails; cap growth so it stays operational.
-    expect(prompt.length).toBeLessThan(27000);
+    // graphviz DSL + native micro-components; cap growth so it stays operational.
+    expect(prompt.length).toBeLessThan(33000);
     expect(prompt).not.toContain('Information Design Principles');
     expect(prompt).not.toContain('Full HTML Page Capabilities');
   });
@@ -449,6 +449,20 @@ describe('promptRegistry', () => {
     expect(prompt).toContain('Tokens quick reference');
     expect(prompt).toContain('Code blocks & snippets');
     expect(prompt).toContain('data-amc-copy');
+  });
+
+  it('teaches Tremor-style native micro-components in LiveUI system prompt', async () => {
+    const prompt = await loadLiveArtifactsSystemPrompt();
+
+    expect(prompt).toContain('Native micro-components (Tremor-style');
+    expect(prompt).toContain('BarList');
+    expect(prompt).toContain('CategoryBar');
+    expect(prompt).toContain('Tracker');
+    expect(prompt).toContain('DeltaBadge');
+    expect(prompt).toContain('rankings & distributions');
+    expect(prompt).toContain('segmented progress & thresholds');
+    expect(prompt).toContain('SLA & health status slices');
+    expect(prompt).toContain('Partition traffic distribution');
   });
 
   it('recognizes task suggestion instruction markers', () => {
