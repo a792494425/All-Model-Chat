@@ -735,10 +735,19 @@ describe('htmlPreview utilities', () => {
       expect(srcDoc).not.toContain('/vendor/echarts.min.js');
     });
 
-    it('injects echarts vendor script into streaming preview documents', () => {
+    it('does not eagerly inject echarts vendor script into empty streaming preview documents', () => {
       const srcDoc = buildStreamingHtmlPreviewSrcDoc();
 
-      expect(srcDoc).toContain('/vendor/echarts.min.js');
+      expect(srcDoc).not.toContain('data-amc-echarts-script');
+      expect(srcDoc).not.toContain('/vendor/echarts.min.js');
+    });
+
+    it('injects micro-component growth keyframes and smooth transitions into preview theme styles', () => {
+      const srcDoc = buildHtmlPreviewSrcDoc('<html><body><p>Test</p></body></html>');
+
+      expect(srcDoc).toContain('@keyframes amc-bar-grow');
+      expect(srcDoc).toContain('cubic-bezier(0.16,1,0.3,1)');
+      expect(srcDoc).toContain('prefers-reduced-motion:reduce');
     });
 
     it('injects echarts vendor script into unrestricted preview documents with charts', () => {

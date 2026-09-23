@@ -3,6 +3,7 @@ import { hydrateGraphvizIntoDocument } from '@/features/graphviz/vizRuntime';
 import { buildLiveArtifactThemeVars } from '@/utils/live-ui/liveUiThemeTokens';
 import { PREVIEW_BRIDGE_SCRIPT } from './previewBridgeScript';
 import { hydrateChartsIntoDocument } from './chartRendererScript';
+import { ECHARTS_SCRIPT_ATTRIBUTE, ECHARTS_SCRIPT_SRC } from './echartsRendererScript';
 import { sanitizeElementTree } from './previewSanitizer';
 import { sanitizeDocumentStylesForPngExport } from '@/utils/export/cssColorSanitizer';
 import { STREAMING_PREVIEW_RUNNER_SCRIPT } from './streamingPreviewRunnerScript';
@@ -367,10 +368,11 @@ const buildPreviewThemeStyle = (
   const scrollbarStyles = `*{scrollbar-width:thin;scrollbar-color:var(--amc-live-artifact-border) transparent;}*::-webkit-scrollbar{width:5px;height:5px;}*::-webkit-scrollbar-track{background:transparent;}*::-webkit-scrollbar-thumb{background:var(--amc-live-artifact-border);border-radius:9999px;}*::-webkit-scrollbar-thumb:hover{background:var(--amc-live-artifact-muted);}`;
   const graphvizStyles = `[data-amc-graphviz][data-amc-graphviz-state="rendered"]{cursor:zoom-in;}[data-amc-graphviz][data-amc-graphviz-state="pending"]{min-height:96px;display:flex;align-items:center;justify-content:center;background:var(--amc-live-artifact-surface-muted,rgba(0,0,0,0.03));border-radius:0.5rem;}[data-amc-graphviz][data-amc-graphviz-state="pending"]::after{content:"";width:18px;height:18px;border:2px solid var(--amc-live-artifact-border,rgba(0,0,0,0.1));border-top-color:var(--amc-live-artifact-accent,#3b82f6);border-radius:50%;animation:amc-gv-spin 0.8s linear infinite;}@keyframes amc-gv-spin{to{transform:rotate(360deg);}}`;
   const gridSymmetryStyles = `@media (min-width: 520px){:where(div,section,article)[style*="grid"][style*="auto-fit"]:has(> :nth-child(4):last-child),:where(div,section,article)[style*="grid"][style*="auto-fill"]:has(> :nth-child(4):last-child){grid-template-columns:repeat(2,minmax(0,1fr))!important;}}@media (max-width: 519px){:where(div,section,article)[style*="grid"]:has(> :nth-child(4):last-child){grid-template-columns:1fr!important;}}`;
+  const microComponentStyles = `@keyframes amc-bar-grow{from{transform:scaleX(0);}to{transform:scaleX(1);}}:where(div,section,article)>div[style*="position:absolute"][style*="width:"]{transform-origin:left;animation:amc-bar-grow 0.6s cubic-bezier(0.16,1,0.3,1) both;transition:width 0.5s cubic-bezier(0.16,1,0.3,1);}:where(div,section,article)[style*="border-radius"][style*="overflow:hidden"]>div[style*="width:"]{transform-origin:left;animation:amc-bar-grow 0.6s cubic-bezier(0.16,1,0.3,1) both;transition:width 0.5s cubic-bezier(0.16,1,0.3,1);}:where(div,section,article)>div[style*="flex:1"][title]{transition:transform 0.15s ease,opacity 0.15s ease;}:where(div,section,article)>div[style*="flex:1"][title]:hover{transform:scaleY(1.2);opacity:0.85;}@media(prefers-reduced-motion:reduce){:where(div,section,article)>div[style*="position:absolute"][style*="width:"],:where(div,section,article)[style*="border-radius"][style*="overflow:hidden"]>div[style*="width:"]{animation:none!important;transition:none!important;}}`;
   const layoutStyles = options.isExpanded
     ? `html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}body{box-sizing:border-box;max-width:1120px;margin:0 auto!important;}@media (max-width:640px){body{padding:16px 16px 36px 16px!important;}}@media (min-width:641px){body{padding:28px 36px 56px 36px!important;}}`
     : `html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}`;
-  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};}${layoutStyles}body{overflow-x:auto;}${overflowGuard}${tableAndTagStyles}${scrollbarStyles}${graphvizStyles}${gridSymmetryStyles}</style>`;
+  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};}${layoutStyles}body{overflow-x:auto;}${overflowGuard}${tableAndTagStyles}${scrollbarStyles}${graphvizStyles}${gridSymmetryStyles}${microComponentStyles}</style>`;
 };
 
 const injectPreviewTheme = (srcDoc: string, themeId?: string, options: { isExpanded?: boolean } = {}): string => {
@@ -418,8 +420,6 @@ const injectPreviewBaseFontSize = (srcDoc: string, baseFontSize?: number): strin
   return injectIntoParsedDocument(parsedDocument, { headElements: [style] });
 };
 
-const ECHARTS_SCRIPT_SRC = `${(import.meta.env?.BASE_URL || '/').replace(/\/$/, '')}/vendor/echarts.min.js`;
-const ECHARTS_SCRIPT_ATTRIBUTE = 'data-amc-echarts-script';
 const ECHARTS_SCRIPT_TAG = `<script ${ECHARTS_SCRIPT_ATTRIBUTE}="true" src="${ECHARTS_SCRIPT_SRC}"></script>`;
 
 const hasEchartsChart = (htmlOrDoc: string | Document): boolean => {
@@ -435,8 +435,7 @@ const injectEchartsScript = (srcDoc: string): string => {
     return srcDoc;
   }
 
-  const hasChart =
-    hasEchartsChart(parsedDocument) || Boolean(parsedDocument.querySelector('[data-amc-stream-preview-root]'));
+  const hasChart = hasEchartsChart(parsedDocument);
   if (!hasChart) {
     return srcDoc;
   }

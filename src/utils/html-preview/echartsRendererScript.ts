@@ -250,6 +250,9 @@ export const normalizeEchartsOption = (raw: unknown): Record<string, unknown> | 
   return null;
 };
 
+export const ECHARTS_SCRIPT_SRC = `${(import.meta.env?.BASE_URL || '/').replace(/\/$/, '')}/vendor/echarts.min.js`;
+export const ECHARTS_SCRIPT_ATTRIBUTE = 'data-amc-echarts-script';
+
 export const ECHARTS_RENDERER_SCRIPT = `
 (() => {
   const SELECTOR = '[data-amc-chart], [data-amc-echarts]';
@@ -257,6 +260,28 @@ export const ECHARTS_RENDERER_SCRIPT = `
   const PENDING_ATTR = 'data-amc-chart-pending';
   const ERROR_ATTR = 'data-amc-chart-error';
   const RENDERED_ATTR = 'data-amc-chart-rendered';
+  const SCRIPT_SRC = ['/vendor', 'echarts.min.js'].join('/');
+  const SCRIPT_ATTR = ['data', 'amc', 'echarts', 'script'].join('-');
+  let isScriptLoading = false;
+
+  const ensureEchartsScript = () => {
+    if (typeof window.echarts !== 'undefined' || isScriptLoading) return;
+    if (document.querySelector('script[' + SCRIPT_ATTR + '="true"]') || document.querySelector('script[src="' + SCRIPT_SRC + '"]')) {
+      return;
+    }
+    isScriptLoading = true;
+    const script = document.createElement('script');
+    script.setAttribute(SCRIPT_ATTR, 'true');
+    script.src = SCRIPT_SRC;
+    script.onload = () => {
+      isScriptLoading = false;
+      renderAll();
+    };
+    script.onerror = () => {
+      isScriptLoading = false;
+    };
+    (document.head || document.documentElement).appendChild(script);
+  };
 
   const hash = (s) => {
     let h = 0;
@@ -344,6 +369,7 @@ export const ECHARTS_RENDERER_SCRIPT = `
   function renderChartElement(node) {
     if (typeof window.echarts === 'undefined') {
       node.setAttribute(PENDING_ATTR, '1');
+      ensureEchartsScript();
       return;
     }
 
@@ -406,7 +432,11 @@ export const ECHARTS_RENDERER_SCRIPT = `
   }
 
   function renderAll() {
-    document.querySelectorAll(SELECTOR).forEach(renderChartElement);
+    const nodes = document.querySelectorAll(SELECTOR);
+    if (nodes.length > 0 && typeof window.echarts === 'undefined') {
+      ensureEchartsScript();
+    }
+    nodes.forEach(renderChartElement);
   }
 
   let frame = 0;
@@ -428,7 +458,7 @@ export const ECHARTS_RENDERER_SCRIPT = `
       if (typeof window.echarts !== 'undefined') {
         clearInterval(interval);
         renderAll();
-      } else if (attempts > 60) {
+      } else if (attempts > 60 || (!isScriptLoading && document.querySelectorAll(SELECTOR).length === 0)) {
         clearInterval(interval);
       }
     }, 100);

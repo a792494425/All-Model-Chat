@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   ECHARTS_RENDERER_SCRIPT,
+  ECHARTS_SCRIPT_ATTRIBUTE,
+  ECHARTS_SCRIPT_SRC,
   buildEchartsThemeFromCssVars,
   normalizeEchartsOption,
   resolveBaseFontSize,
@@ -128,6 +130,13 @@ describe('echartsRendererScript', () => {
       expect(ECHARTS_RENDERER_SCRIPT).toContain('echarts.init');
       expect(ECHARTS_RENDERER_SCRIPT).toContain('renderer');
       expect(ECHARTS_RENDERER_SCRIPT).toContain('svg');
+    });
+
+    it('supports on-demand lazy loading of the echarts script', () => {
+      expect(ECHARTS_RENDERER_SCRIPT).toContain('ensureEchartsScript');
+      expect(ECHARTS_RENDERER_SCRIPT).toContain('isScriptLoading');
+      expect(ECHARTS_SCRIPT_SRC).toBe('/vendor/echarts.min.js');
+      expect(ECHARTS_SCRIPT_ATTRIBUTE).toBe('data-amc-echarts-script');
     });
 
     it('scales chart type with the Live Artifacts font size setting', () => {
