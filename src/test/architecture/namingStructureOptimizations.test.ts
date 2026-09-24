@@ -179,7 +179,6 @@ describe('naming and structure optimization guardrails', () => {
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/format/stringHash.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/format/escapeHtml.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/format/reactNodeText.ts'))).toBe(true);
-    expect(fs.existsSync(path.join(projectRoot, 'src/utils/format/index.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/file/fileTypeClassification.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform/platform.ts'))).toBe(true);
     expect(fs.existsSync(path.join(projectRoot, 'src/utils/platform/keyboardShortcuts.ts'))).toBe(true);

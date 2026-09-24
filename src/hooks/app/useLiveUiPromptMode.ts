@@ -155,12 +155,8 @@ export const useLiveUiPromptMode = ({
 
     if (actualActive === liveArtifactsPromptOverrideState.active) {
       setLiveArtifactsPromptOverrideState(null);
-      if (!liveArtifactsPromptOverrideState.active) {
+      if (!liveArtifactsPromptOverrideState.active && !deactivationTimerRef.current) {
         setLiveArtifactsPromptBusySessionId(undefined);
-        if (deactivationTimerRef.current) {
-          clearTimeout(deactivationTimerRef.current);
-          deactivationTimerRef.current = null;
-        }
       }
     }
   }, [
@@ -298,6 +294,7 @@ export const useLiveUiPromptMode = ({
       clearTimeout(deactivationTimerRef.current);
     }
     deactivationTimerRef.current = setTimeout(() => {
+      deactivationTimerRef.current = null;
       if (isMountedRef.current && operationVersionRef.current === opId) {
         setLiveArtifactsPromptBusySessionId(undefined);
       }
@@ -313,18 +310,21 @@ export const useLiveUiPromptMode = ({
       };
     });
 
-    setCurrentChatSettings((prev) => {
-      const isLegacyPrompt = isConfiguredLiveArtifactsSystemInstruction(prev.systemInstruction);
-      const strippedPrompt = stripLegacyFeatureMarkers(prev.systemInstruction);
-      return {
-        ...prev,
-        isLiveArtifactsEnabled: false,
-        isVisualFormattingActive: false,
-        systemInstruction: isLegacyPrompt ? strippedPrompt || previousSessionPrompt || '' : prev.systemInstruction,
-      };
-    });
+    const currentActiveId = activeSessionIdRef.current;
+    const isTargetActive = targetSessionId === null || targetSessionId === currentActiveId;
 
-    if (targetSessionId) {
+    if (isTargetActive) {
+      setCurrentChatSettings((prev) => {
+        const isLegacyPrompt = isConfiguredLiveArtifactsSystemInstruction(prev.systemInstruction);
+        const strippedPrompt = stripLegacyFeatureMarkers(prev.systemInstruction);
+        return {
+          ...prev,
+          isLiveArtifactsEnabled: false,
+          isVisualFormattingActive: false,
+          systemInstruction: isLegacyPrompt ? strippedPrompt || previousSessionPrompt || '' : prev.systemInstruction,
+        };
+      });
+    } else if (targetSessionId !== null) {
       useChatStore.getState().updateAndPersistSessions((prevSessions) =>
         updateSessionByIdInSessions(prevSessions, targetSessionId, (session) => {
           const isLegacyPrompt = isConfiguredLiveArtifactsSystemInstruction(session.settings.systemInstruction);

@@ -1,7 +1,7 @@
 {
   "workspaces": {
     ".": {
-      "entry": ["server/src/index.ts", "src/utils/*/index.ts"]
+      "entry": ["server/src/index.ts"]
     }
   },
   "ignore": ["docker/web-server.js", "public/runtime-config.js", "e2e/fixtures/mcp-test-server.mjs"],

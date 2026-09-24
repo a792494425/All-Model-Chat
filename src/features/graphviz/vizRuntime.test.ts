@@ -14,6 +14,7 @@ import {
   normalizeGraphvizColor,
   renderDotToSvg,
   renderDotToSvgCached,
+  resolveCssVariablesInDot,
   resolveDotLayout,
   hydrateGraphvizIntoDocument,
 } from './vizRuntime';
@@ -75,7 +76,7 @@ describe('getGraphvizCacheKey', () => {
   });
 
   it('prefixes the key with the render style version', () => {
-    expect(getGraphvizCacheKey('digraph { A -> B }')).toMatch(/^v13:/);
+    expect(getGraphvizCacheKey('digraph { A -> B }')).toMatch(/^v14:/);
   });
 
   it('differs when the artifact font size differs for the same dot', () => {
@@ -690,3 +691,79 @@ describe('compensateCjkNodeWidths and CJK metrics', () => {
     expect(processed).toMatch(/battery\[label="中央能量电池 \(离子鲨 \/ 意志之力\)" shape=box width="[0-9.]+"\]/);
   });
 });
+
+describe('resolveCssVariablesInDot (Live UI & CSS variable resilience)', () => {
+  it('resolves Live UI surface and text CSS variables to valid hex colors', () => {
+    const dot = `digraph {
+      node [fillcolor="var(--amc-live-artifact-surface-muted)" color="var(--amc-live-artifact-border)"];
+      title [fontcolor="var(--amc-live-artifact-text)"];
+      route [fillcolor="var(--amc-live-artifact-accent-surface)"];
+      success [fillcolor="var(--amc-live-artifact-success-surface)"];
+    }`;
+    const resolved = resolveCssVariablesInDot(dot, PEARL);
+
+    expect(resolved).not.toContain('var(--amc-live-artifact-surface-muted)');
+    expect(resolved).not.toContain('var(--amc-live-artifact-border)');
+    expect(resolved).not.toContain('var(--amc-live-artifact-text)');
+    expect(resolved).not.not.toBeUndefined();
+    expect(resolved).toContain(`fillcolor="${flattenGraphvizFill(PEARL.bgSurfaceMuted, PEARL.bgInput)}"`);
+    expect(resolved).toContain(`color="${normalizeGraphvizColor(PEARL.borderSecondary)}"`);
+    expect(resolved).toContain(`fontcolor="${normalizeGraphvizColor(PEARL.textPrimary)}"`);
+    expect(resolved).toContain(`fillcolor="${flattenGraphvizFill(PEARL.bgInfo, PEARL.bgInput)}"`);
+    expect(resolved).toContain(`fillcolor="${flattenGraphvizFill(PEARL.bgSuccess, PEARL.bgInput)}"`);
+  });
+
+  it('safely falls back for unknown CSS variables so Graphviz WASM never defaults to black', () => {
+    const dot = 'digraph { n1 [fillcolor="var(--unknown-token)" color="var(--unknown-border)"]; }';
+    const resolved = resolveCssVariablesInDot(dot, PEARL);
+
+    expect(resolved).not.toContain('var(--unknown-token)');
+    expect(resolved).not.toContain('#000000');
+    expect(resolved).toContain(`fillcolor="${flattenGraphvizFill(PEARL.bgSurfaceMuted, PEARL.bgInput)}"`);
+    expect(resolved).toContain(`color="${normalizeGraphvizColor(PEARL.textPrimary)}"`);
+  });
+
+  it('normalizes author rgb() and rgba() in color attributes to hex', () => {
+    const dot = 'digraph { n1 [fillcolor="rgb(240, 245, 250)" color="rgba(30, 41, 59, 0.8)"]; }';
+    const resolved = resolveCssVariablesInDot(dot, PEARL);
+
+    expect(resolved).not.toContain('rgb(');
+    expect(resolved).not.toContain('rgba(');
+    expect(resolved).toContain('fillcolor="#f0f5fa"');
+  });
+
+  it('processes user VoiceHotkey flowchart end-to-end without black nodes or CSS variables', () => {
+    const userDot = `digraph {
+      rankdir=LR;
+      node [shape=box, style="rounded,filled", fillcolor="var(--amc-live-artifact-surface-muted)", fontname="sans-serif", fontsize=11, margin="0.15,0.08"];
+      voice [label="按键说话 (语音输入)" shape=ellipse];
+      route [label="触发判定" shape=diamond style="filled" fillcolor="var(--amc-live-artifact-accent-surface)"];
+      local [label="方式一：精准口令库\\n(本地离线 / 0延迟)" style="filled" fillcolor="var(--amc-live-artifact-success-surface)"];
+      llm [label="方式二：意图大模型\\n(自然语言语义解析)"];
+      exec [label="/usr/bin/shortcuts run" style="filled" fillcolor="var(--amc-live-artifact-accent-surface)"];
+      target [label="macOS 自动化完成" shape=ellipse style="filled" fillcolor="var(--amc-live-artifact-success-surface)"];
+      voice -> route;
+      route -> local [label="命中词库"];
+      route -> llm [label="泛化语句"];
+      local -> exec;
+      llm -> exec;
+      exec -> target;
+    }`;
+
+    const processed = applyThemeAndLayout(userDot, { themeId: 'pearl' });
+
+    // Must eliminate all raw CSS variables
+    expect(processed).not.toContain('var(--amc-live-artifact');
+    // Must not produce #000000 (black) fill on nodes
+    expect(processed).not.toContain('fillcolor="#000000"');
+    expect(processed).not.toContain('fillcolor="#000"');
+    // Muted surface fill on node declaration
+    const mutedFill = flattenGraphvizFill(PEARL.bgSurfaceMuted, PEARL.bgInput);
+    expect(processed).toContain(`fillcolor="${mutedFill}"`);
+    // Contrast fontcolor is injected on light cards
+    const accentFill = flattenGraphvizFill(PEARL.bgInfo, PEARL.bgInput);
+    const contrastFont = getContrastFontColor(accentFill);
+    expect(processed).toContain(`fontcolor="${contrastFont}"`);
+  });
+});
+

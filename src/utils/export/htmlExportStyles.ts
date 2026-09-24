@@ -76,26 +76,46 @@ export const buildHtmlExportStyles = ({ liveArtifactThemeVars, safeRootBgColor }
                 .html-preview-snapshot table {
                     display: table !important;
                     width: 100% !important;
-                    border-collapse: separate !important;
+                    border-collapse: collapse !important;
                     border-spacing: 0 !important;
-                    border: 1px solid var(--amc-live-artifact-border, #e5e5e5) !important;
-                    border-radius: 8px !important;
-                    overflow: hidden !important;
+                    border: none !important;
+                    border-radius: 0 !important;
+                    background-color: transparent !important;
                     margin: 0.75rem 0 !important;
                 }
                 .html-preview-snapshot th,
                 .html-preview-snapshot td {
                     border: none !important;
-                    border-bottom: 1px solid var(--amc-live-artifact-border, #e5e5e5) !important;
-                    padding: 0.6rem 0.85rem !important;
+                    border-left: none !important;
+                    border-right: none !important;
+                    border-top: none !important;
+                    padding: 0.75rem 1rem !important;
                     vertical-align: top !important;
+                }
+                .html-preview-snapshot th {
+                    background-color: transparent !important;
+                    color: var(--amc-live-artifact-muted, #64748b) !important;
+                    font-weight: 500 !important;
+                    font-size: 0.75em !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 0.05em !important;
+                    text-align: left !important;
+                    padding: 0.5rem 1rem !important;
+                    border-bottom: 1px solid var(--amc-live-artifact-border, #e5e5e5) !important;
+                    white-space: nowrap !important;
+                }
+                .html-preview-snapshot td {
+                    border-bottom: 1px solid color-mix(in srgb, var(--amc-live-artifact-border, #e5e5e5) 40%, transparent) !important;
+                    line-height: 1.6 !important;
+                    font-variant-numeric: tabular-nums !important;
                 }
                 .html-preview-snapshot tr:last-child td {
                     border-bottom: none !important;
                 }
-                .html-preview-snapshot th {
-                    background-color: var(--amc-live-artifact-surface-muted, rgba(0, 0, 0, 0.03)) !important;
-                    font-weight: 600;
+                .html-preview-snapshot :where(div,section,article):has(> table:only-child) {
+                    border: none !important;
+                    background: transparent !important;
+                    box-shadow: none !important;
                 }
                 .html-preview-snapshot span[style*="border-radius"][style*="padding"] {
                     white-space: nowrap !important;
@@ -248,29 +268,39 @@ export const buildHtmlExportStyles = ({ liveArtifactThemeVars, safeRootBgColor }
                 a { color: var(--theme-text-link, #2563eb); text-decoration: none; }
                 a:hover { text-decoration: underline; }
 
-                /* Tables - Modern Clean Document Style */
+                /* Tables - Modern Clean Frameless Style (Vertical-line Free) */
                 table { 
                     width: 100%; 
-                    border-collapse: separate !important;
-                    border-spacing: 0 !important;
+                    border-collapse: collapse !important;
                     margin: 1.25rem 0; 
-                    border: 1px solid var(--export-table-border, #e2e8f0);
-                    border-radius: 10px;
-                    overflow: hidden;
+                    border: none !important;
+                    background-color: transparent !important;
                     font-size: 0.9em;
                 }
                 th, td { 
                     border: none !important;
-                    border-bottom: 1px solid var(--export-table-border, #e2e8f0) !important;
+                    border-left: none !important;
+                    border-right: none !important;
+                    border-top: none !important;
                     padding: 0.75rem 1rem; 
                     text-align: left; 
                     vertical-align: top;
                 }
                 th { 
-                    background-color: var(--export-table-header-bg, #f8fafc) !important; 
-                    font-weight: 600; 
-                    color: var(--theme-text-primary, #0f172a);
-                    border-bottom: 2px solid var(--export-table-border, #e2e8f0) !important;
+                    background-color: transparent !important; 
+                    font-weight: 500; 
+                    font-size: 0.75em;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    color: var(--theme-text-tertiary, #64748b);
+                    border-bottom: 1px solid var(--export-table-border, #e2e8f0) !important;
+                    padding: 0.5rem 1rem;
+                    white-space: nowrap;
+                }
+                td {
+                    border-bottom: 1px solid color-mix(in srgb, var(--export-table-border, #e2e8f0) 40%, transparent) !important;
+                    line-height: 1.6;
+                    font-variant-numeric: tabular-nums;
                 }
                 tr:last-child td {
                     border-bottom: none !important;

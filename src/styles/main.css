@@ -188,13 +188,38 @@ body {
 
 /*
    EXPORT STYLES
-   Target specific elements to hide during PNG export
+   Target specific elements to hide or normalize during PNG export
 */
 .is-exporting-png * {
   scrollbar-width: none !important;
 }
 .is-exporting-png *::-webkit-scrollbar {
   display: none !important;
+}
+
+.is-exporting-png [data-amc-graphviz] {
+  overflow: visible !important;
+}
+
+.is-exporting-png [data-amc-graphviz] svg {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.is-exporting-png table,
+.is-exporting-png .html-preview-snapshot table {
+  border-collapse: collapse !important;
+  border: none !important;
+  background-color: transparent !important;
+}
+
+.is-exporting-png table th,
+.is-exporting-png table td,
+.is-exporting-png .html-preview-snapshot table th,
+.is-exporting-png .html-preview-snapshot table td {
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
 }
 
 /* Global Theme Transition */

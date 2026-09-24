@@ -1,6 +1,8 @@
 import { escapeHtml } from '@/utils/format/escapeHtml';
 import { AVAILABLE_THEMES, DEFAULT_THEME_ID } from '@/constants/themeRegistry';
 import { buildLiveArtifactThemeVars } from '@/utils/live-ui/liveUiThemeTokens';
+import { convertHtmlToMarkdown } from '@/utils/markdown/htmlToMarkdown';
+import { isLikelyHtml } from '@/utils/markdown/previewMarkupPatterns';
 import { buildHtmlExportStyles } from './htmlExportStyles';
 import { buildHtmlExportRuntime } from './htmlExportRuntime';
 
@@ -185,6 +187,40 @@ ${exportRuntime}
     `;
 };
 
+/**
+ * Normalizes message content for plain-text (.txt) export.
+ * If the message contains Live UI HTML or is a raw HTML fragment, converts it to
+ * readable Markdown/text rather than dumping raw HTML DOM markup and style tags.
+ */
+export const formatMessageContentForTxt = (content: string): string => {
+  if (!content) return '';
+
+  let formatted = content;
+
+  if (formatted.includes('```amc-live-artifact-html')) {
+    formatted = formatted.replace(
+      /```amc-live-artifact-html\n([\s\S]*?)\n?```/g,
+      (_match, html) => {
+        const converted = convertHtmlToMarkdown(html);
+        return converted.trim() ? converted.trim() : _match;
+      },
+    );
+  }
+
+  const trimmed = formatted.trimStart();
+  if (
+    isLikelyHtml(trimmed) ||
+    /^<(!DOCTYPE\s+html|html|div|p|h[1-6]|table|article|section|main|header|footer)\b/i.test(trimmed)
+  ) {
+    const converted = convertHtmlToMarkdown(formatted);
+    if (converted.trim()) {
+      return converted.trim();
+    }
+  }
+
+  return formatted;
+};
+
 export const generateExportTxtTemplate = ({
   title,
   date,
@@ -223,7 +259,7 @@ export const generateExportTxtTemplate = ({
         text += `[Thinking Process]\n${message.thoughts.trim()}\n\n`;
       }
 
-      text += message.content || '';
+      text += formatMessageContentForTxt(message.content || '');
       return text;
     })
     .join(`\n\n${separator}\n\n`);

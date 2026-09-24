@@ -364,7 +364,17 @@ const buildPreviewThemeStyle = (
   // (`min-width:0`) and to wrap long tokens makes that text reflow onto another
   // line instead of vanishing. Set on descendants only, so the artifact's own
   const overflowGuard = `body :where(div,section,article,main,aside,header,footer,li,td,th,p,h1,h2,h3,h4,h5,h6,span,strong,em,small,code){min-width:0;}body{overflow-wrap:anywhere;}`;
-  const tableAndTagStyles = `table td,table th{vertical-align:top;}span[style*="border-radius"][style*="padding"]{white-space:nowrap;display:inline-block;}`;
+  const tableAndTagStyles = [
+    'table td,table th{vertical-align:top;}',
+    'table{border-collapse:collapse!important;width:100%!important;border:none!important;background-color:transparent!important;table-layout:auto;}',
+    'table td,table th{border-left:none!important;border-right:none!important;border-top:none!important;}',
+    'table thead th{background-color:transparent!important;color:var(--amc-live-artifact-muted)!important;font-weight:500!important;font-size:0.75em!important;text-transform:uppercase!important;letter-spacing:0.05em!important;text-align:left;padding:0.5rem 1rem!important;border:none!important;border-bottom:1px solid var(--amc-live-artifact-border)!important;white-space:nowrap;}',
+    'table tbody td{padding:0.75rem 1rem!important;border:none!important;border-bottom:1px solid color-mix(in srgb,var(--amc-live-artifact-border) 40%,transparent)!important;line-height:1.6;font-variant-numeric:tabular-nums;color:inherit;}',
+    'table tbody tr:last-child td{border-bottom:none!important;}',
+    'table tbody tr:hover{background-color:color-mix(in srgb,var(--amc-live-artifact-surface-muted,rgba(0,0,0,0.03)) 40%,transparent);}',
+    ':where(div,section,article):has(> table:only-child){border:none!important;background:transparent!important;box-shadow:none!important;}',
+    'span[style*="border-radius"][style*="padding"]{white-space:nowrap;display:inline-block;}',
+  ].join('');
   const scrollbarStyles = `*{scrollbar-width:thin;scrollbar-color:var(--amc-live-artifact-border) transparent;}*::-webkit-scrollbar{width:5px;height:5px;}*::-webkit-scrollbar-track{background:transparent;}*::-webkit-scrollbar-thumb{background:var(--amc-live-artifact-border);border-radius:9999px;}*::-webkit-scrollbar-thumb:hover{background:var(--amc-live-artifact-muted);}`;
   const graphvizStyles = `[data-amc-graphviz][data-amc-graphviz-state="rendered"]{cursor:zoom-in;}[data-amc-graphviz][data-amc-graphviz-state="pending"]{min-height:96px;display:flex;align-items:center;justify-content:center;background:var(--amc-live-artifact-surface-muted,rgba(0,0,0,0.03));border-radius:0.5rem;}[data-amc-graphviz][data-amc-graphviz-state="pending"]::after{content:"";width:18px;height:18px;border:2px solid var(--amc-live-artifact-border,rgba(0,0,0,0.1));border-top-color:var(--amc-live-artifact-accent,#3b82f6);border-radius:50%;animation:amc-gv-spin 0.8s linear infinite;}@keyframes amc-gv-spin{to{transform:rotate(360deg);}}`;
   const gridSymmetryStyles = `@media (min-width: 520px){:where(div,section,article)[style*="grid"][style*="auto-fit"]:has(> :nth-child(4):last-child),:where(div,section,article)[style*="grid"][style*="auto-fill"]:has(> :nth-child(4):last-child){grid-template-columns:repeat(2,minmax(0,1fr))!important;}}@media (max-width: 519px){:where(div,section,article)[style*="grid"]:has(> :nth-child(4):last-child){grid-template-columns:1fr!important;}}`;

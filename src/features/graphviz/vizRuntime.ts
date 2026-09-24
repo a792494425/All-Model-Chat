@@ -229,7 +229,102 @@ const GRAPHVIZ_SVG_FONT_FAMILY =
 
 // Bump when the injected default styling changes so cached SVGs rendered with
 // the previous style are never reused (see getGraphvizCacheKey).
-const RENDER_STYLE_VERSION = 'v13';
+const RENDER_STYLE_VERSION = 'v14';
+
+/**
+ * Resolves CSS variables (e.g. `var(--amc-live-artifact-*)`) and CSS `rgba?()` functions
+ * in Graphviz color attributes into valid hex colors.
+ * Unrecognized color values silently default to black (#000000) in Graphviz WASM,
+ * causing dark text on cards to become completely unreadable.
+ */
+export const resolveCssVariablesInDot = (dot: string, colors: Theme['colors']): string => {
+  // Matches attr = "var(--...)" or attr = var(--...)
+  const cssVarPattern = new RegExp(
+    `\\b(${SEMANTIC_COLOR_ATTRS.join('|')})\\s*=\\s*["']?\\s*var\\(\\s*(--[a-zA-Z0-9_-]+)\\s*\\)\\s*["']?`,
+    'gi',
+  );
+
+  let out = dot.replace(cssVarPattern, (_match, attr: string, varName: string) => {
+    const isFill = attr.toLowerCase() === 'fillcolor' || attr.toLowerCase() === 'bgcolor';
+    let resolvedHex: string;
+
+    switch (varName) {
+      case '--amc-live-artifact-accent-surface':
+        resolvedHex = flattenGraphvizFill(colors.bgInfo, colors.bgInput);
+        break;
+      case '--amc-live-artifact-success-surface':
+        resolvedHex = flattenGraphvizFill(colors.bgSuccess, colors.bgInput);
+        break;
+      case '--amc-live-artifact-warning-surface':
+        resolvedHex = flattenGraphvizFill(colors.bgWarning, colors.bgInput);
+        break;
+      case '--amc-live-artifact-danger-surface':
+        resolvedHex = flattenGraphvizFill(colors.bgErrorMessage, colors.bgInput);
+        break;
+      case '--amc-live-artifact-surface-muted':
+        resolvedHex = flattenGraphvizFill(colors.bgSurfaceMuted, colors.bgInput);
+        break;
+      case '--amc-live-artifact-surface':
+        resolvedHex = flattenGraphvizFill(colors.bgTertiary, colors.bgInput);
+        break;
+      case '--amc-live-artifact-accent':
+        resolvedHex = isFill
+          ? flattenGraphvizFill(colors.bgInfo, colors.bgInput)
+          : normalizeGraphvizColor(colors.textLink);
+        break;
+      case '--amc-live-artifact-success':
+        resolvedHex = isFill
+          ? flattenGraphvizFill(colors.bgSuccess, colors.bgInput)
+          : normalizeGraphvizColor(colors.textSuccess);
+        break;
+      case '--amc-live-artifact-warning':
+        resolvedHex = isFill
+          ? flattenGraphvizFill(colors.bgWarning, colors.bgInput)
+          : normalizeGraphvizColor(colors.textWarning);
+        break;
+      case '--amc-live-artifact-danger':
+        resolvedHex = isFill
+          ? flattenGraphvizFill(colors.bgErrorMessage, colors.bgInput)
+          : normalizeGraphvizColor(colors.textDanger);
+        break;
+      case '--amc-live-artifact-text':
+        resolvedHex = normalizeGraphvizColor(colors.textPrimary);
+        break;
+      case '--amc-live-artifact-muted':
+        resolvedHex = normalizeGraphvizColor(colors.textSecondary);
+        break;
+      case '--amc-live-artifact-subtle':
+        resolvedHex = normalizeGraphvizColor(colors.textTertiary);
+        break;
+      case '--amc-live-artifact-border':
+        resolvedHex = normalizeGraphvizColor(colors.borderSecondary);
+        break;
+      default:
+        // Safe fallback for any unknown CSS variable so Graphviz WASM never defaults to opaque black
+        resolvedHex = isFill
+          ? flattenGraphvizFill(colors.bgSurfaceMuted, colors.bgInput)
+          : normalizeGraphvizColor(colors.textPrimary);
+        break;
+    }
+
+    return `${attr}="${resolvedHex}"`;
+  });
+
+  // Matches attr = "rgba(...)" or attr = rgb(...)
+  const rgbPattern = new RegExp(
+    `\\b(${SEMANTIC_COLOR_ATTRS.join('|')})\\s*=\\s*["']?\\s*(rgba?\\([^)]+\\))\\s*["']?`,
+    'gi',
+  );
+  out = out.replace(rgbPattern, (match, attr: string, rgbVal: string) => {
+    const isFill = attr.toLowerCase() === 'fillcolor' || attr.toLowerCase() === 'bgcolor';
+    const parsed = parseCssColor(rgbVal);
+    if (!parsed) return match;
+    const hex = isFill ? flattenGraphvizFill(rgbVal, colors.bgInput) : normalizeGraphvizColor(rgbVal);
+    return `${attr}="${hex}"`;
+  });
+
+  return out;
+};
 
 const DEFAULT_GRAPHVIZ_BASE_FONT_SIZE = 16;
 // Ratios keep the 16px baseline pixel-identical to what shipped before (node and
@@ -650,6 +745,10 @@ export const applyThemeAndLayout = (dot: string, options: DotRenderOptions): str
   let code = dot;
   const colors = resolveGraphvizTheme(options.themeId).colors;
 
+  // Resolve CSS variables (e.g. var(--amc-live-artifact-*)) and CSS rgba?() functions to valid hex colors
+  // Graphviz WASM treats any unrecognized var(...) or rgb(...) syntax as opaque black (#000000)
+  code = resolveCssVariablesInDot(code, colors);
+
   // Compensate CJK node widths so WebAssembly Graphviz accurately sizes card boundaries for Chinese text
   code = compensateCjkNodeWidths(code);
 
@@ -897,6 +996,11 @@ export const hydrateGraphvizIntoDocument = async (doc: Document, options: DotRen
         const parsed = new DOMParser().parseFromString(result.svg, 'image/svg+xml');
         if (parsed.querySelector('parsererror')) return;
 
+        const svgEl = parsed.documentElement;
+        const existingStyle = svgEl.getAttribute('style') || '';
+        const responsiveStyle = 'max-width: 100%; height: auto; display: block; margin: 0 auto;';
+        svgEl.setAttribute('style', existingStyle ? `${existingStyle}; ${responsiveStyle}` : responsiveStyle);
+
         const htmlEl = node as HTMLElement;
         htmlEl.style.overflowX = 'auto';
         htmlEl.style.maxWidth = '100%';
@@ -905,7 +1009,7 @@ export const hydrateGraphvizIntoDocument = async (doc: Document, options: DotRen
         htmlEl.setAttribute('data-amc-graphviz-state', 'rendered');
         htmlEl.setAttribute('title', '点击放大查看 / Click to zoom');
 
-        node.replaceChildren(parsed.documentElement);
+        node.replaceChildren(svgEl);
       } catch {
         // Leave the node as-is; it stays an inert placeholder in the snapshot.
       }

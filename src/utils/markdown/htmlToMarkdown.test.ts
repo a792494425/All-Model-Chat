@@ -43,4 +43,29 @@ describe('convertHtmlToMarkdown', () => {
     expect(markdown).toContain('![](https://cdn.example.com/optimized.avif)');
     expect(markdown).not.toContain('![] (');
   });
+
+  it('converts data-amc-graphviz containers into fenced graphviz markdown', () => {
+    const html = '<div data-amc-graphviz="digraph { A -> B; }"><svg><g></g></svg></div>';
+    const markdown = convertHtmlToMarkdown(html);
+
+    expect(markdown).toContain('```graphviz\ndigraph { A -> B; }\n```');
+    expect(markdown).not.toContain('<svg');
+  });
+
+  it('converts data-amc-chart containers into fenced echarts markdown', () => {
+    const html = '<div data-amc-chart=\'{"series":[{"data":[1]}]}\'></div>';
+    const markdown = convertHtmlToMarkdown(html);
+
+    expect(markdown).toContain('```echarts\n{"series":[{"data":[1]}]}\n```');
+  });
+
+  it('strips copy buttons and inline SVGs cleanly', () => {
+    const html =
+      '<div><code>shortcuts run "Test"</code><button data-amc-copy="shortcuts run &quot;Test&quot;">复制命令</button><svg><circle /></svg></div>';
+    const markdown = convertHtmlToMarkdown(html);
+
+    expect(markdown).toContain('`shortcuts run "Test"`');
+    expect(markdown).not.toContain('复制命令');
+    expect(markdown).not.toContain('<svg');
+  });
 });

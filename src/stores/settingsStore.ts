@@ -14,7 +14,7 @@ import { sanitizeThirdPartyApiSettings } from '@/utils/third-party/thirdPartyApi
 import { migrateLegacyAutoOpenHtmlPreview, migrateLegacyOpenAICompatibleInput } from '@/schemas/appSettingsSchema';
 import { type ConcreteThemeId } from '@/utils/theme/themeMode';
 import { resolveUpdaterOrValue, type UpdaterOrValue } from './stateUpdaters';
-import { CHAT_SYNC_CHANNEL_NAME } from '@/stores/sync/chatSyncChannel';
+import { getChatSyncChannel } from '@/stores/sync/chatSyncChannel';
 
 const LEGACY_DEFAULT_TRANSCRIPTION_MODEL_ID = 'gemini-3-flash-preview';
 
@@ -109,8 +109,6 @@ function sanitizeAppSettings(settings: AppSettings): AppSettings {
   };
 }
 
-let settingsChannel: BroadcastChannel | null = null;
-
 function collectChangedSettings(previous: AppSettings, next: AppSettings): Partial<AppSettings> {
   const changedEntries = Object.keys(next)
     .filter((key) => !Object.is(previous[key as keyof AppSettings], next[key as keyof AppSettings]))
@@ -123,12 +121,7 @@ function getSettingsChannel(): BroadcastChannel | null {
   if (typeof BroadcastChannel === 'undefined') {
     return null;
   }
-
-  if (!settingsChannel) {
-    settingsChannel = new BroadcastChannel(CHAT_SYNC_CHANNEL_NAME);
-  }
-
-  return settingsChannel;
+  return getChatSyncChannel();
 }
 
 function buildDefaultSettingsState() {
@@ -261,13 +254,13 @@ export const useSettingsStore = create<SettingsState & SettingsActions>((set) =>
 if (typeof BroadcastChannel !== 'undefined') {
   const channel = getSettingsChannel();
   if (channel) {
-    channel.onmessage = (event: MessageEvent<SyncMessage>) => {
+    channel.addEventListener('message', (event: MessageEvent<SyncMessage>) => {
       const syncMessage = event.data;
       if (syncMessage.type === 'SETTINGS_UPDATED') {
         logService.info('[Sync] Reloading settings from DB');
         useSettingsStore.getState().loadSettings();
       }
-    };
+    });
   }
 }
 

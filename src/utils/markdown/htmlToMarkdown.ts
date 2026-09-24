@@ -14,6 +14,65 @@ turndownService.use(gfm);
 
 turndownService.remove(['script', 'style', 'noscript', 'iframe', 'object', 'video', 'audio']);
 
+turndownService.addRule('removeSvg', {
+  filter: (node) => node.nodeName.toLowerCase() === 'svg',
+  replacement: () => '',
+});
+
+interface TurndownBlankRuleContainer {
+  blankRule: {
+    replacement: (content: string, node: Node, options: unknown) => string;
+  };
+}
+
+const turndownRules = (turndownService as any).rules as TurndownBlankRuleContainer;
+const defaultBlankReplacement = turndownRules.blankRule.replacement;
+
+turndownRules.blankRule.replacement = (content: string, node: Node, options: unknown) => {
+  if (node.nodeName === 'DIV' && (node as HTMLElement).hasAttribute('data-amc-graphviz')) {
+    const dot = (node as HTMLElement).getAttribute('data-amc-graphviz')?.trim();
+    if (dot) return `\n\n\`\`\`graphviz\n${dot}\n\`\`\`\n\n`;
+  }
+  if (
+    node.nodeName === 'DIV' &&
+    ((node as HTMLElement).hasAttribute('data-amc-echarts') || (node as HTMLElement).hasAttribute('data-amc-chart'))
+  ) {
+    const spec =
+      (node as HTMLElement).getAttribute('data-amc-echarts')?.trim() ||
+      (node as HTMLElement).getAttribute('data-amc-chart')?.trim();
+    if (spec) return `\n\n\`\`\`echarts\n${spec}\n\`\`\`\n\n`;
+  }
+  return defaultBlankReplacement.call(turndownRules.blankRule, content, node, options);
+};
+
+turndownService.addRule('graphvizBlock', {
+  filter: (node) => node.nodeName === 'DIV' && node.hasAttribute('data-amc-graphviz'),
+  replacement: (_content, node) => {
+    const dot = (node as HTMLElement).getAttribute('data-amc-graphviz')?.trim();
+    return dot ? `\n\n\`\`\`graphviz\n${dot}\n\`\`\`\n\n` : '';
+  },
+});
+
+turndownService.addRule('echartsBlock', {
+  filter: (node) =>
+    node.nodeName === 'DIV' &&
+    (node.hasAttribute('data-amc-echarts') || node.hasAttribute('data-amc-chart')),
+  replacement: (_content, node) => {
+    const spec =
+      (node as HTMLElement).getAttribute('data-amc-echarts')?.trim() ||
+      (node as HTMLElement).getAttribute('data-amc-chart')?.trim();
+    return spec ? `\n\n\`\`\`echarts\n${spec}\n\`\`\`\n\n` : '';
+  },
+});
+
+turndownService.addRule('copyButton', {
+  filter: (node) =>
+    node.nodeName === 'BUTTON' &&
+    ((node as HTMLElement).hasAttribute('data-amc-copy') ||
+      (node as HTMLElement).classList.contains('copy-btn')),
+  replacement: () => '',
+});
+
 turndownService.addRule('katex', {
   filter: (node) => {
     return node.nodeName === 'SPAN' && node.classList.contains('katex');

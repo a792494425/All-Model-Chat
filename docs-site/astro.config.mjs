@@ -96,7 +96,7 @@ export default defineConfig({
               slug: 'tools/code-and-sandbox',
               translations: { en: 'Code & Python Sandbox' },
             },
-            { label: 'Live Artifacts 构件', slug: 'tools/live-artifacts', translations: { en: 'Live Artifacts' } },
+            { label: 'Live UI 构件', slug: 'tools/live-ui', translations: { en: 'Live UI' } },
             { label: '高级文件与多模态', slug: 'tools/files-multimodal', translations: { en: 'Files & Multimodal' } },
             { label: 'MCP 协议生态', slug: 'tools/mcp', translations: { en: 'Model Context Protocol' } },
           ],

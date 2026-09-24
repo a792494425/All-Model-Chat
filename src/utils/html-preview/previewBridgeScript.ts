@@ -407,6 +407,15 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
     if (!trigger) return null;
     const value = trigger.getAttribute('data-amc-copy');
     if (value !== null && value.trim()) return value.trim();
+
+    // Contextual lookup: when data-amc-copy has no explicit value (e.g. <button data-amc-copy>Copy</button>),
+    // automatically find and extract the code from the enclosing container or sibling code block.
+    const container = trigger.closest('div, section, figure') || trigger.parentElement;
+    const codeEl = container ? (container.querySelector('pre > code') || container.querySelector('code')) : null;
+    if (codeEl && codeEl.textContent && codeEl.textContent.trim()) {
+      return codeEl.textContent.trim();
+    }
+
     const label = trigger.textContent ? trigger.textContent.trim() : '';
     return label || null;
   };

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { wrapGetComputedStyleWithColorSanitizer } from './image';
+import {
+  wrapGetComputedStyleWithColorSanitizer,
+  hasWideExportContent,
+  resolveSnapshotWidth,
+} from './image';
 
 describe('wrapGetComputedStyleWithColorSanitizer', () => {
   it('wraps and restores window.getComputedStyle', () => {
@@ -52,5 +56,40 @@ describe('wrapGetComputedStyleWithColorSanitizer', () => {
       cleanup();
       document.body.removeChild(div);
     }
+  });
+});
+
+describe('hasWideExportContent and resolveSnapshotWidth', () => {
+  it('identifies wide elements such as live artifacts, tables, and graphviz diagrams', () => {
+    const standardEl = document.createElement('div');
+    standardEl.innerHTML = '<p>Normal text message</p>';
+    expect(hasWideExportContent(standardEl)).toBe(false);
+    expect(resolveSnapshotWidth(standardEl)).toBe('800px');
+
+    const tableEl = document.createElement('div');
+    tableEl.innerHTML = '<p>Data below:</p><table><tr><td>Cell</td></tr></table>';
+    expect(hasWideExportContent(tableEl)).toBe(true);
+    expect(resolveSnapshotWidth(tableEl)).toBe('1200px');
+
+    const liveArtifactEl = document.createElement('div');
+    liveArtifactEl.innerHTML = '<div data-live-artifact-frame="true"></div>';
+    expect(hasWideExportContent(liveArtifactEl)).toBe(true);
+    expect(resolveSnapshotWidth(liveArtifactEl)).toBe('1200px');
+
+    const snapshotEl = document.createElement('div');
+    snapshotEl.className = 'html-preview-snapshot';
+    expect(hasWideExportContent(snapshotEl)).toBe(true);
+    expect(resolveSnapshotWidth(snapshotEl)).toBe('1200px');
+
+    const graphvizEl = document.createElement('div');
+    graphvizEl.innerHTML = '<div data-amc-graphviz="digraph { A -> B }"></div>';
+    expect(hasWideExportContent(graphvizEl)).toBe(true);
+    expect(resolveSnapshotWidth(graphvizEl)).toBe('1200px');
+  });
+
+  it('respects explicitly requested width option', () => {
+    const tableEl = document.createElement('div');
+    tableEl.innerHTML = '<table><tr><td>Cell</td></tr></table>';
+    expect(resolveSnapshotWidth(tableEl, '1400px')).toBe('1400px');
   });
 });

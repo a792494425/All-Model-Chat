@@ -10,6 +10,7 @@ import { createSnapshotContainer, createExportDOMHeader } from './dom';
 const DEFAULT_PNG_EXPORT_SCALE = 2;
 const DEFAULT_SVG_IMAGE_SCALE = 3;
 const DEFAULT_SNAPSHOT_WIDTH = '800px';
+const WIDE_SNAPSHOT_WIDTH = '1200px';
 const IMAGE_LOAD_PAINT_DELAY_MS = 500;
 const SNAPSHOT_CONTAINER_PAINT_DELAY_MS = 800;
 const MAX_CANVAS_HEIGHT_PX = 30000;
@@ -75,6 +76,24 @@ export const wrapGetComputedStyleWithColorSanitizer = (targetWindow: Window): ((
 };
 
 /**
+ * Detects whether content includes wide artifacts, data tables, or charts that require
+ * an expanded container width (1200px) instead of the standard text width (800px).
+ */
+export const hasWideExportContent = (element: HTMLElement): boolean => {
+  const selector =
+    '.html-preview-snapshot, .html-preview-body, [data-live-artifact-frame], [data-amc-chart], [data-amc-echarts], [data-amc-graphviz], table';
+  return Boolean(element.matches?.(selector) || element.querySelector(selector));
+};
+
+/**
+ * Resolves the target snapshot width based on content inspection or explicit user option.
+ */
+export const resolveSnapshotWidth = (contentElement: HTMLElement, requestedWidth?: string): string => {
+  if (requestedWidth) return requestedWidth;
+  return hasWideExportContent(contentElement) ? WIDE_SNAPSHOT_WIDTH : DEFAULT_SNAPSHOT_WIDTH;
+};
+
+/**
  * Exports a given HTML element as a PNG image.
  * @param element The HTML element to capture.
  * @param filename The desired filename for the downloaded PNG.
@@ -119,6 +138,20 @@ export const exportElementAsPng = async (
 
   targetScale = Math.max(targetScale, MIN_EXPORT_SCALE);
 
+  const ownerDoc = element.ownerDocument;
+  const originalBodyLineHeight = ownerDoc?.body?.style?.lineHeight ?? '';
+  if (ownerDoc?.body) {
+    // RENDERING FIX: html2canvas calculates FontMetrics by appending an unstyled
+    // <div> container to document.body. If document.body has an inherited line-height
+    // (e.g. 1.5 / 25.5px from Tailwind/global styles), the container inherits that
+    // line-height, which adds half-leading to the computed font baseline.
+    // Consequently, html2canvas renders all text 7-10px lower than normal, causing
+    // inline code pills, status badges, and rounded tag boxes to visually detach and
+    // collide with the text line above. Temporarily setting body.style.lineHeight to '0'
+    // ensures FontMetrics accurately measures intrinsic font ascent/baseline without leading.
+    ownerDoc.body.style.lineHeight = '0';
+  }
+
   const cleanupProxies: Array<() => void> = [];
   try {
     if (typeof window !== 'undefined') {
@@ -161,6 +194,19 @@ export const exportElementAsPng = async (
             clonedElement.style.position = 'static';
           }
         }
+
+        clonedDoc.querySelectorAll<HTMLElement>('[data-amc-graphviz]').forEach((gvEl) => {
+          gvEl.style.overflow = 'visible';
+          const parent = gvEl.parentElement;
+          if (parent && (parent.style.overflowX === 'auto' || parent.style.overflow === 'auto')) {
+            parent.style.overflow = 'visible';
+          }
+          const svg = gvEl.querySelector('svg');
+          if (svg) {
+            svg.style.maxWidth = '100%';
+            svg.style.height = 'auto';
+          }
+        });
       },
     });
 
@@ -179,6 +225,9 @@ export const exportElementAsPng = async (
     toastError(options.messages.exportFailed(getErrorMessage(error)));
     return false;
   } finally {
+    if (ownerDoc?.body) {
+      ownerDoc.body.style.lineHeight = originalBodyLineHeight;
+    }
     while (cleanupProxies.length > 0) {
       const cleanup = cleanupProxies.pop();
       try {
@@ -203,9 +252,10 @@ export const generateSnapshotPng = async (
 ): Promise<boolean> => {
   let cleanup = () => {};
   try {
+    const targetWidth = resolveSnapshotWidth(contentElement, options.width);
     const { container, innerContent, remove, rootBgColor } = await createSnapshotContainer(
       themeId,
-      options.width || DEFAULT_SNAPSHOT_WIDTH,
+      targetWidth,
     );
     cleanup = remove;
 

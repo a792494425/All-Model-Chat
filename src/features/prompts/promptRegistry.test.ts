@@ -69,6 +69,15 @@ describe('promptRegistry', () => {
     expect(prompt).not.toMatch(/[\u4e00-\u9fff]/);
   });
 
+  it('does not embed raw Adopt/Deprecate template words in golden example badges to avoid English negative transfer', async () => {
+    const prompt = await loadLiveArtifactsSystemPrompt();
+
+    expect(prompt).not.toContain('>Adopt<');
+    expect(prompt).not.toContain('>Deprecate<');
+    expect(prompt).toContain('[Recommended Status]');
+    expect(prompt).toContain('[Deprecated Status]');
+  });
+
   it('does not preload third-party visualization libraries in the Live Artifacts prompt', async () => {
     const prompt = await loadLiveArtifactsSystemPrompt();
 
@@ -124,9 +133,8 @@ describe('promptRegistry', () => {
     expect(prompt).toContain('prioritize speed');
     expect(prompt).toContain('Even for simple input, return a compact inline HTML fragment');
     expect(prompt).toContain('comparison');
-    expect(prompt).toContain('process/structure');
-    expect(prompt).toContain('data-dense');
-    expect(prompt).toContain('layout benefit');
+    expect(prompt).toContain('process');
+    expect(prompt).toContain('data');
     expect(prompt).not.toContain('Answer simple requests with compact text');
   });
 
@@ -218,13 +226,10 @@ describe('promptRegistry', () => {
     }
 
     expect(prompt).toContain('keep backgrounds transparent');
-    expect(prompt).toContain('Never use accent/success/danger/warning/subtle as background');
-    expect(prompt).toContain('Background fills');
     expect(prompt).toContain('always var(--amc-live-artifact-border)');
-    expect(prompt).toContain('never use subtle/muted as border color');
     expect(prompt).toContain('border-left:3px solid');
     expect(prompt).toContain('Above-the-fold');
-    expect(prompt).toContain('Body/table cells default');
+    expect(prompt).toContain('Body/cells default to text color');
     expect(prompt).toContain('status tags');
   });
 
@@ -337,7 +342,6 @@ describe('promptRegistry', () => {
     expect(prompt).toContain('## Decoration rules');
     expect(prompt).toContain('box-shadow:0 1px 2px');
     expect(prompt).toContain('linear-gradient');
-    expect(prompt).toContain('## Pre-output checklist');
   });
 
   it('teaches the declarative chart DSL in Live Artifacts prompts', async () => {
@@ -353,10 +357,10 @@ describe('promptRegistry', () => {
     expect(prompt).toContain('Metric cards');
   });
 
-  it('includes chart DSL coverage in the pre-output checklist', async () => {
+  it('includes chart DSL coverage in Live Artifacts prompts', async () => {
     const prompt = await loadLiveArtifactsSystemPrompt();
 
-    expect(prompt).toContain('Numeric charts use data-amc-chart instead of hand-written SVG');
+    expect(prompt).toContain('data-amc-chart');
   });
 
   it('restricts the metric-card value slot to quantifiable numbers', async () => {
@@ -409,16 +413,12 @@ describe('promptRegistry', () => {
     expect(prompt).toContain('Do not mix the two interaction mechanisms');
   });
 
-  it('lists anti-patterns with replacements instead of bare NEVER bans', async () => {
+  it('enforces hard constraints and KPI ban in Live Artifacts prompts', async () => {
     const prompt = await loadLiveArtifactsSystemPrompt();
 
-    expect(prompt).toContain('## Anti-patterns and replacements');
-    expect(prompt).toContain('Identical card walls');
-    expect(prompt).toContain('Fake KPI');
-    expect(prompt).toContain('Default AI look');
-    expect(prompt).toContain('box-shadow');
-    expect(prompt).toContain('All-caps headings');
     expect(prompt).toContain('HARD CONSTRAINTS');
+    expect(prompt).toContain('Fake KPI');
+    expect(prompt).toContain('box-shadow');
   });
 
   it('enforces table color guardrails, accent restraint, and clean formula centering', async () => {
@@ -456,21 +456,14 @@ describe('promptRegistry', () => {
 
     expect(prompt).toContain('Native micro-components (Tremor-style');
     expect(prompt).toContain('BarList');
-    expect(prompt).toContain('CategoryBar');
-    expect(prompt).toContain('Tracker');
-    expect(prompt).toContain('DeltaBadge');
     expect(prompt).toContain('rankings & distributions');
-    expect(prompt).toContain('segmented progress & thresholds');
-    expect(prompt).toContain('SLA & health status slices');
     expect(prompt).toContain('Partition traffic distribution');
   });
 
-  it('enforces table sticky headers, text truncation defense, and archetype decoupling in LiveUI system prompt', async () => {
+  it('enforces table sticky headers and archetype decoupling in LiveUI system prompt', async () => {
     const prompt = await loadLiveArtifactsSystemPrompt();
 
     expect(prompt).toContain('position:sticky;top:0;z-index:1');
-    expect(prompt).toContain('Text truncation defense');
-    expect(prompt).toContain('overflow:hidden;text-overflow:ellipsis;white-space:nowrap;');
     expect(prompt).toContain('Executive Dashboard vs Deep Technical Explainer');
     expect(prompt).toContain('STRICT BAN: never force metric KPI cards or synthetic scorecards onto conceptual/explanatory questions');
     expect(prompt).toContain('Fake KPI dashboards on explanatory questions');

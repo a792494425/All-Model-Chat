@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateExportHtmlTemplate, generateExportTxtTemplate } from './templates';
+import { generateExportHtmlTemplate, generateExportTxtTemplate, formatMessageContentForTxt } from './templates';
 
 describe('generateExportHtmlTemplate', () => {
   it('does not depend on remote CDN scripts for syntax highlighting', () => {
@@ -274,5 +274,52 @@ describe('generateExportTxtTemplate', () => {
 
     expect(txt).not.toContain('undefined');
     expect(txt).toContain('[Thinking Process]\nOnly thinking for now');
+  });
+
+  it('converts Live UI HTML content to clean readable markdown without raw HTML tags', () => {
+    const liveUiHtml = `
+      <div style="display:block;width:100%;color:var(--amc-live-artifact-text);">
+        <h2>快捷指令语音接入配置指南</h2>
+        <p>将系统自动化工作流打通。</p>
+        <div data-amc-graphviz='digraph { rankdir=LR; start -> finish; }'></div>
+        <div>
+          <span>shortcuts run "专注工作"</span>
+          <button data-amc-copy="shortcuts run &quot;专注工作&quot;">复制命令</button>
+        </div>
+      </div>
+    `;
+
+    const txt = generateExportTxtTemplate({
+      title: 'VoiceHotkey Chat',
+      date: '2026-09-25 00:26:03',
+      model: 'gemini-3.8-flash',
+      messages: [
+        {
+          role: 'Assistant',
+          timestamp: new Date('2026-09-25T00:26:03.000Z'),
+          content: liveUiHtml,
+        },
+      ],
+    });
+
+    expect(txt).not.toContain('<div style=');
+    expect(txt).not.toContain('<button');
+    expect(txt).not.toContain('复制命令');
+    expect(txt).toContain('## 快捷指令语音接入配置指南');
+    expect(txt).toContain('将系统自动化工作流打通。');
+    expect(txt).toContain('shortcuts run "专注工作"');
+    expect(txt).toContain('```graphviz\ndigraph { rankdir=LR; start -> finish; }\n```');
+  });
+
+  it('converts fenced amc-live-artifact-html blocks within mixed markdown', () => {
+    const mixed = 'Overview:\n\n```amc-live-artifact-html\n<div class="card"><h3>Step 1</h3><p>Details here</p></div>\n```\n\nHope this helps!';
+    const formatted = formatMessageContentForTxt(mixed);
+
+    expect(formatted).not.toContain('```amc-live-artifact-html');
+    expect(formatted).not.toContain('<div');
+    expect(formatted).toContain('### Step 1');
+    expect(formatted).toContain('Details here');
+    expect(formatted).toContain('Overview:');
+    expect(formatted).toContain('Hope this helps!');
   });
 });
