@@ -5,21 +5,48 @@ const isVisibleChatMessage = (message: ChatMessage): boolean => !message.isInter
 
 export const getVisibleChatMessages = (messages: ChatMessage[]): ChatMessage[] => messages.filter(isVisibleChatMessage);
 
-export const isMcpInternalMessage = (m: ChatMessage) => !!m.isInternalToolMessage && !!m.toolParentMessageId;
+/**
+ * Checks whether a message represents an internal MCP tool message
+ * linked to a parent user message.
+ */
+export const isMcpInternalMessage = (message: ChatMessage): boolean =>
+  Boolean(message.isInternalToolMessage && message.toolParentMessageId);
 
-export const getMcpToolPairs = (messages: ChatMessage[]) => {
-  const byParent = new Map<string, { calls: FunctionCall[]; responses: Part[] }>();
-  for (const m of messages)
-    if (isMcpInternalMessage(m)) {
-      const pid = m.toolParentMessageId!;
-      if (!byParent.has(pid)) byParent.set(pid, { calls: [], responses: [] });
-      const bucket = byParent.get(pid)!;
-      for (const p of m.apiParts ?? []) {
-        if (p.functionCall) bucket.calls.push(p.functionCall);
-        if (p.functionResponse) bucket.responses.push(p as Part);
+export interface McpToolPair {
+  parentId: string;
+  calls: FunctionCall[];
+  responses: Part[];
+}
+
+/**
+ * Extracts and groups MCP function calls and responses by their parent message ID.
+ */
+export const getMcpToolPairs = (messages: ChatMessage[]): McpToolPair[] => {
+  const toolPairsByParent = new Map<string, { calls: FunctionCall[]; responses: Part[] }>();
+
+  for (const message of messages) {
+    if (isMcpInternalMessage(message)) {
+      const parentMessageId = message.toolParentMessageId!;
+      if (!toolPairsByParent.has(parentMessageId)) {
+        toolPairsByParent.set(parentMessageId, { calls: [], responses: [] });
+      }
+
+      const toolBucket = toolPairsByParent.get(parentMessageId)!;
+      for (const apiPart of message.apiParts ?? []) {
+        if (apiPart.functionCall) {
+          toolBucket.calls.push(apiPart.functionCall);
+        }
+        if (apiPart.functionResponse) {
+          toolBucket.responses.push(apiPart as Part);
+        }
       }
     }
-  return Array.from(byParent.entries()).map(([parentId, v]) => ({ parentId, ...v }));
+  }
+
+  return Array.from(toolPairsByParent.entries()).map(([parentId, toolData]) => ({
+    parentId,
+    ...toolData,
+  }));
 };
 
 /**
@@ -29,34 +56,40 @@ export const getMcpToolPairs = (messages: ChatMessage[]) => {
  */
 export const pruneDanglingInternalToolMessages = (messages: ChatMessage[], targetParentId?: string): ChatMessage[] => {
   const result: ChatMessage[] = [];
-  for (let i = 0; i < messages.length; i++) {
-    const msg = messages[i];
-    if (msg.isInternalToolMessage && (!targetParentId || msg.toolParentMessageId === targetParentId)) {
-      if (msg.role === 'model') {
-        const nextMsg = messages[i + 1];
+
+  for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
+    const currentMessage = messages[messageIndex];
+
+    if (currentMessage.isInternalToolMessage && (!targetParentId || currentMessage.toolParentMessageId === targetParentId)) {
+      if (currentMessage.role === 'model') {
+        const nextMessage = messages[messageIndex + 1];
         const hasMatchingResponse =
-          nextMsg &&
-          nextMsg.isInternalToolMessage &&
-          nextMsg.toolParentMessageId === msg.toolParentMessageId &&
-          nextMsg.role === 'user';
+          nextMessage &&
+          nextMessage.isInternalToolMessage &&
+          nextMessage.toolParentMessageId === currentMessage.toolParentMessageId &&
+          nextMessage.role === 'user';
+
         if (!hasMatchingResponse) {
           // Dangling function call without matching function response - drop it
           continue;
         }
-      } else if (msg.role === 'user') {
-        const prevMsg = result[result.length - 1];
+      } else if (currentMessage.role === 'user') {
+        const previousMessage = result[result.length - 1];
         const hasMatchingCall =
-          prevMsg &&
-          prevMsg.isInternalToolMessage &&
-          prevMsg.toolParentMessageId === msg.toolParentMessageId &&
-          prevMsg.role === 'model';
+          previousMessage &&
+          previousMessage.isInternalToolMessage &&
+          previousMessage.toolParentMessageId === currentMessage.toolParentMessageId &&
+          previousMessage.role === 'model';
+
         if (!hasMatchingCall) {
           // Dangling function response without preceding function call - drop it
           continue;
         }
       }
     }
-    result.push(msg);
+
+    result.push(currentMessage);
   }
+
   return result;
 };

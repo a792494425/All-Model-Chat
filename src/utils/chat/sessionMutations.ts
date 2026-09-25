@@ -25,28 +25,40 @@ export const updateSessionById = (
   return changed ? next : sessions;
 };
 
+/**
+ * Applies a message patch or updater function to a ChatMessage.
+ * When an object patch has no differing values from the current message,
+ * the original message reference is preserved to avoid unnecessary store writes.
+ */
+const applyMessagePatch = (message: ChatMessage, updater: MessagePatchOrUpdater): ChatMessage => {
+  if (typeof updater === 'function') {
+    return updater(message);
+  }
+
+  // Object patch: only rebuild when a provided key's value actually
+  // differs, so an idempotent patch (the streaming hot path re-applies
+  // the same thinkingSource/resume stamp every chunk) keeps the
+  // message reference and lets the outer short-circuit skip the write.
+  const hasChanges = Object.keys(updater).some(
+    (key) => message[key as keyof ChatMessage] !== updater[key as keyof ChatMessage],
+  );
+
+  return hasChanges ? { ...message, ...updater } : message;
+};
+
 export const updateMessageInSession = (
   sessions: SavedChatSession[],
   sessionId: string,
   messageId: string,
   updater: MessagePatchOrUpdater,
-) =>
+): SavedChatSession[] =>
   updateSessionById(sessions, sessionId, (session) => {
     let messageChanged = false;
     const messages = session.messages.map((message) => {
       if (message.id !== messageId) {
         return message;
       }
-      const updated =
-        typeof updater === 'function'
-          ? updater(message)
-          : // Object patch: only rebuild when a provided key's value actually
-            // differs, so an idempotent patch (the streaming hot path re-applies
-            // the same thinkingSource/resume stamp every chunk) keeps the
-            // message reference and lets the outer short-circuit skip the write.
-            Object.keys(updater).some((key) => message[key as keyof ChatMessage] !== updater[key as keyof ChatMessage])
-            ? { ...message, ...updater }
-            : message;
+      const updated = applyMessagePatch(message, updater);
       if (updated !== message) {
         messageChanged = true;
       }

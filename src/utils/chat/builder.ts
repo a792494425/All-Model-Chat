@@ -1,5 +1,5 @@
 import { type ChatMessage, type ContentPart, type UploadedFile, type ChatHistoryItem, MediaResolution } from '@/types';
-import type { PartMediaResolutionLevel } from '@google/genai';
+import { PartMediaResolutionLevel } from '@google/genai';
 import { logService } from '@/services/logService';
 import { isGemini3Model } from '@/utils/model/modelCapabilities';
 import { normalizeModelId } from '@/utils/model/modelId';
@@ -27,31 +27,17 @@ const isGeminiImageHistoryTarget = (modelId?: string): boolean => {
   );
 };
 
-// PART_MEDIA_RESOLUTION_LEVEL bridges the local MediaResolution string enum to
-// @google/genai's PartMediaResolutionLevel literal union via per-case `as const`
-// literals (a single-layer assertion) rather than a double cast through unknown.
-const PART_MEDIA_RESOLUTION_LEVEL = {
-  MEDIA_RESOLUTION_UNSPECIFIED: 'MEDIA_RESOLUTION_UNSPECIFIED',
-  MEDIA_RESOLUTION_LOW: 'MEDIA_RESOLUTION_LOW',
-  MEDIA_RESOLUTION_MEDIUM: 'MEDIA_RESOLUTION_MEDIUM',
-  MEDIA_RESOLUTION_HIGH: 'MEDIA_RESOLUTION_HIGH',
-  MEDIA_RESOLUTION_ULTRA_HIGH: 'MEDIA_RESOLUTION_ULTRA_HIGH',
-} as const;
-
-const toPartMediaResolutionLevel = (resolution: MediaResolution): PartMediaResolutionLevel => {
-  switch (resolution) {
-    case MediaResolution.MEDIA_RESOLUTION_LOW:
-      return PART_MEDIA_RESOLUTION_LEVEL.MEDIA_RESOLUTION_LOW as PartMediaResolutionLevel;
-    case MediaResolution.MEDIA_RESOLUTION_MEDIUM:
-      return PART_MEDIA_RESOLUTION_LEVEL.MEDIA_RESOLUTION_MEDIUM as PartMediaResolutionLevel;
-    case MediaResolution.MEDIA_RESOLUTION_HIGH:
-      return PART_MEDIA_RESOLUTION_LEVEL.MEDIA_RESOLUTION_HIGH as PartMediaResolutionLevel;
-    case MediaResolution.MEDIA_RESOLUTION_ULTRA_HIGH:
-      return PART_MEDIA_RESOLUTION_LEVEL.MEDIA_RESOLUTION_ULTRA_HIGH as PartMediaResolutionLevel;
-    default:
-      return PART_MEDIA_RESOLUTION_LEVEL.MEDIA_RESOLUTION_UNSPECIFIED as PartMediaResolutionLevel;
-  }
+// Maps the local MediaResolution enum to @google/genai's PartMediaResolutionLevel enum.
+const MEDIA_RESOLUTION_MAP: Record<MediaResolution, PartMediaResolutionLevel> = {
+  [MediaResolution.MEDIA_RESOLUTION_LOW]: PartMediaResolutionLevel.MEDIA_RESOLUTION_LOW,
+  [MediaResolution.MEDIA_RESOLUTION_MEDIUM]: PartMediaResolutionLevel.MEDIA_RESOLUTION_MEDIUM,
+  [MediaResolution.MEDIA_RESOLUTION_HIGH]: PartMediaResolutionLevel.MEDIA_RESOLUTION_HIGH,
+  [MediaResolution.MEDIA_RESOLUTION_ULTRA_HIGH]: PartMediaResolutionLevel.MEDIA_RESOLUTION_ULTRA_HIGH,
+  [MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED]: PartMediaResolutionLevel.MEDIA_RESOLUTION_UNSPECIFIED,
 };
+
+const toPartMediaResolutionLevel = (resolution: MediaResolution): PartMediaResolutionLevel =>
+  MEDIA_RESOLUTION_MAP[resolution] ?? PartMediaResolutionLevel.MEDIA_RESOLUTION_UNSPECIFIED;
 
 const normalizePartMediaResolution = (resolution: MediaResolution, isImage: boolean): MediaResolution => {
   if (resolution === MediaResolution.MEDIA_RESOLUTION_ULTRA_HIGH && !isImage) {
@@ -217,17 +203,12 @@ const buildFilePart = async (
 
   // Video metadata works for both inline and fileUri video/youtube parts.
   if (part && (isVideo || isYoutube) && file.videoMetadata) {
-    part.videoMetadata = { ...part.videoMetadata };
-
-    if (file.videoMetadata.startOffset) {
-      part.videoMetadata.startOffset = file.videoMetadata.startOffset;
-    }
-    if (file.videoMetadata.endOffset) {
-      part.videoMetadata.endOffset = file.videoMetadata.endOffset;
-    }
-    if (file.videoMetadata.fps) {
-      part.videoMetadata.fps = file.videoMetadata.fps;
-    }
+    part.videoMetadata = {
+      ...part.videoMetadata,
+      ...(file.videoMetadata.startOffset ? { startOffset: file.videoMetadata.startOffset } : {}),
+      ...(file.videoMetadata.endOffset ? { endOffset: file.videoMetadata.endOffset } : {}),
+      ...(file.videoMetadata.fps ? { fps: file.videoMetadata.fps } : {}),
+    };
   }
 
   // File-level media resolution overrides the global setting.
