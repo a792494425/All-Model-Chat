@@ -258,7 +258,7 @@ const MediaNavViewComponent: React.FC<MediaNavViewProps> = ({ file, kind }) => {
             onAnnotationVisibilityChange={setIsAnnotationVisible}
             onAnnotationDismiss={() => setIsAnnotationVisible(false)}
             timelineMarkers={timelineMarkers}
-            onTimeUpdate={(t) => useMediaNavStore.getState().setCurrentPlayTime(t)}
+            onTimeUpdate={(currentTime) => useMediaNavStore.getState().setCurrentPlayTime(currentTime)}
             onLoadedMetadata={() => setIsMetadataReady(true)}
           />
         )

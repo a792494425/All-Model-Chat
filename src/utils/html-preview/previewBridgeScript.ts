@@ -90,16 +90,16 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
       neutralizeSize(body);
 
       const children = body.children;
-      for (let i = 0; i < children.length; i += 1) {
-        const childElement = children[i];
+      for (let childIndex = 0; childIndex < children.length; childIndex += 1) {
+        const childElement = children[childIndex];
         if (!(childElement instanceof HTMLElement)) continue;
         if (childElement.tagName === 'SCRIPT' || childElement.tagName === 'STYLE' || childElement.tagName === 'LINK') continue;
         neutralizeSize(childElement);
       }
 
       let contentBottom = 0;
-      for (let i = 0; i < children.length; i += 1) {
-        const childElement = children[i];
+      for (let childIndex = 0; childIndex < children.length; childIndex += 1) {
+        const childElement = children[childIndex];
         if (!(childElement instanceof HTMLElement)) continue;
         if (childElement.tagName === 'SCRIPT' || childElement.tagName === 'STYLE' || childElement.tagName === 'LINK') continue;
 
@@ -130,8 +130,8 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
       // Empty/sparse documents: fall back to scrollHeight only (not offsetHeight).
       return Math.max(body.scrollHeight || 0, root.scrollHeight || 0);
     } finally {
-      for (let i = restored.length - 1; i >= 0; i -= 1) {
-        const [restoredElement, height, minHeight, maxHeight] = restored[i];
+      for (let restoredIndex = restored.length - 1; restoredIndex >= 0; restoredIndex -= 1) {
+        const [restoredElement, height, minHeight, maxHeight] = restored[restoredIndex];
         restoredElement.style.height = height;
         restoredElement.style.minHeight = minHeight;
         restoredElement.style.maxHeight = maxHeight;
@@ -178,7 +178,7 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
     const observer = new MutationObserver((mutations) => {
       // Skip style-only attribute mutations: measuring temporarily writes inline
       // styles and restoring them would re-trigger → infinite loop.
-      if (mutations.some((m) => !(m.type === 'attributes' && m.attributeName === 'style'))) {
+      if (mutations.some((mutation) => !(mutation.type === 'attributes' && mutation.attributeName === 'style'))) {
         scheduleResize();
       }
     });
@@ -422,13 +422,13 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
 
   const parseBox2d = (value) => {
     if (!value) return undefined;
-    const parts = String(value).split(',').map((p) => parseFloat(p.trim())).filter((n) => !Number.isNaN(n));
+    const parts = String(value).split(',').map((part) => parseFloat(part.trim())).filter((parsedNumber) => !Number.isNaN(parsedNumber));
     return parts.length === 4 ? parts : undefined;
   };
 
   const parsePoint = (value) => {
     if (!value) return undefined;
-    const parts = String(value).split(',').map((p) => parseFloat(p.trim())).filter((n) => !Number.isNaN(n));
+    const parts = String(value).split(',').map((part) => parseFloat(part.trim())).filter((parsedNumber) => !Number.isNaN(parsedNumber));
     return parts.length === 2 ? parts : undefined;
   };
 
@@ -440,8 +440,8 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
     if (!Number.isNaN(directNum) && !trimmed.includes(':')) {
       return directNum;
     }
-    const parts = trimmed.split(':').map((p) => parseFloat(p.trim()));
-    if (parts.some((p) => Number.isNaN(p))) return undefined;
+    const parts = trimmed.split(':').map((part) => parseFloat(part.trim()));
+    if (parts.some((part) => Number.isNaN(part))) return undefined;
     if (parts.length === 2) {
       return parts[0] * 60 + parts[1];
     }

@@ -95,7 +95,8 @@ const buildBreakdown = (records: ApiUsageRecord[]): UsageModelBreakdown[] => {
   });
 
   return Array.from(grouped.values()).sort(
-    (a, b) => b.totalTokens - a.totalTokens || b.totalRequests - a.totalRequests,
+    (breakdownA, breakdownB) =>
+      breakdownB.totalTokens - breakdownA.totalTokens || breakdownB.totalRequests - breakdownA.totalRequests,
   );
 };
 

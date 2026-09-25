@@ -136,8 +136,8 @@ export const useFileSubtitles = ({
           return;
         }
         setSubtitleCues(cached.cues);
-        const hasTrans = cached.cues.some((c) => Boolean(c.translation));
-        const targetMode = hasTrans ? subtitleDisplayModeRef.current : 'original';
+        const hasTranslation = cached.cues.some((cue) => Boolean(cue.translation));
+        const targetMode = hasTranslation ? subtitleDisplayModeRef.current : 'original';
         const vttContent = generateVttContent(cached.cues, { mode: targetMode });
         const vttBlob = new Blob([vttContent], { type: 'text/vtt;charset=utf-8' });
         const vttUrl = URL.createObjectURL(vttBlob);

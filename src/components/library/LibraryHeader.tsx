@@ -62,7 +62,7 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({ onUploadFiles, onC
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(event) => setSearchQuery(event.target.value)}
             placeholder={t('librarySearchPlaceholder')}
             className="w-full pl-9 pr-8 py-1.5 text-sm bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)] rounded-full border border-transparent focus:border-[var(--theme-border-focus)] focus:bg-[var(--theme-bg-primary)] outline-none transition-all"
           />

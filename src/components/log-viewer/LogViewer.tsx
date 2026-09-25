@@ -60,8 +60,8 @@ export const LogViewer: React.FC<LogViewerProps> = ({
           setLogs(newLogs);
         } else {
           setLogs((prev) => {
-            const existingIds = new Set(prev.map((l) => l.id));
-            const uniqueNew = newLogs.filter((l) => !existingIds.has(l.id));
+            const existingIds = new Set(prev.map((log) => log.id));
+            const uniqueNew = newLogs.filter((log) => !existingIds.has(log.id));
             return [...prev, ...uniqueNew];
           });
         }

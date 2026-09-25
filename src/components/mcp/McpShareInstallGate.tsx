@@ -50,7 +50,7 @@ export const McpShareInstallGate: React.FC = () => {
       ...existing,
       ...dedupeServersById(
         pending,
-        existing.map((s) => s.id),
+        existing.map((server) => server.id),
       ),
     ];
     useSettingsStore.getState().setAppSettings({ ...appSettings, mcpServers: next });

@@ -97,14 +97,14 @@ export const useLibraryViewLogic = ({ onNewChat, onSelectSession }: UseLibraryVi
     if (!hasLoadedFilesRef.current || selectedFileIds.size === 0) return;
     const existingIds = new Set(allItems.map((item) => item.id));
     let hasStale = false;
-    for (const id of selectedFileIds) {
-      if (!existingIds.has(id)) {
+    for (const fileId of selectedFileIds) {
+      if (!existingIds.has(fileId)) {
         hasStale = true;
         break;
       }
     }
     if (hasStale) {
-      const pruned = new Set([...selectedFileIds].filter((id) => existingIds.has(id)));
+      const pruned = new Set([...selectedFileIds].filter((fileId) => existingIds.has(fileId)));
       useLibraryStore.setState({ selectedFileIds: pruned });
     }
   }, [allItems, selectedFileIds]);

@@ -127,7 +127,7 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
   const stats = useMemo(() => {
     const fileCount = entries.filter((entry) => !entry.isDir).length;
     const dirCount = entries.filter((entry) => entry.isDir).length;
-    const totalBytes = entries.reduce((acc, entry) => acc + (entry.size || 0), 0);
+    const totalBytes = entries.reduce((runningTotal, entry) => runningTotal + (entry.size || 0), 0);
     return { fileCount, dirCount, totalBytes };
   }, [entries]);
 

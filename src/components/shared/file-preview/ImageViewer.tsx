@@ -312,9 +312,9 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
     return () => window.removeEventListener('resize', updateDimensions);
   }, [updateDimensions, scale]);
 
-  const handlePanTo = useCallback((x: number, y: number) => {
-    panzoomRef.current?.pan(x, y, { animate: true });
-    setPan({ x, y });
+  const handlePanTo = useCallback((panX: number, panY: number) => {
+    panzoomRef.current?.pan(panX, panY, { animate: true });
+    setPan({ x: panX, y: panY });
   }, []);
 
   const handleExportAnnotated = useCallback(async () => {

@@ -115,8 +115,8 @@ export const useLiveAudio = () => {
         let sum = 0;
         const sampleCount = inputSamples.length;
         const step = Math.ceil(sampleCount / 100);
-        for (let i = 0; i < sampleCount; i += step) {
-          sum += inputSamples[i] * inputSamples[i];
+        for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += step) {
+          sum += inputSamples[sampleIndex] * inputSamples[sampleIndex];
         }
         const rms = Math.sqrt(sum / (sampleCount / step));
         setVolume(rms);

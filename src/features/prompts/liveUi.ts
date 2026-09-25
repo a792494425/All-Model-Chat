@@ -182,7 +182,7 @@ export const applyLiveArtifactsUserDirective = <T extends { text?: string }>(
   customDirective?: string | null,
 ): T[] => {
   const directive = customDirective?.trim() || getLiveArtifactsUserDirective(language);
-  const textPartIndex = parts.findIndex((p) => typeof p.text === 'string');
+  const textPartIndex = parts.findIndex((part) => typeof part.text === 'string');
 
   if (textPartIndex === -1) {
     return [{ text: directive } as T, ...parts];

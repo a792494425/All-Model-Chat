@@ -28,7 +28,7 @@ const collectDeduped = (
   keep: (file: UploadedFile) => boolean,
 ): UploadedFile[] => {
   const byId = new Map<string, UploadedFile>();
-  for (const file of [...selectedFiles, ...activeMessages.flatMap((m) => m.files ?? [])]) {
+  for (const file of [...selectedFiles, ...activeMessages.flatMap((message) => message.files ?? [])]) {
     if (file && keep(file) && !byId.has(file.id)) {
       byId.set(file.id, file);
     }

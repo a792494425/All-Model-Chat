@@ -80,22 +80,22 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
     }
   };
 
-  const handleSelectHighlight = (idx: number) => {
+  const handleSelectHighlight = (highlightIndex: number) => {
     if (onSelectHighlight) {
-      onSelectHighlight(idx);
+      onSelectHighlight(highlightIndex);
     } else {
-      useMediaNavStore.getState().setActiveImageHighlightIndex(idx);
+      useMediaNavStore.getState().setActiveImageHighlightIndex(highlightIndex);
     }
   };
 
-  const activeIdx = highlights.indexOf(activeHighlight);
+  const activeIndex = highlights.indexOf(activeHighlight);
   const activeItemIndex =
-    typeof activeHighlight.index === 'number' ? activeHighlight.index : activeIdx >= 0 ? activeIdx + 1 : 1;
+    typeof activeHighlight.index === 'number' ? activeHighlight.index : activeIndex >= 0 ? activeIndex + 1 : 1;
 
   const handleStep = (direction: -1 | 1) => {
     if (highlights.length <= 1) return;
-    const nextIdx = (activeIdx + direction + highlights.length) % highlights.length;
-    handleSelectHighlight(nextIdx);
+    const nextIndex = (activeIndex + direction + highlights.length) % highlights.length;
+    handleSelectHighlight(nextIndex);
   };
 
   // Show point reticle/arrow if there is no box, or if an arrow was explicitly requested

@@ -396,8 +396,8 @@ export const McpServerCard: React.FC<McpServerCardProps> = ({
                     aria-label={t('settingsMcpCopyId')}
                     title={copiedId ? t('settingsMcpIdCopied') : t('settingsMcpCopyId')}
                     onClick={async () => {
-                      const ok = await copyTextToClipboard(server.id);
-                      if (ok) {
+                      const copiedSuccessfully = await copyTextToClipboard(server.id);
+                      if (copiedSuccessfully) {
                         setCopiedId(true);
                       }
                     }}

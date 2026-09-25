@@ -71,7 +71,7 @@ const getVideoDurationSeconds = async (file: VideoDurationSource): Promise<numbe
   let blob: Blob | null = file.rawFile ?? null;
   if (!blob && file.dataUrl) {
     try {
-      blob = await fetch(file.dataUrl).then((r) => r.blob());
+      blob = await fetch(file.dataUrl).then((response) => response.blob());
     } catch {
       blob = null;
     }

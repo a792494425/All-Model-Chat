@@ -170,7 +170,7 @@ export const McpCapabilitiesTabs: React.FC<McpCapabilitiesTabsProps> = ({
                       </div>
                       <Toggle
                         checked={isEnabled}
-                        onChange={(v) => toggleTool(tool.name, v)}
+                        onChange={(enabled) => toggleTool(tool.name, enabled)}
                         ariaLabel={`${isEnabled ? 'Disable' : 'Enable'} ${tool.name}`}
                       />
                       <button

@@ -21,56 +21,56 @@ export const isProbablyCompleteDot = (dot: string): boolean => {
   let inLineComment = false;
   let inBlockComment = false;
 
-  for (let i = 0; i < dot.length; i += 1) {
-    const ch = dot[i];
-    const next = i + 1 < dot.length ? dot[i + 1] : '';
+  for (let charIndex = 0; charIndex < dot.length; charIndex += 1) {
+    const char = dot[charIndex];
+    const nextChar = charIndex + 1 < dot.length ? dot[charIndex + 1] : '';
 
     if (inLineComment) {
-      if (ch === '\n') inLineComment = false;
+      if (char === '\n') inLineComment = false;
       continue;
     }
     if (inBlockComment) {
-      if (ch === '*' && next === '/') {
+      if (char === '*' && nextChar === '/') {
         inBlockComment = false;
-        i += 1;
+        charIndex += 1;
       }
       continue;
     }
-    if (ch === '\\') {
+    if (char === '\\') {
       // Skip the escaped character (`\"`, `\\`, ...) so it cannot close a
       // quote or open a comment.
-      i += 1;
+      charIndex += 1;
       continue;
     }
     if (inDoubleQuote) {
-      if (ch === '"') inDoubleQuote = false;
+      if (char === '"') inDoubleQuote = false;
       continue;
     }
-    if (ch === '"') {
+    if (char === '"') {
       inDoubleQuote = true;
       continue;
     }
-    if (ch === '/' && next === '/') {
+    if (char === '/' && nextChar === '/') {
       inLineComment = true;
-      i += 1;
+      charIndex += 1;
       continue;
     }
-    if (ch === '/' && next === '*') {
+    if (char === '/' && nextChar === '*') {
       inBlockComment = true;
-      i += 1;
+      charIndex += 1;
       continue;
     }
-    if (ch === '#') {
+    if (char === '#') {
       inLineComment = true;
       continue;
     }
 
-    if (ch === '(') parens += 1;
-    else if (ch === ')') parens -= 1;
-    else if (ch === '[') brackets += 1;
-    else if (ch === ']') brackets -= 1;
-    else if (ch === '{') braces += 1;
-    else if (ch === '}') braces -= 1;
+    if (char === '(') parens += 1;
+    else if (char === ')') parens -= 1;
+    else if (char === '[') brackets += 1;
+    else if (char === ']') brackets -= 1;
+    else if (char === '{') braces += 1;
+    else if (char === '}') braces -= 1;
   }
 
   return parens === 0 && brackets === 0 && braces === 0 && !inDoubleQuote && !inBlockComment;
@@ -316,20 +316,20 @@ export const GRAPHVIZ_RENDERER_SCRIPT = `
   };
 
   const collectDirty = (mutations) => {
-    for (let i = 0; i < mutations.length; i += 1) {
-      const mutation = mutations[i];
+    for (let mutationIndex = 0; mutationIndex < mutations.length; mutationIndex += 1) {
+      const mutation = mutations[mutationIndex];
       if (mutation.type === 'attributes' && mutation.attributeName === ATTR) {
         dirtyNodes.add(mutation.target);
       } else if (mutation.type === 'childList') {
         const addedNodes = mutation.addedNodes;
-        for (let j = 0; j < addedNodes.length; j += 1) {
-          const node = addedNodes[j];
+        for (let nodeIndex = 0; nodeIndex < addedNodes.length; nodeIndex += 1) {
+          const node = addedNodes[nodeIndex];
           if (node.nodeType !== 1) continue;
           if (node.hasAttribute && node.hasAttribute(ATTR)) {
             dirtyNodes.add(node);
           }
           if (node.querySelectorAll) {
-            node.querySelectorAll('[' + ATTR + ']').forEach((x) => dirtyNodes.add(x));
+            node.querySelectorAll('[' + ATTR + ']').forEach((targetNode) => dirtyNodes.add(targetNode));
           }
         }
       }

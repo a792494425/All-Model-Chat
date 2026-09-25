@@ -164,9 +164,9 @@ export const useMessageActions = ({
       if (modelMessage.files) cleanupFilePreviewUrls(modelMessage.files);
 
       let userMessageToResend: ChatMessage | undefined;
-      for (let i = modelMessageIndex - 1; i >= 0; i--) {
-        if (visibleMessages[i].role === 'user') {
-          userMessageToResend = visibleMessages[i];
+      for (let messageIndex = modelMessageIndex - 1; messageIndex >= 0; messageIndex--) {
+        if (visibleMessages[messageIndex].role === 'user') {
+          userMessageToResend = visibleMessages[messageIndex];
           break;
         }
       }

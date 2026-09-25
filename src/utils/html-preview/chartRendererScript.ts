@@ -226,20 +226,20 @@ export const CHART_RENDERER_SCRIPT = `
     }
     const { lo, hi, ticks } = niceTicks(min, max, 4);
     const range = hi - lo || 1;
-    return { lo, hi, ticks, yAt: (v) => plot.y + plot.h - ((v - lo) / range) * plot.h };
+    return { lo, hi, ticks, yAt: (value) => plot.y + plot.h - ((value - lo) / range) * plot.h };
   }
 
   function makeXScale(values, plot) {
     if (!values.length) return { lo: 0, hi: 1, ticks: [0], xAt: () => plot.x };
     let min = values[0];
     let max = values[0];
-    for (const v of values) {
-      if (v < min) min = v;
-      if (v > max) max = v;
+    for (const value of values) {
+      if (value < min) min = value;
+      if (value > max) max = value;
     }
     const { lo, hi, ticks } = niceTicks(min, max, 6);
     const range = hi - lo || 1;
-    return { lo, hi, ticks, xAt: (v) => plot.x + ((v - lo) / range) * plot.w };
+    return { lo, hi, ticks, xAt: (value) => plot.x + ((value - lo) / range) * plot.w };
   }
 
   function makeCategoryXScale(categoryCount, plot) {
@@ -254,10 +254,10 @@ export const CHART_RENDERER_SCRIPT = `
       svg.appendChild(createSvgElement('text', { x: plot.x - 6, y: y + 3, fill: TEXT_MUTED, 'font-size': 10, 'text-anchor': 'end', 'font-family': FONT }, formatTick(tick)));
     }
     if (xScale.kind === 'category') {
-      for (let i = 0; i < spec.x.length; i += 1) {
-        const label = String(spec.x[i]);
+      for (let categoryIndex = 0; categoryIndex < spec.x.length; categoryIndex += 1) {
+        const label = String(spec.x[categoryIndex]);
         const short = label.length > 12 ? label.slice(0, 11) + '…' : label;
-        svg.appendChild(createSvgElement('text', { x: xScale.xAt(i), y: plot.y + plot.h + 14, fill: TEXT_MUTED, 'font-size': 10, 'text-anchor': 'middle', 'font-family': FONT }, short));
+        svg.appendChild(createSvgElement('text', { x: xScale.xAt(categoryIndex), y: plot.y + plot.h + 14, fill: TEXT_MUTED, 'font-size': 10, 'text-anchor': 'middle', 'font-family': FONT }, short));
       }
     } else {
       for (const tick of xScale.ticks) {
@@ -392,16 +392,16 @@ export const CHART_RENDERER_SCRIPT = `
     const innerRadius = isDonut ? outerRadius * 0.55 : 0;
     const startAngle = -Math.PI / 2;
     let angle = startAngle;
-    for (let i = 0; i < spec.slices.length; i += 1) {
-      const slice = spec.slices[i];
+    for (let sliceIndex = 0; sliceIndex < spec.slices.length; sliceIndex += 1) {
+      const slice = spec.slices[sliceIndex];
       const sweep = (slice.y / total) * Math.PI * 2;
       const a0 = angle;
       // Force the final slice to end exactly where the first began so floating
       // point accumulation can never leave a visible gap in the circle.
-      const a1 = i === spec.slices.length - 1 ? startAngle + Math.PI * 2 : angle + sweep;
+      const a1 = sliceIndex === spec.slices.length - 1 ? startAngle + Math.PI * 2 : angle + sweep;
       svg.appendChild(createSvgElement('path', {
         d: arcPath(cx, cy, outerRadius, innerRadius, a0, a1),
-        fill: slice.color ? SEMANTIC_COLORS[slice.color] || slice.color : PALETTE_COLORS[i % PALETTE.length],
+        fill: slice.color ? SEMANTIC_COLORS[slice.color] || slice.color : PALETTE_COLORS[sliceIndex % PALETTE.length],
       }));
       angle = a1;
     }

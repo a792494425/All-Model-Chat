@@ -78,8 +78,8 @@ export const getOutcomeFromMessage = (
  * end so a trailing thought/internal turn never shadows the real outcome.
  */
 const getLastGenerationMessage = (messages: ChatMessage[]): ChatMessage | undefined => {
-  for (let i = messages.length - 1; i >= 0; i -= 1) {
-    const message = messages[i];
+  for (let messageIndex = messages.length - 1; messageIndex >= 0; messageIndex -= 1) {
+    const message = messages[messageIndex];
     if ((message.role === 'model' || message.role === 'error') && message.generationStartTime) {
       return message;
     }

@@ -19,8 +19,8 @@ const hashAttemptValue = (value: string | null | undefined): string => {
   const text = value ?? '';
   let hash = 2166136261;
 
-  for (let i = 0; i < text.length; i += 1) {
-    hash ^= text.charCodeAt(i);
+  for (let charIndex = 0; charIndex < text.length; charIndex += 1) {
+    hash ^= text.charCodeAt(charIndex);
     hash = Math.imul(hash, 16777619);
   }
 

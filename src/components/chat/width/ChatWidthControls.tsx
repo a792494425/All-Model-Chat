@@ -28,8 +28,8 @@ const WidthHandle: React.FC<WidthHandleProps> = (props) => {
   callbacks.current = props;
 
   const outwardWidth = () => {
-    const dx = latest.current - origin.current;
-    const outward = callbacks.current.side === 'right' ? dx : -dx;
+    const deltaX = latest.current - origin.current;
+    const outward = callbacks.current.side === 'right' ? deltaX : -deltaX;
     return base.current + outward * 2;
   };
 

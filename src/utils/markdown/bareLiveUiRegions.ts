@@ -271,9 +271,9 @@ export const findBareLiveUiRegion = (text: string, isStreaming = false): { start
     offset += line.length + 1;
   }
 
-  for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i];
-    const lineStart = lineOffsets[i];
+  for (let candidateLineIndex = 0; candidateLineIndex < lines.length; candidateLineIndex += 1) {
+    const line = lines[candidateLineIndex];
+    const lineStart = lineOffsets[candidateLineIndex];
 
     if (isInsideFencedRegion(lineStart, fencedRegions)) {
       continue;
@@ -354,7 +354,7 @@ export const findBareLiveUiRegion = (text: string, isStreaming = false): { start
 
     // 4. Fallback line-by-line check (bounded by the first prose block after candidate)
     let maxLineIndex = lines.length - 1;
-    for (let searchIndex = i + 1; searchIndex < lines.length; searchIndex += 1) {
+    for (let searchIndex = candidateLineIndex + 1; searchIndex < lines.length; searchIndex += 1) {
       const prevLine = lines[searchIndex - 1];
       const curLine = lines[searchIndex];
       if (prevLine.trim() === '' && curLine.trim() !== '' && !curLine.trimStart().startsWith('<')) {
@@ -363,8 +363,8 @@ export const findBareLiveUiRegion = (text: string, isStreaming = false): { start
       }
     }
 
-    for (let lineIndex = maxLineIndex; lineIndex >= i; lineIndex -= 1) {
-      const end = lineIndex === lines.length - 1 ? text.length : lineOffsets[lineIndex + 1] - 1;
+    for (let fallbackLineIndex = maxLineIndex; fallbackLineIndex >= candidateLineIndex; fallbackLineIndex -= 1) {
+      const end = fallbackLineIndex === lines.length - 1 ? text.length : lineOffsets[fallbackLineIndex + 1] - 1;
       if (end <= candidateStart) {
         continue;
       }

@@ -71,7 +71,7 @@ export const insertCitations = (text: string, metadata: unknown): string => {
   };
 
   const sortedSupports = [...metadata.groundingSupports].sort(
-    (a, b) => (b.segment?.endIndex || 0) - (a.segment?.endIndex || 0),
+    (supportA, supportB) => (supportB.segment?.endIndex || 0) - (supportA.segment?.endIndex || 0),
   );
 
   let contentWithCitations = text;

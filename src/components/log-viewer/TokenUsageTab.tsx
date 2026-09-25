@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Coins } from 'lucide-react';
 import type { TokenUsageStats } from '@/types/logging';
 import { useI18n } from '@/contexts/I18nContext';
@@ -9,14 +9,31 @@ interface TokenUsageTabProps {
 
 export const TokenUsageTab: React.FC<TokenUsageTabProps> = ({ tokenUsage }) => {
   const { t } = useI18n();
-  const tokenUsageArray = Array.from(tokenUsage.entries())
-    .map(([modelId, stats]) => ({
-      modelId,
-      input: stats.input,
-      output: stats.output,
-      total: stats.input + stats.output,
-    }))
-    .sort((usageA, usageB) => usageB.total - usageA.total);
+  const tokenUsageArray = useMemo(
+    () =>
+      Array.from(tokenUsage.entries())
+        .map(([modelId, stats]) => ({
+          modelId,
+          input: stats.input,
+          output: stats.output,
+          total: stats.input + stats.output,
+        }))
+        .sort((usageA, usageB) => usageB.total - usageA.total),
+    [tokenUsage],
+  );
+
+  const totals = useMemo(
+    () =>
+      tokenUsageArray.reduce(
+        (runningTotals, item) => ({
+          input: runningTotals.input + item.input,
+          output: runningTotals.output + item.output,
+          total: runningTotals.total + item.total,
+        }),
+        { input: 0, output: 0, total: 0 },
+      ),
+    [tokenUsageArray],
+  );
 
   return (
     <div className="p-4 overflow-y-auto custom-scrollbar h-full">
@@ -81,13 +98,13 @@ export const TokenUsageTab: React.FC<TokenUsageTabProps> = ({ tokenUsage }) => {
                   {t('logViewerTotalRow')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-[var(--theme-text-primary)] font-mono">
-                  {tokenUsageArray.reduce((sum, item) => sum + item.input, 0).toLocaleString()}
+                  {totals.input.toLocaleString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-[var(--theme-text-primary)] font-mono">
-                  {tokenUsageArray.reduce((sum, item) => sum + item.output, 0).toLocaleString()}
+                  {totals.output.toLocaleString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-[var(--theme-text-primary)] font-mono">
-                  {tokenUsageArray.reduce((sum, item) => sum + item.total, 0).toLocaleString()}
+                  {totals.total.toLocaleString()}
                 </td>
               </tr>
             </tbody>

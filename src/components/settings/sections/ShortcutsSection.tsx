@@ -250,7 +250,7 @@ export const ShortcutsSection: React.FC<ShortcutsSectionProps> = ({
                     <div className="flex justify-end">
                       <Toggle
                         checked={isEnabled}
-                        onChange={(v) => handleToggleEnabled(item.id, v)}
+                        onChange={(enabled) => handleToggleEnabled(item.id, enabled)}
                         ariaLabel={t(item.labelKey)}
                       />
                     </div>
