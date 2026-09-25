@@ -40,7 +40,7 @@ const WelcomeEasterEggText: React.FC<{ text: string }> = ({ text }) => {
     let unusedQuotes = activeQuote.sourceText === text ? unusedQuotesRef.current : EASTER_EGG_QUOTES;
 
     if (unusedQuotes.length === 0) {
-      unusedQuotes = EASTER_EGG_QUOTES.filter((q) => q !== activeQuote.quote);
+      unusedQuotes = EASTER_EGG_QUOTES.filter((quoteItem) => quoteItem !== activeQuote.quote);
     }
 
     const randomIndex = Math.floor(Math.random() * unusedQuotes.length);

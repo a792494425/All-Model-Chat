@@ -449,7 +449,7 @@ export const reorderThirdPartyConnections = (
   thirdPartyApi: ThirdPartyApiSettings,
   orderedIds: string[],
 ): ThirdPartyApiSettings => {
-  const connectionMap = new Map(thirdPartyApi.connections.map((c) => [c.id, c]));
+  const connectionMap = new Map(thirdPartyApi.connections.map((connection) => [connection.id, connection]));
   const reordered: ThirdPartyConnection[] = [];
 
   orderedIds.forEach((id) => {

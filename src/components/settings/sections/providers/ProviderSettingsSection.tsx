@@ -42,22 +42,25 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
   const currentSettings = settings.thirdPartyApi ?? createDefaultThirdPartyApiSettings();
   const connections = useMemo(() => currentSettings.connections ?? [], [currentSettings.connections]);
 
-  const storedSelectedConnectionId = useProviderUiStore((s) => s.selectedConnectionId);
-  const setSelectedConnectionId = useProviderUiStore((s) => s.setSelectedConnectionId);
+  const storedSelectedConnectionId = useProviderUiStore((state) => state.selectedConnectionId);
+  const setSelectedConnectionId = useProviderUiStore((state) => state.setSelectedConnectionId);
   const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(true);
 
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
-  const configuredTemplateIds = useMemo(() => new Set(connections.map((c) => c.templateId)), [connections]);
+  const configuredTemplateIds = useMemo(
+    () => new Set(connections.map((connection) => connection.templateId)),
+    [connections],
+  );
   const unconfiguredPresets = useMemo(() => {
-    return TEMPLATE_PRESETS.filter((p) => !configuredTemplateIds.has(p.id));
+    return TEMPLATE_PRESETS.filter((preset) => !configuredTemplateIds.has(preset.id));
   }, [configuredTemplateIds]);
 
   const selectedConnectionId = useMemo(() => {
     if (initialSelectedId && initialSelectedId !== 'gemini') return initialSelectedId;
     if (storedSelectedConnectionId && storedSelectedConnectionId !== 'gemini') {
       if (storedSelectedConnectionId.startsWith('preset:')) return storedSelectedConnectionId;
-      if (connections.some((c) => c.id === storedSelectedConnectionId)) {
+      if (connections.some((connection) => connection.id === storedSelectedConnectionId)) {
         return storedSelectedConnectionId;
       }
     }
@@ -99,7 +102,7 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
 
   const selectedConnection = useMemo(() => {
     if (isVirtualPreset) return draftPresetConnection;
-    return connections.find((c) => c.id === selectedConnectionId) ?? null;
+    return connections.find((connection) => connection.id === selectedConnectionId) ?? null;
   }, [isVirtualPreset, draftPresetConnection, connections, selectedConnectionId]);
 
   const isDetailVisibleOnMobile = isMobileDetailOpen && Boolean(selectedConnection);
@@ -136,10 +139,10 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
       setSelectedConnectionId(connections[0]?.id || fallbackPresetId);
       return;
     }
-    const target = connections.find((c) => c.id === id);
+    const target = connections.find((connection) => connection.id === id);
     updateThirdPartyApi(removeThirdPartyConnection(currentSettings, id));
     if (selectedConnectionId === id) {
-      const remaining = connections.filter((c) => c.id !== id);
+      const remaining = connections.filter((connection) => connection.id !== id);
       const nextId = remaining[0]?.id || (target?.templateId ? `preset:${target.templateId}` : fallbackPresetId);
       setSelectedConnectionId(nextId);
     }
@@ -159,8 +162,8 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
         id: newId,
       };
       if (newConnection.models) {
-        newConnection.models = newConnection.models.map((m) => ({
-          ...m,
+        newConnection.models = newConnection.models.map((model) => ({
+          ...model,
           providerId: newId,
           connectionName: newConnection.name,
         }));

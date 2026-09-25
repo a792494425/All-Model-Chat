@@ -430,7 +430,7 @@ export const sanitizeChatHistoryForApi = (items: ChatHistoryItem[]): ChatHistory
   const candidateItems = items
     .map((item) => ({
       ...item,
-      parts: item.parts.filter((p) => Object.keys(p).length > 0),
+      parts: item.parts.filter((part) => Object.keys(part).length > 0),
     }))
     .filter((item) => item.parts.length > 0);
 
@@ -453,25 +453,29 @@ export const sanitizeChatHistoryForApi = (items: ChatHistoryItem[]): ChatHistory
     const prev = sanitized[sanitized.length - 1];
 
     if (current.role === 'model') {
-      const callParts = current.parts.filter((p) => Boolean(p.functionCall));
+      const callParts = current.parts.filter((part) => Boolean(part.functionCall));
 
       // If followed by a user turn, the user turn MUST supply matching functionResponses
       if (callParts.length > 0 && next && next.role === 'user') {
-        const nextUserResponses = next.parts.filter((p) => Boolean(p.functionResponse));
-        const availableResponseNames = new Set(nextUserResponses.map((p) => p.functionResponse?.name).filter(Boolean));
-        const validCallParts = callParts.filter((p) => availableResponseNames.has(p.functionCall?.name));
+        const nextUserResponses = next.parts.filter((part) => Boolean(part.functionResponse));
+        const availableResponseNames = new Set(
+          nextUserResponses.map((part) => part.functionResponse?.name).filter(Boolean),
+        );
+        const validCallParts = callParts.filter((part) => availableResponseNames.has(part.functionCall?.name));
 
         if (validCallParts.length === 0) {
           // User turn had no matching responses (e.g. user typed a regular prompt instead)
-          const validParts = current.parts.filter((p) => !p.functionCall);
+          const validParts = current.parts.filter((part) => !part.functionCall);
           if (validParts.length > 0) {
             sanitized.push({ ...current, parts: validParts });
           }
           continue;
         }
 
-        const validCallNames = new Set(validCallParts.map((p) => p.functionCall?.name).filter(Boolean));
-        const finalParts = current.parts.filter((p) => !p.functionCall || validCallNames.has(p.functionCall.name));
+        const validCallNames = new Set(validCallParts.map((part) => part.functionCall?.name).filter(Boolean));
+        const finalParts = current.parts.filter(
+          (part) => !part.functionCall || validCallNames.has(part.functionCall.name),
+        );
         if (finalParts.length > 0) {
           sanitized.push({ ...current, parts: finalParts });
         }
@@ -481,25 +485,27 @@ export const sanitizeChatHistoryForApi = (items: ChatHistoryItem[]): ChatHistory
       sanitized.push(current);
     } else {
       // Role is 'user'
-      const responseParts = current.parts.filter((p) => Boolean(p.functionResponse));
+      const responseParts = current.parts.filter((part) => Boolean(part.functionResponse));
 
       // If preceded by a model turn, the model turn MUST have supplied matching functionCalls
       if (responseParts.length > 0 && prev && prev.role === 'model') {
-        const prevModelCalls = prev.parts.filter((p) => Boolean(p.functionCall));
-        const availableCallNames = new Set(prevModelCalls.map((p) => p.functionCall?.name).filter(Boolean));
-        const validResponseParts = responseParts.filter((p) => availableCallNames.has(p.functionResponse?.name));
+        const prevModelCalls = prev.parts.filter((part) => Boolean(part.functionCall));
+        const availableCallNames = new Set(prevModelCalls.map((part) => part.functionCall?.name).filter(Boolean));
+        const validResponseParts = responseParts.filter((part) => availableCallNames.has(part.functionResponse?.name));
 
         if (validResponseParts.length === 0) {
-          const validParts = current.parts.filter((p) => !p.functionResponse);
+          const validParts = current.parts.filter((part) => !part.functionResponse);
           if (validParts.length > 0) {
             sanitized.push({ ...current, parts: validParts });
           }
           continue;
         }
 
-        const validResponseNames = new Set(validResponseParts.map((p) => p.functionResponse?.name).filter(Boolean));
+        const validResponseNames = new Set(
+          validResponseParts.map((part) => part.functionResponse?.name).filter(Boolean),
+        );
         const finalParts = current.parts.filter(
-          (p) => !p.functionResponse || validResponseNames.has(p.functionResponse.name),
+          (part) => !part.functionResponse || validResponseNames.has(part.functionResponse.name),
         );
         if (finalParts.length > 0) {
           sanitized.push({ ...current, parts: finalParts });

@@ -34,7 +34,9 @@ export const LanguageDirectionSelector: React.FC = () => {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return options;
     return options.filter(
-      (o) => o.label.toLowerCase().includes(normalizedQuery) || o.code.toLowerCase().includes(normalizedQuery),
+      (languageOption) =>
+        languageOption.label.toLowerCase().includes(normalizedQuery) ||
+        languageOption.code.toLowerCase().includes(normalizedQuery),
     );
   }, [options, query]);
 
@@ -46,7 +48,7 @@ export const LanguageDirectionSelector: React.FC = () => {
 
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen((prevOpen) => !prevOpen)}
         className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium mb-2 bg-[var(--theme-bg-secondary)] text-[var(--theme-text-primary)] border border-[var(--theme-border-secondary)] hover:bg-[var(--theme-bg-secondary)]/70 transition-colors duration-200"
         title={currentLabel}
       >
@@ -72,23 +74,23 @@ export const LanguageDirectionSelector: React.FC = () => {
               {filtered.length === 0 && (
                 <div className="px-3 py-3 text-xs text-[var(--theme-text-tertiary)]">{t('commandPaletteEmpty')}</div>
               )}
-              {filtered.map((o) => (
+              {filtered.map((option) => (
                 <button
-                  key={o.code}
+                  key={option.code}
                   type="button"
                   onClick={() => {
-                    setAppSettings((prev) => ({ ...prev, liveTranslateTargetLanguageCode: o.code }));
+                    setAppSettings((prev) => ({ ...prev, liveTranslateTargetLanguageCode: option.code }));
                     setOpen(false);
                     setQuery('');
                   }}
                   className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between gap-2 transition-colors duration-100 ${
-                    o.code === targetLanguageCode
+                    option.code === targetLanguageCode
                       ? 'bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)]'
                       : 'text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-secondary)]'
                   }`}
                 >
-                  <span className="truncate">{o.label}</span>
-                  <span className="text-[var(--theme-text-tertiary)] text-xs flex-shrink-0">{o.code}</span>
+                  <span className="truncate">{option.label}</span>
+                  <span className="text-[var(--theme-text-tertiary)] text-xs flex-shrink-0">{option.code}</span>
                 </button>
               ))}
             </div>

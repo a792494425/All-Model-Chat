@@ -150,11 +150,16 @@ export function useMultimodalSearchLogic() {
     if (selectedResultIds.size === 0 || isInserting) return;
     setIsInserting(true);
     try {
-      const selectedResults = results.filter((r) => selectedResultIds.has(r.item.id));
-      const resolvedFiles = await Promise.all(selectedResults.map((res) => resolveSearchResultToUploadedFile(res)));
+      const selectedResults = results.filter((result) => selectedResultIds.has(result.item.id));
+      const resolvedFiles = await Promise.all(
+        selectedResults.map((searchResult) => resolveSearchResultToUploadedFile(searchResult)),
+      );
       const currentFiles = useChatStore.getState().selectedFiles;
       const newFiles = resolvedFiles.filter(
-        (newF) => !currentFiles.some((f) => f.id === newF.id || (f.name === newF.name && f.size === newF.size)),
+        (newFile) =>
+          !currentFiles.some(
+            (file) => file.id === newFile.id || (file.name === newFile.name && file.size === newFile.size),
+          ),
       );
       setSelectedFiles([...currentFiles, ...newFiles]);
       setActiveView('chat');
@@ -184,7 +189,7 @@ export function useMultimodalSearchLogic() {
     if (selectedResultIds.size === results.length) {
       setSelectedResultIds(new Set());
     } else {
-      setSelectedResultIds(new Set(results.map((r) => r.item.id)));
+      setSelectedResultIds(new Set(results.map((result) => result.item.id)));
     }
   };
 

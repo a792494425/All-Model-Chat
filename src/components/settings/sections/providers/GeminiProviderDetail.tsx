@@ -37,14 +37,16 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
   const { t } = useI18n();
 
   // Models from store or default
-  const customModels = useModelPreferencesStore((s) => s.customModels);
+  const customModels = useModelPreferencesStore((state) => state.customModels);
   const effectiveModels = useMemo(
     () => (customModels && customModels.length > 0 ? customModels : getDefaultModelOptions()),
     [customModels],
   );
 
   // Model probe results and probing state
-  const modelProbeResults = useProviderUiStore((s) => s.modelProbeResultsByConnection['gemini'] ?? EMPTY_PROBE_RESULTS);
+  const modelProbeResults = useProviderUiStore(
+    (state) => state.modelProbeResultsByConnection['gemini'] ?? EMPTY_PROBE_RESULTS,
+  );
   const [probingModelIds, setProbingModelIds] = useState<Set<string>>(new Set());
   const [isCheckingBatch, setIsCheckingBatch] = useState(false);
   const [batchProgress, setBatchProgress] = useState<{ completed: number; total: number } | null>(null);

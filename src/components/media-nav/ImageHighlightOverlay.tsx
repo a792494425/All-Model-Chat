@@ -30,7 +30,8 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
   const { t } = useI18n();
   const storeHighlights = useMediaNavStore((state) => state.imageHighlights);
   const highlights = propHighlights || (storeHighlights.length > 0 ? storeHighlights : highlight ? [highlight] : []);
-  const activeHighlight = highlight || highlights.find((h) => h.isActive) || highlights[0] || null;
+  const activeHighlight =
+    highlight || highlights.find((candidateHighlight) => candidateHighlight.isActive) || highlights[0] || null;
 
   if (!visible || !activeHighlight) return null;
   const { box2d, point, arrow, label, snippet } = activeHighlight;

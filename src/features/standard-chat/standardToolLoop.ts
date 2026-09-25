@@ -332,10 +332,10 @@ export const runStandardToolLoop = async ({
       }),
     );
     results
-      .sort((a, b) => a.idx - b.idx)
-      .forEach((r) => {
-        functionResponseParts[r.idx] = r.part as Part;
-        if (r.generatedFiles?.length) generatedFiles.push(...r.generatedFiles);
+      .sort((resultA, resultB) => resultA.idx - resultB.idx)
+      .forEach((result) => {
+        functionResponseParts[result.idx] = result.part as Part;
+        if (result.generatedFiles?.length) generatedFiles.push(...result.generatedFiles);
       });
     onToolResponsesSettled?.(functionResponseParts);
 

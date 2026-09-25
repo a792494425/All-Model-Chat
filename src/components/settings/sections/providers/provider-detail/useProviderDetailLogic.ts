@@ -34,8 +34,8 @@ export function useProviderDetailLogic({ connection, onUpdateConnection }: UsePr
   const [showApiKey, setShowApiKey] = useState(false);
 
   const [isTestingHealth, setIsTestingHealth] = useState(false);
-  const healthResult = useProviderUiStore((s) => s.healthResultByConnection[connection.id] ?? null);
-  const setConnectionHealthResult = useProviderUiStore((s) => s.setConnectionHealthResult);
+  const healthResult = useProviderUiStore((state) => state.healthResultByConnection[connection.id] ?? null);
+  const setConnectionHealthResult = useProviderUiStore((state) => state.setConnectionHealthResult);
   const healthStatus = isTestingHealth ? 'testing' : (healthResult?.status ?? 'idle');
 
   const [isSyncingModels, setIsSyncingModels] = useState(false);
@@ -43,7 +43,7 @@ export function useProviderDetailLogic({ connection, onUpdateConnection }: UsePr
   const [syncRemoteModels, setSyncRemoteModels] = useState<ModelOption[]>([]);
 
   const modelProbeResults = useProviderUiStore(
-    (s) => s.modelProbeResultsByConnection[connection.id] ?? EMPTY_PROBE_RESULTS,
+    (state) => state.modelProbeResultsByConnection[connection.id] ?? EMPTY_PROBE_RESULTS,
   );
   const [isCheckingBatch, setIsCheckingBatch] = useState(false);
   const [batchProgress, setBatchProgress] = useState<{ completed: number; total: number } | null>(null);
@@ -142,12 +142,14 @@ export function useProviderDetailLogic({ connection, onUpdateConnection }: UsePr
   const handleDisableFailedModels = () => {
     const failedIds = new Set(
       Object.entries(modelProbeResults)
-        .filter(([, r]) => r.status === 'error')
+        .filter(([, probeResult]) => probeResult.status === 'error')
         .map(([id]) => id),
     );
     if (failedIds.size === 0) return;
 
-    const updated = connection.models.map((m) => (failedIds.has(m.id) ? { ...m, visibleInSelector: false } : m));
+    const updated = connection.models.map((model) =>
+      failedIds.has(model.id) ? { ...model, visibleInSelector: false } : model,
+    );
     onUpdateConnection({ models: updated });
     toastSuccess(t('thirdPartyToastDisabledFailedModels', { count: failedIds.size }));
     setBatchSummary(null);
@@ -238,7 +240,7 @@ export function useProviderDetailLogic({ connection, onUpdateConnection }: UsePr
 
   const handleUpdateModels = (updatedModels: ModelOption[]) => {
     if (updatedModels.length < connection.models.length) {
-      const remainingIds = new Set(updatedModels.map((m) => m.id));
+      const remainingIds = new Set(updatedModels.map((model) => model.id));
       const nextModelId = remainingIds.has(connection.modelId) ? connection.modelId : (updatedModels[0]?.id ?? '');
       onUpdateConnection({
         models: updatedModels,

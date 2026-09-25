@@ -63,17 +63,17 @@ export const seekSessionVideo = (params: SeekSessionVideoParams): boolean => {
 
   // If annotation or videoName is missing and a messageId was provided, look up the message context
   if (params.messageId) {
-    const msg = activeMessages.find((m) => m.id === params.messageId);
-    if (msg) {
-      if (!videoName && msg.files) {
-        const msgVideo = msg.files.find(isNavigableVideoFile);
+    const targetMessage = activeMessages.find((message) => message.id === params.messageId);
+    if (targetMessage) {
+      if (!videoName && targetMessage.files) {
+        const msgVideo = targetMessage.files.find(isNavigableVideoFile);
         if (msgVideo) {
           videoName = msgVideo.name;
         }
       }
 
-      if (!annotation && msg.content) {
-        const { videoLocates } = parseLocateMarkers(msg.content);
+      if (!annotation && targetMessage.content) {
+        const { videoLocates } = parseLocateMarkers(targetMessage.content);
         const candidates = videoLocates.filter((loc) => {
           if (params.endSeconds !== undefined) {
             return loc.startSeconds >= params.startSeconds - 1 && loc.startSeconds <= params.endSeconds + 1;

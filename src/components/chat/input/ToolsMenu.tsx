@@ -138,7 +138,7 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isUrlModalOpen, setIsUrlModalOpen] = useState(false);
   const storeGoogleMapsLocation = useChatStore((state) => {
-    const session = state.savedSessions.find((s) => s.id === state.activeSessionId);
+    const session = state.savedSessions.find((session) => session.id === state.activeSessionId);
     return session?.settings?.googleMapsLocation ?? state.pendingChatSettings?.googleMapsLocation;
   });
   const setCurrentChatSettings = useChatStore((state) => state.setCurrentChatSettings);

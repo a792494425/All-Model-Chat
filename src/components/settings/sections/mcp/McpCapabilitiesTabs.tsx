@@ -138,13 +138,13 @@ export const McpCapabilitiesTabs: React.FC<McpCapabilitiesTabsProps> = ({
                 const isAutoApproved = !autoDisabled.has(tool.name);
                 const toggleTool = (toolName: string, enabled: boolean) => {
                   const next = enabled
-                    ? (server.disabledTools ?? []).filter((n) => n !== toolName)
+                    ? (server.disabledTools ?? []).filter((name) => name !== toolName)
                     : [...(server.disabledTools ?? []), toolName];
                   onUpdateServer(index, { disabledTools: next.length ? next : undefined });
                 };
                 const toggleAutoApprove = (toolName: string, autoApprove: boolean) => {
                   const next = autoApprove
-                    ? (server.disabledAutoApproveTools ?? []).filter((n) => n !== toolName)
+                    ? (server.disabledAutoApproveTools ?? []).filter((name) => name !== toolName)
                     : [...(server.disabledAutoApproveTools ?? []), toolName];
                   onUpdateServer(index, {
                     disabledAutoApproveTools: next.length ? next : undefined,

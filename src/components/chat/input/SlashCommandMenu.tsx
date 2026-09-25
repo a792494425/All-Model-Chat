@@ -66,11 +66,11 @@ const SlashCommandMenuComponent: React.FC<SlashCommandMenuProps> = ({
       { key: 'session' as const, items: groups.session },
       { key: 'tools' as const, items: groups.tools },
       { key: 'system' as const, items: groups.system },
-    ].filter((g) => g.items.length > 0) as Array<{ key: string; items: typeof commands }>;
+    ].filter((group) => group.items.length > 0) as Array<{ key: string; items: typeof commands }>;
   })();
-  const flatGrouped = groupedCommands.flatMap((g) => g.items);
+  const flatGrouped = groupedCommands.flatMap((group) => group.items);
   const selectedCommand = commands[selectedIndex];
-  const displaySelectedIndex = selectedCommand ? flatGrouped.findIndex((c) => c.name === selectedCommand.name) : -1;
+  const displaySelectedIndex = selectedCommand ? flatGrouped.findIndex((cmd) => cmd.name === selectedCommand.name) : -1;
 
   const hasResults = commands.length > 0;
   const collapsed = !hasResults;
@@ -142,7 +142,7 @@ const SlashCommandMenuComponent: React.FC<SlashCommandMenuProps> = ({
                   ) : null}
                   <ul className="space-y-0.5">
                     {group.items.map((command) => {
-                      const displayIndex = flatGrouped.findIndex((c) => c.name === command.name);
+                      const displayIndex = flatGrouped.findIndex((cmd) => cmd.name === command.name);
                       const isSelected = displayIndex === displaySelectedIndex;
                       return (
                         <li key={command.name} ref={isSelected ? selectedItemRef : null}>

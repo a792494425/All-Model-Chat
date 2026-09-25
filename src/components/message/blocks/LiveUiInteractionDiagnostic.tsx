@@ -33,12 +33,12 @@ export const LiveUiInteractionDiagnostic: React.FC<LiveUiInteractionDiagnosticPr
     if (isRetrying || !onFollowUp) return;
     setIsRetrying(true);
 
-    const reasons = diagnosis.errors.map((e) => e.message).join('；');
+    const reasons = diagnosis.errors.map((error) => error.message).join('；');
     const payload: LiveArtifactFollowupPayload = {
       instruction: interpolate(t('liveArtifactInteractionRetryPrompt'), { reasons }),
       title: t('liveArtifactInteractionInvalidTitle'),
       source: 'amc-live-artifact-interaction:diagnostic',
-      state: { errors: diagnosis.errors.map((e) => e.code) },
+      state: { errors: diagnosis.errors.map((error) => error.code) },
     };
     onFollowUp(payload);
   }, [diagnosis.errors, isRetrying, onFollowUp, t]);

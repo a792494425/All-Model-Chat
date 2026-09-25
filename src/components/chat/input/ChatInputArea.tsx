@@ -115,7 +115,7 @@ export const ChatInputArea: React.FC = () => {
 
   const activeMessages = useChatStore((state) => state.activeMessages);
   const isSessionEmpty = activeMessages.length === 0;
-  const firstUserMessage = activeMessages.find((m) => m.role === 'user');
+  const firstUserMessage = activeMessages.find((message) => message.role === 'user');
   const showSuggestions = shouldShowChatSuggestions({
     canGenerateSuggestions: capabilities.permissions.canGenerateSuggestions,
     isExpanded,

@@ -455,7 +455,7 @@ const resolveThinkingLevelRange = (modelId: string): string | undefined => {
     ? ` (${spec.isRecommended ? '推荐' : '默认'} ${spec.defaultLevel === 'MINIMAL' ? 'Minimal' : spec.defaultLevel === 'LOW' ? 'Low' : spec.defaultLevel === 'MEDIUM' ? 'Medium' : spec.defaultLevel === 'HIGH' ? 'High' : spec.defaultLevel})`
     : '';
   if (spec.type === 'discrete' && spec.levels) {
-    return `${spec.levels.map((l) => (l === 'MINIMAL' ? 'Minimal' : l === 'LOW' ? 'Low' : l === 'HIGH' ? 'High' : l)).join(' / ')}${defaultSuffix}`;
+    return `${spec.levels.map((level) => (level === 'MINIMAL' ? 'Minimal' : level === 'LOW' ? 'Low' : level === 'HIGH' ? 'High' : level)).join(' / ')}${defaultSuffix}`;
   }
   if (spec.type === 'range' && spec.min && spec.max) {
     const minStr = spec.min === 'MINIMAL' ? 'Minimal' : spec.min === 'LOW' ? 'Low' : spec.min;

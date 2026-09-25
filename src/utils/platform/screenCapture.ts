@@ -53,13 +53,13 @@ export const captureScreenImage = async (messages: ScreenCaptureMessages): Promi
   const track = stream.getVideoTracks()[0];
   if (!track) {
     logService.error('No video track found in the stream.');
-    stream.getTracks().forEach((t) => t.stop());
+    stream.getTracks().forEach((mediaTrack) => mediaTrack.stop());
     return null;
   }
 
   return new Promise<Blob | null>((resolve) => {
     let isSettled = false;
-    const cleanup = () => stream.getTracks().forEach((t) => t.stop());
+    const cleanup = () => stream.getTracks().forEach((mediaTrack) => mediaTrack.stop());
     const finish = (blob: Blob | null) => {
       if (isSettled) {
         return;

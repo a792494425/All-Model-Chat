@@ -123,7 +123,7 @@ export const ProviderModelListSection: React.FC<ProviderModelListSectionProps> =
 
   const handleRequestDeleteModel = useCallback(
     (modelId: string) => {
-      const target = models.find((m) => m.id === modelId);
+      const target = models.find((model) => model.id === modelId);
       if (target) {
         setModelPendingDelete(target);
       }

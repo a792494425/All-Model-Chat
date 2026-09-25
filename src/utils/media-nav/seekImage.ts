@@ -30,14 +30,14 @@ export const seekSessionImage = (params: SeekSessionImageParams): boolean => {
   let { fileName, box2d, point, arrow, label, snippet } = params;
 
   if (params.messageId && (!fileName || (!box2d && !point))) {
-    const msg = activeMessages.find((m) => m.id === params.messageId);
-    if (msg) {
-      if (!fileName && msg.files) {
-        const msgImg = msg.files.find(isImageFile);
+    const targetMessage = activeMessages.find((message) => message.id === params.messageId);
+    if (targetMessage) {
+      if (!fileName && targetMessage.files) {
+        const msgImg = targetMessage.files.find(isImageFile);
         if (msgImg) fileName = msgImg.name;
       }
-      if (!box2d && !point && msg.content) {
-        const { imageLocates } = parseLocateMarkers(msg.content);
+      if (!box2d && !point && targetMessage.content) {
+        const { imageLocates } = parseLocateMarkers(targetMessage.content);
         if (imageLocates.length > 0) {
           const matched =
             imageLocates.find((loc) => (label && loc.label === label) || (snippet && loc.snippet === snippet)) ??
@@ -62,9 +62,9 @@ export const seekSessionImage = (params: SeekSessionImageParams): boolean => {
   // Gather sibling highlights for the same image in the message or session
   const allHighlights: ReturnType<typeof toImageNavHighlight>[] = [];
   if (params.messageId) {
-    const msg = activeMessages.find((m) => m.id === params.messageId);
-    if (msg?.content) {
-      const { imageLocates } = parseLocateMarkers(msg.content);
+    const targetMessage = activeMessages.find((message) => message.id === params.messageId);
+    if (targetMessage?.content) {
+      const { imageLocates } = parseLocateMarkers(targetMessage.content);
       const matchingLocates = imageLocates.filter(
         (loc) => !loc.imageName || loc.imageName === target.name || loc.imageName === fileName,
       );

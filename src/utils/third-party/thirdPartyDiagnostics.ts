@@ -225,7 +225,7 @@ export const probeThirdPartyConnection = async (
   // Auto-resolve a safe model candidate
   let modelId = options.modelId || connection.modelId;
   if (!modelId || !getModelProbeSafety(modelId).isSafe) {
-    const safeModelCandidate = connection.models.find((m) => getModelProbeSafety(m.id).isSafe);
+    const safeModelCandidate = connection.models.find((model) => getModelProbeSafety(model.id).isSafe);
     if (safeModelCandidate) {
       modelId = safeModelCandidate.id;
     } else {

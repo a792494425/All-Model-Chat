@@ -90,23 +90,23 @@ export const applyModelReconcile = ({
   updateMetadataFromRemote = new Map<string, ModelOption>(),
 }: ApplyReconcileOptions): ModelOption[] => {
   // 1. Filter out stale models that user chose to remove
-  let result: ModelOption[] = existingModels.filter((m) => !removeStaleModelIds.has(m.id));
+  let result: ModelOption[] = existingModels.filter((model) => !removeStaleModelIds.has(model.id));
 
   // 2. Update existing models with fresh metadata if provided
-  result = result.map((m) => {
-    const remote = updateMetadataFromRemote.get(m.id);
-    if (!remote) return m;
+  result = result.map((model) => {
+    const remote = updateMetadataFromRemote.get(model.id);
+    if (!remote) return model;
     return {
-      ...m,
-      contextWindow: m.contextWindow ?? remote.contextWindow,
-      maxOutputTokens: m.maxOutputTokens ?? remote.maxOutputTokens,
-      capabilities: m.capabilities ?? remote.capabilities,
-      ownedBy: m.ownedBy ?? remote.ownedBy,
+      ...model,
+      contextWindow: model.contextWindow ?? remote.contextWindow,
+      maxOutputTokens: model.maxOutputTokens ?? remote.maxOutputTokens,
+      capabilities: model.capabilities ?? remote.capabilities,
+      ownedBy: model.ownedBy ?? remote.ownedBy,
     };
   });
 
   // 3. Append newly selected models (deduplicated by ID)
-  const existingIds = new Set(result.map((m) => m.id));
+  const existingIds = new Set(result.map((model) => model.id));
   for (const newModel of selectedNewModels) {
     if (!existingIds.has(newModel.id)) {
       result.push(newModel);

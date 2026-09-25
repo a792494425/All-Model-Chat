@@ -108,7 +108,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
     if (diagnosis && diagnosis.errors.length > 0 && props.cacheKey) {
       logService.warn('Live Artifact interaction spec rejected', {
         cacheKey: props.cacheKey,
-        codes: diagnosis.errors.map((e) => e.code),
+        codes: diagnosis.errors.map((diagError) => diagError.code),
         fenceLanguage: isInteractionFence ? 'amc-live-artifact-interaction' : 'json',
       });
     }

@@ -82,7 +82,7 @@ export const McpServerCard: React.FC<McpServerCardProps> = ({
   onToggleSchemaTool,
   t,
 }) => {
-  const states = useMcpStatusStore((s) => s.states);
+  const states = useMcpStatusStore((state) => state.states);
   // Copy-id feedback is ephemeral per-card UI state; no reason to hoist it.
   const [copiedId, setCopiedId] = useState(false);
 

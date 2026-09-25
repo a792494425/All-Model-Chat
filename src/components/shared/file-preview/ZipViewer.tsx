@@ -121,13 +121,13 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
   const filteredEntries = useMemo(() => {
     if (!searchQuery.trim()) return entries;
     const query = searchQuery.toLowerCase();
-    return entries.filter((e) => e.path.toLowerCase().includes(query));
+    return entries.filter((entry) => entry.path.toLowerCase().includes(query));
   }, [entries, searchQuery]);
 
   const stats = useMemo(() => {
-    const fileCount = entries.filter((e) => !e.isDir).length;
-    const dirCount = entries.filter((e) => e.isDir).length;
-    const totalBytes = entries.reduce((acc, e) => acc + (e.size || 0), 0);
+    const fileCount = entries.filter((entry) => !entry.isDir).length;
+    const dirCount = entries.filter((entry) => entry.isDir).length;
+    const totalBytes = entries.reduce((acc, entry) => acc + (entry.size || 0), 0);
     return { fileCount, dirCount, totalBytes };
   }, [entries]);
 

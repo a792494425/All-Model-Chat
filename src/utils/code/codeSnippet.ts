@@ -178,7 +178,7 @@ export const repairIncompleteSvg = (svgText: string): string => {
     const isClosingTag = fullMatch.startsWith('</');
 
     // Only track SVG container tags
-    const normalizedTag = SVG_CONTAINER_TAGS.find((t) => t.toLowerCase() === tagName.toLowerCase());
+    const normalizedTag = SVG_CONTAINER_TAGS.find((tag) => tag.toLowerCase() === tagName.toLowerCase());
     if (!normalizedTag) continue;
 
     if (isClosingTag) {

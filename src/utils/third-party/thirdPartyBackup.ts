@@ -119,14 +119,14 @@ export const applyImportedProviders = (
     return importedConnections;
   }
 
-  const existingMap = new Map(currentConnections.map((c) => [c.id, c]));
+  const existingMap = new Map(currentConnections.map((conn) => [conn.id, conn]));
   const result = [...currentConnections];
 
   for (const imported of importedConnections) {
     if (existingMap.has(imported.id)) {
-      const idx = result.findIndex((c) => c.id === imported.id);
+      const targetIndex = result.findIndex((conn) => conn.id === imported.id);
       const existing = existingMap.get(imported.id)!;
-      result[idx] = {
+      result[targetIndex] = {
         ...imported,
         apiKey: imported.apiKey ? imported.apiKey : existing.apiKey,
       };

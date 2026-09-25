@@ -225,7 +225,7 @@ export const getItemExtensions = (name: string, type?: string): Set<string> => {
     const normMime = type.trim().toLowerCase().split(';')[0];
     const mapped = MIME_TO_ALL_EXTENSIONS.get(normMime);
     if (mapped) {
-      mapped.forEach((e) => exts.add(e));
+      mapped.forEach((extension) => exts.add(extension));
     }
 
     const slashIdx = normMime.indexOf('/');

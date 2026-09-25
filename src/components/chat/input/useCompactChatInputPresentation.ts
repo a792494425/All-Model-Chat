@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 
-const TOL = 1;
+const OVERFLOW_TOLERANCE_PX = 1;
 
 type Options = {
   enabled: boolean;
@@ -14,18 +14,18 @@ type Measurement = {
 };
 
 export function useCompactChatInputPresentation({ enabled, frameRef, isComposing }: Options) {
-  const [rev, setRev] = useState(0);
-  const [m, setM] = useState<Measurement>({ presentation: 'compact', revision: -1 });
-  const schedRef = useRef(false);
+  const [revision, setRevision] = useState(0);
+  const [measurement, setMeasurement] = useState<Measurement>({ presentation: 'compact', revision: -1 });
+  const scheduledMeasurementRef = useRef(false);
   const mountedRef = useRef(true);
   const wasEnabledRef = useRef(enabled);
 
   const requestMeasurement = useCallback(() => {
-    if (!enabled || isComposing() || schedRef.current) return;
-    schedRef.current = true;
+    if (!enabled || isComposing() || scheduledMeasurementRef.current) return;
+    scheduledMeasurementRef.current = true;
     queueMicrotask(() => {
-      schedRef.current = false;
-      if (mountedRef.current) setRev((r) => r + 1);
+      scheduledMeasurementRef.current = false;
+      if (mountedRef.current) setRevision((prev) => prev + 1);
     });
   }, [enabled, isComposing]);
 
@@ -46,18 +46,29 @@ export function useCompactChatInputPresentation({ enabled, frameRef, isComposing
       requestMeasurement();
       return;
     }
-    if (m.revision === rev || isComposing()) return;
+    if (measurement.revision === revision || isComposing()) return;
     const frame = frameRef.current;
-    const ed = frame?.querySelector<HTMLElement>('textarea[data-chat-input-textarea="true"], .composer-tiptap');
-    if (!ed) return;
-    const hasHardBr = !!(
-      ed.querySelector(':scope > p > br:not(.ProseMirror-trailingBreak)') ||
-      (ed as HTMLTextAreaElement).value?.includes('\n')
+    const editorElement = frame?.querySelector<HTMLElement>(
+      'textarea[data-chat-input-textarea="true"], .composer-tiptap',
     );
-    const hasOverflow = ed.clientHeight > 0 ? ed.scrollHeight > ed.clientHeight + TOL : false;
-    const hasHorizontalOverflow = ed.clientWidth > 0 ? ed.scrollWidth > ed.clientWidth + TOL : false;
-    setM({ presentation: hasHardBr || hasOverflow || hasHorizontalOverflow ? 'regular' : 'compact', revision: rev });
-  }, [enabled, frameRef, isComposing, m.revision, rev, requestMeasurement]);
+    if (!editorElement) return;
+    const hasHardBr = Boolean(
+      editorElement.querySelector(':scope > p > br:not(.ProseMirror-trailingBreak)') ||
+      (editorElement as HTMLTextAreaElement).value?.includes('\n'),
+    );
+    const hasOverflow =
+      editorElement.clientHeight > 0
+        ? editorElement.scrollHeight > editorElement.clientHeight + OVERFLOW_TOLERANCE_PX
+        : false;
+    const hasHorizontalOverflow =
+      editorElement.clientWidth > 0
+        ? editorElement.scrollWidth > editorElement.clientWidth + OVERFLOW_TOLERANCE_PX
+        : false;
+    setMeasurement({
+      presentation: hasHardBr || hasOverflow || hasHorizontalOverflow ? 'regular' : 'compact',
+      revision,
+    });
+  }, [enabled, frameRef, isComposing, measurement.revision, revision, requestMeasurement]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -97,7 +108,7 @@ export function useCompactChatInputPresentation({ enabled, frameRef, isComposing
     };
   }, [enabled, frameRef, requestMeasurement]);
 
-  const measurementPending = m.revision !== rev;
+  const measurementPending = measurement.revision !== revision;
 
-  return { isCompact: enabled && (measurementPending || m.presentation === 'compact'), requestMeasurement };
+  return { isCompact: enabled && (measurementPending || measurement.presentation === 'compact'), requestMeasurement };
 }

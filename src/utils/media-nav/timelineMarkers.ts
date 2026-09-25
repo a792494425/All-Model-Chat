@@ -194,12 +194,12 @@ export const extractTimelineMarkers = (
   if (rawMarkers.length === 0) return [];
 
   // Sort chronologically
-  rawMarkers.sort((a, b) => a.time - b.time);
+  rawMarkers.sort((markerA, markerB) => markerA.time - markerB.time);
 
   // Deduplicate timestamps within 0.5 seconds
   const deduped: TimelineMarker[] = [];
   for (const cur of rawMarkers) {
-    const existing = deduped.find((d) => Math.abs(d.time - cur.time) <= 0.5);
+    const existing = deduped.find((marker) => Math.abs(marker.time - cur.time) <= 0.5);
     if (existing) {
       // Merge richer info into existing
       if (!existing.snippet && cur.snippet) existing.snippet = cur.snippet;

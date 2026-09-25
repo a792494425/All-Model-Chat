@@ -50,7 +50,7 @@ export const InlineTimestampSeekButton: React.FC<InlineTimestampSeekButtonProps>
     const { videos, audios } = collectSessionMediaFiles(state.selectedFiles, state.activeMessages);
     if (
       videoName &&
-      audios.some((a) => a.name === videoName || a.name.toLowerCase().includes(videoName.toLowerCase()))
+      audios.some((audio) => audio.name === videoName || audio.name.toLowerCase().includes(videoName.toLowerCase()))
     ) {
       return true;
     }
@@ -68,7 +68,7 @@ export const InlineTimestampSeekButton: React.FC<InlineTimestampSeekButtonProps>
         const { videos, audios } = collectSessionMediaFiles(state.selectedFiles, state.activeMessages);
         const list = isAudio ? audios : videos;
         if (list.length === 0) return true;
-        const activeMedia = (activeFileId ? list.find((m) => m.id === activeFileId) : null) ?? list[0];
+        const activeMedia = (activeFileId ? list.find((mediaFile) => mediaFile.id === activeFileId) : null) ?? list[0];
         if (!activeMedia) return true;
         if (videoName) {
           const target = resolveNamedFile(list, videoName, activeFileId);

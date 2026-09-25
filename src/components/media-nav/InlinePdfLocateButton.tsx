@@ -47,7 +47,7 @@ export const InlinePdfLocateButton: React.FC<InlinePdfLocateButtonProps> = ({
       (state) => {
         const { pdfs } = collectSessionMediaFiles(state.selectedFiles, state.activeMessages);
         if (pdfs.length === 0) return true;
-        const activePdf = (activeFileId ? pdfs.find((p) => p.id === activeFileId) : null) ?? pdfs[0];
+        const activePdf = (activeFileId ? pdfs.find((pdf) => pdf.id === activeFileId) : null) ?? pdfs[0];
         if (!activePdf) return true;
         if (docName) {
           const target = resolveNamedFile(pdfs, docName, activeFileId);

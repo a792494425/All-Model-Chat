@@ -38,12 +38,16 @@ export const useMessageListUi = ({ messages, onUpdateMessageFile }: UseMessageLi
   const handleFileClick = useCallback(
     (file: UploadedFile, messageId?: string) => {
       const targetMessage = messageId
-        ? messages.find((m) => m.id === messageId)
+        ? messages.find((message) => message.id === messageId)
         : messages.find(
-            (m) =>
-              m.files?.some((f) => f.id === file.id || (Boolean(f.dataUrl) && f.dataUrl === file.dataUrl)) ||
-              (Boolean(file.dataUrl) && m.content?.includes(file.dataUrl!)) ||
-              (Boolean(file.id) && file.id.startsWith(`${m.id}-`)),
+            (message) =>
+              message.files?.some(
+                (candidateFile) =>
+                  candidateFile.id === file.id ||
+                  (Boolean(candidateFile.dataUrl) && candidateFile.dataUrl === file.dataUrl),
+              ) ||
+              (Boolean(file.dataUrl) && message.content?.includes(file.dataUrl!)) ||
+              (Boolean(file.id) && file.id.startsWith(`${message.id}-`)),
           );
 
       if (targetMessage) {

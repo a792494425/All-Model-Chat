@@ -58,8 +58,8 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({ isOp
       baseUrl: baseUrl.trim() || null,
       extraHeaders: {},
       modelId: defaults.modelId,
-      models: defaults.models.map((m) => ({
-        ...m,
+      models: defaults.models.map((model) => ({
+        ...model,
         providerId: newId,
         connectionName: trimmedName,
       })),
@@ -150,20 +150,20 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({ isOp
               {t('thirdPartyConnectionProtocol') || '接口协议'}
             </label>
             <div className="flex gap-1.5">
-              {(['openai-compatible', 'anthropic', 'openai-responses'] as const).map((p) => (
+              {(['openai-compatible', 'anthropic', 'openai-responses'] as const).map((candidateProtocol) => (
                 <button
-                  key={p}
+                  key={candidateProtocol}
                   type="button"
-                  onClick={() => setProtocol(p)}
+                  onClick={() => setProtocol(candidateProtocol)}
                   className={`flex-1 py-1.5 px-2 text-[11px] rounded-xl border transition-all cursor-pointer truncate ${
-                    protocol === p
+                    protocol === candidateProtocol
                       ? 'bg-[var(--theme-bg-accent)] text-[var(--theme-text-accent)] border-[var(--theme-border-focus)] font-semibold shadow-xs'
                       : 'bg-[var(--theme-bg-tertiary)]/50 text-[var(--theme-text-secondary)] border-transparent hover:text-[var(--theme-text-primary)]'
                   }`}
                 >
-                  {p === 'anthropic'
+                  {candidateProtocol === 'anthropic'
                     ? 'Anthropic'
-                    : p === 'openai-responses'
+                    : candidateProtocol === 'openai-responses'
                       ? 'Responses'
                       : t('thirdPartyProtocolOpenAI')}
                 </button>

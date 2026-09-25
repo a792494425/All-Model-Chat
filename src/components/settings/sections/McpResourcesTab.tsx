@@ -29,12 +29,12 @@ interface Row {
 
 export const McpResourcesTab: React.FC<McpResourcesTabProps> = ({ server, resources, templates, t }) => {
   const all: Row[] = [
-    ...resources.map((r) => ({
-      key: r.uri,
-      uri: r.uri,
-      name: r.name,
-      mimeType: r.mimeType,
-      description: r.description,
+    ...resources.map((resource) => ({
+      key: resource.uri,
+      uri: resource.uri,
+      name: resource.name,
+      mimeType: resource.mimeType,
+      description: resource.description,
     })),
     ...templates.map((tpl) => ({
       key: tpl.uriTemplate,

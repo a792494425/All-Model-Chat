@@ -79,7 +79,10 @@ export const ProviderList: React.FC<ProviderListProps> = ({
             </div>
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={filteredConnections.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext
+                items={filteredConnections.map((connection) => connection.id)}
+                strategy={verticalListSortingStrategy}
+              >
                 {filteredConnections.map((connection) => (
                   <SortableProviderItem
                     key={connection.id}

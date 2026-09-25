@@ -115,7 +115,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
 
   const displayedSuggestions = isSessionEmpty
     ? SUGGESTIONS_KEYS
-    : SUGGESTIONS_KEYS.filter((s) => s.specialAction === 'organize');
+    : SUGGESTIONS_KEYS.filter((suggestion) => suggestion.specialAction === 'organize');
 
   return (
     <div

@@ -33,17 +33,21 @@ export const McpPickerMenu: React.FC<McpPickerMenuProps> = ({ disabled, disabled
   const disabledServerIds = useVirtualMcpStore((state) => state.disabledServerIds);
   const virtualServers = useMemo(() => {
     const disabledSet = new Set(disabledServerIds);
-    return getVirtualMcpServers().filter((s) => !disabledSet.has(s.id));
+    return getVirtualMcpServers().filter((server) => !disabledSet.has(server.id));
   }, [disabledServerIds]);
 
   const allAvailableServers: PickerServerItem[] = useMemo(() => {
     return [
-      ...enabledServers.map((s) => ({ id: s.id, name: s.name, isVirtual: false })),
-      ...virtualServers.map((vs) => ({ id: vs.id, name: vs.name, isVirtual: true })),
+      ...enabledServers.map((server) => ({ id: server.id, name: server.name, isVirtual: false })),
+      ...virtualServers.map((virtualServer) => ({
+        id: virtualServer.id,
+        name: virtualServer.name,
+        isVirtual: true,
+      })),
     ];
   }, [enabledServers, virtualServers]);
 
-  const allServerIds = useMemo(() => allAvailableServers.map((s) => s.id), [allAvailableServers]);
+  const allServerIds = useMemo(() => allAvailableServers.map((server) => server.id), [allAvailableServers]);
 
   const masterEnabled = useMcpRuntimeStore((state) => state.masterEnabled);
   const selectedServerIds = useMcpRuntimeStore((state) => state.selectedServerIds);
@@ -59,14 +63,20 @@ export const McpPickerMenu: React.FC<McpPickerMenuProps> = ({ disabled, disabled
     masterEnabled && hasServers
       ? selectedServerIds === null
         ? allAvailableServers.length
-        : allAvailableServers.filter((s) => selectedServerIds.includes(s.id)).length
+        : allAvailableServers.filter((server) => selectedServerIds.includes(server.id)).length
       : 0;
 
   const allActive = masterEnabled && hasServers && selectedServerIds === null;
 
   // External vs Virtual separation
-  const externalServers = useMemo(() => allAvailableServers.filter((s) => !s.isVirtual), [allAvailableServers]);
-  const virtualServersList = useMemo(() => allAvailableServers.filter((s) => s.isVirtual), [allAvailableServers]);
+  const externalServers = useMemo(
+    () => allAvailableServers.filter((server) => !server.isVirtual),
+    [allAvailableServers],
+  );
+  const virtualServersList = useMemo(
+    () => allAvailableServers.filter((server) => server.isVirtual),
+    [allAvailableServers],
+  );
   const hasBothGroups = externalServers.length > 0 && virtualServersList.length > 0;
 
   // Rich tooltip text computation

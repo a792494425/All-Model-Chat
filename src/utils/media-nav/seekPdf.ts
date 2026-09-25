@@ -128,10 +128,10 @@ export const seekSessionPdf = (params: SeekSessionPdfParams): boolean => {
 
   // Fallback to inspect message context if docName or box2d/point wasn't embedded in the link
   if (params.messageId && (!docName || (!box2d && !point))) {
-    const msg = activeMessages.find((m) => m.id === params.messageId);
-    if (msg) {
-      if (!box2d && !point && msg.content) {
-        const { pdfLocates } = parseLocateMarkers(msg.content);
+    const targetMessage = activeMessages.find((message) => message.id === params.messageId);
+    if (targetMessage) {
+      if (!box2d && !point && targetMessage.content) {
+        const { pdfLocates } = parseLocateMarkers(targetMessage.content);
         const matched = pdfLocates.find((loc) => loc.pageNumber === params.pageNumber);
         if (matched) {
           docName = docName || matched.docName;
@@ -140,8 +140,8 @@ export const seekSessionPdf = (params: SeekSessionPdfParams): boolean => {
           snippet = snippet || matched.snippet;
         }
       }
-      if (!docName && msg.files) {
-        const msgPdfs = msg.files.filter(isPdfFile);
+      if (!docName && targetMessage.files) {
+        const msgPdfs = targetMessage.files.filter(isPdfFile);
         if (msgPdfs.length === 1) {
           docName = msgPdfs[0].name;
         }

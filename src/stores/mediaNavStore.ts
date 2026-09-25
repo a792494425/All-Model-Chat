@@ -135,7 +135,7 @@ export const useMediaNavStore = create<MediaNavState>((set) => ({
       imageHighlights: highlight ? [highlight] : [],
     }),
   setImageHighlights: (highlights) => {
-    const active = highlights.find((h) => h.isActive) || highlights[0] || null;
+    const active = highlights.find((highlight) => highlight.isActive) || highlights[0] || null;
     set({
       imageHighlights: highlights,
       imageHighlight: active,

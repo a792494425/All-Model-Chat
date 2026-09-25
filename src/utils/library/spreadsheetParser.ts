@@ -2,7 +2,7 @@ export const parseDelimitedText = (text: string, maxRows = 5, maxCols = 4): stri
   const lines = text
     .slice(0, 4096)
     .split(/\r?\n/)
-    .filter((l) => l.trim().length > 0)
+    .filter((line) => line.trim().length > 0)
     .slice(0, maxRows);
   if (lines.length === 0) return [];
   const delimiter = lines[0].includes('\t') ? '\t' : ',';

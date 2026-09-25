@@ -27,17 +27,17 @@ export const seekSessionAudio = (params: SeekSessionAudioParams): boolean => {
   let { audioName } = params;
 
   if (params.messageId) {
-    const msg = activeMessages.find((m) => m.id === params.messageId);
-    if (msg) {
-      if (!audioName && msg.files) {
-        const msgAudio = msg.files.find(isAudioFile);
+    const targetMessage = activeMessages.find((message) => message.id === params.messageId);
+    if (targetMessage) {
+      if (!audioName && targetMessage.files) {
+        const msgAudio = targetMessage.files.find(isAudioFile);
         if (msgAudio) {
           audioName = msgAudio.name;
         }
       }
 
-      if (msg.content) {
-        const { audioLocates } = parseLocateMarkers(msg.content);
+      if (targetMessage.content) {
+        const { audioLocates } = parseLocateMarkers(targetMessage.content);
         const candidates = audioLocates.filter((loc) => {
           if (params.endSeconds !== undefined) {
             return loc.startSeconds >= params.startSeconds - 1 && loc.startSeconds <= params.endSeconds + 1;

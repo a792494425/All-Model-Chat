@@ -64,7 +64,7 @@ export const useGenerationSectionLogic = ({
   const handleStopSequencesBlur = useCallback(() => {
     const parsed = localStopSequences
       .split(',')
-      .map((s) => s.trim())
+      .map((seq) => seq.trim())
       .filter(Boolean);
     onUpdateSetting('stopSequences', parsed.length > 0 ? parsed : undefined);
   }, [localStopSequences, onUpdateSetting]);

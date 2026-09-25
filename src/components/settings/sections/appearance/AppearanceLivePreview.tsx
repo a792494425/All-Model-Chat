@@ -28,7 +28,7 @@ export const AppearanceLivePreview: React.FC<AppearanceLivePreviewProps> = ({ se
     const registeredName = getRegisteredModelName(modelId);
     if (registeredName) return registeredName;
     const defaultModels = getDefaultModelOptions();
-    const matched = defaultModels.find((m) => m.id === modelId);
+    const matched = defaultModels.find((model) => model.id === modelId);
     return matched?.name || modelId;
   }, [settings.modelId]);
 
