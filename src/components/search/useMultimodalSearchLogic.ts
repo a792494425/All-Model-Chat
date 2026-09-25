@@ -60,25 +60,25 @@ export function useMultimodalSearchLogic() {
     }
   }, [isOpen]);
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
       void executeSearch();
     }
   };
 
-  const handleImageSelect = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleImageSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
       const previewUrl = URL.createObjectURL(file);
       setSearchImage(file, previewUrl);
-      e.target.value = '';
+      event.target.value = '';
       void executeSearch();
     }
   };
 
-  const handleDragOver = (e: DragEvent) => {
-    e.preventDefault();
+  const handleDragOver = (event: DragEvent) => {
+    event.preventDefault();
     setIsDragOver(true);
   };
 
@@ -86,10 +86,10 @@ export function useMultimodalSearchLogic() {
     setIsDragOver(false);
   };
 
-  const handleDrop = (e: DragEvent) => {
-    e.preventDefault();
+  const handleDrop = (event: DragEvent) => {
+    event.preventDefault();
     setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
+    const file = event.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
       const previewUrl = URL.createObjectURL(file);
       setSearchImage(file, previewUrl);
@@ -120,7 +120,7 @@ export function useMultimodalSearchLogic() {
       dataUrl: item.thumbnailUrl,
     };
 
-    return resolveLibraryItemToUploadedFile(libraryItem, (i) => dbService.fetchLibraryFileBlob(i), {
+    return resolveLibraryItemToUploadedFile(libraryItem, (itemToFetch) => dbService.fetchLibraryFileBlob(itemToFetch), {
       generateNewId: true,
     });
   };
@@ -131,7 +131,7 @@ export function useMultimodalSearchLogic() {
       const uploadedFile = await resolveSearchResultToUploadedFile(result);
       const currentFiles = useChatStore.getState().selectedFiles;
       const alreadyExists = currentFiles.some(
-        (f) => f.id === uploadedFile.id || (f.name === uploadedFile.name && f.size === uploadedFile.size),
+        (file) => file.id === uploadedFile.id || (file.name === uploadedFile.name && file.size === uploadedFile.size),
       );
       if (!alreadyExists) {
         setSelectedFiles([...currentFiles, uploadedFile]);
@@ -172,8 +172,8 @@ export function useMultimodalSearchLogic() {
     }
   };
 
-  const handleToggleSelect = (id: string, e?: MouseEvent) => {
-    e?.stopPropagation();
+  const handleToggleSelect = (id: string, event?: MouseEvent) => {
+    event?.stopPropagation();
     setSelectedResultIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {

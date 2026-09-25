@@ -14,11 +14,11 @@ export interface MultimodalSearchInputBarProps {
   setCategoryFilter: (category: MultimodalMediaCategory | 'all') => void;
   isSearching: boolean;
   isDragOver: boolean;
-  handleKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
-  handleImageSelect: (e: ChangeEvent<HTMLInputElement>) => void;
-  handleDragOver: (e: DragEvent) => void;
+  handleKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
+  handleImageSelect: (event: ChangeEvent<HTMLInputElement>) => void;
+  handleDragOver: (event: DragEvent) => void;
   handleDragLeave: () => void;
-  handleDrop: (e: DragEvent) => void;
+  handleDrop: (event: DragEvent) => void;
   executeSearch: () => void | Promise<void>;
 }
 
@@ -66,7 +66,7 @@ export const MultimodalSearchInputBar: React.FC<MultimodalSearchInputBarProps> =
             ref={searchInputRef}
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(event) => setSearchQuery(event.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('multimodalSearchPlaceholder')}
             className="w-full bg-transparent text-sm text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)] outline-none border-none"

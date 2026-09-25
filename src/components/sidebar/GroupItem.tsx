@@ -30,8 +30,8 @@ export interface GroupItemProps {
   onSessionDropIndicatorClear?: () => void;
   onToggleGroupExpansion: (groupId: string) => void;
   handleGroupStartEdit: (item: ChatGroup) => void;
-  handleDrop: (e: React.DragEvent, groupId: string | null) => void;
-  handleDragOver: (e: React.DragEvent) => void;
+  handleDrop: (event: React.DragEvent, groupId: string | null) => void;
+  handleDragOver: (event: React.DragEvent) => void;
   handleGroupDragOver?: (event: React.DragEvent, groupId: string) => void;
   onDeleteGroup: (groupId: string) => void;
   onClearGroup?: (groupId: string) => void;
@@ -48,9 +48,9 @@ export interface GroupItemProps {
   setActiveMenu?: (id: string | null) => void;
   setEditingItem?: (item: { type: 'session' | 'group'; id: string; title: string } | null) => void;
   setDragOverId?: (id: string | null) => void;
-  toggleMenu?: (e: React.MouseEvent, id: string) => void;
+  toggleMenu?: (event: React.MouseEvent, id: string) => void;
   handleRenameConfirm?: () => void;
-  handleRenameKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  handleRenameKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   draggingSessionId?: string | null;
   sessionItemProps?: SessionItemPassedProps;
 }
@@ -190,9 +190,9 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
       onDragOver={handleGroupDragOverInternal}
       onDrop={handleGroupDropInternal}
       onDragEnter={handleGroupDragEnterInternal}
-      onDragLeave={(e) => {
+      onDragLeave={(event) => {
         cancelAutoExpand();
-        if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+        if (event.currentTarget.contains(event.relatedTarget as Node)) return;
         setDragOverId(null);
       }}
       className={`relative rounded-xl transition-all duration-200 ease-out mb-1 ${
@@ -220,16 +220,16 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
               ? 'bg-[var(--theme-bg-accent)]/10 text-[var(--theme-text-link)]'
               : 'hover:bg-[var(--theme-bg-tertiary)]'
           } group`}
-          onClick={(e) => {
-            if (e.detail > 1) {
+          onClick={(event) => {
+            if (event.detail > 1) {
               // 双击由 onDoubleClick 处理，跳过展开切换
               return;
             }
-            e.preventDefault();
+            event.preventDefault();
             onToggleGroupExpansion(group.id);
           }}
-          onDoubleClick={(e) => {
-            e.preventDefault();
+          onDoubleClick={(event) => {
+            event.preventDefault();
             handleGroupStartEdit(group);
           }}
         >
@@ -255,10 +255,10 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
               <InlineRenameInput
                 editInputRef={editInputRef}
                 title={editingItem.title}
-                onTitleChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                onTitleChange={(event) => setEditingItem({ ...editingItem, title: event.target.value })}
                 onBlur={handleRenameConfirm}
                 onKeyDown={handleRenameKeyDown}
-                onClick={(e) => e.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
                 className="bg-transparent border border-[var(--theme-border-focus)] rounded-md px-1 py-0 text-sm w-full font-semibold"
               />
             ) : (
@@ -281,9 +281,9 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
           <DropdownMenu open={activeMenu === group.id} onOpenChange={(open) => setActiveMenu(open ? group.id : null)}>
             <DropdownMenuTrigger asChild>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleMenu(e, group.id);
+                onClick={(event) => {
+                  event.stopPropagation();
+                  toggleMenu(event, group.id);
                 }}
                 className="p-1 rounded-full text-[var(--theme-text-primary)] opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto transition-opacity"
               >

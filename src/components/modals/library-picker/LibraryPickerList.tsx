@@ -62,7 +62,7 @@ export const LibraryPickerList: React.FC<LibraryPickerListProps> = ({
                   isSelected ? 'bg-blue-500/10 hover:bg-blue-500/15' : 'hover:bg-[var(--theme-bg-secondary)]'
                 }`}
               >
-                <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                <td className="py-2.5 px-3 text-center" onClick={(event) => event.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={isSelected}
@@ -91,11 +91,11 @@ export const LibraryPickerList: React.FC<LibraryPickerListProps> = ({
                 <td className="py-2.5 px-3 text-[var(--theme-text-tertiary)] text-right whitespace-nowrap font-mono">
                   {formatFileSize(item.size)}
                 </td>
-                <td className="py-2.5 px-3 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                <td className="py-2.5 px-3 text-right whitespace-nowrap" onClick={(event) => event.stopPropagation()}>
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={(event) => {
+                      event.stopPropagation();
                       void handlePreviewItem(item);
                     }}
                     title={t('libraryPreview')}

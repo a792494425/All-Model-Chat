@@ -178,35 +178,35 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
     };
   }, [docked, size.height, targetWindow]);
 
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+  const handlePointerDown = useCallback((event: React.PointerEvent) => {
     // 拖拽柄是整个 header，但按钮点击必须优先 — 否则 header 抢走 pointer capture，按钮收不到 click
-    const target = e.target as HTMLElement | null;
+    const target = event.target as HTMLElement | null;
     if (target?.closest('button')) return;
-    if (e.button !== 0) return;
+    if (event.button !== 0) return;
     if (!panelRef.current) return;
     const rect = panelRef.current.getBoundingClientRect();
     dragState.current = {
-      offsetX: e.clientX - rect.left,
-      offsetY: e.clientY - rect.top,
-      startX: e.clientX,
-      startY: e.clientY,
-      pointerId: e.pointerId,
-      capturedElement: e.currentTarget as HTMLElement,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+      startX: event.clientX,
+      startY: event.clientY,
+      pointerId: event.pointerId,
+      capturedElement: event.currentTarget as HTMLElement,
     };
     setIsDragging(true);
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
   }, []);
 
   const handlePointerMove = useCallback(
-    (e: PointerEvent) => {
+    (event: PointerEvent) => {
       if (!dragState.current || !isDragging) return;
       const vw = targetWindow.innerWidth;
       const vh = targetWindow.innerHeight;
       const panelElement = panelRef.current;
       if (!panelElement) return;
       const rect = panelElement.getBoundingClientRect();
-      let left = e.clientX - dragState.current.offsetX;
-      let top = e.clientY - dragState.current.offsetY;
+      let left = event.clientX - dragState.current.offsetX;
+      let top = event.clientY - dragState.current.offsetY;
       left = Math.max(VIEWPORT_PADDING, Math.min(left, vw - rect.width - VIEWPORT_PADDING));
       top = Math.max(VIEWPORT_PADDING, Math.min(top, vh - rect.height - VIEWPORT_PADDING));
       setPosition({ top, left });
@@ -215,7 +215,7 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
   );
 
   const handlePointerUp = useCallback(
-    (e: PointerEvent) => {
+    (event: PointerEvent) => {
       const currentDragState = dragState.current;
       if (currentDragState?.capturedElement && currentDragState.pointerId !== undefined) {
         try {
@@ -226,7 +226,7 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
       }
       // 位移过小说明是单击标题栏而非拖拽：面板恢复原位即可，不触发贴边吸附
       const moved = currentDragState
-        ? Math.hypot(e.clientX - currentDragState.startX, e.clientY - currentDragState.startY)
+        ? Math.hypot(event.clientX - currentDragState.startX, event.clientY - currentDragState.startY)
         : Number.POSITIVE_INFINITY;
       dragState.current = null;
       setIsDragging(false);
@@ -269,8 +269,8 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
 
   useEffect(() => {
     if (!isDragging) return;
-    const onMove = (e: PointerEvent) => handlePointerMove(e);
-    const onUp = (e: PointerEvent) => handlePointerUp(e);
+    const onMove = (event: PointerEvent) => handlePointerMove(event);
+    const onUp = (event: PointerEvent) => handlePointerUp(event);
     targetWindow.addEventListener('pointermove', onMove);
     targetWindow.addEventListener('pointerup', onUp);
     return () => {
@@ -281,21 +281,21 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
 
   // Resize handling
   const handleResizePointerDown = useCallback(
-    (dir: ResizeDir) => (e: React.PointerEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
+    (dir: ResizeDir) => (event: React.PointerEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
       if (!panelRef.current || !position) return;
-      const handleElement = e.currentTarget as HTMLElement;
-      handleElement.setPointerCapture(e.pointerId);
+      const handleElement = event.currentTarget as HTMLElement;
+      handleElement.setPointerCapture(event.pointerId);
       resizeState.current = {
         dir,
-        startX: e.clientX,
-        startY: e.clientY,
+        startX: event.clientX,
+        startY: event.clientY,
         startWidth: size.width,
         startHeight: size.height,
         startTop: position.top,
         startLeft: position.left,
-        pointerId: e.pointerId,
+        pointerId: event.pointerId,
         capturedElement: handleElement,
       };
       setIsResizing(dir);
@@ -304,13 +304,13 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
   );
 
   const handleResizePointerMove = useCallback(
-    (e: PointerEvent) => {
+    (event: PointerEvent) => {
       const currentResizeState = resizeState.current;
       if (!currentResizeState) return;
       const vw = targetWindow.innerWidth;
       const vh = targetWindow.innerHeight;
-      const dx = e.clientX - currentResizeState.startX;
-      const dy = e.clientY - currentResizeState.startY;
+      const dx = event.clientX - currentResizeState.startX;
+      const dy = event.clientY - currentResizeState.startY;
       let newWidth = currentResizeState.startWidth;
       let newHeight = currentResizeState.startHeight;
       let newTop = currentResizeState.startTop;
@@ -380,7 +380,7 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
 
   useEffect(() => {
     if (!isResizing) return;
-    const onMove = (e: PointerEvent) => handleResizePointerMove(e);
+    const onMove = (event: PointerEvent) => handleResizePointerMove(event);
     const onUp = () => handleResizePointerUp();
     targetWindow.addEventListener('pointermove', onMove);
     targetWindow.addEventListener('pointerup', onUp);

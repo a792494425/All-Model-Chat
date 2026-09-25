@@ -51,9 +51,9 @@ export interface UseCloudFilesLogicReturn {
   isAddingDirect: boolean;
   directAddError: string | null;
   directAddSuccess: string | null;
-  handleDirectAdd: (e?: FormEvent) => Promise<void>;
+  handleDirectAdd: (event?: FormEvent) => Promise<void>;
   copiedFileName: string | null;
-  handleCopyId: (name: string, e?: MouseEvent) => void;
+  handleCopyId: (name: string, event?: MouseEvent) => void;
   fileToDelete: GeminiFile | null;
   setFileToDelete: (file: GeminiFile | null) => void;
   isBatchDeleteModalOpen: boolean;
@@ -250,8 +250,8 @@ export function useCloudFilesLogic({
   }, []);
 
   const handleDirectAdd = useCallback(
-    async (e?: FormEvent) => {
-      e?.preventDefault();
+    async (event?: FormEvent) => {
+      event?.preventDefault();
       const trimmed = directInputId.trim();
       if (!trimmed || isAddingDirect) return;
 

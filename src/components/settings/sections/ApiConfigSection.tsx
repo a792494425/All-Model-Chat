@@ -50,10 +50,10 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
   hideProviderRedirect = false,
 }) => {
   const { t } = useI18n();
-  const testModelId = useProviderUiStore((s) => s.geminiTestModelId);
-  const setTestModelId = useProviderUiStore((s) => s.setGeminiTestModelId);
-  const geminiTestResult = useProviderUiStore((s) => s.geminiTestResult);
-  const setGeminiTestResult = useProviderUiStore((s) => s.setGeminiTestResult);
+  const testModelId = useProviderUiStore((state) => state.geminiTestModelId);
+  const setTestModelId = useProviderUiStore((state) => state.setGeminiTestModelId);
+  const geminiTestResult = useProviderUiStore((state) => state.geminiTestResult);
+  const setGeminiTestResult = useProviderUiStore((state) => state.setGeminiTestResult);
 
   const [isTesting, setIsTesting] = useState(false);
   const testStatus = isTesting ? 'testing' : (geminiTestResult?.status ?? 'idle');

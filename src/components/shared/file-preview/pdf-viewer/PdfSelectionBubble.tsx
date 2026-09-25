@@ -102,9 +102,9 @@ export const PdfSelectionBubble: React.FC<PdfSelectionBubbleProps> = ({ containe
     return { top, left };
   }, [selectionState]);
 
-  const handleCopy = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleCopy = async (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (!selectionState) return;
 
     const success = await copyTextToClipboard(selectionState.text);
@@ -118,9 +118,9 @@ export const PdfSelectionBubble: React.FC<PdfSelectionBubbleProps> = ({ containe
     }
   };
 
-  const handleQuote = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleQuote = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (!selectionState) return;
 
     if (onQuote) {
@@ -148,9 +148,9 @@ export const PdfSelectionBubble: React.FC<PdfSelectionBubbleProps> = ({ containe
         left: `${computedPosition.left}px`,
         transform: 'translateX(-50%)',
       }}
-      onMouseDown={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
+      onMouseDown={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
       }}
     >
       <button
@@ -181,9 +181,9 @@ export const PdfSelectionBubble: React.FC<PdfSelectionBubbleProps> = ({ containe
 
       <button
         type="button"
-        onMouseDown={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+        onMouseDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
           clearSelection();
         }}
         className="p-1 text-white/40 hover:text-white hover:bg-white/15 rounded-full transition-colors active:scale-95 cursor-pointer"

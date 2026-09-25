@@ -7,7 +7,7 @@ export interface AskPanelHeaderProps {
   isResizing: boolean;
   selectionAskModelId?: string | null;
   selectionAskProviderId?: string | null;
-  handlePointerDown: (e: React.PointerEvent) => void;
+  handlePointerDown: (event: React.PointerEvent) => void;
   handleResetSize: () => void;
   onClose: () => void;
   t: (key: string) => string;
@@ -49,7 +49,7 @@ export const AskPanelHeader: React.FC<AskPanelHeaderProps> = ({
       <div className="flex-1" />
       <button
         type="button"
-        onPointerDown={(e) => e.stopPropagation()}
+        onPointerDown={(event) => event.stopPropagation()}
         onClick={handleResetSize}
         className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
           isResizing || isDragging
@@ -63,7 +63,7 @@ export const AskPanelHeader: React.FC<AskPanelHeaderProps> = ({
       </button>
       <button
         type="button"
-        onPointerDown={(e) => e.stopPropagation()}
+        onPointerDown={(event) => event.stopPropagation()}
         onClick={onClose}
         className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)]"
         aria-label={t('close')}

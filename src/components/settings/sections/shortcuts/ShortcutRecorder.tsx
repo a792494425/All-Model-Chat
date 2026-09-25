@@ -31,18 +31,18 @@ export const ShortcutRecorder: React.FC<ShortcutRecorderProps> = ({ value, defau
   useEffect(() => {
     if (!isRecording) return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
 
-      if (e.key === 'Escape') {
+      if (event.key === 'Escape') {
         clearCommitTimer();
         setIsRecording(false);
         setTempKey(null);
         return;
       }
 
-      const combo = recordKeyCombination(e);
+      const combo = recordKeyCombination(event);
 
       if (combo) {
         clearCommitTimer();
@@ -56,8 +56,8 @@ export const ShortcutRecorder: React.FC<ShortcutRecorderProps> = ({ value, defau
       }
     };
 
-    const handleMouseDown = (e: MouseEvent) => {
-      if (buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
+    const handleMouseDown = (event: MouseEvent) => {
+      if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         clearCommitTimer();
         setIsRecording(false);
         setTempKey(null);
@@ -74,13 +74,13 @@ export const ShortcutRecorder: React.FC<ShortcutRecorderProps> = ({ value, defau
     };
   }, [clearCommitTimer, isRecording, onChange]);
 
-  const handleReset = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleReset = (event: React.MouseEvent) => {
+    event.stopPropagation();
     onChange(defaultValue);
   };
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClear = (event: React.MouseEvent) => {
+    event.stopPropagation();
     onChange('');
   };
 
@@ -137,14 +137,14 @@ export const ShortcutRecorder: React.FC<ShortcutRecorderProps> = ({ value, defau
           </span>
         ) : isBound ? (
           <div className="flex items-center gap-1">
-            {formattedKeys.map((k, i) => (
+            {formattedKeys.map((keyName, keyIndex) => (
               <kbd
-                key={i}
+                key={keyIndex}
                 // Cherry Studio: packages/ui/src/components/primitives/kbd.tsx + ShortcutSettings.tsx Kbd
                 // min-w-6 rounded-md border border-border-subtle bg-card px-1.5 py-0.75 text-xs
                 className="inline-flex min-w-6 items-center justify-center rounded-md border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-primary)] px-1.5 py-[3px] text-xs font-medium leading-none text-[var(--theme-text-primary)] shadow-none select-none"
               >
-                {k}
+                {keyName}
               </kbd>
             ))}
           </div>

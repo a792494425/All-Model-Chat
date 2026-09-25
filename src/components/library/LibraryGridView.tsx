@@ -54,9 +54,9 @@ const LibraryGridCard = React.memo<LibraryGridCardProps>(
         tabIndex={0}
         aria-label={item.name}
         onClick={() => onPreviewItem(item)}
-        onKeyDown={(e) => {
-          if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
-            e.preventDefault();
+        onKeyDown={(event) => {
+          if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) {
+            event.preventDefault();
             onPreviewItem(item);
           }
         }}
@@ -71,8 +71,8 @@ const LibraryGridCard = React.memo<LibraryGridCardProps>(
 
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               onToggleSelect(item.id);
             }}
             className={`absolute bottom-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm ${
@@ -87,12 +87,12 @@ const LibraryGridCard = React.memo<LibraryGridCardProps>(
 
           <div
             className="absolute top-2 right-2 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-xs p-1 rounded-xl"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
           >
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 onStartChatWithItem(item);
               }}
               title={t('libraryStartChat')}
@@ -103,8 +103,8 @@ const LibraryGridCard = React.memo<LibraryGridCardProps>(
             </button>
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 onPreviewItem(item);
               }}
               title={t('libraryPreview')}
@@ -115,8 +115,8 @@ const LibraryGridCard = React.memo<LibraryGridCardProps>(
             </button>
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 onDownloadItem(item);
               }}
               title={t('libraryDownload')}
@@ -128,8 +128,8 @@ const LibraryGridCard = React.memo<LibraryGridCardProps>(
             {item.fileApiName && (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
+                onClick={(event) => {
+                  event.stopPropagation();
                   onCopyApiName(item.fileApiName!, item.id);
                 }}
                 title={isCopied ? t('selectedFileIdCopied') : t('selectedFileCopyFileId')}
@@ -143,8 +143,8 @@ const LibraryGridCard = React.memo<LibraryGridCardProps>(
             )}
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 onDeleteItem(item);
               }}
               title={t('libraryDelete')}
@@ -181,16 +181,16 @@ const LibraryGridCard = React.memo<LibraryGridCardProps>(
                   : ''
               }`}
               title={item.sessionTitle}
-              onClick={(e) => {
+              onClick={(event) => {
                 if (onJumpToSession && item.sessionId) {
-                  e.stopPropagation();
+                  event.stopPropagation();
                   onJumpToSession(item.sessionId);
                 }
               }}
-              onKeyDown={(e) => {
-                if ((e.key === 'Enter' || e.key === ' ') && onJumpToSession && item.sessionId) {
-                  e.stopPropagation();
-                  e.preventDefault();
+              onKeyDown={(event) => {
+                if ((event.key === 'Enter' || event.key === ' ') && onJumpToSession && item.sessionId) {
+                  event.stopPropagation();
+                  event.preventDefault();
                   onJumpToSession(item.sessionId);
                 }
               }}

@@ -26,8 +26,8 @@ export function useSidebarResize() {
   const [isResizingSidebar, setIsResizingSidebar] = React.useState(false);
   const isResizingSidebarRef = React.useRef(false);
 
-  const startSidebarResize = React.useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
+  const startSidebarResize = React.useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
     setIsResizingSidebar(true);
     isResizingSidebarRef.current = true;
   }, []);
@@ -37,10 +37,10 @@ export function useSidebarResize() {
     isResizingSidebarRef.current = false;
   }, []);
 
-  const handleSidebarResize = React.useCallback((e: MouseEvent) => {
+  const handleSidebarResize = React.useCallback((event: MouseEvent) => {
     if (!isResizingSidebarRef.current) return;
     const newWidth = Math.min(
-      Math.max(e.clientX, MIN_SIDEBAR_WIDTH),
+      Math.max(event.clientX, MIN_SIDEBAR_WIDTH),
       Math.min(MAX_SIDEBAR_WIDTH, window.innerWidth * 0.5),
     );
     setSidebarWidth(newWidth);
@@ -61,11 +61,11 @@ export function useSidebarResize() {
   }, []);
 
   const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        setSidebarWidth((w) => {
-          const next = Math.min(w + 10, MAX_SIDEBAR_WIDTH);
+    (event: React.KeyboardEvent) => {
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        setSidebarWidth((prevWidth) => {
+          const next = Math.min(prevWidth + 10, MAX_SIDEBAR_WIDTH);
           try {
             localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
           } catch {
@@ -73,10 +73,10 @@ export function useSidebarResize() {
           }
           return next;
         });
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        setSidebarWidth((w) => {
-          const next = Math.max(w - 10, MIN_SIDEBAR_WIDTH);
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        setSidebarWidth((prevWidth) => {
+          const next = Math.max(prevWidth - 10, MIN_SIDEBAR_WIDTH);
           try {
             localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
           } catch {
@@ -84,8 +84,8 @@ export function useSidebarResize() {
           }
           return next;
         });
-      } else if (e.key === 'Home') {
-        e.preventDefault();
+      } else if (event.key === 'Home') {
+        event.preventDefault();
         resetSidebarWidth();
       }
     },

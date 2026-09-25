@@ -27,8 +27,10 @@ export const MapsWidget: React.FC<MapsWidgetProps> = ({ places }) => {
 
   // Fall back to the first place when the stored selection no longer exists
   // (e.g. the message was regenerated with a different place list).
-  const effectiveSelectedPlace = places.some((p) => p.uri === selectedPlace) ? selectedPlace : (places[0]?.uri ?? '');
-  const activePlace = places.find((p) => p.uri === effectiveSelectedPlace) ?? places[0];
+  const effectiveSelectedPlace = places.some((place) => place.uri === selectedPlace)
+    ? selectedPlace
+    : (places[0]?.uri ?? '');
+  const activePlace = places.find((place) => place.uri === effectiveSelectedPlace) ?? places[0];
 
   const embedSrc = useMemo(() => {
     if (!activePlace) return '';
@@ -50,8 +52,8 @@ export const MapsWidget: React.FC<MapsWidgetProps> = ({ places }) => {
   useEffect(() => {
     if (!isFullscreen) return undefined;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
         if (document.fullscreenElement) {
           document.exitFullscreen().catch(() => {});
         } else {
@@ -101,9 +103,9 @@ export const MapsWidget: React.FC<MapsWidgetProps> = ({ places }) => {
       onClick={() => setSelectedPlace(place.uri)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
           setSelectedPlace(place.uri);
         }
       }}
@@ -123,7 +125,7 @@ export const MapsWidget: React.FC<MapsWidgetProps> = ({ places }) => {
           href={place.uri}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
           className="flex-shrink-0 text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-link)] transition-colors"
           title={t('mapsViewOnGoogleMaps')}
           aria-label={t('mapsViewOnGoogleMaps')}
@@ -148,7 +150,7 @@ export const MapsWidget: React.FC<MapsWidgetProps> = ({ places }) => {
               href={snippet.googleMapsUri || place.uri}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
               className="group/review flex items-start gap-1.5 text-[11px] text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-link)] transition-colors"
               title={snippet.title}
             >
@@ -177,8 +179,8 @@ export const MapsWidget: React.FC<MapsWidgetProps> = ({ places }) => {
           alt="Google Maps"
           className="w-3.5 h-3.5 object-contain flex-shrink-0"
           loading="lazy"
-          onError={(e) => {
-            (e.currentTarget as HTMLElement).style.display = 'none';
+          onError={(event) => {
+            (event.currentTarget as HTMLElement).style.display = 'none';
           }}
         />
         <h4 className={SETTINGS_SECTION_LABEL_CLASS}>{t('mapsSourcesTitle')}</h4>
@@ -215,8 +217,8 @@ export const MapsWidget: React.FC<MapsWidgetProps> = ({ places }) => {
                       alt="Google Maps"
                       className="w-4 h-4 object-contain flex-shrink-0"
                       loading="lazy"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLElement).style.display = 'none';
+                      onError={(event) => {
+                        (event.currentTarget as HTMLElement).style.display = 'none';
                       }}
                     />
                     <span className="text-sm font-medium text-[var(--theme-text-primary)] truncate">

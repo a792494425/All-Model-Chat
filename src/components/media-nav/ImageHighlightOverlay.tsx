@@ -71,8 +71,8 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
     return null;
   }
 
-  const handleClose = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClose = (event: React.MouseEvent) => {
+    event.stopPropagation();
     if (onClose) {
       onClose();
     } else {
@@ -181,8 +181,8 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
           <span className="text-zinc-300">{highlights.length}</span>
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               handleStep(-1);
             }}
             className="p-0.5 rounded hover:bg-white/20 text-zinc-300 hover:text-white transition-colors cursor-pointer"
@@ -194,8 +194,8 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
           </button>
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               handleStep(1);
             }}
             className="p-0.5 rounded hover:bg-white/20 text-zinc-300 hover:text-white transition-colors cursor-pointer"
@@ -208,11 +208,11 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
         </div>
       )}
 
-      {highlights.map((h, idx) => {
-        if (h === activeHighlight) return null;
-        const itemIdx = typeof h.index === 'number' ? h.index : idx + 1;
-        const hBox = h.box2d && h.box2d.length === 4 ? h.box2d : null;
-        const hPoint = h.point && h.point.length === 2 ? h.point : null;
+      {highlights.map((currentHighlight, idx) => {
+        if (currentHighlight === activeHighlight) return null;
+        const itemIdx = typeof currentHighlight.index === 'number' ? currentHighlight.index : idx + 1;
+        const hBox = currentHighlight.box2d && currentHighlight.box2d.length === 4 ? currentHighlight.box2d : null;
+        const hPoint = currentHighlight.point && currentHighlight.point.length === 2 ? currentHighlight.point : null;
 
         if (hBox) {
           const [ymin, xmin, ymax, xmax] = hBox;
@@ -225,13 +225,13 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
             <div
               key={`inactive-box-${idx}-${top}-${left}`}
               data-testid="image-inactive-box"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 handleSelectHighlight(idx);
               }}
               className="absolute rounded border border-dashed border-red-400/60 bg-red-500/[0.04] hover:bg-red-500/[0.16] hover:border-red-500 cursor-pointer pointer-events-auto transition-all group/box shadow-sm"
               style={{ top: `${top}%`, left: `${left}%`, width: `${width}%`, height: `${height}%` }}
-              title={`${t('imageNavTargetLabel')} [${itemIdx}]: ${h.label || h.snippet || ''}`}
+              title={`${t('imageNavTargetLabel')} [${itemIdx}]: ${currentHighlight.label || currentHighlight.snippet || ''}`}
             >
               <div
                 className="absolute -top-2 -left-2 w-4 h-4 rounded-full bg-red-600/90 text-white text-[9px] font-bold flex items-center justify-center shadow-md border border-white/40 group-hover/box:scale-110 group-hover/box:bg-red-500 transition-all"
@@ -251,13 +251,13 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
             <div
               key={`inactive-pt-${idx}-${top}-${left}`}
               data-testid="image-inactive-point"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 handleSelectHighlight(idx);
               }}
               className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto group/pt"
               style={{ top: `${top}%`, left: `${left}%` }}
-              title={`${t('imageNavTargetLabel')} [${itemIdx}]: ${h.label || h.snippet || ''}`}
+              title={`${t('imageNavTargetLabel')} [${itemIdx}]: ${currentHighlight.label || currentHighlight.snippet || ''}`}
             >
               <div
                 className="w-4 h-4 rounded-full bg-red-600/80 hover:bg-red-500 text-white text-[9px] font-bold flex items-center justify-center shadow-md border border-white/40 group-hover/pt:scale-125 transition-all"

@@ -13,7 +13,7 @@ export interface CloudFilesTableProps {
   onSelectAllToggle: () => void;
   onToggleSelectFile: (fileName: string) => void;
   onRowDoubleClick: (file: GeminiFile) => void;
-  onCopyId: (name: string, e?: MouseEvent) => void;
+  onCopyId: (name: string, event?: MouseEvent) => void;
   copiedFileName: string | null;
   onSetFileToDelete: (file: GeminiFile) => void;
 }
@@ -84,8 +84,8 @@ export const CloudFilesTable: React.FC<CloudFilesTableProps> = ({
               >
                 <td
                   className="py-2.5 px-3 text-center"
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.stopPropagation();
                     if (fileName) onToggleSelectFile(fileName);
                   }}
                 >
@@ -108,7 +108,7 @@ export const CloudFilesTable: React.FC<CloudFilesTableProps> = ({
                         {fileName && (
                           <button
                             type="button"
-                            onClick={(e) => onCopyId(fileName, e)}
+                            onClick={(event) => onCopyId(fileName, event)}
                             title={t('cloudFilesCopyId')}
                             className="text-[var(--theme-text-tertiary)] hover:text-blue-500 transition-colors cursor-pointer"
                           >
@@ -171,8 +171,8 @@ export const CloudFilesTable: React.FC<CloudFilesTableProps> = ({
                 <td className="py-2.5 px-3 text-center whitespace-nowrap">
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={(event) => {
+                      event.stopPropagation();
                       onSetFileToDelete(file);
                     }}
                     title={t('cloudFilesDelete')}

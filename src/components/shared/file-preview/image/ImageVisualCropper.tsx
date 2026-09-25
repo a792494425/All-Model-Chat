@@ -127,30 +127,30 @@ export const ImageVisualCropper: React.FC<ImageVisualCropperProps> = ({
     }
   };
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.button !== 0) return;
-    e.stopPropagation();
-    handleStart(e.clientX, e.clientY, e.pointerId, e.currentTarget);
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    event.stopPropagation();
+    handleStart(event.clientX, event.clientY, event.pointerId, event.currentTarget);
   };
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
-    e.stopPropagation();
-    handleMove(e.clientX, e.clientY);
+    event.stopPropagation();
+    handleMove(event.clientX, event.clientY);
   };
 
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
-    e.stopPropagation();
-    handleEnd(e.clientX, e.clientY, e.pointerId, e.currentTarget);
+    event.stopPropagation();
+    handleEnd(event.clientX, event.clientY, event.pointerId, event.currentTarget);
   };
 
-  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerCancel = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
-    e.stopPropagation();
-    if (e.currentTarget?.releasePointerCapture) {
+    event.stopPropagation();
+    if (event.currentTarget?.releasePointerCapture) {
       try {
-        e.currentTarget.releasePointerCapture(e.pointerId);
+        event.currentTarget.releasePointerCapture(event.pointerId);
       } catch {
         // Safe fallback
       }
@@ -160,22 +160,22 @@ export const ImageVisualCropper: React.FC<ImageVisualCropperProps> = ({
   };
 
   // Fallback handlers for legacy mouse events / testing
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isDragging || e.button !== 0) return;
-    e.stopPropagation();
-    handleStart(e.clientX, e.clientY);
+  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isDragging || event.button !== 0) return;
+    event.stopPropagation();
+    handleStart(event.clientX, event.clientY);
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging) return;
-    e.stopPropagation();
-    handleMove(e.clientX, e.clientY);
+    event.stopPropagation();
+    handleMove(event.clientX, event.clientY);
   };
 
-  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseUp = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging) return;
-    e.stopPropagation();
-    handleEnd(e.clientX, e.clientY);
+    event.stopPropagation();
+    handleEnd(event.clientX, event.clientY);
   };
 
   // Compute bounding box percentage for rendering in local coordinates
@@ -194,8 +194,8 @@ export const ImageVisualCropper: React.FC<ImageVisualCropperProps> = ({
     };
   }
 
-  const handleCopyTag = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCopyTag = (event: React.MouseEvent) => {
+    event.stopPropagation();
     if (!confirmedBox) return;
     const tag = `<image-locate file="${fileName}" box="[${confirmedBox.join(',')}]">${t('imageLocatePromptQuery')}</image-locate>`;
     void copyTextToClipboard(tag);
@@ -203,8 +203,8 @@ export const ImageVisualCropper: React.FC<ImageVisualCropperProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleInsert = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleInsert = (event: React.MouseEvent) => {
+    event.stopPropagation();
     if (confirmedBox) {
       onConfirmSelection(confirmedBox);
     }
@@ -235,8 +235,8 @@ export const ImageVisualCropper: React.FC<ImageVisualCropperProps> = ({
         </div>
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={(event) => {
+            event.stopPropagation();
             onCancel();
           }}
           className="p-1 rounded-full bg-zinc-950/85 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/20 transition-all cursor-pointer shadow-lg"
@@ -289,8 +289,8 @@ export const ImageVisualCropper: React.FC<ImageVisualCropperProps> = ({
 
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
+                onClick={(event) => {
+                  event.stopPropagation();
                   setConfirmedBox(null);
                   setDragState(null);
                 }}

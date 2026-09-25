@@ -34,19 +34,19 @@ export const ToggleItem: React.FC<ToggleItemProps> = ({
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      onKeyDown={(e) => {
-        if (e.key !== 'Enter' && e.key !== ' ') {
+      onKeyDown={(event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
           return;
         }
 
-        e.preventDefault();
+        event.preventDefault();
         onChange(!checked);
       }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-1.5 pr-4">
         <span className={`${labelClass} group-hover:text-[var(--theme-text-primary)] transition-colors`}>{label}</span>
         {tooltip && (
-          <div onClick={(e) => e.stopPropagation()} className="flex flex-shrink-0 items-center">
+          <div onClick={(event) => event.stopPropagation()} className="flex flex-shrink-0 items-center">
             <Tooltip text={tooltip}>
               <Info
                 size={14}
@@ -57,12 +57,12 @@ export const ToggleItem: React.FC<ToggleItemProps> = ({
           </div>
         )}
         {labelTrailing && (
-          <div onClick={(e) => e.stopPropagation()} className="flex flex-shrink-0 items-center">
+          <div onClick={(event) => event.stopPropagation()} className="flex flex-shrink-0 items-center">
             {labelTrailing}
           </div>
         )}
       </div>
-      <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+      <div className="flex-shrink-0" onClick={(event) => event.stopPropagation()}>
         <Toggle checked={checked} onChange={onChange} />
       </div>
     </div>

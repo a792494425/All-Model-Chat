@@ -159,7 +159,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
             <React.Fragment key={index}>
               <button
                 type="button"
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {
                   if (isOrganize) {
                     if (onToggleLiveArtifactsPrompt) {
@@ -203,7 +203,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
                       {onToggleBBox && (
                         <button
                           type="button"
-                          onMouseDown={(e) => e.preventDefault()}
+                          onMouseDown={(event) => event.preventDefault()}
                           onClick={() => {
                             onToggleBBox();
                             focusChatInput(0, { caret: 'end', retries: 4 });
@@ -221,7 +221,7 @@ const ChatSuggestionsComponent: React.FC<ChatSuggestionsProps> = ({
                       {onToggleGuide && (
                         <button
                           type="button"
-                          onMouseDown={(e) => e.preventDefault()}
+                          onMouseDown={(event) => event.preventDefault()}
                           onClick={() => {
                             onToggleGuide();
                             focusChatInput(0, { caret: 'end', retries: 4 });

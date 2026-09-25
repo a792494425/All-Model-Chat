@@ -144,7 +144,7 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
   return (
     <div
       data-testid="video-subtitles-drawer"
-      onMouseMove={(e) => e.stopPropagation()}
+      onMouseMove={(event) => event.stopPropagation()}
       className="w-80 sm:w-96 md:w-[410px] flex flex-col h-full bg-[#18191c] border-l border-white/10 text-white/90 select-none z-20 flex-shrink-0"
     >
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/10 bg-[#141517] gap-2">
@@ -293,10 +293,10 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape' && searchQuery) {
-                  e.stopPropagation();
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape' && searchQuery) {
+                  event.stopPropagation();
                   setSearchQuery('');
                 }
               }}

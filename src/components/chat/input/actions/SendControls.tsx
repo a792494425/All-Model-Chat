@@ -45,10 +45,10 @@ export const SendControls: React.FC = () => {
     }
   }
 
-  const handlePrimaryClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handlePrimaryClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (isStop) {
-      e.preventDefault();
-      e.stopPropagation();
+      event.preventDefault();
+      event.stopPropagation();
       if (isWaitingForUpload) {
         onCancelPendingUploadSend();
       } else {
@@ -62,9 +62,9 @@ export const SendControls: React.FC = () => {
       {canQueueMessage && (
         <button
           type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
             onQueueMessage?.();
           }}
           className={`${CHAT_INPUT_BUTTON_CLASS} bg-transparent hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-icon-settings)] relative`}
@@ -88,9 +88,9 @@ export const SendControls: React.FC = () => {
       {isEditing && (
         <button
           type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
             onCancelEdit();
           }}
           className={`h-8 px-2.5 mr-1.5 inline-flex items-center justify-center rounded-md text-xs font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors cursor-pointer border-0 ${FOCUS_VISIBLE_RING_INPUT_OFFSET_CLASS}`}

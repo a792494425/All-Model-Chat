@@ -34,7 +34,7 @@ export const useSelectionDrag = ({ toolbarRef, position, onPositionChange }: Use
   );
 
   const handleDragMove = useCallback(
-    (e: MouseEvent) => {
+    (event: MouseEvent) => {
       if (!isDragging.current || !toolbarRef.current) return;
 
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -42,7 +42,7 @@ export const useSelectionDrag = ({ toolbarRef, position, onPositionChange }: Use
       rafRef.current = requestAnimationFrame(() => {
         if (!isDragging.current) return;
 
-        const nextPosition = getClampedPosition(e.clientX, e.clientY);
+        const nextPosition = getClampedPosition(event.clientX, event.clientY);
         if (!nextPosition) return;
 
         nextPosition.toolbar.style.left = `${nextPosition.left}px`;
@@ -53,7 +53,7 @@ export const useSelectionDrag = ({ toolbarRef, position, onPositionChange }: Use
   );
 
   const handleDragEnd = useCallback(
-    (e: MouseEvent) => {
+    (event: MouseEvent) => {
       if (!isDragging.current || !toolbarRef.current) return;
       isDragging.current = false;
       document.body.style.userSelect = '';
@@ -67,7 +67,7 @@ export const useSelectionDrag = ({ toolbarRef, position, onPositionChange }: Use
       }
 
       // Sync final position to React state
-      const nextPosition = getClampedPosition(e.clientX, e.clientY);
+      const nextPosition = getClampedPosition(event.clientX, event.clientY);
       if (nextPosition) {
         onPositionChange({
           top: nextPosition.top,
@@ -83,10 +83,10 @@ export const useSelectionDrag = ({ toolbarRef, position, onPositionChange }: Use
   );
 
   const handleDragStart = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.button !== 0 || !position || !toolbarRef.current) return;
-      e.preventDefault();
-      e.stopPropagation();
+    (event: React.MouseEvent) => {
+      if (event.button !== 0 || !position || !toolbarRef.current) return;
+      event.preventDefault();
+      event.stopPropagation();
 
       isDragging.current = true;
       toolbarRef.current.style.transition = 'none';
@@ -94,8 +94,8 @@ export const useSelectionDrag = ({ toolbarRef, position, onPositionChange }: Use
       const rect = toolbarRef.current.getBoundingClientRect();
 
       dragOffset.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
       };
 
       document.body.style.userSelect = 'none';

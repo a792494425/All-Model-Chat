@@ -10,8 +10,8 @@ interface CreateFileBodyProps {
   isPreviewMode: boolean;
   supportsRichPreview: boolean;
   useMonospaceFont: boolean;
-  handlePaste: (e: React.ClipboardEvent<HTMLTextAreaElement>) => void;
-  handleDrop: (e: React.DragEvent) => void;
+  handlePaste: (event: React.ClipboardEvent<HTMLTextAreaElement>) => void;
+  handleDrop: (event: React.DragEvent) => void;
   onSaveKeyDown: (event: React.KeyboardEvent<HTMLElement>) => void;
   themeId: string;
 }
@@ -32,28 +32,28 @@ export const CreateFileBody: React.FC<CreateFileBodyProps> = ({
   const { t } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
 
-  const onDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.dataTransfer.types.includes('Files')) setIsDragging(true);
+  const onDragEnter = (event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.dataTransfer.types.includes('Files')) setIsDragging(true);
   };
 
-  const onDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const onDragLeave = (event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     setIsDragging(false);
   };
 
-  const onDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isDragging && e.dataTransfer.types.includes('Files')) setIsDragging(true);
+  const onDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!isDragging && event.dataTransfer.types.includes('Files')) setIsDragging(true);
   };
 
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleDrop(e);
+  const onDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    handleDrop(event);
     setIsDragging(false);
   };
 
@@ -96,7 +96,7 @@ export const CreateFileBody: React.FC<CreateFileBodyProps> = ({
           <textarea
             ref={textareaRef}
             value={textContent}
-            onChange={(e) => setTextContent(e.target.value)}
+            onChange={(event) => setTextContent(event.target.value)}
             onPaste={handlePaste}
             onKeyDown={handleTextareaKeyDown}
             onDragEnter={onDragEnter}

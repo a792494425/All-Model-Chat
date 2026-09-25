@@ -90,23 +90,23 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
     onPositionChange: setPosition,
   });
 
-  const handleQuoteClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleQuoteClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     onQuote(selectedText);
     clearSelection();
   };
 
-  const handleInsertClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleInsertClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (onInsert) onInsert(selectedText);
     clearSelection();
   };
 
-  const handleCopyClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleCopyClick = async (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (await copyTextToClipboard(selectedCopyText || selectedText)) {
       showCopiedFeedback();
       if (copyClearTimeoutRef.current) {
@@ -119,22 +119,22 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
     }
   };
 
-  const handleSearchClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleSearchClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     window.open(`https://www.google.com/search?q=${encodeURIComponent(selectedText)}`, '_blank', 'noopener,noreferrer');
     clearSelection();
   };
 
-  const handleAskClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleAskClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (onAsk) onAsk(selectedText, selectionRect);
   };
 
-  const handleTTSClick = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleTTSClick = async (event: React.SyntheticEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (ttsInFlightRef.current || !onTTS) return;
 
     const text = (selectedSpeechText || selectedText).trim();
@@ -163,9 +163,9 @@ export const TextSelectionToolbar: React.FC<TextSelectionToolbarProps> = ({
     }
   };
 
-  const handleCloseAudio = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleCloseAudio = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     ttsInFlightRef.current = false;
     audioState.stop();
     clearSelection();

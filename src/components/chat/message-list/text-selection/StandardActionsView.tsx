@@ -4,12 +4,12 @@ import { Quote, Copy, Check, CornerRightDown, Volume2, Sparkles } from 'lucide-r
 import { IconGoogle } from '@/components/icons';
 
 interface StandardActionsViewProps {
-  onQuote: (e: React.MouseEvent) => void;
-  onInsert?: (e: React.MouseEvent) => void;
-  onCopy: (e: React.MouseEvent) => void;
-  onSearch: (e: React.MouseEvent) => void;
-  onAsk?: (e: React.MouseEvent) => void;
-  onTTS?: (e: React.SyntheticEvent) => void;
+  onQuote: (event: React.MouseEvent) => void;
+  onInsert?: (event: React.MouseEvent) => void;
+  onCopy: (event: React.MouseEvent) => void;
+  onSearch: (event: React.MouseEvent) => void;
+  onAsk?: (event: React.MouseEvent) => void;
+  onTTS?: (event: React.SyntheticEvent) => void;
   isCopied: boolean;
   /** Non-null shows a transient error message attached to the TTS button. */
   ttsError?: string | null;

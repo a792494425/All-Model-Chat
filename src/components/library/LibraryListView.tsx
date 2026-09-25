@@ -52,13 +52,13 @@ const LibraryListRow = React.memo<LibraryListRowProps>(
       <tr
         tabIndex={0}
         onClick={() => onPreviewItem(item)}
-        onKeyDown={(e) => {
+        onKeyDown={(event) => {
           if (
-            e.key === 'Enter' &&
-            (e.target as HTMLElement).tagName !== 'BUTTON' &&
-            (e.target as HTMLElement).tagName !== 'INPUT'
+            event.key === 'Enter' &&
+            (event.target as HTMLElement).tagName !== 'BUTTON' &&
+            (event.target as HTMLElement).tagName !== 'INPUT'
           ) {
-            e.preventDefault();
+            event.preventDefault();
             onPreviewItem(item);
           }
         }}
@@ -68,15 +68,15 @@ const LibraryListRow = React.memo<LibraryListRowProps>(
       >
         <td
           className="py-3.5 px-4 sm:px-8 w-12 text-center"
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={(event) => {
+            event.stopPropagation();
             onToggleSelect(item.id);
           }}
         >
           <input
             type="checkbox"
             checked={isSelected}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
             onChange={() => onToggleSelect(item.id)}
             aria-label={`Select ${item.name}`}
             className="w-4 h-4 rounded border-[var(--theme-border-secondary)] text-[var(--theme-accent)] focus:ring-[var(--theme-border-focus)] cursor-pointer"
@@ -110,16 +110,16 @@ const LibraryListRow = React.memo<LibraryListRowProps>(
                       : ''
                   }`}
                   title={item.sessionTitle}
-                  onClick={(e) => {
+                  onClick={(event) => {
                     if (onJumpToSession && item.sessionId) {
-                      e.stopPropagation();
+                      event.stopPropagation();
                       onJumpToSession(item.sessionId);
                     }
                   }}
-                  onKeyDown={(e) => {
-                    if ((e.key === 'Enter' || e.key === ' ') && onJumpToSession && item.sessionId) {
-                      e.stopPropagation();
-                      e.preventDefault();
+                  onKeyDown={(event) => {
+                    if ((event.key === 'Enter' || event.key === ' ') && onJumpToSession && item.sessionId) {
+                      event.stopPropagation();
+                      event.preventDefault();
                       onJumpToSession(item.sessionId);
                     }
                   }}
@@ -139,13 +139,13 @@ const LibraryListRow = React.memo<LibraryListRowProps>(
           {formatFileSize(item.size)}
         </td>
 
-        <td className="py-3.5 pr-4 sm:pr-8 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+        <td className="py-3.5 pr-4 sm:pr-8 text-right whitespace-nowrap" onClick={(event) => event.stopPropagation()}>
           <div className="inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             {item.fileApiName && (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
+                onClick={(event) => {
+                  event.stopPropagation();
                   onCopyApiName(item.fileApiName!, item.id);
                 }}
                 title={isCopied ? t('selectedFileIdCopied') : t('selectedFileCopyFileId')}
@@ -161,8 +161,8 @@ const LibraryListRow = React.memo<LibraryListRowProps>(
             )}
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 onStartChatWithItem(item);
               }}
               title={t('libraryStartChat')}
@@ -173,8 +173,8 @@ const LibraryListRow = React.memo<LibraryListRowProps>(
             </button>
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 onPreviewItem(item);
               }}
               title={t('libraryPreview')}
@@ -185,8 +185,8 @@ const LibraryListRow = React.memo<LibraryListRowProps>(
             </button>
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 onDownloadItem(item);
               }}
               title={t('libraryDownload')}
@@ -197,8 +197,8 @@ const LibraryListRow = React.memo<LibraryListRowProps>(
             </button>
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 onDeleteItem(item);
               }}
               title={t('libraryDelete')}
@@ -242,7 +242,7 @@ export const LibraryListView: React.FC<LibraryListViewProps> = ({
   }, [someSelected]);
 
   const handleMasterCheckboxChange = () => {
-    selectAllFiles(items.map((i) => i.id));
+    selectAllFiles(items.map((item) => item.id));
   };
 
   const handleCopyApiName = React.useCallback((name: string, id: string) => {

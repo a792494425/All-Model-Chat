@@ -104,7 +104,7 @@ export const useLibraryPickerFiles = ({ isOpen, onAutoSelectUploaded }: UseLibra
         const updated = await dbService.getStandaloneLibraryFiles();
         setStandaloneFiles(updated);
 
-        onAutoSelectUploaded?.(newItems.map((i) => i.id));
+        onAutoSelectUploaded?.(newItems.map((item) => item.id));
       } catch (uploadError) {
         logService.error('Failed to upload files to library in picker', uploadError);
       } finally {
@@ -115,41 +115,41 @@ export const useLibraryPickerFiles = ({ isOpen, onAutoSelectUploaded }: UseLibra
   );
 
   const handleFileInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files && e.target.files.length > 0) {
-        const files = Array.from(e.target.files);
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (event.target.files && event.target.files.length > 0) {
+        const files = Array.from(event.target.files);
         void handleUploadFiles(files);
-        e.target.value = '';
+        event.target.value = '';
       }
     },
     [handleUploadFiles],
   );
 
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    if (e.dataTransfer.types.includes('Files')) {
-      e.preventDefault();
+  const handleDragEnter = useCallback((event: React.DragEvent) => {
+    if (event.dataTransfer.types.includes('Files')) {
+      event.preventDefault();
       setIsDraggingOver(true);
     }
   }, []);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    if (e.dataTransfer.types.includes('Files')) {
-      e.preventDefault();
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    if (event.dataTransfer.types.includes('Files')) {
+      event.preventDefault();
     }
   }, []);
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+  const handleDragLeave = useCallback((event: React.DragEvent) => {
+    if (event.currentTarget.contains(event.relatedTarget as Node)) return;
     setIsDraggingOver(false);
   }, []);
 
   const handleDrop = useCallback(
-    async (e: React.DragEvent) => {
-      if (!e.dataTransfer.types.includes('Files')) return;
-      e.preventDefault();
+    async (event: React.DragEvent) => {
+      if (!event.dataTransfer.types.includes('Files')) return;
+      event.preventDefault();
       setIsDraggingOver(false);
 
-      const droppedFiles = Array.from(e.dataTransfer.files);
+      const droppedFiles = Array.from(event.dataTransfer.files);
       if (droppedFiles.length > 0) {
         await handleUploadFiles(droppedFiles);
       }
@@ -161,7 +161,9 @@ export const useLibraryPickerFiles = ({ isOpen, onAutoSelectUploaded }: UseLibra
   const handlePreviewItem = useCallback(async (item: LibraryItem) => {
     try {
       previewOriginalDataUrlRef.current = item.dataUrl ?? null;
-      const file = await resolveLibraryItemToUploadedFile(item, (i) => dbService.fetchLibraryFileBlob(i));
+      const file = await resolveLibraryItemToUploadedFile(item, (itemToFetch) =>
+        dbService.fetchLibraryFileBlob(itemToFetch),
+      );
       setPreviewFile(file);
     } catch (previewError) {
       logService.error('Failed to resolve file for preview', previewError);

@@ -93,10 +93,10 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
         });
 
         // Sort directories first, then alphabetically
-        parsedEntries.sort((a, b) => {
-          if (a.isDir && !b.isDir) return -1;
-          if (!a.isDir && b.isDir) return 1;
-          return a.path.localeCompare(b.path);
+        parsedEntries.sort((entryA, entryB) => {
+          if (entryA.isDir && !entryB.isDir) return -1;
+          if (!entryA.isDir && entryB.isDir) return 1;
+          return entryA.path.localeCompare(entryB.path);
         });
 
         if (!cancelled) {
@@ -256,7 +256,7 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={t('zipSearchPlaceholder')}
               className="pl-8 pr-7 py-1.5 text-xs rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] text-[var(--theme-text-primary)] placeholder-[var(--theme-text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-border-focus)] w-36 sm:w-52 transition-all"
             />
@@ -333,8 +333,8 @@ export const ZipViewer: React.FC<ZipViewerProps> = ({ file, onConvertToContext }
                     {!item.isDir && (
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
+                        onClick={(event) => {
+                          event.stopPropagation();
                           void handleDownloadEntry(item);
                         }}
                         className="p-1 rounded hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-text-primary)] transition-colors opacity-0 group-hover:opacity-100"

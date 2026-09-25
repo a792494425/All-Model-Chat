@@ -85,25 +85,25 @@ export const useFileDragDrop = ({ onFilesDropped, onAddTempFile, onRemoveTempFil
     };
   }, []);
 
-  const handleAppDragEnter = useCallback((e: DragEvent<HTMLDivElement>) => {
-    if (!isFileDrag(e)) return;
-    e.preventDefault();
+  const handleAppDragEnter = useCallback((event: DragEvent<HTMLDivElement>) => {
+    if (!isFileDrag(event)) return;
+    event.preventDefault();
     dragCounterRef.current += 1;
     setIsAppDraggingOver(true);
   }, []);
 
-  const handleAppDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
-    if (!isFileDrag(e)) return;
-    e.preventDefault();
-    if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = 'copy';
+  const handleAppDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+    if (!isFileDrag(event)) return;
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
     }
     setIsAppDraggingOver(true);
   }, []);
 
-  const handleAppDragLeave = useCallback((e: DragEvent<HTMLDivElement>) => {
-    if (!isFileDrag(e)) return;
-    e.preventDefault();
+  const handleAppDragLeave = useCallback((event: DragEvent<HTMLDivElement>) => {
+    if (!isFileDrag(event)) return;
+    event.preventDefault();
     dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
     if (dragCounterRef.current === 0) {
       setIsAppDraggingOver(false);
@@ -111,22 +111,22 @@ export const useFileDragDrop = ({ onFilesDropped, onAddTempFile, onRemoveTempFil
   }, []);
 
   const handleAppDrop = useCallback(
-    async (e: DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
+    async (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
       dragCounterRef.current = 0;
       setIsAppDraggingOver(false);
       setIsProcessingDrop(true);
 
       try {
-        const items = e.dataTransfer.items;
+        const items = event.dataTransfer.items;
         const droppedSnapshot = items ? snapshotDroppedItems(items) : createEmptyDroppedItemsSnapshot();
         const hasSnapshotData =
           droppedSnapshot.entries.length > 0 ||
           droppedSnapshot.handlePromises.length > 0 ||
           droppedSnapshot.files.length > 0;
-        if (!hasSnapshotData && e.dataTransfer.files?.length) {
-          await onFilesDropped(e.dataTransfer.files);
+        if (!hasSnapshotData && event.dataTransfer.files?.length) {
+          await onFilesDropped(event.dataTransfer.files);
           return;
         }
 

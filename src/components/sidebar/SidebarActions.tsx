@@ -43,7 +43,7 @@ const getCompactShortcutParts = (shortcut: string): string[] => {
     .filter(Boolean);
   const modifiers = parts
     .filter((part) => COMPACT_SHORTCUT_ORDER[part] !== undefined)
-    .sort((a, b) => COMPACT_SHORTCUT_ORDER[a] - COMPACT_SHORTCUT_ORDER[b]);
+    .sort((modifierA, modifierB) => COMPACT_SHORTCUT_ORDER[modifierA] - COMPACT_SHORTCUT_ORDER[modifierB]);
   const keys = parts.filter((part) => COMPACT_SHORTCUT_ORDER[part] === undefined);
 
   return [...modifiers, ...keys].map((part) => {
@@ -111,9 +111,9 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
     setSearchQuery('');
   };
 
-  const handleNewChatClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-      e.preventDefault();
+  const handleNewChatClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+      event.preventDefault();
       setActiveView('chat');
       onNewChat();
       if (window.innerWidth < DESKTOP_BREAKPOINT_PX) {
@@ -122,9 +122,9 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
     }
   };
 
-  const handleLibraryClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-      e.preventDefault();
+  const handleLibraryClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+      event.preventDefault();
       setActiveView('library');
       if (window.innerWidth < DESKTOP_BREAKPOINT_PX) {
         onCloseSidebar?.();
@@ -173,11 +173,11 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
               aria-label={t('historySearchAria')}
               placeholder={t('historySearchPlaceholder')}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(event) => setSearchQuery(event.target.value)}
               className="w-full bg-transparent border-0 h-full py-0 text-sm focus:ring-0 outline-none text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)]"
               autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') closeSearch();
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') closeSearch();
               }}
             />
             <button

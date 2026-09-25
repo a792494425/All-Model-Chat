@@ -10,7 +10,7 @@ export interface ImageMinimapProps {
   viewportDimensions: { width: number; height: number };
   rotation?: number;
   highlights?: ImageNavHighlight[];
-  onPanTo: (x: number, y: number) => void;
+  onPanTo: (targetX: number, targetY: number) => void;
 }
 
 /**
@@ -51,13 +51,13 @@ export const ImageMinimap: React.FC<ImageMinimapProps> = ({
   const rectLeft = Math.max(0, Math.min(1 - vpFractionW, centerFractionX - vpFractionW / 2));
   const rectTop = Math.max(0, Math.min(1 - vpFractionH, centerFractionY - vpFractionH / 2));
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect || rect.width <= 0 || rect.height <= 0) return;
 
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
 
     const targetFractionX = clickX / rect.width;
     const targetFractionY = clickY / rect.height;

@@ -43,7 +43,7 @@ export const ScenarioEditorHeader: React.FC<ScenarioEditorHeaderProps> = ({
           id="scenario-title-input"
           type="text"
           value={title}
-          onChange={(e) => !readOnly && setTitle(e.target.value)}
+          onChange={(event) => !readOnly && setTitle(event.target.value)}
           placeholder={t('scenariosEditorTitlePlaceholder')}
           aria-label={t('scenariosEditorTitleLabel')}
           className="flex-1 min-w-0 bg-[var(--theme-bg-input)]/40 hover:bg-[var(--theme-bg-input)]/70 focus:bg-[var(--theme-bg-input)] px-3 py-1.5 -mx-3 rounded-lg text-lg sm:text-xl font-bold text-[var(--theme-text-primary)] placeholder-[var(--theme-text-tertiary)] outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)] transition-all"
@@ -89,7 +89,7 @@ export const ScenarioEditorHeader: React.FC<ScenarioEditorHeaderProps> = ({
               <select
                 id="scenario-category-select"
                 value={getCategory(category)}
-                onChange={(e) => setCategory(e.target.value as ScenarioCategory)}
+                onChange={(event) => setCategory(event.target.value as ScenarioCategory)}
                 className="appearance-none pl-7 pr-7 py-1.5 bg-[var(--theme-bg-input)] border border-[var(--theme-border-secondary)] rounded-lg text-xs font-semibold text-[var(--theme-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)] cursor-pointer min-w-[8.5rem]"
               >
                 {CATEGORY_ORDER.map((value) => (
@@ -116,7 +116,7 @@ export const ScenarioEditorHeader: React.FC<ScenarioEditorHeaderProps> = ({
               id="scenario-description-input"
               type="text"
               value={description ?? ''}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(event) => setDescription(event.target.value)}
               placeholder={t('scenariosEditorDescriptionPlaceholder')}
               aria-label={t('scenariosEditorDescriptionLabel')}
               className="min-w-0 flex-1 bg-transparent border-b border-[var(--theme-border-secondary)] focus:border-[var(--theme-border-focus)] text-xs text-[var(--theme-text-secondary)] placeholder-[var(--theme-text-tertiary)] outline-none py-1 transition-colors"

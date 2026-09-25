@@ -11,7 +11,7 @@ export interface MultimodalSearchResultCardProps {
   result: MultimodalSearchResult;
   isSelected: boolean;
   isInserting: boolean;
-  onToggleSelect: (id: string, e?: MouseEvent) => void;
+  onToggleSelect: (id: string, event?: MouseEvent) => void;
   onInsertSingleItem: (result: MultimodalSearchResult) => void | Promise<void>;
   onDownloadItem: (result: MultimodalSearchResult) => void | Promise<void>;
   onJumpToSession: (sessionId?: string) => void;
@@ -64,7 +64,7 @@ export const MultimodalSearchResultCard: React.FC<MultimodalSearchResultCardProp
 
         <button
           type="button"
-          onClick={(e) => onToggleSelect(item.id, e)}
+          onClick={(event) => onToggleSelect(item.id, event)}
           className={`absolute top-2.5 left-2.5 z-10 w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer shadow-xs ${
             isSelected
               ? 'bg-blue-600 text-white'
@@ -80,7 +80,10 @@ export const MultimodalSearchResultCard: React.FC<MultimodalSearchResultCardProp
           )}
         </button>
 
-        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="absolute top-2.5 right-2.5 flex items-center gap-1.5"
+          onClick={(event) => event.stopPropagation()}
+        >
           <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-black/60 backdrop-blur-xs p-1 rounded-xl">
             <button
               type="button"
@@ -122,9 +125,9 @@ export const MultimodalSearchResultCard: React.FC<MultimodalSearchResultCardProp
             role="button"
             tabIndex={0}
             onClick={() => onJumpToSession(item.sessionId)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
                 onJumpToSession(item.sessionId);
               }
             }}

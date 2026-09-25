@@ -95,8 +95,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({ content, onClose, themeId 
     return () => clearTimeout(timer);
   }, [localCode]);
 
-  const startResizing = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
+  const startResizing = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
     setIsResizing(true);
     isResizingRef.current = true;
   }, []);
@@ -276,11 +276,11 @@ export const SidePanel: React.FC<SidePanelProps> = ({ content, onClose, themeId 
             tabIndex={0}
             onMouseDown={startResizing}
             onDoubleClick={resetWidth}
-            onKeyDown={(e) => {
-              if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                setWidth((w) => {
-                  const next = Math.min(w + 20, Math.round(window.innerWidth * 0.9));
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                setWidth((prevWidth) => {
+                  const next = Math.min(prevWidth + 20, Math.round(window.innerWidth * 0.9));
                   try {
                     localStorage.setItem(SIDEPANEL_STORAGE_KEY, String(next));
                   } catch {
@@ -288,10 +288,10 @@ export const SidePanel: React.FC<SidePanelProps> = ({ content, onClose, themeId 
                   }
                   return next;
                 });
-              } else if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                setWidth((w) => {
-                  const next = Math.max(w - 20, MIN_SIDEPANEL_WIDTH);
+              } else if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                setWidth((prevWidth) => {
+                  const next = Math.max(prevWidth - 20, MIN_SIDEPANEL_WIDTH);
                   try {
                     localStorage.setItem(SIDEPANEL_STORAGE_KEY, String(next));
                   } catch {
@@ -299,8 +299,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({ content, onClose, themeId 
                   }
                   return next;
                 });
-              } else if (e.key === 'Home') {
-                e.preventDefault();
+              } else if (event.key === 'Home') {
+                event.preventDefault();
                 resetWidth();
               }
             }}
