@@ -132,19 +132,19 @@ const parseMcpServer = (value: unknown, options: McpRouteOptions): McpServerPars
     return { ok: false };
   }
 
-  const id = typeof value.id === 'string' ? value.id.trim() : '';
+  const serverId = typeof value.id === 'string' ? value.id.trim() : '';
   const name = typeof value.name === 'string' ? value.name.trim() : '';
   const enabled = Boolean(value.enabled);
   const transport = value.transport;
-  if (!id || !name || (transport !== 'stdio' && transport !== 'http' && transport !== 'sse')) {
+  if (!serverId || !name || (transport !== 'stdio' && transport !== 'http' && transport !== 'sse')) {
     // Attribute the failure to the (partial) server so the UI can show why a
     // configured server produced no tools instead of silently dropping it.
     return {
       ok: false,
       error: {
-        serverId: id || '(missing id)',
+        serverId: serverId || '(missing id)',
         serverName: name || '(missing name)',
-        error: !id
+        error: !serverId
           ? 'MCP server configuration is missing a server ID.'
           : !name
             ? 'MCP server configuration is missing a name.'
@@ -154,7 +154,7 @@ const parseMcpServer = (value: unknown, options: McpRouteOptions): McpServerPars
   }
 
   const server: McpServerConfig = {
-    id,
+    id: serverId,
     name,
     enabled,
     transport,
@@ -174,7 +174,7 @@ const parseMcpServer = (value: unknown, options: McpRouteOptions): McpServerPars
       return {
         ok: false,
         error: {
-          serverId: id,
+          serverId,
           serverName: name,
           error: 'MCP stdio server requires a command.',
         },
@@ -187,7 +187,7 @@ const parseMcpServer = (value: unknown, options: McpRouteOptions): McpServerPars
       return {
         ok: false,
         error: {
-          serverId: id,
+          serverId,
           serverName: name,
           error: `MCP stdio servers refuse environment variable "${dangerousEnvKey}" (NODE_OPTIONS/LD_PRELOAD-style injection).`,
         },
@@ -207,7 +207,7 @@ const parseMcpServer = (value: unknown, options: McpRouteOptions): McpServerPars
     return {
       ok: false,
       error: {
-        serverId: id,
+        serverId,
         serverName: name,
         error: 'MCP http/sse server requires a URL.',
       },
@@ -218,7 +218,7 @@ const parseMcpServer = (value: unknown, options: McpRouteOptions): McpServerPars
     return {
       ok: false,
       error: {
-        serverId: id,
+        serverId,
         serverName: name,
         error: 'MCP HTTP server URL must use http:// or https://.',
       },
@@ -229,7 +229,7 @@ const parseMcpServer = (value: unknown, options: McpRouteOptions): McpServerPars
     return {
       ok: false,
       error: {
-        serverId: id,
+        serverId,
         serverName: name,
         error: 'Private MCP HTTP server URLs are disabled on this API server.',
       },

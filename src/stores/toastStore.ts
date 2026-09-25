@@ -49,20 +49,20 @@ const triggerSonner = (type: ToastType, message: string, id: number | string, du
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
   showToast: (message, options) => {
-    const id = nextToastId++;
+    const toastId = nextToastId++;
     const type = options?.type ?? 'info';
     const durationMs = options?.durationMs ?? DEFAULT_TOAST_DURATION_MS;
 
-    triggerSonner(type, message, id, durationMs);
+    triggerSonner(type, message, toastId, durationMs);
 
     const entry: ToastEntry = {
-      id,
+      id: toastId,
       type,
       message,
       durationMs,
     };
     set((state) => ({ toasts: [...state.toasts, entry].slice(-MAX_VISIBLE_TOASTS) }));
-    return id;
+    return toastId;
   },
   dismissToast: (id) => {
     if (typeof window !== 'undefined') {

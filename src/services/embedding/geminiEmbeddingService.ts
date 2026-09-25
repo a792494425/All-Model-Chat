@@ -73,12 +73,12 @@ export const computeCosineSimilarity = (vectorA: number[], vectorB: number[]): n
   let normA = 0;
   let normB = 0;
 
-  for (let i = 0; i < vectorA.length; i++) {
-    const valA = vectorA[i];
-    const valB = vectorB[i];
-    dotProduct += valA * valB;
-    normA += valA * valA;
-    normB += valB * valB;
+  for (let index = 0; index < vectorA.length; index++) {
+    const valueA = vectorA[index];
+    const valueB = vectorB[index];
+    dotProduct += valueA * valueB;
+    normA += valueA * valueA;
+    normB += valueB * valueB;
   }
 
   if (normA <= 0 || normB <= 0) {

@@ -236,8 +236,8 @@ const planUpdate = (
 
   if (nextSet.modelId) {
     const targetId = nextSet.modelId;
-    const existsInCurrent = current.models.some((m) => m.id === targetId);
-    const existsInAdditions = allAdditions.some((m) => m.id === targetId);
+    const existsInCurrent = current.models.some((model) => model.id === targetId);
+    const existsInAdditions = allAdditions.some((model) => model.id === targetId);
     if (!existsInCurrent && !existsInAdditions) {
       allAdditions.unshift({ id: targetId, name: targetId });
     }

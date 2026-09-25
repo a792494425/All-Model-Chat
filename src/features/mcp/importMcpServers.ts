@@ -25,11 +25,11 @@ export const normalizeImportedServer = (
       ? 'sse'
       : 'http';
   const idRaw = typeof raw.id === 'string' ? raw.id.trim() : typeof raw.name === 'string' ? raw.name.trim() : '';
-  const id = idRaw || `mcp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-  const name = (typeof raw.name === 'string' && raw.name.trim()) || fallbackName || id;
+  const serverId = idRaw || `mcp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const name = (typeof raw.name === 'string' && raw.name.trim()) || fallbackName || serverId;
   if (transport === 'stdio') {
     return {
-      id,
+      id: serverId,
       name,
       enabled: false,
       transport,
@@ -39,7 +39,7 @@ export const normalizeImportedServer = (
     };
   }
   return {
-    id,
+    id: serverId,
     name,
     enabled: false,
     transport,
@@ -76,8 +76,8 @@ const serversFromParsed = (parsed: unknown): McpServerConfig[] => {
       .filter(Boolean) as McpServerConfig[];
   }
   if (rawConfig.url || rawConfig.command || rawConfig.transport || rawConfig.type) {
-    const one = normalizeImportedServer(rawConfig);
-    return one ? [one] : [];
+    const singleServer = normalizeImportedServer(rawConfig);
+    return singleServer ? [singleServer] : [];
   }
   throw new McpImportError('unrecognized');
 };
@@ -119,15 +119,15 @@ export const dedupeServersById = (
   imported: McpServerConfig[],
   existingIds: Iterable<string>,
 ): Array<McpServerConfig & { __isNew?: boolean }> => {
-  const ids = new Set(existingIds);
+  const existingIdSet = new Set(existingIds);
   return imported.map((server) => {
     let nextId = server.id;
     let duplicateCounter = 2;
-    while (ids.has(nextId)) {
+    while (existingIdSet.has(nextId)) {
       nextId = `${server.id}__${duplicateCounter}`;
       duplicateCounter += 1;
     }
-    ids.add(nextId);
+    existingIdSet.add(nextId);
     return nextId === server.id ? server : { ...server, id: nextId };
   });
 };

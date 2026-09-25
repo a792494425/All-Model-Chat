@@ -26,59 +26,59 @@ const stripDotCommentsAndStrings = (dot: string): string => {
   let inBlockComment = false;
   let inDoubleQuote = false;
 
-  for (let i = 0; i < chars.length; i += 1) {
-    const ch = chars[i];
-    const next = i + 1 < chars.length ? chars[i + 1] : '';
+  for (let charIndex = 0; charIndex < chars.length; charIndex += 1) {
+    const char = chars[charIndex];
+    const next = charIndex + 1 < chars.length ? chars[charIndex + 1] : '';
 
     if (inLineComment) {
-      chars[i] = ' ';
-      if (ch === '\n') inLineComment = false;
+      chars[charIndex] = ' ';
+      if (char === '\n') inLineComment = false;
       continue;
     }
     if (inBlockComment) {
-      chars[i] = ' ';
-      if (ch === '*' && next === '/') {
-        chars[i + 1] = ' ';
+      chars[charIndex] = ' ';
+      if (char === '*' && next === '/') {
+        chars[charIndex + 1] = ' ';
         inBlockComment = false;
-        i += 1;
+        charIndex += 1;
       }
       continue;
     }
-    if (ch === '\\') {
-      chars[i] = ' ';
-      i += 1;
-      if (i < chars.length) chars[i] = ' ';
+    if (char === '\\') {
+      chars[charIndex] = ' ';
+      charIndex += 1;
+      if (charIndex < chars.length) chars[charIndex] = ' ';
       continue;
     }
     if (inDoubleQuote) {
-      chars[i] = ' ';
-      if (ch === '"') inDoubleQuote = false;
+      chars[charIndex] = ' ';
+      if (char === '"') inDoubleQuote = false;
       continue;
     }
-    if (ch === '"') {
+    if (char === '"') {
       inDoubleQuote = true;
       // Keep the quote character so string boundaries survive; blank only the
       // content. This stops an id inside a label from looking like a standalone
       // node declaration after blanking.
       continue;
     }
-    if (ch === '/' && next === '/') {
+    if (char === '/' && next === '/') {
       inLineComment = true;
-      chars[i] = ' ';
-      chars[i + 1] = ' ';
-      i += 1;
+      chars[charIndex] = ' ';
+      chars[charIndex + 1] = ' ';
+      charIndex += 1;
       continue;
     }
-    if (ch === '/' && next === '*') {
+    if (char === '/' && next === '*') {
       inBlockComment = true;
-      chars[i] = ' ';
-      chars[i + 1] = ' ';
-      i += 1;
+      chars[charIndex] = ' ';
+      chars[charIndex + 1] = ' ';
+      charIndex += 1;
       continue;
     }
-    if (ch === '#') {
+    if (char === '#') {
       inLineComment = true;
-      chars[i] = ' ';
+      chars[charIndex] = ' ';
       continue;
     }
   }
@@ -107,10 +107,10 @@ export const countDotNodes = (dot: string): number => {
 
   const ids = new Set<string>();
   const tokenPattern = /[A-Za-z_][\w.-]*|\d+/g;
-  for (const m of cleaned.matchAll(tokenPattern)) {
-    const id = m[0];
-    if (!DOT_RESERVED_WORDS.has(id)) {
-      ids.add(id);
+  for (const tokenMatch of cleaned.matchAll(tokenPattern)) {
+    const nodeIdentifier = tokenMatch[0];
+    if (!DOT_RESERVED_WORDS.has(nodeIdentifier)) {
+      ids.add(nodeIdentifier);
     }
   }
   return ids.size;

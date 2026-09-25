@@ -246,11 +246,8 @@ const toGeminiSchema = (schema: unknown): Schema => {
       }
     }
     // Gemini Schema supports additionalProperties as Schema | boolean in some versions;
-    // map boolean true to an open object, false is default closed-ish.
-    if (effective.additionalProperties === true) {
-      geminiSchema.properties = geminiSchema.properties ?? {};
-    } else if (isRecord(effective.additionalProperties)) {
-      // Represent free-form maps as object with empty properties — best-effort for Gemini.
+    // map boolean true or free-form record map to an open object with empty properties.
+    if (effective.additionalProperties === true || isRecord(effective.additionalProperties)) {
       geminiSchema.properties = geminiSchema.properties ?? {};
     }
   }

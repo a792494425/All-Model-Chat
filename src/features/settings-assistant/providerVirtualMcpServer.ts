@@ -217,7 +217,7 @@ export const createProviderVirtualMcpServer = (deps: ProviderToolsDeps): Virtual
 
     if (verdict.kind === 'needs-approval') {
       if (patch.op === 'delete') {
-        const target = deps.getConnections().find((c) => c.id === patch.connectionId);
+        const target = deps.getConnections().find((connection) => connection.id === patch.connectionId);
         deps.setConnections(verdict.nextConnections);
         return {
           status: 'deleted',
@@ -299,7 +299,7 @@ export const createProviderVirtualMcpServer = (deps: ProviderToolsDeps): Virtual
         if (!connectionId) {
           return toMcpResponse({ status: 'error', errorMessage: 'connectionId is required' });
         }
-        const connection = deps.getConnections().find((c) => c.id === connectionId);
+        const connection = deps.getConnections().find((connection) => connection.id === connectionId);
         if (!connection) {
           return toMcpResponse({ status: 'error', errorMessage: `Connection ${connectionId} not found` });
         }

@@ -305,18 +305,18 @@ export class PyodideService {
     this.running = true;
     try {
       while (!this.disposed && this.queue.length > 0) {
-        const req = this.queue.shift() as QueuedRequest;
-        if (req.aborted) {
-          req.reject(this.createAbortError());
+        const queuedRequest = this.queue.shift() as QueuedRequest;
+        if (queuedRequest.aborted) {
+          queuedRequest.reject(this.createAbortError());
           continue;
         }
         try {
-          const result = await this.executeRequest(req);
+          const result = await this.executeRequest(queuedRequest);
           if (!this.disposed) {
-            req.resolve(result);
+            queuedRequest.resolve(result);
           }
         } catch (executionError) {
-          req.reject(executionError);
+          queuedRequest.reject(executionError);
         }
       }
     } finally {
@@ -505,7 +505,7 @@ export class PyodideService {
 
   public runPython(code: string, options: RunPythonOptions = {}): Promise<ExecutionResult> {
     this.consecutiveCrashCount = 0;
-    const id = this.createRequestId();
+    const requestId = this.createRequestId();
     const abortSignal = options.abortSignal;
 
     if (abortSignal?.aborted) {
@@ -517,11 +517,11 @@ export class PyodideService {
       // the in-flight request ahead of it to finish and without touching the
       // healthy worker.
       const onAbort = () => {
-        req.aborted = true;
-        const idx = this.queue.indexOf(req);
-        if (idx >= 0) {
-          this.queue.splice(idx, 1);
-          req.reject(this.createAbortError());
+        queuedRequest.aborted = true;
+        const queueIndex = this.queue.indexOf(queuedRequest);
+        if (queueIndex >= 0) {
+          this.queue.splice(queueIndex, 1);
+          queuedRequest.reject(this.createAbortError());
         }
       };
       abortSignal?.addEventListener('abort', onAbort, { once: true });
@@ -530,8 +530,8 @@ export class PyodideService {
         abortSignal?.removeEventListener('abort', onAbort);
       };
 
-      const req: QueuedRequest = {
-        id,
+      const queuedRequest: QueuedRequest = {
+        id: requestId,
         code,
         uploadedFiles: options.files ?? [],
         abortSignal,
@@ -546,7 +546,7 @@ export class PyodideService {
         aborted: false,
       };
 
-      this.queue.push(req);
+      this.queue.push(queuedRequest);
       void this.drain();
     });
   }

@@ -92,7 +92,7 @@ export const CHART_RENDERER_SCRIPT = `
     danger: 'var(--amc-live-artifact-danger-surface)',
   };
   const PALETTE = ['accent', 'success', 'warning', 'danger', 'muted', 'subtle'];
-  const PALETTE_COLORS = PALETTE.map((k) => SEMANTIC_COLORS[k]);
+  const PALETTE_COLORS = PALETTE.map((paletteKey) => SEMANTIC_COLORS[paletteKey]);
 
   const colorKey = (series, index) => {
     const key = series && typeof series.color === 'string' && series.color ? series.color : PALETTE[index % PALETTE.length];
@@ -159,13 +159,13 @@ export const CHART_RENDERER_SCRIPT = `
 
     // bar / grouped-bar / stacked-bar / line / area
     if (!Array.isArray(raw.x) || !raw.x.length) return null;
-    const x = raw.x.map((v) => (isFiniteNum(v) ? v : typeof v === 'string' ? v : null));
-    if (x.some((v) => v === null)) return null;
+    const x = raw.x.map((xValue) => (isFiniteNum(xValue) ? xValue : typeof xValue === 'string' ? xValue : null));
+    if (x.some((xValue) => xValue === null)) return null;
     if (!Array.isArray(raw.series) || !raw.series.length) return null;
     const series = [];
     for (const s of raw.series) {
       if (!s || typeof s !== 'object' || !Array.isArray(s.y) || s.y.length !== x.length) return null;
-      if (s.y.some((v) => !isFiniteNum(v))) return null;
+      if (s.y.some((yValue) => !isFiniteNum(yValue))) return null;
       series.push({
         name: typeof s.name === 'string' ? s.name : undefined,
         color: typeof s.color === 'string' ? s.color : undefined,
@@ -344,7 +344,7 @@ export const CHART_RENDERER_SCRIPT = `
       }
       if (points.length >= 2) {
         svg.appendChild(createSvgElement('polyline', {
-          points: points.map((p) => p[0].toFixed(2) + ',' + p[1].toFixed(2)).join(' '),
+          points: points.map(([pointX, pointY]) => pointX.toFixed(2) + ',' + pointY.toFixed(2)).join(' '),
           fill: 'none',
           stroke: color,
           'stroke-width': 2,
@@ -443,7 +443,7 @@ export const CHART_RENDERER_SCRIPT = `
     const isBar = spec.type === 'bar' || spec.type === 'grouped-bar' || spec.type === 'stacked-bar';
     const yScale = makeYScale(collectYValues(spec), plot, isBar);
     const numericX =
-      spec.type === 'scatter' || (spec.x.length > 0 && spec.x.every((v) => isFiniteNum(v)));
+      spec.type === 'scatter' || (spec.x.length > 0 && spec.x.every((xValue) => isFiniteNum(xValue)));
     const xScale = numericX ? makeXScale(collectXValues(spec), plot) : makeCategoryXScale(spec.x.length, plot);
 
     if (spec.type === 'scatter') {

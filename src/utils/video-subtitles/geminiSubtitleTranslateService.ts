@@ -60,13 +60,13 @@ export async function translateSubtitlesWithGemini(
   const BATCH_SIZE = 80;
   const translationMap = new Map<number, string>();
 
-  for (let i = 0; i < cues.length; i += BATCH_SIZE) {
+  for (let batchStartIndex = 0; batchStartIndex < cues.length; batchStartIndex += BATCH_SIZE) {
     if (signal?.aborted) {
       throw new DOMException('Translation was aborted by user.', 'AbortError');
     }
 
-    const batch = cues.slice(i, i + BATCH_SIZE);
-    const inputItems = batch.map((c) => ({ id: c.id, text: c.text }));
+    const batch = cues.slice(batchStartIndex, batchStartIndex + BATCH_SIZE);
+    const inputItems = batch.map((cue) => ({ id: cue.id, text: cue.text }));
 
     const prompt = `You are a professional audiovisual and video subtitle translator.
 Translate the following video subtitle cues accurately and naturally into ${targetLanguage}.
@@ -148,12 +148,12 @@ ${JSON.stringify(inputItems, null, 2)}`;
       });
 
       if (!response.ok) {
-        const errText = await response.text().catch(() => '');
-        throw new Error(`Gemini translation API call failed (${response.status}): ${errText}`);
+        const errorResponseText = await response.text().catch(() => '');
+        throw new Error(`Gemini translation API call failed (${response.status}): ${errorResponseText}`);
       }
 
-      const resData = await response.json();
-      responseText = resData?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+      const responseData = await response.json();
+      responseText = responseData?.candidates?.[0]?.content?.parts?.[0]?.text || null;
     }
 
     if (responseText) {
@@ -167,13 +167,13 @@ ${JSON.stringify(inputItems, null, 2)}`;
             }
           }
         }
-      } catch (parseErr) {
-        logService.warn('[VideoSubtitles] Failed to parse translation JSON batch:', { error: parseErr, responseText });
+      } catch (parseError) {
+        logService.warn('[VideoSubtitles] Failed to parse translation JSON batch:', { error: parseError, responseText });
       }
     }
 
     if (options?.onProgress) {
-      const currentDone = Math.min(cues.length, i + BATCH_SIZE);
+      const currentDone = Math.min(cues.length, batchStartIndex + BATCH_SIZE);
       options.onProgress(Math.round((currentDone / cues.length) * 100));
     }
   }

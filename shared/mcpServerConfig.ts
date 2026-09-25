@@ -91,16 +91,16 @@ const sanitizeMcpServerConfig = (value: unknown): McpServerConfig | undefined =>
     return undefined;
   }
 
-  const id = typeof value.id === 'string' ? value.id.trim() : '';
-  const name = typeof value.name === 'string' ? value.name.trim() : '';
+  const serverId = typeof value.id === 'string' ? value.id.trim() : '';
+  const serverName = typeof value.name === 'string' ? value.name.trim() : '';
   const transport = value.transport;
-  if (!id || !name || (transport !== 'stdio' && transport !== 'http' && transport !== 'sse')) {
+  if (!serverId || !serverName || (transport !== 'stdio' && transport !== 'http' && transport !== 'sse')) {
     return undefined;
   }
 
   const server: McpServerConfig = {
-    id,
-    name,
+    id: serverId,
+    name: serverName,
     enabled: Boolean(value.enabled),
     transport,
   };

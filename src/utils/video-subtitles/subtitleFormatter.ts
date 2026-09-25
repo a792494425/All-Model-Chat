@@ -51,12 +51,12 @@ function formatTimestamp(totalSeconds: number, millisecondSeparator: string): st
   const seconds = Math.floor(safeSeconds % 60);
   const milliseconds = Math.round((safeSeconds % 1) * 1000);
 
-  const hh = String(hours).padStart(2, '0');
-  const mm = String(minutes).padStart(2, '0');
-  const ss = String(seconds).padStart(2, '0');
-  const mmm = String(milliseconds).padStart(3, '0');
+  const formattedHours = String(hours).padStart(2, '0');
+  const formattedMinutes = String(minutes).padStart(2, '0');
+  const formattedSeconds = String(seconds).padStart(2, '0');
+  const formattedMilliseconds = String(milliseconds).padStart(3, '0');
 
-  return `${hh}:${mm}:${ss}${millisecondSeparator}${mmm}`;
+  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}${millisecondSeparator}${formattedMilliseconds}`;
 }
 
 const TERMINAL_PUNCTUATION_REGEX = /[.?!。？！]$/;
@@ -111,21 +111,21 @@ export function groupWordsIntoCues(words: WordAnnotation[]): SubtitleCue[] {
     currentWords = [];
   };
 
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
+  for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
+    const word = words[wordIndex];
 
     if (currentWords.length > 0) {
-      const prevWord = currentWords[currentWords.length - 1];
-      const prevEnd = parseOffsetSeconds(prevWord.end_offset);
-      const currStart = parseOffsetSeconds(word.start_offset);
+      const previousWord = currentWords[currentWords.length - 1];
+      const previousEnd = parseOffsetSeconds(previousWord.end_offset);
+      const currentStart = parseOffsetSeconds(word.start_offset);
 
-      const silenceGap = currStart - prevEnd;
+      const silenceGap = currentStart - previousEnd;
       const isPauseBreak = silenceGap > 0.45;
-      const isPunctuationBreak = TERMINAL_PUNCTUATION_REGEX.test(prevWord.text.trim());
-      const isSpeakerChange = Boolean(word.speaker && prevWord.speaker && word.speaker !== prevWord.speaker);
+      const isPunctuationBreak = TERMINAL_PUNCTUATION_REGEX.test(previousWord.text.trim());
+      const isSpeakerChange = Boolean(word.speaker && previousWord.speaker && word.speaker !== previousWord.speaker);
 
       const firstStart = parseOffsetSeconds(currentWords[0].start_offset);
-      const isDurationLimit = currStart - firstStart >= 5.5;
+      const isDurationLimit = currentStart - firstStart >= 5.5;
       const textLength = currentWords.reduce((totalLength, currentWord) => totalLength + currentWord.text.length, 0);
       const isLengthLimit = textLength >= 60;
 

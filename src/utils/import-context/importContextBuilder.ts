@@ -226,10 +226,10 @@ async function processZipFile(
     files.push(attachRelativePath(file, `${zipRoot}/${safePath}`));
   });
 
-  const filePathSet = new Set(files.map((file) => getFilePath(file)));
-  const emptyDirectoryPaths = [...directoryCandidates].filter((dirPath) => {
+  const filePaths = files.map((file) => getFilePath(file));
+  const emptyDirectoryPaths = Array.from(directoryCandidates).filter((dirPath) => {
     const prefix = `${dirPath}/`;
-    return ![...filePathSet].some((filePath) => filePath.startsWith(prefix));
+    return !filePaths.some((filePath) => filePath.startsWith(prefix));
   });
 
   return { files, emptyDirectoryPaths };

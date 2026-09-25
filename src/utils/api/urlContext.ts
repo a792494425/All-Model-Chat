@@ -214,7 +214,7 @@ export const parseAndValidateUrlList = (
   // Split on newlines, commas, or semicolons
   const candidates = rawText
     .split(/[\n,;]+/)
-    .map((c) => c.trim())
+    .map((candidate) => candidate.trim())
     .filter(Boolean);
 
   const seenNormalized = new Set<string>();

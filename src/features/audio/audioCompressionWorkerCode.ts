@@ -12,9 +12,9 @@ self.onmessage = function(event) {
         const { pcmData, sampleRate, kbps } = event.data;
 
         const samples = new Int16Array(pcmData.length);
-        for (let i = 0; i < pcmData.length; i++) {
-            const clampedSample = Math.max(-1, Math.min(1, pcmData[i]));
-            samples[i] = clampedSample < 0 ? clampedSample * 0x8000 : clampedSample * 0x7FFF;
+        for (let sampleIndex = 0; sampleIndex < pcmData.length; sampleIndex++) {
+            const clampedSample = Math.max(-1, Math.min(1, pcmData[sampleIndex]));
+            samples[sampleIndex] = clampedSample < 0 ? clampedSample * 0x8000 : clampedSample * 0x7FFF;
         }
 
         if (typeof lamejs === 'undefined') {
@@ -25,8 +25,8 @@ self.onmessage = function(event) {
         const mp3Data = [];
         const sampleBlockSize = 1152;
 
-        for (let i = 0; i < samples.length; i += sampleBlockSize) {
-            const chunk = samples.subarray(i, i + sampleBlockSize);
+        for (let sampleOffset = 0; sampleOffset < samples.length; sampleOffset += sampleBlockSize) {
+            const chunk = samples.subarray(sampleOffset, sampleOffset + sampleBlockSize);
             const encodedChunk = mp3Encoder.encodeBuffer(chunk);
             if (encodedChunk.length > 0) {
                 mp3Data.push(encodedChunk);

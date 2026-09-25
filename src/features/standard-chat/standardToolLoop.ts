@@ -284,11 +284,11 @@ export const runStandardToolLoop = async ({
     const functionResponseParts: Part[] = new Array(functionCalls.length);
     onToolCallsStarted?.(turn.modelContent);
     const results = await Promise.all(
-      functionCalls.map(async (call, idx) => {
+      functionCalls.map(async (call, index) => {
         const clientFunction = call.name ? clientFunctions[call.name] : undefined;
         if (!clientFunction) {
           return {
-            idx,
+            index,
             part: {
               functionResponse: {
                 id: call.id,
@@ -304,7 +304,7 @@ export const runStandardToolLoop = async ({
         try {
           const result = await clientFunction.handler(call.args as unknown, abortSignal ? { abortSignal } : undefined);
           return {
-            idx,
+            index,
             part: {
               functionResponse: {
                 id: call.id,
@@ -316,7 +316,7 @@ export const runStandardToolLoop = async ({
           };
         } catch (toolCallError) {
           return {
-            idx,
+            index,
             part: {
               functionResponse: {
                 id: call.id,
@@ -332,9 +332,9 @@ export const runStandardToolLoop = async ({
       }),
     );
     results
-      .sort((resultA, resultB) => resultA.idx - resultB.idx)
+      .sort((resultA, resultB) => resultA.index - resultB.index)
       .forEach((result) => {
-        functionResponseParts[result.idx] = result.part as Part;
+        functionResponseParts[result.index] = result.part as Part;
         if (result.generatedFiles?.length) generatedFiles.push(...result.generatedFiles);
       });
     onToolResponsesSettled?.(functionResponseParts);

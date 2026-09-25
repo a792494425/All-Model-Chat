@@ -8,18 +8,18 @@ export { decodeBase64ToArrayBuffer };
  */
 export const decodeAudioData = async (
   data: Uint8Array,
-  ctx: AudioContext,
+  audioContext: AudioContext,
   sampleRate: number = 24000,
   numChannels: number = 1,
 ): Promise<AudioBuffer> => {
   const dataInt16 = new Int16Array(data.buffer);
   const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+  const buffer = audioContext.createBuffer(numChannels, frameCount, sampleRate);
 
   for (let channel = 0; channel < numChannels; channel++) {
     const channelData = buffer.getChannelData(channel);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    for (let frameIndex = 0; frameIndex < frameCount; frameIndex++) {
+      channelData[frameIndex] = dataInt16[frameIndex * numChannels + channel] / 32768.0;
     }
   }
   return buffer;
@@ -31,10 +31,10 @@ export const decodeAudioData = async (
 export const float32ToPCM16Base64 = (data: Float32Array): string => {
   const sampleCount = data.length;
   const int16 = new Int16Array(sampleCount);
-  for (let i = 0; i < sampleCount; i++) {
+  for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
     // 0x7fff (not 32768) so a full-scale +1.0 sample stays 32767 instead of
     // wrapping Int16 to -32768. Matches float32ToPcm16Bytes below.
-    int16[i] = Math.max(-1, Math.min(1, data[i])) * 0x7fff;
+    int16[sampleIndex] = Math.max(-1, Math.min(1, data[sampleIndex])) * 0x7fff;
   }
   return arrayBufferToBase64(int16);
 };
@@ -47,7 +47,9 @@ const createWavBuffer = (pcmData: Uint8Array, sampleRate: number, numChannels: n
 
   let writeOffset = 0;
   const writeString = (value: string) => {
-    [...value].forEach((character) => wavView.setUint8(writeOffset++, character.charCodeAt(0)));
+    for (let charIndex = 0; charIndex < value.length; charIndex++) {
+      wavView.setUint8(writeOffset++, value.charCodeAt(charIndex));
+    }
   };
 
   writeString('RIFF');
@@ -78,8 +80,8 @@ const createWavBuffer = (pcmData: Uint8Array, sampleRate: number, numChannels: n
 
 const float32ToPcm16Bytes = (data: Float32Array): Uint8Array => {
   const int16 = new Int16Array(data.length);
-  for (let i = 0; i < data.length; i++) {
-    int16[i] = Math.max(-1, Math.min(1, data[i])) * 0x7fff;
+  for (let sampleIndex = 0; sampleIndex < data.length; sampleIndex++) {
+    int16[sampleIndex] = Math.max(-1, Math.min(1, data[sampleIndex])) * 0x7fff;
   }
   return new Uint8Array(int16.buffer);
 };
@@ -98,10 +100,10 @@ export const float32ToWavFile = (
 export const convertAudioBlobToWavFile = async (file: File | Blob): Promise<File> => {
   const arrayBuffer = await file.arrayBuffer();
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  const audioCtx = new AudioContextClass();
+  const audioContext = new AudioContextClass();
 
   try {
-    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
     const frameCount = audioBuffer.length;
     const mono = new Float32Array(frameCount);
 
@@ -111,8 +113,8 @@ export const convertAudioBlobToWavFile = async (file: File | Blob): Promise<File
       const channelCount = audioBuffer.numberOfChannels;
       for (let channel = 0; channel < channelCount; channel++) {
         const channelData = audioBuffer.getChannelData(channel);
-        for (let i = 0; i < frameCount; i++) {
-          mono[i] += channelData[i] / channelCount;
+        for (let frameIndex = 0; frameIndex < frameCount; frameIndex++) {
+          mono[frameIndex] += channelData[frameIndex] / channelCount;
         }
       }
     }
@@ -121,7 +123,7 @@ export const convertAudioBlobToWavFile = async (file: File | Blob): Promise<File
     const wavName = originalName.replace(/\.[^/.]+$/, '') + '.wav';
     return float32ToWavFile(mono, audioBuffer.sampleRate, wavName);
   } finally {
-    await audioCtx.close().catch(() => undefined);
+    await audioContext.close().catch(() => undefined);
   }
 };
 

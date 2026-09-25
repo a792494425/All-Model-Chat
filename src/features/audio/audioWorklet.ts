@@ -11,8 +11,8 @@ class PCMProcessor extends AudioWorkletProcessor {
     const input = inputs[0];
     if (input.length > 0) {
       const channel = input[0];
-      for (let i = 0; i < channel.length; i++) {
-        this.buffer[this.index++] = channel[i];
+      for (let sampleIndex = 0; sampleIndex < channel.length; sampleIndex++) {
+        this.buffer[this.index++] = channel[sampleIndex];
         if (this.index >= this.bufferSize) {
           this.port.postMessage(this.buffer);
           this.index = 0;

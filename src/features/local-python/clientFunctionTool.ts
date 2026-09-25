@@ -48,7 +48,7 @@ export const createLocalPythonToolHandler = <RunOptions extends PythonRunOptions
 
     const result = await runPython(code, getRunOptions(options));
     const outputFiles = result.files || [];
-    const generatedFiles = [...outputFiles].map((file) => createUploadedFileFromBytes(file.data, file.type, file.name));
+    const generatedFiles = outputFiles.map((file) => createUploadedFileFromBytes(file.data, file.type, file.name));
 
     if (result.image && !hasGeneratedImageFile(outputFiles)) {
       generatedFiles.unshift(createUploadedFileFromBytes(result.image, 'image/png', `generated-plot-${Date.now()}`));

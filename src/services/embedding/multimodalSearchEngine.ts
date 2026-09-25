@@ -268,12 +268,12 @@ export const indexAllHistoricalItems = async (
     phase: 'indexing',
   });
 
-  for (let i = 0; i < total; i++) {
-    const fileItem = pendingFiles[i];
+  for (let index = 0; index < total; index++) {
+    const fileItem = pendingFiles[index];
 
     onProgress?.({
       total,
-      current: i + 1,
+      current: index + 1,
       currentItemName: fileItem.name,
       phase: 'indexing',
     });

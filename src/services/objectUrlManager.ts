@@ -99,7 +99,7 @@ class ObjectUrlManager {
         entry.owners.delete(ownerId);
       }
 
-      for (let i = 0; i < ownerRefs; i += 1) {
+      for (let refIndex = 0; refIndex < ownerRefs; refIndex += 1) {
         this.release(url);
       }
     });

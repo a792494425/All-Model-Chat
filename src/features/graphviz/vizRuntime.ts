@@ -213,15 +213,15 @@ const GRAPHVIZ_MIN_FILL_ALPHA = SEMANTIC_SURFACE_MIN_ALPHA;
  * through. Used for semantic fillcolor/bgcolor, not for strokes.
  */
 export const flattenGraphvizFill = (color: string, onto: string): string => {
-  const fg = parseCssColor(color);
-  if (!fg) return normalizeGraphvizColor(color);
-  if (fg.a >= 0.999) {
-    return `#${toHexByte(fg.r)}${toHexByte(fg.g)}${toHexByte(fg.b)}`;
+  const foregroundColor = parseCssColor(color);
+  if (!foregroundColor) return normalizeGraphvizColor(color);
+  if (foregroundColor.a >= 0.999) {
+    return `#${toHexByte(foregroundColor.r)}${toHexByte(foregroundColor.g)}${toHexByte(foregroundColor.b)}`;
   }
-  const bg = parseCssColor(onto) ?? { r: 255, g: 255, b: 255, a: 1 };
-  const alpha = Math.max(fg.a, GRAPHVIZ_MIN_FILL_ALPHA);
+  const backgroundColor = parseCssColor(onto) ?? { r: 255, g: 255, b: 255, a: 1 };
+  const alpha = Math.max(foregroundColor.a, GRAPHVIZ_MIN_FILL_ALPHA);
   const mix = (channel: number, base: number) => channel * alpha + base * (1 - alpha);
-  return `#${toHexByte(mix(fg.r, bg.r))}${toHexByte(mix(fg.g, bg.g))}${toHexByte(mix(fg.b, bg.b))}`;
+  return `#${toHexByte(mix(foregroundColor.r, backgroundColor.r))}${toHexByte(mix(foregroundColor.g, backgroundColor.g))}${toHexByte(mix(foregroundColor.b, backgroundColor.b))}`;
 };
 
 const GRAPHVIZ_SVG_FONT_FAMILY =
@@ -384,29 +384,29 @@ const cleanupEmptyDotAttributes = (dot: string): string => {
   let quote: '"' | "'" | null = null;
   let escaped = false;
 
-  for (let i = 0; i < dot.length; i += 1) {
-    const ch = dot[i];
+  for (let charIndex = 0; charIndex < dot.length; charIndex += 1) {
+    const char = dot[charIndex];
 
     if (quote) {
-      out += ch;
+      out += char;
       if (escaped) {
         escaped = false;
-      } else if (ch === '\\') {
+      } else if (char === '\\') {
         escaped = true;
-      } else if (ch === quote) {
+      } else if (char === quote) {
         quote = null;
       }
       continue;
     }
 
-    if (ch === '"' || ch === "'") {
-      quote = ch;
-      out += ch;
+    if (char === '"' || char === "'") {
+      quote = char;
+      out += char;
       continue;
     }
 
-    if (ch === ',') {
-      let nextIndex = i + 1;
+    if (char === ',') {
+      let nextIndex = charIndex + 1;
       while (nextIndex < dot.length && /\s/.test(dot[nextIndex])) {
         nextIndex += 1;
       }
@@ -419,7 +419,7 @@ const cleanupEmptyDotAttributes = (dot: string): string => {
       }
     }
 
-    out += ch;
+    out += char;
   }
 
   return out;
@@ -477,66 +477,66 @@ export const compensateCjkNodeWidths = (dot: string): string => {
   let sawSpaceAfterIdent = false;
   let isEdgeStatement = false;
 
-  for (let i = 0; i < dot.length; i += 1) {
-    const ch = dot[i];
+  for (let charIndex = 0; charIndex < dot.length; charIndex += 1) {
+    const char = dot[charIndex];
 
     if (quote) {
       if (inBracket) {
-        bracketContent += ch;
+        bracketContent += char;
       } else {
-        out += ch;
+        out += char;
       }
 
       if (escaped) {
         escaped = false;
-      } else if (ch === '\\') {
+      } else if (char === '\\') {
         escaped = true;
-      } else if (ch === quote) {
+      } else if (char === quote) {
         quote = null;
       }
       continue;
     }
 
-    if (ch === '"' || ch === "'") {
-      quote = ch;
+    if (char === '"' || char === "'") {
+      quote = char;
       if (inBracket) {
-        bracketContent += ch;
+        bracketContent += char;
       } else {
-        out += ch;
+        out += char;
       }
       continue;
     }
 
     if (!inBracket) {
-      if (ch === '[' && lastIdent) {
+      if (char === '[' && lastIdent) {
         inBracket = true;
         bracketContent = '';
         continue;
       }
 
-      out += ch;
+      out += char;
 
-      if (ch === ';' || ch === '{' || ch === '}' || ch === '\n') {
+      if (char === ';' || char === '{' || char === '}' || char === '\n') {
         lastIdent = '';
         sawSpaceAfterIdent = false;
         isEdgeStatement = false;
-      } else if (ch === '-' && (dot[i + 1] === '>' || dot[i + 1] === '-')) {
+      } else if (char === '-' && (dot[charIndex + 1] === '>' || dot[charIndex + 1] === '-')) {
         isEdgeStatement = true;
-      } else if (/[a-zA-Z0-9_\u4e00-\u9fa5]/.test(ch)) {
+      } else if (/[a-zA-Z0-9_\u4e00-\u9fa5]/.test(char)) {
         if (sawSpaceAfterIdent) {
-          lastIdent = ch;
+          lastIdent = char;
           sawSpaceAfterIdent = false;
         } else {
-          lastIdent += ch;
+          lastIdent += char;
         }
-      } else if (/\s/.test(ch)) {
+      } else if (/\s/.test(char)) {
         if (lastIdent) sawSpaceAfterIdent = true;
       } else {
         lastIdent = '';
         sawSpaceAfterIdent = false;
       }
     } else {
-      if (ch === ']') {
+      if (char === ']') {
         inBracket = false;
         const nodeId = lastIdent.trim();
         lastIdent = '';
@@ -565,7 +565,7 @@ export const compensateCjkNodeWidths = (dot: string): string => {
 
         out += `[${bracketContent}]`;
       } else {
-        bracketContent += ch;
+        bracketContent += char;
       }
     }
   }
@@ -612,50 +612,50 @@ export const ensureFilledStyleOnFillcolor = (dot: string): string => {
   let bracketContent = '';
 
   // 1. Process attribute brackets [...]
-  for (let i = 0; i < dot.length; i += 1) {
-    const ch = dot[i];
+  for (let charIndex = 0; charIndex < dot.length; charIndex += 1) {
+    const char = dot[charIndex];
     if (quote) {
       if (inBracket) {
-        bracketContent += ch;
+        bracketContent += char;
       } else {
-        out += ch;
+        out += char;
       }
       if (escaped) {
         escaped = false;
-      } else if (ch === '\\') {
+      } else if (char === '\\') {
         escaped = true;
-      } else if (ch === quote) {
+      } else if (char === quote) {
         quote = null;
       }
       continue;
     }
 
-    if (ch === '"' || ch === "'") {
-      quote = ch;
+    if (char === '"' || char === "'") {
+      quote = char;
       if (inBracket) {
-        bracketContent += ch;
+        bracketContent += char;
       } else {
-        out += ch;
+        out += char;
       }
       continue;
     }
 
     if (!inBracket) {
-      if (ch === '[') {
+      if (char === '[') {
         inBracket = true;
         bracketContent = '';
         continue;
       }
-      out += ch;
+      out += char;
     } else {
-      if (ch === ']') {
+      if (char === ']') {
         inBracket = false;
         // Strip quoted strings to inspect attributes without false positives in label text
         const unquoted = bracketContent.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '');
         if (/\bfillcolor\s*=/i.test(unquoted)) {
           const styleMatch = bracketContent.match(/\bstyle\s*=\s*(["']?)([^"',\]\s]+(?:\s*,\s*[^"',\]\s]+)*)\1/i);
           if (styleMatch) {
-            const currentStyles = (styleMatch[2] ?? '').split(',').map((s: string) => s.trim());
+            const currentStyles = (styleMatch[2] ?? '').split(',').map((styleName: string) => styleName.trim());
             if (!currentStyles.includes('filled')) {
               const newStyle = ['filled', ...currentStyles].join(',');
               bracketContent = bracketContent.replace(styleMatch[0], `style="${newStyle}"`);
@@ -676,7 +676,7 @@ export const ensureFilledStyleOnFillcolor = (dot: string): string => {
         }
         out += `[${bracketContent}]`;
       } else {
-        bracketContent += ch;
+        bracketContent += char;
       }
     }
   }
@@ -689,52 +689,52 @@ export const ensureFilledStyleOnFillcolor = (dot: string): string => {
   inBracket = false;
   let currentStmt = '';
 
-  for (let i = 0; i < out.length; i += 1) {
-    const ch = out[i];
+  for (let charIndex = 0; charIndex < out.length; charIndex += 1) {
+    const char = out[charIndex];
     if (quote) {
-      currentStmt += ch;
+      currentStmt += char;
       if (escaped) {
         escaped = false;
-      } else if (ch === '\\') {
+      } else if (char === '\\') {
         escaped = true;
-      } else if (ch === quote) {
+      } else if (char === quote) {
         quote = null;
       }
       continue;
     }
 
-    if (ch === '"' || ch === "'") {
-      quote = ch;
-      currentStmt += ch;
+    if (char === '"' || char === "'") {
+      quote = char;
+      currentStmt += char;
       continue;
     }
 
-    if (ch === '[') {
+    if (char === '[') {
       inBracket = true;
-      currentStmt += ch;
+      currentStmt += char;
       continue;
     }
 
-    if (ch === ']') {
+    if (char === ']') {
       inBracket = false;
-      currentStmt += ch;
+      currentStmt += char;
       continue;
     }
 
     if (!inBracket) {
-      if (ch === ';' || ch === '\n' || ch === '\r' || ch === '}' || ch === '{') {
+      if (char === ';' || char === '\n' || char === '\r' || char === '}' || char === '{') {
         const trimmed = currentStmt.trim();
         if (/^fillcolor\s*=\s*(["']?)([^";\n\r]+)\1/i.test(trimmed)) {
-          tokenized += `${currentStmt}; style="filled"${ch}`;
+          tokenized += `${currentStmt}; style="filled"${char}`;
         } else {
-          tokenized += `${currentStmt}${ch}`;
+          tokenized += `${currentStmt}${char}`;
         }
         currentStmt = '';
         continue;
       }
     }
 
-    currentStmt += ch;
+    currentStmt += char;
   }
   tokenized += currentStmt;
 

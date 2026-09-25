@@ -94,8 +94,8 @@ export const generateExportHtmlTemplate = ({
   const safeThemeId = escapeHtml(themeId);
   const safeBodyClasses = escapeHtml(bodyClasses);
   const selectedTheme =
-    AVAILABLE_THEMES.find((t) => t.id === themeId) ??
-    AVAILABLE_THEMES.find((t) => t.id === DEFAULT_THEME_ID) ??
+    AVAILABLE_THEMES.find((theme) => theme.id === themeId) ??
+    AVAILABLE_THEMES.find((theme) => theme.id === DEFAULT_THEME_ID) ??
     AVAILABLE_THEMES[0];
   const langKey = language?.toLowerCase().slice(0, 2) || 'en';
   const labels = EXPORT_HTML_LABELS[langKey] || EXPORT_HTML_LABELS.en;

@@ -73,8 +73,8 @@ export interface AutoTitleStyleOptions {
 const sanitizeGeneratedTitle = (text: string, includeEmoji = true) => {
   let cleaned = text.trim();
 
-  for (let i = 0; i < 3; i += 1) {
-    const prev = cleaned;
+  for (let unwrapPass = 0; unwrapPass < 3; unwrapPass += 1) {
+    const previousCleaned = cleaned;
     if ((cleaned.startsWith('**') && cleaned.endsWith('**')) || (cleaned.startsWith('__') && cleaned.endsWith('__'))) {
       cleaned = cleaned.substring(2, cleaned.length - 2).trim();
     }
@@ -92,7 +92,7 @@ const sanitizeGeneratedTitle = (text: string, includeEmoji = true) => {
     ) {
       cleaned = cleaned.substring(1, cleaned.length - 1).trim();
     }
-    if (cleaned === prev) break;
+    if (cleaned === previousCleaned) break;
   }
 
   if (!includeEmoji) {

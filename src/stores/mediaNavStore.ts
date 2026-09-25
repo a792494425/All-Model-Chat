@@ -150,9 +150,9 @@ export const useMediaNavStore = create<MediaNavState>((set) => ({
         isActive: true,
         focusToken: ++focusTokenCounter,
       };
-      const updatedList = state.imageHighlights.map((item, idx) => ({
+      const updatedList = state.imageHighlights.map((item, itemIndex) => ({
         ...item,
-        isActive: idx === index,
+        isActive: itemIndex === index,
       }));
       return {
         imageHighlight: updatedTarget,

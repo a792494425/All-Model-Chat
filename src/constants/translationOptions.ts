@@ -117,12 +117,12 @@ export const LIVE_TRANSLATE_TARGET_LANGUAGE_CODES: string[] = [
 const _displayNamesCache = new Map<string, Intl.DisplayNames>();
 export const liveTranslateLanguageLabel = (code: string, locale: string = 'en'): string => {
   try {
-    let dn = _displayNamesCache.get(locale);
-    if (!dn) {
-      dn = new Intl.DisplayNames([locale], { type: 'language', fallback: 'code' });
-      _displayNamesCache.set(locale, dn);
+    let displayNames = _displayNamesCache.get(locale);
+    if (!displayNames) {
+      displayNames = new Intl.DisplayNames([locale], { type: 'language', fallback: 'code' });
+      _displayNamesCache.set(locale, displayNames);
     }
-    return dn.of(code) ?? code;
+    return displayNames.of(code) ?? code;
   } catch {
     return code;
   }

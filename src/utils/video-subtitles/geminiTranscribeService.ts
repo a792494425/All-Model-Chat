@@ -58,7 +58,7 @@ function convertTranscriptTextToAnnotations(text: string, durationSeconds?: numb
   const segments = splitTranscriptIntoSegments(text);
   if (segments.length === 0) return [];
 
-  const totalChars = segments.reduce((sum, seg) => sum + Math.max(1, seg.length), 0);
+  const totalChars = segments.reduce((sum, segment) => sum + Math.max(1, segment.length), 0);
   const totalDuration = durationSeconds && durationSeconds > 0 ? durationSeconds : segments.length * 2.5;
 
   const maxPausePerGap = 0.25;
@@ -69,23 +69,23 @@ function convertTranscriptTextToAnnotations(text: string, durationSeconds?: numb
   let currentTime = 0;
   const annotations: WordAnnotation[] = [];
 
-  for (let i = 0; i < segments.length; i++) {
-    const seg = segments[i];
-    const segRatio = Math.max(1, seg.length) / totalChars;
-    const segDuration = Math.max(0.5, segRatio * availableSpeechTime);
+  for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
+    const segment = segments[segmentIndex];
+    const segmentRatio = Math.max(1, segment.length) / totalChars;
+    const segmentDuration = Math.max(0.5, segmentRatio * availableSpeechTime);
 
     const startTime = currentTime;
-    const endTime = Math.min(totalDuration, startTime + segDuration);
+    const endTime = Math.min(totalDuration, startTime + segmentDuration);
 
     annotations.push({
-      text: seg,
+      text: segment,
       start_offset: `${startTime.toFixed(3)}s`,
       end_offset: `${endTime.toFixed(3)}s`,
     });
 
     currentTime = endTime + pause;
-    if (currentTime >= totalDuration && i < segments.length - 1) {
-      currentTime = Math.max(0, totalDuration - 0.2 * (segments.length - 1 - i));
+    if (currentTime >= totalDuration && segmentIndex < segments.length - 1) {
+      currentTime = Math.max(0, totalDuration - 0.2 * (segments.length - 1 - segmentIndex));
     }
   }
 

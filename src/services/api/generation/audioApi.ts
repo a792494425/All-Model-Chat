@@ -242,11 +242,11 @@ const formatTranscriptionFromPart = (part: Part, options?: AudioTranscriptionOpt
 
     if (words.length > 0 && options?.wordTimestamps) {
       const formattedWords = words
-        .map((w) => {
-          const wordText = w.word ?? w.text ?? '';
-          const start = w.startOffset ?? w.start_offset;
-          const end = w.endOffset ?? w.end_offset;
-          const wordSpeaker = w.speaker ? `[${w.speaker}] ` : '';
+        .map((wordInfo) => {
+          const wordText = wordInfo.word ?? wordInfo.text ?? '';
+          const start = wordInfo.startOffset ?? wordInfo.start_offset;
+          const end = wordInfo.endOffset ?? wordInfo.end_offset;
+          const wordSpeaker = wordInfo.speaker ? `[${wordInfo.speaker}] ` : '';
           const timing = start && end ? `(${start} -> ${end}) ` : '';
           return `${wordSpeaker}${timing}${wordText}`.trim();
         })
@@ -264,7 +264,7 @@ const formatTranscriptionFromPart = (part: Part, options?: AudioTranscriptionOpt
 
     if (words.length > 0) {
       const fallbackText = words
-        .map((w) => w.word ?? w.text ?? '')
+        .map((wordInfo) => wordInfo.word ?? wordInfo.text ?? '')
         .filter(Boolean)
         .join(' ');
       if (fallbackText.length > 0) {

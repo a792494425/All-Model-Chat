@@ -77,18 +77,18 @@ export const validateAndBuildNewServer = (
     return { error: "Transport must be one of: 'http', 'sse', 'stdio'." };
   }
 
-  const existingIds = new Set(existingServers.map((s) => s.id));
-  let id = typeof payload.id === 'string' && payload.id.trim() ? payload.id.trim() : '';
-  if (id) {
-    if (existingIds.has(id)) {
-      return { error: `Server with id "${id}" already exists.` };
+  const existingIds = new Set(existingServers.map((server) => server.id));
+  let serverId = typeof payload.id === 'string' && payload.id.trim() ? payload.id.trim() : '';
+  if (serverId) {
+    if (existingIds.has(serverId)) {
+      return { error: `Server with id "${serverId}" already exists.` };
     }
   } else {
-    id = generateUniqueServerId(name, existingIds);
+    serverId = generateUniqueServerId(name, existingIds);
   }
 
   const server: McpServerConfig = {
-    id,
+    id: serverId,
     name,
     transport,
     enabled: payload.enabled !== false,

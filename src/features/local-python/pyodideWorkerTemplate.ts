@@ -167,7 +167,7 @@ function sanitizeRelativePath(name) {
     // NOTE: this template is embedded in an outer JS template literal, so every
     // backslash here must be doubled ([/\\\\]) to survive as [/\\] in the worker.
     const clean = String(name || '').replace(/^[/\\\\]+/, '').replace(/^[a-zA-Z]:[/\\\\]+/, '');
-    const parts = clean.split(/[/\\\\]+/).filter((p) => p && p !== '.' && p !== '..');
+    const parts = clean.split(/[/\\\\]+/).filter((part) => part && part !== '.' && part !== '..');
     return parts.join('/') || 'file';
 }
 

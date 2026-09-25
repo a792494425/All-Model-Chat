@@ -43,8 +43,8 @@ function isEqual(first: unknown, second: unknown): boolean {
 
   if (Array.isArray(first) && Array.isArray(second)) {
     if (first.length !== second.length) return false;
-    for (let i = 0; i < first.length; i++) {
-      if (!isEqual(first[i], second[i])) return false;
+    for (let index = 0; index < first.length; index++) {
+      if (!isEqual(first[index], second[index])) return false;
     }
     return true;
   }
@@ -52,14 +52,14 @@ function isEqual(first: unknown, second: unknown): boolean {
   if (Array.isArray(first) !== Array.isArray(second)) return false;
 
   if (typeof first === 'object' && typeof second === 'object') {
-    const objA = first as Record<string, unknown>;
-    const objB = second as Record<string, unknown>;
-    const keysA = Object.keys(objA);
-    const keysB = Object.keys(objB);
-    if (keysA.length !== keysB.length) return false;
-    for (const key of keysA) {
-      if (!(key in objB)) return false;
-      if (!isEqual(objA[key], objB[key])) return false;
+    const firstRecord = first as Record<string, unknown>;
+    const secondRecord = second as Record<string, unknown>;
+    const keysFirst = Object.keys(firstRecord);
+    const keysSecond = Object.keys(secondRecord);
+    if (keysFirst.length !== keysSecond.length) return false;
+    for (const key of keysFirst) {
+      if (!(key in secondRecord)) return false;
+      if (!isEqual(firstRecord[key], secondRecord[key])) return false;
     }
     return true;
   }
