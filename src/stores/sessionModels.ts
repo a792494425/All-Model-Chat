@@ -34,7 +34,7 @@ export function shouldRetainRuntimeMessages(
   sessionId: string,
   activeSessionId: string | null,
   loadingSessionIds: Set<string>,
-) {
+): boolean {
   return sessionId === activeSessionId || loadingSessionIds.has(sessionId);
 }
 
@@ -45,10 +45,6 @@ export function shouldRetainRuntimeMessages(
 // providerId; when it was gemini-native (or absent) the session stays gemini.
 // The legacy keys are read/dropped via a loose record because the current
 // ChatSettings type no longer carries them.
-// Legacy per-session routing fields, removed from ChatSettings but still
-// present on persisted sessions from before the (providerId, modelId) composite
-// key. Casting ChatSettings to this (which merely adds optional fields) needs no
-// `unknown` intermediate — the types overlap.
 interface LegacySessionRoutingSettings extends ChatSettings {
   apiMode?: string;
   thirdPartyProviderId?: string;

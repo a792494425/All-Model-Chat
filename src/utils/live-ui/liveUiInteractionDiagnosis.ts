@@ -312,52 +312,52 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
 
     // title
     if (prop.title !== undefined && typeof prop.title === 'string') {
-      const t = prop.title.trim();
-      if (t.length > MAX_SHORT_TEXT_LENGTH) {
-        normalized.title = t.slice(0, MAX_SHORT_TEXT_LENGTH);
+      const trimmedTitle = prop.title.trim();
+      if (trimmedTitle.length > MAX_SHORT_TEXT_LENGTH) {
+        normalized.title = trimmedTitle.slice(0, MAX_SHORT_TEXT_LENGTH);
         addError(
           repairs,
           'TITLE_TOO_LONG',
-          `Property "${key}" title truncated from ${t.length} to ${MAX_SHORT_TEXT_LENGTH} chars.`,
-          { key, originalLength: t.length, max: MAX_SHORT_TEXT_LENGTH },
+          `Property "${key}" title truncated from ${trimmedTitle.length} to ${MAX_SHORT_TEXT_LENGTH} chars.`,
+          { key, originalLength: trimmedTitle.length, max: MAX_SHORT_TEXT_LENGTH },
         );
-      } else if (t) {
-        normalized.title = t;
+      } else if (trimmedTitle) {
+        normalized.title = trimmedTitle;
       }
     }
 
     // description
     if (prop.description !== undefined && typeof prop.description === 'string') {
-      const d = prop.description.trim();
-      if (d.length > MAX_TEXT_LENGTH) {
-        normalized.description = d.slice(0, MAX_TEXT_LENGTH);
+      const trimmedDescription = prop.description.trim();
+      if (trimmedDescription.length > MAX_TEXT_LENGTH) {
+        normalized.description = trimmedDescription.slice(0, MAX_TEXT_LENGTH);
         addError(
           repairs,
           'DESCRIPTION_TOO_LONG',
-          `Property "${key}" description truncated from ${d.length} to ${MAX_TEXT_LENGTH} chars.`,
-          { key, originalLength: d.length, max: MAX_TEXT_LENGTH },
+          `Property "${key}" description truncated from ${trimmedDescription.length} to ${MAX_TEXT_LENGTH} chars.`,
+          { key, originalLength: trimmedDescription.length, max: MAX_TEXT_LENGTH },
         );
-      } else if (d) {
-        normalized.description = d;
+      } else if (trimmedDescription) {
+        normalized.description = trimmedDescription;
       }
     }
 
     // format
     if (prop.format !== undefined && typeof prop.format === 'string') {
-      const f = prop.format.trim().toLowerCase();
-      if (f.length <= 80) {
-        normalized.format = f;
+      const normalizedFormat = prop.format.trim().toLowerCase();
+      if (normalizedFormat.length <= 80) {
+        normalized.format = normalizedFormat;
         // Validate format-type compatibility
         if (
-          (f === 'textarea' && type !== 'string') ||
-          (f === 'date' && type !== 'string') ||
-          (f === 'range' && type !== 'number' && type !== 'integer')
+          (normalizedFormat === 'textarea' && type !== 'string') ||
+          (normalizedFormat === 'date' && type !== 'string') ||
+          (normalizedFormat === 'range' && type !== 'number' && type !== 'integer')
         ) {
           addError(
             errors,
             'FORMAT_TYPE_MISMATCH',
-            `Property "${key}" has format "${f}" which is incompatible with type "${type}".`,
-            { key, format: f, type },
+            `Property "${key}" has format "${normalizedFormat}" which is incompatible with type "${type}".`,
+            { key, format: normalizedFormat, type },
           );
           propError = true;
         }

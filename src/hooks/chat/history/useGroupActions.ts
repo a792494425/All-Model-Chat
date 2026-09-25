@@ -12,10 +12,10 @@ interface UseGroupActionsProps {
   t: (key: string) => string;
 }
 
-const makeOrderKey = (index: number) => String(index).padStart(6, '0');
+const makeGroupOrderKey = (index: number) => String(index).padStart(6, '0');
 
 const withOrderKeys = (groups: ChatGroup[]): ChatGroup[] =>
-  groups.map((group, index) => (group.orderKey ? group : { ...group, orderKey: makeOrderKey(index) }));
+  groups.map((group, index) => (group.orderKey ? group : { ...group, orderKey: makeGroupOrderKey(index) }));
 
 export const useGroupActions = ({ updateAndPersistGroups, updateAndPersistSessions, t }: UseGroupActionsProps) => {
   const handleAddNewGroup = useCallback(() => {
@@ -25,12 +25,12 @@ export const useGroupActions = ({ updateAndPersistGroups, updateAndPersistSessio
       title: t('newGroupTitle'),
       timestamp: Date.now(),
       isExpanded: true,
-      orderKey: makeOrderKey(0),
+      orderKey: makeGroupOrderKey(0),
     };
     updateAndPersistGroups((prev) => {
       const withKeys = withOrderKeys(prev);
       const next = [newGroup, ...withKeys];
-      return next.map((group, index) => ({ ...group, orderKey: makeOrderKey(index) }));
+      return next.map((group, index) => ({ ...group, orderKey: makeGroupOrderKey(index) }));
     });
   }, [updateAndPersistGroups, t]);
 
@@ -86,11 +86,11 @@ export const useGroupActions = ({ updateAndPersistGroups, updateAndPersistSessio
     (activeId: string, overId: string) => {
       if (activeId === overId) return;
       updateAndPersistGroups((prev) => {
-        const sorted = [...prev].sort((a, b) => {
-          if (a.orderKey && b.orderKey) return a.orderKey.localeCompare(b.orderKey);
-          if (a.orderKey) return -1;
-          if (b.orderKey) return 1;
-          return b.timestamp - a.timestamp;
+        const sorted = [...prev].sort((groupA, groupB) => {
+          if (groupA.orderKey && groupB.orderKey) return groupA.orderKey.localeCompare(groupB.orderKey);
+          if (groupA.orderKey) return -1;
+          if (groupB.orderKey) return 1;
+          return groupB.timestamp - groupA.timestamp;
         });
         const withKeys = withOrderKeys(sorted);
         const activeIndex = withKeys.findIndex((group) => group.id === activeId);
@@ -99,7 +99,7 @@ export const useGroupActions = ({ updateAndPersistGroups, updateAndPersistSessio
         const next = [...withKeys];
         const [moved] = next.splice(activeIndex, 1);
         next.splice(overIndex, 0, moved);
-        return next.map((group, index) => ({ ...group, orderKey: makeOrderKey(index) }));
+        return next.map((group, index) => ({ ...group, orderKey: makeGroupOrderKey(index) }));
       });
     },
     [updateAndPersistGroups],
