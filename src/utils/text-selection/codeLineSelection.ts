@@ -12,14 +12,14 @@ export interface LineRange {
 export function getLineRanges(text: string): LineRange[] {
   const ranges: LineRange[] = [];
   let currentStart = 0;
-  for (let i = 0; i < text.length; i++) {
-    if (text[i] === '\n') {
-      let end = i;
-      if (end > currentStart && text[end - 1] === '\r') {
-        end--;
+  for (let charIndex = 0; charIndex < text.length; charIndex++) {
+    if (text[charIndex] === '\n') {
+      let lineEnd = charIndex;
+      if (lineEnd > currentStart && text[lineEnd - 1] === '\r') {
+        lineEnd--;
       }
-      ranges.push({ start: currentStart, end });
-      currentStart = i + 1;
+      ranges.push({ start: currentStart, end: lineEnd });
+      currentStart = charIndex + 1;
     }
   }
   let lastEnd = text.length;
@@ -75,11 +75,11 @@ export function selectCodeLines(container: HTMLElement, startLine: number, endLi
   const minLine = Math.max(1, Math.min(startLine, endLine));
   const maxLine = Math.min(ranges.length, Math.max(startLine, endLine));
 
-  const startIdx = minLine - 1;
-  const endIdx = maxLine - 1;
+  const startIndex = minLine - 1;
+  const endIndex = maxLine - 1;
 
-  const startChar = ranges[startIdx].start;
-  let endChar = ranges[endIdx].end;
+  const startChar = ranges[startIndex].start;
+  let endChar = ranges[endIndex].end;
 
   // If a single empty line is selected, select through the newline if present
   // so the selection is visually apparent in the DOM

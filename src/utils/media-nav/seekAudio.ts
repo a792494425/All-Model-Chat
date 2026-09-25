@@ -30,26 +30,27 @@ export const seekSessionAudio = (params: SeekSessionAudioParams): boolean => {
     const targetMessage = activeMessages.find((message) => message.id === params.messageId);
     if (targetMessage) {
       if (!audioName && targetMessage.files) {
-        const msgAudio = targetMessage.files.find(isAudioFile);
-        if (msgAudio) {
-          audioName = msgAudio.name;
+        const messageAudio = targetMessage.files.find(isAudioFile);
+        if (messageAudio) {
+          audioName = messageAudio.name;
         }
       }
 
       if (targetMessage.content) {
         const { audioLocates } = parseLocateMarkers(targetMessage.content);
-        const candidates = audioLocates.filter((loc) => {
+        const candidates = audioLocates.filter((marker) => {
           if (params.endSeconds !== undefined) {
-            return loc.startSeconds >= params.startSeconds - 1 && loc.startSeconds <= params.endSeconds + 1;
+            return marker.startSeconds >= params.startSeconds - 1 && marker.startSeconds <= params.endSeconds + 1;
           }
-          return Math.abs(loc.startSeconds - params.startSeconds) <= 2;
+          return Math.abs(marker.startSeconds - params.startSeconds) <= 2;
         });
         const matched =
           candidates.length > 0
-            ? candidates.reduce((best, cur) =>
-                Math.abs(cur.startSeconds - params.startSeconds) < Math.abs(best.startSeconds - params.startSeconds)
-                  ? cur
-                  : best,
+            ? candidates.reduce((closest, current) =>
+                Math.abs(current.startSeconds - params.startSeconds) <
+                Math.abs(closest.startSeconds - params.startSeconds)
+                  ? current
+                  : closest,
               )
             : undefined;
 

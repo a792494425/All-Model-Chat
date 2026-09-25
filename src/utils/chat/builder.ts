@@ -451,10 +451,10 @@ export const sanitizeChatHistoryForApi = (items: ChatHistoryItem[]): ChatHistory
   // when adjacent turns follow each other.
   const sanitized: ChatHistoryItem[] = [];
 
-  for (let i = 0; i < candidateItems.length; i++) {
-    const current = candidateItems[i];
-    const next = candidateItems[i + 1];
-    const prev = sanitized[sanitized.length - 1];
+  for (let candidateIndex = 0; candidateIndex < candidateItems.length; candidateIndex++) {
+    const current = candidateItems[candidateIndex];
+    const next = candidateItems[candidateIndex + 1];
+    const previous = sanitized[sanitized.length - 1];
 
     if (current.role === 'model') {
       const callParts = current.parts.filter((part) => Boolean(part.functionCall));
@@ -492,9 +492,9 @@ export const sanitizeChatHistoryForApi = (items: ChatHistoryItem[]): ChatHistory
       const responseParts = current.parts.filter((part) => Boolean(part.functionResponse));
 
       // If preceded by a model turn, the model turn MUST have supplied matching functionCalls
-      if (responseParts.length > 0 && prev && prev.role === 'model') {
-        const prevModelCalls = prev.parts.filter((part) => Boolean(part.functionCall));
-        const availableCallNames = new Set(prevModelCalls.map((part) => part.functionCall?.name).filter(Boolean));
+      if (responseParts.length > 0 && previous && previous.role === 'model') {
+        const previousModelCalls = previous.parts.filter((part) => Boolean(part.functionCall));
+        const availableCallNames = new Set(previousModelCalls.map((part) => part.functionCall?.name).filter(Boolean));
         const validResponseParts = responseParts.filter((part) => availableCallNames.has(part.functionResponse?.name));
 
         if (validResponseParts.length === 0) {

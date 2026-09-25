@@ -1,4 +1,4 @@
-export const parseDelimitedText = (text: string, maxRows = 5, maxCols = 4): string[][] => {
+export const parseDelimitedText = (text: string, maxRows = 5, maxColumns = 4): string[][] => {
   const lines = text
     .slice(0, 4096)
     .split(/\r?\n/)
@@ -10,8 +10,8 @@ export const parseDelimitedText = (text: string, maxRows = 5, maxCols = 4): stri
     const cells: string[] = [];
     let current = '';
     let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
+    for (let charIndex = 0; charIndex < line.length; charIndex++) {
+      const char = line[charIndex];
       if (char === '"') {
         inQuotes = !inQuotes;
       } else if (char === delimiter && !inQuotes) {
@@ -22,18 +22,18 @@ export const parseDelimitedText = (text: string, maxRows = 5, maxCols = 4): stri
       }
     }
     cells.push(current.trim());
-    return cells.slice(0, maxCols);
+    return cells.slice(0, maxColumns);
   });
 };
 
-export const parseExcelBlob = async (blob: Blob, maxRows = 5, maxCols = 4): Promise<string[][]> => {
+export const parseExcelBlob = async (blob: Blob, maxRows = 5, maxColumns = 4): Promise<string[][]> => {
   if (blob.size > 8 * 1024 * 1024) return [];
   try {
     const XLSX = await import('xlsx');
     const buffer = await blob.arrayBuffer();
-    const wb = XLSX.read(buffer, { type: 'array', sheetRows: maxRows });
-    if (!wb.SheetNames || wb.SheetNames.length === 0) return [];
-    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const workbook = XLSX.read(buffer, { type: 'array', sheetRows: maxRows });
+    if (!workbook.SheetNames || workbook.SheetNames.length === 0) return [];
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!sheet) return [];
     const rawRows = XLSX.utils.sheet_to_json<(string | number | boolean | null)[]>(sheet, {
       header: 1,
@@ -44,7 +44,7 @@ export const parseExcelBlob = async (blob: Blob, maxRows = 5, maxCols = 4): Prom
       .slice(0, maxRows)
       .map((row) =>
         (Array.isArray(row) ? row : [])
-          .slice(0, maxCols)
+          .slice(0, maxColumns)
           .map((cell) => (cell !== null && cell !== undefined ? String(cell) : '')),
       );
   } catch {

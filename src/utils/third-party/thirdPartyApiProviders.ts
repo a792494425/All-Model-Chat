@@ -453,16 +453,16 @@ export const reorderThirdPartyConnections = (
   const reordered: ThirdPartyConnection[] = [];
 
   orderedIds.forEach((id) => {
-    const conn = connectionMap.get(id);
-    if (conn) {
-      reordered.push(conn);
+    const connection = connectionMap.get(id);
+    if (connection) {
+      reordered.push(connection);
       connectionMap.delete(id);
     }
   });
 
   // Append any connections that weren't in orderedIds
-  connectionMap.forEach((conn) => {
-    reordered.push(conn);
+  connectionMap.forEach((remainingConnection) => {
+    reordered.push(remainingConnection);
   });
 
   return {
@@ -474,8 +474,8 @@ export const reorderThirdPartyConnections = (
 export function generateColorFromChar(text: string): string {
   if (!text) return '#475569';
   let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    hash = text.charCodeAt(i) + ((hash << 5) - hash);
+  for (let charIndex = 0; charIndex < text.length; charIndex++) {
+    hash = text.charCodeAt(charIndex) + ((hash << 5) - hash);
   }
   const hue = Math.abs(hash % 360);
   return `hsl(${hue}, 65%, 38%)`;

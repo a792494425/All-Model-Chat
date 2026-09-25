@@ -60,8 +60,8 @@ export const focusChatInput = (delayMs = 50, options?: FocusChatInputOptions) =>
 
     const retries = options?.retries ?? 0;
     if (retries > 0) {
-      for (let i = 1; i <= retries; i++) {
-        setTimeout(doFocus, i * 60);
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        setTimeout(doFocus, attempt * 60);
       }
     }
   }, delayMs);

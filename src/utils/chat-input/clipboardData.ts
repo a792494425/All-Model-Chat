@@ -21,8 +21,8 @@ const hasSupportedClipboardFile = (clipboardData: DataTransfer) => {
   const items = clipboardData.items;
   if (!items) return false;
 
-  for (let i = 0; i < items.length; i++) {
-    if (isSupportedClipboardFileItem(items[i])) {
+  for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
+    if (isSupportedClipboardFileItem(items[itemIndex])) {
       return true;
     }
   }
@@ -34,8 +34,8 @@ const getSupportedClipboardFiles = (clipboardData: DataTransfer): File[] => {
   const items = clipboardData.items;
   const filesToProcess: File[] = [];
   if (items) {
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
+    for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
+      const item = items[itemIndex];
       if (isSupportedClipboardFileItem(item)) {
         const file = item.getAsFile();
         if (file) filesToProcess.push(file);

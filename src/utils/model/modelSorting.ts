@@ -67,10 +67,10 @@ export const sortModels = (models: ModelOption[]): ModelOption[] => {
     'gemini-3-flash-preview': 5,
   };
 
-  const getCategoryWeight = (id: string) => {
-    const capabilities = getModelCapabilities(id);
+  const getCategoryWeight = (modelId: string) => {
+    const capabilities = getModelCapabilities(modelId);
     if (capabilities.isTtsModel) return 3;
-    if (isImageGenerationModel(id)) return 4;
+    if (isImageGenerationModel(modelId)) return 4;
     if (capabilities.isNativeAudioModel || capabilities.isTranscribeModel) return 2;
     return 1;
   };
@@ -80,9 +80,9 @@ export const sortModels = (models: ModelOption[]): ModelOption[] => {
     if (!modelA.isPinned && modelB.isPinned) return 1;
 
     if (modelA.isPinned && modelB.isPinned) {
-      const weightA = getCategoryWeight(modelA.id);
-      const weightB = getCategoryWeight(modelB.id);
-      if (weightA !== weightB) return weightA - weightB;
+      const categoryWeightA = getCategoryWeight(modelA.id);
+      const categoryWeightB = getCategoryWeight(modelB.id);
+      if (categoryWeightA !== categoryWeightB) return categoryWeightA - categoryWeightB;
 
       const pinnedPriorityA = pinnedPriorityOrder[modelA.id];
       const pinnedPriorityB = pinnedPriorityOrder[modelB.id];
@@ -92,10 +92,10 @@ export const sortModels = (models: ModelOption[]): ModelOption[] => {
         if (pinnedPriorityA !== pinnedPriorityB) return pinnedPriorityA - pinnedPriorityB;
       }
 
-      const isModelA3 = modelA.id.includes('gemini-3');
-      const isModelB3 = modelB.id.includes('gemini-3');
-      if (isModelA3 && !isModelB3) return -1;
-      if (!isModelA3 && isModelB3) return 1;
+      const isModelAGemini3 = modelA.id.includes('gemini-3');
+      const isModelBGemini3 = modelB.id.includes('gemini-3');
+      if (isModelAGemini3 && !isModelBGemini3) return -1;
+      if (!isModelAGemini3 && isModelBGemini3) return 1;
     }
 
     return modelA.name.localeCompare(modelB.name);

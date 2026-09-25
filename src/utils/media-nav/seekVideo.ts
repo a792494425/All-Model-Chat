@@ -66,26 +66,27 @@ export const seekSessionVideo = (params: SeekSessionVideoParams): boolean => {
     const targetMessage = activeMessages.find((message) => message.id === params.messageId);
     if (targetMessage) {
       if (!videoName && targetMessage.files) {
-        const msgVideo = targetMessage.files.find(isNavigableVideoFile);
-        if (msgVideo) {
-          videoName = msgVideo.name;
+        const messageVideo = targetMessage.files.find(isNavigableVideoFile);
+        if (messageVideo) {
+          videoName = messageVideo.name;
         }
       }
 
       if (!annotation && targetMessage.content) {
         const { videoLocates } = parseLocateMarkers(targetMessage.content);
-        const candidates = videoLocates.filter((loc) => {
+        const candidates = videoLocates.filter((marker) => {
           if (params.endSeconds !== undefined) {
-            return loc.startSeconds >= params.startSeconds - 1 && loc.startSeconds <= params.endSeconds + 1;
+            return marker.startSeconds >= params.startSeconds - 1 && marker.startSeconds <= params.endSeconds + 1;
           }
-          return Math.abs(loc.startSeconds - params.startSeconds) <= 2;
+          return Math.abs(marker.startSeconds - params.startSeconds) <= 2;
         });
         const matched =
           candidates.length > 0
-            ? candidates.reduce((best, cur) =>
-                Math.abs(cur.startSeconds - params.startSeconds) < Math.abs(best.startSeconds - params.startSeconds)
-                  ? cur
-                  : best,
+            ? candidates.reduce((closest, current) =>
+                Math.abs(current.startSeconds - params.startSeconds) <
+                Math.abs(closest.startSeconds - params.startSeconds)
+                  ? current
+                  : closest,
               )
             : undefined;
 
