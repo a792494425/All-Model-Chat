@@ -23,28 +23,28 @@ function splitTranscriptIntoSegments(text: string): string[] {
   const segments: string[] = [];
 
   for (const sentence of rawSentences) {
-    const s = sentence.trim();
-    if (!s) continue;
+    const trimmedSentence = sentence.trim();
+    if (!trimmedSentence) continue;
 
     // Break up very long clauses for readable subtitles
-    if (s.length > 25) {
-      const parts = s.split(/(?<=[、,])\s*/);
+    if (trimmedSentence.length > 25) {
+      const parts = trimmedSentence.split(/(?<=[、,])\s*/);
       let buffer = '';
-      for (const p of parts) {
-        const trimmedP = p.trim();
-        if (!trimmedP) continue;
-        if ((buffer + trimmedP).length > 28 && buffer.length > 0) {
+      for (const part of parts) {
+        const trimmedPart = part.trim();
+        if (!trimmedPart) continue;
+        if ((buffer + trimmedPart).length > 28 && buffer.length > 0) {
           segments.push(buffer.trim());
-          buffer = trimmedP;
+          buffer = trimmedPart;
         } else {
-          buffer = buffer ? `${buffer}${trimmedP}` : trimmedP;
+          buffer = buffer ? `${buffer}${trimmedPart}` : trimmedPart;
         }
       }
       if (buffer.trim()) {
         segments.push(buffer.trim());
       }
     } else {
-      segments.push(s);
+      segments.push(trimmedSentence);
     }
   }
 

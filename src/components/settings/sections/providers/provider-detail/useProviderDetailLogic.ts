@@ -117,13 +117,15 @@ export function useProviderDetailLogic({ connection, onUpdateConnection }: UsePr
     setProbingModelIds((prev) => new Set(prev).add(modelId));
 
     try {
-      const res = await probeSingleModel(connection, modelId);
-      useProviderUiStore.getState().setModelProbeResult(connection.id, modelId, res);
-      if (res.status === 'success') {
-        toastSuccess(t('thirdPartyToastSingleProbeSuccess', { modelId, latency: formatLatency(res.latencyMs) }));
+      const probeResult = await probeSingleModel(connection, modelId);
+      useProviderUiStore.getState().setModelProbeResult(connection.id, modelId, probeResult);
+      if (probeResult.status === 'success') {
+        toastSuccess(
+          t('thirdPartyToastSingleProbeSuccess', { modelId, latency: formatLatency(probeResult.latencyMs) }),
+        );
       } else {
         toastError(
-          t('thirdPartyToastSingleProbeFailed', { modelId, error: res.errorMessage || t('thirdPartyFailed') }),
+          t('thirdPartyToastSingleProbeFailed', { modelId, error: probeResult.errorMessage || t('thirdPartyFailed') }),
         );
       }
     } catch (probeError) {

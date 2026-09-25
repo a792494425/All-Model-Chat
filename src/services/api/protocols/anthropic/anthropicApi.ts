@@ -318,9 +318,9 @@ export const generateAnthropicTurnStreamApi = async (
 
   const toolCalls: FunctionCall[] = Object.keys(toolUseBlocks)
     .map(Number)
-    .sort((a, b) => a - b)
-    .map((idx) => {
-      const block = toolUseBlocks[idx];
+    .sort((indexA, indexB) => indexA - indexB)
+    .map((blockIndex) => {
+      const block = toolUseBlocks[blockIndex];
       let parsedArgs: Record<string, unknown> = {};
       if (block.inputJson) {
         try {

@@ -35,14 +35,16 @@ export const seekSessionVideo = (params: SeekSessionVideoParams): boolean => {
   const isAudioActive = store.isOpen && store.openKind === 'audio';
   const matchesAudio =
     params.videoName &&
-    audios.some((a) => a.name === params.videoName || a.name.toLowerCase().includes(params.videoName!.toLowerCase()));
+    audios.some(
+      (audio) => audio.name === params.videoName || audio.name.toLowerCase().includes(params.videoName!.toLowerCase()),
+    );
 
   if (
     params.kind === 'audio' ||
     (isAudioActive &&
       !params.annotation?.box2d &&
       !params.annotation?.point &&
-      !videos.some((v) => v.name === params.videoName)) ||
+      !videos.some((video) => video.name === params.videoName)) ||
     matchesAudio ||
     (videos.length === 0 && audios.length > 0)
   ) {

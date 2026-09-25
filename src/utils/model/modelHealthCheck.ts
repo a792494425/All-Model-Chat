@@ -89,10 +89,10 @@ export async function runBatchModelHealthCheck(
       if (!model) break;
 
       const safety = getModelProbeSafety(model.id);
-      let res: ConnectionHealthProbeResult;
+      let probeResult: ConnectionHealthProbeResult;
 
       if (!safety.isSafe) {
-        res = {
+        probeResult = {
           connectionId: connection.id,
           status: 'error',
           latencyMs: 0,
@@ -106,15 +106,15 @@ export async function runBatchModelHealthCheck(
         errorCount++;
       } else {
         try {
-          res = await probeSingleModel(connection, model.id, { timeoutMs, signal });
-          if (res.status === 'success') {
+          probeResult = await probeSingleModel(connection, model.id, { timeoutMs, signal });
+          if (probeResult.status === 'success') {
             successCount++;
-            totalLatencyMs += res.latencyMs;
+            totalLatencyMs += probeResult.latencyMs;
           } else {
             errorCount++;
           }
         } catch (probeExecutionError) {
-          res = {
+          probeResult = {
             connectionId: connection.id,
             status: 'error',
             latencyMs: 0,
@@ -129,7 +129,7 @@ export async function runBatchModelHealthCheck(
         }
       }
 
-      results[model.id] = res;
+      results[model.id] = probeResult;
       completed++;
 
       if (onProgress) {
@@ -137,7 +137,7 @@ export async function runBatchModelHealthCheck(
           completed,
           total: models.length,
           currentModelId: model.id,
-          latestResult: res,
+          latestResult: probeResult,
         });
       }
     }

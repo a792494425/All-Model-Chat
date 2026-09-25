@@ -82,7 +82,7 @@ const normalizeCoordinates = (value?: string): string | null => {
   const parts = value
     .replace(/[()[\]]/g, '')
     .split(/[,;\s]+/)
-    .map((v) => v.trim())
+    .map((token) => token.trim())
     .filter(Boolean);
   return parts.length > 0 ? parts.join(',') : null;
 };

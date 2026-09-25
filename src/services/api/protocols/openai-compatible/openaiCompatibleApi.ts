@@ -397,20 +397,20 @@ export const generateOpenAICompatibleTurnStreamApi = async (
 
   const toolCalls: FunctionCall[] = Object.keys(accumulatedToolCalls)
     .map(Number)
-    .sort((a, b) => a - b)
-    .map((idx) => {
-      const tc = accumulatedToolCalls[idx];
+    .sort((indexA, indexB) => indexA - indexB)
+    .map((callIndex) => {
+      const toolCall = accumulatedToolCalls[callIndex];
       let parsedArgs: Record<string, unknown> = {};
-      if (tc.arguments) {
+      if (toolCall.arguments) {
         try {
-          parsedArgs = JSON.parse(tc.arguments);
+          parsedArgs = JSON.parse(toolCall.arguments);
         } catch {
-          parsedArgs = { raw: tc.arguments };
+          parsedArgs = { raw: toolCall.arguments };
         }
       }
       return {
-        id: tc.id || `call_${idx}`,
-        name: tc.name || '',
+        id: toolCall.id || `call_${callIndex}`,
+        name: toolCall.name || '',
         args: parsedArgs,
       };
     });

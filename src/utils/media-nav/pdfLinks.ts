@@ -14,7 +14,7 @@ const buildPdfSeekMarkdownLink = (attrs: Record<string, string>, inner: string):
     const normalizedBox = attrs.box
       .replace(/[()[\]]/g, '')
       .split(/[,;\s]+/)
-      .map((v) => v.trim())
+      .map((entry) => entry.trim())
       .filter(Boolean)
       .join(',');
     if (normalizedBox) query.set('box', normalizedBox);
@@ -23,7 +23,7 @@ const buildPdfSeekMarkdownLink = (attrs: Record<string, string>, inner: string):
     const normalizedPoint = attrs.point
       .replace(/[()[\]]/g, '')
       .split(/[,;\s]+/)
-      .map((v) => v.trim())
+      .map((entry) => entry.trim())
       .filter(Boolean)
       .join(',');
     if (normalizedPoint) query.set('point', normalizedPoint);

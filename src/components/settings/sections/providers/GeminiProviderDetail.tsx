@@ -84,7 +84,7 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
       });
 
       const latency = Math.round(performance.now() - startTime);
-      const res: ConnectionHealthProbeResult = {
+      const probeResult: ConnectionHealthProbeResult = {
         connectionId: 'gemini',
         modelId,
         status: 'success',
@@ -92,11 +92,11 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
         grade: getLatencyGrade(latency, true),
         timestamp: Date.now(),
       };
-      useProviderUiStore.getState().setModelProbeResult('gemini', modelId, res);
+      useProviderUiStore.getState().setModelProbeResult('gemini', modelId, probeResult);
       toastSuccess(t('thirdPartyToastSingleProbeSuccess', { modelId, latency: formatLatency(latency) }));
     } catch (probeError) {
       const latency = Math.round(performance.now() - startTime);
-      const res: ConnectionHealthProbeResult = {
+      const probeResult: ConnectionHealthProbeResult = {
         connectionId: 'gemini',
         modelId,
         status: 'error',
@@ -105,7 +105,7 @@ export const GeminiProviderDetail: React.FC<GeminiProviderDetailProps> = ({
         errorMessage: getErrorMessage(probeError),
         timestamp: Date.now(),
       };
-      useProviderUiStore.getState().setModelProbeResult('gemini', modelId, res);
+      useProviderUiStore.getState().setModelProbeResult('gemini', modelId, probeResult);
       toastError(t('thirdPartyToastSingleProbeFailed', { modelId, error: getErrorMessage(probeError) }));
     } finally {
       setProbingModelIds((prev) => {

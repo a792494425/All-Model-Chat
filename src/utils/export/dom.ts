@@ -80,21 +80,21 @@ const embedMediaInClone = async (clone: HTMLElement): Promise<void> => {
     clone.querySelectorAll<HTMLImageElement | HTMLAudioElement | HTMLSourceElement>('img, audio, source'),
   );
   await Promise.all(
-    mediaElements.map(async (el) => {
+    mediaElements.map(async (mediaElement) => {
       try {
-        const src = el.getAttribute('src');
+        const src = mediaElement.getAttribute('src');
         if (!src || src.startsWith('data:')) return;
 
-        const fullSrc = (el as HTMLImageElement | HTMLAudioElement).src || src;
+        const fullSrc = (mediaElement as HTMLImageElement | HTMLAudioElement).src || src;
         const response = await fetch(fullSrc);
         const blob = await response.blob();
         const dataUrl = await blobToDataUrl(blob);
-        el.setAttribute('src', dataUrl);
-        if ('src' in el) {
-          (el as any).src = dataUrl;
+        mediaElement.setAttribute('src', dataUrl);
+        if ('src' in mediaElement) {
+          (mediaElement as HTMLImageElement | HTMLAudioElement).src = dataUrl;
         }
-        el.removeAttribute('srcset');
-        el.removeAttribute('loading');
+        mediaElement.removeAttribute('srcset');
+        mediaElement.removeAttribute('loading');
       } catch (embedError) {
         logService.warn('Failed to embed media for export:', embedError);
       }

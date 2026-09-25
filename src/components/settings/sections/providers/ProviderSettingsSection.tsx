@@ -183,16 +183,19 @@ export const ProviderSettingsSection: React.FC<ProviderSettingsSectionProps> = (
     updateThirdPartyApi(reorderThirdPartyConnections(currentSettings, orderedIds));
   };
 
-  const handleProbe = async (conn: ThirdPartyConnection) => {
+  const handleProbe = async (connection: ThirdPartyConnection) => {
     try {
-      const res = await probeThirdPartyConnection(conn);
-      if (res.status === 'success') {
-        toastSuccess(t('thirdPartyTestSuccess', { name: conn.name, latency: formatLatency(res.latencyMs) }));
+      const probeResult = await probeThirdPartyConnection(connection);
+      if (probeResult.status === 'success') {
+        toastSuccess(
+          t('thirdPartyTestSuccess', { name: connection.name, latency: formatLatency(probeResult.latencyMs) }),
+        );
       } else {
-        toastError(t('thirdPartyTestFailed', { name: conn.name, error: res.errorMessage || '' }));
+        toastError(t('thirdPartyTestFailed', { name: connection.name, error: probeResult.errorMessage || '' }));
       }
-    } catch (probeError: any) {
-      toastError(`${conn.name}: ${probeError.message}`);
+    } catch (probeError) {
+      const errorMsg = probeError instanceof Error ? probeError.message : String(probeError);
+      toastError(`${connection.name}: ${errorMsg}`);
     }
   };
 

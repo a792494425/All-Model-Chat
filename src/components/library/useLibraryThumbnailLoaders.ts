@@ -227,8 +227,8 @@ export function useLibraryThumbnailLoaders({
         let blob = item.rawFile;
         if (!blob && item.dataUrl?.startsWith('blob:')) {
           try {
-            const res = await fetch(item.dataUrl);
-            blob = await res.blob();
+            const response = await fetch(item.dataUrl);
+            blob = await response.blob();
           } catch {
             // dead blob URL fallback
           }
@@ -277,8 +277,8 @@ export function useLibraryThumbnailLoaders({
         let blob = item.rawFile;
         if (!blob && item.dataUrl?.startsWith('blob:')) {
           try {
-            const res = await fetch(item.dataUrl);
-            blob = await res.blob();
+            const response = await fetch(item.dataUrl);
+            blob = await response.blob();
           } catch {
             // dead blob URL fallback
           }

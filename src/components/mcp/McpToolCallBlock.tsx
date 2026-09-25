@@ -26,29 +26,29 @@ export type McpToolCallStatus = 'invoking' | 'success' | 'error' | 'cancelled';
 
 const extractToolErrorMessage = (response: unknown): string | null => {
   if (!response || typeof response !== 'object') return null;
-  const res = response as Record<string, unknown>;
+  const rawRecord = response as Record<string, unknown>;
 
-  if (typeof res.error === 'string' && res.error.trim()) {
-    return res.error.trim();
+  if (typeof rawRecord.error === 'string' && rawRecord.error.trim()) {
+    return rawRecord.error.trim();
   }
-  if (res.error && typeof res.error === 'object') {
-    const inner = res.error as Record<string, unknown>;
+  if (rawRecord.error && typeof rawRecord.error === 'object') {
+    const inner = rawRecord.error as Record<string, unknown>;
     if (typeof inner.message === 'string' && inner.message.trim()) return inner.message.trim();
     try {
-      return JSON.stringify(res.error);
+      return JSON.stringify(rawRecord.error);
     } catch {
-      return String(res.error);
+      return String(rawRecord.error);
     }
   }
-  if (Array.isArray(res.content)) {
-    for (const item of res.content) {
+  if (Array.isArray(rawRecord.content)) {
+    for (const item of rawRecord.content) {
       if (item && typeof item === 'object' && 'text' in item && typeof item.text === 'string') {
-        if (res.isError) return item.text.trim();
+        if (rawRecord.isError) return item.text.trim();
       }
     }
   }
-  if (typeof res.message === 'string' && res.status === 'error') {
-    return res.message.trim();
+  if (typeof rawRecord.message === 'string' && rawRecord.status === 'error') {
+    return rawRecord.message.trim();
   }
   return null;
 };

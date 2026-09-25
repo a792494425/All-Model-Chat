@@ -161,9 +161,9 @@ const MediaNavViewComponent: React.FC<MediaNavViewProps> = ({ file, kind }) => {
       const media = audioRef.current;
       media.currentTime = Math.max(0, targetSeconds);
       try {
-        const p = media.play();
-        if (p && typeof p.catch === 'function') {
-          p.catch(() => {
+        const playPromise = media.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {
             // Autoplay may be blocked by browser policy
           });
         }
@@ -220,9 +220,9 @@ const MediaNavViewComponent: React.FC<MediaNavViewProps> = ({ file, kind }) => {
       if (isSegmentLoopEnabled) {
         isHandlingSegmentLoopRef.current = true;
         audio.currentTime = segment.start;
-        const p = audio.play();
-        if (p && typeof p.catch === 'function') {
-          p.catch(() => {});
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {});
         }
         setTimeout(() => {
           isHandlingSegmentLoopRef.current = false;
@@ -336,9 +336,9 @@ const MediaNavViewComponent: React.FC<MediaNavViewProps> = ({ file, kind }) => {
                           if (audioRef.current) {
                             audioRef.current.currentTime = Math.max(0, marker.time);
                             try {
-                              const p = audioRef.current.play();
-                              if (p && typeof p.catch === 'function') {
-                                p.catch(() => {});
+                              const playPromise = audioRef.current.play();
+                              if (playPromise && typeof playPromise.catch === 'function') {
+                                playPromise.catch(() => {});
                               }
                             } catch {
                               // Fallback for mock environments

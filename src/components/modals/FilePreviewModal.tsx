@@ -452,10 +452,10 @@ const FilePreviewModalContent: React.FC<FilePreviewModalContentProps> = ({
                       showSegmentBar={false}
                       onControlsVisibilityChange={setAreControlsVisible}
                       onTimeUpdate={setMediaCurrentTime}
-                      onLoadedMetadata={(e) => {
-                        const v = e.currentTarget;
-                        if (v.videoWidth && v.videoHeight) {
-                          setVideoAspect(v.videoWidth / v.videoHeight);
+                      onLoadedMetadata={(event) => {
+                        const videoElement = event.currentTarget;
+                        if (videoElement.videoWidth && videoElement.videoHeight) {
+                          setVideoAspect(videoElement.videoWidth / videoElement.videoHeight);
                         }
                       }}
                     />

@@ -411,7 +411,7 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
               normalized.enum = coerced.values;
             }
           } else if (scalarType === 'boolean') {
-            if ((enumValues as LiveArtifactInteractionPrimitive[]).every((v) => typeof v === 'boolean')) {
+            if ((enumValues as LiveArtifactInteractionPrimitive[]).every((val) => typeof val === 'boolean')) {
               normalized.enum = enumValues as boolean[];
             } else {
               addError(
@@ -651,7 +651,7 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
                   propError = true;
                 } else {
                   const defArr = prop.default as unknown[];
-                  if (defArr.some((v) => !isPrimitive(v))) {
+                  if (defArr.some((item) => !isPrimitive(item))) {
                     addError(
                       errors,
                       'ARRAY_DEFAULT_INVALID',
@@ -675,7 +675,7 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
                         coercedDefValues = coercedDef.values;
                       }
                     } else if (itemsType === 'boolean') {
-                      if (defArr.some((v) => typeof v !== 'boolean')) {
+                      if (defArr.some((item) => typeof item !== 'boolean')) {
                         addError(
                           errors,
                           'ARRAY_DEFAULT_INVALID',
@@ -687,7 +687,7 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
                         coercedDefValues = defArr as boolean[];
                       }
                     } else {
-                      if (defArr.some((v) => typeof v !== 'string')) {
+                      if (defArr.some((item) => typeof item !== 'string')) {
                         addError(
                           errors,
                           'ARRAY_DEFAULT_INVALID',

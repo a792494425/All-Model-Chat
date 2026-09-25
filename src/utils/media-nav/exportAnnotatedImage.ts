@@ -66,19 +66,19 @@ export const exportAnnotatedImage = async (options: ExportAnnotatedImageOptions)
     // 1. Draw Bounding Box
     if (box2d && box2d.length === 4) {
       const [ymin, xmin, ymax, xmax] = box2d;
-      const x = (Math.min(xmin, xmax) / 1000) * naturalW;
-      const y = (Math.min(ymin, ymax) / 1000) * naturalH;
-      const w = (Math.abs(xmax - xmin) / 1000) * naturalW;
-      const h = (Math.abs(ymax - ymin) / 1000) * naturalH;
+      const boxX = (Math.min(xmin, xmax) / 1000) * naturalW;
+      const boxY = (Math.min(ymin, ymax) / 1000) * naturalH;
+      const boxWidth = (Math.abs(xmax - xmin) / 1000) * naturalW;
+      const boxHeight = (Math.abs(ymax - ymin) / 1000) * naturalH;
 
       // Fill semi-transparent
       canvasContext.fillStyle = 'rgba(239, 68, 68, 0.12)';
-      canvasContext.fillRect(x, y, w, h);
+      canvasContext.fillRect(boxX, boxY, boxWidth, boxHeight);
 
       // Bounding box border
       canvasContext.strokeStyle = 'rgba(239, 68, 68, 0.65)';
       canvasContext.lineWidth = lineWidth;
-      canvasContext.strokeRect(x, y, w, h);
+      canvasContext.strokeRect(boxX, boxY, boxWidth, boxHeight);
 
       // 4 Cyber HUD Corner brackets
       canvasContext.strokeStyle = '#ef4444';
@@ -88,57 +88,57 @@ export const exportAnnotatedImage = async (options: ExportAnnotatedImageOptions)
 
       // Top-Left
       canvasContext.beginPath();
-      canvasContext.moveTo(x, y + cornerLen);
-      canvasContext.lineTo(x, y);
-      canvasContext.lineTo(x + cornerLen, y);
+      canvasContext.moveTo(boxX, boxY + cornerLen);
+      canvasContext.lineTo(boxX, boxY);
+      canvasContext.lineTo(boxX + cornerLen, boxY);
       canvasContext.stroke();
 
       // Top-Right
       canvasContext.beginPath();
-      canvasContext.moveTo(x + w - cornerLen, y);
-      canvasContext.lineTo(x + w, y);
-      canvasContext.lineTo(x + w, y + cornerLen);
+      canvasContext.moveTo(boxX + boxWidth - cornerLen, boxY);
+      canvasContext.lineTo(boxX + boxWidth, boxY);
+      canvasContext.lineTo(boxX + boxWidth, boxY + cornerLen);
       canvasContext.stroke();
 
       // Bottom-Left
       canvasContext.beginPath();
-      canvasContext.moveTo(x, y + h - cornerLen);
-      canvasContext.lineTo(x, y + h);
-      canvasContext.lineTo(x + cornerLen, y + h);
+      canvasContext.moveTo(boxX, boxY + boxHeight - cornerLen);
+      canvasContext.lineTo(boxX, boxY + boxHeight);
+      canvasContext.lineTo(boxX + cornerLen, boxY + boxHeight);
       canvasContext.stroke();
 
       // Bottom-Right
       canvasContext.beginPath();
-      canvasContext.moveTo(x + w - cornerLen, y + h);
-      canvasContext.lineTo(x + w, y + h);
-      canvasContext.lineTo(x + w, y + h - cornerLen);
+      canvasContext.moveTo(boxX + boxWidth - cornerLen, boxY + boxHeight);
+      canvasContext.lineTo(boxX + boxWidth, boxY + boxHeight);
+      canvasContext.lineTo(boxX + boxWidth, boxY + boxHeight - cornerLen);
       canvasContext.stroke();
 
       // Badge on top of box
-      const badgeX = x + w / 2;
-      const badgeY = y > 40 * resScale ? y - 10 * resScale : y + h + 24 * resScale;
+      const badgeX = boxX + boxWidth / 2;
+      const badgeY = boxY > 40 * resScale ? boxY - 10 * resScale : boxY + boxHeight + 24 * resScale;
       drawBadge(canvasContext, displayText, badgeX, badgeY, fontSize, resScale);
     } else if (point && point.length === 2) {
       // 2. Draw Point Reticle
       const [py, px] = point;
-      const x = (px / 1000) * naturalW;
-      const y = (py / 1000) * naturalH;
+      const pointX = (px / 1000) * naturalW;
+      const pointY = (py / 1000) * naturalH;
       const radius = 10 * resScale;
 
       canvasContext.strokeStyle = '#ef4444';
       canvasContext.lineWidth = bracketWidth;
       canvasContext.beginPath();
-      canvasContext.arc(x, y, radius, 0, Math.PI * 2);
+      canvasContext.arc(pointX, pointY, radius, 0, Math.PI * 2);
       canvasContext.stroke();
 
       canvasContext.fillStyle = '#ef4444';
       canvasContext.beginPath();
-      canvasContext.arc(x, y, radius * 0.4, 0, Math.PI * 2);
+      canvasContext.arc(pointX, pointY, radius * 0.4, 0, Math.PI * 2);
       canvasContext.fill();
 
       // Badge near point
-      const badgeY = y > 40 * resScale ? y - 16 * resScale : y + 24 * resScale;
-      drawBadge(canvasContext, displayText, x, badgeY, fontSize, resScale);
+      const badgeY = pointY > 40 * resScale ? pointY - 16 * resScale : pointY + 24 * resScale;
+      drawBadge(canvasContext, displayText, pointX, badgeY, fontSize, resScale);
     }
   });
 

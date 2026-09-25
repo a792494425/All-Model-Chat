@@ -87,7 +87,7 @@ ${JSON.stringify(inputItems, null, 2)}`;
     try {
       const ai = await getConfiguredApiClient(apiKey);
       if (ai?.models?.generateContent) {
-        const res = await ai.models.generateContent({
+        const contentResponse = await ai.models.generateContent({
           model: modelId,
           contents: [
             {
@@ -111,7 +111,7 @@ ${JSON.stringify(inputItems, null, 2)}`;
           } as any,
         });
 
-        responseText = res?.text || null;
+        responseText = contentResponse?.text || null;
       }
     } catch (sdkError) {
       if (signal?.aborted) {

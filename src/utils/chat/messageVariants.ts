@@ -15,7 +15,9 @@ const createVariantSnapshot = (message: ChatMessage): ChatMessage => {
  * Finds the index of a message in a session by its current active id OR by any of its variant ids.
  */
 const findMessageIndexWithVariants = (messages: ChatMessage[], messageId: string): number => {
-  return messages.findIndex((m) => m.id === messageId || m.variants?.some((v) => v.id === messageId));
+  return messages.findIndex(
+    (message) => message.id === messageId || message.variants?.some((variant) => variant.id === messageId),
+  );
 };
 
 /**

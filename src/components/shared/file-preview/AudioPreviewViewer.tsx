@@ -82,8 +82,8 @@ export const AudioPreviewViewer = React.forwardRef<AudioPreviewViewerRef, AudioP
           if (file.rawFile) {
             blob = file.rawFile;
           } else if (file.dataUrl) {
-            const res = await fetch(file.dataUrl);
-            blob = await res.blob();
+            const response = await fetch(file.dataUrl);
+            blob = await response.blob();
           }
 
           if (blob && !cancelled) {

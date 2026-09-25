@@ -145,9 +145,9 @@ export function useCloudFilesLogic({
         let nextToken: string | undefined = undefined;
 
         do {
-          const res = await listFilesApi(activeApiKey, 100, nextToken);
-          allFiles = [...allFiles, ...res.files];
-          nextToken = res.nextPageToken;
+          const fileListResult = await listFilesApi(activeApiKey, 100, nextToken);
+          allFiles = [...allFiles, ...fileListResult.files];
+          nextToken = fileListResult.nextPageToken;
         } while (nextToken && allFiles.length < 500);
 
         setFiles(allFiles);
@@ -204,10 +204,10 @@ export function useCloudFilesLogic({
       if (!matchCategory) return false;
 
       if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
+      const normalizedQuery = searchQuery.toLowerCase();
       const displayName = (file.displayName ?? '').toLowerCase();
       const name = (file.name ?? '').toLowerCase();
-      return displayName.includes(q) || name.includes(q);
+      return displayName.includes(normalizedQuery) || name.includes(normalizedQuery);
     });
   }, [files, categoryFilter, searchQuery]);
 

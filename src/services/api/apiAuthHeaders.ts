@@ -30,20 +30,20 @@ export const verifyServerAccessPassword = async (
   const base = customBaseUrl?.replace(/\/+$/, '') || '';
   const url = `${base}/api/auth/verify`;
   try {
-    const res = await fetch(url, {
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'x-access-token': trimmed,
         authorization: `Bearer ${trimmed}`,
       },
     });
-    if (res.status === 200) {
+    if (response.status === 200) {
       return { ok: true };
     }
-    if (res.status === 401) {
+    if (response.status === 401) {
       return { ok: false, message: 'Invalid access password' };
     }
-    return { ok: false, message: `Server returned status ${res.status}` };
+    return { ok: false, message: `Server returned status ${response.status}` };
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     return { ok: false, message: `Connection failed: ${msg}` };
@@ -56,11 +56,11 @@ export const checkServerAuthRequired = async (
   const base = customBaseUrl?.replace(/\/+$/, '') || '';
   const url = `${base}/health`;
   try {
-    const res = await fetch(url);
-    if (!res.ok) {
+    const response = await fetch(url);
+    if (!response.ok) {
       return { authRequired: false, ok: false };
     }
-    const data = (await res.json()) as { authRequired?: boolean };
+    const data = (await response.json()) as { authRequired?: boolean };
     return { authRequired: Boolean(data.authRequired), ok: true };
   } catch {
     return { authRequired: false, ok: false };
