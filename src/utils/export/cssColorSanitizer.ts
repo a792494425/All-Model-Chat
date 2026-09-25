@@ -158,14 +158,14 @@ const oklabToChannels = (lightness: number, okA: number, okB: number, alpha: num
   const mPrime = lightness - 0.1055613458 * okA - 0.0638541728 * okB;
   const sPrime = lightness - 0.0894841775 * okA - 1.291485548 * okB;
 
-  const l = lPrime ** 3;
-  const m = mPrime ** 3;
-  const s = sPrime ** 3;
+  const linearL = lPrime ** 3;
+  const linearM = mPrime ** 3;
+  const linearS = sPrime ** 3;
 
   return {
-    r: linearSrgbToChannel(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
-    g: linearSrgbToChannel(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
-    b: linearSrgbToChannel(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s),
+    r: linearSrgbToChannel(4.0767416621 * linearL - 3.3077115913 * linearM + 0.2309699292 * linearS),
+    g: linearSrgbToChannel(-1.2684380046 * linearL + 2.6097574011 * linearM - 0.3413193965 * linearS),
+    b: linearSrgbToChannel(-0.0041960863 * linearL - 0.7034186147 * linearM + 1.707614701 * linearS),
     a: alpha,
   };
 };

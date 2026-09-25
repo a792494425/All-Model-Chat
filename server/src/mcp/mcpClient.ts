@@ -388,10 +388,10 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
         // Capture stdio stderr output for log buffer (I7)
         if (server.transport === 'stdio') {
           const stdioTransport = connected.transport as unknown as {
-            stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void };
-            _process?: { stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void } };
-            process?: { stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void } };
-            subprocess?: { stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void } };
+            stderr?: { on?: (event: string, callback: (chunk: Buffer | string) => void) => void };
+            _process?: { stderr?: { on?: (event: string, callback: (chunk: Buffer | string) => void) => void } };
+            process?: { stderr?: { on?: (event: string, callback: (chunk: Buffer | string) => void) => void } };
+            subprocess?: { stderr?: { on?: (event: string, callback: (chunk: Buffer | string) => void) => void } };
           };
           const maybeStderr =
             stdioTransport.stderr ??

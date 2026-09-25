@@ -23,17 +23,17 @@ export interface ChatUiSliceState {
 export interface ChatUiSliceActions {
   setEditingMessageId: (id: UpdaterOrValue<string | null>) => void;
   setEditMode: (mode: UpdaterOrValue<'update' | 'resend'>) => void;
-  setCommandedInput: (cmd: UpdaterOrValue<InputCommand | null>) => void;
-  setLoadingSessionIds: (v: UpdaterOrValue<Set<string>>) => void;
-  setGeneratingTitleSessionIds: (v: UpdaterOrValue<Set<string>>) => void;
-  setSelectedFiles: (v: UpdaterOrValue<UploadedFile[]>) => void;
-  setAppFileError: (v: UpdaterOrValue<string | null>) => void;
-  setIsAppProcessingFile: (v: UpdaterOrValue<boolean>) => void;
-  setAspectRatio: (v: UpdaterOrValue<string>) => void;
-  setImageSize: (v: UpdaterOrValue<string>) => void;
-  setImageOutputMode: (v: UpdaterOrValue<ImageOutputMode>) => void;
-  setIsSwitchingModel: (v: UpdaterOrValue<boolean>) => void;
-  setCompletedSessions: (v: UpdaterOrValue<Record<string, 'success' | 'error'>>) => void;
+  setCommandedInput: (command: UpdaterOrValue<InputCommand | null>) => void;
+  setLoadingSessionIds: (sessionIds: UpdaterOrValue<Set<string>>) => void;
+  setGeneratingTitleSessionIds: (sessionIds: UpdaterOrValue<Set<string>>) => void;
+  setSelectedFiles: (files: UpdaterOrValue<UploadedFile[]>) => void;
+  setAppFileError: (error: UpdaterOrValue<string | null>) => void;
+  setIsAppProcessingFile: (isProcessing: UpdaterOrValue<boolean>) => void;
+  setAspectRatio: (aspectRatio: UpdaterOrValue<string>) => void;
+  setImageSize: (imageSize: UpdaterOrValue<string>) => void;
+  setImageOutputMode: (mode: UpdaterOrValue<ImageOutputMode>) => void;
+  setIsSwitchingModel: (isSwitching: UpdaterOrValue<boolean>) => void;
+  setCompletedSessions: (completedSessions: UpdaterOrValue<Record<string, 'success' | 'error'>>) => void;
 }
 
 type ChatUiSlice = ChatUiSliceState & ChatUiSliceActions;

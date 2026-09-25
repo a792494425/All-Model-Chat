@@ -154,10 +154,10 @@ export const normalizeEchartsOption = (raw: unknown): Record<string, unknown> | 
       Array.isArray(record.slices) ||
       (Array.isArray(record.series) &&
         (record.series as unknown[]).some(
-          (s) =>
-            s &&
-            typeof s === 'object' &&
-            ('y' in (s as Record<string, unknown>) || 'points' in (s as Record<string, unknown>)),
+          (seriesEntry) =>
+            seriesEntry &&
+            typeof seriesEntry === 'object' &&
+            ('y' in (seriesEntry as Record<string, unknown>) || 'points' in (seriesEntry as Record<string, unknown>)),
         )));
 
   const titleObj = typeof record.title === 'string' && record.title ? { text: record.title } : undefined;
@@ -166,9 +166,9 @@ export const normalizeEchartsOption = (raw: unknown): Record<string, unknown> | 
     if (rawType === 'pie' || rawType === 'donut') {
       const rawSlices = Array.isArray(record.slices) ? record.slices : [];
       if (!rawSlices.length) return null;
-      const slices = rawSlices.map((s: Record<string, unknown>) => ({
-        name: String(s.name ?? ''),
-        value: Number(s.y ?? s.value ?? 0),
+      const slices = rawSlices.map((slice: Record<string, unknown>) => ({
+        name: String(slice.name ?? ''),
+        value: Number(slice.y ?? slice.value ?? 0),
       }));
 
       return {
@@ -195,10 +195,10 @@ export const normalizeEchartsOption = (raw: unknown): Record<string, unknown> | 
         tooltip: { trigger: 'item' },
         xAxis: { type: 'value' },
         yAxis: { type: 'value' },
-        series: rawSeries.map((s: Record<string, unknown>) => ({
+        series: rawSeries.map((seriesItem: Record<string, unknown>) => ({
           type: 'scatter',
-          name: typeof s.name === 'string' ? s.name : undefined,
-          data: Array.isArray(s.points) ? s.points : [],
+          name: typeof seriesItem.name === 'string' ? seriesItem.name : undefined,
+          data: Array.isArray(seriesItem.points) ? seriesItem.points : [],
         })),
       };
     }
@@ -209,7 +209,12 @@ export const normalizeEchartsOption = (raw: unknown): Record<string, unknown> | 
     if (!xData || !rawSeries || !rawSeries.length) {
       return null;
     }
-    if (rawSeries.some((s) => !s || typeof s !== 'object' || !Array.isArray((s as Record<string, unknown>).y))) {
+    if (
+      rawSeries.some(
+        (seriesItem) =>
+          !seriesItem || typeof seriesItem !== 'object' || !Array.isArray((seriesItem as Record<string, unknown>).y),
+      )
+    ) {
       return null;
     }
 
@@ -228,10 +233,10 @@ export const normalizeEchartsOption = (raw: unknown): Record<string, unknown> | 
       yAxis: {
         type: 'value',
       },
-      series: rawSeries.map((s: Record<string, unknown>) => ({
+      series: rawSeries.map((seriesItem: Record<string, unknown>) => ({
         type: seriesType,
-        name: typeof s.name === 'string' ? s.name : undefined,
-        data: Array.isArray(s.y) ? s.y : [],
+        name: typeof seriesItem.name === 'string' ? seriesItem.name : undefined,
+        data: Array.isArray(seriesItem.y) ? seriesItem.y : [],
         stack: isStacked ? 'total' : undefined,
         areaStyle: rawType === 'area' ? { opacity: 0.25 } : undefined,
       })),

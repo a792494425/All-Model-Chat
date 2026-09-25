@@ -42,6 +42,33 @@ export interface MultimodalSearchExecutionResult {
 }
 
 /**
+ * Filters stored embeddings by category, computes cosine similarity against
+ * the query embedding, filters by minimum threshold, and sorts results descending.
+ */
+const rankEmbeddingsBySimilarity = (
+  items: MultimodalEmbeddingItem[],
+  queryEmbedding: number[],
+  options: MultimodalSearchFilter = {},
+): MultimodalSearchResult[] => {
+  const { category = 'all', minSimilarity = 0.25, limit = 40 } = options;
+  const results: MultimodalSearchResult[] = [];
+
+  for (const item of items) {
+    if (category !== 'all' && item.category !== category) {
+      continue;
+    }
+
+    const similarity = computeCosineSimilarity(queryEmbedding, item.embedding);
+    if (similarity >= minSimilarity) {
+      results.push({ item, similarity });
+    }
+  }
+
+  results.sort((resultA, resultB) => resultB.similarity - resultA.similarity);
+  return results.slice(0, limit);
+};
+
+/**
  * Searches stored multimodal embeddings by a natural language query.
  */
 export const searchMultimodalByText = async (
@@ -57,29 +84,9 @@ export const searchMultimodalByText = async (
       : await generateQueryEmbedding(trimmed);
   const stored = await getStoredEmbeddings();
   const items = Object.values(stored);
+  const results = rankEmbeddingsBySimilarity(items, queryEmbedding, options);
 
-  const { category = 'all', minSimilarity = 0.25, limit = 40 } = options;
-
-  const results: MultimodalSearchResult[] = [];
-
-  for (const item of items) {
-    if (category !== 'all' && item.category !== category) {
-      continue;
-    }
-
-    const similarity = computeCosineSimilarity(queryEmbedding, item.embedding);
-    if (similarity >= minSimilarity) {
-      results.push({
-        item,
-        similarity,
-      });
-    }
-  }
-
-  // Sort descending by similarity
-  results.sort((a, b) => b.similarity - a.similarity);
-
-  return { results: results.slice(0, limit), queryEmbedding };
+  return { results, queryEmbedding };
 };
 
 /**
@@ -96,28 +103,9 @@ export const searchMultimodalByImage = async (
       : await generateMediaEmbedding(imageBlob, mimeType);
   const stored = await getStoredEmbeddings();
   const items = Object.values(stored);
+  const results = rankEmbeddingsBySimilarity(items, queryEmbedding, options);
 
-  const { category = 'all', minSimilarity = 0.25, limit = 40 } = options;
-
-  const results: MultimodalSearchResult[] = [];
-
-  for (const item of items) {
-    if (category !== 'all' && item.category !== category) {
-      continue;
-    }
-
-    const similarity = computeCosineSimilarity(queryEmbedding, item.embedding);
-    if (similarity >= minSimilarity) {
-      results.push({
-        item,
-        similarity,
-      });
-    }
-  }
-
-  results.sort((a, b) => b.similarity - a.similarity);
-
-  return { results: results.slice(0, limit), queryEmbedding };
+  return { results, queryEmbedding };
 };
 
 /**
@@ -141,28 +129,9 @@ export const searchMultimodalCombined = async (
       : await generateMultimodalQueryEmbedding(trimmed, imageBlob, mimeType);
   const stored = await getStoredEmbeddings();
   const items = Object.values(stored);
+  const results = rankEmbeddingsBySimilarity(items, queryEmbedding, options);
 
-  const { category = 'all', minSimilarity = 0.25, limit = 40 } = options;
-
-  const results: MultimodalSearchResult[] = [];
-
-  for (const item of items) {
-    if (category !== 'all' && item.category !== category) {
-      continue;
-    }
-
-    const similarity = computeCosineSimilarity(queryEmbedding, item.embedding);
-    if (similarity >= minSimilarity) {
-      results.push({
-        item,
-        similarity,
-      });
-    }
-  }
-
-  results.sort((a, b) => b.similarity - a.similarity);
-
-  return { results: results.slice(0, limit), queryEmbedding };
+  return { results, queryEmbedding };
 };
 
 export type IndexSingleItemResult =

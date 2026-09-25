@@ -354,27 +354,27 @@ export const filterAndSortLibraryItems = (items: LibraryItem[], filters: Library
   const sorted = [...filtered];
   switch (filters.sort) {
     case 'date_asc':
-      sorted.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      sorted.sort((itemA, itemB) => (itemA.timestamp || 0) - (itemB.timestamp || 0));
       break;
     case 'name_asc':
-      sorted.sort((a, b) =>
-        (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' }),
+      sorted.sort((itemA, itemB) =>
+        (itemA.name || '').localeCompare(itemB.name || '', undefined, { numeric: true, sensitivity: 'base' }),
       );
       break;
     case 'name_desc':
-      sorted.sort((a, b) =>
-        (b.name || '').localeCompare(a.name || '', undefined, { numeric: true, sensitivity: 'base' }),
+      sorted.sort((itemA, itemB) =>
+        (itemB.name || '').localeCompare(itemA.name || '', undefined, { numeric: true, sensitivity: 'base' }),
       );
       break;
     case 'size_desc':
-      sorted.sort((a, b) => (b.size || 0) - (a.size || 0));
+      sorted.sort((itemA, itemB) => (itemB.size || 0) - (itemA.size || 0));
       break;
     case 'size_asc':
-      sorted.sort((a, b) => (a.size || 0) - (b.size || 0));
+      sorted.sort((itemA, itemB) => (itemA.size || 0) - (itemB.size || 0));
       break;
     case 'date_desc':
     default:
-      sorted.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      sorted.sort((itemA, itemB) => (itemB.timestamp || 0) - (itemA.timestamp || 0));
       break;
   }
 

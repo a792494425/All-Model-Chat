@@ -358,28 +358,30 @@ export const linkifyTimestamps = (text: string): string => {
               const textSpan = endSeconds - startSeconds;
               // 1. Exact range match (start and end both match within 3s)
               matchedMeta = omittedLocateMetas.find(
-                (m) =>
-                  !m.used &&
-                  Math.abs(m.start - startSeconds) <= 3 &&
-                  (m.end === null || Math.abs(m.end - endSeconds) <= 3),
+                (meta) =>
+                  !meta.used &&
+                  Math.abs(meta.start - startSeconds) <= 3 &&
+                  (meta.end === null || Math.abs(meta.end - endSeconds) <= 3),
               );
               // 2. Sub-span match (e.g. text item is 00:10-00:25 and tag is 00:21-00:25):
               // Only for focused item spans (textSpan <= 90s), with matching end and tag within range
               if (!matchedMeta && textSpan <= 90) {
                 matchedMeta = omittedLocateMetas.find(
-                  (m) =>
-                    !m.used &&
-                    m.end !== null &&
-                    Math.abs(m.end - endSeconds) <= 3 &&
-                    m.start >= startSeconds - 1 &&
-                    m.start <= endSeconds + 1,
+                  (meta) =>
+                    !meta.used &&
+                    meta.end !== null &&
+                    Math.abs(meta.end - endSeconds) <= 3 &&
+                    meta.start >= startSeconds - 1 &&
+                    meta.start <= endSeconds + 1,
                 );
               }
             } else {
               // Single timestamp point
               matchedMeta = omittedLocateMetas.find(
-                (m) =>
-                  !m.used && Math.abs(m.start - startSeconds) <= 2 && (m.end === null || m.end <= startSeconds + 5),
+                (meta) =>
+                  !meta.used &&
+                  Math.abs(meta.start - startSeconds) <= 2 &&
+                  (meta.end === null || meta.end <= startSeconds + 5),
               );
             }
 

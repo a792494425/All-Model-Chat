@@ -139,7 +139,7 @@ export const searchLibrary = async (options: SearchLibraryOptions, db = dbServic
       score += 100;
     } else {
       // Name word matches
-      const matchedWords = queryWords.filter((w) => lowerName.includes(w));
+      const matchedWords = queryWords.filter((word) => lowerName.includes(word));
       if (matchedWords.length > 0) {
         score += 40 * (matchedWords.length / queryWords.length);
       }
@@ -156,7 +156,7 @@ export const searchLibrary = async (options: SearchLibraryOptions, db = dbServic
         score += 50;
         snippet = extractSnippet(textContent, rawQuery);
       } else {
-        const matchedWords = queryWords.filter((w) => lowerContent.includes(w));
+        const matchedWords = queryWords.filter((word) => lowerContent.includes(word));
         if (matchedWords.length > 0) {
           score += 20 * (matchedWords.length / queryWords.length);
           snippet = extractSnippet(textContent, matchedWords[0]);
@@ -184,9 +184,9 @@ export const searchLibrary = async (options: SearchLibraryOptions, db = dbServic
   }
 
   // Sort by score desc, then timestamp desc
-  results.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return b.timestamp - a.timestamp;
+  results.sort((itemA, itemB) => {
+    if (itemB.score !== itemA.score) return itemB.score - itemA.score;
+    return itemB.timestamp - itemA.timestamp;
   });
 
   return results.slice(0, limit);
@@ -205,7 +205,7 @@ export const readLibraryFile = async (
   }
 
   const items = await getActiveLibraryItems(db);
-  const item = items.find((f) => f.id === fileId);
+  const item = items.find((libraryItem) => libraryItem.id === fileId);
 
   if (!item) {
     return { found: false, id: fileId, message: `File with ID "${fileId}" was not found in the library.` };

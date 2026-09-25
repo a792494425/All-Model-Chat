@@ -223,7 +223,7 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
   }
 
   // If there are hard errors on the top-level fields, stop
-  if (errors.some((e) => e.code === 'INSTRUCTION_MISSING' || e.code === 'INSTRUCTION_TOO_LONG')) {
+  if (errors.some((err) => err.code === 'INSTRUCTION_MISSING' || err.code === 'INSTRUCTION_TOO_LONG')) {
     return { spec: null, errors, repairs };
   }
 
@@ -530,7 +530,7 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
         // Check default against enum
         if (!defErr && enumAvailable && normalized.default !== undefined) {
           const defVal = normalized.default as LiveArtifactInteractionPrimitive;
-          if (!normalized.enum!.some((e) => arePrimitiveValuesEqual(e, defVal))) {
+          if (!normalized.enum!.some((enumOption) => arePrimitiveValuesEqual(enumOption, defVal))) {
             addError(
               errors,
               'DEFAULT_NOT_IN_ENUM',
@@ -623,7 +623,7 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
             if (Array.isArray(items.enumNames) && items.enumNames.length > 0) {
               if (items.enumNames.length === finalEnum!.length) {
                 itemsResult.enumNames = items.enumNames
-                  .filter((n: unknown): n is string => typeof n === 'string')
+                  .filter((nameValue: unknown): nameValue is string => typeof nameValue === 'string')
                   .slice(0, finalEnum!.length);
               } else {
                 addError(
@@ -703,7 +703,10 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
                     if (!propError) {
                       const seen = new Set<LiveArtifactInteractionPrimitive>();
                       for (const item of coercedDefValues) {
-                        if (seen.has(item) || !finalEnum!.some((e) => arePrimitiveValuesEqual(e, item))) {
+                        if (
+                          seen.has(item) ||
+                          !finalEnum!.some((enumOption) => arePrimitiveValuesEqual(enumOption, item))
+                        ) {
                           addError(
                             errors,
                             'ARRAY_DEFAULT_INVALID',
@@ -741,7 +744,9 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
 
   // Build required list
   const required = Array.isArray(schema.required)
-    ? (schema.required as unknown[]).filter((k): k is string => typeof k === 'string' && k in normalizedProperties)
+    ? (schema.required as unknown[]).filter(
+        (propKey): propKey is string => typeof propKey === 'string' && propKey in normalizedProperties,
+      )
     : undefined;
 
   // Resolve instruction

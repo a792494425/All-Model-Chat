@@ -410,7 +410,7 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
                 name: vServer.name,
                 isVirtual: true,
                 toolsCount: tools.length,
-                tools: tools.map((t) => ({ name: t.name, description: t.description })),
+                tools: tools.map((tool) => ({ name: tool.name, description: tool.description })),
               });
             } catch (toolListError) {
               return toMcpResponse({
@@ -447,7 +447,7 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
               name: server.name,
               isVirtual: false,
               toolsCount: caps.tools?.length ?? 0,
-              tools: (caps.tools ?? []).map((t) => ({ name: t.name, description: t.description })),
+              tools: (caps.tools ?? []).map((tool) => ({ name: tool.name, description: tool.description })),
               promptsCount: caps.prompts?.length ?? 0,
               resourcesCount: caps.resources?.length ?? 0,
             });
@@ -592,7 +592,7 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
 
           if (typeof args.translationTargetLanguage === 'string' && args.translationTargetLanguage.trim()) {
             const raw = args.translationTargetLanguage.trim().toLowerCase();
-            const matched = TRANSLATION_TARGET_LANGUAGES.find((l) => l.toLowerCase() === raw);
+            const matched = TRANSLATION_TARGET_LANGUAGES.find((language) => language.toLowerCase() === raw);
             if (!matched) {
               throw new Error(
                 `Invalid translationTargetLanguage: ${args.translationTargetLanguage}. Must be one of: ${TRANSLATION_TARGET_LANGUAGES.join(', ')}`,

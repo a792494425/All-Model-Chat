@@ -27,10 +27,12 @@ export const buildLiveUiMediaCitationDirective = (
 ): string => {
   const hasDirectives = activeLocateDirectives.length > 0;
   const isImageActive =
-    !hasDirectives || activeLocateDirectives.some((d) => /image[- ]?locate|visual grounding/i.test(d));
-  const isPdfActive = !hasDirectives || activeLocateDirectives.some((d) => /pdf[- ]?locate/i.test(d));
-  const isVideoActive = !hasDirectives || activeLocateDirectives.some((d) => /video[- ]?locate/i.test(d));
-  const isAudioActive = !hasDirectives || activeLocateDirectives.some((d) => /audio[- ]?locate/i.test(d));
+    !hasDirectives || activeLocateDirectives.some((directive) => /image[- ]?locate|visual grounding/i.test(directive));
+  const isPdfActive = !hasDirectives || activeLocateDirectives.some((directive) => /pdf[- ]?locate/i.test(directive));
+  const isVideoActive =
+    !hasDirectives || activeLocateDirectives.some((directive) => /video[- ]?locate/i.test(directive));
+  const isAudioActive =
+    !hasDirectives || activeLocateDirectives.some((directive) => /audio[- ]?locate/i.test(directive));
 
   const anySpecificMatched = hasDirectives && (isImageActive || isPdfActive || isVideoActive || isAudioActive);
   const showImage = hasDirectives ? (anySpecificMatched ? isImageActive : true) : true;
