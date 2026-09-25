@@ -41,10 +41,10 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
   const [baseUrl, setBaseUrl] = useState(connection.baseUrl ?? '');
   const [authOptional, setAuthOptional] = useState(Boolean(connection.authOptional));
   const [headerRows, setHeaderRows] = useState<HeaderRow[]>(() =>
-    Object.entries(connection.extraHeaders || {}).map(([k, v]) => ({
-      id: `${k}-${v}-${Math.random()}`,
-      name: k,
-      value: v,
+    Object.entries(connection.extraHeaders || {}).map(([headerKey, headerValue]) => ({
+      id: `${headerKey}-${headerValue}-${Math.random()}`,
+      name: headerKey,
+      value: headerValue,
     })),
   );
 
@@ -56,10 +56,10 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
     setBaseUrl(connection.baseUrl ?? '');
     setAuthOptional(Boolean(connection.authOptional));
     setHeaderRows(
-      Object.entries(connection.extraHeaders || {}).map(([k, v]) => ({
-        id: `${k}-${v}-${Math.random()}`,
-        name: k,
-        value: v,
+      Object.entries(connection.extraHeaders || {}).map(([headerKey, headerValue]) => ({
+        id: `${headerKey}-${headerValue}-${Math.random()}`,
+        name: headerKey,
+        value: headerValue,
       })),
     );
   }, [connection]);
@@ -69,10 +69,10 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
   const handleSave = () => {
     const nextHeaders: Record<string, string> = {};
     for (const row of headerRows) {
-      const k = row.name.trim();
-      const v = row.value.trim();
-      if (k) {
-        nextHeaders[k] = v;
+      const headerKey = row.name.trim();
+      const headerValue = row.value.trim();
+      if (headerKey) {
+        nextHeaders[headerKey] = headerValue;
       }
     }
 
@@ -228,7 +228,7 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
                         <button
                           type="button"
                           className={SMALL_ICON_DANGER_BUTTON_CLASS}
-                          onClick={() => setHeaderRows(headerRows.filter((_, i) => i !== index))}
+                          onClick={() => setHeaderRows(headerRows.filter((_, rowIndex) => rowIndex !== index))}
                           aria-label={t('thirdPartyRemoveHeader')}
                         >
                           <Trash2 size={14} />

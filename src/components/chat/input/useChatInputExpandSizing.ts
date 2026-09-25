@@ -19,37 +19,39 @@ const STEP = 16;
 type Options = {
   fontSize: number;
   isExpanded: boolean;
-  onExpandedChange: (b: boolean) => void;
+  onExpandedChange: (expanded: boolean) => void;
   focusEditor: () => void;
   minHeight?: number;
-  setTimeoutTimer?: (k: string, fn: () => void, ms: number) => void;
+  setTimeoutTimer?: (timerKey: string, callback: () => void, ms: number) => void;
 };
-function getViewportRelativeHeightPx(minH: number, ratio: number) {
-  return Math.max(minH, Math.round(window.innerHeight * ratio));
+function getViewportRelativeHeightPx(minHeightPx: number, ratio: number) {
+  return Math.max(minHeightPx, Math.round(window.innerHeight * ratio));
 }
-function getExpandedHeightPx(minH: number) {
-  return Math.max(minH, getViewportRelativeHeightPx(220, 0.5));
+function getExpandedHeightPx(minHeightPx: number) {
+  return Math.max(minHeightPx, getViewportRelativeHeightPx(220, 0.5));
 }
-function clampHeight(h: number, minH: number, maxH: number) {
-  return Math.min(maxH, Math.max(minH, Math.round(h)));
+function clampHeight(height: number, minHeightPx: number, maxHeightPx: number) {
+  return Math.min(maxHeightPx, Math.max(minHeightPx, Math.round(height)));
 }
-function getCollapsedHeightPx(frame: HTMLDivElement, minH: number) {
-  const ta = frame.querySelector('textarea[data-chat-input-textarea="true"], .composer-tiptap') as HTMLElement | null;
-  let ch = frame.scrollHeight || minH;
+function getCollapsedHeightPx(frame: HTMLDivElement, minHeightPx: number) {
+  const textarea = frame.querySelector(
+    'textarea[data-chat-input-textarea="true"], .composer-tiptap',
+  ) as HTMLElement | null;
+  let collapsedHeight = frame.scrollHeight || minHeightPx;
   const maxCollapsed = getViewportRelativeHeightPx(220, 0.4);
-  if (ta) {
-    const ph = ta.style.height,
-      pm = ta.style.maxHeight;
+  if (textarea) {
+    const prevHeight = textarea.style.height;
+    const prevMaxHeight = textarea.style.maxHeight;
     try {
-      ta.style.height = 'auto';
-      ta.style.maxHeight = 'none';
-      ch = ta.scrollHeight || ch;
+      textarea.style.height = 'auto';
+      textarea.style.maxHeight = 'none';
+      collapsedHeight = textarea.scrollHeight || collapsedHeight;
     } finally {
-      ta.style.height = ph;
-      ta.style.maxHeight = pm;
+      textarea.style.height = prevHeight;
+      textarea.style.maxHeight = prevMaxHeight;
     }
   }
-  return Math.max(minH, Math.min(ch, maxCollapsed));
+  return Math.max(minHeightPx, Math.min(collapsedHeight, maxCollapsed));
 }
 export interface ChatInputEditorContentStyle extends CSSProperties {
   '--composer-editor-padding'?: string;
@@ -134,123 +136,123 @@ export function useChatInputExpandSizing({
     }
   }, []);
   const clearAfter = useCallback(() => {
-    const fn = () => {
+    const finishAnimation = () => {
       setAnimatedHeight(null);
       pendingRef.current = null;
     };
-    if (setTimeoutTimer) setTimeoutTimer('chatInputFrame', fn, HEIGHT_TRANSITION_MS + 80);
-    else window.setTimeout(fn, HEIGHT_TRANSITION_MS + 80);
+    if (setTimeoutTimer) setTimeoutTimer('chatInputFrame', finishAnimation, HEIGHT_TRANSITION_MS + 80);
+    else window.setTimeout(finishAnimation, HEIGHT_TRANSITION_MS + 80);
   }, [setTimeoutTimer]);
   const getCurrentHeight = useCallback(
     () => frameRef.current?.offsetHeight ?? (isExpanded ? maxHeight : (manualHeight ?? minHeight)),
     [isExpanded, manualHeight, maxHeight, minHeight],
   );
   const setClamped = useCallback(
-    (h: number) => {
+    (height: number) => {
       clearAnim();
       pendingRef.current = null;
       setAnimatedHeight(null);
-      if (h <= minHeight + 4) {
+      if (height <= minHeight + 4) {
         setManualHeight(null);
       } else {
-        setManualHeight(clampHeight(h, minHeight, maxHeight));
+        setManualHeight(clampHeight(height, minHeight, maxHeight));
       }
     },
     [clearAnim, maxHeight, minHeight],
   );
   const handleResizeMove = useCallback(
-    (e: MouseEvent) => {
-      const d = dragRef.current;
-      if (d.collapseExpanded) {
-        d.collapseExpanded = false;
+    (event: MouseEvent) => {
+      const drag = dragRef.current;
+      if (drag.collapseExpanded) {
+        drag.collapseExpanded = false;
         onExpandedChange(false);
       }
-      setClamped(d.startHeight + d.startClientY - e.clientY);
+      setClamped(drag.startHeight + drag.startClientY - event.clientY);
     },
     [onExpandedChange, setClamped],
   );
   const { isResizing, startResizing } = useResizeDrag({ onMove: handleResizeMove, cursor: 'row-resize' });
   const startResize = useCallback(
-    (e: ReactMouseEvent) => {
-      dragRef.current = { startClientY: e.clientY, startHeight: getCurrentHeight(), collapseExpanded: isExpanded };
-      startResizing(e);
+    (event: ReactMouseEvent) => {
+      dragRef.current = { startClientY: event.clientY, startHeight: getCurrentHeight(), collapseExpanded: isExpanded };
+      startResizing(event);
     },
     [getCurrentHeight, isExpanded, startResizing],
   );
   const handleResizeKeyDown = useCallback(
-    (e: ReactKeyboardEvent) => {
-      const cur = getCurrentHeight();
-      let n: number | null = null;
-      switch (e.key) {
+    (event: ReactKeyboardEvent) => {
+      const currentHeight = getCurrentHeight();
+      let targetHeight: number | null = null;
+      switch (event.key) {
         case 'ArrowUp':
-          n = cur + STEP;
+          targetHeight = currentHeight + STEP;
           break;
         case 'ArrowDown':
-          n = cur - STEP;
+          targetHeight = currentHeight - STEP;
           break;
         case 'Home':
-          n = minHeight;
+          targetHeight = minHeight;
           break;
         case 'End':
-          n = maxHeight;
+          targetHeight = maxHeight;
           break;
       }
-      if (n === null) return;
-      e.preventDefault();
+      if (targetHeight === null) return;
+      event.preventDefault();
       if (isExpanded) onExpandedChange(false);
-      setClamped(n);
+      setClamped(targetHeight);
     },
     [getCurrentHeight, isExpanded, maxHeight, minHeight, onExpandedChange, setClamped],
   );
   const toggleExpanded = useCallback(
     (next?: boolean) => {
-      const t = typeof next === 'boolean' ? next : !isExpanded;
-      const f = frameRef.current;
-      if (f) {
+      const targetExpanded = typeof next === 'boolean' ? next : !isExpanded;
+      const frame = frameRef.current;
+      if (frame) {
         clearAnim();
-        setAnimatedHeight(`${f.offsetHeight || minHeight}px`);
-        pendingRef.current = t;
+        setAnimatedHeight(`${frame.offsetHeight || minHeight}px`);
+        pendingRef.current = targetExpanded;
       }
-      if (!t) setManualHeight(null);
-      onExpandedChange(t);
+      if (!targetExpanded) setManualHeight(null);
+      onExpandedChange(targetExpanded);
       focusEditor();
     },
     [clearAnim, focusEditor, isExpanded, minHeight, onExpandedChange],
   );
   useEffect(() => {
-    const f = frameRef.current;
-    if (!f || pendingRef.current !== isExpanded) return;
-    const th = isExpanded ? getExpandedHeightPx(minHeight) : getCollapsedHeightPx(f, minHeight);
+    const frame = frameRef.current;
+    if (!frame || pendingRef.current !== isExpanded) return;
+    const targetHeight = isExpanded ? getExpandedHeightPx(minHeight) : getCollapsedHeightPx(frame, minHeight);
     clearAnim();
     animRef.current = requestAnimationFrame(() => {
-      setAnimatedHeight(`${th}px`);
+      setAnimatedHeight(`${targetHeight}px`);
       animRef.current = null;
     });
     clearAfter();
   }, [clearAfter, clearAnim, isExpanded, minHeight]);
   useEffect(() => clearAnim, [clearAnim]);
-  const handleTransitionEnd = useCallback((e: ReactTransitionEvent<HTMLDivElement>) => {
-    if (e.propertyName && e.propertyName !== 'height') return;
+  const handleTransitionEnd = useCallback((event: ReactTransitionEvent<HTMLDivElement>) => {
+    if (event.propertyName && event.propertyName !== 'height') return;
     setAnimatedHeight(null);
     pendingRef.current = null;
   }, []);
   const restoreDefaultHeight = useCallback(() => {
-    const f = frameRef.current;
+    const frame = frameRef.current;
     clearAnim();
     pendingRef.current = null;
-    if (!f) {
+    if (!frame) {
       setManualHeight(null);
       onExpandedChange(false);
       focusEditor();
       return;
     }
-    const start = f.offsetHeight || getCurrentHeight();
-    const target = getCollapsedHeightPx(f, minHeight);
-    setAnimatedHeight(`${start}px`);
+    const startHeight = frame.offsetHeight || getCurrentHeight();
+    const targetHeight = getCollapsedHeightPx(frame, minHeight);
+    setAnimatedHeight(`${startHeight}px`);
     animRef.current = requestAnimationFrame(() => {
       setManualHeight(null);
       onExpandedChange(false);
-      setAnimatedHeight(`${target}px`);
+      setAnimatedHeight(`${targetHeight}px`);
       animRef.current = null;
     });
     clearAfter();

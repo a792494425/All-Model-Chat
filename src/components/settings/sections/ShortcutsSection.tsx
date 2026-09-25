@@ -39,10 +39,10 @@ export const ShortcutsSection: React.FC<ShortcutsSectionProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
 
-  const getCategoryLabel = (cat: CategoryFilter): string => {
-    if (cat === 'all') return t('shortcutsFilterAll');
-    if (cat === 'general') return t('shortcutsGeneralTitle');
-    if (cat === 'input') return t('shortcutsChatInputTitle');
+  const getCategoryLabel = (category: CategoryFilter): string => {
+    if (category === 'all') return t('shortcutsFilterAll');
+    if (category === 'general') return t('shortcutsGeneralTitle');
+    if (category === 'input') return t('shortcutsChatInputTitle');
     return t('shortcutsGlobalTitle');
   };
 
@@ -90,33 +90,33 @@ export const ShortcutsSection: React.FC<ShortcutsSectionProps> = ({
   // Build filtered list — search by label or shortcut display, plus category
   const allItems = SHORTCUT_REGISTRY;
   const filteredItems = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
     return allItems.filter((item) => {
       if (activeCategory !== 'all' && item.category !== activeCategory) return false;
-      if (!q) return true;
+      if (!query) return true;
       const label = t(item.labelKey);
       const customKey = currentSettings?.customShortcuts?.[item.id];
       const effectiveKey = customKey !== undefined ? customKey : item.defaultKey;
       const display = effectiveKey ? formatShortcut(effectiveKey).join(' ').toLowerCase() : '';
-      return label.toLowerCase().includes(q) || display.includes(q);
+      return label.toLowerCase().includes(query) || display.includes(query);
     });
   }, [allItems, activeCategory, searchQuery, currentSettings?.customShortcuts, t]);
 
   const countByCategory = useMemo(() => {
-    const map: Record<string, number> = { all: allItems.length };
-    for (const cat of ['general', 'input', 'global'] as const) {
-      map[cat] = allItems.filter((i) => i.category === cat).length;
+    const categoryCounts: Record<string, number> = { all: allItems.length };
+    for (const category of ['general', 'input', 'global'] as const) {
+      categoryCounts[category] = allItems.filter((item) => item.category === category).length;
     }
-    return map;
+    return categoryCounts;
   }, [allItems]);
 
   // Keep TabCycleModelsCard visible only when its shortcut is visible
-  const showTabCycleCard = filteredItems.some((i) => i.id === 'input.cycleModels');
+  const showTabCycleCard = filteredItems.some((item) => item.id === 'input.cycleModels');
 
   const handleToggleVisible = useCallback(
     (enabled: boolean) => {
       if (!currentSettings || !onUpdateSettings) return;
-      const visibleIds = filteredItems.map((i) => i.id);
+      const visibleIds = filteredItems.map((item) => item.id);
       const updated = { ...currentSettings.customShortcuts };
       for (const id of visibleIds) {
         updated[id] = enabled ? (DEFAULT_SHORTCUTS[id] ?? '') : '';

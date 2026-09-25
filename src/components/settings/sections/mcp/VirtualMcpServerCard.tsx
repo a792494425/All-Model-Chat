@@ -78,8 +78,8 @@ export const VirtualMcpServerCard: React.FC<VirtualMcpServerCardProps> = ({
     });
   };
 
-  const handleCopyId = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCopyId = async (event: React.MouseEvent) => {
+    event.stopPropagation();
     await copyTextToClipboard(server.id);
     setCopiedId(true);
     setTimeout(() => setCopiedId(false), 1500);
@@ -87,8 +87,8 @@ export const VirtualMcpServerCard: React.FC<VirtualMcpServerCardProps> = ({
 
   const filteredTools = tools.filter((tool) => {
     if (!toolQuery.trim()) return true;
-    const q = toolQuery.toLowerCase();
-    return tool.name.toLowerCase().includes(q) || (tool.description ?? '').toLowerCase().includes(q);
+    const query = toolQuery.toLowerCase();
+    return tool.name.toLowerCase().includes(query) || (tool.description ?? '').toLowerCase().includes(query);
   });
 
   return (

@@ -117,13 +117,13 @@ export const TokenDetailsCard: React.FC<TokenDetailsCardProps> = React.memo(
     const [showMoreDetails, setShowMoreDetails] = useState(false);
 
     const currentSessionSettings = useChatStore((state) => {
-      const s = state.savedSessions.find((session) => session.id === state.activeSessionId);
-      return s?.settings;
+      const activeSession = state.savedSessions.find((session) => session.id === state.activeSessionId);
+      return activeSession?.settings;
     });
     const appSettings = useSettingsStore((state) => state.appSettings);
 
     const view = useMemo(() => buildMessageTokenStatsView(message), [message]);
-    const exact = useCallback((v: number) => formatExactTokens(v, language), [language]);
+    const exact = useCallback((tokenCount: number) => formatExactTokens(tokenCount, language), [language]);
 
     // 解析模型与供应商信息
     const { resolvedModelId, resolvedProviderId, resolvedModelName, resolvedProviderName } = useMemo(() => {
@@ -155,9 +155,9 @@ export const TokenDetailsCard: React.FC<TokenDetailsCardProps> = React.memo(
       if (!mName) {
         const allCandidateModels = [
           ...(route.provider?.models || []),
-          ...(appSettings.thirdPartyApi?.connections.flatMap((c) => c.models) || []),
+          ...(appSettings.thirdPartyApi?.connections.flatMap((conn) => conn.models) || []),
         ];
-        const matched = allCandidateModels.find((m) => m.id === mId);
+        const matched = allCandidateModels.find((modelOption) => modelOption.id === mId);
         if (matched?.name) {
           mName = matched.name;
         } else {
@@ -168,7 +168,7 @@ export const TokenDetailsCard: React.FC<TokenDetailsCardProps> = React.memo(
             mName = shortName
               .replace(/^gemini-/i, 'Gemini ')
               .split('-')
-              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
               .join(' ');
           } else {
             mName = shortName;

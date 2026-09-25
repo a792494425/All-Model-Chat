@@ -224,24 +224,26 @@ export function useCloudFilesLogic({
   }, []);
 
   const allFilteredSelected = useMemo(() => {
-    return filteredFiles.length > 0 && filteredFiles.every((f) => (f.name ? selectedFileNames.has(f.name) : false));
+    return filteredFiles.length > 0 && filteredFiles.every((file) => (file.name ? selectedFileNames.has(file.name) : false));
   }, [filteredFiles, selectedFileNames]);
 
   const handleSelectAllToggle = useCallback(() => {
     if (allFilteredSelected) {
       setSelectedFileNames(new Set());
     } else {
-      const allNames = new Set(filteredFiles.map((f) => f.name).filter((n): n is string => Boolean(n)));
+      const allNames = new Set(
+        filteredFiles.map((file) => file.name).filter((fileName): fileName is string => Boolean(fileName)),
+      );
       setSelectedFileNames(allNames);
     }
   }, [allFilteredSelected, filteredFiles]);
 
-  const handleCopyId = useCallback((name: string, e?: MouseEvent) => {
-    e?.stopPropagation();
+  const handleCopyId = useCallback((name: string, event?: MouseEvent) => {
+    event?.stopPropagation();
     void copyTextToClipboard(name);
     setCopiedFileName(name);
     setTimeout(() => {
-      setCopiedFileName((cur) => (cur === name ? null : cur));
+      setCopiedFileName((currentName) => (currentName === name ? null : currentName));
     }, 2000);
   }, []);
 
@@ -281,7 +283,7 @@ export function useCloudFilesLogic({
 
     try {
       await deleteFileApi(activeApiKey, targetName);
-      setFiles((prev) => prev.filter((f) => f.name !== targetName));
+      setFiles((prev) => prev.filter((file) => file.name !== targetName));
       setSelectedFileNames((prev) => {
         const next = new Set(prev);
         next.delete(targetName);
@@ -308,7 +310,7 @@ export function useCloudFilesLogic({
           logService.error(`Failed to delete file ${name} during batch deletion:`, batchDeleteError);
         }
       }
-      setFiles((prev) => prev.filter((f) => !f.name || !selectedFileNames.has(f.name)));
+      setFiles((prev) => prev.filter((file) => !file.name || !selectedFileNames.has(file.name)));
       setSelectedFileNames(new Set());
       setIsBatchDeleteModalOpen(false);
     } finally {
@@ -318,7 +320,7 @@ export function useCloudFilesLogic({
 
   const handleConfirmInsert = useCallback(() => {
     if (!selectedFileNames.size || !onAddFiles) return;
-    const selectedList = files.filter((f) => f.name && selectedFileNames.has(f.name));
+    const selectedList = files.filter((file) => file.name && selectedFileNames.has(file.name));
     onAddFiles(selectedList);
     onClose();
   }, [files, onAddFiles, onClose, selectedFileNames]);

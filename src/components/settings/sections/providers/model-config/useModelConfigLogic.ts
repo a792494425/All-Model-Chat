@@ -55,18 +55,18 @@ export function useModelConfigLogic({
       const baseCaps = getOrInferModelCapabilities(model);
       setCapabilities({ ...baseCaps, ...(model.capabilities || {}) });
 
-      const p = model.parameters;
-      setTemperature(p?.temperature);
-      setMaxOutputTokens(p?.maxOutputTokens);
-      setTopP(p?.topP);
-      setTopK(p?.topK);
-      setPresencePenalty(p?.presencePenalty);
-      setFrequencyPenalty(p?.frequencyPenalty);
-      setStopSequencesStr(Array.isArray(p?.stopSequences) ? p.stopSequences.join(', ') : '');
-      setSeed(p?.seed);
-      setReasoningEffort(p?.reasoningEffort);
-      setThinkingBudget(p?.thinkingBudget);
-      setThinkingLevel(p?.thinkingLevel);
+      const modelParameters = model.parameters;
+      setTemperature(modelParameters?.temperature);
+      setMaxOutputTokens(modelParameters?.maxOutputTokens);
+      setTopP(modelParameters?.topP);
+      setTopK(modelParameters?.topK);
+      setPresencePenalty(modelParameters?.presencePenalty);
+      setFrequencyPenalty(modelParameters?.frequencyPenalty);
+      setStopSequencesStr(Array.isArray(modelParameters?.stopSequences) ? modelParameters.stopSequences.join(', ') : '');
+      setSeed(modelParameters?.seed);
+      setReasoningEffort(modelParameters?.reasoningEffort);
+      setThinkingBudget(modelParameters?.thinkingBudget);
+      setThinkingLevel(modelParameters?.thinkingLevel);
     }
   }, [model]);
 
@@ -117,7 +117,7 @@ export function useModelConfigLogic({
 
     const trimmedStops = stopSequencesStr
       .split(/[,，\n]+/)
-      .map((s) => s.trim())
+      .map((stopSequence) => stopSequence.trim())
       .filter(Boolean);
 
     const params: ModelParameters = {};

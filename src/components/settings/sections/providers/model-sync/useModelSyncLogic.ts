@@ -21,7 +21,7 @@ export const useModelSyncLogic = ({ remoteModels, existingModels, onApply, onClo
 
   // By default, select all new models for addition
   const [selectedNewIds, setSelectedNewIds] = useState<Set<string>>(() => {
-    return new Set(newModels.map((m) => m.id));
+    return new Set(newModels.map((model) => model.id));
   });
 
   // By default, keep stale models unchecked unless user explicitly wants to purge them
@@ -29,7 +29,7 @@ export const useModelSyncLogic = ({ remoteModels, existingModels, onApply, onClo
 
   // Reset selection states when remote models change
   useEffect(() => {
-    setSelectedNewIds(new Set(newModels.map((m) => m.id)));
+    setSelectedNewIds(new Set(newModels.map((model) => model.id)));
     setSelectedStaleRemoveIds(new Set());
   }, [newModels]);
 
@@ -65,7 +65,7 @@ export const useModelSyncLogic = ({ remoteModels, existingModels, onApply, onClo
       if (prev.size === newModels.length) {
         return new Set();
       }
-      return new Set(newModels.map((m) => m.id));
+      return new Set(newModels.map((model) => model.id));
     });
   }, [newModels]);
 
@@ -75,14 +75,14 @@ export const useModelSyncLogic = ({ remoteModels, existingModels, onApply, onClo
       if (prev.size === staleModels.length) {
         return new Set();
       }
-      return new Set(staleModels.map((m) => m.id));
+      return new Set(staleModels.map((model) => model.id));
     });
   }, [staleModels]);
 
   // Handle final submission
   const handleConfirm = useCallback(() => {
-    const selectedNewModels = newModels.filter((m) => selectedNewIds.has(m.id));
-    const remoteMetadataMap = new Map(remoteModels.map((m) => [m.id, m]));
+    const selectedNewModels = newModels.filter((model) => selectedNewIds.has(model.id));
+    const remoteMetadataMap = new Map(remoteModels.map((model) => [model.id, model]));
 
     const finalized = applyModelReconcile({
       existingModels,
@@ -100,22 +100,22 @@ export const useModelSyncLogic = ({ remoteModels, existingModels, onApply, onClo
     const items: ModelSyncDisplayItem[] = [];
 
     if (filterTab === 'all' || filterTab === 'new') {
-      newModels.forEach((m) => items.push({ model: m, status: 'new' }));
+      newModels.forEach((model) => items.push({ model, status: 'new' }));
     }
     if (filterTab === 'all' || filterTab === 'existing') {
-      mergedExisting.forEach((m) => items.push({ model: m, status: 'existing' }));
+      mergedExisting.forEach((model) => items.push({ model, status: 'existing' }));
     }
     if (filterTab === 'all' || filterTab === 'stale') {
-      staleModels.forEach((m) => items.push({ model: m, status: 'stale' }));
+      staleModels.forEach((model) => items.push({ model, status: 'stale' }));
     }
 
-    const q = searchQuery.trim().toLowerCase();
-    if (q) {
+    const query = searchQuery.trim().toLowerCase();
+    if (query) {
       return items.filter(
         ({ model }) =>
-          model.id.toLowerCase().includes(q) ||
-          model.name.toLowerCase().includes(q) ||
-          (model.ownedBy && model.ownedBy.toLowerCase().includes(q)),
+          model.id.toLowerCase().includes(query) ||
+          model.name.toLowerCase().includes(query) ||
+          (model.ownedBy && model.ownedBy.toLowerCase().includes(query)),
       );
     }
 

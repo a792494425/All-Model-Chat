@@ -109,22 +109,22 @@ export const AudioPreviewViewer = React.forwardRef<AudioPreviewViewerRef, AudioP
       (clientX: number): number => {
         if (!waveformRef.current || duration <= 0) return 0;
         const rect = waveformRef.current.getBoundingClientRect();
-        const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
-        const ratio = x / rect.width;
+        const offsetX = Math.max(0, Math.min(clientX - rect.left, rect.width));
+        const ratio = offsetX / rect.width;
         return ratio * duration;
       },
       [duration],
     );
 
-    const handleWaveformClick = (e: React.MouseEvent<HTMLDivElement>) => {
-      const targetTime = calculateSeekTime(e.clientX);
+    const handleWaveformClick = (event: React.MouseEvent<HTMLDivElement>) => {
+      const targetTime = calculateSeekTime(event.clientX);
       seekTo(targetTime);
     };
 
-    const handleWaveformMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const handleWaveformMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
       if (!waveformRef.current || duration <= 0) return;
       const rect = waveformRef.current.getBoundingClientRect();
-      const ratio = Math.max(0, Math.min((e.clientX - rect.left) / rect.width, 1));
+      const ratio = Math.max(0, Math.min((event.clientX - rect.left) / rect.width, 1));
       setHoverProgress(ratio);
 
       if (isDraggingSeek) {
@@ -156,8 +156,8 @@ export const AudioPreviewViewer = React.forwardRef<AudioPreviewViewerRef, AudioP
       }
     };
 
-    const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newVol = parseFloat(e.target.value);
+    const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const newVol = parseFloat(event.target.value);
       setVolume(newVol);
       const muted = newVol === 0;
       setIsMuted(muted);
@@ -240,13 +240,13 @@ export const AudioPreviewViewer = React.forwardRef<AudioPreviewViewerRef, AudioP
             >
               <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 h-px bg-neutral-200/70 dark:bg-neutral-800/80 pointer-events-none" />
 
-              {waveformBars.map((height, i) => {
-                const barRatio = i / (waveformBars.length - 1);
+              {waveformBars.map((height, barIndex) => {
+                const barRatio = barIndex / (waveformBars.length - 1);
                 const isPlayed = barRatio <= currentPlayRatio;
                 const isHovered = hoverProgress !== null && barRatio <= hoverProgress;
 
                 return (
-                  <div key={i} className="flex-1 h-full flex items-center justify-center relative z-10">
+                  <div key={barIndex} className="flex-1 h-full flex items-center justify-center relative z-10">
                     <span
                       className={`w-full max-w-[3.5px] rounded-full transition-all duration-150 ${
                         isPlayed

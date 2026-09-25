@@ -106,8 +106,8 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
   }, [docked, onClose, panelRef, targetDocument]);
 
   const handleAsk = useCallback(
-    (q: string) => {
-      const trimmed = q.trim();
+    (promptQuery: string) => {
+      const trimmed = promptQuery.trim();
       if (!trimmed || !selectedText.trim()) return;
       ask(selectedText, trimmed);
     },
@@ -121,27 +121,27 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
 
   const handleQuick = useCallback(
     (type: 'explain' | 'translate' | 'summarize') => {
-      const map: Record<string, string> = {
+      const promptMap: Record<string, string> = {
         explain: t('selectionAskPromptExplain'),
         translate: t('selectionAskPromptTranslate'),
         summarize: t('selectionAskPromptSummarize'),
       };
-      const q = map[type];
-      setQuestion(q);
-      handleAsk(q);
+      const quickQuery = promptMap[type];
+      setQuestion(quickQuery);
+      handleAsk(quickQuery);
       targetWindow.setTimeout(() => textareaRef.current?.focus(), 0);
     },
     [handleAsk, t, targetWindow],
   );
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
+    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
         handleSubmit();
       }
-      if (e.key === 'Escape') {
-        e.stopPropagation();
+      if (event.key === 'Escape') {
+        event.stopPropagation();
         onClose();
       }
     },
@@ -149,13 +149,13 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
   );
 
   const handleTextareaInput = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement> | React.FormEvent<HTMLTextAreaElement>) => {
-      const el = e.currentTarget;
-      setQuestion(el.value);
-      el.style.height = 'auto';
+    (event: React.ChangeEvent<HTMLTextAreaElement> | React.FormEvent<HTMLTextAreaElement>) => {
+      const textarea = event.currentTarget;
+      setQuestion(textarea.value);
+      textarea.style.height = 'auto';
       const maxH = 96;
-      el.style.height = `${Math.min(el.scrollHeight, maxH)}px`;
-      el.style.overflowY = el.scrollHeight > maxH ? 'auto' : 'hidden';
+      textarea.style.height = `${Math.min(textarea.scrollHeight, maxH)}px`;
+      textarea.style.overflowY = textarea.scrollHeight > maxH ? 'auto' : 'hidden';
     },
     [],
   );

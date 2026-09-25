@@ -11,25 +11,28 @@ interface UseProviderListLogicOptions {
 }
 
 export const useProviderListLogic = ({ connections, onReorder }: UseProviderListLogicOptions) => {
-  const search = useProviderUiStore((s) => s.listSearchQuery);
-  const setSearch = useProviderUiStore((s) => s.setListSearchQuery);
-  const filterMode = useProviderUiStore((s) => s.listFilterMode);
-  const setFilterMode = useProviderUiStore((s) => s.setListFilterMode);
-  const healthResults = useProviderUiStore((s) => s.healthResultByConnection);
+  const search = useProviderUiStore((state) => state.listSearchQuery);
+  const setSearch = useProviderUiStore((state) => state.setListSearchQuery);
+  const filterMode = useProviderUiStore((state) => state.listFilterMode);
+  const setFilterMode = useProviderUiStore((state) => state.setListFilterMode);
+  const healthResults = useProviderUiStore((state) => state.healthResultByConnection);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  const configuredTemplateIds = useMemo(() => new Set(connections.map((c) => c.templateId)), [connections]);
+  const configuredTemplateIds = useMemo(
+    () => new Set(connections.map((conn) => conn.templateId)),
+    [connections],
+  );
 
   const unconfiguredPresets = useMemo(() => {
-    return TEMPLATE_PRESETS.filter((p) => !configuredTemplateIds.has(p.id));
+    return TEMPLATE_PRESETS.filter((preset) => !configuredTemplateIds.has(preset.id));
   }, [configuredTemplateIds]);
 
   const enabledCount = useMemo(() => {
-    return connections.filter((c) => c.enabled).length;
+    return connections.filter((conn) => conn.enabled).length;
   }, [connections]);
 
   const allCount = useMemo(() => {
@@ -49,25 +52,25 @@ export const useProviderListLogic = ({ connections, onReorder }: UseProviderList
       })
       .filter((conn) => {
         if (!search.trim()) return true;
-        const q = search.trim().toLowerCase();
+        const query = search.trim().toLowerCase();
         return (
-          conn.name.toLowerCase().includes(q) ||
-          (conn.notes && conn.notes.toLowerCase().includes(q)) ||
-          conn.templateId.toLowerCase().includes(q) ||
-          conn.models.some((m) => m.id.toLowerCase().includes(q) || (m.name && m.name.toLowerCase().includes(q)))
+          conn.name.toLowerCase().includes(query) ||
+          (conn.notes && conn.notes.toLowerCase().includes(query)) ||
+          conn.templateId.toLowerCase().includes(query) ||
+          conn.models.some((model) => model.id.toLowerCase().includes(query) || (model.name && model.name.toLowerCase().includes(query)))
         );
       });
   }, [connections, filterMode, search]);
 
   const filteredPresets = useMemo(() => {
     if (filterMode === 'enabled') return [];
-    return unconfiguredPresets.filter((p) => {
+    return unconfiguredPresets.filter((preset) => {
       if (!search.trim()) return true;
-      const q = search.trim().toLowerCase();
+      const query = search.trim().toLowerCase();
       return (
-        p.name.toLowerCase().includes(q) ||
-        p.id.toLowerCase().includes(q) ||
-        (p.description && p.description.toLowerCase().includes(q))
+        preset.name.toLowerCase().includes(query) ||
+        preset.id.toLowerCase().includes(query) ||
+        (preset.description && preset.description.toLowerCase().includes(query))
       );
     });
   }, [filterMode, unconfiguredPresets, search]);
@@ -76,13 +79,13 @@ export const useProviderListLogic = ({ connections, onReorder }: UseProviderList
     (event: DragEndEvent) => {
       const { active, over } = event;
       if (over && active.id !== over.id) {
-        const oldIndex = connections.findIndex((c) => c.id === active.id);
-        const newIndex = connections.findIndex((c) => c.id === over.id);
+        const oldIndex = connections.findIndex((conn) => conn.id === active.id);
+        const newIndex = connections.findIndex((conn) => conn.id === over.id);
         if (oldIndex !== -1 && newIndex !== -1) {
           const next = [...connections];
           const [moved] = next.splice(oldIndex, 1);
           next.splice(newIndex, 0, moved);
-          onReorder(next.map((c) => c.id));
+          onReorder(next.map((conn) => conn.id));
         }
       }
     },
