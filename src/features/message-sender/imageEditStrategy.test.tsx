@@ -258,9 +258,9 @@ describe('imageEditStrategy', () => {
     const runMessageLifecycle = vi.fn(async ({ execute }) => {
       try {
         return await execute();
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error);
-        expect((error as Error).message).toBe(
+      } catch (executeError) {
+        expect(executeError).toBeInstanceOf(Error);
+        expect((executeError as Error).message).toBe(
           '之前生成的图片已无法从历史记录中恢复。请重新附加这张图片，或开启新的图片编辑回合。',
         );
         return undefined;

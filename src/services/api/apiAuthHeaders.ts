@@ -44,9 +44,9 @@ export const verifyServerAccessPassword = async (
       return { ok: false, message: 'Invalid access password' };
     }
     return { ok: false, message: `Server returned status ${response.status}` };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    return { ok: false, message: `Connection failed: ${msg}` };
+  } catch (verifyError) {
+    const connectionErrorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
+    return { ok: false, message: `Connection failed: ${connectionErrorMessage}` };
   }
 };
 

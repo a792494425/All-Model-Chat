@@ -401,14 +401,14 @@ export const generateTitleApi = async (
             return '';
           }
           return sanitizeGeneratedTitle(titleText, options?.includeEmoji ?? true);
-        } catch (error) {
+        } catch (titleError) {
           // Abort is intentional (timeout) — let it propagate so the timeout
           // controller can be observed; all other failures just fall back to
           // the heuristic title without spamming error logs.
-          if (error instanceof Error && error.name === 'AbortError') {
-            throw error;
+          if (titleError instanceof Error && titleError.name === 'AbortError') {
+            throw titleError;
           }
-          logService.debug('Title generation request failed (will use heuristic)', error);
+          logService.debug('Title generation request failed (will use heuristic)', titleError);
           return '';
         }
       },
@@ -497,11 +497,11 @@ export const generateFileTitleApi = async (
             return '';
           }
           return sanitizeFileTitleStem(titleText);
-        } catch (error) {
-          if (error instanceof Error && error.name === 'AbortError') {
-            throw error;
+        } catch (fileTitleError) {
+          if (fileTitleError instanceof Error && fileTitleError.name === 'AbortError') {
+            throw fileTitleError;
           }
-          logService.debug('File title generation request failed', error);
+          logService.debug('File title generation request failed', fileTitleError);
           return '';
         }
       },

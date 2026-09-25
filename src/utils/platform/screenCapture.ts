@@ -40,10 +40,10 @@ export const captureScreenImage = async (messages: ScreenCaptureMessages): Promi
       video: { mediaSource: 'screen' } as DisplayMediaVideoConstraints,
       audio: false,
     });
-  } catch (error) {
-    const errorName = error instanceof DOMException ? error.name : undefined;
-    const errorMessage = getErrorMessage(error);
-    logService.error('Error starting screen capture:', error);
+  } catch (displayMediaError) {
+    const errorName = displayMediaError instanceof DOMException ? displayMediaError.name : undefined;
+    const errorMessage = getErrorMessage(displayMediaError);
+    logService.error('Error starting screen capture:', displayMediaError);
     if (errorName !== 'NotAllowedError') {
       toastError(messages.startFailed(errorMessage));
     }
@@ -165,8 +165,8 @@ export const captureScreenImage = async (messages: ScreenCaptureMessages): Promi
               removeVideo();
               finish(blob);
             }, 'image/png');
-          } catch (error) {
-            fail(error);
+          } catch (canvasCaptureError) {
+            fail(canvasCaptureError);
           }
         };
         video.onerror = () => fail();

@@ -23,8 +23,8 @@ export const useAppDataSize = (): AppDataSizeState => {
     try {
       const nextEstimate = await dbService.estimateAppDataSize();
       setEstimate(nextEstimate);
-    } catch (error) {
-      logService.error('Failed to estimate app data size:', error);
+    } catch (estimateError) {
+      logService.error('Failed to estimate app data size:', estimateError);
       setEstimate(null);
       setHasError(true);
     } finally {

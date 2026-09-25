@@ -174,8 +174,8 @@ export const useFileIdAdder = ({
             ),
           );
         }
-      } catch (error) {
-        if (error instanceof Error && error.name === 'SilentError') {
+      } catch (metadataFetchError) {
+        if (metadataFetchError instanceof Error && metadataFetchError.name === 'SilentError') {
           logService.error('Cannot add file by ID: API key not configured.');
           const translatedApiError = t('apiRuntimeKeyNotConfigured');
           setAppFileError(translatedApiError);
@@ -194,8 +194,8 @@ export const useFileIdAdder = ({
           );
           return;
         }
-        logService.error(`Error fetching file metadata for ID ${fileApiId}`, { error });
-        setAppFileError(formatI18nErrorMessage(t, 'fileIdAdderFetchError', error));
+        logService.error(`Error fetching file metadata for ID ${fileApiId}`, { error: metadataFetchError });
+        setAppFileError(formatI18nErrorMessage(t, 'fileIdAdderFetchError', metadataFetchError));
         setSelectedFiles((prev) =>
           prev.map((selectedFile) =>
             selectedFile.id === tempId

@@ -39,8 +39,8 @@ export const useDiagramExport = ({
     try {
       const { exportSvgAsImage } = await import('@/utils/export/image');
       await exportSvgAsImage(svg, `${filenamePrefix}-diagram-${Date.now()}.jpg`, scale, 'image/jpeg');
-    } catch (error) {
-      onError(error instanceof Error ? error.message : fallbackErrorMessage);
+    } catch (exportError) {
+      onError(exportError instanceof Error ? exportError.message : fallbackErrorMessage);
     } finally {
       setIsDownloading(false);
     }

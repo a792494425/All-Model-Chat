@@ -36,7 +36,6 @@ export const DocxViewer: React.FC<DocxViewerProps> = ({ file }) => {
 
         if (cancelled || !containerRef.current) return;
 
-        // Clear previous content
         containerRef.current.innerHTML = '';
 
         await renderAsync(blob, containerRef.current, undefined, {

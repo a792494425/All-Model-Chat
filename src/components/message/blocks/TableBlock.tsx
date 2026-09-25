@@ -121,8 +121,8 @@ export const TableBlock: React.FC<TableBlockProps> = ({ children, className, nod
         plainText: markdown,
         html: tableRef.current.outerHTML,
       });
-    } catch (error) {
-      logService.error('Failed to copy markdown table', error);
+    } catch (clipboardError) {
+      logService.error('Failed to copy markdown table', clipboardError);
     }
   };
 
@@ -153,8 +153,8 @@ export const TableBlock: React.FC<TableBlockProps> = ({ children, className, nod
     try {
       const { exportTableToExcel } = await import('@/utils/export/tableExcel');
       await exportTableToExcel(tableRef.current);
-    } catch (error) {
-      logService.error('Failed to export table to Excel', error);
+    } catch (excelExportError) {
+      logService.error('Failed to export table to Excel', excelExportError);
     }
   };
 

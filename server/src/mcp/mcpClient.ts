@@ -151,9 +151,9 @@ async function connectClient(transport: Transport, timeoutMs: number = MCP_REQUE
   try {
     await client.connect(transport, { timeout: timeoutMs });
     return client;
-  } catch (error) {
+  } catch (connectError) {
     await closeTransportQuietly(client, transport);
-    throw error;
+    throw connectError;
   }
 }
 
@@ -197,9 +197,9 @@ async function createConnectedSession(
     try {
       const client = await connectClient(transport, connectTimeoutMs(server));
       return { client, transport };
-    } catch (error) {
+    } catch (stdioConnectError) {
       await closeTransportQuietly(undefined, transport);
-      throw error;
+      throw stdioConnectError;
     }
   }
 
@@ -218,8 +218,8 @@ async function createConnectedSession(
       const transport = createHttpTransport(server, kind, safeFetch);
       const client = await connectClient(transport, connectTimeoutMs(server));
       return { client, transport };
-    } catch (error) {
-      lastError = error;
+    } catch (httpConnectError) {
+      lastError = httpConnectError;
       // connectClient already closed the failed transport/client.
       // Only fall back from streamable → sse; if sse was explicit or last attempt, stop.
       if (kind === 'sse' || preferSse) {
@@ -415,13 +415,13 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
         const result = await run(session.client);
         session.lastUsed = Date.now();
         return result;
-      } catch (error) {
+      } catch (sessionRunError) {
         // Drop broken sessions so the next call reconnects.
         if (sessions.get(key) === session) {
           sessions.delete(key);
           await closeTransportQuietly(session.client, session.transport);
         }
-        throw error;
+        throw sessionRunError;
       }
     };
 
@@ -467,9 +467,9 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
         knownServerIds.add(server.id);
         appendLog(server.id, 'info', `Listed ${tools.length} tools`);
         return tools;
-      } catch (error) {
-        appendLog(server.id, 'error', getErrorMessage(error));
-        throw error;
+      } catch (listToolsError) {
+        appendLog(server.id, 'error', getErrorMessage(listToolsError));
+        throw listToolsError;
       }
     },
 
@@ -506,9 +506,9 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
         knownServerIds.add(server.id);
         appendLog(server.id, 'info', `Called tool ${toolName} successfully`);
         return result;
-      } catch (error) {
-        appendLog(server.id, 'error', getErrorMessage(error));
-        throw error;
+      } catch (callToolError) {
+        appendLog(server.id, 'error', getErrorMessage(callToolError));
+        throw callToolError;
       }
     },
 
@@ -525,11 +525,11 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
             resources.push(...result.resources.map(mapResource));
             cursor = result.nextCursor;
           } while (cursor);
-        } catch (error) {
-          if (isUnsupportedMethodError(error)) {
+        } catch (listResourcesError) {
+          if (isUnsupportedMethodError(listResourcesError)) {
             return [];
           }
-          throw error;
+          throw listResourcesError;
         }
 
         return resources;
@@ -548,11 +548,11 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
             resourceTemplates.push(...result.resourceTemplates.map(mapResourceTemplate));
             cursor = result.nextCursor;
           } while (cursor);
-        } catch (error) {
-          if (isUnsupportedMethodError(error)) {
+        } catch (listTemplatesError) {
+          if (isUnsupportedMethodError(listTemplatesError)) {
             return [];
           }
-          throw error;
+          throw listTemplatesError;
         }
 
         return resourceTemplates;
@@ -571,9 +571,9 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
             resources.push(...result.resources.map(mapResource));
             resourcesCursor = result.nextCursor;
           } while (resourcesCursor);
-        } catch (error) {
-          if (!isUnsupportedMethodError(error)) {
-            throw error;
+        } catch (listResourcesError) {
+          if (!isUnsupportedMethodError(listResourcesError)) {
+            throw listResourcesError;
           }
           // Server has no resources capability — continue to templates.
         }
@@ -592,9 +592,9 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
             resourceTemplates.push(...result.resourceTemplates.map(mapResourceTemplate));
             templatesCursor = result.nextCursor;
           } while (templatesCursor);
-        } catch (error) {
-          if (!isUnsupportedMethodError(error)) {
-            throw error;
+        } catch (listTemplatesError) {
+          if (!isUnsupportedMethodError(listTemplatesError)) {
+            throw listTemplatesError;
           }
         }
 
@@ -617,11 +617,11 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
             prompts.push(...result.prompts.map(mapPrompt));
             cursor = result.nextCursor;
           } while (cursor);
-        } catch (error) {
-          if (isUnsupportedMethodError(error)) {
+        } catch (listPromptsError) {
+          if (isUnsupportedMethodError(listPromptsError)) {
             return [];
           }
-          throw error;
+          throw listPromptsError;
         }
 
         return prompts;

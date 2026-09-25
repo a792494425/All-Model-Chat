@@ -144,8 +144,8 @@ export const useCreateFileEditor = ({
       try {
         const pdfBlob = await generatePdfBlob(finalName);
         await onConfirm(pdfBlob, finalName);
-      } catch (error) {
-        logService.error('PDF generation error:', error);
+      } catch (pdfGenerationError) {
+        logService.error('PDF generation error:', pdfGenerationError);
         setPdfError(t('createTextPdfError'));
       } finally {
         saveLockRef.current = false;
@@ -158,8 +158,8 @@ export const useCreateFileEditor = ({
           imagePlaceholdersRef.current,
         );
         await onConfirm(resolvedContent, finalName);
-      } catch (error) {
-        logService.error('Save file error:', error);
+      } catch (saveFileError) {
+        logService.error('Save file error:', saveFileError);
       } finally {
         saveLockRef.current = false;
       }
@@ -178,8 +178,8 @@ export const useCreateFileEditor = ({
     try {
       const pdfBlob = await generatePdfBlob(finalName);
       triggerDownload(createManagedObjectUrl(pdfBlob), finalName);
-    } catch (error) {
-      logService.error('PDF Export failed:', error);
+    } catch (pdfExportError) {
+      logService.error('PDF Export failed:', pdfExportError);
       setPdfError(t('createTextPdfError'));
     } finally {
       saveLockRef.current = false;
@@ -215,8 +215,8 @@ export const useCreateFileEditor = ({
       if (generatedTitle.trim()) {
         setFilenameBase(generatedTitle.trim());
       }
-    } catch (error) {
-      logService.error('Failed to generate AI filename:', error);
+    } catch (aiFilenameError) {
+      logService.error('Failed to generate AI filename:', aiFilenameError);
     } finally {
       setIsGeneratingAiFilename(false);
     }

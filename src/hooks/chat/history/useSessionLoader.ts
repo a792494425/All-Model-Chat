@@ -159,8 +159,8 @@ export const useSessionLoader = ({
         } else {
           setSelectedFiles([]);
         }
-      } catch (error) {
-        logService.warn(`Failed to restore draft files for session ${sessionId}:`, error);
+      } catch (draftLoadError) {
+        logService.warn(`Failed to restore draft files for session ${sessionId}:`, draftLoadError);
         setSelectedFiles([]);
       }
     },
@@ -309,11 +309,11 @@ export const useSessionLoader = ({
           logService.warn(`Session ${sessionId} not found. Starting new chat.`);
           startNewChat(undefined, { history });
         }
-      } catch (error) {
+      } catch (loadSessionError) {
         if (requestId !== sessionViewRequestIdRef.current) {
           return;
         }
-        logService.error('Error loading chat session:', error);
+        logService.error('Error loading chat session:', loadSessionError);
         startNewChat(undefined, { history });
       }
     },

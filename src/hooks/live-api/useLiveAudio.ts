@@ -187,8 +187,8 @@ export const useLiveAudio = () => {
         source.start(nextStartTimeRef.current);
         nextStartTimeRef.current += audioBuffer.duration;
         sourcesRef.current.add(source);
-      } catch (error) {
-        logService.error('Failed to play audio chunk', error);
+      } catch (playbackError) {
+        logService.error('Failed to play audio chunk', playbackError);
       }
     },
     [clearOutputAudioTail, markOutputAudioInactiveSoon],

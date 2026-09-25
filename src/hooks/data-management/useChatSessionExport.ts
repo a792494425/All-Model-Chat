@@ -59,7 +59,7 @@ export const useChatSessionExport = ({ activeChat, currentTheme, language, t }: 
                 },
               },
             );
-            if (didExport === false) {
+            if (!didExport) {
               return false;
             }
           } else {
@@ -110,8 +110,8 @@ export const useChatSessionExport = ({ activeChat, currentTheme, language, t }: 
           const jsonString = JSON.stringify(dataToExport, null, 2);
           const blob = new Blob([jsonString], { type: 'application/json' });
           triggerDownload(createManagedObjectUrl(blob), filename);
-        } catch (error) {
-          logService.error('Failed to export chat as JSON', { error });
+        } catch (exportError) {
+          logService.error('Failed to export chat as JSON', { error: exportError });
           toastError(t('exportFailedTitle'));
           return false;
         }

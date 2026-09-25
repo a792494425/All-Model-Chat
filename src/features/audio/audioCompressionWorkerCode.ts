@@ -39,8 +39,8 @@ self.onmessage = function(event) {
         }
 
         self.postMessage({ type: 'success', buffers: mp3Data });
-    } catch (error) {
-        self.postMessage({ type: 'error', error: error.message });
+    } catch (encodeError) {
+        self.postMessage({ type: 'error', error: encodeError.message });
     }
 };
 `;

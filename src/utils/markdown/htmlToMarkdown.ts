@@ -136,8 +136,8 @@ const restoreReadableHeadingNumberPunctuation = (markdown: string): string =>
 export const convertHtmlToMarkdown = (html: string): string => {
   try {
     return normalizeConvertedMarkdown(restoreReadableHeadingNumberPunctuation(turndownService.turndown(html)));
-  } catch (error) {
-    logService.error('Failed to convert HTML to Markdown:', error);
+  } catch (conversionError) {
+    logService.error('Failed to convert HTML to Markdown:', conversionError);
     return '';
   }
 };

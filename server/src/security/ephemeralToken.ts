@@ -121,8 +121,8 @@ export async function handleEphemeralTokenRequest(
       },
       config.allowedOrigins,
     );
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown upstream error';
+  } catch (upstreamTokenError) {
+    const message = upstreamTokenError instanceof Error ? upstreamTokenError.message : 'Unknown upstream error';
     sendJson(request, response, 502, { error: `Failed to create ephemeral token: ${message}` }, config.allowedOrigins);
   }
 }

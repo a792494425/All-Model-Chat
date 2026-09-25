@@ -46,9 +46,9 @@ export async function assertImageProxyHostResolvesPublic(
   let addresses: Array<{ address: string }>;
   try {
     addresses = await lookup(hostname, { all: true, verbatim: true });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to resolve image proxy host "${hostname}": ${message}`, { cause: error });
+  } catch (dnsLookupError) {
+    const message = dnsLookupError instanceof Error ? dnsLookupError.message : String(dnsLookupError);
+    throw new Error(`Failed to resolve image proxy host "${hostname}": ${message}`, { cause: dnsLookupError });
   }
 
   if (addresses.length === 0) {

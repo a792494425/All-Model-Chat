@@ -356,9 +356,9 @@ export const probeThirdPartyConnection = async (
       timestamp: Date.now(),
       grade: getLatencyGrade(latencyMs, true),
     };
-  } catch (error) {
+  } catch (testConnectionError) {
     const latencyMs = Math.round(performance.now() - startTime);
-    const message = getErrorMessage(error);
+    const message = getErrorMessage(testConnectionError);
     return {
       connectionId: connection.id,
       status: 'error',

@@ -239,8 +239,8 @@ export const useSettingsStore = create<SettingsState & SettingsActions>((set) =>
       // user opts in.
       logService.setEnabled(newSettings.isLoggingEnabled ?? false);
       persistLoadedPreloadOverrides(newSettings, preloadOverrides);
-    } catch (error) {
-      logService.error('Failed to load settings from IndexedDB', { error });
+    } catch (loadError) {
+      logService.error('Failed to load settings from IndexedDB', { error: loadError });
       logService.setEnabled(false);
       set({ isSettingsLoaded: true });
     }

@@ -267,7 +267,7 @@ export const sendStatelessMessageStreamApi: StreamMessageSender = async (
               streamResume.onSeq(resumeSeq);
             }
           }
-        } catch (error) {
+        } catch (streamIterError) {
           // A watchdog abort makes the SDK's reader.read() settle, but whether
           // the stream then ends cleanly (done) or throws depends on the SDK
           // internals. Route a timeout to a surfaced stream error; never let it
@@ -275,14 +275,14 @@ export const sendStatelessMessageStreamApi: StreamMessageSender = async (
           // over a timeout that raced in the same tick, so check the user signal
           // first and let the caller's AbortError path handle it.
           if (abortSignal.aborted) {
-            throw error;
+            throw streamIterError;
           }
           if (timedOut) {
             streamFailed = true;
             onError(createStreamIdleTimeoutError());
             return;
           }
-          throw error;
+          throw streamIterError;
         } finally {
           clearInterval(idleWatchdog);
           abortSignal.removeEventListener('abort', onUserAbort);
@@ -305,8 +305,8 @@ export const sendStatelessMessageStreamApi: StreamMessageSender = async (
         }
       },
     });
-  } catch (error) {
-    onError(toError(error, 'Unknown error during streaming.'));
+  } catch (streamingError) {
+    onError(toError(streamingError, 'Unknown error during streaming.'));
     return;
   } finally {
     logService.info('Streaming complete.', { usage: finalUsageMetadata, hasGrounding: !!finalGroundingMetadata });
@@ -366,7 +366,7 @@ export const sendStatelessMessageNonStreamApi: NonStreamMessageSender = async (
         onComplete(responseParts, thoughts, usage, grounding, urlContext);
       },
     });
-  } catch (error) {
-    onError(toError(error, 'Unknown error during stateless non-streaming call.'));
+  } catch (generateError) {
+    onError(toError(generateError, 'Unknown error during stateless non-streaming call.'));
   }
 };

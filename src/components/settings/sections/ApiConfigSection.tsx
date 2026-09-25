@@ -186,13 +186,13 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
         grade: getLatencyGrade(latency, true),
         message: null,
       });
-    } catch (error) {
+    } catch (testConnectionError) {
       const latency = Math.round(performance.now() - startTime);
       setGeminiTestResult({
         status: 'error',
         latencyMs: latency,
         grade: 'error',
-        message: getErrorMessage(error),
+        message: getErrorMessage(testConnectionError),
       });
     } finally {
       setIsTesting(false);

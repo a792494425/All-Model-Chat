@@ -246,12 +246,12 @@ export const loadInitialSessionData = async ({
         );
       }
     }
-  } catch (error) {
+  } catch (loadHistoryError) {
     // A transient DB read failure (e.g. an IndexedDB transaction hiccup while
     // loading the active session) must not nuke the user's current conversation:
     // startNewChat clears activeMessages. Only fall back to a fresh chat when no
     // active session was being restored in the first place.
-    logService.error('Error loading chat history:', error);
+    logService.error('Error loading chat history:', loadHistoryError);
 
     if (!initialActiveId) {
       startNewChat(undefined, { history: initialHistoryMode });

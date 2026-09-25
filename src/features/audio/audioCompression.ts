@@ -146,13 +146,13 @@ export const compressAudioToMp3 = async (file: File | Blob, signal?: AbortSignal
 
     const frameCount = Math.ceil(audioBuffer.duration * MP3_TARGET_SAMPLE_RATE);
 
-    const offlineCtx = new OfflineAudioContext(MP3_TARGET_CHANNELS, frameCount, MP3_TARGET_SAMPLE_RATE);
-    const source = offlineCtx.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(offlineCtx.destination);
-    source.start();
+    const offlineAudioContext = new OfflineAudioContext(MP3_TARGET_CHANNELS, frameCount, MP3_TARGET_SAMPLE_RATE);
+    const bufferSource = offlineAudioContext.createBufferSource();
+    bufferSource.buffer = audioBuffer;
+    bufferSource.connect(offlineAudioContext.destination);
+    bufferSource.start();
 
-    const renderedBuffer = await offlineCtx.startRendering();
+    const renderedBuffer = await offlineAudioContext.startRendering();
     checkAbort();
     const pcmData = renderedBuffer.getChannelData(0);
 
@@ -163,12 +163,12 @@ export const compressAudioToMp3 = async (file: File | Blob, signal?: AbortSignal
       file,
       signal,
     });
-  } catch (error) {
+  } catch (compressionError) {
     if (
-      (error instanceof DOMException && error.name === 'AbortError') ||
-      (error instanceof Error && error.name === 'AbortError')
+      (compressionError instanceof DOMException && compressionError.name === 'AbortError') ||
+      (compressionError instanceof Error && compressionError.name === 'AbortError')
     ) {
-      throw error;
+      throw compressionError;
     }
     // Never hand Gemini-unsupported MIME types (e.g. browser webm) back as "success".
     if (isGeminiSupportedAudioMimeType(file)) {
@@ -196,13 +196,13 @@ export const prepareAudioForGeminiTranscription = async (file: File | Blob, sign
     if (isGeminiSupportedAudioMimeType(compressed)) {
       return compressed;
     }
-  } catch (error) {
+  } catch (transcriptionPrepError) {
     // Propagate cancellation instead of falling back to a WAV conversion nobody wants.
     if (
-      (error instanceof DOMException && error.name === 'AbortError') ||
-      (error instanceof Error && error.name === 'AbortError')
+      (transcriptionPrepError instanceof DOMException && transcriptionPrepError.name === 'AbortError') ||
+      (transcriptionPrepError instanceof Error && transcriptionPrepError.name === 'AbortError')
     ) {
-      throw error;
+      throw transcriptionPrepError;
     }
     // Fall through to WAV conversion.
   }

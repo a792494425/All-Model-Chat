@@ -27,13 +27,11 @@ export const useModelSyncLogic = ({ remoteModels, existingModels, onApply, onClo
   // By default, keep stale models unchecked unless user explicitly wants to purge them
   const [selectedStaleRemoveIds, setSelectedStaleRemoveIds] = useState<Set<string>>(new Set());
 
-  // Reset selection states when remote models change
   useEffect(() => {
     setSelectedNewIds(new Set(newModels.map((model) => model.id)));
     setSelectedStaleRemoveIds(new Set());
   }, [newModels]);
 
-  // Toggle single new model
   const toggleNewModel = useCallback((id: string) => {
     setSelectedNewIds((prev) => {
       const next = new Set(prev);
@@ -46,7 +44,6 @@ export const useModelSyncLogic = ({ remoteModels, existingModels, onApply, onClo
     });
   }, []);
 
-  // Toggle single stale model for removal
   const toggleStaleModel = useCallback((id: string) => {
     setSelectedStaleRemoveIds((prev) => {
       const next = new Set(prev);
@@ -59,7 +56,6 @@ export const useModelSyncLogic = ({ remoteModels, existingModels, onApply, onClo
     });
   }, []);
 
-  // Toggle all new models
   const toggleAllNew = useCallback(() => {
     setSelectedNewIds((prev) => {
       if (prev.size === newModels.length) {
@@ -69,7 +65,6 @@ export const useModelSyncLogic = ({ remoteModels, existingModels, onApply, onClo
     });
   }, [newModels]);
 
-  // Select all stale models for removal
   const selectAllStaleForRemoval = useCallback(() => {
     setSelectedStaleRemoveIds((prev) => {
       if (prev.size === staleModels.length) {
@@ -79,7 +74,6 @@ export const useModelSyncLogic = ({ remoteModels, existingModels, onApply, onClo
     });
   }, [staleModels]);
 
-  // Handle final submission
   const handleConfirm = useCallback(() => {
     const selectedNewModels = newModels.filter((model) => selectedNewIds.has(model.id));
     const remoteMetadataMap = new Map(remoteModels.map((model) => [model.id, model]));
@@ -95,7 +89,6 @@ export const useModelSyncLogic = ({ remoteModels, existingModels, onApply, onClo
     onClose();
   }, [newModels, selectedNewIds, remoteModels, existingModels, selectedStaleRemoveIds, onApply, onClose]);
 
-  // Filter display list
   const displayItems = useMemo(() => {
     const items: ModelSyncDisplayItem[] = [];
 

@@ -159,7 +159,7 @@ export async function forwardUpstream(
   let upstreamResponse: Response;
   try {
     upstreamResponse = await fetchImpl(upstreamUrl, requestInit);
-  } catch (error) {
+  } catch (upstreamFetchError) {
     request.off('aborted', abortUpstream);
     response.off('close', handleClientClose);
     if (abortController.signal.aborted) {
@@ -169,7 +169,7 @@ export async function forwardUpstream(
       return;
     }
 
-    console.error(`${logTag} upstream request failed:`, error);
+    console.error(`${logTag} upstream request failed:`, upstreamFetchError);
     sendJson(request, response, 502, { error: `${errorLabel} upstream request failed.` }, allowedOrigins);
     return;
   }
@@ -202,9 +202,9 @@ export async function forwardUpstream(
 
   try {
     await pipeline(Readable.fromWeb(upstreamResponse.body as unknown as NodeReadableStream), response);
-  } catch (error) {
+  } catch (pipelineError) {
     if (!abortController.signal.aborted && !response.destroyed) {
-      response.destroy(error instanceof Error ? error : undefined);
+      response.destroy(pipelineError instanceof Error ? pipelineError : undefined);
     }
   } finally {
     request.off('aborted', abortUpstream);

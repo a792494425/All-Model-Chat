@@ -27,11 +27,11 @@ export const abortServerStreamJob = async (
         ...(jobSecret ? { 'x-amc-job-secret': jobSecret } : {}),
       },
     });
-  } catch (error) {
+  } catch (abortError) {
     // Swallow: this is best-effort. The local AbortController already
     // cancelled the browser-side stream; if the upstream abort misses, the
     // job TTL (10 min) on the server reaps it.
-    if (!(error instanceof DOMException && error.name === 'AbortError')) {
+    if (!(abortError instanceof DOMException && abortError.name === 'AbortError')) {
       // Avoid importing logService at module top to keep this leaf free of
       // the service singletons for test isolation.
       void import('@/services/logService').then(({ logService }) =>

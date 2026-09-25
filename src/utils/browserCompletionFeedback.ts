@@ -85,8 +85,8 @@ export const showNotification = async (title: string, options?: NotificationOpti
       setTimeout(() => {
         notification.close();
       }, 7000);
-    } catch (error) {
-      logService.warn('Failed to create notification.', { error });
+    } catch (notificationError) {
+      logService.warn('Failed to create notification.', { error: notificationError });
     }
   };
 
@@ -98,8 +98,8 @@ export const showNotification = async (title: string, options?: NotificationOpti
       if (permission === 'granted') {
         show();
       }
-    } catch (error) {
-      logService.warn('Failed to request notification permission.', { error });
+    } catch (permissionError) {
+      logService.warn('Failed to request notification permission.', { error: permissionError });
     }
   }
 };
@@ -161,7 +161,7 @@ export const playCompletionSound = async (variant: CompletionSoundVariant = 'suc
     const [firstNote, secondNote] = COMPLETION_SOUND_VARIANTS[variant];
     playNote(firstNote, 0);
     playNote(secondNote, FIRST_NOTE_DURATION_S);
-  } catch (error) {
-    logService.error('Error playing completion sound', error);
+  } catch (soundPlaybackError) {
+    logService.error('Error playing completion sound', soundPlaybackError);
   }
 };

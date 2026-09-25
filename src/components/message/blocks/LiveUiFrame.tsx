@@ -238,8 +238,8 @@ export const LiveUiFrame: React.FC<LiveUiFrameProps> = ({
       );
       lastPostedStreamingHtmlRef.current = nextHtml;
       return true;
-    } catch (error) {
-      logService.warn('Failed to post Live Artifact streaming html:', error);
+    } catch (postMessageError) {
+      logService.warn('Failed to post Live Artifact streaming html:', postMessageError);
       return false;
     }
   }, []);

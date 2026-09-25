@@ -230,10 +230,10 @@ export const useFilePolling = ({
           } else {
             failures.delete(fileId);
           }
-        } catch (error) {
+        } catch (pollError) {
           const nextFailureCount = (failures.get(fileId) ?? 0) + 1;
           failures.set(fileId, nextFailureCount);
-          logService.warn(`Polling for ${fileApiName} failed with a key, will retry.`, { error });
+          logService.warn(`Polling for ${fileApiName} failed with a key, will retry.`, { error: pollError });
         } finally {
           inFlight.delete(fileId);
         }

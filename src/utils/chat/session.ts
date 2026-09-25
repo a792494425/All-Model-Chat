@@ -158,8 +158,8 @@ export const rehydrateSessionFiles = (session: SavedChatSession): SavedChatSessi
             ownerId: sessionResourceOwner,
           });
           return { ...file, dataUrl };
-        } catch (error) {
-          logSessionError('Failed to create object URL for file on load', { fileId: file.id, error });
+        } catch (objectUrlError) {
+          logSessionError('Failed to create object URL for file on load', { fileId: file.id, error: objectUrlError });
           return { ...file, dataUrl: undefined, error: 'Preview failed to load' };
         }
       } else if (file.rawFile && !isValidRawFile) {
@@ -206,8 +206,10 @@ export const extractPersistedSessionFileRecords = (session: SavedChatSession): P
         try {
           const base64Clean = file.dataUrl!.includes(',') ? file.dataUrl!.split(',')[1] : file.dataUrl!;
           rawFile = base64ToBlob(base64Clean, file.type);
-        } catch (error) {
-          logSessionWarning(`Failed to extract inline file payload for persistence: ${file.name}`, { error });
+        } catch (extractionError) {
+          logSessionWarning(`Failed to extract inline file payload for persistence: ${file.name}`, {
+            error: extractionError,
+          });
         }
       }
 

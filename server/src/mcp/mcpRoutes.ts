@@ -60,8 +60,8 @@ const streamNdjsonResponse = async (
     const result = await run((update) => writeLine({ type: 'progress', ...update }));
     if (response.writableEnded) return;
     writeLine({ type: 'result', ...(result !== undefined ? { result } : {}) });
-  } catch (error) {
-    writeLine({ type: 'error', error: getErrorMessage(error) });
+  } catch (streamError) {
+    writeLine({ type: 'error', error: getErrorMessage(streamError) });
   } finally {
     response.end();
   }
@@ -279,13 +279,13 @@ const runPerServerConcurrently = async <T>(
 
       try {
         return { ok: true, value: await operation(server) };
-      } catch (error) {
+      } catch (operationError) {
         return {
           ok: false,
           error: {
             serverId: server.id,
             serverName: server.name,
-            error: getErrorMessage(error),
+            error: getErrorMessage(operationError),
           },
         };
       }
@@ -446,8 +446,8 @@ const respondToSingleServerRequest = async (
     try {
       const result = await invocation(server);
       sendJson(request, response, 200, { result: result as Record<string, unknown> }, allowedOrigins);
-    } catch (error) {
-      sendJson(request, response, 502, { error: getErrorMessage(error) }, allowedOrigins);
+    } catch (invocationError) {
+      sendJson(request, response, 502, { error: getErrorMessage(invocationError) }, allowedOrigins);
     }
   };
 
@@ -648,8 +648,8 @@ export const handleMcpRequest = async (
       void options.enablePrivateHttp;
       const logs = mcpClient.getLogs?.(serverId) ?? [];
       sendJson(request, response, 200, { logs }, allowedOrigins);
-    } catch (error) {
-      console.error('[mcp] logs request failed:', error);
+    } catch (logsError) {
+      console.error('[mcp] logs request failed:', logsError);
       sendJson(request, response, 500, { error: 'MCP request failed.' }, allowedOrigins);
     }
     return true;
@@ -692,18 +692,18 @@ export const handleMcpRequest = async (
         await handleGetPrompt(request, response, allowedOrigins, mcpClient, options);
         break;
     }
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      sendJson(request, response, 400, { error: error.message }, allowedOrigins);
+  } catch (routeError) {
+    if (routeError instanceof SyntaxError) {
+      sendJson(request, response, 400, { error: routeError.message }, allowedOrigins);
       return true;
     }
 
-    if (error instanceof Error && error.name === 'HttpError') {
-      sendJson(request, response, 413, { error: error.message }, allowedOrigins);
+    if (routeError instanceof Error && routeError.name === 'HttpError') {
+      sendJson(request, response, 413, { error: routeError.message }, allowedOrigins);
       return true;
     }
 
-    console.error('[mcp] request failed:', error);
+    console.error('[mcp] request failed:', routeError);
     sendJson(request, response, 500, { error: 'MCP request failed.' }, allowedOrigins);
   }
 

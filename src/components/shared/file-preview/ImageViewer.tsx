@@ -62,7 +62,6 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
   const panzoomRef = useRef<PanzoomObject | null>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
-  // Initialize Panzoom
   useEffect(() => {
     const panzoomElement = panzoomElementRef.current;
     if (!panzoomElement) return;

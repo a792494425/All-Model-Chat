@@ -220,9 +220,9 @@ export const exportElementAsPng = async (
       toastError(options.messages.imageTooLarge);
       return false;
     }
-  } catch (error) {
-    logService.error('html2canvas error:', error);
-    toastError(options.messages.exportFailed(getErrorMessage(error)));
+  } catch (canvasExportError) {
+    logService.error('html2canvas error:', canvasExportError);
+    toastError(options.messages.exportFailed(getErrorMessage(canvasExportError)));
     return false;
   } finally {
     if (ownerDoc?.body) {

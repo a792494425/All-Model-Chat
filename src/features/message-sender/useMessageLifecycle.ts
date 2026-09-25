@@ -113,11 +113,11 @@ export const useMessageLifecycle = ({
 
       try {
         return await execute();
-      } catch (error) {
+      } catch (lifecycleError) {
         if (onError) {
-          onError(error);
+          onError(lifecycleError);
         } else {
-          handleApiError(error, sessionId, modelMessageId, errorPrefix);
+          handleApiError(lifecycleError, sessionId, modelMessageId, errorPrefix);
         }
         return undefined;
       } finally {

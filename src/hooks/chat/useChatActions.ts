@@ -18,14 +18,12 @@ interface UseChatActionsProps {
   currentChatSettings: IndividualChatSettings;
   selectedFiles: UploadedFile[];
 
-  // State Setters
   setActiveSessionId: (id: string | null) => void;
   setIsSwitchingModel: (switching: boolean) => void;
   setAppFileError: (error: string | null) => void;
   setCurrentChatSettings: (updater: (prevSettings: IndividualChatSettings) => IndividualChatSettings) => void;
   setSelectedFiles: (files: UploadedFile[]) => void;
 
-  // Functional Dependencies
   updateAndPersistSessions: (
     updater: (prev: SavedChatSession[]) => SavedChatSession[],
     options?: { persist?: boolean },

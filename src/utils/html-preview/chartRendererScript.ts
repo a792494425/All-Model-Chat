@@ -301,7 +301,7 @@ export const CHART_RENDERER_SCRIPT = `
         }
       } else {
         const perGroup = groupW * 0.8;
-        const w = Math.max(1, perGroup / seriesCount - 1);
+        const barWidth = Math.max(1, perGroup / seriesCount - 1);
         for (let seriesIndex = 0; seriesIndex < spec.series.length; seriesIndex += 1) {
           const currentSeries = spec.series[seriesIndex];
           const seriesValue = currentSeries.y[categoryIndex];
@@ -309,7 +309,7 @@ export const CHART_RENDERER_SCRIPT = `
           svg.appendChild(createSvgElement('rect', {
             x: groupLeft + (groupW - perGroup) / 2 + seriesIndex * (perGroup / seriesCount),
             y: Math.min(yTop, baselineY),
-            width: w,
+            width: barWidth,
             height: Math.max(0, Math.abs(baselineY - yTop)),
             rx: 1,
             fill: seriesColor(currentSeries, seriesIndex),
@@ -335,10 +335,10 @@ export const CHART_RENDERER_SCRIPT = `
         const fillOpacity = fill === color ? 0.15 : undefined;
         const last = points[points.length - 1];
         const first = points[0];
-        let d = 'M';
-        for (const p of points) d += p[0].toFixed(2) + ',' + p[1].toFixed(2) + ' L';
-        d += last[0].toFixed(2) + ',' + baselineY.toFixed(2) + ' L' + first[0].toFixed(2) + ',' + baselineY.toFixed(2) + ' Z';
-        const attrs = { d, fill };
+        let pathData = 'M';
+        for (const p of points) pathData += p[0].toFixed(2) + ',' + p[1].toFixed(2) + ' L';
+        pathData += last[0].toFixed(2) + ',' + baselineY.toFixed(2) + ' L' + first[0].toFixed(2) + ',' + baselineY.toFixed(2) + ' Z';
+        const attrs = { d: pathData, fill };
         if (fillOpacity !== undefined) attrs['fill-opacity'] = String(fillOpacity);
         svg.appendChild(createSvgElement('path', attrs));
       }
@@ -384,12 +384,12 @@ export const CHART_RENDERER_SCRIPT = `
     return 'M' + cx + ',' + cy + ' L' + x0 + ',' + y0 + ' A' + r + ',' + r + ' 0 ' + large + ' 1 ' + x1 + ',' + y1 + ' Z';
   }
 
-  function renderPie(spec, svg, h, hasLegend, isDonut) {
+  function renderPie(spec, svg, chartHeight, hasLegend, isDonut) {
     const total = spec.slices.reduce((sum, slice) => sum + slice.y, 0) || 1;
     const cx = W / 2;
-    const cy = hasLegend ? (h - 40) / 2 + 6 : h / 2;
-    const r = Math.min(110, (hasLegend ? h - 50 : h - 20) / 2);
-    const r0 = isDonut ? r * 0.55 : 0;
+    const cy = hasLegend ? (chartHeight - 40) / 2 + 6 : chartHeight / 2;
+    const outerRadius = Math.min(110, (hasLegend ? chartHeight - 50 : chartHeight - 20) / 2);
+    const innerRadius = isDonut ? outerRadius * 0.55 : 0;
     const startAngle = -Math.PI / 2;
     let angle = startAngle;
     for (let i = 0; i < spec.slices.length; i += 1) {
@@ -400,7 +400,7 @@ export const CHART_RENDERER_SCRIPT = `
       // point accumulation can never leave a visible gap in the circle.
       const a1 = i === spec.slices.length - 1 ? startAngle + Math.PI * 2 : angle + sweep;
       svg.appendChild(createSvgElement('path', {
-        d: arcPath(cx, cy, r, r0, a0, a1),
+        d: arcPath(cx, cy, outerRadius, innerRadius, a0, a1),
         fill: slice.color ? SEMANTIC_COLORS[slice.color] || slice.color : PALETTE_COLORS[i % PALETTE.length],
       }));
       angle = a1;
@@ -414,32 +414,32 @@ export const CHART_RENDERER_SCRIPT = `
         color: slice.color ? SEMANTIC_COLORS[slice.color] || slice.color : PALETTE_COLORS[sliceIndex % PALETTE.length],
         percent: slice.y / total,
       }));
-      appendLegend(svg, entries, h, true);
+      appendLegend(svg, entries, chartHeight, true);
     }
   }
 
   function appendLegend(svg, entries, svgHeight, withPercent) {
     const rowHeight = 22;
     const gap = 14;
-    let x = 16;
+    let currentX = 16;
     let row = 0;
     for (const entry of entries) {
       const label = withPercent ? entry.name + ' ' + (entry.percent * 100).toFixed(0) + '%' : entry.name;
       const textWidth = label.length * 6.5 + 14;
-      if (x + textWidth > W - 8) {
-        x = 16;
+      if (currentX + textWidth > W - 8) {
+        currentX = 16;
         row += 1;
       }
-      const y = svgHeight - 20 - row * rowHeight;
-      svg.appendChild(createSvgElement('rect', { x, y: y + 2, width: 10, height: 10, rx: 2, fill: entry.color, 'data-amc-legend': '1' }));
-      svg.appendChild(createSvgElement('text', { x: x + 15, y: y + 10, fill: TEXT_MUTED, 'font-size': 11, 'font-family': FONT }, label));
-      x += textWidth + gap;
+      const legendY = svgHeight - 20 - row * rowHeight;
+      svg.appendChild(createSvgElement('rect', { x: currentX, y: legendY + 2, width: 10, height: 10, rx: 2, fill: entry.color, 'data-amc-legend': '1' }));
+      svg.appendChild(createSvgElement('text', { x: currentX + 15, y: legendY + 10, fill: TEXT_MUTED, 'font-size': 11, 'font-family': FONT }, label));
+      currentX += textWidth + gap;
     }
   }
 
-  function renderCartesian(spec, svg, h) {
+  function renderCartesian(spec, svg, chartHeight) {
     const hasLegend = spec.legend !== undefined ? spec.legend : spec.series.length > 1;
-    const plot = plotBox(spec, h, hasLegend);
+    const plot = plotBox(spec, chartHeight, hasLegend);
     const isBar = spec.type === 'bar' || spec.type === 'grouped-bar' || spec.type === 'stacked-bar';
     const yScale = makeYScale(collectYValues(spec), plot, isBar);
     const numericX =
@@ -454,31 +454,31 @@ export const CHART_RENDERER_SCRIPT = `
       renderLines(spec, plot, xScale, yScale, svg);
     }
     drawAxes(spec, plot, xScale, yScale, svg);
-    if (hasLegend) appendLegend(svg, spec.series.map((currentSeries, seriesIndex) => ({ name: currentSeries.name || 'Series ' + (seriesIndex + 1), color: seriesColor(currentSeries, seriesIndex) })), h, false);
+    if (hasLegend) appendLegend(svg, spec.series.map((currentSeries, seriesIndex) => ({ name: currentSeries.name || 'Series ' + (seriesIndex + 1), color: seriesColor(currentSeries, seriesIndex) })), chartHeight, false);
   }
 
   function buildChart(spec) {
-    const { svg, h } = buildSvgRoot(spec);
+    const { svg, chartHeight } = buildSvgRoot(spec);
     if (spec.type === 'pie' || spec.type === 'donut') {
       const hasLegend = spec.legend !== undefined ? spec.legend : true;
-      renderPie(spec, svg, h, hasLegend, spec.type === 'donut');
+      renderPie(spec, svg, chartHeight, hasLegend, spec.type === 'donut');
     } else {
-      renderCartesian(spec, svg, h);
+      renderCartesian(spec, svg, chartHeight);
     }
     return svg;
   }
 
   const buildSvgRoot = (spec) => {
-    const h = clamp(spec.height || 240, 120, 480);
+    const chartHeight = clamp(spec.height || 240, 120, 480);
     const svg = createSvgElement('svg', {
-      viewBox: '0 0 ' + W + ' ' + h,
+      viewBox: '0 0 ' + W + ' ' + chartHeight,
       width: '100%',
       role: 'img',
       'aria-label': spec.title || 'chart',
       style: 'font-family:' + FONT + ';display:block;height:auto;',
     });
     if (spec.title) svg.appendChild(createSvgElement('title', {}, spec.title));
-    return { svg, h };
+    return { svg, chartHeight };
   };
 
   function renderChartElement(node) {

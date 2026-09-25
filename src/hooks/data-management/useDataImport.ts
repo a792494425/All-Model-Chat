@@ -111,9 +111,9 @@ export const useDataImport = ({
             const foundType = typeof importPayload?.type === 'string' ? importPayload.type : t('exportNotApplicable');
             throw new Error(interpolate(t('settingsImportInvalidFileFormat'), { expectedType, foundType }));
           }
-        } catch (error) {
-          logService.error(`Failed to import ${expectedType}`, { error });
-          toastError(formatI18nErrorMessage(t, 'settingsImportErrorWithMessage', error));
+        } catch (importError) {
+          logService.error(`Failed to import ${expectedType}`, { error: importError });
+          toastError(formatI18nErrorMessage(t, 'settingsImportErrorWithMessage', importError));
         }
       };
       reader.onerror = (event) => {

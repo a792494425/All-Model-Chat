@@ -49,8 +49,8 @@ export const executeConfiguredApiRequest = async <T>({
     const result = await run({ client });
     throwIfAborted(abortSignal, `${label} cancelled by user.`);
     return result;
-  } catch (error) {
-    logService.error(errorLabel, error);
-    throw error;
+  } catch (requestError) {
+    logService.error(errorLabel, requestError);
+    throw requestError;
   }
 };

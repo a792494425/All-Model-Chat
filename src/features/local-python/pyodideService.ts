@@ -315,8 +315,8 @@ export class PyodideService {
           if (!this.disposed) {
             req.resolve(result);
           }
-        } catch (error) {
-          req.reject(error);
+        } catch (executionError) {
+          req.reject(executionError);
         }
       }
     } finally {
@@ -342,9 +342,9 @@ export class PyodideService {
     let files: Array<{ name: string; data: ArrayBuffer }>;
     try {
       files = await this.prepareExecutionFiles(req.uploadedFiles, abortSignal);
-    } catch (error) {
+    } catch (filePrepError) {
       this.activeRequestId = null;
-      throw error;
+      throw filePrepError;
     }
 
     if (abortSignal?.aborted || req.aborted) {
@@ -400,9 +400,9 @@ export class PyodideService {
       try {
         const buffers = files.map((file) => file.data);
         this.worker?.postMessage({ id: req.id, type: 'RUN_PYTHON', code: req.code, files }, buffers);
-      } catch (error) {
+      } catch (postMessageError) {
         this.pendingPromises.delete(req.id);
-        rejectWithCleanup(error);
+        rejectWithCleanup(postMessageError);
         return;
       }
 
@@ -471,11 +471,11 @@ export class PyodideService {
       }
 
       return combined.buffer;
-    } catch (error) {
+    } catch (streamReadError) {
       if (abortSignal.aborted) {
         throw abortError;
       }
-      throw error;
+      throw streamReadError;
     } finally {
       abortSignal.removeEventListener('abort', handleAbort);
       try {

@@ -75,8 +75,8 @@ export const usePictureInPicture = (
       pipWindowRef.current = pipWin;
       setPipContainer(container);
       logService.info('PiP window opened.');
-    } catch (error) {
-      logService.error('Error opening Picture-in-Picture window:', error);
+    } catch (pipOpenError) {
+      logService.error('Error opening Picture-in-Picture window:', pipOpenError);
       setPipWindow(null);
       pipWindowRef.current = null;
       setPipContainer(null);

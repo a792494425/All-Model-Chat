@@ -38,10 +38,10 @@ self.onmessage = async (event: MessageEvent<Blob>) => {
       text: result.value,
       messages: result.messages.map(normalizeMammothMessage),
     });
-  } catch (error) {
+  } catch (extractionError) {
     postResponse({
       type: 'error',
-      error: getErrorMessage(error),
+      error: getErrorMessage(extractionError),
     });
   }
 };

@@ -55,10 +55,10 @@ export async function persistSessionChanges({
       let persistedSession: SavedChatSession | null | undefined;
       try {
         persistedSession = await getSession(session.id);
-      } catch (error) {
+      } catch (readError) {
         logService.warn('Skipping session persist: persisted record could not be read.', {
           sessionId: session.id,
-          error,
+          error: readError,
         });
         return null;
       }

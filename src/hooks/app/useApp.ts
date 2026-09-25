@@ -198,13 +198,13 @@ export const useApp = (): AppViewModel => {
       setExportStatus('exporting');
       try {
         const didExport = await exportChatLogic(format);
-        if (didExport === false) {
+        if (!didExport) {
           return;
         }
         setIsExportModalOpen(false);
-      } catch (error) {
-        logService.error(`Chat export failed (format: ${format})`, { error });
-        toastError(formatI18nErrorMessage(t, 'exportFailedWithMessage', error));
+      } catch (exportError) {
+        logService.error(`Chat export failed (format: ${format})`, { error: exportError });
+        toastError(formatI18nErrorMessage(t, 'exportFailedWithMessage', exportError));
       } finally {
         setExportStatus('idle');
       }

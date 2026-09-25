@@ -22,8 +22,8 @@ export const McpLogsTab: React.FC<McpLogsTabProps> = ({ server, t }) => {
       try {
         const result = await fetchMcpLogs({ ...server, id: serverIdRef.current }, signal);
         if (!signal?.aborted) setLogs(result.logs);
-      } catch (error) {
-        if ((error as Error)?.name === 'AbortError') return;
+      } catch (logsError) {
+        if ((logsError as Error)?.name === 'AbortError') return;
         // keep previous logs on error
       } finally {
         if (!signal?.aborted) setLoading(false);

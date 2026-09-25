@@ -579,18 +579,18 @@ export const compensateCjkNodeWidths = (dot: string): string => {
  * Ensures text remains crisp and readable across both light and dark themes.
  */
 export const getContrastFontColor = (hex: string): string => {
-  let h = hex.replace('#', '').trim();
-  if (h.length === 3)
-    h = h
+  let sanitizedHex = hex.replace('#', '').trim();
+  if (sanitizedHex.length === 3)
+    sanitizedHex = sanitizedHex
       .split('')
-      .map((c) => c + c)
+      .map((char) => char + char)
       .join('');
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return '#0F172A';
-  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-  return lum > 140 ? '#0F172A' : '#F8FAFC';
+  const red = parseInt(sanitizedHex.slice(0, 2), 16);
+  const green = parseInt(sanitizedHex.slice(2, 4), 16);
+  const blue = parseInt(sanitizedHex.slice(4, 6), 16);
+  if (Number.isNaN(red) || Number.isNaN(green) || Number.isNaN(blue)) return '#0F172A';
+  const luminance = 0.299 * red + 0.587 * green + 0.114 * blue;
+  return luminance > 140 ? '#0F172A' : '#F8FAFC';
 };
 
 /**
@@ -948,9 +948,9 @@ export const renderDotToSvg = async (dot: string, options: DotRenderOptions = {}
     svgElement.style.display = 'block';
 
     return { ok: true, svg: sanitizeSvg(svgElement.outerHTML) };
-  } catch (error) {
-    const message = getErrorMessage(error, 'Graphviz render failed');
-    logService.error('Failed to render Graphviz diagram', error);
+  } catch (renderError) {
+    const message = getErrorMessage(renderError, 'Graphviz render failed');
+    logService.error('Failed to render Graphviz diagram', renderError);
     return { ok: false, error: 'render-failed', message };
   }
 };

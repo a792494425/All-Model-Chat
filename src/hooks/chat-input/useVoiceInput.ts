@@ -47,9 +47,9 @@ export const useVoiceInput = ({
           if (transcribedText) {
             insertText(transcribedText.trim(), { ensurePadding: true });
           }
-        } catch (error) {
-          logService.error('Error processing/transcribing audio:', error);
-          const message = getErrorMessage(error, t('voiceInputFailed'));
+        } catch (transcriptionError) {
+          logService.error('Error processing/transcribing audio:', transcriptionError);
+          const message = getErrorMessage(transcriptionError, t('voiceInputFailed'));
           reportError(formatI18nErrorMessage(t, 'voiceInputFailedWithMessage', message));
         } finally {
           setIsTranscribing(false);

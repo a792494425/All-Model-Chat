@@ -229,9 +229,10 @@ export const useMcpSectionLogic = ({ settings, onUpdate }: UseMcpSectionLogicPro
     (text: string): McpServerConfig[] => {
       try {
         return parseImportJson(text);
-      } catch (error) {
-        if (error instanceof McpImportError) throw new Error(importErrorFromCode(error), { cause: error });
-        throw error;
+      } catch (importParseError) {
+        if (importParseError instanceof McpImportError)
+          throw new Error(importErrorFromCode(importParseError), { cause: importParseError });
+        throw importParseError;
       }
     },
     [importErrorFromCode],
@@ -268,8 +269,8 @@ export const useMcpSectionLogic = ({ settings, onUpdate }: UseMcpSectionLogicPro
         const derived = deriveStatus(capabilities, null, true);
         setStatus(server.id, { state: derived.state, lastError: undefined, version: derived.version });
         setCapabilityStates((prev) => ({ ...prev, [cardKey]: { status: 'success', capabilities } }));
-      } catch (error) {
-        const message = getErrorMessage(error);
+      } catch (capabilityError) {
+        const message = getErrorMessage(capabilityError);
         const derived = deriveStatus(null, message, server.enabled);
         setStatus(server.id, { state: derived.state, lastError: derived.lastError });
         setCapabilityStates((prev) => ({

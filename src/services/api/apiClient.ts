@@ -84,9 +84,9 @@ export const getClient = async (
 
     const GoogleGenAIConstructor = await loadGoogleGenAI();
     return new GoogleGenAIConstructor(config);
-  } catch (error) {
-    logService.error('Failed to initialize GoogleGenAI client:', error);
-    throw error;
+  } catch (clientInitError) {
+    logService.error('Failed to initialize GoogleGenAI client:', clientInitError);
+    throw clientInitError;
   }
 };
 

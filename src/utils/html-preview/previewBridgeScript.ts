@@ -276,9 +276,9 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
         return instruction ? { instruction } : null;
       }
       return parsedPayload;
-    } catch (error) {
+    } catch (parseError) {
       if (/^[{[]/.test(trimmedPayload)) {
-        console.warn('Invalid Live Artifact follow-up payload.', error);
+        console.warn('Invalid Live Artifact follow-up payload.', parseError);
         return null;
       }
 

@@ -477,8 +477,8 @@ export const executeGeminiChat = async ({
         toolLoopResult.finalTurn.urlContext,
         toolLoopResult.generatedFiles,
       );
-    } catch (error) {
-      await handleStreamErrorWithAutoRetry(toError(error));
+    } catch (toolLoopError) {
+      await handleStreamErrorWithAutoRetry(toError(toolLoopError));
     }
     return;
   }

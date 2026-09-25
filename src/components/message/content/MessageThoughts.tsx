@@ -124,31 +124,31 @@ export const MessageThoughts: React.FC<MessageThoughtsProps> = ({
       );
       setTranslatedThoughts(result);
       setIsShowingTranslation(true);
-    } catch (error) {
-      logService.error('Failed to translate thoughts:', error);
+    } catch (translationError) {
+      logService.error('Failed to translate thoughts:', translationError);
     } finally {
       setIsTranslatingThoughts(false);
     }
   };
 
-  const handleCopyThoughts = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleCopyThoughts = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
     const textToCopy = isShowingTranslation && translatedThoughts ? translatedThoughts : effectiveThoughts;
     if (textToCopy) {
       copyToClipboard(textToCopy);
     }
   };
   const toggleExpanded = () => setIsExpanded((value) => !value);
-  const handleToggleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleToggleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     // Ignore key events bubbling up from inner buttons so Enter/Space on the
     // translate/copy actions no longer collapses the accordion or cancels the click.
-    if (e.target !== e.currentTarget) return;
-    if (e.key !== 'Enter' && e.key !== ' ') {
+    if (event.target !== event.currentTarget) return;
+    if (event.key !== 'Enter' && event.key !== ' ') {
       return;
     }
 
-    e.preventDefault();
+    event.preventDefault();
     toggleExpanded();
   };
 

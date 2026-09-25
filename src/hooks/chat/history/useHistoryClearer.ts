@@ -73,13 +73,13 @@ export const useHistoryClearer = ({
       .catch(() => undefined);
     try {
       localStorage.clear();
-    } catch (error) {
-      logService.error('Failed to clear localStorage:', error);
+    } catch (localStorageError) {
+      logService.error('Failed to clear localStorage:', localStorageError);
     }
     try {
       sessionStorage.clear();
-    } catch (error) {
-      logService.error('Failed to clear sessionStorage:', error);
+    } catch (sessionStorageError) {
+      logService.error('Failed to clear sessionStorage:', sessionStorageError);
     }
 
     try {
@@ -87,8 +87,8 @@ export const useHistoryClearer = ({
       if (registrations?.length) {
         await Promise.all(registrations.map((registration) => registration.unregister()));
       }
-    } catch (error) {
-      logService.error('Failed to unregister service workers:', error);
+    } catch (serviceWorkerError) {
+      logService.error('Failed to unregister service workers:', serviceWorkerError);
     }
 
     try {
@@ -96,8 +96,8 @@ export const useHistoryClearer = ({
       if (cacheKeys?.length) {
         await Promise.all(cacheKeys.map((cacheKey) => caches.delete(cacheKey)));
       }
-    } catch (error) {
-      logService.error('Failed to clear CacheStorage:', error);
+    } catch (cacheStorageError) {
+      logService.error('Failed to clear CacheStorage:', cacheStorageError);
     }
 
     await dbService.clearAllData();

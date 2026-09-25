@@ -75,8 +75,8 @@ const inspectPdfData = async (
         // ignore
       }
     }
-  } catch (error) {
-    logService.warn('Failed to inspect PDF data', { error });
+  } catch (pdfInspectionError) {
+    logService.warn('Failed to inspect PDF data', { error: pdfInspectionError });
     return { numPages: 1, text: '' };
   }
 };
@@ -89,8 +89,8 @@ export const extractPdfTextFromBase64 = async (base64: string, options: PdfInspe
     const uint8Array = decodeBase64ToArrayBuffer(base64);
     const { text } = await inspectPdfData(uint8Array, options);
     return text;
-  } catch (error) {
-    logService.warn('Failed to decode base64 for PDF text extraction', { error });
+  } catch (base64DecodeError) {
+    logService.warn('Failed to decode base64 for PDF text extraction', { error: base64DecodeError });
     return '';
   }
 };
@@ -102,8 +102,8 @@ export const inspectPdfBlob = async (blob: Blob, options: PdfInspectionOptions =
   try {
     const arrayBuffer = await blob.arrayBuffer();
     return await inspectPdfData(arrayBuffer, options);
-  } catch (error) {
-    logService.warn('Failed to inspect PDF blob', { error });
+  } catch (pdfBlobError) {
+    logService.warn('Failed to inspect PDF blob', { error: pdfBlobError });
     return { numPages: 1, text: '' };
   }
 };

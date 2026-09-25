@@ -90,12 +90,14 @@ export const useFilePreProcessing = ({ appSettings, setSelectedFiles }: UseFileP
               logService.info(`Compressing audio file: ${file.name}`);
               const compressedFile = await compressAudioToMp3(file, abortController.signal);
               processedFiles.push(compressedFile);
-            } catch (error) {
-              const isAbort = (error instanceof Error || error instanceof DOMException) && error.name === 'AbortError';
+            } catch (compressionError) {
+              const isAbort =
+                (compressionError instanceof Error || compressionError instanceof DOMException) &&
+                compressionError.name === 'AbortError';
               if (isAbort) {
                 logService.info(`Compression cancelled for ${file.name}`);
               } else {
-                logService.error(`Failed to compress audio file ${file.name}`, { error });
+                logService.error(`Failed to compress audio file ${file.name}`, { error: compressionError });
                 processedFiles.push(file);
               }
             } finally {

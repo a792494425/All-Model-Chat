@@ -95,8 +95,10 @@ const buildFilePart = async (
         if (fileSource && fileSource instanceof Blob) {
           try {
             base64DataForApi = await blobToBase64(fileSource);
-          } catch (error) {
-            logService.error(`Failed to convert text file to base64 for ${file.name}`, { error });
+          } catch (base64ConversionError) {
+            logService.error(`Failed to convert text file to base64 for ${file.name}`, {
+              error: base64ConversionError,
+            });
           }
         } else if (urlSource) {
           try {
@@ -107,8 +109,10 @@ const buildFilePart = async (
             if (!enrichedFile.rawFile) {
               enrichedFile.rawFile = new File([blob], file.name, { type: file.type || 'text/plain' });
             }
-          } catch (error) {
-            logService.error(`Failed to fetch text blob and convert to base64 for ${file.name}`, { error });
+          } catch (fetchBlobError) {
+            logService.error(`Failed to fetch text blob and convert to base64 for ${file.name}`, {
+              error: fetchBlobError,
+            });
           }
         }
 
@@ -143,8 +147,8 @@ const buildFilePart = async (
         if (fileSource && fileSource instanceof Blob) {
           try {
             base64DataForApi = await blobToBase64(fileSource);
-          } catch (error) {
-            logService.error(`Failed to convert rawFile to base64 for ${file.name}`, { error });
+          } catch (base64ConversionError) {
+            logService.error(`Failed to convert rawFile to base64 for ${file.name}`, { error: base64ConversionError });
           }
         } else if (urlSource) {
           try {
@@ -156,8 +160,8 @@ const buildFilePart = async (
             if (!enrichedFile.rawFile) {
               enrichedFile.rawFile = new File([blob], file.name, { type: file.type });
             }
-          } catch (error) {
-            logService.error(`Failed to fetch blob and convert to base64 for ${file.name}`, { error });
+          } catch (fetchBlobError) {
+            logService.error(`Failed to fetch blob and convert to base64 for ${file.name}`, { error: fetchBlobError });
           }
         }
 
@@ -174,8 +178,8 @@ const buildFilePart = async (
             enrichedFile.textContent = text;
             part = { text: `[Document: ${file.name}]\n${text}` };
           }
-        } catch (error) {
-          logService.error(`Failed to extract text from docx for chat: ${file.name}`, { error });
+        } catch (docxExtractionError) {
+          logService.error(`Failed to extract text from docx for chat: ${file.name}`, { error: docxExtractionError });
           part = { text: `[Attachment: ${file.name}]` };
         }
       } else if (file.name.toLowerCase().endsWith('.zip')) {
@@ -191,8 +195,8 @@ const buildFilePart = async (
             enrichedFile.textContent = text;
             part = { text: `[Archive Context: ${file.name}]\n${text}` };
           }
-        } catch (error) {
-          logService.error(`Failed to generate zip context for chat: ${file.name}`, { error });
+        } catch (zipContextError) {
+          logService.error(`Failed to generate zip context for chat: ${file.name}`, { error: zipContextError });
           part = { text: `[Attachment: ${file.name}]` };
         }
       } else {
@@ -345,9 +349,9 @@ export const createChatHistoryForApi = async (
                           data: await blobToBase64(generatedFile.rawFile),
                         },
                       };
-                    } catch (error) {
+                    } catch (rehydrationError) {
                       logService.error(`Failed to rehydrate generated media for history: ${generatedFile.name}`, {
-                        error,
+                        error: rehydrationError,
                       });
                     }
                   }

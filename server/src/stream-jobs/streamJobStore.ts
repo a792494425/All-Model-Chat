@@ -260,13 +260,13 @@ export async function runDetachedUpstream(
     }
 
     await pumpUpstreamBodyIntoJob(job, upstreamResponse);
-  } catch (error) {
+  } catch (upstreamStreamError) {
     if (job.abortController.signal.aborted) {
       // Aborted by client (stream-abort endpoint); already finished with that
       // reason. Don't overwrite the abort error.
       return;
     }
-    finishJob(job, error instanceof Error ? error.message : String(error));
+    finishJob(job, upstreamStreamError instanceof Error ? upstreamStreamError.message : String(upstreamStreamError));
   }
 }
 

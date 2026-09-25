@@ -43,9 +43,9 @@ export async function assertMcpHttpUrlAllowed(urlString: string, allowPrivate: b
   let addresses: Array<{ address: string }>;
   try {
     addresses = await dns.lookup(hostname, { all: true, verbatim: true });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to resolve MCP HTTP host "${hostname}": ${message}`, { cause: error });
+  } catch (dnsLookupError) {
+    const message = dnsLookupError instanceof Error ? dnsLookupError.message : String(dnsLookupError);
+    throw new Error(`Failed to resolve MCP HTTP host "${hostname}": ${message}`, { cause: dnsLookupError });
   }
 
   if (addresses.length === 0) {

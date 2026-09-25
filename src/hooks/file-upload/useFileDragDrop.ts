@@ -180,8 +180,8 @@ export const useFileDragDrop = ({ onFilesDropped, onAddTempFile, onRemoveTempFil
             await onFilesDropped(dropped.files);
           }
         }
-      } catch (error) {
-        logService.error('Error processing dropped files:', error);
+      } catch (dropProcessingError) {
+        logService.error('Error processing dropped files:', dropProcessingError);
       } finally {
         setIsProcessingDrop(false);
       }

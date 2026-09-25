@@ -217,10 +217,12 @@ export const autoTitleSession = async ({
           },
         )
       ).trim();
-    } catch (error) {
+    } catch (titleGenerationError) {
       // Title API failures (network, quota, 429) are routine during backfill
       // bursts — keep the console quiet and let the heuristic fallback below run.
-      logService.debug(`Skipping AI title for session ${sessionId} (will use heuristic)`, { error });
+      logService.debug(`Skipping AI title for session ${sessionId} (will use heuristic)`, {
+        error: titleGenerationError,
+      });
     }
   }
 

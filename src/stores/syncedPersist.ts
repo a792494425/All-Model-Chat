@@ -169,7 +169,6 @@ export const createSyncedPersist = <T>(
           }
         }
 
-        // Update pending cache
         try {
           pendingParsedCache.set(key, JSON.parse(value));
         } catch {
@@ -181,9 +180,9 @@ export const createSyncedPersist = <T>(
             () => {
               // Only clear if cache still equals this value's parsed form
               try {
-                const cur = pendingParsedCache.get(key);
+                const currentCachedValue = pendingParsedCache.get(key);
                 const thisParsed = JSON.parse(value);
-                if (cur !== undefined && isEqual(cur, thisParsed)) {
+                if (currentCachedValue !== undefined && isEqual(currentCachedValue, thisParsed)) {
                   pendingParsedCache.delete(key);
                 }
               } catch {

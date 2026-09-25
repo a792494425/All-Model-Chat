@@ -151,9 +151,9 @@ export const executeNonStreamChatRequest = async <TPayload>(
 
     const [parts, thoughtsText, usageMetadata] = params.toCompletionArgs(payload);
     onComplete(parts, thoughtsText, usageMetadata, undefined, undefined);
-  } catch (error) {
-    logService.error(params.failureLogLabel, error);
-    onError(toError(error));
+  } catch (nonStreamError) {
+    logService.error(params.failureLogLabel, nonStreamError);
+    onError(toError(nonStreamError));
   }
 };
 
@@ -192,9 +192,9 @@ export const executeStreamChatRequest = async (params: StreamChatRequestParams):
 
     const finalUsage = await params.readStream(response);
     onComplete(finalUsage, undefined, undefined);
-  } catch (error) {
-    logService.error(params.failureLogLabel, error);
-    onError(toError(error));
+  } catch (streamError) {
+    logService.error(params.failureLogLabel, streamError);
+    onError(toError(streamError));
   }
 };
 

@@ -314,7 +314,7 @@ export const runStandardToolLoop = async ({
             } as Part,
             generatedFiles: result.generatedFiles ?? [],
           };
-        } catch (error) {
+        } catch (toolCallError) {
           return {
             idx,
             part: {
@@ -322,7 +322,7 @@ export const runStandardToolLoop = async ({
                 id: call.id,
                 name: call.name,
                 response: {
-                  error: getErrorMessage(error),
+                  error: getErrorMessage(toolCallError),
                 },
               },
             } as Part,

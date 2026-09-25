@@ -318,16 +318,16 @@ const uploadFileBytes = async (
         }
 
         break;
-      } catch (error) {
-        if (retryAttempt >= MAX_UPLOAD_RETRIES_PER_CHUNK || !isRetryableUploadError(error)) {
-          throw error;
+      } catch (chunkError) {
+        if (retryAttempt >= MAX_UPLOAD_RETRIES_PER_CHUNK || !isRetryableUploadError(chunkError)) {
+          throw chunkError;
         }
 
         retryAttempt += 1;
         logService.warn(`Retrying file upload chunk at offset ${offset}.`, {
           attempt: retryAttempt,
           fileName: file.name,
-          error,
+          error: chunkError,
         });
         await waitForUploadRetry(retryAttempt, signal);
       }

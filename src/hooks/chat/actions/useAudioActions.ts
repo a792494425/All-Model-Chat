@@ -52,10 +52,10 @@ export const useAudioActions = ({
         const modelToUse = appSettings.transcriptionModelId || DEFAULT_TRANSCRIPTION_MODEL_ID;
         const transcribedText = await transcribeAudioApi(keyResult.key, audioFile, modelToUse);
         return transcribedText;
-      } catch (error) {
-        const errorMessage = getErrorMessage(error, t('transcriptionUnknownError'));
+      } catch (transcriptionError) {
+        const errorMessage = getErrorMessage(transcriptionError, t('transcriptionUnknownError'));
         setAppFileError(formatI18nErrorMessage(t, 'transcriptionFailedWithMessage', errorMessage));
-        logService.error('Transcription failed in handler', { error });
+        logService.error('Transcription failed in handler', { error: transcriptionError });
         return null;
       }
     },

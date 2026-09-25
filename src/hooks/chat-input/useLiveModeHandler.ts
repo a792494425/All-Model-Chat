@@ -60,8 +60,8 @@ export const useLiveModeHandler = ({
       if (!liveApi.isConnected) {
         try {
           didConnect = await liveApi.connect();
-        } catch (error) {
-          logService.error('Failed to auto-connect Live API:', error);
+        } catch (liveConnectError) {
+          logService.error('Failed to auto-connect Live API:', liveConnectError);
           return;
         }
       }

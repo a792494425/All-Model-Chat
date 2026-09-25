@@ -69,8 +69,8 @@ export const routeThrownStreamError = async (
 ) => {
   try {
     await run();
-  } catch (error) {
-    await streamOnError(toError(error));
+  } catch (streamRunError) {
+    await streamOnError(toError(streamRunError));
   }
 };
 

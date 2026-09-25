@@ -53,8 +53,8 @@ export async function fetchImageProxyWithSafeRedirects(
   for (let hop = 0; hop <= maxRedirects; hop += 1) {
     try {
       await assertImageProxyHostResolvesPublic(currentUrl, options.lookup);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Image proxy target is not allowed.';
+    } catch (resolutionError) {
+      const message = resolutionError instanceof Error ? resolutionError.message : 'Image proxy target is not allowed.';
       return { ok: false, kind: 'blocked', message };
     }
 
@@ -65,8 +65,8 @@ export async function fetchImageProxyWithSafeRedirects(
         redirect: 'manual',
         signal: options.signal,
       });
-    } catch (error) {
-      return { ok: false, kind: 'fetch_error', error };
+    } catch (upstreamFetchError) {
+      return { ok: false, kind: 'fetch_error', error: upstreamFetchError };
     }
 
     if (upstreamResponse.status < 300 || upstreamResponse.status >= 400) {

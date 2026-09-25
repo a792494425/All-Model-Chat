@@ -117,8 +117,8 @@ export const useUsageStats = () => {
         if (!cancelled) {
           setRecords(result);
         }
-      } catch (error) {
-        logService.error('Failed to load API usage data:', error);
+      } catch (loadUsageError) {
+        logService.error('Failed to load API usage data:', loadUsageError);
         if (!cancelled) {
           setRecords([]);
         }

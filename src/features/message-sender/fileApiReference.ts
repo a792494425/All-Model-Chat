@@ -396,12 +396,12 @@ const resolveRemoteFileReference = async (
             } as FilePatch,
           };
         }
-      } catch (error) {
-        if (!isFilesApiAccessDeniedError(error)) {
+      } catch (verifyReferenceError) {
+        if (!isFilesApiAccessDeniedError(verifyReferenceError)) {
           logService.warn('Could not verify Files API reference before send; leaving history unchanged.', {
             fileName: file.name,
             fileApiName,
-            error,
+            error: verifyReferenceError,
           });
           return { kind: 'verify-failed', fileName: file.name };
         }
@@ -410,7 +410,7 @@ const resolveRemoteFileReference = async (
           {
             fileName: file.name,
             fileApiName,
-            error,
+            error: verifyReferenceError,
           },
         );
       }
@@ -469,11 +469,11 @@ const resolveRemoteFileReference = async (
     }
 
     return { kind: 'uploaded', patch };
-  } catch (error) {
+  } catch (refreshReferenceError) {
     logService.error('Failed to refresh Files API reference before send.', {
       fileName: file.name,
       fileApiName,
-      error,
+      error: refreshReferenceError,
     });
     return {
       kind: 'refresh-failed',
@@ -481,7 +481,7 @@ const resolveRemoteFileReference = async (
       patch: {
         isProcessing: false,
         uploadState: 'failed',
-        error: getErrorMessage(error),
+        error: getErrorMessage(refreshReferenceError),
       },
     };
   }

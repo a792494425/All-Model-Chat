@@ -212,8 +212,8 @@ export const useStreamResume = ({
         // again (it would only be caught by the 10-minute TTL or the
         // loadingMessage.isLoading check otherwise).
         clearPendingStreamJob(target.sessionId);
-      } catch (error) {
-        logService.error('Stream resume failed.', error);
+      } catch (resumeError) {
+        logService.error('Stream resume failed.', resumeError);
         clearPendingStreamJob(target.sessionId);
       } finally {
         stopGenerationLeaseHeartbeat(target.sessionId);

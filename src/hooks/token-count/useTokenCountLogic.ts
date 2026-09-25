@@ -165,13 +165,13 @@ export const useTokenCountLogic = ({
   // from the server count so the UI can show something before the network
   // round-trip completes (and as a fallback if it fails).
   const recomputeVideoEstimate = useCallback(
-    async (fls: UploadedFile[], modelId: string, resolution: MediaResolution | undefined) => {
+    async (targetFiles: UploadedFile[], modelId: string, resolution: MediaResolution | undefined) => {
       try {
         const effectiveResolution = resolution ?? MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED;
-        const estimate = await estimateVideoTokensForFiles(fls, modelId, effectiveResolution);
+        const estimate = await estimateVideoTokensForFiles(targetFiles, modelId, effectiveResolution);
         setVideoTokenEstimate(estimate > 0 ? estimate : null);
-      } catch (error) {
-        logService.error('Video token estimate failed', error);
+      } catch (estimateError) {
+        logService.error('Video token estimate failed', estimateError);
         setVideoTokenEstimate(null);
       }
     },

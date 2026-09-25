@@ -136,12 +136,12 @@ export const useAudioPlayback = (options: UseAudioPlaybackOptions = {}): UseAudi
       try {
         const playPromise = audio.play();
         if (playPromise !== undefined) {
-          playPromise.catch((error) => {
-            onAutoPlayPrevented?.(error);
+          playPromise.catch((playbackError) => {
+            onAutoPlayPrevented?.(playbackError);
           });
         }
-      } catch (error) {
-        onAutoPlayPrevented?.(error);
+      } catch (playbackSyncError) {
+        onAutoPlayPrevented?.(playbackSyncError);
       }
     }
   }, [audioRef, autoPlay, src, onAutoPlayPrevented]);

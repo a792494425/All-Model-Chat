@@ -50,9 +50,9 @@ export const useChatInputTranslation = ({
         appSettings.inputTranslationModelId,
       );
       setInputText(translatedText);
-    } catch (error) {
-      logService.error('Input translation failed:', error);
-      const message = getErrorMessage(error);
+    } catch (translationError) {
+      logService.error('Input translation failed:', translationError);
+      const message = getErrorMessage(translationError);
       setAppFileError(formatI18nErrorMessage(t, 'translateFailedWithMessage', message));
     } finally {
       setTranslating(false);

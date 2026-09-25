@@ -37,8 +37,8 @@ export const usePreloadedScenarios = ({
         }
 
         setUserSavedScenarios(userScenarios);
-      } catch (error) {
-        logService.error('Error loading preloaded scenarios:', { error });
+      } catch (loadScenariosError) {
+        logService.error('Error loading preloaded scenarios:', { error: loadScenariosError });
       }
     };
     loadScenarios();
@@ -47,8 +47,8 @@ export const usePreloadedScenarios = ({
   const handleSaveAllScenarios = (updatedScenarios: SavedScenario[]) => {
     const scenariosToSave = getExportableUserScenarios(updatedScenarios);
     setUserSavedScenarios(scenariosToSave);
-    dbService.setAllScenarios(scenariosToSave).catch((error) => {
-      logService.error('Failed to save scenarios to DB', { error });
+    dbService.setAllScenarios(scenariosToSave).catch((saveScenariosError) => {
+      logService.error('Failed to save scenarios to DB', { error: saveScenariosError });
     });
   };
 

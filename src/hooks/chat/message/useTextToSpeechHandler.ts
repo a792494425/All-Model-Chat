@@ -34,10 +34,10 @@ export const useTextToSpeechHandler = ({ appSettings, currentChatSettings }: Tex
       try {
         const base64Pcm = await generateSpeechApi(key, modelId, text, voice, abortController.signal);
         return { url: pcmBase64ToWavUrl(base64Pcm) };
-      } catch (error) {
-        const message = getErrorMessage(error, 'TTS generation failed.');
+      } catch (ttsError) {
+        const message = getErrorMessage(ttsError, 'TTS generation failed.');
         const timedOut = message.includes('timed out');
-        logService.error(timedOut ? 'Quick TTS timed out:' : 'Quick TTS generation failed:', { error });
+        logService.error(timedOut ? 'Quick TTS timed out:' : 'Quick TTS generation failed:', { error: ttsError });
         return { error: message };
       }
     },

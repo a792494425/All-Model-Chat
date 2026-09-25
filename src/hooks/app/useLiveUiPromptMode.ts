@@ -400,11 +400,11 @@ export const useLiveUiPromptMode = ({
 
       try {
         await activateLiveArtifactsPrompt(targetSessionId);
-      } catch (error) {
+      } catch (activationError) {
         if (isMountedRef.current) {
           setLiveArtifactsPromptOverrideState(null);
         }
-        logService.error('Failed to toggle Live Artifacts prompt:', error);
+        logService.error('Failed to toggle Live Artifacts prompt:', activationError);
       } finally {
         if (activatingSessionIdRef.current === targetSessionId) {
           activatingSessionIdRef.current = undefined;

@@ -331,8 +331,8 @@ export const createMcpClientFunctions = async ({
             },
           ],
         });
-      } catch (error) {
-        logService.warn(`Virtual MCP tool discovery failed for ${virtualServer.id}`, { error });
+      } catch (discoveryError) {
+        logService.warn(`Virtual MCP tool discovery failed for ${virtualServer.id}`, { error: discoveryError });
       }
 
       for (const tool of vTools) {
@@ -391,9 +391,9 @@ export const createMcpClientFunctions = async ({
                     ? (rawResult.generatedFiles as UploadedFile[])
                     : undefined,
               };
-            } catch (error) {
+            } catch (toolExecutionError) {
               finishMcpToolRun(runId, options?.abortSignal?.aborted ? 'cancelled' : 'error');
-              throw error;
+              throw toolExecutionError;
             }
           },
         };
@@ -515,9 +515,9 @@ export const createMcpClientFunctions = async ({
                       ? (rawResult.generatedFiles as UploadedFile[])
                       : undefined,
                 };
-              } catch (error) {
+              } catch (toolExecutionError) {
                 finishMcpToolRun(runId, options?.abortSignal?.aborted ? 'cancelled' : 'error');
-                throw error;
+                throw toolExecutionError;
               }
             },
           };
@@ -536,8 +536,8 @@ export const createMcpClientFunctions = async ({
     }
 
     return functions;
-  } catch (error) {
-    logService.warn('MCP tool discovery failed; continuing chat without MCP tools.', { error });
+  } catch (discoveryError) {
+    logService.warn('MCP tool discovery failed; continuing chat without MCP tools.', { error: discoveryError });
     return {};
   }
 };

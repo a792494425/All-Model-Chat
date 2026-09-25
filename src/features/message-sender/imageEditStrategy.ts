@@ -130,8 +130,8 @@ export const sendImageEditMessage = async ({
           false,
           alwaysKeepThinking,
         );
-      } catch (error) {
-        throw translateImageHistoryError(error, t);
+      } catch (historyError) {
+        throw translateImageHistoryError(historyError, t);
       }
 
       const callApi = () =>

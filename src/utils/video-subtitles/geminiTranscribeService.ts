@@ -403,9 +403,9 @@ export async function transcribeAudioWithGemini(
     const annotations = extractWordAnnotations(transcriptionResult, durationSeconds);
     logService.info(`[VideoSubtitles] Transcription succeeded with ${annotations.length} cues`);
     return annotations;
-  } catch (error) {
-    logService.error('[VideoSubtitles] Transcription failed:', error);
-    throw error;
+  } catch (transcriptionError) {
+    logService.error('[VideoSubtitles] Transcription failed:', transcriptionError);
+    throw transcriptionError;
   } finally {
     // Clean up temporary audio file from Gemini Files storage
     if (uploadedFile?.name) {

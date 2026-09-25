@@ -79,9 +79,9 @@ export const countTokensApi = async (
       let response: CountTokensResponse;
       try {
         response = await requestTokenCount(contents, sanitizedConfig);
-      } catch (error) {
-        if (sanitizedConfig && isUnsupportedCountTokensConfigError(error)) {
-          const originalErrorMessage = getErrorMessage(error);
+      } catch (countError) {
+        if (sanitizedConfig && isUnsupportedCountTokensConfigError(countError)) {
+          const originalErrorMessage = getErrorMessage(countError);
 
           logService.warn('Retrying token count without unsupported Gemini Developer API config.', {
             category: 'MODEL',
@@ -109,18 +109,18 @@ export const countTokensApi = async (
 
             response = await requestTokenCount(plainTextPrompt);
           }
-        } else if (plainTextPrompt && isRetryableCountTokensArgumentError(error)) {
+        } else if (plainTextPrompt && isRetryableCountTokensArgumentError(countError)) {
           logService.warn('Retrying token count with plain-text contents after INVALID_ARGUMENT.', {
             category: 'MODEL',
             data: {
               modelId,
-              originalError: getErrorMessage(error),
+              originalError: getErrorMessage(countError),
             },
           });
 
           response = await requestTokenCount(plainTextPrompt);
         } else {
-          throw error;
+          throw countError;
         }
       }
 

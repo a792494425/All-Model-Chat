@@ -331,8 +331,8 @@ export const useChatInputFileUi = ({
           textarea.focus();
           textarea.setSelectionRange(content.length, content.length);
         });
-      } catch (error) {
-        logService.error('Failed to move text file into input:', error);
+      } catch (readFileError) {
+        logService.error('Failed to move text file into input:', readFileError);
         setAppFileError(t('selectedFileReadTextFailed'));
       }
     },

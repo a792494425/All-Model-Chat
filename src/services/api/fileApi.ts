@@ -35,14 +35,14 @@ export const uploadFileApi = async (
       signal,
       onProgress,
     });
-  } catch (error) {
-    logService.error(`Failed to upload file "${displayName}" to Gemini API:`, error);
+  } catch (uploadError) {
+    logService.error(`Failed to upload file "${displayName}" to Gemini API:`, uploadError);
 
     if (signal.aborted) {
       throw createUploadAbortError();
     }
 
-    throw error;
+    throw uploadError;
   }
 };
 
@@ -56,12 +56,15 @@ export const getFileMetadataApi = async (apiKey: string, fileApiName: string): P
     const ai = await getConfiguredApiClient(apiKey);
     const file = await ai.files.get({ name: fileApiName });
     return file;
-  } catch (error) {
-    logService.error(`Failed to get metadata for file "${fileApiName}" from Gemini API:`, error);
-    if (error instanceof Error && (error.message.includes('NOT_FOUND') || error.message.includes('404'))) {
+  } catch (metadataError) {
+    logService.error(`Failed to get metadata for file "${fileApiName}" from Gemini API:`, metadataError);
+    if (
+      metadataError instanceof Error &&
+      (metadataError.message.includes('NOT_FOUND') || metadataError.message.includes('404'))
+    ) {
       return null;
     }
-    throw error;
+    throw metadataError;
   }
 };
 
@@ -91,9 +94,9 @@ export const listFilesApi = async (
 
     const nextPageToken = (pager?.params as { pageToken?: string } | undefined)?.pageToken;
     return { files, nextPageToken };
-  } catch (error) {
-    logService.error('Failed to list files from Gemini API:', error);
-    throw error;
+  } catch (listError) {
+    logService.error('Failed to list files from Gemini API:', listError);
+    throw listError;
   }
 };
 
@@ -106,9 +109,9 @@ export const deleteFileApi = async (apiKey: string, fileApiName: string): Promis
   try {
     const ai = await getConfiguredApiClient(apiKey);
     await ai.files.delete({ name: fileApiName });
-  } catch (error) {
-    logService.error(`Failed to delete file "${fileApiName}" from Gemini API:`, error);
-    throw error;
+  } catch (deleteError) {
+    logService.error(`Failed to delete file "${fileApiName}" from Gemini API:`, deleteError);
+    throw deleteError;
   }
 };
 
@@ -142,8 +145,8 @@ export const registerGcsFilesApi = async (apiKey: string, uris: string[]): Promi
     });
     const data = (await response.json()) as { files?: GeminiFile[] };
     return data.files ?? [];
-  } catch (error) {
-    logService.error(`Failed to register GCS files in Gemini API:`, error);
-    throw error;
+  } catch (registerError) {
+    logService.error(`Failed to register GCS files in Gemini API:`, registerError);
+    throw registerError;
   }
 };

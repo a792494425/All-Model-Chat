@@ -144,7 +144,6 @@ export const exportAnnotatedImage = async (options: ExportAnnotatedImageOptions)
 
   canvasContext.restore();
 
-  // Export to Blob and download
   await new Promise<void>((resolve) => {
     canvas.toBlob((blob) => {
       if (!blob) {

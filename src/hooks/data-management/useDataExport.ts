@@ -77,8 +77,8 @@ export const useDataExport = ({ appSettings, savedGroups, savedScenarios, t }: U
       const blob = new Blob([jsonString], { type: 'application/json' });
       const date = new Date().toISOString().slice(0, 10);
       triggerDownload(createManagedObjectUrl(blob), `amc-webui-settings-${date}.json`);
-    } catch (error) {
-      logService.error('Failed to export settings', { error });
+    } catch (settingsExportError) {
+      logService.error('Failed to export settings', { error: settingsExportError });
       toastError(t('exportFailedTitle'));
     }
   }, [appSettings, t]);
@@ -103,8 +103,8 @@ export const useDataExport = ({ appSettings, savedGroups, savedScenarios, t }: U
       const blob = new Blob([jsonString], { type: 'application/json' });
       const date = new Date().toISOString().slice(0, 10);
       triggerDownload(createManagedObjectUrl(blob), `amc-webui-history-${date}.json`);
-    } catch (error) {
-      logService.error('Failed to export history', { error });
+    } catch (historyExportError) {
+      logService.error('Failed to export history', { error: historyExportError });
       toastError(t('exportFailedTitle'));
     }
   }, [savedGroups, t]);
@@ -117,8 +117,8 @@ export const useDataExport = ({ appSettings, savedGroups, savedScenarios, t }: U
       const blob = new Blob([jsonString], { type: 'application/json' });
       const date = new Date().toISOString().slice(0, 10);
       triggerDownload(createManagedObjectUrl(blob), `amc-webui-scenarios-${date}.json`);
-    } catch (error) {
-      logService.error('Failed to export scenarios', { error });
+    } catch (scenarioExportError) {
+      logService.error('Failed to export scenarios', { error: scenarioExportError });
       toastError(t('exportFailedTitle'));
     }
   }, [savedScenarios, t]);

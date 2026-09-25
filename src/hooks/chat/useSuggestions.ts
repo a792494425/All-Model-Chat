@@ -67,8 +67,8 @@ export const useSuggestions = ({
         } else {
           updateMessageInSession(sessionId, messageId, { isGeneratingSuggestions: false });
         }
-      } catch (error) {
-        logService.error('Suggestion generation failed in handler', { error });
+      } catch (suggestionError) {
+        logService.error('Suggestion generation failed in handler', { error: suggestionError });
         updateMessageInSession(sessionId, messageId, { isGeneratingSuggestions: false });
       }
     },

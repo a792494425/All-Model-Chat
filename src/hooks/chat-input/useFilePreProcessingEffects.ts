@@ -55,8 +55,8 @@ export const useFilePreProcessingEffects = ({
       const file = new File([blob], fileName, { type: 'image/png' });
       justInitiatedFileOpRef.current = true;
       await onProcessFiles([file]);
-    } catch (error) {
-      logService.error('Failed to capture screenshot:', error);
+    } catch (screenshotError) {
+      logService.error('Failed to capture screenshot:', screenshotError);
       setAppFileError(t('screenshotCaptureFailed'));
     } finally {
       isScreenCapturingRef.current = false;
@@ -92,8 +92,8 @@ export const useFilePreProcessingEffects = ({
         });
         setSelectedFiles((prev) => prev.filter((file) => file.id !== tempId));
         await onProcessFiles([contextFile]);
-      } catch (error) {
-        logService.error('Failed to process folder import.', error);
+      } catch (folderImportError) {
+        logService.error('Failed to process folder import.', folderImportError);
         setAppFileError(t('folderProcessFailed'));
         setSelectedFiles((prev) => prev.filter((file) => file.id !== tempId));
       } finally {
@@ -112,10 +112,10 @@ export const useFilePreProcessingEffects = ({
       const directoryHandle = await window.showDirectoryPicker({ mode: 'read' });
       const dropped = await readDirectoryHandle(directoryHandle);
       await processFolderImport(dropped.files, dropped.emptyDirectoryPaths);
-    } catch (error) {
-      const errorName = error instanceof DOMException ? error.name : '';
+    } catch (pickerError) {
+      const errorName = pickerError instanceof DOMException ? pickerError.name : '';
       if (errorName !== 'AbortError' && errorName !== 'NotAllowedError') {
-        logService.error('Failed to read folder picker selection.', error);
+        logService.error('Failed to read folder picker selection.', pickerError);
         setAppFileError(t('folderProcessFailed'));
       }
     }

@@ -72,11 +72,11 @@ export async function processDroppedItemsSnapshot(
                 directoryFiles.push(...batchResults.flatMap((result) => result.files));
                 directoryEmptyPaths.push(...batchResults.flatMap((result) => result.emptyDirectoryPaths));
                 readBatch();
-              } catch (error) {
-                reject(error);
+              } catch (batchError) {
+                reject(batchError);
               }
             },
-            (error) => reject(error),
+            (readEntriesError) => reject(readEntriesError),
           );
         };
 

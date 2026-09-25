@@ -65,8 +65,8 @@ export const exportTableToExcel = async (
     const fileName = options.fileName || `table-export-${Date.now()}.xlsx`;
     triggerDownload(url, fileName);
     return true;
-  } catch (error) {
-    logService.error('Failed to export table to Excel:', error);
+  } catch (excelExportError) {
+    logService.error('Failed to export table to Excel:', excelExportError);
     return false;
   }
 };

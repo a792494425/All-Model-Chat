@@ -122,13 +122,13 @@ export const MermaidBlock: React.FC<MermaidBlockProps> = ({
         );
         setError('');
         setIsRendering(false);
-      } catch (error) {
+      } catch (mermaidRenderError) {
         if (!isMounted()) return;
 
         if (isMessageLoadingRef.current) {
           setIsRendering(true);
         } else {
-          const errorMessage = getErrorMessage(error, t('diagramRenderMermaidFailed'));
+          const errorMessage = getErrorMessage(mermaidRenderError, t('diagramRenderMermaidFailed'));
           setError(errorMessage.replace(/.*error:\s*/, ''));
           setSvg('');
           setIsRendering(false);

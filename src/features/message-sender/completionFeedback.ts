@@ -71,7 +71,7 @@ export const emitCompletionFeedback = async (
       body: feedback.notification.body,
       icon: APP_NOTIFICATION_ICON_URL,
     });
-  } catch (error) {
-    logService.warn('Failed to show completion notification.', { error });
+  } catch (notificationError) {
+    logService.warn('Failed to show completion notification.', { error: notificationError });
   }
 };

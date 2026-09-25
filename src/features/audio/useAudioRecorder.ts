@@ -15,8 +15,8 @@ const listAudioInputDevices = async (): Promise<MediaDeviceInfo[]> => {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
     return devices.filter((device) => device.kind === 'audioinput');
-  } catch (error) {
-    logService.warn('Could not enumerate audio input devices:', error);
+  } catch (enumerateError) {
+    logService.warn('Could not enumerate audio input devices:', enumerateError);
     return [];
   }
 };

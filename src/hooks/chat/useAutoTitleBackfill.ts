@@ -64,8 +64,8 @@ export const useAutoTitleBackfill = ({ appSettings, language }: AutoTitleBackfil
       let fullSession;
       try {
         fullSession = await dbService.getSession(candidate.id);
-      } catch (error) {
-        logService.warn('Auto title backfill failed to load session.', { sessionId: candidate.id, error });
+      } catch (loadError) {
+        logService.warn('Auto title backfill failed to load session.', { sessionId: candidate.id, error: loadError });
         return;
       }
 
@@ -82,8 +82,8 @@ export const useAutoTitleBackfill = ({ appSettings, language }: AutoTitleBackfil
           language,
           updateAndPersistSessions: useChatStore.getState().updateAndPersistSessions,
         });
-      } catch (error) {
-        logService.warn('Auto title backfill failed for session.', { sessionId: candidate.id, error });
+      } catch (titleError) {
+        logService.warn('Auto title backfill failed for session.', { sessionId: candidate.id, error: titleError });
       } finally {
         useChatStore.getState().setGeneratingTitleSessionIds((prev) => {
           const next = new Set(prev);

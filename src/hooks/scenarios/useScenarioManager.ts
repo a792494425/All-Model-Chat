@@ -179,8 +179,8 @@ export const useScenarioManager = ({ isOpen, savedScenarios, onSaveAllScenarios,
         } else {
           throw new Error('Invalid format');
         }
-      } catch (error) {
-        logService.error('Import failed', error);
+      } catch (importError) {
+        logService.error('Import failed', importError);
         toastError(t('scenariosFeedbackImportFailed'));
       } finally {
         if (importInputRef.current) importInputRef.current.value = '';
