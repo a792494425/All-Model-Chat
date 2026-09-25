@@ -2,8 +2,8 @@ export const decodeBase64ToArrayBuffer = (base64: string): Uint8Array => {
   const binaryString = atob(base64);
   const byteLength = binaryString.length;
   const bytes = new Uint8Array(byteLength);
-  for (let i = 0; i < byteLength; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+  for (let byteIndex = 0; byteIndex < byteLength; byteIndex++) {
+    bytes[byteIndex] = binaryString.charCodeAt(byteIndex);
   }
   return bytes;
 };
@@ -87,6 +87,7 @@ export const fileToString = (file: File): Promise<string> => {
 
 export const base64ToBlob = (base64: string, mimeType: string): Blob => {
   const byteArray = decodeBase64ToArrayBuffer(base64);
+  // Copy into an unshared ArrayBuffer to guarantee BlobPart type compatibility
   const buffer = new ArrayBuffer(byteArray.byteLength);
   new Uint8Array(buffer).set(byteArray);
   return new Blob([buffer], { type: mimeType });

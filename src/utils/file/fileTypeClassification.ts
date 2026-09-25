@@ -89,6 +89,11 @@ export const isVideoMimeType = (mimeType?: string): boolean => {
 export const isPdfMimeType = (mimeType?: string): boolean =>
   SUPPORTED_PDF_MIME_TYPES.includes(normalizeMimeType(mimeType));
 
+export const isTextMimeType = (mimeType?: string): boolean => {
+  const normalized = normalizeMimeType(mimeType);
+  return Boolean(normalized && (normalized.startsWith('text/') || SUPPORTED_TEXT_MIME_TYPES.includes(normalized)));
+};
+
 export const isPdfFile = (file: FileKindInput): boolean =>
   isPdfMimeType(file.type) || normalizeFileName(file.name).endsWith('.pdf');
 

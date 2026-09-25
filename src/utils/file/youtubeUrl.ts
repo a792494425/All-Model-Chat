@@ -26,17 +26,17 @@ export const extractYoutubeVideoId = (input?: string | null): string | null => {
     if (hostname === 'youtube.com' || hostname.endsWith('.youtube.com')) {
       // /watch?v=<id>
       if (parsed.pathname === '/watch') {
-        const v = parsed.searchParams.get('v');
-        if (v && YOUTUBE_VIDEO_ID_REGEX.test(v)) {
-          return v;
+        const videoId = parsed.searchParams.get('v');
+        if (videoId && YOUTUBE_VIDEO_ID_REGEX.test(videoId)) {
+          return videoId;
         }
         return null;
       }
 
       // /shorts/<id>, /embed/<id>, /v/<id>, /live/<id>
-      const match = parsed.pathname.match(/^\/(?:shorts|embed|v|live)\/([\w-]{11})(?:\/|$)/);
-      if (match) {
-        return match[1];
+      const routeMatch = parsed.pathname.match(/^\/(?:shorts|embed|v|live)\/([\w-]{11})(?:\/|$)/);
+      if (routeMatch) {
+        return routeMatch[1];
       }
       return null;
     }

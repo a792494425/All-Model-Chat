@@ -25,8 +25,8 @@ const canvasToBlob = (canvas: HTMLCanvasElement, type = 'image/png'): Promise<Bl
       }
       const binary = atob(base64);
       const array = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        array[i] = binary.charCodeAt(i);
+      for (let byteIndex = 0; byteIndex < binary.length; byteIndex++) {
+        array[byteIndex] = binary.charCodeAt(byteIndex);
       }
       resolve(new Blob([array], { type }));
     } catch {
@@ -54,11 +54,11 @@ export const convertImageBlobToPng = async (blob: Blob, mimeType?: string): Prom
         const canvas = document.createElement('canvas');
         canvas.width = bitmap.width;
         canvas.height = bitmap.height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
+        const canvasContext = canvas.getContext('2d');
+        if (!canvasContext) {
           throw new Error('Canvas 2D context not available.');
         }
-        ctx.drawImage(bitmap, 0, 0);
+        canvasContext.drawImage(bitmap, 0, 0);
         const pngBlob = await canvasToBlob(canvas, 'image/png');
         if (pngBlob) {
           return pngBlob;
@@ -85,12 +85,12 @@ export const convertImageBlobToPng = async (blob: Blob, mimeType?: string): Prom
           const canvas = document.createElement('canvas');
           canvas.width = img.naturalWidth || img.width;
           canvas.height = img.naturalHeight || img.height;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
+          const canvasContext = canvas.getContext('2d');
+          if (!canvasContext) {
             reject(new Error('Canvas 2D context not available.'));
             return;
           }
-          ctx.drawImage(img, 0, 0);
+          canvasContext.drawImage(img, 0, 0);
           const pngBlob = await canvasToBlob(canvas, 'image/png');
           if (pngBlob) {
             resolve(pngBlob);

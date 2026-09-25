@@ -1,7 +1,6 @@
 import type { Part } from '@google/genai';
 import type { ChatHistoryItem, ThinkingLevel } from '@/types';
-import { isAudioMimeType, isImageMimeType } from '@/utils/file/fileTypeClassification';
-import { SUPPORTED_TEXT_MIME_TYPES } from '@/constants/fileTypeSupport';
+import { isAudioMimeType, isImageMimeType, isTextMimeType } from '@/utils/file/fileTypeClassification';
 import { base64ToUtf8 } from '@/utils/file/fileEncoding';
 import { getInlineAudioFormat } from '@/features/audio/audioProcessing';
 import {
@@ -20,12 +19,6 @@ import { collapseOnlyTextContent, hasNonEmptyMessageContent } from '@/services/a
 import { appendSamplingParameters } from '@/services/api/requestFactory';
 
 const OPENAI_COMPATIBLE_FILE_DATA_ERROR = 'OpenAI-compatible mode cannot send Gemini Files API file references.';
-
-const isTextMimeType = (mimeType?: string): boolean => {
-  if (!mimeType) return false;
-  const normalized = mimeType.toLowerCase().split(';')[0].trim();
-  return normalized.startsWith('text/') || SUPPORTED_TEXT_MIME_TYPES.includes(normalized);
-};
 
 const mapThinkingLevelToOpenAIReasoningEffort = (level: ThinkingLevel | undefined): string => {
   switch (level) {
