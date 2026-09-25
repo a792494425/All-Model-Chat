@@ -116,8 +116,8 @@ const MediaNavPanelComponent: React.FC = () => {
   }, [entries, activeFileId, openKind]);
   const isPdfActive = activeEntry ? activeEntry.kind === 'pdf' : openKind === 'pdf' || openKind === null;
 
-  const startResizing = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
+  const startResizing = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
     setIsResizing(true);
     isResizingRef.current = true;
   }, []);
@@ -189,15 +189,15 @@ const MediaNavPanelComponent: React.FC = () => {
             tabIndex={0}
             onMouseDown={startResizing}
             onDoubleClick={resetWidth}
-            onKeyDown={(e) => {
-              if (e.key === 'ArrowLeft') {
-                e.preventDefault();
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowLeft') {
+                event.preventDefault();
                 setWidth(Math.min(width + 20, Math.round(window.innerWidth * 0.9)));
-              } else if (e.key === 'ArrowRight') {
-                e.preventDefault();
+              } else if (event.key === 'ArrowRight') {
+                event.preventDefault();
                 setWidth(Math.max(width - 20, 320));
-              } else if (e.key === 'Home') {
-                e.preventDefault();
+              } else if (event.key === 'Home') {
+                event.preventDefault();
                 resetWidth();
               }
             }}
@@ -218,12 +218,14 @@ const MediaNavPanelComponent: React.FC = () => {
             {entries.length > 1 && (
               <select
                 value={activeEntry?.file.id ?? ''}
-                onChange={(e) => {
-                  const entry = entries.find((candidate) => candidate.file.id === e.target.value);
+                onChange={(event) => {
+                  const entry = entries.find((candidate) => candidate.file.id === event.target.value);
                   if (entry) {
                     setActiveFile(entry.file.id);
                     useMediaNavStore.setState({ openKind: entry.kind });
-                    setCurrentChatSettings((prev) => applyMediaNavKindToSettings(prev, entry.kind));
+                    setCurrentChatSettings((previousSettings) =>
+                      applyMediaNavKindToSettings(previousSettings, entry.kind),
+                    );
                   }
                 }}
                 aria-label={t('mediaNavPanelTitle')}
@@ -279,7 +281,7 @@ const MediaNavPanelComponent: React.FC = () => {
 
           <button
             type="button"
-            onMouseDown={(e) => e.preventDefault()}
+            onMouseDown={(event) => event.preventDefault()}
             onClick={handleClose}
             className={`p-2 text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] rounded-lg transition-colors flex-shrink-0 ${FOCUS_VISIBLE_RING_PRIMARY_OFFSET_CLASS}`}
             aria-label={t('close')}

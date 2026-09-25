@@ -216,9 +216,9 @@ export const ToolsMenu: React.FC<ToolsMenuProps> = ({
               align="start"
               sideOffset={8}
               className="w-60 max-h-[75vh] overflow-y-auto custom-scrollbar py-1.5 shadow-premium"
-              onCloseAutoFocus={(e) => {
+              onCloseAutoFocus={(event) => {
                 if (isItemActionTriggeredRef.current) {
-                  e.preventDefault();
+                  event.preventDefault();
                   isItemActionTriggeredRef.current = false;
                 }
               }}

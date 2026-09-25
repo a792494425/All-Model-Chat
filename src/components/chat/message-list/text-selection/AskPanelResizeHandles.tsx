@@ -4,7 +4,7 @@ import type { PanelSize, ResizeDir } from './useAskPanelFloating';
 export interface AskPanelResizeHandlesProps {
   position: { top: number; left: number };
   size: PanelSize;
-  handleResizePointerDown: (dir: ResizeDir) => (e: React.PointerEvent) => void;
+  handleResizePointerDown: (direction: ResizeDir) => (event: React.PointerEvent) => void;
   handleResetSize: () => void;
   t: (key: string) => string;
 }

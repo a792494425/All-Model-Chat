@@ -90,9 +90,9 @@ export const ImageMinimap: React.FC<ImageMinimapProps> = ({
         draggable={false}
       />
 
-      {highlights.map((hl, idx) => {
-        const box = hl.box2d;
-        const pt = hl.point;
+      {highlights.map((highlight, highlightIndex) => {
+        const box = highlight.box2d;
+        const pt = highlight.point;
         if (!box && !pt) return null;
 
         let dotX = 50;
@@ -107,7 +107,7 @@ export const ImageMinimap: React.FC<ImageMinimapProps> = ({
 
         return (
           <div
-            key={`dot-${idx}-${dotX}-${dotY}`}
+            key={`dot-${highlightIndex}-${dotX}-${dotY}`}
             data-testid="image-minimap-dot"
             className="absolute -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_4px_rgba(239,68,68,0.9)] pointer-events-none"
             style={{ left: `${dotX}%`, top: `${dotY}%` }}

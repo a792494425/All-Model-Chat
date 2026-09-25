@@ -90,15 +90,16 @@ const SlashCommandMenuComponent: React.FC<SlashCommandMenuProps> = ({
       return;
     }
     const isMac = isMacPlatform();
-    const check = (e: KeyboardEvent) => setIsAssistivePressed(isMac ? e.metaKey : e.ctrlKey);
-    const clear = () => setIsAssistivePressed(false);
-    window.addEventListener('keydown', check);
-    window.addEventListener('keyup', check);
-    window.addEventListener('blur', clear);
+    const updateAssistiveModifierState = (event: KeyboardEvent) =>
+      setIsAssistivePressed(isMac ? event.metaKey : event.ctrlKey);
+    const clearAssistiveModifierState = () => setIsAssistivePressed(false);
+    window.addEventListener('keydown', updateAssistiveModifierState);
+    window.addEventListener('keyup', updateAssistiveModifierState);
+    window.addEventListener('blur', clearAssistiveModifierState);
     return () => {
-      window.removeEventListener('keydown', check);
-      window.removeEventListener('keyup', check);
-      window.removeEventListener('blur', clear);
+      window.removeEventListener('keydown', updateAssistiveModifierState);
+      window.removeEventListener('keyup', updateAssistiveModifierState);
+      window.removeEventListener('blur', clearAssistiveModifierState);
     };
   }, [isOpen]);
 

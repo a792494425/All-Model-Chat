@@ -19,11 +19,11 @@ const parseNumericValues = (raw: string | number[]): number[] => {
         if (typeof val === 'string') {
           const stringValue = (val as string).trim();
           if (stringValue.endsWith('%')) {
-            const num = Number.parseFloat(stringValue.slice(0, -1));
-            return Number.isFinite(num) ? num * 10 : null;
+            const parsedPercent = Number.parseFloat(stringValue.slice(0, -1));
+            return Number.isFinite(parsedPercent) ? parsedPercent * 10 : null;
           }
-          const num = Number.parseFloat(stringValue);
-          return Number.isFinite(num) ? num : null;
+          const parsedCoordinate = Number.parseFloat(stringValue);
+          return Number.isFinite(parsedCoordinate) ? parsedCoordinate : null;
         }
         return null;
       })

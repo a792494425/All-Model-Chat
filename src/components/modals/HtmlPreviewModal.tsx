@@ -196,20 +196,20 @@ export const HtmlPreviewModal: React.FC<HtmlPreviewModalProps> = ({
               </div>
             </div>
             <div className="p-3 max-h-60 overflow-y-auto custom-scrollbar flex flex-col gap-2">
-              {diagnostics.map((diag, idx) => (
-                <div key={idx} className="p-2 rounded bg-white/5 border border-white/5 text-[11px] leading-relaxed">
-                  <div className="text-rose-400 font-bold">{diag.message || diag.type}</div>
-                  {diag.blockedURI && (
-                    <div className="text-neutral-400 truncate mt-0.5 font-mono">Blocked: {diag.blockedURI}</div>
+              {diagnostics.map((diagnostic, index) => (
+                <div key={index} className="p-2 rounded bg-white/5 border border-white/5 text-[11px] leading-relaxed">
+                  <div className="text-rose-400 font-bold">{diagnostic.message || diagnostic.type}</div>
+                  {diagnostic.blockedURI && (
+                    <div className="text-neutral-400 truncate mt-0.5 font-mono">Blocked: {diagnostic.blockedURI}</div>
                   )}
-                  {diag.source && (
+                  {diagnostic.source && (
                     <div className="text-neutral-400 truncate mt-0.5">
-                      {diag.source}
-                      {diag.line !== undefined ? `:${diag.line}` : ''}
-                      {diag.column !== undefined ? `:${diag.column}` : ''}
+                      {diagnostic.source}
+                      {diagnostic.line !== undefined ? `:${diagnostic.line}` : ''}
+                      {diagnostic.column !== undefined ? `:${diagnostic.column}` : ''}
                     </div>
                   )}
-                  {diag.url && <div className="text-neutral-400 truncate mt-0.5">URL: {diag.url}</div>}
+                  {diagnostic.url && <div className="text-neutral-400 truncate mt-0.5">URL: {diagnostic.url}</div>}
                 </div>
               ))}
             </div>

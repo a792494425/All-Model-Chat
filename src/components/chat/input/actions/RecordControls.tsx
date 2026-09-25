@@ -18,9 +18,9 @@ export const RecordControls: React.FC = () => {
       {isRecording && (
         <button
           type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
             onCancelRecording();
           }}
           className="px-3 py-1.5 text-xs sm:text-sm bg-transparent hover:bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] rounded-md transition-colors"

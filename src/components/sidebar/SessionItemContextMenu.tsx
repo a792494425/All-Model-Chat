@@ -48,9 +48,9 @@ export const SessionItemContextMenu: React.FC<SessionItemContextMenuProps> = ({
   return (
     <ContextMenuContent
       className="w-52 p-1.5"
-      onCloseAutoFocus={(e) => {
+      onCloseAutoFocus={(event) => {
         if (isStartingEditRef.current) {
-          e.preventDefault();
+          event.preventDefault();
           isStartingEditRef.current = false;
         }
       }}

@@ -150,7 +150,7 @@ export const ShortcutsSection: React.FC<ShortcutsSectionProps> = ({
             <input
               type="search"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={t('shortcutsSearchPlaceholder')}
               autoComplete="off"
               spellCheck={false}

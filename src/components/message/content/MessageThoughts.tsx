@@ -90,9 +90,9 @@ export const MessageThoughts: React.FC<MessageThoughtsProps> = ({
 
   if (!areThoughtsVisible) return null;
 
-  const handleTranslateThoughts = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleTranslateThoughts = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
 
     if (isShowingTranslation) {
       setIsShowingTranslation(false);

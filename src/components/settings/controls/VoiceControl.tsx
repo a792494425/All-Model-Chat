@@ -42,7 +42,7 @@ export const VoiceControl: React.FC<VoiceControlProps> = ({
             </span>
           }
           value={transcriptionModelId}
-          onChange={(e) => setTranscriptionModelId(e.target.value)}
+          onChange={(event) => setTranscriptionModelId(event.target.value)}
         >
           {AVAILABLE_TRANSCRIPTION_MODELS.map((model) => (
             <option key={model.id} value={model.id}>
@@ -58,7 +58,7 @@ export const VoiceControl: React.FC<VoiceControlProps> = ({
             layout="horizontal"
             labelContent={<span className="flex items-center">{t('settingsTtsVoice')}</span>}
             value={ttsVoice}
-            onChange={(e) => setTtsVoice(e.target.value)}
+            onChange={(event) => setTtsVoice(event.target.value)}
           >
             {AVAILABLE_TTS_VOICES.map((voice) => (
               <option key={voice.id} value={voice.id}>

@@ -51,7 +51,7 @@ export const AutoTitleCard: React.FC<AutoTitleCardProps> = ({ currentSettings, o
               label={t('settingsAutoTitleLengthLabel')}
               hideLabel
               value={currentSettings.autoTitleLength ?? 'standard'}
-              onChange={(e) => onUpdateSetting('autoTitleLength', e.target.value as AutoTitleLength)}
+              onChange={(event) => onUpdateSetting('autoTitleLength', event.target.value as AutoTitleLength)}
             >
               <option value="concise">{t('settingsAutoTitleLengthConcise')}</option>
               <option value="standard">{t('settingsAutoTitleLengthStandard')}</option>
@@ -70,7 +70,7 @@ export const AutoTitleCard: React.FC<AutoTitleCardProps> = ({ currentSettings, o
               id="auto-title-custom-prompt"
               type="text"
               value={currentSettings.autoTitleCustomPrompt ?? ''}
-              onChange={(e) => onUpdateSetting('autoTitleCustomPrompt', e.target.value)}
+              onChange={(event) => onUpdateSetting('autoTitleCustomPrompt', event.target.value)}
               placeholder={t('settingsAutoTitleCustomPromptPlaceholder')}
               className={`w-full p-2.5 border rounded-lg transition-all duration-200 focus:ring-2 focus:ring-offset-0 text-sm ${SETTINGS_INPUT_CLASS}`}
             />

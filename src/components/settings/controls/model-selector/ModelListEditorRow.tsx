@@ -36,14 +36,14 @@ export const ModelListEditorRow: React.FC<ModelListEditorRowProps> = ({
         <input
           type="text"
           value={model.id}
-          onChange={(e) => onUpdate(index, 'id', e.target.value)}
+          onChange={(event) => onUpdate(index, 'id', event.target.value)}
           placeholder={t('settingsModelIdPlaceholder')}
           className="flex-1 min-w-0 bg-[var(--theme-bg-primary)] border border-[var(--theme-border-secondary)] rounded px-2 py-1.5 text-xs text-[var(--theme-text-primary)] focus:border-[var(--theme-border-focus)] outline-none font-mono"
         />
         <input
           type="text"
           value={model.name}
-          onChange={(e) => onUpdate(index, 'name', e.target.value)}
+          onChange={(event) => onUpdate(index, 'name', event.target.value)}
           placeholder={t('settingsModelNamePlaceholder')}
           className="flex-1 min-w-0 bg-[var(--theme-bg-primary)] border border-[var(--theme-border-secondary)] rounded px-2 py-1.5 text-xs text-[var(--theme-text-primary)] focus:border-[var(--theme-border-focus)] outline-none"
         />

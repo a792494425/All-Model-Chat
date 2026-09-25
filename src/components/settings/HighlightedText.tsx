@@ -3,7 +3,7 @@ import React from 'react';
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const getTerms = (query: string): string[] =>
-  Array.from(new Set(query.trim().split(/\s+/).filter(Boolean))).sort((a, b) => b.length - a.length);
+  Array.from(new Set(query.trim().split(/\s+/).filter(Boolean))).sort((termA, termB) => termB.length - termA.length);
 
 interface HighlightedTextProps {
   text: string;

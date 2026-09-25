@@ -11,8 +11,8 @@ export const InlineCode = ({ className, children, inline: _inline, ...props }: I
   const { t } = useI18n();
   const { isCopied, copyToClipboard } = useCopyToClipboard(1500);
 
-  const handleCopy = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCopy = (event: React.MouseEvent) => {
+    event.stopPropagation();
     const text = String(children).trim();
     if (!text) return;
     copyToClipboard(text);

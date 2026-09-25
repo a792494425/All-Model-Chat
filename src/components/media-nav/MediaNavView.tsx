@@ -331,7 +331,7 @@ const MediaNavViewComponent: React.FC<MediaNavViewProps> = ({ file, kind }) => {
                       <button
                         key={marker.id}
                         type="button"
-                        onMouseDown={(e) => e.preventDefault()}
+                        onMouseDown={(event) => event.preventDefault()}
                         onClick={() => {
                           if (audioRef.current) {
                             audioRef.current.currentTime = Math.max(0, marker.time);

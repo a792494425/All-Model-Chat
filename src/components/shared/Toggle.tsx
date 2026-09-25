@@ -30,9 +30,9 @@ export const Toggle: React.FC<{
     <label
       htmlFor={id}
       className={`inline-flex items-center ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-      onClick={(e) => {
-        if (e.target !== e.currentTarget && (e.target as HTMLElement).tagName !== 'INPUT') {
-          e.preventDefault();
+      onClick={(event) => {
+        if (event.target !== event.currentTarget && (event.target as HTMLElement).tagName !== 'INPUT') {
+          event.preventDefault();
         }
       }}
     >
@@ -42,7 +42,7 @@ export const Toggle: React.FC<{
         role="switch"
         className="sr-only peer"
         checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
+        onChange={(event) => onChange(event.target.checked)}
         disabled={disabled}
         aria-label={ariaLabel}
         aria-checked={checked}

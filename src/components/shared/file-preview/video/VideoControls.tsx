@@ -124,8 +124,8 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
                 >
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={(event) => {
+                      event.stopPropagation();
                       onSeek(marker.time);
                     }}
                     className={`w-2.5 h-2.5 rounded-full border border-white/90 shadow-[0_0_6px_rgba(251,191,36,0.9)] cursor-pointer transition-all hover:scale-150 active:scale-110 flex items-center justify-center ${
@@ -153,8 +153,8 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
           onPointerUp={() => {
             isScrubbingRef.current = false;
           }}
-          onChange={(e) => {
-            onSeek(Number.parseFloat(e.target.value));
+          onChange={(event) => {
+            onSeek(Number.parseFloat(event.target.value));
           }}
           className="relative z-20 w-full h-1 group-hover/timeline:h-1.5 appearance-none bg-transparent outline-none cursor-pointer accent-white transition-all"
           aria-label={t('videoSeekTimeline')}

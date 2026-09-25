@@ -33,7 +33,7 @@ export const ProviderListSearchAndFilter: React.FC<ProviderListSearchAndFilterPr
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(event) => setSearch(event.target.value)}
           placeholder={t('thirdPartySearchPlaceholder')}
           className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-primary)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-secondary)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--theme-border-focus)] transition-colors"
         />

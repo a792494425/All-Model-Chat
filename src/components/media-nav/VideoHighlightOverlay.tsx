@@ -151,8 +151,8 @@ export const VideoHighlightOverlay: React.FC<VideoHighlightOverlayProps> = ({
               {onClose && (
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.stopPropagation();
                     onClose();
                   }}
                   className="ml-1 p-0.5 rounded text-white/50 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"

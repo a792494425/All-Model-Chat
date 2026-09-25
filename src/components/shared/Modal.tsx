@@ -205,9 +205,9 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, targetDocument]);
 
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
     // Only close if the click is on the backdrop itself, not on any of its children
-    if (e.target === e.currentTarget) {
+    if (event.target === event.currentTarget) {
       onClose();
     }
   };
@@ -231,7 +231,7 @@ export const Modal: React.FC<ModalProps> = ({
         aria-labelledby={ariaLabelledBy}
         tabIndex={-1}
         className={`${contentClassName} ${isOpen ? enterAnimationClassName : exitAnimationClassName}`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
       >
         {children}
       </div>

@@ -80,7 +80,7 @@ export const searchSettingsCatalog = (
   return catalog
     .map((entry) => ({ entry, tier: entryMatchTier(entry, terms, resolveText) }))
     .filter((match): match is { entry: SettingsSearchEntry; tier: number } => match.tier !== null)
-    .sort((a, b) => a.tier - b.tier)
+    .sort((matchA, matchB) => matchA.tier - matchB.tier)
     .map(({ entry }) => ({
       ...entry,
       label: resolveText(entry.labelKey),

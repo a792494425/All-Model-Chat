@@ -99,14 +99,14 @@ export const useSettingsLogic = ({
     }
   }, [activeTab, activeTabScrollTop, isOpen]);
 
-  const handleContentScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  const handleContentScroll = (event: React.UIEvent<HTMLDivElement>) => {
     // Skip saving while an anchor scroll animates: writing the intermediate
     // position re-triggers the restore effect, whose scrollTop write cancels
     // the smooth scrollIntoView before it reaches the target row.
     if (Date.now() < anchorScrollLockUntilRef.current) {
       return;
     }
-    setScrollPosition(activeTab, e.currentTarget.scrollTop);
+    setScrollPosition(activeTab, event.currentTarget.scrollTop);
   };
 
   const handleResetToDefaults = () => {

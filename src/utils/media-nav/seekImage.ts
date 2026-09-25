@@ -66,27 +66,27 @@ export const seekSessionImage = (params: SeekSessionImageParams): boolean => {
     if (targetMessage?.content) {
       const { imageLocates } = parseLocateMarkers(targetMessage.content);
       const matchingLocates = imageLocates.filter(
-        (loc) => !loc.imageName || loc.imageName === target.name || loc.imageName === fileName,
+        (locate) => !locate.imageName || locate.imageName === target.name || locate.imageName === fileName,
       );
 
       if (matchingLocates.length > 1) {
         let hasActive = false;
-        matchingLocates.forEach((loc, idx) => {
+        matchingLocates.forEach((locate, locateIndex) => {
           const isSelected =
             !hasActive &&
             Boolean(
-              (label && loc.label === label) ||
-              (snippet && loc.snippet === snippet) ||
-              (box2d && loc.box2d && box2d[0] === loc.box2d[0] && box2d[1] === loc.box2d[1]) ||
-              (point && loc.point && point[0] === loc.point[0] && point[1] === loc.point[1]),
+              (label && locate.label === label) ||
+              (snippet && locate.snippet === snippet) ||
+              (box2d && locate.box2d && box2d[0] === locate.box2d[0] && box2d[1] === locate.box2d[1]) ||
+              (point && locate.point && point[0] === locate.point[0] && point[1] === locate.point[1]),
             );
 
           if (isSelected) hasActive = true;
 
           allHighlights.push(
-            toImageNavHighlight(loc, {
+            toImageNavHighlight(locate, {
               messageId: params.messageId,
-              index: idx + 1,
+              index: locateIndex + 1,
               total: matchingLocates.length,
               isActive: isSelected,
               focusToken: isSelected ? ++focusTokenCounter : 0,

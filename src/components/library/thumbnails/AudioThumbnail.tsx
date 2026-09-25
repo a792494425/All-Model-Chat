@@ -51,9 +51,9 @@ export const AudioThumbnail: React.FC<AudioThumbnailProps> = ({
           <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-px bg-neutral-200/80 dark:bg-neutral-800 pointer-events-none" />
 
           <div className="flex items-center justify-center gap-[3px] h-20 w-full max-w-[260px] px-2 overflow-hidden z-10">
-            {bars.slice(0, 36).map((height, i) => (
+            {bars.slice(0, 36).map((height, barIndex) => (
               <span
-                key={i}
+                key={barIndex}
                 className="w-[3px] rounded-full bg-neutral-400/80 dark:bg-neutral-500/80 group-hover/audio:bg-neutral-800 dark:group-hover/audio:bg-neutral-200 transition-all duration-200 shrink-0"
                 style={{
                   height: `${Math.max(12, Math.round(height * 100))}%`,
@@ -81,9 +81,9 @@ export const AudioThumbnail: React.FC<AudioThumbnailProps> = ({
           <Music size={14} className="text-neutral-600 dark:text-neutral-400" />
         </div>
         <div className="flex items-center justify-center gap-[2px] h-5 w-full overflow-hidden">
-          {bars.slice(0, 10).map((height, i) => (
+          {bars.slice(0, 10).map((height, barIndex) => (
             <span
-              key={i}
+              key={barIndex}
               className="w-[2px] rounded-full bg-neutral-400 dark:bg-neutral-500"
               style={{ height: `${Math.max(20, Math.round(height * 100))}%` }}
             />

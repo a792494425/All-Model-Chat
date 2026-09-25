@@ -20,9 +20,9 @@ export interface SidebarItemContextValue {
   onRegenerateTitleSession?: (sessionId: string) => void;
   handleStartEdit: (item: SavedChatSession) => void;
   handleRenameConfirm: () => void;
-  handleRenameKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  handleRenameKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   setEditingItem: (item: { type: 'session' | 'group'; id: string; title: string } | null) => void;
-  toggleMenu: (e: React.MouseEvent, id: string) => void;
+  toggleMenu: (event: React.MouseEvent, id: string) => void;
   setActiveMenu: (id: string | null) => void;
   setDragOverId: (id: string | null) => void;
   draggingSessionId: string | null;

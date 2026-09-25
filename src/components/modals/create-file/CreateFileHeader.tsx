@@ -99,7 +99,7 @@ export const CreateFileHeader: React.FC<CreateFileHeaderProps> = ({
         <input
           type="text"
           value={filenameBase}
-          onChange={(e) => setFilenameBase(e.target.value)}
+          onChange={(event) => setFilenameBase(event.target.value)}
           onKeyDown={onSaveKeyDown}
           placeholder={filenamePlaceholder}
           className="w-full h-9 px-3 bg-[var(--theme-bg-input)] border border-[var(--theme-border-secondary)] rounded-lg focus:ring-2 focus:ring-[var(--theme-border-focus)] focus:border-transparent text-[var(--theme-text-primary)] placeholder-[var(--theme-text-tertiary)] outline-none transition-all text-sm font-medium"
@@ -128,7 +128,7 @@ export const CreateFileHeader: React.FC<CreateFileHeaderProps> = ({
         <div className="relative flex-shrink-0">
           <select
             value={extension}
-            onChange={(e) => setExtension(e.target.value)}
+            onChange={(event) => setExtension(event.target.value)}
             className="h-9 pl-3 pr-8 bg-[var(--theme-bg-input)] border border-[var(--theme-border-secondary)] rounded-lg focus:ring-2 focus:ring-[var(--theme-border-focus)] focus:border-transparent text-[var(--theme-text-primary)] outline-none transition-all text-sm font-mono cursor-pointer appearance-none"
             aria-label={t('createTextFileExtensionAria')}
           >

@@ -77,7 +77,7 @@ export const CloudFilesErrorState: React.FC<CloudFilesErrorStateProps> = ({
             </span>
             <button
               type="button"
-              onClick={(e) => onCopyId(fetchError, e)}
+              onClick={(event) => onCopyId(fetchError, event)}
               title={t('cloudFilesCopyId')}
               className="text-[var(--theme-text-tertiary)] hover:text-blue-500 p-1 cursor-pointer"
             >

@@ -56,7 +56,7 @@ export const ResolutionConfig: React.FC<ResolutionConfigProps> = ({
         label={t('fileSettingsResolution')}
         layout="vertical"
         value={mediaResolution}
-        onChange={(e) => setMediaResolution(e.target.value as MediaResolution)}
+        onChange={(event) => setMediaResolution(event.target.value as MediaResolution)}
         labelContent={
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-2">

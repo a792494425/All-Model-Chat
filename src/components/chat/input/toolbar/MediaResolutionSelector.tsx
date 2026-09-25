@@ -31,7 +31,7 @@ export const MediaResolutionSelector: React.FC<MediaResolutionSelectorProps> = (
       label={t('settingsMediaResolution')}
       hideLabel
       value={mediaResolution}
-      onChange={(e) => setMediaResolution(e.target.value as MediaResolution)}
+      onChange={(event) => setMediaResolution(event.target.value as MediaResolution)}
       className="mb-0"
       wrapperClassName="relative min-w-[180px] w-auto"
       direction="up"

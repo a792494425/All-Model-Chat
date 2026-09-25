@@ -317,19 +317,19 @@ const ThinkingSpeedControlUI: React.FC<{
                   max={supportedLevels.length - 1}
                   step={1}
                   value={displayIndex}
-                  onChange={(e) => onLevelChange(parseInt(e.target.value, 10))}
+                  onChange={(event) => onLevelChange(parseInt(event.target.value, 10))}
                   className="w-full h-8 accent-[var(--theme-bg-accent)] cursor-pointer [&::-webkit-slider-runnable-track]:h-2.5 [&::-webkit-slider-runnable-track]:bg-[var(--theme-bg-tertiary)] [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:shadow-inner [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[var(--theme-border-secondary)] [&::-webkit-slider-thumb]:bg-[var(--theme-bg-primary)] [&::-webkit-slider-thumb]:shadow-sm appearance-none bg-transparent"
                   aria-label={intensityText}
                 />
                 <div className="pointer-events-none absolute inset-x-3 top-1/2 z-10 h-0">
-                  {supportedLevels.map((lvl, idx) =>
-                    idx === displayIndex ? null : (
+                  {supportedLevels.map((level, levelIndex) =>
+                    levelIndex === displayIndex ? null : (
                       <span
-                        key={lvl}
+                        key={level}
                         data-slot="composer-effort-step"
                         className="absolute size-1 rounded-full bg-[var(--theme-bg-primary)] -translate-x-1/2 -translate-y-1/2"
                         style={{
-                          left: `${(idx / (supportedLevels.length - 1)) * 100}%`,
+                          left: `${(levelIndex / (supportedLevels.length - 1)) * 100}%`,
                         }}
                       />
                     ),

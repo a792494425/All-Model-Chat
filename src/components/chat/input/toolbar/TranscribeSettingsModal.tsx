@@ -191,7 +191,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
             <textarea
               id="transcribe-instruction"
               value={draftInstruction}
-              onChange={(e) => setDraftInstruction(e.target.value)}
+              onChange={(event) => setDraftInstruction(event.target.value)}
               rows={3}
               className={`w-full p-2.5 border rounded-lg text-xs leading-relaxed min-h-[72px] resize-none ${SETTINGS_INPUT_CLASS} bg-[var(--theme-bg-input)]`}
               placeholder={t('transcribeSystemInstructionPlaceholder')}
@@ -209,7 +209,7 @@ export const TranscribeSettingsModal: React.FC<TranscribeSettingsModalProps> = (
             <textarea
               id="transcribe-vocab"
               value={draftVocabulary}
-              onChange={(e) => setDraftVocabulary(e.target.value)}
+              onChange={(event) => setDraftVocabulary(event.target.value)}
               rows={2}
               className={`w-full p-2.5 border rounded-lg text-xs leading-relaxed min-h-[64px] resize-none ${SETTINGS_INPUT_CLASS} bg-[var(--theme-bg-input)]`}
               placeholder={t('transcribeCustomVocabularyPlaceholder')}

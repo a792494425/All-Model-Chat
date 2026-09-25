@@ -7,8 +7,8 @@ interface ThinkingActionsProps {
   isShowingTranslation: boolean;
   isTranslatingThoughts: boolean;
   isCopied: boolean;
-  onTranslate: (e: React.MouseEvent) => void;
-  onCopy: (e: React.MouseEvent) => void;
+  onTranslate: (event: React.MouseEvent) => void;
+  onCopy: (event: React.MouseEvent) => void;
 }
 
 export const ThinkingActions: React.FC<ThinkingActionsProps> = ({

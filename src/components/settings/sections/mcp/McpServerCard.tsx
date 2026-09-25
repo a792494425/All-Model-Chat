@@ -427,7 +427,7 @@ export const McpServerCard: React.FC<McpServerCardProps> = ({
               className="flex items-center gap-2 pt-1 cursor-pointer select-none"
               onClick={() => onUpdateServer({ longRunning: server.longRunning ? undefined : true })}
             >
-              <div onClick={(e) => e.stopPropagation()}>
+              <div onClick={(event) => event.stopPropagation()}>
                 <Toggle
                   checked={Boolean(server.longRunning)}
                   onChange={(isChecked) => onUpdateServer({ longRunning: isChecked || undefined })}

@@ -124,7 +124,7 @@ export const FilePreviewHeader = React.forwardRef<FilePreviewHeaderHandle, FileP
               <input
                 type="text"
                 value={editedName}
-                onChange={(e) => onNameChange(e.target.value)}
+                onChange={(event) => onNameChange(event.target.value)}
                 className="bg-white/10 border border-white/20 rounded px-2 py-0.5 text-xs sm:text-sm font-medium text-white/95 focus:border-white/50 focus:bg-white/15 outline-none w-full"
                 placeholder={t('filePreviewFilenamePlaceholder')}
                 autoFocus

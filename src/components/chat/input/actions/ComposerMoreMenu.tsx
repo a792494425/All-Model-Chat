@@ -40,9 +40,9 @@ export const ComposerMoreMenu: React.FC<{ actions: ComposerAuxiliaryAction[]; di
           side="top"
           align="start"
           sideOffset={8}
-          onCloseAutoFocus={(e) => {
+          onCloseAutoFocus={(event) => {
             if (isItemActionTriggeredRef.current) {
-              e.preventDefault();
+              event.preventDefault();
               isItemActionTriggeredRef.current = false;
             }
           }}

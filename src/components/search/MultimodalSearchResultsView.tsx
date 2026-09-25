@@ -76,20 +76,20 @@ export const MultimodalSearchResultsView: React.FC<MultimodalSearchResultsViewPr
       <div className="flex-1 overflow-y-auto p-6">
         {isSearching ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+            {[1, 2, 3, 4, 5, 6].map((skeletonIndex) => (
               <div
-                key={i}
+                key={skeletonIndex}
                 className="h-56 rounded-2xl bg-[var(--theme-bg-secondary)] animate-pulse border border-[var(--theme-border-primary)]"
               />
             ))}
           </div>
         ) : results.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {results.map((res) => (
+            {results.map((result) => (
               <MultimodalSearchResultCard
-                key={res.item.id}
-                result={res}
-                isSelected={selectedResultIds.has(res.item.id)}
+                key={result.item.id}
+                result={result}
+                isSelected={selectedResultIds.has(result.item.id)}
                 isInserting={isInserting}
                 onToggleSelect={onToggleSelect}
                 onInsertSingleItem={onInsertSingleItem}

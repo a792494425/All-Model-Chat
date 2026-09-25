@@ -53,7 +53,7 @@ export const ProviderAddModelForm: React.FC<ProviderAddModelFormProps> = ({ isOp
         <input
           type="text"
           value={newModelId}
-          onChange={(e) => setNewModelId(e.target.value)}
+          onChange={(event) => setNewModelId(event.target.value)}
           placeholder={t('thirdPartyCustomModelIdPlaceholder') || 'Model ID (e.g. gpt-4o)'}
           className={`p-2 rounded-lg border text-xs font-mono ${SETTINGS_INPUT_CLASS}`}
           autoFocus
@@ -61,7 +61,7 @@ export const ProviderAddModelForm: React.FC<ProviderAddModelFormProps> = ({ isOp
         <input
           type="text"
           value={newModelName}
-          onChange={(e) => setNewModelName(e.target.value)}
+          onChange={(event) => setNewModelName(event.target.value)}
           placeholder={t('thirdPartyCustomModelNamePlaceholder') || 'Display Name (optional)'}
           className={`p-2 rounded-lg border text-xs ${SETTINGS_INPUT_CLASS}`}
         />

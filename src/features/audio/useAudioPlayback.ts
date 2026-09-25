@@ -95,8 +95,8 @@ export const useAudioPlayback = (options: UseAudioPlaybackOptions = {}): UseAudi
   );
 
   const handleSeek = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const targetTime = Number(e.target.value);
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const targetTime = Number(event.target.value);
       seekTo(targetTime);
     },
     [seekTo],

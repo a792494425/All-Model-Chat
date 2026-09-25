@@ -29,9 +29,9 @@ export const ScenarioMessageInput: React.FC<ScenarioMessageInputProps> = ({
 
   if (readOnly) return null;
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (isShortcutPressed(e, 'global.saveConfirm', appSettings)) {
-      e.preventDefault();
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (isShortcutPressed(event, 'global.saveConfirm', appSettings)) {
+      event.preventDefault();
       onAdd();
     }
   };
@@ -62,7 +62,7 @@ export const ScenarioMessageInput: React.FC<ScenarioMessageInputProps> = ({
         <textarea
           ref={inputRef}
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(event) => setContent(event.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={t('scenariosEditorContentPlaceholder')}
           className="w-full p-4 pr-14 bg-[var(--theme-bg-input)] border border-[var(--theme-border-secondary)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--theme-border-focus)] focus:border-transparent text-sm text-[var(--theme-text-primary)] placeholder-[var(--theme-text-tertiary)] resize-none transition-colors"

@@ -89,7 +89,9 @@ export const useMcpSectionLogic = ({ settings, onUpdate }: UseMcpSectionLogicPro
   }, [serverIdsKey]); // eslint-disable-line react-hooks/exhaustive-deps -- realign only when the server id set changes
 
   const filtered = servers.filter((server) => matchesFilter(filter, server) && matchKeywords(deferredSearch, server));
-  const filteredAndSorted = [...filtered].sort((a, b) => sortOrder.indexOf(a.id) - sortOrder.indexOf(b.id));
+  const filteredAndSorted = [...filtered].sort(
+    (serverA, serverB) => sortOrder.indexOf(serverA.id) - sortOrder.indexOf(serverB.id),
+  );
 
   const disabledVirtualServerIds = useVirtualMcpStore((state) => state.disabledServerIds);
   const setVirtualServerEnabled = useVirtualMcpStore((state) => state.setServerEnabled);

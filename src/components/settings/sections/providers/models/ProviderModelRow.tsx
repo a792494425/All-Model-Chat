@@ -88,8 +88,8 @@ export const ProviderModelRow: React.FC<ProviderModelRowProps> = ({
       >
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={(event) => {
+            event.stopPropagation();
             onToggleSelect(model.id);
           }}
           className={`p-0.5 rounded cursor-pointer transition-all flex-shrink-0 ${

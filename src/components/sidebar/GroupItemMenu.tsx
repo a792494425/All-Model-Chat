@@ -28,7 +28,7 @@ export const GroupItemMenu: React.FC<GroupItemMenuProps> = ({
       align="end"
       sideOffset={4}
       className="w-48 p-1"
-      onClick={(e) => e.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
     >
       <DropdownMenuItem onClick={onNewChat} className="rounded-lg">
         <MessageSquarePlus size={14} className="text-[var(--theme-text-secondary)] shrink-0" />

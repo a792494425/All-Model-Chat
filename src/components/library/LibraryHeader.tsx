@@ -28,10 +28,10 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({ onUploadFiles, onC
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      onUploadFiles(Array.from(e.target.files));
-      e.target.value = '';
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      onUploadFiles(Array.from(event.target.files));
+      event.target.value = '';
       setIsNewDropdownOpen(false);
     }
   };

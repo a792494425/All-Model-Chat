@@ -90,7 +90,7 @@ export const InlineTimestampSeekButton: React.FC<InlineTimestampSeekButtonProps>
       : currentPlayTime >= startSeconds - 0.5 && currentPlayTime <= startSeconds + 2.5),
   );
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (event: React.MouseEvent) => {
     // If user is selecting text (e.g. dragging mouse or double-clicking to copy),
     // prevent accidental media seek jump.
     const selection = window.getSelection();
@@ -98,8 +98,8 @@ export const InlineTimestampSeekButton: React.FC<InlineTimestampSeekButtonProps>
       return;
     }
 
-    e.preventDefault();
-    e.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
 
     if (isAudio) {
       seekSessionAudio({
@@ -122,8 +122,8 @@ export const InlineTimestampSeekButton: React.FC<InlineTimestampSeekButtonProps>
     focusChatInput(0, { caret: 'end', retries: 4 });
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleMouseDown = (event: React.MouseEvent) => {
+    event.preventDefault();
   };
 
   const labelText = extractTextFromNode(children);

@@ -52,7 +52,7 @@ export const ThemeLanguageSelector: React.FC<{
           label={t('settingsTheme')}
           hideLabel
           value={settings.themeId}
-          onChange={(e) => onUpdate('themeId', e.target.value as AppSettings['themeId'])}
+          onChange={(event) => onUpdate('themeId', event.target.value as AppSettings['themeId'])}
           wrapperClassName="w-44"
         >
           {themeOptions.map((option) => (
@@ -73,7 +73,7 @@ export const ThemeLanguageSelector: React.FC<{
           label={t('settingsLanguage')}
           hideLabel
           value={settings.language}
-          onChange={(e) => onUpdate('language', e.target.value as AppSettings['language'])}
+          onChange={(event) => onUpdate('language', event.target.value as AppSettings['language'])}
           wrapperClassName="w-44"
         >
           <option value="system">{t('settingsLanguageSystem')}</option>

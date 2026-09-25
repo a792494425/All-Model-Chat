@@ -30,8 +30,8 @@ export const PdfHighlightOverlay: React.FC<PdfHighlightOverlayProps> = ({
 
   const { top, left, width, height, isPoint } = coords;
 
-  const handleClose = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClose = (event: React.MouseEvent) => {
+    event.stopPropagation();
     if (onClose) {
       onClose();
     } else {

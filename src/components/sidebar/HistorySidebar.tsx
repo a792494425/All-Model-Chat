@@ -326,9 +326,9 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
               <div
                 ref={listParentRef}
                 onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, 'all-conversations')}
-                onDragEnter={(e) => {
-                  if (!isSessionDrag(e)) return;
+                onDrop={(event) => handleDrop(event, 'all-conversations')}
+                onDragEnter={(event) => {
+                  if (!isSessionDrag(event)) return;
                   setDragOverId('all-conversations');
                 }}
                 onDragLeave={handleMainDragLeave}

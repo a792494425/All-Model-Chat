@@ -63,8 +63,8 @@ export const ServerAccessPasswordInput: React.FC<ServerAccessPasswordInputProps>
           data-testid="server-access-password-input"
           type={showPassword ? 'text' : 'password'}
           value={serverAccessPassword || ''}
-          onChange={(e) => {
-            onUpdate(e.target.value || null);
+          onChange={(event) => {
+            onUpdate(event.target.value || null);
             setVerifyStatus('idle');
             setErrorMessage(null);
           }}

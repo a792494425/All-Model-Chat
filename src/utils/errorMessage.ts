@@ -7,14 +7,14 @@ export const getErrorMessage = (error: unknown, fallbackMessage?: string): strin
   if (error === undefined || error === null) {
     return fallbackMessage ?? '';
   }
-  const str = String(error);
-  return str || (fallbackMessage ?? '');
+  const errorString = String(error);
+  return errorString || (fallbackMessage ?? '');
 };
 
 export const toError = (error: unknown, fallbackMessage?: string): Error => {
   if (error instanceof Error) return error;
-  const str = error === undefined || error === null ? '' : String(error);
-  return new Error(str || fallbackMessage || 'Unknown error');
+  const errorString = error === undefined || error === null ? '' : String(error);
+  return new Error(errorString || fallbackMessage || 'Unknown error');
 };
 
 /**

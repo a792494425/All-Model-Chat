@@ -40,7 +40,7 @@ export function useVideoHotkeys({
   useEffect(() => {
     if (!enabled) return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       const activeEl = document.activeElement;
       const isInputFocused =
         activeEl instanceof HTMLInputElement ||
@@ -53,61 +53,61 @@ export function useVideoHotkeys({
         containerRef.current === activeEl || (containerRef.current && containerRef.current.contains(activeEl));
       if (!isContainerFocused) return;
 
-      const key = e.key.toLowerCase();
+      const key = event.key.toLowerCase();
 
-      if (e.key === ' ' || e.code === 'Space' || key === 'k') {
-        e.preventDefault();
+      if (event.key === ' ' || event.code === 'Space' || key === 'k') {
+        event.preventDefault();
         wakeControls();
         onTogglePlay();
-      } else if (e.key === 'ArrowLeft' || key === 'j') {
-        e.preventDefault();
+      } else if (event.key === 'ArrowLeft' || key === 'j') {
+        event.preventDefault();
         wakeControls();
-        if (e.shiftKey) {
+        if (event.shiftKey) {
           onStepFrame('back');
         } else {
           const delta = key === 'j' ? 10 : 5;
           const video = videoRef.current;
-          const cur = video?.currentTime ?? currentTime;
-          onSeek(Math.max(0, cur - delta), isPlaying, true);
+          const currentVideoTime = video?.currentTime ?? currentTime;
+          onSeek(Math.max(0, currentVideoTime - delta), isPlaying, true);
         }
-      } else if (e.key === 'ArrowRight' || key === 'l') {
-        e.preventDefault();
+      } else if (event.key === 'ArrowRight' || key === 'l') {
+        event.preventDefault();
         wakeControls();
-        if (e.shiftKey) {
+        if (event.shiftKey) {
           onStepFrame('forward');
         } else {
           const delta = key === 'l' ? 10 : 5;
           const video = videoRef.current;
-          const cur = video?.currentTime ?? currentTime;
-          const dur = Number.isFinite(video?.duration) && video!.duration > 0 ? video!.duration : duration;
-          onSeek(Math.min(dur, cur + delta), isPlaying, true);
+          const currentVideoTime = video?.currentTime ?? currentTime;
+          const videoDuration = Number.isFinite(video?.duration) && video!.duration > 0 ? video!.duration : duration;
+          onSeek(Math.min(videoDuration, currentVideoTime + delta), isPlaying, true);
         }
-      } else if (e.key === ',' || e.key === '<') {
-        e.preventDefault();
+      } else if (event.key === ',' || event.key === '<') {
+        event.preventDefault();
         wakeControls();
         onStepFrame('back');
-      } else if (e.key === '.' || e.key === '>') {
-        e.preventDefault();
+      } else if (event.key === '.' || event.key === '>') {
+        event.preventDefault();
         wakeControls();
         onStepFrame('forward');
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
         wakeControls();
-        const nextVol = Math.min(1, Math.round((volume + 0.1) * 10) / 10);
-        onVolumeChange(nextVol);
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
+        const nextVolume = Math.min(1, Math.round((volume + 0.1) * 10) / 10);
+        onVolumeChange(nextVolume);
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
         wakeControls();
-        const nextVol = Math.max(0, Math.round((volume - 0.1) * 10) / 10);
-        onVolumeChange(nextVol);
+        const nextVolume = Math.max(0, Math.round((volume - 0.1) * 10) / 10);
+        onVolumeChange(nextVolume);
       } else if (key === 'f') {
-        e.preventDefault();
+        event.preventDefault();
         onToggleFullscreen();
       } else if (key === 'm') {
-        e.preventDefault();
+        event.preventDefault();
         onToggleMute();
       } else if (key === 'p' && onTogglePictureInPicture) {
-        e.preventDefault();
+        event.preventDefault();
         onTogglePictureInPicture();
       }
     };

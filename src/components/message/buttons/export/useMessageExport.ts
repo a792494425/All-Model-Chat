@@ -100,7 +100,7 @@ export const useMessageExport = ({ message, sessionTitle, messageIndex, themeId 
               exportFailed: (message) => formatI18nErrorMessage(t, 'exportFailedWithMessage', message),
             },
           });
-          if (didExport === false) {
+          if (!didExport) {
             return;
           }
         } else {

@@ -305,7 +305,7 @@ async function processImportFiles(
     }
   }
 
-  fileContents.sort((a, b) => compareFilePaths(a.path, b.path));
+  fileContents.sort((fileA, fileB) => compareFilePaths(fileA.path, fileB.path));
 
   let rootNameForDisplay = 'Project';
   if (roots.length === 1 && roots[0].isDirectory) {

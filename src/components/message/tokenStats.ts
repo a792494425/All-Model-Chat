@@ -17,19 +17,19 @@ export interface MessageTokenStatsView {
   hasAnyTokens: boolean;
 }
 
-const num = (value: unknown): number => (typeof value === 'number' && Number.isFinite(value) ? value : 0);
+const toSafeTokenCount = (value: unknown): number => (typeof value === 'number' && Number.isFinite(value) ? value : 0);
 
 export const buildMessageTokenStatsView = (message: ChatMessage): MessageTokenStatsView => {
-  const promptTokens = num(message.promptTokens);
-  const cachedPromptTokens = num(message.cachedPromptTokens);
+  const promptTokens = toSafeTokenCount(message.promptTokens);
+  const cachedPromptTokens = toSafeTokenCount(message.cachedPromptTokens);
   const uncachedInputTokens = Math.max(promptTokens - cachedPromptTokens, 0);
-  const toolUsePromptTokens = num(message.toolUsePromptTokens);
-  const thoughtTokens = num(message.thoughtTokens);
-  const completionTokens = num(message.completionTokens);
-  const storedTotal = num(message.totalTokens);
+  const toolUsePromptTokens = toSafeTokenCount(message.toolUsePromptTokens);
+  const thoughtTokens = toSafeTokenCount(message.thoughtTokens);
+  const completionTokens = toSafeTokenCount(message.completionTokens);
+  const storedTotal = toSafeTokenCount(message.totalTokens);
   const summedTotal = uncachedInputTokens + cachedPromptTokens + toolUsePromptTokens + thoughtTokens + completionTokens;
   const totalTokens = storedTotal > 0 ? storedTotal : summedTotal;
-  const cumulative = num(message.cumulativeTotalTokens);
+  const cumulative = toSafeTokenCount(message.cumulativeTotalTokens);
 
   return {
     promptTokens,

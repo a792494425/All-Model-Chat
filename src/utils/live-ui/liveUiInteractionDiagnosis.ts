@@ -101,10 +101,10 @@ const tryCoerceNumberValue = (
   }
   // String "3" → number 3 (repair)
   if (typeof value === 'string') {
-    const num = Number(value);
-    if (!Number.isFinite(num)) return null;
-    if (type === 'integer' && !Number.isInteger(num)) return null;
-    return { value: num, repair: 'coerced' };
+    const parsedNumber = Number(value);
+    if (!Number.isFinite(parsedNumber)) return null;
+    if (type === 'integer' && !Number.isInteger(parsedNumber)) return null;
+    return { value: parsedNumber, repair: 'coerced' };
   }
   return null;
 };
@@ -477,9 +477,9 @@ export const diagnoseLiveArtifactInteraction = (content: string): LiveArtifactIn
               normalized.default = rawDefault;
             }
           } else if (typeof rawDefault === 'string') {
-            const num = Number(rawDefault);
-            if (Number.isFinite(num) && !(scalarType === 'integer' && !Number.isInteger(num))) {
-              normalized.default = scalarType === 'integer' ? Math.round(num) : num;
+            const parsedNumber = Number(rawDefault);
+            if (Number.isFinite(parsedNumber) && !(scalarType === 'integer' && !Number.isInteger(parsedNumber))) {
+              normalized.default = scalarType === 'integer' ? Math.round(parsedNumber) : parsedNumber;
               addError(
                 repairs,
                 'DEFAULT_TYPE_MISMATCH',

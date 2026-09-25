@@ -158,30 +158,30 @@ export const useAppUi = () => {
     return () => window.removeEventListener('popstate', handleHomeRoutePopState);
   }, [setIsHistorySidebarOpenTransient]);
 
-  const handleTouchStart = useCallback((e: TouchEvent) => {
+  const handleTouchStart = useCallback((event: TouchEvent) => {
     if (window.innerWidth >= DESKTOP_BREAKPOINT_PX) {
       return;
     }
 
-    const firstTouch = e.touches[0];
+    const firstTouch = event.touches[0];
     if (firstTouch) {
       touchStartRef.current = {
         x: firstTouch.clientX,
         y: firstTouch.clientY,
         time: Date.now(),
-        startedInSidebar: isSidebarElement(e.target),
-        isIgnoredElement: isInteractiveFormElement(e.target),
+        startedInSidebar: isSidebarElement(event.target),
+        isIgnoredElement: isInteractiveFormElement(event.target),
       };
     }
   }, []);
 
   const handleTouchEnd = useCallback(
-    (e: TouchEvent) => {
+    (event: TouchEvent) => {
       if (window.innerWidth >= DESKTOP_BREAKPOINT_PX) {
         return;
       }
 
-      const lastTouch = e.changedTouches[0];
+      const lastTouch = event.changedTouches[0];
       if (!lastTouch || touchStartRef.current.isIgnoredElement) return;
 
       const deltaX = lastTouch.clientX - touchStartRef.current.x;

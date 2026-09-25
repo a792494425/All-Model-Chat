@@ -71,7 +71,7 @@ export const ApiProxySettings: React.FC<ApiProxySettingsProps> = ({
             id="api-proxy-url-input"
             type="text"
             value={apiProxyUrl || ''}
-            onChange={(e) => setApiProxyUrl(e.target.value)}
+            onChange={(event) => setApiProxyUrl(event.target.value)}
             className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS}`}
             placeholder={`e.g., ${DEFAULT_GEMINI_PROXY_URL}`}
             aria-label={t('settingsApiProxyUrlAria')}

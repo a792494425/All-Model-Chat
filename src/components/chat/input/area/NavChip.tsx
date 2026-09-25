@@ -49,9 +49,9 @@ const NavChipComponent: React.FC<NavChipProps> = ({
   return (
     <button
       type="button"
-      onMouseDown={(e) => {
+      onMouseDown={(event) => {
         // Prevent button from stealing focus from the chat input
-        e.preventDefault();
+        event.preventDefault();
       }}
       onClick={() => {
         onToggle();

@@ -225,7 +225,7 @@ export const generateOpenAIResponsesTurnApi = async (
 
   const toolCalls: FunctionCall[] = (payload.output ?? [])
     .filter((item) => item.type === 'function_call')
-    .map((item, idx) => {
+    .map((item, callIndex) => {
       let parsedArgs: Record<string, unknown> = {};
       if (item.arguments) {
         try {
@@ -238,7 +238,7 @@ export const generateOpenAIResponsesTurnApi = async (
         }
       }
       return {
-        id: item.call_id || item.id || `call_${idx}`,
+        id: item.call_id || item.id || `call_${callIndex}`,
         name: item.name || '',
         args: parsedArgs,
       };
@@ -406,7 +406,7 @@ export const generateOpenAIResponsesTurnStreamApi = async (
   if (completedResponse?.output && Array.isArray(completedResponse.output)) {
     toolCalls = completedResponse.output
       .filter((item) => item.type === 'function_call')
-      .map((item, idx) => {
+      .map((item, callIndex) => {
         let parsedArgs: Record<string, unknown> = {};
         if (item.arguments) {
           try {
@@ -419,13 +419,13 @@ export const generateOpenAIResponsesTurnStreamApi = async (
           }
         }
         return {
-          id: item.call_id || item.id || `call_${idx}`,
+          id: item.call_id || item.id || `call_${callIndex}`,
           name: item.name || '',
           args: parsedArgs,
         };
       });
   } else {
-    toolCalls = Object.values(streamFunctionCalls).map((item, idx) => {
+    toolCalls = Object.values(streamFunctionCalls).map((item, callIndex) => {
       let parsedArgs: Record<string, unknown> = {};
       if (item.arguments) {
         try {
@@ -435,7 +435,7 @@ export const generateOpenAIResponsesTurnStreamApi = async (
         }
       }
       return {
-        id: item.call_id || `call_${idx}`,
+        id: item.call_id || `call_${callIndex}`,
         name: item.name || '',
         args: parsedArgs,
       };

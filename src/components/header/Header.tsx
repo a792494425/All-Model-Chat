@@ -139,9 +139,9 @@ export const Header: React.FC<HeaderProps> = ({
 
         <a
           href={newChatHref}
-          onClick={(e) => {
-            if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-              e.preventDefault();
+          onClick={(event) => {
+            if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+              event.preventDefault();
               onNewChat();
             }
           }}

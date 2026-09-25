@@ -47,8 +47,8 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
           id={inputId}
           rows={rows}
           value={apiKey || ''}
-          onChange={(e) => {
-            setApiKey(e.target.value || null);
+          onChange={(event) => {
+            setApiKey(event.target.value || null);
           }}
           onFocus={() => {
             setIsFocused(true);

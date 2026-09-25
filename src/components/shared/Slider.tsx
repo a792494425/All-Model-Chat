@@ -45,9 +45,9 @@ export const Slider: React.FC<SliderProps> = ({
         value={safeValue}
         disabled={disabled}
         onChange={(event) => {
-          const num = parseFloat(event.target.value);
-          if (!Number.isNaN(num)) {
-            onChange(num);
+          const parsedValue = parseFloat(event.target.value);
+          if (!Number.isNaN(parsedValue)) {
+            onChange(parsedValue);
           }
         }}
         tabIndex={-1}

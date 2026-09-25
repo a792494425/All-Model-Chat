@@ -66,7 +66,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, commands 
               type="search"
               placeholder={t('helpModalSearchPlaceholder')}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(event) => setSearchQuery(event.target.value)}
               autoFocus
               autoComplete="off"
               spellCheck={false}

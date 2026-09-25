@@ -45,7 +45,7 @@ export function usePdfHotkeys({
       container.addEventListener('mouseleave', handleMouseLeave);
     }
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       const activeEl = document.activeElement;
       const isInputFocused =
         activeEl instanceof HTMLInputElement ||
@@ -61,36 +61,36 @@ export function usePdfHotkeys({
       if (!isContainerFocused) return;
 
       // Do not block system browser shortcuts when Ctrl / Meta / Alt is held
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
 
-      const key = e.key.toLowerCase();
+      const key = event.key.toLowerCase();
 
-      if (e.key === 'ArrowLeft' || e.key === 'PageUp' || key === 'k') {
-        e.preventDefault();
+      if (event.key === 'ArrowLeft' || event.key === 'PageUp' || key === 'k') {
+        event.preventDefault();
         onPrevPage();
-      } else if (e.key === 'ArrowRight' || e.key === 'PageDown' || key === 'j') {
-        e.preventDefault();
+      } else if (event.key === 'ArrowRight' || event.key === 'PageDown' || key === 'j') {
+        event.preventDefault();
         onNextPage();
-      } else if (e.key === 'Home') {
-        e.preventDefault();
+      } else if (event.key === 'Home') {
+        event.preventDefault();
         onFirstPage();
-      } else if (e.key === 'End') {
-        e.preventDefault();
+      } else if (event.key === 'End') {
+        event.preventDefault();
         onLastPage();
-      } else if (e.key === '+' || e.key === '=') {
-        e.preventDefault();
+      } else if (event.key === '+' || event.key === '=') {
+        event.preventDefault();
         onZoomIn();
-      } else if (e.key === '-' || e.key === '_') {
-        e.preventDefault();
+      } else if (event.key === '-' || event.key === '_') {
+        event.preventDefault();
         onZoomOut();
       } else if (key === 'r') {
-        e.preventDefault();
+        event.preventDefault();
         onRotate();
       } else if (key === 'w' && onFitToWidth) {
-        e.preventDefault();
+        event.preventDefault();
         onFitToWidth();
       } else if (key === 't' && onToggleSidebar) {
-        e.preventDefault();
+        event.preventDefault();
         onToggleSidebar();
       }
     };

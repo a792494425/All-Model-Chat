@@ -64,7 +64,7 @@ export const LanguageDirectionSelector: React.FC = () => {
               <input
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(event) => setQuery(event.target.value)}
                 placeholder={t('search')}
                 className="flex-1 bg-transparent text-xs text-[var(--theme-text-primary)] outline-none placeholder:text-[var(--theme-text-tertiary)]"
                 autoFocus

@@ -139,8 +139,8 @@ const buildOpenAICompatibleMessages = (
   for (const item of history) {
     const functionCalls = item.parts
       .filter((part) => Boolean(part.functionCall))
-      .map((part, idx) => ({
-        id: part.functionCall?.id || `call_${idx}`,
+      .map((part, callIndex) => ({
+        id: part.functionCall?.id || `call_${callIndex}`,
         type: 'function' as const,
         function: {
           name: part.functionCall?.name || '',
@@ -165,8 +165,8 @@ const buildOpenAICompatibleMessages = (
     }
 
     if (functionResponses.length > 0) {
-      for (let idx = 0; idx < functionResponses.length; idx++) {
-        const resp = functionResponses[idx].functionResponse!;
+      for (let responseIndex = 0; responseIndex < functionResponses.length; responseIndex++) {
+        const resp = functionResponses[responseIndex].functionResponse!;
         const rawContent = resp.response;
         const contentStr =
           typeof rawContent === 'string'
@@ -176,7 +176,7 @@ const buildOpenAICompatibleMessages = (
               : JSON.stringify(rawContent ?? {});
         messages.push({
           role: 'tool',
-          tool_call_id: resp.id || `call_${idx}`,
+          tool_call_id: resp.id || `call_${responseIndex}`,
           content: contentStr,
         });
       }
@@ -196,8 +196,8 @@ const buildOpenAICompatibleMessages = (
 
   const currentFunctionCalls = parts
     .filter((part) => Boolean(part.functionCall))
-    .map((part, idx) => ({
-      id: part.functionCall?.id || `call_${idx}`,
+    .map((part, callIndex) => ({
+      id: part.functionCall?.id || `call_${callIndex}`,
       type: 'function' as const,
       function: {
         name: part.functionCall?.name || '',

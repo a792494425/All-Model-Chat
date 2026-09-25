@@ -94,33 +94,33 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
   // drag. Native HTML5 drag has a ~5px threshold, so a 6px wiggle triggers
   // dragstart/end but never fires click. Treat such a micro-drag as a click so
   // the session still activates, without disturbing real drag-to-group.
-  const isMicroDrag = (e: React.DragEvent<HTMLAnchorElement>) => {
+  const isMicroDrag = (event: React.DragEvent<HTMLAnchorElement>) => {
     const start = dragStartRef.current;
     if (!start) return false;
-    return Math.hypot(e.clientX - start.x, e.clientY - start.y) < 10 && e.timeStamp - start.t < 500;
+    return Math.hypot(event.clientX - start.x, event.clientY - start.y) < 10 && event.timeStamp - start.t < 500;
   };
 
   // During a double-click the second press-and-release is also a micro-drag
   // (same spot, < 500ms). Recognising it by timestamp lets the dblclick reach
   // the title (browser skips dblclick once a drag fires) and keeps the second
   // release from activating the session on top of the rename.
-  const isDoubleClickDrag = (e: React.DragEvent<HTMLAnchorElement>) => {
+  const isDoubleClickDrag = (event: React.MouseEvent<HTMLAnchorElement> | React.DragEvent<HTMLAnchorElement>) => {
     const start = dragStartRef.current;
     if (!start) return false;
-    return e.timeStamp - start.t < 500 && start.x === e.clientX && start.y === e.clientY;
+    return event.timeStamp - start.t < 500 && start.x === event.clientX && start.y === event.clientY;
   };
 
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
     setIsRightClickAnimating(true);
     setTimeout(() => setIsRightClickAnimating(false), RIGHT_CLICK_MENU_FEEDBACK_MS);
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLAnchorElement>) => {
-    dragStartRef.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
-    e.dataTransfer.setData(SESSION_DRAG_TYPE, session.id);
-    e.dataTransfer.setData('text/plain', session.id);
-    e.dataTransfer.effectAllowed = 'move';
+  const handleDragStart = (event: React.DragEvent<HTMLAnchorElement>) => {
+    dragStartRef.current = { x: event.clientX, y: event.clientY, t: event.timeStamp };
+    event.dataTransfer.setData(SESSION_DRAG_TYPE, session.id);
+    event.dataTransfer.setData('text/plain', session.id);
+    event.dataTransfer.effectAllowed = 'move';
     onSessionDragStart(session.id);
 
     // Cherry-style overlay: subtle border + stronger shadow so ghost floats above recessed buckets.
@@ -137,36 +137,36 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
     ghost.appendChild(label);
     document.body.appendChild(ghost);
 
-    e.dataTransfer.setDragImage(ghost, 12, 12);
+    event.dataTransfer.setDragImage(ghost, 12, 12);
 
     // A drop landing outside the app never fires onDragEnd, so schedule the
     // removal here regardless.
     window.setTimeout(() => ghost.remove(), 0);
   };
 
-  const handleDragEnd = (e: React.DragEvent<HTMLAnchorElement>) => {
-    if (isDoubleClickDrag(e)) {
+  const handleDragEnd = (event: React.DragEvent<HTMLAnchorElement>) => {
+    if (isDoubleClickDrag(event)) {
       // 双击的第二下被浏览器当成拖拽，点击已被吞掉 —— 此处不放行选中，
       // 让 dblclick 专心进入重命名。
       dragStartRef.current = null;
-    } else if (isMicroDrag(e)) {
+    } else if (isMicroDrag(event)) {
       dragStartRef.current = null;
       onSelectSession(session.id);
     }
     onSessionDragEnd();
   };
 
-  const handleItemDrop = (e: React.DragEvent) => {
+  const handleItemDrop = (event: React.DragEvent) => {
     onSessionDropIndicatorClear?.();
-    if (!isSessionDrag(e)) return;
-    e.preventDefault();
-    e.stopPropagation();
+    if (!isSessionDrag(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
     // drop 就是这次拖拽的终点。浏览器不保证随后一定派发 dragend（源节点已被卸载时就不会），
     // 所以在这里主动收尾，别把“被拖动”的变暗样式留给下一次刷新去清。
     onSessionDragEnd();
-    const draggedId = e.dataTransfer.getData(SESSION_DRAG_TYPE) || e.dataTransfer.getData('text/plain');
+    const draggedId = event.dataTransfer.getData(SESSION_DRAG_TYPE) || event.dataTransfer.getData('text/plain');
     if (!draggedId || draggedId === session.id) return;
-    onReorderSession?.(draggedId, session.id, resolveDropPosition(e));
+    onReorderSession?.(draggedId, session.id, resolveDropPosition(event));
   };
 
   const showBefore = dropIndicator?.id === session.id && dropIndicator.position === 'before';
@@ -230,7 +230,7 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
               <InlineRenameInput
                 editInputRef={editInputRef}
                 title={editingItem.title}
-                onTitleChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                onTitleChange={(event) => setEditingItem({ ...editingItem, title: event.target.value })}
                 onBlur={handleRenameConfirm}
                 onKeyDown={handleRenameKeyDown}
                 className="flex-grow bg-transparent border border-[var(--theme-border-focus)] rounded-md px-1 py-0 text-sm w-full"
@@ -241,25 +241,25 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
                 draggable={!disableNativeDrag}
                 onDragStart={disableNativeDrag ? undefined : handleDragStart}
                 onDragEnd={disableNativeDrag ? undefined : handleDragEnd}
-                onClick={(e) => {
-                  if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-                    e.preventDefault();
-                    if (e.detail > 1) {
+                onClick={(event) => {
+                  if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+                    event.preventDefault();
+                    if (event.detail > 1) {
                       // 双击的第二下：只进 onDoubleClick（重命名），不再重复选中。
                       return;
                     }
                     // 双击第一下会先触发一次 micro-drag，click 被吞掉；这里不能把它
                     // 当成普通单击放行，否则双击后会话仍被选中一次。跳过它，让第二下
                     // 的 dblclick 专心处理。
-                    if (isDoubleClickDrag(e as React.DragEvent<HTMLAnchorElement>)) {
+                    if (isDoubleClickDrag(event)) {
                       return;
                     }
                     onSelectSession(session.id);
                   }
                 }}
-                onDoubleClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                onDoubleClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
                   handleStartEdit(session);
                 }}
                 className="flex w-full min-w-0 items-center pr-8 no-underline text-inherit"

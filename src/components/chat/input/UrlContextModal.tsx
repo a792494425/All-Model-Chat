@@ -98,7 +98,7 @@ export const UrlContextModal: React.FC<UrlContextModalProps> = ({
             <textarea
               rows={4}
               value={rawInput}
-              onChange={(e) => setRawInput(e.target.value)}
+              onChange={(event) => setRawInput(event.target.value)}
               placeholder={t('urlContextInputPlaceholder')}
               className="w-full text-xs font-mono rounded-xl border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-secondary)] p-3 text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)] focus:border-[var(--theme-border-focus)] focus:outline-none transition-colors resize-y min-h-[90px]"
             />
@@ -123,7 +123,7 @@ export const UrlContextModal: React.FC<UrlContextModalProps> = ({
               </div>
 
               <div className="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar pr-0.5">
-                {items.map((item, idx) => {
+                {items.map((item, index) => {
                   const favicon = item.normalizedUrl ? getFavicon(item.normalizedUrl) : null;
                   const display = formatUrlDisplay(item.normalizedUrl || item.raw);
 
@@ -138,7 +138,7 @@ export const UrlContextModal: React.FC<UrlContextModalProps> = ({
 
                   return (
                     <div
-                      key={`url-item-${idx}`}
+                      key={`url-item-${index}`}
                       className={`flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg border text-xs transition-colors ${
                         item.isValid
                           ? 'bg-[var(--theme-bg-tertiary)]/20 border-[var(--theme-border-secondary)]/30'

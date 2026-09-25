@@ -191,7 +191,7 @@ export const GoogleMapsLocationModal: React.FC<GoogleMapsLocationModalProps> = (
               <input
                 type="text"
                 value={draftName}
-                onChange={(e) => setDraftName(e.target.value)}
+                onChange={(event) => setDraftName(event.target.value)}
                 placeholder={t('mapsLocationPlaceholder')}
                 className={SETTINGS_INPUT_CLASS}
               />
@@ -208,7 +208,7 @@ export const GoogleMapsLocationModal: React.FC<GoogleMapsLocationModalProps> = (
                   min="-90"
                   max="90"
                   value={draftLat}
-                  onChange={(e) => setDraftLat(e.target.value)}
+                  onChange={(event) => setDraftLat(event.target.value)}
                   placeholder="39.9042"
                   className={SETTINGS_INPUT_CLASS}
                 />
@@ -223,7 +223,7 @@ export const GoogleMapsLocationModal: React.FC<GoogleMapsLocationModalProps> = (
                   min="-180"
                   max="180"
                   value={draftLng}
-                  onChange={(e) => setDraftLng(e.target.value)}
+                  onChange={(event) => setDraftLng(event.target.value)}
                   placeholder="116.4074"
                   className={SETTINGS_INPUT_CLASS}
                 />
@@ -236,7 +236,7 @@ export const GoogleMapsLocationModal: React.FC<GoogleMapsLocationModalProps> = (
               <input
                 type="checkbox"
                 checked={setAsDefault}
-                onChange={(e) => setSetAsDefault(e.target.checked)}
+                onChange={(event) => setSetAsDefault(event.target.checked)}
                 className="rounded border-[var(--theme-border-secondary)] text-[var(--theme-bg-accent)] focus:ring-0"
               />
               <span>{t('mapsLocationSetDefault')}</span>

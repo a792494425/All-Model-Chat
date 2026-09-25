@@ -75,18 +75,18 @@ export const InlineImageLocateButton: React.FC<InlineImageLocateButtonProps> = (
     ),
   );
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleMouseDown = (event: React.MouseEvent) => {
+    event.preventDefault();
   };
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (event: React.MouseEvent) => {
     const selection = window.getSelection();
     if (selection && !selection.isCollapsed && selection.toString().trim().length > 0) {
       return;
     }
 
-    e.preventDefault();
-    e.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
     seekSessionImage({
       fileName: fileName ?? imageName,
       box2d,

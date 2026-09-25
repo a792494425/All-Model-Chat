@@ -9,8 +9,8 @@ export interface AskPanelInputProps {
   question: string;
   isLoading: boolean;
   hasAnswer: boolean;
-  handleTextareaInput: (e: React.ChangeEvent<HTMLTextAreaElement> | React.FormEvent<HTMLTextAreaElement>) => void;
-  handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  handleTextareaInput: (event: React.ChangeEvent<HTMLTextAreaElement> | React.FormEvent<HTMLTextAreaElement>) => void;
+  handleKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   handleQuick: (type: 'explain' | 'translate' | 'summarize') => void;
   handleSubmit: () => void;
   cancel: () => void;

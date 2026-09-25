@@ -44,9 +44,11 @@ export const TextSnippetThumbnail: React.FC<TextSnippetThumbnailProps> = ({
         </div>
 
         <div className="p-2.5 sm:p-3 flex-1 overflow-hidden flex flex-col justify-start gap-1 font-mono text-[10px] leading-[1.55]">
-          {textLines.map((line, idx) => (
-            <div key={idx} className="flex items-start gap-2 min-w-0">
-              <span className="text-white/20 select-none text-[9px] w-3 text-right shrink-0 pt-0.5">{idx + 1}</span>
+          {textLines.map((line, lineIndex) => (
+            <div key={lineIndex} className="flex items-start gap-2 min-w-0">
+              <span className="text-white/20 select-none text-[9px] w-3 text-right shrink-0 pt-0.5">
+                {lineIndex + 1}
+              </span>
               <span className="truncate flex-1 text-white/85 font-mono">
                 {renderHighlightedCodeLine(line, displayExt)}
               </span>
@@ -67,8 +69,8 @@ export const TextSnippetThumbnail: React.FC<TextSnippetThumbnailProps> = ({
         className={`relative ${textSnippetSizeClasses} overflow-hidden bg-[#181825] text-[#cdd6f4] flex-shrink-0 flex flex-col justify-between p-2 border border-[var(--theme-border-secondary)] font-mono select-none ${containerClassName}`}
       >
         <div className="flex flex-col gap-0.5 overflow-hidden text-[8px] leading-[1.3] text-white/70">
-          {textLines.slice(0, 3).map((line, idx) => (
-            <div key={idx} className="truncate">
+          {textLines.slice(0, 3).map((line, lineIndex) => (
+            <div key={lineIndex} className="truncate">
               {line.trim() || ' '}
             </div>
           ))}

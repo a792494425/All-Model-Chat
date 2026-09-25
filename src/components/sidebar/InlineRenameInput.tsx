@@ -30,7 +30,7 @@ export const InlineRenameInput: React.FC<InlineRenameInputProps> = ({
     type="text"
     value={title}
     onChange={onTitleChange}
-    onFocus={(e) => e.currentTarget.select()}
+    onFocus={(event) => event.currentTarget.select()}
     onBlur={onBlur}
     onKeyDown={onKeyDown}
     onClick={onClick}

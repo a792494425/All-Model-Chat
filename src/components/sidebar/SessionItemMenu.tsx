@@ -53,10 +53,10 @@ export const SessionItemMenu: React.FC<SessionItemMenuProps> = ({
       align="end"
       sideOffset={4}
       className="w-52 p-1.5"
-      onClick={(e) => e.stopPropagation()}
-      onCloseAutoFocus={(e) => {
+      onClick={(event) => event.stopPropagation()}
+      onCloseAutoFocus={(event) => {
         if (isStartingEditRef.current) {
-          e.preventDefault();
+          event.preventDefault();
           isStartingEditRef.current = false;
         }
       }}

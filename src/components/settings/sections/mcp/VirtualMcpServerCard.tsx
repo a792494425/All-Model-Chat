@@ -192,7 +192,7 @@ export const VirtualMcpServerCard: React.FC<VirtualMcpServerCardProps> = ({
                 type="text"
                 placeholder={t('settingsMcpToolSearchPlaceholder')}
                 value={toolQuery}
-                onChange={(e) => setToolQuery(e.target.value)}
+                onChange={(event) => setToolQuery(event.target.value)}
                 className={`${MCP_INPUT_BASE_CLASSES} ${SETTINGS_INPUT_CLASS} max-w-xs text-xs py-1 px-2`}
               />
             </div>

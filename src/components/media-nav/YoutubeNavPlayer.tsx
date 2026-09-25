@@ -95,23 +95,23 @@ export const YoutubeNavPlayer: React.FC<YoutubeNavPlayerProps> = ({ file }) => {
 
   // Listen to postMessage infoDelivery events from YouTube iframe to track progress & loop segments
   useEffect(() => {
-    const handleMessage = (e: MessageEvent) => {
-      if (typeof e.data !== 'string') return;
+    const handleMessage = (event: MessageEvent) => {
+      if (typeof event.data !== 'string') return;
       try {
-        const data = JSON.parse(e.data);
+        const data = JSON.parse(event.data);
         if (data.event === 'onReady' && pendingSeekTargetRef.current) {
           const target = pendingSeekTargetRef.current;
           pendingSeekTargetRef.current = null;
           seekTo(target.seconds, true);
         }
         if (data.event === 'infoDelivery' && data.info) {
-          const curTime = data.info.currentTime;
-          if (typeof curTime === 'number') {
-            useMediaNavStore.getState().setCurrentPlayTime(curTime);
+          const currentTime = data.info.currentTime;
+          if (typeof currentTime === 'number') {
+            useMediaNavStore.getState().setCurrentPlayTime(currentTime);
 
             if (segmentRef.current) {
               const { start, end } = segmentRef.current;
-              if (curTime >= end) {
+              if (currentTime >= end) {
                 if (isSegmentLoopEnabledRef.current) {
                   seekTo(start, true);
                 } else {

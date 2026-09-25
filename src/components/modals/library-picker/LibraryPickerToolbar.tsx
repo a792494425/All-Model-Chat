@@ -83,7 +83,7 @@ export const LibraryPickerToolbar: React.FC<LibraryPickerToolbarProps> = ({
           ref={searchInputRef as React.Ref<HTMLInputElement>}
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(event) => setSearchQuery(event.target.value)}
           placeholder={t('librarySearchPlaceholder')}
           className="w-full pl-9 pr-8 py-1.5 text-xs sm:text-sm bg-[var(--theme-bg-secondary)] border border-[var(--theme-border-secondary)] rounded-xl text-[var(--theme-text-primary)] placeholder-[var(--theme-text-tertiary)] focus:outline-none focus:border-[var(--theme-border-focus)] focus:ring-1 focus:ring-[var(--theme-border-focus)] transition-colors"
         />

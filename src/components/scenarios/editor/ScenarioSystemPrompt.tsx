@@ -31,7 +31,7 @@ export const ScenarioSystemPrompt: React.FC<ScenarioSystemPromptProps> = ({ valu
       </div>
       <textarea
         value={value}
-        onChange={(e) => !readOnly && onChange(e.target.value)}
+        onChange={(event) => !readOnly && onChange(event.target.value)}
         placeholder={t('scenariosSystemPromptPlaceholder')}
         className="flex-grow w-full bg-transparent border-none outline-none p-4 text-sm text-[var(--theme-text-primary)] placeholder-[var(--theme-text-tertiary)] resize-none font-mono leading-relaxed custom-scrollbar focus:bg-[var(--theme-bg-input)]/50 transition-colors"
         readOnly={readOnly}

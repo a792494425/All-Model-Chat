@@ -191,7 +191,7 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
         }}
         role="dialog"
         aria-label={t('ask')}
-        onMouseDown={(e) => e.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
       >
         <AskPanelHeader
           isDragging={isDragging}

@@ -17,7 +17,7 @@ export const TtsVoiceSelector: React.FC<TtsVoiceSelectorProps> = ({ ttsVoice, se
       label={t('settingsTtsVoice')}
       hideLabel
       value={ttsVoice}
-      onChange={(e) => setTtsVoice(e.target.value)}
+      onChange={(event) => setTtsVoice(event.target.value)}
       className="mb-0"
       wrapperClassName="relative min-w-[160px] w-auto"
       direction="up"

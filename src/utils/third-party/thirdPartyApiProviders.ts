@@ -174,7 +174,7 @@ const shouldMigrateLegacyProvider = (
   if (!value) {
     return false;
   }
-  if (value.enabled === true) {
+  if (value.enabled) {
     return true;
   }
   if (typeof value.apiKey === 'string' && value.apiKey.trim()) {

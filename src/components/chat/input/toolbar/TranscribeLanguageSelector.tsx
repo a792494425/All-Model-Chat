@@ -38,7 +38,7 @@ export const TranscribeLanguageSelector: React.FC<TranscribeLanguageSelectorProp
       label={t('transcribePrimaryLanguage')}
       hideLabel
       value={normalizedLanguage}
-      onChange={(e) => setLanguage(e.target.value)}
+      onChange={(event) => setLanguage(event.target.value)}
       className="mb-0"
       wrapperClassName="relative w-full"
       direction="down"

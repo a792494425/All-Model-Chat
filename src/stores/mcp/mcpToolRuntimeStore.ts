@@ -79,7 +79,7 @@ export const appendMcpToolProgress = (runId: number | undefined, event: McpToolP
 const pruneOldestFinishedRuns = (runs: Record<number, McpToolRun>): Record<number, McpToolRun> => {
   const finished = Object.values(runs)
     .filter((run) => run.status !== 'running')
-    .sort((a, b) => (a.endedAt ?? 0) - (b.endedAt ?? 0));
+    .sort((runA, runB) => (runA.endedAt ?? 0) - (runB.endedAt ?? 0));
   const excess = finished.length - MAX_FINISHED_RUNS;
   if (excess <= 0) return runs;
   const nextRuns = { ...runs };

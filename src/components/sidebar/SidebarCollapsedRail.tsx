@@ -17,10 +17,10 @@ const MiniSidebarButton: React.FC<{
     return (
       <a
         href={href}
-        onClick={(e) => {
-          if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-            e.preventDefault();
-            e.stopPropagation();
+        onClick={(event) => {
+          if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+            event.preventDefault();
+            event.stopPropagation();
             onClick();
           }
         }}
@@ -34,8 +34,8 @@ const MiniSidebarButton: React.FC<{
   }
   return (
     <button
-      onClick={(e) => {
-        e.stopPropagation();
+      onClick={(event) => {
+        event.stopPropagation();
         onClick();
       }}
       className={[SIDEBAR_CLICKABLE_ICON_BUTTON_CLASS, className].filter(Boolean).join(' ')}

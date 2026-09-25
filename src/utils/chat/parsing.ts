@@ -126,9 +126,9 @@ export const parseThinkingSections = (thoughts: string | undefined): ThinkingSec
     sections.push({ title: null, body: preamble });
   }
 
-  matches.forEach((match, i) => {
+  matches.forEach((match, matchIndex) => {
     const bodyStart = match.index! + match[0].length;
-    const bodyEnd = i + 1 < matches.length ? matches[i + 1].index! : thoughts.length;
+    const bodyEnd = matchIndex + 1 < matches.length ? matches[matchIndex + 1].index! : thoughts.length;
     sections.push({ title: match[1].trim(), body: thoughts.slice(bodyStart, bodyEnd).trim() });
   });
 

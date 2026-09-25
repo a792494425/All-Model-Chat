@@ -173,10 +173,10 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
   // Column letters generator: A, B, C... Z, AA, AB...
   const getColLabel = (index: number) => {
     let label = '';
-    let num = index;
-    while (num >= 0) {
-      label = String.fromCharCode((num % 26) + 65) + label;
-      num = Math.floor(num / 26) - 1;
+    let columnNumber = index;
+    while (columnNumber >= 0) {
+      label = String.fromCharCode((columnNumber % 26) + 65) + label;
+      columnNumber = Math.floor(columnNumber / 26) - 1;
     }
     return label;
   };
@@ -369,7 +369,7 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={t('spreadsheetSearchPlaceholder')}
               className="pl-8 pr-7 py-1 text-xs rounded-lg border border-[var(--theme-border-secondary)] bg-[var(--theme-bg-input)] text-[var(--theme-text-primary)] placeholder-[var(--theme-text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-border-focus)] w-32 sm:w-48 transition-all"
             />

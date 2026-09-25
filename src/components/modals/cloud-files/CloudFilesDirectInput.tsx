@@ -28,7 +28,7 @@ export const CloudFilesDirectInput: React.FC<CloudFilesDirectInputProps> = ({
           <input
             type="text"
             value={directInputId}
-            onChange={(e) => setDirectInputId(e.target.value)}
+            onChange={(event) => setDirectInputId(event.target.value)}
             placeholder={t('cloudFilesInputPlaceholder')}
             className="w-full pl-3 pr-8 py-1.5 text-xs rounded-xl bg-[var(--theme-bg-secondary)] border border-[var(--theme-border-secondary)] text-[var(--theme-text-primary)] placeholder-[var(--theme-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all font-mono"
           />

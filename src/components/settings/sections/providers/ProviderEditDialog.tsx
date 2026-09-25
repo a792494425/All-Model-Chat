@@ -117,7 +117,7 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(event) => setName(event.target.value)}
               className={`w-full p-2.5 rounded-lg border text-sm ${SETTINGS_INPUT_CLASS}`}
               placeholder="e.g. OpenRouter, Muse, DeepSeek..."
             />
@@ -129,7 +129,7 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
             <input
               type="text"
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(event) => setNotes(event.target.value)}
               className={`w-full p-2.5 rounded-lg border text-sm ${SETTINGS_INPUT_CLASS}`}
               placeholder={t('thirdPartyConnectionNotesPlaceholder')}
             />
@@ -144,7 +144,7 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
             id="edit-provider-protocol"
             label={t('thirdPartyConnectionProtocol')}
             value={protocol}
-            onChange={(e) => setProtocol(e.target.value as ThirdPartyApiProtocol)}
+            onChange={(event) => setProtocol(event.target.value as ThirdPartyApiProtocol)}
           >
             <option value="openai-compatible">{t('thirdPartyProtocolOpenAI')}</option>
             <option value="openai-responses">{t('thirdPartyProtocolOpenAIResponses')}</option>
@@ -157,7 +157,7 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
             <input
               type="text"
               value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
+              onChange={(event) => setBaseUrl(event.target.value)}
               className={`w-full p-2.5 rounded-lg border font-mono text-xs ${SETTINGS_INPUT_CLASS}`}
               placeholder="https://api.openai.com/v1"
             />
@@ -207,9 +207,9 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
                           value={row.name}
                           placeholder={t('thirdPartyHeaderName')}
                           aria-invalid={!willBeForwarded}
-                          onChange={(e) => {
+                          onChange={(event) => {
                             const updated = [...headerRows];
-                            updated[index] = { ...updated[index], name: e.target.value };
+                            updated[index] = { ...updated[index], name: event.target.value };
                             setHeaderRows(updated);
                           }}
                           className={`flex-1 p-2 rounded-lg border text-xs font-mono ${SETTINGS_INPUT_CLASS}`}
@@ -218,9 +218,9 @@ export const ProviderEditDialog: React.FC<ProviderEditDialogProps> = ({
                           type="text"
                           value={row.value}
                           placeholder={t('thirdPartyHeaderValue')}
-                          onChange={(e) => {
+                          onChange={(event) => {
                             const updated = [...headerRows];
-                            updated[index] = { ...updated[index], value: e.target.value };
+                            updated[index] = { ...updated[index], value: event.target.value };
                             setHeaderRows(updated);
                           }}
                           className={`flex-1 p-2 rounded-lg border text-xs font-mono ${SETTINGS_INPUT_CLASS}`}

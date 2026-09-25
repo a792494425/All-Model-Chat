@@ -59,9 +59,9 @@ export const PdfToolbar: React.FC<PdfToolbarProps> = ({
     setIsEditingPageInput(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
       commitPageInput();
       inputRef.current?.blur();
     }
@@ -91,7 +91,7 @@ export const PdfToolbar: React.FC<PdfToolbarProps> = ({
             ref={inputRef}
             type="text"
             value={pageInput}
-            onChange={(e) => handlePageInputChange(e.target.value)}
+            onChange={(event) => handlePageInputChange(event.target.value)}
             onFocus={handlePageInputFocus}
             onKeyDown={handleKeyDown}
             onBlur={commitPageInput}

@@ -61,12 +61,12 @@ export const InlinePdfLocateButton: React.FC<InlinePdfLocateButtonProps> = ({
 
   const isActive = Boolean(isOpen && openKind === 'pdf' && currentPage === pageNumber && activePdfMatches);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = (event: React.MouseEvent) => {
     // Prevent button from stealing focus from the chat input
-    e.preventDefault();
+    event.preventDefault();
   };
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (event: React.MouseEvent) => {
     // If user is selecting text (e.g. dragging mouse or double-clicking to copy),
     // prevent accidental panel opening.
     const selection = window.getSelection();
@@ -74,8 +74,8 @@ export const InlinePdfLocateButton: React.FC<InlinePdfLocateButtonProps> = ({
       return;
     }
 
-    e.preventDefault();
-    e.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
     seekSessionPdf({
       pageNumber,
       docName,

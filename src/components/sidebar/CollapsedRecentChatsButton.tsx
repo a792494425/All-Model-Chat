@@ -42,7 +42,7 @@ export const CollapsedRecentChatsButton: React.FC<CollapsedRecentChatsButtonProp
     () =>
       [...sessions]
         .filter((session) => session.id !== activeSessionId)
-        .sort((a, b) => b.timestamp - a.timestamp)
+        .sort((sessionA, sessionB) => sessionB.timestamp - sessionA.timestamp)
         .slice(0, MAX_RECENT_ITEMS),
     [activeSessionId, sessions],
   );

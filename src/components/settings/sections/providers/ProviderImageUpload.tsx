@@ -57,8 +57,8 @@ export const ProviderImageUpload: React.FC<ProviderImageUploadProps> = ({ value,
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     try {
@@ -122,7 +122,7 @@ export const ProviderImageUpload: React.FC<ProviderImageUploadProps> = ({ value,
         <input
           type="text"
           value={isDataUrl ? '' : value || ''}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(event) => onChange(event.target.value)}
           placeholder={isDataUrl ? t('thirdPartyIconUploadedLocal') : t('thirdPartyIconUrlPlaceholder')}
           disabled={isDataUrl}
           className={`w-full px-3 py-1.5 text-xs rounded-lg border ${SETTINGS_INPUT_CLASS} ${

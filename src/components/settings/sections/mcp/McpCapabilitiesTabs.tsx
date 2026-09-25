@@ -114,15 +114,15 @@ export const McpCapabilitiesTabs: React.FC<McpCapabilitiesTabsProps> = ({
           <input
             placeholder={t('settingsMcpToolSearchPlaceholder')}
             value={toolQuery}
-            onChange={(e) => onToolQueryChange(e.target.value)}
+            onChange={(event) => onToolQueryChange(event.target.value)}
             className={`${inputBaseClasses} ${SETTINGS_INPUT_CLASS}`}
           />
           <div className="overflow-hidden rounded-lg border border-[var(--theme-border-secondary)]">
             {(() => {
               const filteredTools = capabilities.tools.filter((tool) => {
                 if (!deferredToolQuery.trim()) return true;
-                const hay = `${tool.name} ${tool.description ?? ''}`.toLowerCase();
-                return hay.includes(deferredToolQuery.toLowerCase());
+                const searchableText = `${tool.name} ${tool.description ?? ''}`.toLowerCase();
+                return searchableText.includes(deferredToolQuery.toLowerCase());
               });
               if (filteredTools.length === 0) {
                 return (

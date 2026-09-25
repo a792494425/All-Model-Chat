@@ -208,9 +208,9 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
         </div>
       )}
 
-      {highlights.map((currentHighlight, idx) => {
+      {highlights.map((currentHighlight, highlightIndex) => {
         if (currentHighlight === activeHighlight) return null;
-        const itemIdx = typeof currentHighlight.index === 'number' ? currentHighlight.index : idx + 1;
+        const itemIndex = typeof currentHighlight.index === 'number' ? currentHighlight.index : highlightIndex + 1;
         const hBox = currentHighlight.box2d && currentHighlight.box2d.length === 4 ? currentHighlight.box2d : null;
         const hPoint = currentHighlight.point && currentHighlight.point.length === 2 ? currentHighlight.point : null;
 
@@ -223,21 +223,21 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
 
           return (
             <div
-              key={`inactive-box-${idx}-${top}-${left}`}
+              key={`inactive-box-${highlightIndex}-${top}-${left}`}
               data-testid="image-inactive-box"
               onClick={(event) => {
                 event.stopPropagation();
-                handleSelectHighlight(idx);
+                handleSelectHighlight(highlightIndex);
               }}
               className="absolute rounded border border-dashed border-red-400/60 bg-red-500/[0.04] hover:bg-red-500/[0.16] hover:border-red-500 cursor-pointer pointer-events-auto transition-all group/box shadow-sm"
               style={{ top: `${top}%`, left: `${left}%`, width: `${width}%`, height: `${height}%` }}
-              title={`${t('imageNavTargetLabel')} [${itemIdx}]: ${currentHighlight.label || currentHighlight.snippet || ''}`}
+              title={`${t('imageNavTargetLabel')} [${itemIndex}]: ${currentHighlight.label || currentHighlight.snippet || ''}`}
             >
               <div
                 className="absolute -top-2 -left-2 w-4 h-4 rounded-full bg-red-600/90 text-white text-[9px] font-bold flex items-center justify-center shadow-md border border-white/40 group-hover/box:scale-110 group-hover/box:bg-red-500 transition-all"
                 style={{ transform: `scale(${counterScale})`, transformOrigin: 'top left' }}
               >
-                {itemIdx}
+                {itemIndex}
               </div>
             </div>
           );
@@ -249,21 +249,21 @@ export const ImageHighlightOverlay: React.FC<ImageHighlightOverlayProps> = ({
           const left = x / 10;
           return (
             <div
-              key={`inactive-pt-${idx}-${top}-${left}`}
+              key={`inactive-pt-${highlightIndex}-${top}-${left}`}
               data-testid="image-inactive-point"
               onClick={(event) => {
                 event.stopPropagation();
-                handleSelectHighlight(idx);
+                handleSelectHighlight(highlightIndex);
               }}
               className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto group/pt"
               style={{ top: `${top}%`, left: `${left}%` }}
-              title={`${t('imageNavTargetLabel')} [${itemIdx}]: ${currentHighlight.label || currentHighlight.snippet || ''}`}
+              title={`${t('imageNavTargetLabel')} [${itemIndex}]: ${currentHighlight.label || currentHighlight.snippet || ''}`}
             >
               <div
                 className="w-4 h-4 rounded-full bg-red-600/80 hover:bg-red-500 text-white text-[9px] font-bold flex items-center justify-center shadow-md border border-white/40 group-hover/pt:scale-125 transition-all"
                 style={{ transform: `scale(${counterScale})` }}
               >
-                {itemIdx}
+                {itemIndex}
               </div>
             </div>
           );

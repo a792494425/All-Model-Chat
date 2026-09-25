@@ -13,7 +13,7 @@ export const useIsMobile = () => {
     if (typeof targetWindow === 'undefined') return;
     const mediaQuery = targetWindow.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`);
 
-    const handleChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    const handleChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
 
     mediaQuery.addEventListener('change', handleChange);
 

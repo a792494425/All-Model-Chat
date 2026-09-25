@@ -374,12 +374,12 @@ export const generateOpenAICompatibleTurnStreamApi = async (
     const choice = payload.choices?.[0];
     const messageToolCalls = choice?.message?.tool_calls;
     if (messageToolCalls && Array.isArray(messageToolCalls)) {
-      messageToolCalls.forEach((tc, idx) => {
-        if (!accumulatedToolCalls[idx]) {
-          accumulatedToolCalls[idx] = {
-            id: tc.id,
-            name: tc.function?.name,
-            arguments: tc.function?.arguments || '',
+      messageToolCalls.forEach((toolCall, toolCallIndex) => {
+        if (!accumulatedToolCalls[toolCallIndex]) {
+          accumulatedToolCalls[toolCallIndex] = {
+            id: toolCall.id,
+            name: toolCall.function?.name,
+            arguments: toolCall.function?.arguments || '',
           };
         }
       });

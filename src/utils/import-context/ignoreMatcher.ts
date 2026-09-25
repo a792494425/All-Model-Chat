@@ -109,7 +109,10 @@ export const buildRootGitignoreMatchers = async (
     });
   }
 
-  matchers.sort((a, b) => a.basePath.split('/').filter(Boolean).length - b.basePath.split('/').filter(Boolean).length);
+  matchers.sort(
+    (matcherA, matcherB) =>
+      matcherA.basePath.split('/').filter(Boolean).length - matcherB.basePath.split('/').filter(Boolean).length,
+  );
   return matchers;
 };
 

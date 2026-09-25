@@ -53,12 +53,12 @@ export const LibraryPickerGrid: React.FC<LibraryPickerGridProps> = ({
 
               <div
                 className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-xs p-1 rounded-xl z-10"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
               >
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.stopPropagation();
                     void handlePreviewItem(item);
                   }}
                   title={t('libraryPreview')}

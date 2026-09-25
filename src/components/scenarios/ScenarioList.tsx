@@ -68,8 +68,8 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
     return () => cancelAnimationFrame(rafId);
   }, [ownerScope]);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    setScrollPosition(ownerScope, e.currentTarget.scrollTop);
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    setScrollPosition(ownerScope, event.currentTarget.scrollTop);
   };
 
   const handleOwnerScopeChange = (scope: ScenarioOwnerScope) => {

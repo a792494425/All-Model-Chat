@@ -22,8 +22,8 @@ export const AssistantApiKeyDialog: React.FC = () => {
 
   if (!pendingKeyRequest) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     if (!apiKey.trim()) return;
     submitApiKey(apiKey.trim());
     setApiKey('');
@@ -73,7 +73,7 @@ export const AssistantApiKeyDialog: React.FC = () => {
                 type={showKey ? 'text' : 'password'}
                 autoFocus
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={(event) => setApiKey(event.target.value)}
                 placeholder="sk-..."
                 className={`${SETTINGS_INPUT_CLASS} pr-10 font-mono text-xs`}
                 autoComplete="off"
@@ -81,7 +81,7 @@ export const AssistantApiKeyDialog: React.FC = () => {
               />
               <button
                 type="button"
-                onClick={() => setShowKey((prev) => !prev)}
+                onClick={() => setShowKey((previousShowKey) => !previousShowKey)}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]"
                 tabIndex={-1}
               >

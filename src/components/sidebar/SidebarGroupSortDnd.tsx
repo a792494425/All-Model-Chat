@@ -30,8 +30,8 @@ interface SidebarGroupSortDndProps {
   onNewChatInGroup: (groupId: string) => void;
   onAutoClose: () => void;
   handleGroupStartEdit: (item: ChatGroup) => void;
-  handleDrop: (e: React.DragEvent, groupId: string | null) => void;
-  handleDragOver: (e: React.DragEvent) => void;
+  handleDrop: (event: React.DragEvent, groupId: string | null) => void;
+  handleDragOver: (event: React.DragEvent) => void;
   onDeleteGroup: (groupId: string) => void;
   onClearGroup?: (groupId: string) => void;
   sessionItemProps?: SessionItemPassedProps;
@@ -68,9 +68,9 @@ export const SidebarGroupSortDnd: React.FC<SidebarGroupSortDndProps> = ({
   const handleGroupSortStart = (event: DragStartEvent) => {
     const activeId = String(event.active.id);
     if (activeId.startsWith('group:')) {
-      const gid = activeId.slice(6);
-      setActiveGroupDragId(gid);
-      handleGroupDragStart(gid);
+      const groupId = activeId.slice(6);
+      setActiveGroupDragId(groupId);
+      handleGroupDragStart(groupId);
     }
   };
 
@@ -81,9 +81,9 @@ export const SidebarGroupSortDnd: React.FC<SidebarGroupSortDndProps> = ({
     handleGroupDragEnd();
     if (!overId || activeId === overId) return;
     if (activeId.startsWith('group:') && overId.startsWith('group:')) {
-      const activeGid = activeId.slice(6);
-      const overGid = overId.slice(6);
-      onReorderGroups?.(activeGid, overGid);
+      const activeGroupId = activeId.slice(6);
+      const overGroupId = overId.slice(6);
+      onReorderGroups?.(activeGroupId, overGroupId);
     }
   };
 

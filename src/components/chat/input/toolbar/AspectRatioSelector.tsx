@@ -80,7 +80,7 @@ export const AspectRatioSelector: React.FC<AspectRatioSelectorProps> = ({
       label={t('aspectRatioTitle')}
       hideLabel
       value={aspectRatio}
-      onChange={(e) => setAspectRatio(e.target.value)}
+      onChange={(event) => setAspectRatio(event.target.value)}
       className="mb-0"
       wrapperClassName="relative w-[7.25rem]"
       dropdownClassName="min-w-[9rem] max-h-[280px]"

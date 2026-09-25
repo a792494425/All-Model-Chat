@@ -56,7 +56,7 @@ export const SortableProviderItem: React.FC<SortableProviderItemProps> = ({
           type="button"
           {...attributes}
           {...listeners}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
           className="cursor-grab active:cursor-grabbing text-[var(--theme-text-secondary)]/40 hover:text-[var(--theme-text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity p-0.5 -ml-1 focus:outline-none"
           aria-label={t('dragToReorder')}
         >
@@ -99,7 +99,7 @@ export const SortableProviderItem: React.FC<SortableProviderItemProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(event) => event.stopPropagation()}>
         {healthResult ? (
           <span
             className={`px-1.5 py-0.5 text-[10px] font-mono font-medium rounded-md flex items-center gap-1 cursor-default ${

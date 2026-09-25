@@ -51,13 +51,13 @@ export const ModelListEditor: React.FC<ModelListEditorProps> = ({
   };
 
   const handleDeleteModel = (index: number) => {
-    setTempModels((prev) => prev.filter((_, i) => i !== index));
+    setTempModels((previousModels) => previousModels.filter((_, modelIndex) => modelIndex !== index));
     setValidationMessage('');
   };
 
   const handleAddModel = () => {
-    setTempModels((prev) => [
-      ...prev,
+    setTempModels((previousModels) => [
+      ...previousModels,
       {
         id: '',
         name: '',

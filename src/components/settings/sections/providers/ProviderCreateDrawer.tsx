@@ -118,7 +118,7 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({ isOp
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(event) => setName(event.target.value)}
               placeholder="Name"
               className={`w-full px-3 py-2 text-xs rounded-xl border ${SETTINGS_INPUT_CLASS}`}
               autoFocus
@@ -132,7 +132,7 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({ isOp
             <input
               type="text"
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(event) => setNotes(event.target.value)}
               placeholder={t('thirdPartyConnectionNotesPlaceholder')}
               className={`w-full px-3 py-2 text-xs rounded-xl border ${SETTINGS_INPUT_CLASS}`}
             />
@@ -182,7 +182,7 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({ isOp
               id="provider-drawer-baseurl"
               type="text"
               value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
+              onChange={(event) => setBaseUrl(event.target.value)}
               placeholder="https://api.example.com/v1"
               className={`w-full px-3 py-2 text-xs font-mono rounded-xl border ${SETTINGS_INPUT_CLASS}`}
             />
@@ -200,7 +200,7 @@ export const ProviderCreateDrawer: React.FC<ProviderCreateDrawerProps> = ({ isOp
                 id="provider-drawer-apikey"
                 type={showApiKey ? 'text' : 'password'}
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={(event) => setApiKey(event.target.value)}
                 placeholder="sk-..."
                 className={`w-full px-3 pr-9 py-2 text-xs font-mono rounded-xl border ${SETTINGS_INPUT_CLASS}`}
                 autoComplete="off"

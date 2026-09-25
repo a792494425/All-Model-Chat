@@ -54,7 +54,7 @@ export const ApiConnectionTester: React.FC<ApiConnectionTesterProps> = ({
               label={t('settingsApiTestModel')}
               layout="horizontal"
               value={testModelId}
-              onChange={(e) => onModelChange(e.target.value)}
+              onChange={(event) => onModelChange(event.target.value)}
               labelContent={
                 <span className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-secondary)]">
                   {t('settingsApiTestModel')}

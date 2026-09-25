@@ -100,14 +100,14 @@ export const ScenarioMessageList: React.FC<ScenarioMessageListProps> = ({
                         value={draft}
                         autoFocus
                         rows={4}
-                        onChange={(e) => setDraft(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                            e.preventDefault();
+                        onChange={(event) => setDraft(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+                            event.preventDefault();
                             handleUpdate(message.id);
                           }
-                          if (e.key === 'Escape') {
-                            e.preventDefault();
+                          if (event.key === 'Escape') {
+                            event.preventDefault();
                             handleCancelEdit();
                           }
                         }}

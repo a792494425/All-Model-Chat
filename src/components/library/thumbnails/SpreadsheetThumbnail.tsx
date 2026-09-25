@@ -118,9 +118,9 @@ export const SpreadsheetThumbnail: React.FC<SpreadsheetThumbnailProps> = ({
         className={`relative ${spreadsheetSizeClasses} overflow-hidden bg-[#071911] text-[#a7f3d0] flex-shrink-0 flex flex-col justify-between p-2 border border-emerald-500/30 font-mono select-none ${containerClassName}`}
       >
         <div className="flex flex-col gap-1 overflow-hidden text-[7px] leading-tight">
-          {rowsToDisplay.slice(0, 3).map((row, idx) => (
-            <div key={idx} className="flex gap-1 truncate text-emerald-200/80">
-              <span className="w-2.5 text-emerald-500/50">{idx + 1}</span>
+          {rowsToDisplay.slice(0, 3).map((row, rowIndex) => (
+            <div key={rowIndex} className="flex gap-1 truncate text-emerald-200/80">
+              <span className="w-2.5 text-emerald-500/50">{rowIndex + 1}</span>
               <span className="truncate">{row.filter(Boolean).slice(0, 2).join(' · ') || '...'}</span>
             </div>
           ))}

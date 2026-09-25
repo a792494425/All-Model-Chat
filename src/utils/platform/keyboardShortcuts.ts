@@ -65,7 +65,9 @@ const getEventKeyCombo = (event: ShortcutKeyboardEvent): string | null => {
   const uniqueParts = [...new Set(parts)];
 
   const order = ['meta', 'ctrl', 'alt', 'shift'];
-  const modifiers = uniqueParts.slice(0, -1).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  const modifiers = uniqueParts
+    .slice(0, -1)
+    .sort((modifierA, modifierB) => order.indexOf(modifierA) - order.indexOf(modifierB));
   const finalKey = uniqueParts[uniqueParts.length - 1];
 
   let resultParts = [...modifiers, finalKey];

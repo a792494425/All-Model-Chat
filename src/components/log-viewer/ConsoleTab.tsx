@@ -88,7 +88,7 @@ export const ConsoleTab: React.FC<ConsoleTabProps> = ({
           type="text"
           placeholder={t('logViewerSearchPlaceholder')}
           value={filterText}
-          onChange={(e) => setFilterText(e.target.value)}
+          onChange={(event) => setFilterText(event.target.value)}
           className="flex-grow min-w-[150px] px-3 py-1.5 text-sm bg-[var(--theme-bg-input)] border border-[var(--theme-border-secondary)] rounded-md focus:ring-1 focus:ring-[var(--theme-border-focus)] text-[var(--theme-text-primary)]"
         />
 
@@ -98,7 +98,7 @@ export const ConsoleTab: React.FC<ConsoleTabProps> = ({
           <Filter size={14} className="text-[var(--theme-text-tertiary)]" />
           <select
             value={activeCategory}
-            onChange={(e) => setActiveCategory(e.target.value as LogCategory | 'ALL')}
+            onChange={(event) => setActiveCategory(event.target.value as LogCategory | 'ALL')}
             className="bg-[var(--theme-bg-input)] text-[var(--theme-text-primary)] text-xs rounded border border-[var(--theme-border-secondary)] px-2 py-1 focus:outline-none"
           >
             <option value="ALL">{t('logViewerAllCategories')}</option>

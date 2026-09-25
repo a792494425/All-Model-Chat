@@ -16,7 +16,7 @@ export const TokenUsageTab: React.FC<TokenUsageTabProps> = ({ tokenUsage }) => {
       output: stats.output,
       total: stats.input + stats.output,
     }))
-    .sort((a, b) => b.total - a.total);
+    .sort((usageA, usageB) => usageB.total - usageA.total);
 
   return (
     <div className="p-4 overflow-y-auto custom-scrollbar h-full">

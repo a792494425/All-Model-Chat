@@ -116,7 +116,7 @@ export const useChatHistory = ({
       logService.info(`Creating new chat in group: ${groupId}`);
       // 分组折叠时自动展开，确保用户能看到新条目。
       const group = useChatStore.getState().savedGroups.find((candidate) => candidate.id === groupId);
-      if (group && group.isExpanded === false) {
+      if (group && !group.isExpanded) {
         handleToggleGroupExpansion(groupId);
       }
       startNewChat(undefined, { groupId });

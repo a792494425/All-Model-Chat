@@ -50,7 +50,7 @@ export const ProviderConnectionCredentials: React.FC<ProviderConnectionCredentia
         <input
           type="text"
           value={connection.notes ?? ''}
-          onChange={(e) => onUpdateConnection({ notes: e.target.value.trim() || undefined })}
+          onChange={(event) => onUpdateConnection({ notes: event.target.value.trim() || undefined })}
           placeholder={t('thirdPartyConnectionNotesPlaceholder')}
           className={`w-full px-3 py-1.5 rounded-xl border text-xs transition-all ${SETTINGS_INPUT_CLASS}`}
         />
@@ -77,7 +77,7 @@ export const ProviderConnectionCredentials: React.FC<ProviderConnectionCredentia
             <input
               type={showApiKey ? 'text' : 'password'}
               value={connection.apiKey ?? ''}
-              onChange={(e) => onUpdateConnection({ apiKey: e.target.value })}
+              onChange={(event) => onUpdateConnection({ apiKey: event.target.value })}
               placeholder={connection.authOptional ? t('thirdPartyAuthOptionalPlaceholder') : 'sk-...'}
               className={`w-full pl-3 pr-9 py-2 rounded-xl border text-xs font-mono transition-all ${SETTINGS_INPUT_CLASS}`}
             />
@@ -183,7 +183,7 @@ export const ProviderConnectionCredentials: React.FC<ProviderConnectionCredentia
           <input
             type="text"
             value={connection.baseUrl ?? ''}
-            onChange={(e) => onUpdateConnection({ baseUrl: e.target.value })}
+            onChange={(event) => onUpdateConnection({ baseUrl: event.target.value })}
             placeholder="https://..."
             className={`flex-1 p-2 rounded-xl border text-xs font-mono ${SETTINGS_INPUT_CLASS}`}
           />

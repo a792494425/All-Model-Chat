@@ -43,9 +43,9 @@ export const MainContent: React.FC<MainContentProps> = ({ app }) => {
     <>
       <div
         onClick={closeHistorySidebar}
-        onTouchEnd={(e) => {
+        onTouchEnd={(event) => {
           if (overlayVisible) {
-            e.preventDefault();
+            event.preventDefault();
             closeHistorySidebar();
           }
         }}

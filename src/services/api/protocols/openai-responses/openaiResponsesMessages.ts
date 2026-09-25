@@ -108,9 +108,9 @@ const buildOpenAIResponsesInput = (
   for (const item of history) {
     const functionCalls = item.parts
       .filter((part) => Boolean(part.functionCall))
-      .map((part, idx) => ({
+      .map((part, callIndex) => ({
         type: 'function_call' as const,
-        call_id: part.functionCall?.id || `call_${idx}`,
+        call_id: part.functionCall?.id || `call_${callIndex}`,
         name: part.functionCall?.name || '',
         arguments:
           typeof part.functionCall?.args === 'string'
@@ -136,8 +136,8 @@ const buildOpenAIResponsesInput = (
     }
 
     if (functionResponses.length > 0) {
-      for (let idx = 0; idx < functionResponses.length; idx++) {
-        const resp = functionResponses[idx].functionResponse!;
+      for (let responseIndex = 0; responseIndex < functionResponses.length; responseIndex++) {
+        const resp = functionResponses[responseIndex].functionResponse!;
         const rawContent = resp.response;
         const contentStr =
           typeof rawContent === 'string'
@@ -147,7 +147,7 @@ const buildOpenAIResponsesInput = (
               : JSON.stringify(rawContent ?? {});
         input.push({
           type: 'function_call_output',
-          call_id: resp.id || `call_${idx}`,
+          call_id: resp.id || `call_${responseIndex}`,
           output: contentStr,
         });
       }
@@ -167,9 +167,9 @@ const buildOpenAIResponsesInput = (
 
   const currentFunctionCalls = parts
     .filter((part) => Boolean(part.functionCall))
-    .map((part, idx) => ({
+    .map((part, callIndex) => ({
       type: 'function_call' as const,
-      call_id: part.functionCall?.id || `call_${idx}`,
+      call_id: part.functionCall?.id || `call_${callIndex}`,
       name: part.functionCall?.name || '',
       arguments:
         typeof part.functionCall?.args === 'string'

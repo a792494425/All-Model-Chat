@@ -92,20 +92,23 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
 
   // Global keyboard shortcuts listener
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isCmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isCmdOrCtrl = isMac ? event.metaKey : event.ctrlKey;
       // ⌘K or ⌘⇧P or Ctrl+K or Ctrl+Shift+P
-      if ((isCmdOrCtrl && e.key.toLowerCase() === 'k') || (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'p')) {
-        const target = e.target as HTMLElement | null;
+      if (
+        (isCmdOrCtrl && event.key.toLowerCase() === 'k') ||
+        (isCmdOrCtrl && event.shiftKey && event.key.toLowerCase() === 'p')
+      ) {
+        const target = event.target as HTMLElement | null;
         const isContentEditable = target?.isContentEditable || false;
         const isInputOrTextarea = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
         // Allow shortcut if not inside an input, or if explicitly pressing Shift+P
         if (!isInputOrTextarea && !isContentEditable) {
-          e.preventDefault();
-          setIsOpen((prev) => !prev);
-        } else if (e.shiftKey && e.key.toLowerCase() === 'p') {
-          e.preventDefault();
-          setIsOpen((prev) => !prev);
+          event.preventDefault();
+          setIsOpen((previousOpen) => !previousOpen);
+        } else if (event.shiftKey && event.key.toLowerCase() === 'p') {
+          event.preventDefault();
+          setIsOpen((previousOpen) => !previousOpen);
         }
       }
     };

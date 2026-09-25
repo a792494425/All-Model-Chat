@@ -13,15 +13,15 @@ export const DropdownMenuTrigger = React.forwardRef<
   return (
     <DropdownMenuPrimitive.Trigger
       ref={ref}
-      onPointerDown={(e) => {
+      onPointerDown={(event) => {
         hasPointerDown.current = true;
-        onPointerDown?.(e);
+        onPointerDown?.(event);
       }}
-      onClick={(e) => {
-        onClick?.(e);
-        if (!hasPointerDown.current && !e.defaultPrevented) {
+      onClick={(event) => {
+        onClick?.(event);
+        if (!hasPointerDown.current && !event.defaultPrevented) {
           const EventCtor = typeof PointerEvent !== 'undefined' ? PointerEvent : MouseEvent;
-          e.currentTarget.dispatchEvent(
+          event.currentTarget.dispatchEvent(
             new EventCtor('pointerdown', {
               bubbles: true,
               cancelable: true,

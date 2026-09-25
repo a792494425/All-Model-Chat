@@ -232,7 +232,7 @@ export const ProviderModelToolbar: React.FC<ProviderModelToolbarProps> = ({
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(event) => onSearchChange(event.target.value)}
             placeholder={t('thirdPartyFilterModelPlaceholder') || 'Search models by name or ID...'}
             className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl border border-[var(--theme-border-secondary)]/60 bg-[var(--theme-bg-secondary)]/20 text-[var(--theme-text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-border-focus)]"
             autoFocus

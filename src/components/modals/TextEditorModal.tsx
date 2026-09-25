@@ -59,9 +59,9 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
     [draftValue],
   );
 
-  const handleValueChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleValueChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (readOnly) return;
-    setDraftValue(e.target.value);
+    setDraftValue(event.target.value);
   };
 
   const handleDone = () => {
@@ -71,9 +71,9 @@ const TextEditorModalContent: React.FC<TextEditorModalContentProps> = ({
     onClose();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+      event.preventDefault();
       handleDone();
     }
   };

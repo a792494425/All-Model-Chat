@@ -40,7 +40,7 @@ export const parseStoredScrollSnapshot = (rawValue: string | null): StoredScroll
     return null;
   }
 
-  if (parsed.atBottom === true && Number.isFinite(parsed.scrollTop)) {
+  if (parsed.atBottom && Number.isFinite(parsed.scrollTop)) {
     return {
       atBottom: true,
       scrollTop: Number(parsed.scrollTop),

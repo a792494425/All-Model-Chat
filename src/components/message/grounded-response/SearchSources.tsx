@@ -20,11 +20,11 @@ export const SearchSources: React.FC<SearchSourcesProps> = ({ sources }) => {
         <h4 className={SETTINGS_SECTION_LABEL_CLASS}>{t('searchSourcesTitle')}</h4>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-        {sources.map((source, i) => {
+        {sources.map((source, sourceIndex) => {
           const favicon = getFavicon(source.uri, source.title);
           return (
             <a
-              key={`source-${i}`}
+              key={`source-${sourceIndex}`}
               href={source.uri}
               target="_blank"
               rel="noopener noreferrer"
@@ -58,7 +58,7 @@ export const SearchSources: React.FC<SearchSourcesProps> = ({ sources }) => {
                 </div>
               </div>
               <div className="text-xs font-mono font-medium text-[var(--theme-text-tertiary)] opacity-40 group-hover:opacity-100 transition-opacity">
-                {i + 1}
+                {sourceIndex + 1}
               </div>
             </a>
           );

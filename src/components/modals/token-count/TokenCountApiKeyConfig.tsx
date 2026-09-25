@@ -66,10 +66,10 @@ export const TokenCountApiKeyConfig: React.FC<TokenCountApiKeyConfigProps> = ({
           <input
             type={showPassword ? 'text' : 'password'}
             value={localKey}
-            onChange={(e) => setLocalKey(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
+            onChange={(event) => setLocalKey(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
                 handleSave();
               }
             }}

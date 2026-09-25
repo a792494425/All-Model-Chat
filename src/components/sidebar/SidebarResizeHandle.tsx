@@ -6,9 +6,9 @@ interface SidebarResizeHandleProps {
   isOpen: boolean;
   sidebarWidth: number;
   isResizingSidebar: boolean;
-  startSidebarResize: (e: React.MouseEvent) => void;
+  startSidebarResize: (event: React.MouseEvent) => void;
   resetSidebarWidth: () => void;
-  onKeyDown: (e: React.KeyboardEvent) => void;
+  onKeyDown: (event: React.KeyboardEvent) => void;
 }
 
 export const SidebarResizeHandle: React.FC<SidebarResizeHandleProps> = ({

@@ -59,8 +59,8 @@ export const AskPanelDockHandle: React.FC<AskPanelDockHandleProps> = ({
       onMouseEnter={() => expandFromDock()}
       onFocus={() => expandFromDock(true)}
       onClick={() => expandFromDock(true)}
-      onContextMenu={(e) => {
-        e.preventDefault();
+      onContextMenu={(event) => {
+        event.preventDefault();
         onClose();
       }}
       aria-label={t('ask')}

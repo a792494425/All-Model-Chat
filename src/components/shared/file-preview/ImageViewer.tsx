@@ -204,16 +204,16 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
   }, [calculateActualScale]);
 
   const handleCycleBackground = useCallback(() => {
-    setBgMode((prev) => {
-      if (prev === 'default') return 'grid';
-      if (prev === 'grid') return 'white';
-      if (prev === 'white') return 'black';
+    setBgMode((previousMode) => {
+      if (previousMode === 'default') return 'grid';
+      if (previousMode === 'grid') return 'white';
+      if (previousMode === 'white') return 'black';
       return 'default';
     });
   }, []);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       const activeEl = document.activeElement;
       if (
         activeEl instanceof HTMLInputElement ||
@@ -222,8 +222,8 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
       ) {
         return;
       }
-      if (e.key === '1') {
-        e.preventDefault();
+      if (event.key === '1') {
+        event.preventDefault();
         handleToggleActualSize();
       }
     };

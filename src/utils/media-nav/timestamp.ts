@@ -5,8 +5,8 @@ export const parseTimestamp = (raw: string | number | undefined | null): number 
 
   const value = raw.trim();
   if (/^\d+(?:\.\d+)?$/.test(value)) {
-    const num = Number.parseFloat(value);
-    return Number.isFinite(num) && num >= 0 ? Math.floor(num) : null;
+    const parsedTime = Number.parseFloat(value);
+    return Number.isFinite(parsedTime) && parsedTime >= 0 ? Math.floor(parsedTime) : null;
   }
 
   if (!/^\d{1,4}(?::\d{1,2}){1,2}(?:\.\d+)?$/.test(value)) return null;

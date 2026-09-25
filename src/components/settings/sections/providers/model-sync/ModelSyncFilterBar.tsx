@@ -91,7 +91,7 @@ export const ModelSyncFilterBar: React.FC<ModelSyncFilterBarProps> = ({
         <input
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(event) => setSearchQuery(event.target.value)}
           placeholder={t('settingsOpenAICompatibleModelSearch')}
           className="w-full pl-8.5 pr-8 py-1.5 text-xs rounded-xl bg-[var(--theme-bg-secondary)] border border-[var(--theme-border-primary)] focus:outline-none focus:ring-1 focus:ring-blue-500/50"
         />

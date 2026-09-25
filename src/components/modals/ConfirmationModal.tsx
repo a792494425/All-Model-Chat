@@ -31,8 +31,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 }) => {
   const { t } = useI18n();
 
-  const handleConfirm = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleConfirm = (event: React.MouseEvent) => {
+    event.preventDefault();
     const result = onConfirm();
     if (result instanceof Promise) {
       void result.then(() => {

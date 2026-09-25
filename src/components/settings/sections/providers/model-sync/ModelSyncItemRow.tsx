@@ -54,7 +54,7 @@ export const ModelSyncItemRow: React.FC<ModelSyncItemRowProps> = ({
               type="checkbox"
               checked={isNewChecked}
               onChange={() => onToggleNew(model.id)}
-              onClick={(e) => e.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
               className="w-4 h-4 rounded text-emerald-600 focus:ring-0 cursor-pointer"
             />
           )}
@@ -63,7 +63,7 @@ export const ModelSyncItemRow: React.FC<ModelSyncItemRowProps> = ({
               type="checkbox"
               checked={isStaleChecked}
               onChange={() => onToggleStale(model.id)}
-              onClick={(e) => e.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
               className="w-4 h-4 rounded text-rose-600 focus:ring-0 cursor-pointer"
             />
           )}
@@ -179,8 +179,8 @@ export const ModelSyncItemRow: React.FC<ModelSyncItemRowProps> = ({
         {isNew && (
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               onToggleNew(model.id);
             }}
             className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
@@ -195,8 +195,8 @@ export const ModelSyncItemRow: React.FC<ModelSyncItemRowProps> = ({
         {isStale && (
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               onToggleStale(model.id);
             }}
             className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${

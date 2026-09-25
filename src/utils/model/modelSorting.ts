@@ -75,29 +75,29 @@ export const sortModels = (models: ModelOption[]): ModelOption[] => {
     return 1;
   };
 
-  return [...models].sort((a, b) => {
-    if (a.isPinned && !b.isPinned) return -1;
-    if (!a.isPinned && b.isPinned) return 1;
+  return [...models].sort((modelA, modelB) => {
+    if (modelA.isPinned && !modelB.isPinned) return -1;
+    if (!modelA.isPinned && modelB.isPinned) return 1;
 
-    if (a.isPinned && b.isPinned) {
-      const weightA = getCategoryWeight(a.id);
-      const weightB = getCategoryWeight(b.id);
+    if (modelA.isPinned && modelB.isPinned) {
+      const weightA = getCategoryWeight(modelA.id);
+      const weightB = getCategoryWeight(modelB.id);
       if (weightA !== weightB) return weightA - weightB;
 
-      const pinnedPriorityA = pinnedPriorityOrder[a.id];
-      const pinnedPriorityB = pinnedPriorityOrder[b.id];
+      const pinnedPriorityA = pinnedPriorityOrder[modelA.id];
+      const pinnedPriorityB = pinnedPriorityOrder[modelB.id];
       if (pinnedPriorityA !== undefined || pinnedPriorityB !== undefined) {
         if (pinnedPriorityA === undefined) return 1;
         if (pinnedPriorityB === undefined) return -1;
         if (pinnedPriorityA !== pinnedPriorityB) return pinnedPriorityA - pinnedPriorityB;
       }
 
-      const isA3 = a.id.includes('gemini-3');
-      const isB3 = b.id.includes('gemini-3');
-      if (isA3 && !isB3) return -1;
-      if (!isA3 && isB3) return 1;
+      const isModelA3 = modelA.id.includes('gemini-3');
+      const isModelB3 = modelB.id.includes('gemini-3');
+      if (isModelA3 && !isModelB3) return -1;
+      if (!isModelA3 && isModelB3) return 1;
     }
 
-    return a.name.localeCompare(b.name);
+    return modelA.name.localeCompare(modelB.name);
   });
 };

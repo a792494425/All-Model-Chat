@@ -101,7 +101,7 @@ export const GroupItem: React.FC<GroupItemProps> = (props) => {
 
   const startAutoExpand = (event: React.DragEvent) => {
     if (!isSessionDrag(event)) return;
-    if (group.isExpanded === false) {
+    if (!group.isExpanded) {
       if (expandTimerRef.current) clearTimeout(expandTimerRef.current);
       expandTimerRef.current = setTimeout(() => onToggleGroupExpansion(group.id), DRAG_HOVER_EXPAND_MS);
     }

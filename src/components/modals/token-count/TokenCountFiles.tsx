@@ -9,7 +9,7 @@ import { getFileDisplayMeta } from '@/utils/file/fileDisplayStyles';
 interface TokenCountFilesProps {
   files: UploadedFile[];
   fileInputRef: RefObject<HTMLInputElement>;
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveFile: (id: string) => void;
 }
 

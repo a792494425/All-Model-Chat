@@ -333,7 +333,11 @@ export const ChatInputArea: React.FC = () => {
 
             <ChatQuoteDisplay
               quotes={inputState.quotes}
-              onRemoveQuote={(index: number) => inputState.setQuotes((prev) => prev.filter((_, i) => i !== index))}
+              onRemoveQuote={(targetIndex: number) =>
+                inputState.setQuotes((previousQuotes) =>
+                  previousQuotes.filter((_, quoteIndex) => quoteIndex !== targetIndex),
+                )
+              }
               themeId={chatInput.themeId}
             />
 

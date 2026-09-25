@@ -116,7 +116,7 @@ const findTrailingFallbackOpening = (
   const candidates = ['**', '__']
     .map((delimiter) => ({ delimiter, matchIndex: value.lastIndexOf(delimiter) }))
     .filter((candidate) => candidate.matchIndex >= 0)
-    .sort((a, b) => b.matchIndex - a.matchIndex);
+    .sort((candidateA, candidateB) => candidateB.matchIndex - candidateA.matchIndex);
 
   for (const { delimiter, matchIndex } of candidates) {
     const innerContent = value.slice(matchIndex + delimiter.length);

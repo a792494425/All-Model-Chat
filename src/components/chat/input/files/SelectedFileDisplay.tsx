@@ -205,8 +205,8 @@ export const SelectedFileDisplay: React.FC<SelectedFileDisplayProps> = ({
         {canConfigure && (
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               if (onConfigure) {
                 onConfigure(file);
               }
@@ -271,8 +271,8 @@ export const SelectedFileDisplay: React.FC<SelectedFileDisplayProps> = ({
         <div className="mt-auto">
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               setIsOverflowOpen(false);
               if (isCancellable) {
                 onCancelUpload(file.id);

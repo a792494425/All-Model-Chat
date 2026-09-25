@@ -9,8 +9,8 @@ interface AudioPlayerViewProps {
   audioUrl: string | null;
   isLoading: boolean;
   audioRef: RefObject<HTMLAudioElement>;
-  onDragStart: (e: React.MouseEvent) => void;
-  onClose: (e: React.MouseEvent) => void;
+  onDragStart: (event: React.MouseEvent) => void;
+  onClose: (event: React.MouseEvent) => void;
 }
 
 const LOADING_SHELL_CLASS =
