@@ -353,18 +353,18 @@ export const findBareLiveUiRegion = (text: string, isStreaming = false): { start
     }
 
     // 4. Fallback line-by-line check (bounded by the first prose block after candidate)
-    let maxLineIdx = lines.length - 1;
-    for (let k = i + 1; k < lines.length; k += 1) {
-      const prevLine = lines[k - 1];
-      const curLine = lines[k];
+    let maxLineIndex = lines.length - 1;
+    for (let searchIndex = i + 1; searchIndex < lines.length; searchIndex += 1) {
+      const prevLine = lines[searchIndex - 1];
+      const curLine = lines[searchIndex];
       if (prevLine.trim() === '' && curLine.trim() !== '' && !curLine.trimStart().startsWith('<')) {
-        maxLineIdx = k - 1;
+        maxLineIndex = searchIndex - 1;
         break;
       }
     }
 
-    for (let j = maxLineIdx; j >= i; j -= 1) {
-      const end = j === lines.length - 1 ? text.length : lineOffsets[j + 1] - 1;
+    for (let lineIndex = maxLineIndex; lineIndex >= i; lineIndex -= 1) {
+      const end = lineIndex === lines.length - 1 ? text.length : lineOffsets[lineIndex + 1] - 1;
       if (end <= candidateStart) {
         continue;
       }

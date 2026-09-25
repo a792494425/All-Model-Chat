@@ -17,12 +17,12 @@ async function fetchWithTimeout(url, init, timeoutMs = 20000) {
   const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
   const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
   try {
-    const res = await originalFetch(url, {
+    const response = await originalFetch(url, {
       ...init,
       signal: init && init.signal ? init.signal : (controller ? controller.signal : undefined),
     });
     if (timer) clearTimeout(timer);
-    return res;
+    return response;
   } catch (timeoutFetchError) {
     if (timer) clearTimeout(timer);
     throw timeoutFetchError;

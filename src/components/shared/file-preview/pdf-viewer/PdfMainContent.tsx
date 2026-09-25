@@ -51,9 +51,9 @@ const LazyPdfPage = ({
   const estimatedHeight = effectiveHeight * scale;
 
   useEffect(() => {
-    const el = wrapperRef.current;
+    const wrapperElement = wrapperRef.current;
     const container = containerRef.current;
-    if (!el || !container) return;
+    if (!wrapperElement || !container) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -66,15 +66,15 @@ const LazyPdfPage = ({
       },
     );
 
-    observer.observe(el);
+    observer.observe(wrapperElement);
     return () => observer.disconnect();
   }, [containerRef]);
 
   return (
     <div
-      ref={(el) => {
-        wrapperRef.current = el;
-        setPageRef(pageNum, el);
+      ref={(pageWrapperElement) => {
+        wrapperRef.current = pageWrapperElement;
+        setPageRef(pageNum, pageWrapperElement);
       }}
       data-page-number={pageNum}
       className="shadow-2xl relative bg-white flex items-center justify-center"

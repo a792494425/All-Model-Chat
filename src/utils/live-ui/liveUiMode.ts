@@ -25,11 +25,11 @@ export function isLiveUiModeFromSettings(args: {
     liveArtifactsSystemPrompts,
   } = args;
 
-  if (isVisualFormattingActive === true) {
+  if (isVisualFormattingActive) {
     return true;
   }
 
-  if (isLiveArtifactsEnabled === true) {
+  if (isLiveArtifactsEnabled) {
     return true;
   }
 

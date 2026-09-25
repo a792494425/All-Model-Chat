@@ -142,7 +142,7 @@ export const useChatStreamHandler = ({
         updateAndPersistSessions(
           (prev) =>
             updateMessageInSession(prev, currentSessionId, generationId, (message) =>
-              message.thinkingActive === true && message.thinkingTimeMs === undefined
+              message.thinkingActive && message.thinkingTimeMs === undefined
                 ? message
                 : {
                     ...message,

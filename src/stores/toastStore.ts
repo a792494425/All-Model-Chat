@@ -68,7 +68,7 @@ export const useToastStore = create<ToastState>((set) => ({
     if (typeof window !== 'undefined') {
       toast.dismiss(id);
     }
-    set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
+    set((state) => ({ toasts: state.toasts.filter((toastItem) => toastItem.id !== id) }));
   },
 }));
 

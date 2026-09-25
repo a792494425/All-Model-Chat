@@ -154,32 +154,26 @@ export const useCodeBlock = ({
   // without a visible flash.
   useLayoutEffect(() => {
     if (isExpanded || !isOverflowing) return;
-    const el = preRef.current;
-    if (!el) return;
+    const preElement = preRef.current;
+    if (!preElement) return;
     const currentLength = resolvedCodeText.length;
     // prevTextLength starts at 0 on mount: a long static block (history) must stay
     // pinned to the top, only actively growing streams auto-follow to the bottom.
     if (prevTextLength.current <= 0 || currentLength <= prevTextLength.current) return;
-    const raf = requestAnimationFrame(() => {
-      el.scrollTop = el.scrollHeight;
+    const animationFrameId = requestAnimationFrame(() => {
+      preElement.scrollTop = preElement.scrollHeight;
     });
-    return () => cancelAnimationFrame(raf);
+    return () => cancelAnimationFrame(animationFrameId);
   }, [resolvedCodeText, isExpanded, isOverflowing]);
 
-  // Measure only when the block's text actually changed. `resolvedCodeText` is a
-  // plain string, so finished blocks (already-closed code in a streaming message,
-  // history) compare equal across the per-chunk React re-render and skip all layout
-  // Measure only when the block's text or wrapping mode actually changed. `resolvedCodeText` is a
-  // plain string, so finished blocks compare equal across re-renders and skip all layout work.
-  // When isWrapped changes, height reflows and scrollHeight changes, so it must re-measure.
   // Measure only when the block's text or wrapping mode actually changed. `resolvedCodeText` is a
   // plain string, so finished blocks compare equal across re-renders and skip all layout work.
   // When isWrapped changes, height reflows and scrollHeight changes, so it must re-measure.
   // COLLAPSE_TOLERANCE_PX prevents small overflows (e.g. 1-3 lines) from being awkwardly truncated.
   useLayoutEffect(() => {
-    const el = preRef.current;
-    if (!el) return;
-    const overflowing = el.scrollHeight > COLLAPSE_THRESHOLD_PX + COLLAPSE_TOLERANCE_PX;
+    const preElement = preRef.current;
+    if (!preElement) return;
+    const overflowing = preElement.scrollHeight > COLLAPSE_THRESHOLD_PX + COLLAPSE_TOLERANCE_PX;
     if (overflowing !== isOverflowing) {
       // Threshold-crossing commit: leave prevTextLength untouched so the follow
       // effect in the synced commit still sees this chunk as growth.
@@ -209,18 +203,18 @@ export const useCodeBlock = ({
   // Monitor element/window resize so that wrapped lines reflowing due to width changes
   // correctly re-evaluate overflow state.
   useEffect(() => {
-    const el = preRef.current;
-    if (!el) return;
+    const preElement = preRef.current;
+    if (!preElement) return;
 
     const checkOverflow = () => {
-      const overflowing = el.scrollHeight > COLLAPSE_THRESHOLD_PX + COLLAPSE_TOLERANCE_PX;
+      const overflowing = preElement.scrollHeight > COLLAPSE_THRESHOLD_PX + COLLAPSE_TOLERANCE_PX;
       setIsOverflowing((prev) => (prev !== overflowing ? overflowing : prev));
     };
 
     if (typeof ResizeObserver !== 'undefined') {
-      const ro = new ResizeObserver(checkOverflow);
-      ro.observe(el);
-      return () => ro.disconnect();
+      const resizeObserver = new ResizeObserver(checkOverflow);
+      resizeObserver.observe(preElement);
+      return () => resizeObserver.disconnect();
     }
 
     window.addEventListener('resize', checkOverflow);

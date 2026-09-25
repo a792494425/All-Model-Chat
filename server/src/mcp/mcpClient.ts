@@ -475,7 +475,7 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
 
     callTool: async (server, toolName, args, onProgress) => {
       try {
-        const longRunning = server.longRunning === true;
+        const longRunning = Boolean(server.longRunning);
         const result = await withConnectedClient(server, (client) =>
           client.callTool(
             {

@@ -76,15 +76,15 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
 
   const availableModels = useMemo(() => {
     if (customModels && customModels.length > 0) {
-      const visibleModels = customModels.filter((m) => m.visibleInSelector !== false);
-      const pinned = visibleModels.filter((m) => m.isPinned);
-      const unpinned = visibleModels.filter((m) => !m.isPinned);
+      const visibleModels = customModels.filter((model) => model.visibleInSelector !== false);
+      const pinned = visibleModels.filter((model) => model.isPinned);
+      const unpinned = visibleModels.filter((model) => !model.isPinned);
       const combined = [...pinned, ...unpinned];
-      return combined.slice(0, 8).map((m) => ({
-        id: m.id,
-        name: m.name || m.id,
-        provider: m.connectionName || m.providerId || (m as { provider?: string }).provider || 'AI',
-        badge: m.isPinned ? 'Pinned' : m.capabilities?.thinking ? 'Reasoning' : 'Model',
+      return combined.slice(0, 8).map((model) => ({
+        id: model.id,
+        name: model.name || model.id,
+        provider: model.connectionName || model.providerId || (model as { provider?: string }).provider || 'AI',
+        badge: model.isPinned ? 'Pinned' : model.capabilities?.thinking ? 'Reasoning' : 'Model',
       }));
     }
     return COMMON_MODELS;
@@ -122,7 +122,7 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
   const handleSelectSession = (sessionId: string) => {
     runCommand(() => {
       setActiveSessionId(sessionId);
-      const session = savedSessions.find((s) => s.id === sessionId);
+      const session = savedSessions.find((sessionItem) => sessionItem.id === sessionId);
       toast.success(session?.title || t('commandSwitchedSession'));
     });
   };
@@ -137,7 +137,7 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
   };
 
   const recentSessions = sortSessionsByRecency(savedSessions).slice(0, 8);
-  const activeSession = savedSessions.find((s) => s.id === activeSessionId);
+  const activeSession = savedSessions.find((session) => session.id === activeSessionId);
   const activeModelId = activeSession?.settings?.modelId || '';
 
   return (
@@ -196,14 +196,18 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
         {recentSessions.length > 0 && (
           <>
             <CommandGroup heading={t('commandGroupRecent')}>
-              {recentSessions.map((s) => (
-                <CommandItem key={s.id} value={`session ${s.title} ${s.id}`} onSelect={() => handleSelectSession(s.id)}>
+              {recentSessions.map((session) => (
+                <CommandItem
+                  key={session.id}
+                  value={`session ${session.title} ${session.id}`}
+                  onSelect={() => handleSelectSession(session.id)}
+                >
                   <MessageSquare className="text-[var(--theme-text-secondary)] shrink-0" />
-                  <span className="truncate flex-1">{s.title || t('newChat')}</span>
-                  {s.id === activeSessionId && (
+                  <span className="truncate flex-1">{session.title || t('newChat')}</span>
+                  {session.id === activeSessionId && (
                     <Check className="ml-auto h-3.5 w-3.5 text-[var(--theme-text-link)] shrink-0" />
                   )}
-                  {s.isPinned && <Pin className="h-3 w-3 text-[var(--theme-text-link)] shrink-0 ml-1.5" />}
+                  {session.isPinned && <Pin className="h-3 w-3 text-[var(--theme-text-link)] shrink-0 ml-1.5" />}
                 </CommandItem>
               ))}
             </CommandGroup>

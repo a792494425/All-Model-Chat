@@ -90,7 +90,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
   const [isRetrying, setIsRetrying] = useState(false);
   const showRetryButton = message.role === 'model' || message.role === 'error';
   const activeModelId = useChatStore((state) => {
-    const activeSession = state.savedSessions.find((s) => s.id === state.activeSessionId);
+    const activeSession = state.savedSessions.find((session) => session.id === state.activeSessionId);
     return activeSession?.settings?.modelId;
   });
   const isSpecialMediaModel =

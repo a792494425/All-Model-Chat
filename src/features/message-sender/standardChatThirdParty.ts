@@ -117,7 +117,7 @@ export const executeThirdPartyChat = async ({
   nonStreamOnComplete,
   isStreamingEnabled,
 }: ExecuteThirdPartyChatParams): Promise<void> => {
-  const activeModel = activeProvider.models?.find((m) => m.id === apiModelId);
+  const activeModel = activeProvider.models?.find((model) => model.id === apiModelId);
   const params = activeModel?.parameters;
   const providerConfig = {
     baseUrl: activeProvider.baseUrl,

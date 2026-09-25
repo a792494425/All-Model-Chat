@@ -429,8 +429,8 @@ export const McpServerCard: React.FC<McpServerCardProps> = ({
             >
               <div onClick={(e) => e.stopPropagation()}>
                 <Toggle
-                  checked={server.longRunning === true}
-                  onChange={(v) => onUpdateServer({ longRunning: v || undefined })}
+                  checked={Boolean(server.longRunning)}
+                  onChange={(isChecked) => onUpdateServer({ longRunning: isChecked || undefined })}
                   ariaLabel={t('settingsMcpLongRunning')}
                 />
               </div>

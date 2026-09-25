@@ -100,7 +100,7 @@ export function resolveThirdPartyBaseUrl(baseUrl?: string | null): string | null
 export function hasDeploymentApiContainer(): boolean {
   const config = getRuntimeConfig();
   if (!config) return false;
-  const enabled = readBooleanValue(config.useApiProxy) === true;
+  const enabled = Boolean(readBooleanValue(config.useApiProxy));
   const proxyUrl = readNullableString(config.apiProxyUrl);
   return enabled && Boolean(proxyUrl && !/^https?:\/\//i.test(proxyUrl.trim()));
 }

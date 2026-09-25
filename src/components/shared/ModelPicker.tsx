@@ -49,9 +49,9 @@ export const ModelPicker: React.FC<ModelPickerProps> = ({
   const [detailSide, setDetailSide] = useState<'right' | 'left'>('right');
 
   const updateBottomFade = useCallback(() => {
-    const el = listRef.current;
-    if (!el) return;
-    setShowBottomFade(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+    const listElement = listRef.current;
+    if (!listElement) return;
+    setShowBottomFade(listElement.scrollTop + listElement.clientHeight < listElement.scrollHeight - 4);
   }, []);
 
   const effectiveModels = useMemo(

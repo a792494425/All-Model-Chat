@@ -199,11 +199,11 @@ export const sendStandardMessage = async (params: SendStandardMessageParams) => 
         const state = useChatStore.getState();
         const activeMessagesMatch =
           turn.finalSessionId === state.activeSessionId
-            ? state.activeMessages.find((m) => m.id === turn.userMessage?.id)
+            ? state.activeMessages.find((message) => message.id === turn.userMessage?.id)
             : undefined;
-        const currentSession = state.savedSessions.find((s) => s.id === turn.finalSessionId);
+        const currentSession = state.savedSessions.find((session) => session.id === turn.finalSessionId);
         const currentUserMsg =
-          activeMessagesMatch ?? currentSession?.messages.find((m) => m.id === turn.userMessage?.id);
+          activeMessagesMatch ?? currentSession?.messages.find((message) => message.id === turn.userMessage?.id);
         const readyFiles = currentUserMsg?.files ?? filesToUse;
 
         let filesReadyForSend: UploadedFile[];

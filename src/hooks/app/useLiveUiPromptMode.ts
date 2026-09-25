@@ -103,15 +103,23 @@ export const useLiveUiPromptMode = ({
     liveArtifactsPromptBusySessionId !== undefined &&
     liveArtifactsPromptBusySessionId === currentLiveArtifactsPromptTargetSessionId;
 
-  // Button reflects active session settings: explicit boolean takes precedence over prompt markers.
-  const persistedLiveArtifactsPromptActive = Boolean(
-    currentChatSettings.isLiveArtifactsEnabled === true
-      ? true
-      : currentChatSettings.isLiveArtifactsEnabled === false
-        ? false
-        : Boolean(currentChatSettings.isVisualFormattingActive) ||
-          isConfiguredLiveArtifactsSystemInstruction(currentChatSettings.systemInstruction),
+  const resolvePersistedActive = useCallback(
+    () =>
+      Boolean(
+        currentChatSettings.isLiveArtifactsEnabled ??
+        (Boolean(currentChatSettings.isVisualFormattingActive) ||
+          isConfiguredLiveArtifactsSystemInstruction(currentChatSettings.systemInstruction)),
+      ),
+    [
+      currentChatSettings.isLiveArtifactsEnabled,
+      currentChatSettings.isVisualFormattingActive,
+      currentChatSettings.systemInstruction,
+      isConfiguredLiveArtifactsSystemInstruction,
+    ],
   );
+
+  // Button reflects active session settings: explicit boolean takes precedence over prompt markers.
+  const persistedLiveArtifactsPromptActive = resolvePersistedActive();
 
   const isLiveArtifactsPromptActive = liveArtifactsPromptOverrideActive ?? persistedLiveArtifactsPromptActive;
   const loadBuiltInLiveArtifactsPrompt = useCallback(
@@ -144,14 +152,7 @@ export const useLiveUiPromptMode = ({
       return;
     }
 
-    const actualActive = Boolean(
-      currentChatSettings.isLiveArtifactsEnabled === true
-        ? true
-        : currentChatSettings.isLiveArtifactsEnabled === false
-          ? false
-          : Boolean(currentChatSettings.isVisualFormattingActive) ||
-            isConfiguredLiveArtifactsSystemInstruction(currentChatSettings.systemInstruction),
-    );
+    const actualActive = resolvePersistedActive();
 
     if (actualActive === liveArtifactsPromptOverrideState.active) {
       setLiveArtifactsPromptOverrideState(null);
@@ -159,14 +160,7 @@ export const useLiveUiPromptMode = ({
         setLiveArtifactsPromptBusySessionId(undefined);
       }
     }
-  }, [
-    currentChatSettings.isLiveArtifactsEnabled,
-    currentChatSettings.isVisualFormattingActive,
-    currentChatSettings.systemInstruction,
-    currentLiveArtifactsPromptTargetSessionId,
-    isConfiguredLiveArtifactsSystemInstruction,
-    liveArtifactsPromptOverrideState,
-  ]);
+  }, [currentLiveArtifactsPromptTargetSessionId, liveArtifactsPromptOverrideState, resolvePersistedActive]);
 
   // When an activation occurs while activeChat is still loading/stabilizing in the session store,
   // re-apply to currentChatSettings as soon as activeChat is available.

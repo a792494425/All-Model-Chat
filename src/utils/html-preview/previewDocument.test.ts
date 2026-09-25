@@ -35,7 +35,7 @@ describe('htmlPreview utilities', () => {
     // offsetHeight of body/html locks to the iframe viewport and leaves blank space under content.
     expect(srcDoc).toContain('measureContentHeight');
     expect(srcDoc).toContain('getBoundingClientRect');
-    expect(srcDoc).toContain("el.style.minHeight = '0'");
+    expect(srcDoc).toContain("targetElement.style.minHeight = '0'");
     expect(srcDoc).toContain('isMeasuringHeight');
     expect(srcDoc).not.toMatch(/body\s*\?\s*body\.offsetHeight/);
     expect(srcDoc).not.toMatch(/root\s*\?\s*root\.offsetHeight/);

@@ -78,7 +78,7 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
 
           const appSettings = useSettingsStore.getState().appSettings;
           const { activeSessionId, savedSessions, pendingChatSettings } = useChatStore.getState();
-          const activeSession = savedSessions.find((s) => s.id === activeSessionId);
+          const activeSession = savedSessions.find((session) => session.id === activeSessionId);
           const currentSessionSettings = (activeSession?.settings ?? pendingChatSettings ?? {}) as ChatSettings;
 
           const filterDomain = (settings: object) => {
@@ -140,7 +140,7 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
               mcpSummary: {
                 externalCount: (appSettings.mcpServers ?? []).length,
                 virtualCount: virtualServers.length,
-                enabledExternalCount: (appSettings.mcpServers ?? []).filter((s) => s.enabled).length,
+                enabledExternalCount: (appSettings.mcpServers ?? []).filter((server) => server.enabled).length,
               },
             };
           };
@@ -163,7 +163,11 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
           switch (category) {
             case 'themes':
               return toMcpResponse({
-                availableThemes: AVAILABLE_THEMES.map((t) => ({ id: t.id, name: t.name, isDark: t.isDark })),
+                availableThemes: AVAILABLE_THEMES.map((theme) => ({
+                  id: theme.id,
+                  name: theme.name,
+                  isDark: theme.isDark,
+                })),
                 allThemeIds: THEME_IDS,
               });
             case 'languages':
@@ -176,7 +180,7 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
               });
             case 'tts_voices':
               return toMcpResponse({
-                availableVoices: AVAILABLE_TTS_VOICES.map((v) => ({ id: v.id, name: v.name })),
+                availableVoices: AVAILABLE_TTS_VOICES.map((voice) => ({ id: voice.id, name: voice.name })),
               });
             case 'thinking_levels':
               return toMcpResponse({
@@ -263,7 +267,7 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
 
           const currentSettings = useSettingsStore.getState().appSettings;
           const existingServers = currentSettings.mcpServers ?? [];
-          const index = existingServers.findIndex((s) => s.id === id);
+          const index = existingServers.findIndex((server) => server.id === id);
           if (index === -1) {
             throw new Error(`MCP server with id "${id}" not found.`);
           }
@@ -295,12 +299,12 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
 
           const currentSettings = useSettingsStore.getState().appSettings;
           const existingServers = currentSettings.mcpServers ?? [];
-          const target = existingServers.find((s) => s.id === id);
+          const target = existingServers.find((server) => server.id === id);
           if (!target) {
             throw new Error(`MCP server with id "${id}" not found.`);
           }
 
-          const nextServers = existingServers.filter((s) => s.id !== id);
+          const nextServers = existingServers.filter((server) => server.id !== id);
           useSettingsStore.getState().setAppSettings((prev) => ({
             ...prev,
             mcpServers: nextServers,
@@ -336,7 +340,7 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
 
           const currentSettings = useSettingsStore.getState().appSettings;
           const existingServers = currentSettings.mcpServers ?? [];
-          const index = existingServers.findIndex((s) => s.id === id);
+          const index = existingServers.findIndex((server) => server.id === id);
           if (index === -1) {
             throw new Error(`MCP server with id "${id}" not found (neither external nor virtual).`);
           }
@@ -374,7 +378,7 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
           const existingServers = currentSettings.mcpServers ?? [];
           const deduped = dedupeServersById(
             parsed,
-            existingServers.map((s) => s.id),
+            existingServers.map((server) => server.id),
           );
           const nextServers = [...existingServers, ...deduped];
 
@@ -420,7 +424,7 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
           }
 
           const currentSettings = useSettingsStore.getState().appSettings;
-          const server = (currentSettings.mcpServers ?? []).find((s) => s.id === id);
+          const server = (currentSettings.mcpServers ?? []).find((server) => server.id === id);
           if (!server) {
             throw new Error(`MCP server with id "${id}" not found.`);
           }
@@ -428,7 +432,7 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
           try {
             const caps = await fetchMcpServerCapabilities(server);
             if (caps.errors && caps.errors.length > 0) {
-              const errorMsg = caps.errors.map((e) => e.error).join('; ');
+              const errorMsg = caps.errors.map((errorEntry) => errorEntry.error).join('; ');
               return toMcpResponse({
                 status: 'error',
                 id,
@@ -573,15 +577,15 @@ export const createSettingsVirtualMcpServer = (): VirtualMcpServer => {
 
           if (typeof args.ttsVoice === 'string') {
             const voiceExists = AVAILABLE_TTS_VOICES.some(
-              (v) => v.id.toLowerCase() === (args.ttsVoice as string).toLowerCase(),
+              (voice) => voice.id.toLowerCase() === (args.ttsVoice as string).toLowerCase(),
             );
             if (!voiceExists) {
               throw new Error(
-                `Invalid ttsVoice: ${args.ttsVoice}. Must be one of: ${AVAILABLE_TTS_VOICES.map((v) => v.id).join(', ')}`,
+                `Invalid ttsVoice: ${args.ttsVoice}. Must be one of: ${AVAILABLE_TTS_VOICES.map((voice) => voice.id).join(', ')}`,
               );
             }
             const matched = AVAILABLE_TTS_VOICES.find(
-              (v) => v.id.toLowerCase() === (args.ttsVoice as string).toLowerCase(),
+              (voice) => voice.id.toLowerCase() === (args.ttsVoice as string).toLowerCase(),
             );
             patch.ttsVoice = matched?.id ?? (args.ttsVoice as string);
           }

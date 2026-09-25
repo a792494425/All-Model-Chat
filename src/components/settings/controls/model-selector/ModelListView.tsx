@@ -26,11 +26,11 @@ export const ModelListView: React.FC<ModelListViewProps> = ({
   const [showBottomFade, setShowBottomFade] = useState(false);
 
   const updateBottomFade = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) {
       return;
     }
-    setShowBottomFade(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+    setShowBottomFade(scrollContainer.scrollTop + scrollContainer.clientHeight < scrollContainer.scrollHeight - 4);
   }, []);
 
   useEffect(() => {

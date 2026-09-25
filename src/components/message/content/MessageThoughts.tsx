@@ -86,7 +86,7 @@ export const MessageThoughts: React.FC<MessageThoughtsProps> = ({
     !isExpanded &&
     thoughtsTail.length > 0 &&
     !hasSettledThinking &&
-    (message.thinkingActive === true || (!!isLoading && message.thinkingActive === undefined));
+    (Boolean(message.thinkingActive) || (Boolean(isLoading) && message.thinkingActive === undefined));
 
   if (!areThoughtsVisible) return null;
 

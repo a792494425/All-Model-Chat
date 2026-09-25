@@ -85,8 +85,8 @@ export const createLocalPythonVirtualMcpServer = (deps: LocalPythonVirtualMcpDep
 
       if (runResult.status === 'error') {
         const errParts = [runResult.output, runResult.error]
-          .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
-          .map((s) => s.trim());
+          .filter((part): part is string => typeof part === 'string' && part.trim().length > 0)
+          .map((part) => part.trim());
         return {
           isError: true,
           content: [
@@ -105,7 +105,7 @@ export const createLocalPythonVirtualMcpServer = (deps: LocalPythonVirtualMcpDep
         createUploadedFileFromBytes(file.data, file.type, file.name),
       );
 
-      const hasImgFile = outputFiles.some((f) => isImageMimeType(f.type));
+      const hasImgFile = outputFiles.some((outputFile) => isImageMimeType(outputFile.type));
       if (runResult.image && !hasImgFile) {
         const imageBase64 = arrayBufferToBase64(runResult.image);
         content.push({
@@ -117,7 +117,7 @@ export const createLocalPythonVirtualMcpServer = (deps: LocalPythonVirtualMcpDep
           createUploadedFileFromBytes(runResult.image, 'image/png', `generated-plot-${Date.now()}.png`),
         );
       } else if (hasImgFile) {
-        const img = outputFiles.find((f) => isImageMimeType(f.type));
+        const img = outputFiles.find((outputFile) => isImageMimeType(outputFile.type));
         if (img) {
           content.push({
             type: 'image',
@@ -135,7 +135,7 @@ export const createLocalPythonVirtualMcpServer = (deps: LocalPythonVirtualMcpDep
         textParts.push(`Return: ${runResult.result}`);
       }
       if (outputFiles.length > 0) {
-        textParts.push(`[Generated files: ${outputFiles.map((f) => f.name).join(', ')}]`);
+        textParts.push(`[Generated files: ${outputFiles.map((outputFile) => outputFile.name).join(', ')}]`);
       }
       if (textParts.length === 0 && content.length === 0) {
         textParts.push('(Code executed successfully with no output)');

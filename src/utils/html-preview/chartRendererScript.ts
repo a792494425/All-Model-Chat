@@ -66,7 +66,7 @@ export const CHART_RENDERER_SCRIPT = `
   };
 
   const NS = 'http://www.w3.org/2000/svg';
-  const el = (elementName, attributes = {}, textContent) => {
+  const createSvgElement = (elementName, attributes = {}, textContent) => {
     const node = document.createElementNS(NS, elementName);
     for (const key of Object.keys(attributes)) node.setAttribute(key, String(attributes[key]));
     if (textContent != null) node.textContent = textContent;
@@ -248,71 +248,71 @@ export const CHART_RENDERER_SCRIPT = `
   }
 
   function drawAxes(spec, plot, xScale, yScale, svg) {
-    for (const t of yScale.ticks) {
-      const y = yScale.yAt(t);
-      svg.appendChild(el('line', { x1: plot.x, y1: y, x2: plot.x + plot.w, y2: y, stroke: BORDER, 'stroke-width': 1 }));
-      svg.appendChild(el('text', { x: plot.x - 6, y: y + 3, fill: TEXT_MUTED, 'font-size': 10, 'text-anchor': 'end', 'font-family': FONT }, formatTick(t)));
+    for (const tick of yScale.ticks) {
+      const y = yScale.yAt(tick);
+      svg.appendChild(createSvgElement('line', { x1: plot.x, y1: y, x2: plot.x + plot.w, y2: y, stroke: BORDER, 'stroke-width': 1 }));
+      svg.appendChild(createSvgElement('text', { x: plot.x - 6, y: y + 3, fill: TEXT_MUTED, 'font-size': 10, 'text-anchor': 'end', 'font-family': FONT }, formatTick(tick)));
     }
     if (xScale.kind === 'category') {
       for (let i = 0; i < spec.x.length; i += 1) {
         const label = String(spec.x[i]);
         const short = label.length > 12 ? label.slice(0, 11) + '…' : label;
-        svg.appendChild(el('text', { x: xScale.xAt(i), y: plot.y + plot.h + 14, fill: TEXT_MUTED, 'font-size': 10, 'text-anchor': 'middle', 'font-family': FONT }, short));
+        svg.appendChild(createSvgElement('text', { x: xScale.xAt(i), y: plot.y + plot.h + 14, fill: TEXT_MUTED, 'font-size': 10, 'text-anchor': 'middle', 'font-family': FONT }, short));
       }
     } else {
-      for (const t of xScale.ticks) {
-        svg.appendChild(el('text', { x: xScale.xAt(t), y: plot.y + plot.h + 14, fill: TEXT_MUTED, 'font-size': 10, 'text-anchor': 'middle', 'font-family': FONT }, formatTick(t)));
+      for (const tick of xScale.ticks) {
+        svg.appendChild(createSvgElement('text', { x: xScale.xAt(tick), y: plot.y + plot.h + 14, fill: TEXT_MUTED, 'font-size': 10, 'text-anchor': 'middle', 'font-family': FONT }, formatTick(tick)));
       }
     }
     if (spec.xLabel) {
-      svg.appendChild(el('text', { x: plot.x + plot.w / 2, y: plot.y + plot.h + 28, fill: TEXT_MUTED, 'font-size': 11, 'text-anchor': 'middle', 'font-family': FONT }, spec.xLabel));
+      svg.appendChild(createSvgElement('text', { x: plot.x + plot.w / 2, y: plot.y + plot.h + 28, fill: TEXT_MUTED, 'font-size': 11, 'text-anchor': 'middle', 'font-family': FONT }, spec.xLabel));
     }
     if (spec.yLabel) {
       const cy = plot.y + plot.h / 2;
-      svg.appendChild(el('text', { x: 12, y: cy, fill: TEXT_MUTED, 'font-size': 11, 'text-anchor': 'middle', 'font-family': FONT, transform: 'rotate(-90 12 ' + cy + ')' }, spec.yLabel));
+      svg.appendChild(createSvgElement('text', { x: 12, y: cy, fill: TEXT_MUTED, 'font-size': 11, 'text-anchor': 'middle', 'font-family': FONT, transform: 'rotate(-90 12 ' + cy + ')' }, spec.yLabel));
     }
   }
 
   function renderBars(spec, plot, xScale, yScale, svg) {
-    const n = spec.x.length;
-    const groupW = plot.w / n;
+    const categoryCount = spec.x.length;
+    const groupW = plot.w / categoryCount;
     const isStacked = spec.type === 'stacked-bar';
     const seriesCount = spec.series.length;
     const barW = Math.max(2, Math.min(40, groupW * (isStacked ? 0.6 : 0.8 / seriesCount)));
     const baselineY = yScale.yAt(0);
-    for (let i = 0; i < n; i += 1) {
-      const groupLeft = plot.x + i * groupW;
+    for (let categoryIndex = 0; categoryIndex < categoryCount; categoryIndex += 1) {
+      const groupLeft = plot.x + categoryIndex * groupW;
       if (isStacked) {
-        let acc = 0;
-        for (let si = 0; si < spec.series.length; si += 1) {
-          const s = spec.series[si];
-          const v = s.y[i];
-          const yTop = yScale.yAt(acc + v);
-          const yBottom = yScale.yAt(acc);
-          svg.appendChild(el('rect', {
+        let accumulatedHeight = 0;
+        for (let seriesIndex = 0; seriesIndex < spec.series.length; seriesIndex += 1) {
+          const currentSeries = spec.series[seriesIndex];
+          const seriesValue = currentSeries.y[categoryIndex];
+          const yTop = yScale.yAt(accumulatedHeight + seriesValue);
+          const yBottom = yScale.yAt(accumulatedHeight);
+          svg.appendChild(createSvgElement('rect', {
             x: groupLeft + (groupW - barW) / 2,
             y: Math.min(yTop, yBottom),
             width: barW,
             height: Math.max(0, Math.abs(yBottom - yTop)),
             rx: 2,
-            fill: seriesColor(s, si),
+            fill: seriesColor(currentSeries, seriesIndex),
           }));
-          acc += v;
+          accumulatedHeight += seriesValue;
         }
       } else {
         const perGroup = groupW * 0.8;
         const w = Math.max(1, perGroup / seriesCount - 1);
-        for (let si = 0; si < spec.series.length; si += 1) {
-          const s = spec.series[si];
-          const v = s.y[i];
-          const yTop = yScale.yAt(v);
-          svg.appendChild(el('rect', {
-            x: groupLeft + (groupW - perGroup) / 2 + si * (perGroup / seriesCount),
+        for (let seriesIndex = 0; seriesIndex < spec.series.length; seriesIndex += 1) {
+          const currentSeries = spec.series[seriesIndex];
+          const seriesValue = currentSeries.y[categoryIndex];
+          const yTop = yScale.yAt(seriesValue);
+          svg.appendChild(createSvgElement('rect', {
+            x: groupLeft + (groupW - perGroup) / 2 + seriesIndex * (perGroup / seriesCount),
             y: Math.min(yTop, baselineY),
             width: w,
             height: Math.max(0, Math.abs(baselineY - yTop)),
             rx: 1,
-            fill: seriesColor(s, si),
+            fill: seriesColor(currentSeries, seriesIndex),
           }));
         }
       }
@@ -322,16 +322,16 @@ export const CHART_RENDERER_SCRIPT = `
   function renderLines(spec, plot, xScale, yScale, svg) {
     const isArea = spec.type === 'area';
     const baselineY = yScale.yAt(0);
-    for (let si = 0; si < spec.series.length; si += 1) {
-      const s = spec.series[si];
-      const color = seriesColor(s, si);
+    for (let seriesIndex = 0; seriesIndex < spec.series.length; seriesIndex += 1) {
+      const currentSeries = spec.series[seriesIndex];
+      const color = seriesColor(currentSeries, seriesIndex);
       const points = [];
-      for (let i = 0; i < s.y.length; i += 1) {
-        const x = xScale.kind === 'category' ? xScale.xAt(i) : xScale.xAt(spec.x[i]);
-        points.push([x, yScale.yAt(s.y[i])]);
+      for (let pointIndex = 0; pointIndex < currentSeries.y.length; pointIndex += 1) {
+        const x = xScale.kind === 'category' ? xScale.xAt(pointIndex) : xScale.xAt(spec.x[pointIndex]);
+        points.push([x, yScale.yAt(currentSeries.y[pointIndex])]);
       }
       if (isArea && points.length) {
-        const fill = seriesSurface(s, si);
+        const fill = seriesSurface(currentSeries, seriesIndex);
         const fillOpacity = fill === color ? 0.15 : undefined;
         const last = points[points.length - 1];
         const first = points[0];
@@ -340,10 +340,10 @@ export const CHART_RENDERER_SCRIPT = `
         d += last[0].toFixed(2) + ',' + baselineY.toFixed(2) + ' L' + first[0].toFixed(2) + ',' + baselineY.toFixed(2) + ' Z';
         const attrs = { d, fill };
         if (fillOpacity !== undefined) attrs['fill-opacity'] = String(fillOpacity);
-        svg.appendChild(el('path', attrs));
+        svg.appendChild(createSvgElement('path', attrs));
       }
       if (points.length >= 2) {
-        svg.appendChild(el('polyline', {
+        svg.appendChild(createSvgElement('polyline', {
           points: points.map((p) => p[0].toFixed(2) + ',' + p[1].toFixed(2)).join(' '),
           fill: 'none',
           stroke: color,
@@ -353,17 +353,17 @@ export const CHART_RENDERER_SCRIPT = `
         }));
       }
       for (const [x, y] of points) {
-        svg.appendChild(el('circle', { cx: x.toFixed(2), cy: y.toFixed(2), r: 2.5, fill: color }));
+        svg.appendChild(createSvgElement('circle', { cx: x.toFixed(2), cy: y.toFixed(2), r: 2.5, fill: color }));
       }
     }
   }
 
   function renderScatter(spec, plot, xScale, yScale, svg) {
-    for (let si = 0; si < spec.series.length; si += 1) {
-      const s = spec.series[si];
-      const color = seriesColor(s, si);
-      for (const [x, y] of s.points) {
-        svg.appendChild(el('circle', { cx: xScale.xAt(x).toFixed(2), cy: yScale.yAt(y).toFixed(2), r: 2.5, fill: color }));
+    for (let seriesIndex = 0; seriesIndex < spec.series.length; seriesIndex += 1) {
+      const currentSeries = spec.series[seriesIndex];
+      const color = seriesColor(currentSeries, seriesIndex);
+      for (const [x, y] of currentSeries.points) {
+        svg.appendChild(createSvgElement('circle', { cx: xScale.xAt(x).toFixed(2), cy: yScale.yAt(y).toFixed(2), r: 2.5, fill: color }));
       }
     }
   }
@@ -385,7 +385,7 @@ export const CHART_RENDERER_SCRIPT = `
   }
 
   function renderPie(spec, svg, h, hasLegend, isDonut) {
-    const total = spec.slices.reduce((sum, s) => sum + s.y, 0) || 1;
+    const total = spec.slices.reduce((sum, slice) => sum + slice.y, 0) || 1;
     const cx = W / 2;
     const cy = hasLegend ? (h - 40) / 2 + 6 : h / 2;
     const r = Math.min(110, (hasLegend ? h - 50 : h - 20) / 2);
@@ -399,19 +399,19 @@ export const CHART_RENDERER_SCRIPT = `
       // Force the final slice to end exactly where the first began so floating
       // point accumulation can never leave a visible gap in the circle.
       const a1 = i === spec.slices.length - 1 ? startAngle + Math.PI * 2 : angle + sweep;
-      svg.appendChild(el('path', {
+      svg.appendChild(createSvgElement('path', {
         d: arcPath(cx, cy, r, r0, a0, a1),
         fill: slice.color ? SEMANTIC_COLORS[slice.color] || slice.color : PALETTE_COLORS[i % PALETTE.length],
       }));
       angle = a1;
     }
     if (isDonut) {
-      svg.appendChild(el('text', { x: cx, y: cy + 4, fill: TEXT_MUTED, 'font-size': 14, 'text-anchor': 'middle', 'font-weight': 600, 'font-family': FONT }, formatTick(total)));
+      svg.appendChild(createSvgElement('text', { x: cx, y: cy + 4, fill: TEXT_MUTED, 'font-size': 14, 'text-anchor': 'middle', 'font-weight': 600, 'font-family': FONT }, formatTick(total)));
     }
     if (hasLegend) {
-      const entries = spec.slices.map((slice, i) => ({
+      const entries = spec.slices.map((slice, sliceIndex) => ({
         name: slice.name,
-        color: slice.color ? SEMANTIC_COLORS[slice.color] || slice.color : PALETTE_COLORS[i % PALETTE.length],
+        color: slice.color ? SEMANTIC_COLORS[slice.color] || slice.color : PALETTE_COLORS[sliceIndex % PALETTE.length],
         percent: slice.y / total,
       }));
       appendLegend(svg, entries, h, true);
@@ -431,8 +431,8 @@ export const CHART_RENDERER_SCRIPT = `
         row += 1;
       }
       const y = svgHeight - 20 - row * rowHeight;
-      svg.appendChild(el('rect', { x, y: y + 2, width: 10, height: 10, rx: 2, fill: entry.color, 'data-amc-legend': '1' }));
-      svg.appendChild(el('text', { x: x + 15, y: y + 10, fill: TEXT_MUTED, 'font-size': 11, 'font-family': FONT }, label));
+      svg.appendChild(createSvgElement('rect', { x, y: y + 2, width: 10, height: 10, rx: 2, fill: entry.color, 'data-amc-legend': '1' }));
+      svg.appendChild(createSvgElement('text', { x: x + 15, y: y + 10, fill: TEXT_MUTED, 'font-size': 11, 'font-family': FONT }, label));
       x += textWidth + gap;
     }
   }
@@ -454,7 +454,7 @@ export const CHART_RENDERER_SCRIPT = `
       renderLines(spec, plot, xScale, yScale, svg);
     }
     drawAxes(spec, plot, xScale, yScale, svg);
-    if (hasLegend) appendLegend(svg, spec.series.map((s, i) => ({ name: s.name || 'Series ' + (i + 1), color: seriesColor(s, i) })), h, false);
+    if (hasLegend) appendLegend(svg, spec.series.map((currentSeries, seriesIndex) => ({ name: currentSeries.name || 'Series ' + (seriesIndex + 1), color: seriesColor(currentSeries, seriesIndex) })), h, false);
   }
 
   function buildChart(spec) {
@@ -470,14 +470,14 @@ export const CHART_RENDERER_SCRIPT = `
 
   const buildSvgRoot = (spec) => {
     const h = clamp(spec.height || 240, 120, 480);
-    const svg = el('svg', {
+    const svg = createSvgElement('svg', {
       viewBox: '0 0 ' + W + ' ' + h,
       width: '100%',
       role: 'img',
       'aria-label': spec.title || 'chart',
       style: 'font-family:' + FONT + ';display:block;height:auto;',
     });
-    if (spec.title) svg.appendChild(el('title', {}, spec.title));
+    if (spec.title) svg.appendChild(createSvgElement('title', {}, spec.title));
     return { svg, h };
   };
 
@@ -558,10 +558,10 @@ export const hydrateChartsIntoDocument = (doc: Document, options: HydrateChartsI
   if (options.themeStyle) {
     const normalized = options.themeStyle.replace(/<\/?style[^>]*>/g, '');
     if (doc.head && !doc.head.querySelector('[data-amc-live-artifact-theme]')) {
-      const styleEl = doc.createElement('style');
-      styleEl.setAttribute('data-amc-live-artifact-theme', 'true');
-      styleEl.textContent = normalized;
-      doc.head.appendChild(styleEl);
+      const styleElement = doc.createElement('style');
+      styleElement.setAttribute('data-amc-live-artifact-theme', 'true');
+      styleElement.textContent = normalized;
+      doc.head.appendChild(styleElement);
     }
   }
 
@@ -591,9 +591,9 @@ export const hydrateChartsIntoDocument = (doc: Document, options: HydrateChartsI
       return;
     }
 
-    const htmlEl = node as HTMLElement;
-    const widthMatch = htmlEl.style?.width?.match(/^(\d+(?:\.\d+)?)px$/);
-    const heightMatch = htmlEl.style?.height?.match(/^(\d+(?:\.\d+)?)px$/);
+    const htmlElement = node as HTMLElement;
+    const widthMatch = htmlElement.style?.width?.match(/^(\d+(?:\.\d+)?)px$/);
+    const heightMatch = htmlElement.style?.height?.match(/^(\d+(?:\.\d+)?)px$/);
     const width = widthMatch ? parseFloat(widthMatch[1]) : 700;
     const height = heightMatch ? parseFloat(heightMatch[1]) : 280;
 

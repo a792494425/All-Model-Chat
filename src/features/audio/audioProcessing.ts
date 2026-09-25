@@ -129,7 +129,7 @@ export const convertAudioBlobToWavFile = async (file: File | Blob): Promise<File
  * Converts a base64 encoded PCM16 string to a WAV Blob URL.
  */
 export function pcmBase64ToWavUrl(base64: string, sampleRate = 24_000, numChannels = 1): string {
-  const pcm = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  const pcm = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
   const wavBuffer = createWavBuffer(pcm, sampleRate, numChannels);
   return createManagedObjectUrl(new Blob([wavBuffer], { type: 'audio/wav' }));
 }
@@ -140,16 +140,16 @@ export function pcmBase64ToWavUrl(base64: string, sampleRate = 24_000, numChanne
 export const createWavBlobFromPCMChunks = (chunks: string[], sampleRate = 24000): string | null => {
   if (chunks.length === 0) return null;
 
-  let totalLen = 0;
+  let totalLength = 0;
   const decodedChunks: Uint8Array[] = [];
 
   for (const chunk of chunks) {
     const decoded = decodeBase64ToArrayBuffer(chunk);
     decodedChunks.push(decoded);
-    totalLen += decoded.length;
+    totalLength += decoded.length;
   }
 
-  const merged = new Uint8Array(totalLen);
+  const merged = new Uint8Array(totalLength);
   let offset = 0;
   for (const chunk of decodedChunks) {
     merged.set(chunk, offset);

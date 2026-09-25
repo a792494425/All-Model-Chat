@@ -405,21 +405,21 @@ export const createMcpClientFunctions = async ({
       const runtimeServers = runtimeServerEntries.map(({ runtimeServer }) => runtimeServer);
       const lister: McpToolsLister = listTools;
       const configKey = JSON.stringify(
-        runtimeServers.map((s) => ({
-          id: s.id,
-          name: s.name,
-          transport: s.transport,
-          url: s.url,
-          command: s.command,
-          args: s.args,
-          env: s.env,
-          headers: s.headers,
-          auth: s.auth,
-          disabledTools: s.disabledTools,
-          disabledAutoApproveTools: s.disabledAutoApproveTools,
-          isTrusted: s.isTrusted,
-          timeout: s.timeout,
-          longRunning: s.longRunning,
+        runtimeServers.map((server) => ({
+          id: server.id,
+          name: server.name,
+          transport: server.transport,
+          url: server.url,
+          command: server.command,
+          args: server.args,
+          env: server.env,
+          headers: server.headers,
+          auth: server.auth,
+          disabledTools: server.disabledTools,
+          disabledAutoApproveTools: server.disabledAutoApproveTools,
+          isTrusted: server.isTrusted,
+          timeout: server.timeout,
+          longRunning: server.longRunning,
         })),
       );
       const cachedResponse = readCachedTools(lister, configKey);
@@ -438,10 +438,12 @@ export const createMcpClientFunctions = async ({
         });
       }
 
-      const serverDisabledMap = new Map(runtimeServers.map((s) => [s.id, new Set(s.disabledTools ?? [])]));
-      const filteredServers = toolResponse.servers.map((s) => ({
-        ...s,
-        tools: s.tools.filter((t) => !serverDisabledMap.get(s.serverId)?.has(t.name)),
+      const serverDisabledMap = new Map(
+        runtimeServers.map((server) => [server.id, new Set(server.disabledTools ?? [])]),
+      );
+      const filteredServers = toolResponse.servers.map((server) => ({
+        ...server,
+        tools: server.tools.filter((tool) => !serverDisabledMap.get(server.serverId)?.has(tool.name)),
       }));
 
       const serverByRuntimeId = new Map(

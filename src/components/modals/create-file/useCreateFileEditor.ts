@@ -66,7 +66,9 @@ export const useCreateFileEditor = ({
   const appSettings = useSettingsStore((state) => state.appSettings);
   const language = useSettingsStore((state) => state.language);
   const currentChatSettings = useChatStore((state) =>
-    state.activeSessionId ? state.savedSessions.find((s) => s.id === state.activeSessionId)?.settings : undefined,
+    state.activeSessionId
+      ? state.savedSessions.find((session) => session.id === state.activeSessionId)?.settings
+      : undefined,
   );
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);

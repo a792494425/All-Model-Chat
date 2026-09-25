@@ -137,7 +137,7 @@ export const executeGeminiChat = async ({
     localPythonFunctionDeclarations.length > 0 &&
     (isGemini3Model(apiModelId) || !hasRequestedServerSideToolThatNeedsCombination);
 
-  const customGeminiModel = useModelPreferencesStore.getState().customModels?.find((m) => m.id === apiModelId);
+  const customGeminiModel = useModelPreferencesStore.getState().customModels?.find((model) => model.id === apiModelId);
   const geminiParams = customGeminiModel?.parameters;
   const effectiveSession = geminiParams
     ? {
@@ -203,7 +203,7 @@ export const executeGeminiChat = async ({
 
       try {
         const state = useChatStore.getState();
-        const currentSession = state.savedSessions.find((s) => s.id === finalSessionId);
+        const currentSession = state.savedSessions.find((session) => session.id === finalSessionId);
         if (currentSession) {
           const invalidatedSession = invalidateSessionFilesApiReferences(currentSession, error);
           updateAndPersistSessions((prev) => updateSessionById(prev, finalSessionId, () => invalidatedSession));
@@ -226,8 +226,8 @@ export const executeGeminiChat = async ({
             !newAbortController.signal.aborted
           ) {
             updateAndPersistSessions((prev) =>
-              updateSessionById(prev, finalSessionId, (s) => ({
-                ...s,
+              updateSessionById(prev, finalSessionId, (session) => ({
+                ...session,
                 messages: historyRefResult.messages,
               })),
             );
@@ -287,15 +287,15 @@ export const executeGeminiChat = async ({
 
             if (reuploadedFilesMap.size > 0) {
               updateAndPersistSessions((prev) =>
-                updateSessionById(prev, finalSessionId, (s) => ({
-                  ...s,
-                  messages: s.messages.map((m) =>
-                    m.files
+                updateSessionById(prev, finalSessionId, (session) => ({
+                  ...session,
+                  messages: session.messages.map((message) =>
+                    message.files
                       ? {
-                          ...m,
-                          files: m.files.map((f) => reuploadedFilesMap.get(f.fileUri || f.id) || f),
+                          ...message,
+                          files: message.files.map((file) => reuploadedFilesMap.get(file.fileUri || file.id) || file),
                         }
-                      : m,
+                      : message,
                   ),
                 })),
               );
@@ -312,7 +312,8 @@ export const executeGeminiChat = async ({
                 const reuploaded =
                   reuploadedFilesMap.get(fileUri) ||
                   Array.from(reuploadedFilesMap.values()).find(
-                    (f) => f.fileUri === fileUri || (targetIdentifier && f.fileApiName?.includes(targetIdentifier)),
+                    (file) =>
+                      file.fileUri === fileUri || (targetIdentifier && file.fileApiName?.includes(targetIdentifier)),
                   );
                 if (reuploaded?.fileUri) {
                   return { fileData: { mimeType: reuploaded.type, fileUri: reuploaded.fileUri } };
@@ -320,12 +321,12 @@ export const executeGeminiChat = async ({
 
                 const fileName =
                   enrichedFiles.find(
-                    (f) =>
-                      f.fileUri === fileUri ||
+                    (file) =>
+                      file.fileUri === fileUri ||
                       Boolean(
                         targetIdentifier &&
-                        ((f.fileApiName && f.fileApiName.includes(targetIdentifier)) ||
-                          (f.fileUri && f.fileUri.includes(targetIdentifier))),
+                        ((file.fileApiName && file.fileApiName.includes(targetIdentifier)) ||
+                          (file.fileUri && file.fileUri.includes(targetIdentifier))),
                       ),
                   )?.name || (targetIdentifier ? `File ${targetIdentifier}` : 'file');
                 return { text: formatHistoryFileApiUnavailablePartText(fileName) };

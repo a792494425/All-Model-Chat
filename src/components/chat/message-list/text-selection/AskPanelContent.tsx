@@ -52,43 +52,43 @@ export const AskPanelContent: React.FC<AskPanelContentProps> = ({
   }, [isCopied, targetWindow]);
 
   useEffect(() => {
-    const el = answerContainerRef.current;
-    if (!el) return;
+    const answerContainer = answerContainerRef.current;
+    if (!answerContainer) return;
     if (!shouldAutoScrollRef.current) return;
-    el.scrollTop = el.scrollHeight;
+    answerContainer.scrollTop = answerContainer.scrollHeight;
   }, [answer]);
 
   // 实测预览是否被 line-clamp 截断（字符数估算行数不可靠），决定“展开”入口显隐
   useEffect(() => {
-    const el = previewRef.current;
-    if (!el) return;
+    const previewElement = previewRef.current;
+    if (!previewElement) return;
     const fallbackClamped = selectedText.length > 90;
-    const check = () => {
-      const measuredClamped = el.scrollHeight > el.clientHeight + 1;
+    const checkClampedState = () => {
+      const measuredClamped = previewElement.scrollHeight > previewElement.clientHeight + 1;
       setIsPreviewClamped(measuredClamped || fallbackClamped);
     };
-    check();
+    checkClampedState();
     // 下一帧再测一次，确保 line-clamp 样式已生效
-    const raf = targetWindow.requestAnimationFrame(check);
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(check) : null;
-    ro?.observe(el);
+    const animationFrameId = targetWindow.requestAnimationFrame(checkClampedState);
+    const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(checkClampedState) : null;
+    resizeObserver?.observe(previewElement);
     return () => {
-      targetWindow.cancelAnimationFrame(raf);
-      ro?.disconnect();
+      targetWindow.cancelAnimationFrame(animationFrameId);
+      resizeObserver?.disconnect();
     };
   }, [selectedText, isPreviewExpanded, targetWindow]);
 
   const handleAnswerScroll = useCallback(() => {
-    const el = answerContainerRef.current;
-    if (!el) return;
-    const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const answerContainer = answerContainerRef.current;
+    if (!answerContainer) return;
+    const distanceToBottom = answerContainer.scrollHeight - answerContainer.scrollTop - answerContainer.clientHeight;
     shouldAutoScrollRef.current = distanceToBottom < 80;
   }, []);
 
   const handleCopyAnswer = useCallback(async () => {
     if (!answer) return;
-    const ok = await copyTextToClipboard(answer, targetDocument);
-    if (ok) {
+    const isCopySuccessful = await copyTextToClipboard(answer, targetDocument);
+    if (isCopySuccessful) {
       setIsCopied(true);
     }
   }, [answer, targetDocument]);
@@ -103,7 +103,7 @@ export const AskPanelContent: React.FC<AskPanelContentProps> = ({
     onQuote(answer);
   }, [answer, onQuote]);
 
-  const hasAnswer = !!answer;
+  const hasAnswer = Boolean(answer);
   const showEmptyState = !hasAnswer && !isLoading && !error;
 
   return (
@@ -122,7 +122,7 @@ export const AskPanelContent: React.FC<AskPanelContentProps> = ({
           </p>
           {(isPreviewExpanded || isPreviewClamped || selectedText.length > 90) && (
             <button
-              onClick={() => setIsPreviewExpanded((v) => !v)}
+              onClick={() => setIsPreviewExpanded((prevExpanded) => !prevExpanded)}
               className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[var(--theme-text-link)] hover:underline"
             >
               {isPreviewExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}

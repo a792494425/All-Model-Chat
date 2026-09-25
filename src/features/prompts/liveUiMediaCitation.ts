@@ -8,7 +8,7 @@ const extractAvailableFileNames = (directives: string[], mediaType: 'image' | 'v
       const raw = match[1].trim().replace(/\.$/, '');
       const names = raw
         .split(',')
-        .map((s) => s.replace(/["']/g, '').trim())
+        .map((fileName) => fileName.replace(/["']/g, '').trim())
         .filter(Boolean);
       if (names.length > 0) return names;
     }
@@ -51,7 +51,8 @@ export const buildLiveUiMediaCitationDirective = (
     ];
 
     if (showImage) {
-      const fileHint = imageFiles.length > 0 ? `（可用图像文件：${imageFiles.map((f) => `"${f}"`).join(', ')}）` : '';
+      const fileHint =
+        imageFiles.length > 0 ? `（可用图像文件：${imageFiles.map((fileName) => `"${fileName}"`).join(', ')}）` : '';
       sections.push(
         [
           `#### 1. 图像视觉定位与高亮（Image Grounding）${fileHint}`,
@@ -67,7 +68,8 @@ export const buildLiveUiMediaCitationDirective = (
     }
 
     if (showPdf) {
-      const fileHint = pdfFiles.length > 0 ? `（可用 PDF 文件：${pdfFiles.map((f) => `"${f}"`).join(', ')}）` : '';
+      const fileHint =
+        pdfFiles.length > 0 ? `（可用 PDF 文件：${pdfFiles.map((fileName) => `"${fileName}"`).join(', ')}）` : '';
       sections.push(
         [
           `#### 2. PDF 文档页码与区域跳转（PDF Navigation）${fileHint}`,
@@ -83,7 +85,8 @@ export const buildLiveUiMediaCitationDirective = (
     }
 
     if (showVideo) {
-      const fileHint = videoFiles.length > 0 ? `（可用视频文件：${videoFiles.map((f) => `"${f}"`).join(', ')}）` : '';
+      const fileHint =
+        videoFiles.length > 0 ? `（可用视频文件：${videoFiles.map((fileName) => `"${fileName}"`).join(', ')}）` : '';
       sections.push(
         [
           `#### 3. 视频时间戳与准星镜头定位（Video Navigation）${fileHint}`,
@@ -99,7 +102,8 @@ export const buildLiveUiMediaCitationDirective = (
     }
 
     if (showAudio) {
-      const fileHint = audioFiles.length > 0 ? `（可用音频文件：${audioFiles.map((f) => `"${f}"`).join(', ')}）` : '';
+      const fileHint =
+        audioFiles.length > 0 ? `（可用音频文件：${audioFiles.map((fileName) => `"${fileName}"`).join(', ')}）` : '';
       sections.push(
         [
           `#### 4. 音频时间戳定位（Audio Navigation）${fileHint}`,
@@ -126,7 +130,8 @@ export const buildLiveUiMediaCitationDirective = (
   ];
 
   if (showImage) {
-    const fileHint = imageFiles.length > 0 ? ` (Available images: ${imageFiles.map((f) => `"${f}"`).join(', ')})` : '';
+    const fileHint =
+      imageFiles.length > 0 ? ` (Available images: ${imageFiles.map((fileName) => `"${fileName}"`).join(', ')})` : '';
     sections.push(
       [
         `#### 1. Image Visual Grounding (Live UI)${fileHint}`,
@@ -142,7 +147,8 @@ export const buildLiveUiMediaCitationDirective = (
   }
 
   if (showPdf) {
-    const fileHint = pdfFiles.length > 0 ? ` (Available PDFs: ${pdfFiles.map((f) => `"${f}"`).join(', ')})` : '';
+    const fileHint =
+      pdfFiles.length > 0 ? ` (Available PDFs: ${pdfFiles.map((fileName) => `"${fileName}"`).join(', ')})` : '';
     sections.push(
       [
         `#### 2. PDF Page & Region Navigation (Live UI)${fileHint}`,
@@ -157,7 +163,8 @@ export const buildLiveUiMediaCitationDirective = (
   }
 
   if (showVideo) {
-    const fileHint = videoFiles.length > 0 ? ` (Available videos: ${videoFiles.map((f) => `"${f}"`).join(', ')})` : '';
+    const fileHint =
+      videoFiles.length > 0 ? ` (Available videos: ${videoFiles.map((fileName) => `"${fileName}"`).join(', ')})` : '';
     sections.push(
       [
         `#### 3. Video Timestamp & Viewfinder Navigation (Live UI)${fileHint}`,
@@ -172,7 +179,8 @@ export const buildLiveUiMediaCitationDirective = (
   }
 
   if (showAudio) {
-    const fileHint = audioFiles.length > 0 ? ` (Available audios: ${audioFiles.map((f) => `"${f}"`).join(', ')})` : '';
+    const fileHint =
+      audioFiles.length > 0 ? ` (Available audios: ${audioFiles.map((fileName) => `"${fileName}"`).join(', ')})` : '';
     sections.push(
       [
         `#### 4. Audio Timestamp Navigation (Live UI)${fileHint}`,

@@ -62,18 +62,18 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
     startX: number;
     startY: number;
     pointerId?: number;
-    capturedEl?: HTMLElement;
+    capturedElement?: HTMLElement;
   } | null>(null);
   const resizeState = useRef<{
     dir: ResizeDir;
     startX: number;
     startY: number;
-    startW: number;
-    startH: number;
+    startWidth: number;
+    startHeight: number;
     startTop: number;
     startLeft: number;
     pointerId: number;
-    capturedEl: HTMLElement;
+    capturedElement: HTMLElement;
   } | null>(null);
 
   // 持久化尺寸
@@ -132,9 +132,9 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
   useEffect(() => {
     if (!isPanelRendered) return;
     const clamp = () => {
-      const el = panelRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
+      const panelElement = panelRef.current;
+      if (!panelElement) return;
+      const rect = panelElement.getBoundingClientRect();
       const vw = targetWindow.innerWidth;
       const vh = targetWindow.innerHeight;
       setPosition((prev) => {
@@ -149,12 +149,12 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
       });
     };
     clamp();
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => clamp()) : null;
-    if (panelRef.current) ro?.observe(panelRef.current);
+    const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => clamp()) : null;
+    if (panelRef.current) resizeObserver?.observe(panelRef.current);
     targetWindow.addEventListener('resize', clamp);
     targetWindow.visualViewport?.addEventListener('resize', clamp);
     return () => {
-      ro?.disconnect();
+      resizeObserver?.disconnect();
       targetWindow.removeEventListener('resize', clamp);
       targetWindow.visualViewport?.removeEventListener('resize', clamp);
     };
@@ -191,7 +191,7 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
       startX: e.clientX,
       startY: e.clientY,
       pointerId: e.pointerId,
-      capturedEl: e.currentTarget as HTMLElement,
+      capturedElement: e.currentTarget as HTMLElement,
     };
     setIsDragging(true);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -202,9 +202,9 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
       if (!dragState.current || !isDragging) return;
       const vw = targetWindow.innerWidth;
       const vh = targetWindow.innerHeight;
-      const el = panelRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
+      const panelElement = panelRef.current;
+      if (!panelElement) return;
+      const rect = panelElement.getBoundingClientRect();
       let left = e.clientX - dragState.current.offsetX;
       let top = e.clientY - dragState.current.offsetY;
       left = Math.max(VIEWPORT_PADDING, Math.min(left, vw - rect.width - VIEWPORT_PADDING));
@@ -216,24 +216,26 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
 
   const handlePointerUp = useCallback(
     (e: PointerEvent) => {
-      const st = dragState.current;
-      if (st?.capturedEl && st.pointerId !== undefined) {
+      const currentDragState = dragState.current;
+      if (currentDragState?.capturedElement && currentDragState.pointerId !== undefined) {
         try {
-          st.capturedEl.releasePointerCapture(st.pointerId);
+          currentDragState.capturedElement.releasePointerCapture(currentDragState.pointerId);
         } catch {
           // ignore
         }
       }
       // 位移过小说明是单击标题栏而非拖拽：面板恢复原位即可，不触发贴边吸附
-      const moved = st ? Math.hypot(e.clientX - st.startX, e.clientY - st.startY) : Number.POSITIVE_INFINITY;
+      const moved = currentDragState
+        ? Math.hypot(e.clientX - currentDragState.startX, e.clientY - currentDragState.startY)
+        : Number.POSITIVE_INFINITY;
       dragState.current = null;
       setIsDragging(false);
       if (moved < DOCK_DRAG_MIN_MOVE) return;
 
       // 拖拽结束时贴边吸附
-      const el = panelRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
+      const panelElement = panelRef.current;
+      if (!panelElement) return;
+      const rect = panelElement.getBoundingClientRect();
       const side = resolveAskPanelDockSide(rect.left, rect.right, targetWindow.innerWidth);
       if (!side) return;
       setDockedTop(
@@ -283,18 +285,18 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
       e.preventDefault();
       e.stopPropagation();
       if (!panelRef.current || !position) return;
-      const el = e.currentTarget as HTMLElement;
-      el.setPointerCapture(e.pointerId);
+      const handleElement = e.currentTarget as HTMLElement;
+      handleElement.setPointerCapture(e.pointerId);
       resizeState.current = {
         dir,
         startX: e.clientX,
         startY: e.clientY,
-        startW: size.width,
-        startH: size.height,
+        startWidth: size.width,
+        startHeight: size.height,
         startTop: position.top,
         startLeft: position.left,
         pointerId: e.pointerId,
-        capturedEl: el,
+        capturedElement: handleElement,
       };
       setIsResizing(dir);
     },
@@ -303,60 +305,60 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
 
   const handleResizePointerMove = useCallback(
     (e: PointerEvent) => {
-      const st = resizeState.current;
-      if (!st) return;
+      const currentResizeState = resizeState.current;
+      if (!currentResizeState) return;
       const vw = targetWindow.innerWidth;
       const vh = targetWindow.innerHeight;
-      const dx = e.clientX - st.startX;
-      const dy = e.clientY - st.startY;
-      let newW = st.startW;
-      let newH = st.startH;
-      let newTop = st.startTop;
-      let newLeft = st.startLeft;
+      const dx = e.clientX - currentResizeState.startX;
+      const dy = e.clientY - currentResizeState.startY;
+      let newWidth = currentResizeState.startWidth;
+      let newHeight = currentResizeState.startHeight;
+      let newTop = currentResizeState.startTop;
+      let newLeft = currentResizeState.startLeft;
 
-      if (st.dir.includes('e')) newW = st.startW + dx;
-      if (st.dir.includes('w')) {
-        newW = st.startW - dx;
-        newLeft = st.startLeft + dx;
+      if (currentResizeState.dir.includes('e')) newWidth = currentResizeState.startWidth + dx;
+      if (currentResizeState.dir.includes('w')) {
+        newWidth = currentResizeState.startWidth - dx;
+        newLeft = currentResizeState.startLeft + dx;
       }
-      if (st.dir.includes('s')) newH = st.startH + dy;
-      if (st.dir.includes('n')) {
-        newH = st.startH - dy;
-        newTop = st.startTop + dy;
+      if (currentResizeState.dir.includes('s')) newHeight = currentResizeState.startHeight + dy;
+      if (currentResizeState.dir.includes('n')) {
+        newHeight = currentResizeState.startHeight - dy;
+        newTop = currentResizeState.startTop + dy;
       }
 
-      newW = Math.max(PANEL_MIN_WIDTH, Math.min(newW, vw - VIEWPORT_PADDING * 2));
-      newH = Math.max(PANEL_MIN_HEIGHT, Math.min(newH, vh - VIEWPORT_PADDING * 2, PANEL_MAX_HEIGHT_CAP));
+      newWidth = Math.max(PANEL_MIN_WIDTH, Math.min(newWidth, vw - VIEWPORT_PADDING * 2));
+      newHeight = Math.max(PANEL_MIN_HEIGHT, Math.min(newHeight, vh - VIEWPORT_PADDING * 2, PANEL_MAX_HEIGHT_CAP));
 
-      if (st.dir.includes('w')) {
-        const maxLeft = st.startLeft + st.startW - PANEL_MIN_WIDTH;
+      if (currentResizeState.dir.includes('w')) {
+        const maxLeft = currentResizeState.startLeft + currentResizeState.startWidth - PANEL_MIN_WIDTH;
         newLeft = Math.max(VIEWPORT_PADDING, Math.min(newLeft, maxLeft));
-        if (newW !== st.startW - (newLeft - st.startLeft)) {
-          newW = st.startW - (newLeft - st.startLeft);
+        if (newWidth !== currentResizeState.startWidth - (newLeft - currentResizeState.startLeft)) {
+          newWidth = currentResizeState.startWidth - (newLeft - currentResizeState.startLeft);
         }
         // 反推出的宽度必须重新套上限，否则左缘贴边时宽度会越过视口
-        newW = Math.max(PANEL_MIN_WIDTH, Math.min(newW, vw - VIEWPORT_PADDING * 2));
-        newLeft = Math.max(VIEWPORT_PADDING, Math.min(newLeft, vw - newW - VIEWPORT_PADDING));
+        newWidth = Math.max(PANEL_MIN_WIDTH, Math.min(newWidth, vw - VIEWPORT_PADDING * 2));
+        newLeft = Math.max(VIEWPORT_PADDING, Math.min(newLeft, vw - newWidth - VIEWPORT_PADDING));
       }
-      if (st.dir.includes('n')) {
-        const maxTop = st.startTop + st.startH - PANEL_MIN_HEIGHT;
+      if (currentResizeState.dir.includes('n')) {
+        const maxTop = currentResizeState.startTop + currentResizeState.startHeight - PANEL_MIN_HEIGHT;
         newTop = Math.max(VIEWPORT_PADDING, Math.min(newTop, maxTop));
-        if (newH !== st.startH - (newTop - st.startTop)) {
-          newH = st.startH - (newTop - st.startTop);
+        if (newHeight !== currentResizeState.startHeight - (newTop - currentResizeState.startTop)) {
+          newHeight = currentResizeState.startHeight - (newTop - currentResizeState.startTop);
         }
         // 反推出的高度必须重新套上限（含 PANEL_MAX_HEIGHT_CAP），否则上缘拖到视口顶部时高度会超出上限
-        newH = Math.max(PANEL_MIN_HEIGHT, Math.min(newH, vh - VIEWPORT_PADDING * 2, PANEL_MAX_HEIGHT_CAP));
-        newTop = Math.max(VIEWPORT_PADDING, Math.min(newTop, vh - newH - VIEWPORT_PADDING));
+        newHeight = Math.max(PANEL_MIN_HEIGHT, Math.min(newHeight, vh - VIEWPORT_PADDING * 2, PANEL_MAX_HEIGHT_CAP));
+        newTop = Math.max(VIEWPORT_PADDING, Math.min(newTop, vh - newHeight - VIEWPORT_PADDING));
       }
-      if (st.dir.includes('e') && !st.dir.includes('w')) {
-        newW = Math.min(newW, vw - st.startLeft - VIEWPORT_PADDING);
+      if (currentResizeState.dir.includes('e') && !currentResizeState.dir.includes('w')) {
+        newWidth = Math.min(newWidth, vw - currentResizeState.startLeft - VIEWPORT_PADDING);
       }
-      if (st.dir.includes('s') && !st.dir.includes('n')) {
-        newH = Math.min(newH, vh - st.startTop - VIEWPORT_PADDING);
+      if (currentResizeState.dir.includes('s') && !currentResizeState.dir.includes('n')) {
+        newHeight = Math.min(newHeight, vh - currentResizeState.startTop - VIEWPORT_PADDING);
       }
 
-      setSize({ width: Math.round(newW), height: Math.round(newH) });
-      if (st.dir.includes('w') || st.dir.includes('n')) {
+      setSize({ width: Math.round(newWidth), height: Math.round(newHeight) });
+      if (currentResizeState.dir.includes('w') || currentResizeState.dir.includes('n')) {
         setPosition({ top: Math.round(newTop), left: Math.round(newLeft) });
       }
     },
@@ -364,10 +366,10 @@ export const useAskPanelFloating = ({ anchorRect, targetWindow, textareaRef }: U
   );
 
   const handleResizePointerUp = useCallback(() => {
-    const st = resizeState.current;
-    if (st?.capturedEl) {
+    const currentResizeState = resizeState.current;
+    if (currentResizeState?.capturedElement) {
       try {
-        st.capturedEl.releasePointerCapture(st.pointerId);
+        currentResizeState.capturedElement.releasePointerCapture(currentResizeState.pointerId);
       } catch {
         // ignore
       }

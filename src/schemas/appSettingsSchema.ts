@@ -156,7 +156,7 @@ const sanitizeMcpServers = (value: unknown, fallback: McpServerConfig[]): McpSer
     const server: McpServerConfig = {
       id,
       name,
-      enabled: item.enabled === true,
+      enabled: Boolean(item.enabled),
       transport,
     };
 

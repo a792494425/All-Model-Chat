@@ -134,7 +134,7 @@ const parseMcpServer = (value: unknown, options: McpRouteOptions): McpServerPars
 
   const id = typeof value.id === 'string' ? value.id.trim() : '';
   const name = typeof value.name === 'string' ? value.name.trim() : '';
-  const enabled = value.enabled === true;
+  const enabled = Boolean(value.enabled);
   const transport = value.transport;
   if (!id || !name || (transport !== 'stdio' && transport !== 'http' && transport !== 'sse')) {
     // Attribute the failure to the (partial) server so the UI can show why a

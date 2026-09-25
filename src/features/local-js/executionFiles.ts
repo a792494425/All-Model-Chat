@@ -5,7 +5,7 @@ import type { ChatMessage } from '@/types';
  * and format them into a dictionary of { [fileName]: fileContent } for the JS sandbox.
  */
 export const collectLocalJsInputFiles = (messages: ChatMessage[], targetMessageId?: string): Record<string, string> => {
-  const targetIndex = targetMessageId ? messages.findIndex((m) => m.id === targetMessageId) : -1;
+  const targetIndex = targetMessageId ? messages.findIndex((message) => message.id === targetMessageId) : -1;
   const contextMessages = targetIndex === -1 ? messages : messages.slice(0, targetIndex);
   const filesMap: Record<string, string> = {};
 

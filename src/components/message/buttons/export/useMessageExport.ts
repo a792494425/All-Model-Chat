@@ -66,7 +66,7 @@ export const useMessageExport = ({ message, sessionTitle, messageIndex, themeId 
       const resolveCurrentModel = (): string => {
         try {
           const chatStore = useChatStore.getState?.();
-          const activeSession = chatStore?.savedSessions?.find((s) => s.id === chatStore.activeSessionId);
+          const activeSession = chatStore?.savedSessions?.find((session) => session.id === chatStore.activeSessionId);
           return activeSession?.settings?.modelId || chatStore?.pendingChatSettings?.modelId || '';
         } catch (resolveError) {
           logService.debug?.('Failed to resolve current session model:', resolveError);

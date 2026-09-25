@@ -164,7 +164,7 @@ export const sanitizeThirdPartyConnection = (
 };
 
 const isLegacyProviderRecord = (value: unknown): value is Record<string, unknown> =>
-  !!value && typeof value === 'object' && !Array.isArray(value);
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 
 const shouldMigrateLegacyProvider = (
   providerId: LegacyThirdPartyProviderId,

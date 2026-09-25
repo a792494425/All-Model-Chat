@@ -38,14 +38,16 @@ export const ImageVisualCropper: React.FC<ImageVisualCropperProps> = ({
 
   const getRelativeCoords = useCallback(
     (clientX: number, clientY: number) => {
-      const el = surfaceRef.current;
-      if (!el) return { x: 0, y: 0 };
-      const rect = el.getBoundingClientRect();
+      const surfaceElement = surfaceRef.current;
+      if (!surfaceElement) return { x: 0, y: 0 };
+      const rect = surfaceElement.getBoundingClientRect();
       if (!rect || rect.width <= 0 || rect.height <= 0) return { x: 0, y: 0 };
 
       // The unrotated dimensions of the element in local coordinates
-      const unrotatedWidth = el.offsetWidth > 0 ? el.offsetWidth : (imageDimensions?.width ?? rect.width);
-      const unrotatedHeight = el.offsetHeight > 0 ? el.offsetHeight : (imageDimensions?.height ?? rect.height);
+      const unrotatedWidth =
+        surfaceElement.offsetWidth > 0 ? surfaceElement.offsetWidth : (imageDimensions?.width ?? rect.width);
+      const unrotatedHeight =
+        surfaceElement.offsetHeight > 0 ? surfaceElement.offsetHeight : (imageDimensions?.height ?? rect.height);
 
       if (unrotatedWidth <= 0 || unrotatedHeight <= 0) return { x: 0, y: 0 };
 

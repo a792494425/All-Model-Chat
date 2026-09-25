@@ -41,7 +41,7 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
   const [isCopied, setIsCopied] = useState(false);
   const activeCueRef = useRef<HTMLDivElement | null>(null);
 
-  const hasTranslations = useMemo(() => cues.some((c) => Boolean(c.translation)), [cues]);
+  const hasTranslations = useMemo(() => cues.some((cue) => Boolean(cue.translation)), [cues]);
 
   const [internalDisplayMode, setInternalDisplayMode] = useState<SubtitleDisplayMode>(
     hasTranslations ? 'bilingual' : 'original',
@@ -69,7 +69,7 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
   // Determine active cue index based on currentTime
   const activeCueId = useMemo(() => {
     if (!cues || cues.length === 0) return null;
-    const found = cues.find((c) => currentTime >= c.startSeconds && currentTime <= c.endSeconds);
+    const found = cues.find((cue) => currentTime >= cue.startSeconds && currentTime <= cue.endSeconds);
     return found ? found.id : null;
   }, [cues, currentTime]);
 
@@ -88,10 +88,10 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
     if (!searchQuery.trim()) return cues;
     const query = searchQuery.toLowerCase().trim();
     return cues.filter(
-      (c) =>
-        c.text.toLowerCase().includes(query) ||
-        (c.translation && c.translation.toLowerCase().includes(query)) ||
-        (c.speaker && c.speaker.toLowerCase().includes(query)),
+      (cue) =>
+        cue.text.toLowerCase().includes(query) ||
+        (cue.translation && cue.translation.toLowerCase().includes(query)) ||
+        (cue.speaker && cue.speaker.toLowerCase().includes(query)),
     );
   }, [cues, searchQuery]);
 
@@ -116,20 +116,20 @@ export const VideoSubtitlesDrawer: React.FC<VideoSubtitlesDrawerProps> = ({
     let plainText: string;
     if (currentDisplayMode === 'bilingual') {
       plainText = cues
-        .map((c) => {
-          const speakerPrefix = c.speaker ? `[${c.speaker}] ` : '';
-          return c.translation ? `${speakerPrefix}${c.text}\n${c.translation}` : `${speakerPrefix}${c.text}`;
+        .map((cue) => {
+          const speakerPrefix = cue.speaker ? `[${cue.speaker}] ` : '';
+          return cue.translation ? `${speakerPrefix}${cue.text}\n${cue.translation}` : `${speakerPrefix}${cue.text}`;
         })
         .join('\n\n');
     } else if (currentDisplayMode === 'translation') {
       plainText = cues
-        .map((c) => {
-          const speakerPrefix = c.speaker ? `[${c.speaker}] ` : '';
-          return `${speakerPrefix}${c.translation || c.text}`;
+        .map((cue) => {
+          const speakerPrefix = cue.speaker ? `[${cue.speaker}] ` : '';
+          return `${speakerPrefix}${cue.translation || cue.text}`;
         })
         .join('\n');
     } else {
-      plainText = cues.map((c) => (c.speaker ? `[${c.speaker}] ${c.text}` : c.text)).join('\n');
+      plainText = cues.map((cue) => (cue.speaker ? `[${cue.speaker}] ${cue.text}` : cue.text)).join('\n');
     }
 
     try {

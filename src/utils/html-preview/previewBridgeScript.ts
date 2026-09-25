@@ -76,12 +76,12 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
     if (!body || !root) return 0;
 
     const restored = [];
-    const neutralizeSize = (el) => {
-      if (!(el instanceof HTMLElement)) return;
-      restored.push([el, el.style.height, el.style.minHeight, el.style.maxHeight]);
-      el.style.height = 'auto';
-      el.style.minHeight = '0';
-      el.style.maxHeight = 'none';
+    const neutralizeSize = (targetElement) => {
+      if (!(targetElement instanceof HTMLElement)) return;
+      restored.push([targetElement, targetElement.style.height, targetElement.style.minHeight, targetElement.style.maxHeight]);
+      targetElement.style.height = 'auto';
+      targetElement.style.minHeight = '0';
+      targetElement.style.maxHeight = 'none';
     };
 
     isMeasuringHeight = true;
@@ -91,28 +91,28 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
 
       const children = body.children;
       for (let i = 0; i < children.length; i += 1) {
-        const el = children[i];
-        if (!(el instanceof HTMLElement)) continue;
-        if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.tagName === 'LINK') continue;
-        neutralizeSize(el);
+        const childElement = children[i];
+        if (!(childElement instanceof HTMLElement)) continue;
+        if (childElement.tagName === 'SCRIPT' || childElement.tagName === 'STYLE' || childElement.tagName === 'LINK') continue;
+        neutralizeSize(childElement);
       }
 
       let contentBottom = 0;
       for (let i = 0; i < children.length; i += 1) {
-        const el = children[i];
-        if (!(el instanceof HTMLElement)) continue;
-        if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.tagName === 'LINK') continue;
+        const childElement = children[i];
+        if (!(childElement instanceof HTMLElement)) continue;
+        if (childElement.tagName === 'SCRIPT' || childElement.tagName === 'STYLE' || childElement.tagName === 'LINK') continue;
 
-        const style = window.getComputedStyle(el);
+        const style = window.getComputedStyle(childElement);
         if (style.display === 'none' || style.visibility === 'hidden') continue;
 
-        const rect = el.getBoundingClientRect();
+        const rect = childElement.getBoundingClientRect();
         const marginBottom = parseFloat(style.marginBottom) || 0;
         let bottom;
         if (style.position === 'fixed') {
           // Fixed fullscreen shell (inset:0 + overflow:hidden) clips content.
           // Use scrollHeight so the parent stretches the iframe past the clip zone.
-          bottom = rect.top + (window.scrollY || 0) + Math.max(el.scrollHeight, rect.height) + marginBottom;
+          bottom = rect.top + (window.scrollY || 0) + Math.max(childElement.scrollHeight, rect.height) + marginBottom;
         } else {
           bottom = rect.bottom + (window.scrollY || 0) + marginBottom;
         }
@@ -131,10 +131,10 @@ export const PREVIEW_BRIDGE_SCRIPT = `<script>
       return Math.max(body.scrollHeight || 0, root.scrollHeight || 0);
     } finally {
       for (let i = restored.length - 1; i >= 0; i -= 1) {
-        const [el, height, minHeight, maxHeight] = restored[i];
-        el.style.height = height;
-        el.style.minHeight = minHeight;
-        el.style.maxHeight = maxHeight;
+        const [restoredElement, height, minHeight, maxHeight] = restored[i];
+        restoredElement.style.height = height;
+        restoredElement.style.minHeight = minHeight;
+        restoredElement.style.maxHeight = maxHeight;
       }
       isMeasuringHeight = false;
     }
