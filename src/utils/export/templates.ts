@@ -198,13 +198,10 @@ export const formatMessageContentForTxt = (content: string): string => {
   let formatted = content;
 
   if (formatted.includes('```amc-live-artifact-html')) {
-    formatted = formatted.replace(
-      /```amc-live-artifact-html\n([\s\S]*?)\n?```/g,
-      (_match, html) => {
-        const converted = convertHtmlToMarkdown(html);
-        return converted.trim() ? converted.trim() : _match;
-      },
-    );
+    formatted = formatted.replace(/```amc-live-artifact-html\n([\s\S]*?)\n?```/g, (_match, html) => {
+      const converted = convertHtmlToMarkdown(html);
+      return converted.trim() ? converted.trim() : _match;
+    });
   }
 
   const trimmed = formatted.trimStart();

@@ -55,8 +55,7 @@ turndownService.addRule('graphvizBlock', {
 
 turndownService.addRule('echartsBlock', {
   filter: (node) =>
-    node.nodeName === 'DIV' &&
-    (node.hasAttribute('data-amc-echarts') || node.hasAttribute('data-amc-chart')),
+    node.nodeName === 'DIV' && (node.hasAttribute('data-amc-echarts') || node.hasAttribute('data-amc-chart')),
   replacement: (_content, node) => {
     const spec =
       (node as HTMLElement).getAttribute('data-amc-echarts')?.trim() ||
@@ -68,8 +67,7 @@ turndownService.addRule('echartsBlock', {
 turndownService.addRule('copyButton', {
   filter: (node) =>
     node.nodeName === 'BUTTON' &&
-    ((node as HTMLElement).hasAttribute('data-amc-copy') ||
-      (node as HTMLElement).classList.contains('copy-btn')),
+    ((node as HTMLElement).hasAttribute('data-amc-copy') || (node as HTMLElement).classList.contains('copy-btn')),
   replacement: () => '',
 });
 

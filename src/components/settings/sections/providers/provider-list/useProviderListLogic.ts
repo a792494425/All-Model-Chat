@@ -22,10 +22,7 @@ export const useProviderListLogic = ({ connections, onReorder }: UseProviderList
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  const configuredTemplateIds = useMemo(
-    () => new Set(connections.map((conn) => conn.templateId)),
-    [connections],
-  );
+  const configuredTemplateIds = useMemo(() => new Set(connections.map((conn) => conn.templateId)), [connections]);
 
   const unconfiguredPresets = useMemo(() => {
     return TEMPLATE_PRESETS.filter((preset) => !configuredTemplateIds.has(preset.id));
@@ -57,7 +54,10 @@ export const useProviderListLogic = ({ connections, onReorder }: UseProviderList
           conn.name.toLowerCase().includes(query) ||
           (conn.notes && conn.notes.toLowerCase().includes(query)) ||
           conn.templateId.toLowerCase().includes(query) ||
-          conn.models.some((model) => model.id.toLowerCase().includes(query) || (model.name && model.name.toLowerCase().includes(query)))
+          conn.models.some(
+            (model) =>
+              model.id.toLowerCase().includes(query) || (model.name && model.name.toLowerCase().includes(query)),
+          )
         );
       });
   }, [connections, filterMode, search]);

@@ -6,4 +6,3 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
  */
 export const asTrimmedString = (value: unknown): string | undefined =>
   typeof value === 'string' && value.trim() ? value.trim() : undefined;
-

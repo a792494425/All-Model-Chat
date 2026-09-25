@@ -60,7 +60,10 @@ export const pruneDanglingInternalToolMessages = (messages: ChatMessage[], targe
   for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
     const currentMessage = messages[messageIndex];
 
-    if (currentMessage.isInternalToolMessage && (!targetParentId || currentMessage.toolParentMessageId === targetParentId)) {
+    if (
+      currentMessage.isInternalToolMessage &&
+      (!targetParentId || currentMessage.toolParentMessageId === targetParentId)
+    ) {
       if (currentMessage.role === 'model') {
         const nextMessage = messages[messageIndex + 1];
         const hasMatchingResponse =

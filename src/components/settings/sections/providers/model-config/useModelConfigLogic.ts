@@ -62,7 +62,9 @@ export function useModelConfigLogic({
       setTopK(modelParameters?.topK);
       setPresencePenalty(modelParameters?.presencePenalty);
       setFrequencyPenalty(modelParameters?.frequencyPenalty);
-      setStopSequencesStr(Array.isArray(modelParameters?.stopSequences) ? modelParameters.stopSequences.join(', ') : '');
+      setStopSequencesStr(
+        Array.isArray(modelParameters?.stopSequences) ? modelParameters.stopSequences.join(', ') : '',
+      );
       setSeed(modelParameters?.seed);
       setReasoningEffort(modelParameters?.reasoningEffort);
       setThinkingBudget(modelParameters?.thinkingBudget);

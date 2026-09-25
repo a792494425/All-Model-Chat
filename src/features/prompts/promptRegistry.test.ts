@@ -465,7 +465,9 @@ describe('promptRegistry', () => {
 
     expect(prompt).toContain('position:sticky;top:0;z-index:1');
     expect(prompt).toContain('Executive Dashboard vs Deep Technical Explainer');
-    expect(prompt).toContain('STRICT BAN: never force metric KPI cards or synthetic scorecards onto conceptual/explanatory questions');
+    expect(prompt).toContain(
+      'STRICT BAN: never force metric KPI cards or synthetic scorecards onto conceptual/explanatory questions',
+    );
     expect(prompt).toContain('Fake KPI dashboards on explanatory questions');
   });
 

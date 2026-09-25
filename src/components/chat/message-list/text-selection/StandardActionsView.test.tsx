@@ -99,4 +99,3 @@ describe('StandardActionsView', () => {
     expect(dividers.length).toBe(2);
   });
 });
-

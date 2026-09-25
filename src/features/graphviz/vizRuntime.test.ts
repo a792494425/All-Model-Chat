@@ -766,4 +766,3 @@ describe('resolveCssVariablesInDot (Live UI & CSS variable resilience)', () => {
     expect(processed).toContain(`fontcolor="${contrastFont}"`);
   });
 });
-

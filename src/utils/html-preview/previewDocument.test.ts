@@ -207,7 +207,9 @@ describe('htmlPreview utilities', () => {
     const srcDoc = buildHtmlPreviewSrcDoc('<table><tr><td><span>Tag</span></td></tr></table>');
 
     expect(srcDoc).toContain('table td,table th{vertical-align:top;}');
-    expect(srcDoc).toContain('table td,table th{border-left:none!important;border-right:none!important;border-top:none!important;}');
+    expect(srcDoc).toContain(
+      'table td,table th{border-left:none!important;border-right:none!important;border-top:none!important;}',
+    );
     expect(srcDoc).toContain(
       ':where(div,section,article):has(> table:only-child){border:none!important;background:transparent!important;box-shadow:none!important;}',
     );

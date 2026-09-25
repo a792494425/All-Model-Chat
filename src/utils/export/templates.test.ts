@@ -312,7 +312,8 @@ describe('generateExportTxtTemplate', () => {
   });
 
   it('converts fenced amc-live-artifact-html blocks within mixed markdown', () => {
-    const mixed = 'Overview:\n\n```amc-live-artifact-html\n<div class="card"><h3>Step 1</h3><p>Details here</p></div>\n```\n\nHope this helps!';
+    const mixed =
+      'Overview:\n\n```amc-live-artifact-html\n<div class="card"><h3>Step 1</h3><p>Details here</p></div>\n```\n\nHope this helps!';
     const formatted = formatMessageContentForTxt(mixed);
 
     expect(formatted).not.toContain('```amc-live-artifact-html');

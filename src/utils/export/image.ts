@@ -253,10 +253,7 @@ export const generateSnapshotPng = async (
   let cleanup = () => {};
   try {
     const targetWidth = resolveSnapshotWidth(contentElement, options.width);
-    const { container, innerContent, remove, rootBgColor } = await createSnapshotContainer(
-      themeId,
-      targetWidth,
-    );
+    const { container, innerContent, remove, rootBgColor } = await createSnapshotContainer(themeId, targetWidth);
     cleanup = remove;
 
     const headerElement = createExportDOMHeader(headerConfig.title, headerConfig.metaLeft, headerConfig.metaRight);

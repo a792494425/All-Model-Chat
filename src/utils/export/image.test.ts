@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  wrapGetComputedStyleWithColorSanitizer,
-  hasWideExportContent,
-  resolveSnapshotWidth,
-} from './image';
+import { wrapGetComputedStyleWithColorSanitizer, hasWideExportContent, resolveSnapshotWidth } from './image';
 
 describe('wrapGetComputedStyleWithColorSanitizer', () => {
   it('wraps and restores window.getComputedStyle', () => {

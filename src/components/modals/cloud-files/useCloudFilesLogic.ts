@@ -224,7 +224,9 @@ export function useCloudFilesLogic({
   }, []);
 
   const allFilteredSelected = useMemo(() => {
-    return filteredFiles.length > 0 && filteredFiles.every((file) => (file.name ? selectedFileNames.has(file.name) : false));
+    return (
+      filteredFiles.length > 0 && filteredFiles.every((file) => (file.name ? selectedFileNames.has(file.name) : false))
+    );
   }, [filteredFiles, selectedFileNames]);
 
   const handleSelectAllToggle = useCallback(() => {

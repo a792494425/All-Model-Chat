@@ -482,11 +482,7 @@ export const balanceFourItemGrids = (root: ParentNode): void => {
     if (element.children.length !== 4) return;
     const style = element.getAttribute('style') || '';
     if (!style) return;
-    if (
-      style.includes('auto-fit') ||
-      style.includes('auto-fill') ||
-      /repeat\s*\(\s*3\s*,/i.test(style)
-    ) {
+    if (style.includes('auto-fit') || style.includes('auto-fill') || /repeat\s*\(\s*3\s*,/i.test(style)) {
       if (/grid-template-columns\s*:[^;]+/i.test(style)) {
         element.setAttribute(
           'style',
