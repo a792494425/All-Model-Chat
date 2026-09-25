@@ -1,7 +1,7 @@
 import { registerVirtualMcpServer, type VirtualMcpServer } from '@/features/mcp/virtualMcpRegistry';
 import type { McpToolDefinition } from '@/services/api/mcpApi';
 import { useChatStore } from '@/stores/chatStore';
-import { isRecord } from '../../../shared/predicates';
+import { asTrimmedString, isRecord } from '../../../shared/predicates';
 import { collectLocalJsInputFiles } from './executionFiles';
 import { executeJavaScript, type SandboxExecutionResult, type SandboxRunnerOptions } from './sandboxRunner';
 
@@ -34,8 +34,6 @@ export interface LocalJsVirtualMcpDeps {
   getActiveFiles?: () => Record<string, string>;
 }
 
-const asString = (val: unknown): string | undefined => (typeof val === 'string' && val.trim() ? val.trim() : undefined);
-
 export const createLocalJsVirtualMcpServer = (deps: LocalJsVirtualMcpDeps = {}): VirtualMcpServer => {
   return {
     id: LOCAL_JS_VIRTUAL_MCP_ID,
@@ -53,7 +51,7 @@ export const createLocalJsVirtualMcpServer = (deps: LocalJsVirtualMcpDeps = {}):
       const rawCode = isRecord(args)
         ? (args.code ?? args.js_code ?? args.javascript_code ?? args.script)
         : (args as unknown);
-      const code = asString(rawCode);
+      const code = asTrimmedString(rawCode);
 
       if (!code) {
         return {

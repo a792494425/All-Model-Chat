@@ -11,7 +11,7 @@ import { updateThirdPartyConnection } from '@/utils/third-party/thirdPartyApiPro
 import { probeThirdPartyConnection } from '@/utils/third-party/thirdPartyDiagnostics';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSettingsAssistantStore } from '@/stores/settingsAssistantStore';
-import { isRecord } from '../../../shared/predicates';
+import { asTrimmedString, isRecord } from '../../../shared/predicates';
 import { listTemplateSummaries, toConnectionSummary } from './providerRedaction';
 import { planProviderPatch, type ProviderPatch } from './providerPatch';
 
@@ -21,13 +21,10 @@ export interface ProviderToolsDeps {
   requestApiKey: (request: { connectionId: string; connectionName: string }) => Promise<string | null>;
 }
 
-const asString = (value: unknown): string | undefined =>
-  typeof value === 'string' && value.trim() ? value.trim() : undefined;
-
 const asBoolean = (value: unknown): boolean | undefined => (typeof value === 'boolean' ? value : undefined);
 
 const asProtocol = (value: unknown): ThirdPartyApiProtocol | undefined => {
-  const candidate = asString(value);
+  const candidate = asTrimmedString(value);
   return candidate === 'openai-compatible' || candidate === 'anthropic' || candidate === 'openai-responses'
     ? candidate
     : undefined;
@@ -41,9 +38,9 @@ const asModelOptions = (value: unknown): ModelOption[] | undefined => {
         return { id: entry.trim(), name: entry.trim() };
       }
       if (isRecord(entry)) {
-        const id = asString(entry.id);
+        const id = asTrimmedString(entry.id);
         if (!id) return null;
-        const name = asString(entry.name) ?? id;
+        const name = asTrimmedString(entry.name) ?? id;
         return { id, name };
       }
       return null;
@@ -56,23 +53,23 @@ const parsePatch = (toolName: string, args: unknown): ProviderPatch | { error: s
   const record = isRecord(args) ? args : {};
 
   if (toolName === 'create_connection') {
-    const templateId = asString(record.templateId);
+    const templateId = asTrimmedString(record.templateId);
     if (!templateId || !(THIRD_PARTY_TEMPLATE_IDS as readonly string[]).includes(templateId)) {
       return { error: `templateId must be one of: ${THIRD_PARTY_TEMPLATE_IDS.join(', ')}` };
     }
     return {
       op: 'create',
       templateId: templateId as ThirdPartyTemplateId,
-      name: asString(record.name),
-      baseUrl: asString(record.baseUrl),
+      name: asTrimmedString(record.name),
+      baseUrl: asTrimmedString(record.baseUrl),
       protocol: asProtocol(record.protocol),
-      modelId: asString(record.modelId),
+      modelId: asTrimmedString(record.modelId),
       models: asModelOptions(record.models),
-      apiKey: asString(record.apiKey),
+      apiKey: asTrimmedString(record.apiKey),
     };
   }
 
-  const connectionId = asString(record.connectionId);
+  const connectionId = asTrimmedString(record.connectionId);
   if (!connectionId) {
     return { error: 'connectionId is required' };
   }
@@ -85,12 +82,12 @@ const parsePatch = (toolName: string, args: unknown): ProviderPatch | { error: s
     op: 'update',
     connectionId,
     set: {
-      name: asString(record.name),
-      baseUrl: asString(record.baseUrl),
+      name: asTrimmedString(record.name),
+      baseUrl: asTrimmedString(record.baseUrl),
       protocol: asProtocol(record.protocol),
       enabled: asBoolean(record.enabled),
-      modelId: asString(record.modelId),
-      apiKey: record.apiKey === null ? null : asString(record.apiKey),
+      modelId: asTrimmedString(record.modelId),
+      apiKey: record.apiKey === null ? null : asTrimmedString(record.apiKey),
     },
     addModels: asModelOptions(record.addModels) ?? asModelOptions(record.models),
     replaceModels: asModelOptions(record.replaceModels),
@@ -297,8 +294,8 @@ export const createProviderVirtualMcpServer = (deps: ProviderToolsDeps): Virtual
       }
 
       if (toolName === 'test_connection') {
-        const connectionId = asString(isRecord(args) ? args.connectionId : undefined);
-        const modelId = asString(isRecord(args) ? args.modelId : undefined);
+        const connectionId = asTrimmedString(isRecord(args) ? args.connectionId : undefined);
+        const modelId = asTrimmedString(isRecord(args) ? args.modelId : undefined);
         if (!connectionId) {
           return toMcpResponse({ status: 'error', errorMessage: 'connectionId is required' });
         }

@@ -1,6 +1,6 @@
 import { registerVirtualMcpServer, type VirtualMcpServer } from '@/features/mcp/virtualMcpRegistry';
 import type { McpToolDefinition } from '@/services/api/mcpApi';
-import { isRecord } from '../../../shared/predicates';
+import { asTrimmedString, isRecord } from '../../../shared/predicates';
 import {
   getChatDetail,
   searchChatHistory,
@@ -64,8 +64,6 @@ export interface ChatMemoryVirtualMcpDeps {
   ) => Promise<{ found: boolean; text: string }>;
 }
 
-const asString = (val: unknown): string | undefined => (typeof val === 'string' && val.trim() ? val.trim() : undefined);
-
 export const createChatMemoryVirtualMcpServer = (deps: ChatMemoryVirtualMcpDeps = {}): VirtualMcpServer => {
   return {
     id: CHAT_MEMORY_VIRTUAL_MCP_ID,
@@ -75,7 +73,7 @@ export const createChatMemoryVirtualMcpServer = (deps: ChatMemoryVirtualMcpDeps 
     callTool: async (toolName, args) => {
       if (toolName === 'search_chat_history') {
         const rawQuery = isRecord(args) ? (args.query ?? args.keyword ?? args.q) : (args as unknown);
-        const query = asString(rawQuery);
+        const query = asTrimmedString(rawQuery);
 
         if (!query) {
           return {
@@ -133,7 +131,7 @@ export const createChatMemoryVirtualMcpServer = (deps: ChatMemoryVirtualMcpDeps 
 
       if (toolName === 'get_chat_detail') {
         const rawId = isRecord(args) ? (args.sessionId ?? args.session_id ?? args.id) : (args as unknown);
-        const sessionId = asString(rawId);
+        const sessionId = asTrimmedString(rawId);
 
         if (!sessionId) {
           return {

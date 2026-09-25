@@ -6,7 +6,7 @@ import { collectLocalPythonInputFiles } from './executionFiles';
 import { arrayBufferToBase64 } from '@/utils/file/fileEncoding';
 import { isImageMimeType } from '@/utils/file/fileTypeClassification';
 import { createUploadedFileFromBytes } from '@/utils/chat/parsing';
-import { isRecord } from '../../../shared/predicates';
+import { asTrimmedString, isRecord } from '../../../shared/predicates';
 
 export const LOCAL_PYTHON_VIRTUAL_MCP_ID = 'amc_local_python';
 
@@ -45,8 +45,6 @@ export interface LocalPythonVirtualMcpDeps {
   getActiveFiles?: () => UploadedFile[];
 }
 
-const asString = (val: unknown): string | undefined => (typeof val === 'string' && val.trim() ? val.trim() : undefined);
-
 export const createLocalPythonVirtualMcpServer = (deps: LocalPythonVirtualMcpDeps = {}): VirtualMcpServer => {
   return {
     id: LOCAL_PYTHON_VIRTUAL_MCP_ID,
@@ -62,7 +60,7 @@ export const createLocalPythonVirtualMcpServer = (deps: LocalPythonVirtualMcpDep
       }
 
       const rawCode = isRecord(args) ? (args.code ?? args.python_code ?? args.script) : (args as unknown);
-      const code = asString(rawCode);
+      const code = asTrimmedString(rawCode);
 
       if (!code) {
         return {

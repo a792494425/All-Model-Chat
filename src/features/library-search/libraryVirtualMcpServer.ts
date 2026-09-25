@@ -1,6 +1,6 @@
 import { registerVirtualMcpServer, type VirtualMcpServer } from '@/features/mcp/virtualMcpRegistry';
 import type { McpToolDefinition } from '@/services/api/mcpApi';
-import { isRecord } from '../../../shared/predicates';
+import { asTrimmedString, isRecord } from '../../../shared/predicates';
 import {
   searchLibrary,
   readLibraryFile,
@@ -67,7 +67,6 @@ export interface LibraryVirtualMcpDeps {
   readLibraryFile?: (options: ReadLibraryFileOptions) => Promise<ReadLibraryFileResult>;
 }
 
-const asString = (val: unknown): string | undefined => (typeof val === 'string' && val.trim() ? val.trim() : undefined);
 const asNumber = (val: unknown): number | undefined => (typeof val === 'number' && !isNaN(val) ? val : undefined);
 
 const getFileExtension = (filename: string): string => {
@@ -114,7 +113,7 @@ export const createLibraryVirtualMcpServer = (deps: LibraryVirtualMcpDeps = {}):
     callTool: async (toolName, args) => {
       if (toolName === 'search_library') {
         const rawQuery = isRecord(args) ? (args.query ?? args.keyword ?? args.q) : (args as unknown);
-        const query = asString(rawQuery);
+        const query = asTrimmedString(rawQuery);
 
         if (!query) {
           return {
@@ -129,7 +128,7 @@ export const createLibraryVirtualMcpServer = (deps: LibraryVirtualMcpDeps = {}):
         }
 
         const rawFileType = isRecord(args) ? (args.fileType ?? args.category) : undefined;
-        const fileType = asString(rawFileType);
+        const fileType = asTrimmedString(rawFileType);
         const rawLimit = isRecord(args) ? args.limit : undefined;
         const limit = asNumber(rawLimit);
 
@@ -181,7 +180,7 @@ export const createLibraryVirtualMcpServer = (deps: LibraryVirtualMcpDeps = {}):
 
       if (toolName === 'read_library_file') {
         const rawFileId = isRecord(args) ? (args.fileId ?? args.id) : (args as unknown);
-        const fileId = asString(rawFileId);
+        const fileId = asTrimmedString(rawFileId);
 
         if (!fileId) {
           return {
