@@ -6,19 +6,28 @@ export interface MarkdownTocItem {
   index: number;
 }
 
+/** Matches Markdown ATX headings (# through ######). */
 const HEADING_REGEX = /^(#{1,6})\s+(.+)$/;
 
+/**
+ * Strips inline formatting syntax (links, inline code, bold, italic,
+ * strikethrough, HTML tags) to produce plain text for TOC display.
+ */
 const cleanHeadingText = (raw: string): string => {
   return raw
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/(`+)(.*?)\1/g, '$2')
-    .replace(/(\*\*|__)(.*?)\1/g, '$2')
-    .replace(/(\*|_)(.*?)\1/g, '$2')
-    .replace(/~~(.*?)~~/g, '$1')
-    .replace(/<[^>]+>/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // [link text](url) -> link text
+    .replace(/(`+)(.*?)\1/g, '$2') // `code` -> code
+    .replace(/(\*\*|__)(.*?)\1/g, '$2') // **bold** -> bold
+    .replace(/(\*|_)(.*?)\1/g, '$2') // *italic* -> italic
+    .replace(/~~(.*?)~~/g, '$1') // ~~strikethrough~~ -> strikethrough
+    .replace(/<[^>]+>/g, '') // <tag> -> strip HTML tags
     .trim();
 };
 
+/**
+ * Converts heading text to an anchor slug, preserving ASCII letters, digits,
+ * and Chinese/CJK ideographs while converting spaces to hyphens.
+ */
 const slugifyHeading = (text: string, index: number): string => {
   const slug = text
     .toLowerCase()

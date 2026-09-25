@@ -34,7 +34,7 @@ export const normalizeImportedServer = (
       enabled: false,
       transport,
       command: command || (typeof raw.command === 'string' ? raw.command : 'npx'),
-      args: Array.isArray(raw.args) ? (raw.args.filter((x) => typeof x === 'string') as string[]) : [],
+      args: Array.isArray(raw.args) ? (raw.args.filter((item) => typeof item === 'string') as string[]) : [],
       env: raw.env && typeof raw.env === 'object' ? { ...(raw.env as Record<string, string>) } : {},
     };
   }
@@ -57,24 +57,26 @@ const serversFromParsed = (parsed: unknown): McpServerConfig[] => {
   if (!parsed || typeof parsed !== 'object') throw new McpImportError('notObject');
   if (Array.isArray(parsed)) {
     return (parsed as Record<string, unknown>[])
-      .map((r) => normalizeImportedServer(r))
+      .map((rawRecord) => normalizeImportedServer(rawRecord))
       .filter(Boolean) as McpServerConfig[];
   }
-  const obj = parsed as Record<string, unknown>;
+  const rawConfig = parsed as Record<string, unknown>;
   for (const key of ['servers', 'mcpServers'] as const) {
-    if (Array.isArray(obj[key])) {
-      return (obj[key] as Record<string, unknown>[])
-        .map((r) => normalizeImportedServer(r))
+    if (Array.isArray(rawConfig[key])) {
+      return (rawConfig[key] as Record<string, unknown>[])
+        .map((rawRecord) => normalizeImportedServer(rawRecord))
         .filter(Boolean) as McpServerConfig[];
     }
   }
-  if (obj.mcpServers && typeof obj.mcpServers === 'object' && !Array.isArray(obj.mcpServers)) {
-    return Object.entries(obj.mcpServers as Record<string, unknown>)
-      .map(([key, val]) => normalizeImportedServer((val as Record<string, unknown>) ?? {}, key))
+  if (rawConfig.mcpServers && typeof rawConfig.mcpServers === 'object' && !Array.isArray(rawConfig.mcpServers)) {
+    return Object.entries(rawConfig.mcpServers as Record<string, unknown>)
+      .map(([serverKey, rawServerConfig]) =>
+        normalizeImportedServer((rawServerConfig as Record<string, unknown>) ?? {}, serverKey),
+      )
       .filter(Boolean) as McpServerConfig[];
   }
-  if (obj.url || obj.command || obj.transport || obj.type) {
-    const one = normalizeImportedServer(obj);
+  if (rawConfig.url || rawConfig.command || rawConfig.transport || rawConfig.type) {
+    const one = normalizeImportedServer(rawConfig);
     return one ? [one] : [];
   }
   throw new McpImportError('unrecognized');
@@ -120,10 +122,10 @@ export const dedupeServersById = (
   const ids = new Set(existingIds);
   return imported.map((server) => {
     let nextId = server.id;
-    let n = 2;
+    let duplicateCounter = 2;
     while (ids.has(nextId)) {
-      nextId = `${server.id}__${n}`;
-      n += 1;
+      nextId = `${server.id}__${duplicateCounter}`;
+      duplicateCounter += 1;
     }
     ids.add(nextId);
     return nextId === server.id ? server : { ...server, id: nextId };

@@ -77,7 +77,7 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             max="2"
             step="0.05"
             value={temperature ?? 1}
-            onChange={(e) => setTemperature(parseFloat(e.target.value))}
+            onChange={(event) => setTemperature(parseFloat(event.target.value))}
             className="flex-1 accent-[var(--theme-border-focus)] cursor-pointer"
           />
           <input
@@ -87,9 +87,9 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             step="0.05"
             placeholder={t('settingsDefault')}
             value={temperature ?? ''}
-            onChange={(e) => {
-              const val = e.target.value === '' ? undefined : parseFloat(e.target.value);
-              setTemperature(val);
+            onChange={(event) => {
+              const parsedTemperature = event.target.value === '' ? undefined : parseFloat(event.target.value);
+              setTemperature(parsedTemperature);
             }}
             className={`w-20 p-1.5 font-mono rounded border ${SETTINGS_INPUT_CLASS}`}
           />
@@ -110,7 +110,7 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             max="1"
             step="0.05"
             value={topP ?? 0.95}
-            onChange={(e) => setTopP(parseFloat(e.target.value))}
+            onChange={(event) => setTopP(parseFloat(event.target.value))}
             className="flex-1 accent-[var(--theme-border-focus)] cursor-pointer"
           />
           <input
@@ -120,9 +120,9 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             step="0.05"
             placeholder={t('settingsDefault')}
             value={topP ?? ''}
-            onChange={(e) => {
-              const val = e.target.value === '' ? undefined : parseFloat(e.target.value);
-              setTopP(val);
+            onChange={(event) => {
+              const parsedTopP = event.target.value === '' ? undefined : parseFloat(event.target.value);
+              setTopP(parsedTopP);
             }}
             className={`w-20 p-1.5 font-mono rounded border ${SETTINGS_INPUT_CLASS}`}
           />
@@ -141,9 +141,9 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             step="256"
             placeholder={t('settingsMaxOutputTokensPlaceholder')}
             value={maxOutputTokens ?? ''}
-            onChange={(e) => {
-              const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
-              setMaxOutputTokens(val);
+            onChange={(event) => {
+              const parsedTokens = event.target.value === '' ? undefined : parseInt(event.target.value, 10);
+              setMaxOutputTokens(parsedTokens);
             }}
             className={`w-full p-2 font-mono rounded-xl border ${SETTINGS_INPUT_CLASS}`}
           />
@@ -160,9 +160,9 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             step="1"
             placeholder={t('settingsDefault')}
             value={topK ?? ''}
-            onChange={(e) => {
-              const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
-              setTopK(val);
+            onChange={(event) => {
+              const parsedTopK = event.target.value === '' ? undefined : parseInt(event.target.value, 10);
+              setTopK(parsedTopK);
             }}
             className={`w-full p-2 font-mono rounded-xl border ${SETTINGS_INPUT_CLASS}`}
           />
@@ -252,9 +252,9 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
               max="65536"
               step="1024"
               value={thinkingBudget ?? 0}
-              onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                setThinkingBudget(val > 0 ? val : undefined);
+              onChange={(event) => {
+                const parsedBudget = parseInt(event.target.value, 10);
+                setThinkingBudget(parsedBudget > 0 ? parsedBudget : undefined);
               }}
               className="flex-1 accent-amber-500 cursor-pointer"
             />
@@ -265,9 +265,9 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
               step="1024"
               placeholder="0 (Off/Default)"
               value={thinkingBudget ?? ''}
-              onChange={(e) => {
-                const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
-                setThinkingBudget(val);
+              onChange={(event) => {
+                const parsedBudget = event.target.value === '' ? undefined : parseInt(event.target.value, 10);
+                setThinkingBudget(parsedBudget);
               }}
               className={`w-28 p-1.5 font-mono rounded border ${SETTINGS_INPUT_CLASS}`}
             />
@@ -297,7 +297,7 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             step="0.1"
             disabled={isGemini}
             value={presencePenalty ?? 0}
-            onChange={(e) => setPresencePenalty(parseFloat(e.target.value))}
+            onChange={(event) => setPresencePenalty(parseFloat(event.target.value))}
             className="w-full accent-[var(--theme-border-focus)] cursor-pointer disabled:cursor-not-allowed"
           />
         </div>
@@ -323,7 +323,7 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             step="0.1"
             disabled={isGemini}
             value={frequencyPenalty ?? 0}
-            onChange={(e) => setFrequencyPenalty(parseFloat(e.target.value))}
+            onChange={(event) => setFrequencyPenalty(parseFloat(event.target.value))}
             className="w-full accent-[var(--theme-border-focus)] cursor-pointer disabled:cursor-not-allowed"
           />
         </div>
@@ -335,7 +335,7 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
           <input
             type="text"
             value={stopSequencesStr}
-            onChange={(e) => setStopSequencesStr(e.target.value)}
+            onChange={(event) => setStopSequencesStr(event.target.value)}
             placeholder={t('settingsStopSequencesPlaceholder')}
             className={`w-full p-2 font-mono rounded-xl border ${SETTINGS_INPUT_CLASS}`}
           />
@@ -347,9 +347,9 @@ export const ModelConfigParametersTab: React.FC<ModelConfigParametersTabProps> =
             type="number"
             value={seed ?? ''}
             placeholder="e.g. 42"
-            onChange={(e) => {
-              const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
-              setSeed(val);
+            onChange={(event) => {
+              const parsedSeed = event.target.value === '' ? undefined : parseInt(event.target.value, 10);
+              setSeed(parsedSeed);
             }}
             className={`w-full p-2 font-mono rounded-xl border ${SETTINGS_INPUT_CLASS}`}
           />

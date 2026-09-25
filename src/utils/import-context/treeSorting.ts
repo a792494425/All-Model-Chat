@@ -10,20 +10,20 @@ const stableCollator = new Intl.Collator(undefined, {
   sensitivity: 'variant',
 });
 
-function compareNaturalText(a: string, b: string): number {
-  return naturalCollator.compare(a, b) || stableCollator.compare(a, b);
+function compareNaturalText(firstText: string, secondText: string): number {
+  return naturalCollator.compare(firstText, secondText) || stableCollator.compare(firstText, secondText);
 }
 
-export function compareFilePaths(a: string, b: string): number {
-  return compareNaturalText(a, b);
+export function compareFilePaths(firstPath: string, secondPath: string): number {
+  return compareNaturalText(firstPath, secondPath);
 }
 
-export function compareTreeNodes(a: FileNode, b: FileNode): number {
-  if (a.isDirectory !== b.isDirectory) {
-    return a.isDirectory ? -1 : 1;
+export function compareTreeNodes(firstNode: FileNode, secondNode: FileNode): number {
+  if (firstNode.isDirectory !== secondNode.isDirectory) {
+    return firstNode.isDirectory ? -1 : 1;
   }
 
-  return compareNaturalText(a.name, b.name) || compareNaturalText(a.path, b.path);
+  return compareNaturalText(firstNode.name, secondNode.name) || compareNaturalText(firstNode.path, secondNode.path);
 }
 
 export function sortTreeNodes(nodes: FileNode[]): FileNode[] {

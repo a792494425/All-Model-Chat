@@ -328,10 +328,10 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
   const getErrorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
   const appendLog = (serverId: string, level: McpLogLevel, rawMessage: string): void => {
     knownServerIds.add(serverId);
-    const arr = logBuffers.get(serverId) ?? [];
-    arr.push({ level, message: redactSensitiveText(rawMessage), timestamp: Date.now() });
-    if (arr.length > 200) arr.splice(0, arr.length - 200);
-    logBuffers.set(serverId, arr);
+    const existingLogs = logBuffers.get(serverId) ?? [];
+    existingLogs.push({ level, message: redactSensitiveText(rawMessage), timestamp: Date.now() });
+    if (existingLogs.length > 200) existingLogs.splice(0, existingLogs.length - 200);
+    logBuffers.set(serverId, existingLogs);
   };
   const getLogs = (serverId: string): McpLogEntry[] => [...(logBuffers.get(serverId) ?? [])];
   const hasLogs = (serverId: string): boolean => knownServerIds.has(serverId) || logBuffers.has(serverId);

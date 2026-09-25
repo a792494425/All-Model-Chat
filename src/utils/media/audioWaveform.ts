@@ -24,18 +24,18 @@ export const writeAudioWaveformCache = (id: string, peaks: number[]): void => {
  * Deterministic waveform generator: creates an aesthetic, natural-looking audio envelope from seed string.
  * Used as fallback or instant representation before audio data finishes decoding.
  */
-export const generateDeterministicWaveform = (seedStr: string, count = 32): number[] => {
+export const generateDeterministicWaveform = (seedString: string, count = 32): number[] => {
   let hash = 0;
-  for (let i = 0; i < seedStr.length; i++) {
-    hash = ((hash << 5) - hash + seedStr.charCodeAt(i)) | 0;
+  for (let index = 0; index < seedString.length; index++) {
+    hash = ((hash << 5) - hash + seedString.charCodeAt(index)) | 0;
   }
   const result: number[] = [];
-  for (let i = 0; i < count; i++) {
-    const x = count > 1 ? i / (count - 1) : 0.5;
-    const envelope = Math.sin(Math.PI * x) * 0.45 + 0.35;
-    const pseudo = Math.abs(Math.sin((hash + i * 137.5) * 12.9898) * 43758.5453) % 1;
-    const val = Math.min(0.95, Math.max(0.14, envelope + (pseudo - 0.5) * 0.4));
-    result.push(Number(val.toFixed(3)));
+  for (let index = 0; index < count; index++) {
+    const normalizedPosition = count > 1 ? index / (count - 1) : 0.5;
+    const envelope = Math.sin(Math.PI * normalizedPosition) * 0.45 + 0.35;
+    const pseudo = Math.abs(Math.sin((hash + index * 137.5) * 12.9898) * 43758.5453) % 1;
+    const amplitude = Math.min(0.95, Math.max(0.14, envelope + (pseudo - 0.5) * 0.4));
+    result.push(Number(amplitude.toFixed(3)));
   }
   return result;
 };
@@ -49,12 +49,12 @@ export const decodeAudioWaveform = async (blob: Blob, count = 32): Promise<numbe
     window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!AudioContextClass) return null;
 
-  let audioCtx: AudioContext | null = null;
+  let audioContext: AudioContext | null = null;
   try {
-    audioCtx = new AudioContextClass();
+    audioContext = new AudioContextClass();
     const slice = blob.slice(0, 1024 * 1024 * 3); // 3MB slice for thorough peak extraction
     const arrayBuffer = await slice.arrayBuffer();
-    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
     const channelData = audioBuffer.getChannelData(0);
     if (!channelData || channelData.length === 0) return null;
 
@@ -62,23 +62,23 @@ export const decodeAudioWaveform = async (blob: Blob, count = 32): Promise<numbe
     if (blockSize <= 0) return null;
 
     const rawPeaks: number[] = [];
-    for (let i = 0; i < count; i++) {
+    for (let index = 0; index < count; index++) {
       let sum = 0;
-      const start = i * blockSize;
+      const start = index * blockSize;
       const end = Math.min(start + blockSize, channelData.length);
-      for (let j = start; j < end; j++) {
-        sum += Math.abs(channelData[j]);
+      for (let channelIndex = start; channelIndex < end; channelIndex++) {
+        sum += Math.abs(channelData[channelIndex]);
       }
       rawPeaks.push(sum / (end - start));
     }
 
     const maxPeak = Math.max(...rawPeaks, 0.001);
-    return rawPeaks.map((p) => Number(Math.min(1, Math.max(0.14, p / maxPeak)).toFixed(3)));
+    return rawPeaks.map((peak) => Number(Math.min(1, Math.max(0.14, peak / maxPeak)).toFixed(3)));
   } catch {
     return null;
   } finally {
-    if (audioCtx && audioCtx.state !== 'closed') {
-      void audioCtx.close();
+    if (audioContext && audioContext.state !== 'closed') {
+      void audioContext.close();
     }
   }
 };

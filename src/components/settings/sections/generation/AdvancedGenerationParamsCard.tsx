@@ -127,9 +127,9 @@ export const AdvancedGenerationParamsCard: React.FC<AdvancedGenerationParamsCard
           step="256"
           value={maxOutputTokens ?? ''}
           onChange={(event) => {
-            const val = event.target.value.trim();
-            const num = val === '' ? undefined : parseInt(val, 10);
-            onUpdateSetting('maxOutputTokens', num && num > 0 ? num : undefined);
+            const rawValue = event.target.value.trim();
+            const parsedTokens = rawValue === '' ? undefined : parseInt(rawValue, 10);
+            onUpdateSetting('maxOutputTokens', parsedTokens && parsedTokens > 0 ? parsedTokens : undefined);
           }}
           placeholder={t('settingsMaxOutputTokensPlaceholder')}
           className={`w-full p-2.5 rounded-lg border text-sm font-mono ${SETTINGS_INPUT_CLASS}`}
@@ -248,9 +248,9 @@ export const AdvancedGenerationParamsCard: React.FC<AdvancedGenerationParamsCard
           step="1"
           value={seed ?? ''}
           onChange={(event) => {
-            const val = event.target.value.trim();
-            const num = val === '' ? undefined : parseInt(val, 10);
-            onUpdateSetting('seed', num !== undefined && Number.isFinite(num) ? num : undefined);
+            const rawValue = event.target.value.trim();
+            const parsedSeed = rawValue === '' ? undefined : parseInt(rawValue, 10);
+            onUpdateSetting('seed', parsedSeed !== undefined && Number.isFinite(parsedSeed) ? parsedSeed : undefined);
           }}
           placeholder={t('settingsSeedPlaceholder')}
           className={`w-full p-2.5 rounded-lg border text-sm font-mono ${SETTINGS_INPUT_CLASS}`}

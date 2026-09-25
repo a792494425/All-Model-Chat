@@ -61,11 +61,11 @@ export const wrapGetComputedStyleWithColorSanitizer = (targetWindow: Window): ((
               : raw;
           };
         }
-        const val = Reflect.get(target, prop, target);
-        if (typeof val === 'function') {
-          return val.bind(target);
+        const propertyValue = Reflect.get(target, prop, target);
+        if (typeof propertyValue === 'function') {
+          return propertyValue.bind(target);
         }
-        return sanitizeComputedValue(val);
+        return sanitizeComputedValue(propertyValue);
       },
     });
   };

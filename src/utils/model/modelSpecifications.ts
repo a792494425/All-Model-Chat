@@ -426,23 +426,23 @@ export const formatThinkingLevelSpec = (
     MAX: 'thinkingLevelMax',
   };
 
-  const levelText = (l?: ThinkingLevel) => {
-    if (!l) return '';
-    const key = levelKeyMap[l];
+  const formatLevelLabel = (level?: ThinkingLevel) => {
+    if (!level) return '';
+    const key = levelKeyMap[level];
     const translated = key ? t(key) : undefined;
-    return translated && translated !== key ? translated : l;
+    return translated && translated !== key ? translated : level;
   };
   const defaultPrefix = spec.isRecommended
     ? t('modelCardThinkingRecommended') || '推荐'
     : t('thinkingDefault') || '默认';
 
   if (spec.type === 'discrete' && spec.levels) {
-    const names = spec.levels.map((l) => levelText(l)).join(' / ');
-    return spec.defaultLevel ? `${names} (${defaultPrefix} ${levelText(spec.defaultLevel)})` : names;
+    const names = spec.levels.map((level) => formatLevelLabel(level)).join(' / ');
+    return spec.defaultLevel ? `${names} (${defaultPrefix} ${formatLevelLabel(spec.defaultLevel)})` : names;
   }
   if (spec.type === 'range' && spec.min && spec.max) {
-    const rangeStr = `${levelText(spec.min)} ~ ${levelText(spec.max)}`;
-    return spec.defaultLevel ? `${rangeStr} (${defaultPrefix} ${levelText(spec.defaultLevel)})` : rangeStr;
+    const rangeText = `${formatLevelLabel(spec.min)} ~ ${formatLevelLabel(spec.max)}`;
+    return spec.defaultLevel ? `${rangeText} (${defaultPrefix} ${formatLevelLabel(spec.defaultLevel)})` : rangeText;
   }
   return undefined;
 };

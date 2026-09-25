@@ -37,8 +37,8 @@ export const extractSnippet = (text: string, query: string, radius = 80): string
 const formatDate = (dateVal: unknown): string => {
   if (!dateVal) return '未知时间';
   try {
-    const d = new Date(dateVal as number | string | Date);
-    return isNaN(d.getTime()) ? String(dateVal) : d.toLocaleString();
+    const parsedDate = new Date(dateVal as number | string | Date);
+    return isNaN(parsedDate.getTime()) ? String(dateVal) : parsedDate.toLocaleString();
   } catch {
     return String(dateVal);
   }
@@ -77,18 +77,18 @@ export const searchChatHistory = async (
     }
 
     if (session.messages && session.messages.length > 0) {
-      for (const msg of session.messages) {
-        if (msg.content && msg.content.toLowerCase().includes(lowerQuery)) {
-          const s = extractSnippet(msg.content, cleanQuery);
-          if (s) {
-            matchedSnippet = matchedSnippet ? `${matchedSnippet}\n${s}` : s;
+      for (const message of session.messages) {
+        if (message.content && message.content.toLowerCase().includes(lowerQuery)) {
+          const contentSnippet = extractSnippet(message.content, cleanQuery);
+          if (contentSnippet) {
+            matchedSnippet = matchedSnippet ? `${matchedSnippet}\n${contentSnippet}` : contentSnippet;
             break;
           }
         }
-        if (msg.thoughts && msg.thoughts.toLowerCase().includes(lowerQuery)) {
-          const s = extractSnippet(msg.thoughts, cleanQuery);
-          if (s) {
-            matchedSnippet = matchedSnippet ? `${matchedSnippet}\n${s}` : s;
+        if (message.thoughts && message.thoughts.toLowerCase().includes(lowerQuery)) {
+          const thoughtsSnippet = extractSnippet(message.thoughts, cleanQuery);
+          if (thoughtsSnippet) {
+            matchedSnippet = matchedSnippet ? `${matchedSnippet}\n${thoughtsSnippet}` : thoughtsSnippet;
             break;
           }
         }
@@ -128,19 +128,19 @@ export const getChatDetail = async (
   }
 
   const title = session.title || '未命名会话';
-  const dateStr = formatDate(session.timestamp);
+  const formattedDate = formatDate(session.timestamp);
   const messages = session.messages || [];
   const recentMessages = messages.slice(-maxMessages);
 
   const lines: string[] = [
     `### 会话: ${title} (ID: ${cleanId})`,
-    `> 更新时间: ${dateStr} | 共 ${messages.length} 条消息 (展示最近 ${recentMessages.length} 条)`,
+    `> 更新时间: ${formattedDate} | 共 ${messages.length} 条消息 (展示最近 ${recentMessages.length} 条)`,
     '',
   ];
 
-  for (const msg of recentMessages) {
-    const role = msg.role || 'unknown';
-    const content = (msg.content || '').trim() || '(无文本内容)';
+  for (const message of recentMessages) {
+    const role = message.role || 'unknown';
+    const content = (message.content || '').trim() || '(无文本内容)';
     lines.push(`**${role}**: ${content}`);
     lines.push('');
   }

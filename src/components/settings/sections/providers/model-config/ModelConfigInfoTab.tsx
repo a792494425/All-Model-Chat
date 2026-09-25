@@ -52,7 +52,7 @@ export const ModelConfigInfoTab: React.FC<ModelConfigInfoTabProps> = ({
         <input
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(event) => setName(event.target.value)}
           placeholder="e.g. GPT-4o, DeepSeek V3..."
           className={`w-full p-2 rounded-xl border ${SETTINGS_INPUT_CLASS}`}
         />
@@ -66,7 +66,7 @@ export const ModelConfigInfoTab: React.FC<ModelConfigInfoTabProps> = ({
           <input
             type="text"
             value={id}
-            onChange={(e) => setId(e.target.value)}
+            onChange={(event) => setId(event.target.value)}
             placeholder="e.g. gpt-4o-mini"
             className={`flex-1 p-2 rounded-xl border font-mono ${SETTINGS_INPUT_CLASS}`}
           />
@@ -114,9 +114,9 @@ export const ModelConfigInfoTab: React.FC<ModelConfigInfoTabProps> = ({
             step="1024"
             value={contextWindow ?? ''}
             placeholder="e.g. 128000"
-            onChange={(e) => {
-              const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
-              setContextWindow(val);
+            onChange={(event) => {
+              const parsedWindow = event.target.value === '' ? undefined : parseInt(event.target.value, 10);
+              setContextWindow(parsedWindow);
             }}
             className={`flex-1 p-2 rounded-xl border font-mono ${SETTINGS_INPUT_CLASS}`}
           />

@@ -4,7 +4,9 @@ import { usesRemoteFileReference } from './fileTransferStrategy';
 
 const FILE_API_REFRESH_LEEWAY_MS = 5 * 60 * 1000;
 
+/** Matches Gemini Files API resource names in URI strings, e.g. `files/abc123xyz` or `https://.../files/abc123xyz`. */
 const GEMINI_FILES_NAME_PATTERN = /(?:^|\/)files\/([^/?#]+)/;
+/** Matches standard YouTube video domains and short links to distinguish from Gemini uploaded files. */
 const YOUTUBE_URI_PATTERN = /youtu\.?be|youtube\.com/i;
 
 type GeminiFilesApiNameSource = Pick<UploadedFile, 'fileApiName' | 'fileUri'>;
@@ -124,12 +126,20 @@ export const formatHistoryFileApiUnavailablePartText = (fileName: string): strin
 
 export const INVALID_FILE_API_KEY_FINGERPRINT = 'invalidated';
 
+/**
+ * Matches permission denied, not found, or expired resource errors returned
+ * by the Gemini Files API when a file reference is no longer valid or accessible.
+ */
 const FILES_API_PERMISSION_DENIED_PATTERN =
   /You do not have permission to access the File|(?:\b403\b|\b404\b|PERMISSION_DENIED|NOT_FOUND).*?\bFile\b|\bFile\b.*?(?:\b403\b|\b404\b|PERMISSION_DENIED|NOT_FOUND|expired|deleted|not found|not exist)/i;
 
 export const isFilesApiPermissionDeniedError = (error: unknown): boolean =>
   FILES_API_PERMISSION_DENIED_PATTERN.test(getErrorMessage(error));
 
+/**
+ * Extracts the file identifier (e.g. `files/abc123` or raw name) from an API error message
+ * to invalidate only the affected file instead of all session attachments when possible.
+ */
 export const extractFilesApiIdentifierFromError = (error: unknown): string | null => {
   const message = getErrorMessage(error);
   const match =
@@ -177,9 +187,9 @@ export const invalidateSessionFilesApiReferences = (session: SavedChatSession, e
 
   const hasSpecificMatch = targetIdentifier
     ? session.messages.some(
-        (msg) =>
-          msg.files?.some((file) => fileMatches(file, targetIdentifier)) ||
-          msg.apiParts?.some((part) => partMatches(part, targetIdentifier)),
+        (message) =>
+          message.files?.some((file) => fileMatches(file, targetIdentifier)) ||
+          message.apiParts?.some((part) => partMatches(part, targetIdentifier)),
       )
     : false;
 
@@ -205,7 +215,7 @@ export const invalidateSessionFilesApiReferences = (session: SavedChatSession, e
       nextApiParts = message.apiParts.map((part) => {
         if (partMatches(part, targetToUse)) {
           messageChanged = true;
-          const matchingFile = message.files?.find((f) => fileMatches(f, targetToUse));
+          const matchingFile = message.files?.find((file) => fileMatches(file, targetToUse));
           const fileName = matchingFile?.name || (targetIdentifier ? `File ${targetIdentifier}` : 'file');
           return { text: formatHistoryFileApiUnavailablePartText(fileName) };
         }

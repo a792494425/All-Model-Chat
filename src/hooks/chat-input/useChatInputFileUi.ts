@@ -20,6 +20,7 @@ import { useFileModalState } from '@/hooks/ui/useFileModalState';
 import { readUploadedTextFileContent } from '@/utils/chat-input/textFileToInput';
 import { useI18n } from '@/contexts/I18nContext';
 import { useMultimodalSearchStore } from '@/stores/multimodalSearchStore';
+import { sanitizeFilename } from '@/utils/export/core';
 
 interface UseChatInputFileUiOptions {
   selectedFiles: UploadedFile[];
@@ -184,8 +185,6 @@ export const useChatInputFileUi = ({
     async (content: string | Blob, filename: string) => {
       justInitiatedFileOpRef.current = true;
 
-      const sanitizeFilename = (name: string) => name.trim().replace(/[<>:"/\\|?*]+/g, '_');
-
       let finalFilename = filename.trim() ? sanitizeFilename(filename) : `file-${Date.now()}.txt`;
 
       if (!finalFilename.includes('.')) {
@@ -224,7 +223,6 @@ export const useChatInputFileUi = ({
   const handleSaveTextFile = useCallback(
     async (content: string | Blob, filename: string) => {
       if (editingFile) {
-        const sanitizeFilename = (name: string) => name.trim().replace(/[<>:"/\\|?*]+/g, '_');
         let finalName = filename.trim() ? sanitizeFilename(filename) : `file-${Date.now()}.txt`;
         if (!finalName.includes('.')) {
           finalName += '.md';

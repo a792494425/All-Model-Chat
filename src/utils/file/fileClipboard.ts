@@ -1,14 +1,6 @@
 import { type UploadedFile } from '@/types';
 import { copyTextToClipboard } from '@/utils/clipboard';
-
-const isClipboardTextType = (mimeType: string): boolean => {
-  return (
-    mimeType.startsWith('text/') ||
-    mimeType === 'application/json' ||
-    mimeType.includes('javascript') ||
-    mimeType.includes('xml')
-  );
-};
+import { isTextMimeType } from './fileTypeClassification';
 
 const canvasToBlob = (canvas: HTMLCanvasElement, type = 'image/png'): Promise<Blob | null> => {
   if (typeof canvas.toBlob === 'function') {
@@ -123,7 +115,7 @@ export const copyFileToClipboard = async (file: Pick<UploadedFile, 'dataUrl' | '
   const blob = await response.blob();
   const mimeType = blob.type || file.type || '';
 
-  if (isClipboardTextType(mimeType)) {
+  if (isTextMimeType(mimeType)) {
     const text = await blob.text();
     const success = await copyTextToClipboard(text);
     if (!success) {

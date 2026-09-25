@@ -147,75 +147,75 @@ const VOID_HTML_ELEMENTS = new Set([
  */
 const findHtmlFragmentEnd = (text: string, startIndex: number): number | null => {
   const stack: string[] = [];
-  let i = startIndex;
+  let charIndex = startIndex;
   let lastValidEnd: number | null = null;
-  const len = text.length;
+  const textLength = text.length;
 
-  while (i < len) {
+  while (charIndex < textLength) {
     if (stack.length === 0 && lastValidEnd !== null) {
-      let nextCharIndex = i;
-      while (nextCharIndex < len && /\s/.test(text[nextCharIndex])) {
+      let nextCharIndex = charIndex;
+      while (nextCharIndex < textLength && /\s/.test(text[nextCharIndex])) {
         nextCharIndex += 1;
       }
-      if (nextCharIndex >= len) {
+      if (nextCharIndex >= textLength) {
         return lastValidEnd;
       }
       // If the next non-whitespace character does not start an HTML tag or comment, stop.
       if (text[nextCharIndex] !== '<' || text.startsWith('```', nextCharIndex)) {
         return lastValidEnd;
       }
-      i = nextCharIndex;
+      charIndex = nextCharIndex;
     }
 
-    if (text.startsWith('<!--', i)) {
-      const commentEnd = text.indexOf('-->', i + 4);
+    if (text.startsWith('<!--', charIndex)) {
+      const commentEnd = text.indexOf('-->', charIndex + 4);
       if (commentEnd === -1) {
         break;
       }
-      i = commentEnd + 3;
+      charIndex = commentEnd + 3;
       if (stack.length === 0) {
-        lastValidEnd = i;
+        lastValidEnd = charIndex;
       }
       continue;
     }
 
-    const tagStartMatch = text.slice(i).match(/^<(\/)?([a-zA-Z][a-zA-Z0-9:-]*)/);
+    const tagStartMatch = text.slice(charIndex).match(/^<(\/)?([a-zA-Z][a-zA-Z0-9:-]*)/);
     if (tagStartMatch) {
       const isClosing = Boolean(tagStartMatch[1]);
       const tagName = tagStartMatch[2].toLowerCase();
 
-      let tagEnd = -1;
+      let tagClosingBracketIndex = -1;
       let quote: string | null = null;
-      let j = i + 1;
-      while (j < len) {
-        const char = text[j];
+      let searchIndex = charIndex + 1;
+      while (searchIndex < textLength) {
+        const character = text[searchIndex];
         if (quote) {
-          if (char === quote) {
+          if (character === quote) {
             quote = null;
           }
-        } else if (char === '"' || char === "'") {
-          quote = char;
-        } else if (char === '>') {
-          tagEnd = j;
+        } else if (character === '"' || character === "'") {
+          quote = character;
+        } else if (character === '>') {
+          tagClosingBracketIndex = searchIndex;
           break;
         }
-        j += 1;
+        searchIndex += 1;
       }
 
-      if (tagEnd === -1) {
+      if (tagClosingBracketIndex === -1) {
         break;
       }
 
-      const tagContent = text.slice(i + 1, tagEnd).trim();
+      const tagContent = text.slice(charIndex + 1, tagClosingBracketIndex).trim();
       const isSelfClosing = tagContent.endsWith('/');
 
       if (tagName === 'script' || tagName === 'style') {
         const closeTag = `</${tagName}>`;
-        const closeIdx = text.toLowerCase().indexOf(closeTag, tagEnd + 1);
-        if (closeIdx !== -1) {
-          i = closeIdx + closeTag.length;
+        const closeIndex = text.toLowerCase().indexOf(closeTag, tagClosingBracketIndex + 1);
+        if (closeIndex !== -1) {
+          charIndex = closeIndex + closeTag.length;
           if (stack.length === 0) {
-            lastValidEnd = i;
+            lastValidEnd = charIndex;
           }
           continue;
         }
@@ -225,9 +225,9 @@ const findHtmlFragmentEnd = (text: string, startIndex: number): number | null =>
         if (stack.length > 0 && stack[stack.length - 1] === tagName) {
           stack.pop();
         } else {
-          const lastIdx = stack.lastIndexOf(tagName);
-          if (lastIdx !== -1) {
-            stack.length = lastIdx;
+          const lastTagIndex = stack.lastIndexOf(tagName);
+          if (lastTagIndex !== -1) {
+            stack.length = lastTagIndex;
           }
         }
       } else if (!isSelfClosing && !VOID_HTML_ELEMENTS.has(tagName)) {
@@ -235,21 +235,21 @@ const findHtmlFragmentEnd = (text: string, startIndex: number): number | null =>
       }
 
       if (stack.length === 0) {
-        lastValidEnd = tagEnd + 1;
+        lastValidEnd = tagClosingBracketIndex + 1;
       }
 
-      i = tagEnd + 1;
+      charIndex = tagClosingBracketIndex + 1;
       continue;
     }
 
-    if (stack.length === 0 && /\S/.test(text[i])) {
+    if (stack.length === 0 && /\S/.test(text[charIndex])) {
       if (lastValidEnd !== null) {
         return lastValidEnd;
       }
       return null;
     }
 
-    i += 1;
+    charIndex += 1;
   }
 
   if (stack.length === 0 && lastValidEnd !== null) {

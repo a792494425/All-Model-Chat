@@ -142,9 +142,9 @@ export function useSelectionAsk() {
         }
       };
       const onThoughtChunk = () => {};
-      const onError = (e: Error) => {
+      const onError = (requestError: Error) => {
         if (!isCurrentRequest()) return;
-        setError(e.message || t('askError'));
+        setError(requestError.message || t('askError'));
         setIsLoading(false);
         abortRef.current = null;
       };

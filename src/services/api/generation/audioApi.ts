@@ -15,8 +15,11 @@ import { normalizeMimeType } from '@/utils/file/fileTypeClassification';
 const TTS_REQUEST_TIMEOUT_MS = 30_000;
 
 const SUPPORTED_TTS_VOICE_NAMES = new Set(AVAILABLE_TTS_VOICES.map((voice) => voice.id));
+/** Matches markdown header declaring multi-speaker voice configuration, e.g. `### SPEAKER VOICES`. */
 const SPEAKER_VOICES_HEADER_REGEX = /^#{1,6}\s*SPEAKER VOICES(?:\s*\(.*\))?\s*$/i;
+/** Matches any subsequent markdown header indicating the end of the voice configuration section. */
 const MARKDOWN_HEADER_REGEX = /^#{1,6}\s+\S/;
+/** Matches a speaker mapping line, e.g. `- Speaker 1: Kore` or `Alice: Aoede`. */
 const SPEAKER_VOICE_LINE_REGEX = /^(?:[-*]\s*)?([^:]+?)\s*:\s*([A-Za-z][\w-]*)\s*$/;
 
 const getSupportedTranscriptionMimeType = (audioFile: File): string => {

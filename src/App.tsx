@@ -9,6 +9,7 @@ import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { PwaUpdateBanner } from './components/pwa/PwaUpdateBanner';
 import { ToastViewport } from './components/shared/toast/ToastViewport';
 import { lazyNamedComponent } from './utils/lazyNamedComponent';
+import { isFileDrag } from '@/utils/file-upload/fileUploadPolicy';
 
 const LazyMcpToolApprovalDialog = lazyNamedComponent(
   () => import('./components/mcp/McpToolApprovalDialog'),
@@ -48,14 +49,6 @@ const AppContent: React.FC = () => {
 
   // 把文件拖放提升到 App 根：侧边栏/侧面板等区域也能接收文件拖入。
   // 仅处理 Files 类型，避免影响侧边栏的会话拖拽排序和文本选区拖拽。
-  const isFileDrag = (event: React.DragEvent<HTMLElement>) => {
-    const types = event.dataTransfer?.types;
-    if (!types) return false;
-    for (let i = 0; i < types.length; i++) {
-      if (types[i] === 'Files' || types[i].toLowerCase() === 'files') return true;
-    }
-    return false;
-  };
   const isModalEvent = (event: React.DragEvent<HTMLElement>) =>
     event.target instanceof Element && !!event.target.closest('[data-modal-backdrop="true"]');
 

@@ -23,6 +23,15 @@ interface SpreadsheetViewerProps {
   file: UploadedFile;
 }
 
+const parseNumericCell = (value: unknown): number => {
+  if (typeof value === 'number') return value;
+  const cleaned = String(value)
+    .replace(/[%$¥,]/g, '')
+    .trim();
+  const parsed = Number(cleaned);
+  return Number.isNaN(parsed) ? NaN : parsed;
+};
+
 export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) => {
   const { t } = useI18n();
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
@@ -119,33 +128,23 @@ export const SpreadsheetViewer: React.FC<SpreadsheetViewerProps> = ({ file }) =>
 
   const sortedBodyRows = useMemo(() => {
     if (sortCol === null) return bodyRows;
-    return [...bodyRows].sort((a, b) => {
-      const valA = a[sortCol];
-      const valB = b[sortCol];
-      if (valA === valB) return 0;
-      if (valA === undefined || valA === null || valA === '') return 1;
-      if (valB === undefined || valB === null || valB === '') return -1;
+    return [...bodyRows].sort((firstRow, secondRow) => {
+      const firstCellValue = firstRow[sortCol];
+      const secondCellValue = secondRow[sortCol];
+      if (firstCellValue === secondCellValue) return 0;
+      if (firstCellValue === undefined || firstCellValue === null || firstCellValue === '') return 1;
+      if (secondCellValue === undefined || secondCellValue === null || secondCellValue === '') return -1;
 
-      // Check if both values can be interpreted numerically (including percentages and currency)
-      const parseNum = (v: unknown): number => {
-        if (typeof v === 'number') return v;
-        const cleaned = String(v)
-          .replace(/[%$¥,]/g, '')
-          .trim();
-        const parsed = Number(cleaned);
-        return isNaN(parsed) ? NaN : parsed;
-      };
+      const firstNumericValue = parseNumericCell(firstCellValue);
+      const secondNumericValue = parseNumericCell(secondCellValue);
 
-      const numA = parseNum(valA);
-      const numB = parseNum(valB);
-
-      if (!isNaN(numA) && !isNaN(numB)) {
-        return sortAsc ? numA - numB : numB - numA;
+      if (!Number.isNaN(firstNumericValue) && !Number.isNaN(secondNumericValue)) {
+        return sortAsc ? firstNumericValue - secondNumericValue : secondNumericValue - firstNumericValue;
       }
 
-      const strA = String(valA);
-      const strB = String(valB);
-      return sortAsc ? strA.localeCompare(strB, 'zh-CN') : strB.localeCompare(strA, 'zh-CN');
+      const firstText = String(firstCellValue);
+      const secondText = String(secondCellValue);
+      return sortAsc ? firstText.localeCompare(secondText, 'zh-CN') : secondText.localeCompare(firstText, 'zh-CN');
     });
   }, [bodyRows, sortCol, sortAsc]);
 

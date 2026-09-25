@@ -9,7 +9,7 @@ import {
   filterAndSortLibraryItems,
   resolveLibraryItemToUploadedFile,
 } from '@/utils/library/libraryFiles';
-import { triggerDownload } from '@/utils/export/core';
+import { sanitizeFilename, triggerDownload } from '@/utils/export/core';
 import { fileToBlobUrl, cleanupFilePreviewUrl } from '@/utils/file/filePreviewUrls';
 import { EXTENSION_TO_MIME } from '@/constants/fileTypeSupport';
 import { isTextFile, isMarkdownFile } from '@/utils/file/fileTypeClassification';
@@ -228,7 +228,6 @@ export const useLibraryViewLogic = ({ onNewChat, onSelectSession }: UseLibraryVi
 
   const handleSaveNote = useCallback(
     async (content: string | Blob, filename: string) => {
-      const sanitizeFilename = (name: string) => name.trim().replace(/[<>:"/\\|?*]+/g, '_');
       const safeFilename = filename.trim() ? sanitizeFilename(filename) : `note-${Date.now()}.md`;
       const extension = safeFilename.includes('.') ? `.${safeFilename.split('.').pop()?.toLowerCase()}` : '.md';
       const resolvedMime =

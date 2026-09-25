@@ -1,6 +1,7 @@
 import { splitMarkdownSegments, transformMarkdownTextSegments } from '@/utils/markdown';
 import { escapeHtml } from '@/utils/format/escapeHtml';
 
+// Matches Gemma 2/3 thought tokens: `<|channel|thought> ... <channel|>` or `<|channel>thought ... <channel|>`.
 const GEMMA_THOUGHT_CHANNEL_REGEX = /<\|channel(?:\|thought>|>thought\s*)([\s\S]*?)\s*<channel\|>/gi;
 const GEMMA_THOUGHT_CHANNEL_PRESENCE_REGEX = /<\|channel(?:\|thought>|>thought\s*)([\s\S]*?)\s*<channel\|>/i;
 // Both <thinking> (DeepSeek) and <think> (OpenAI-compatible reasoning tags)

@@ -5,7 +5,9 @@ import {
   isLikelyStreamingLiveArtifactInteractionJson,
 } from '@/utils/markdown';
 
+/** Matches both completed fenced code blocks and incomplete/open fences streaming to end-of-string. */
 const FENCED_CODE_BLOCK_REGEX = /(```[\s\S]*?```|```[\s\S]*$)/g;
+/** Matches GitHub Flavored Markdown table delimiter rows (e.g. `|---|---|` or `|:---:|:---|`). */
 const GFM_TABLE_REGEX = /(?:^|\n)\|[^\n]*\|\s*\n\|(?:\s*:?-{3,}:?\s*\|)+/;
 const RENDER_THROTTLE_MS = 60;
 const DEFAULT_CHARS_PER_FRAME = 1;
@@ -112,20 +114,20 @@ export const useSmoothStreaming = (text: string | undefined | null, isStreaming:
         return;
       }
 
-      const currentLen = displayedTextRef.current.length;
-      const targetLen = targetTextRef.current.length;
+      const currentLength = displayedTextRef.current.length;
+      const targetLength = targetTextRef.current.length;
 
-      if (currentLen < targetLen) {
-        const lag = targetLen - currentLen;
+      if (currentLength < targetLength) {
+        const lag = targetLength - currentLength;
 
         // Bypass mode for tables advances to the next whole line so the message
         // height grows smoothly instead of jumping to the full text.
         const nextText = shouldGrowLineByLine
           ? getBypassNextText(displayedTextRef.current, targetTextRef.current)
-          : targetTextRef.current.slice(0, currentLen + getCharsToAdd(lag));
+          : targetTextRef.current.slice(0, currentLength + getCharsToAdd(lag));
         displayedTextRef.current = nextText;
 
-        const isFinishedCatchingUp = nextText.length >= targetLen;
+        const isFinishedCatchingUp = nextText.length >= targetLength;
 
         if (isFinishedCatchingUp || time - lastRenderTimeRef.current > RENDER_THROTTLE_MS) {
           setDisplayedText(nextText);
@@ -137,7 +139,7 @@ export const useSmoothStreaming = (text: string | undefined | null, isStreaming:
         } else {
           animationFrameRef.current = requestAnimationFrame(animate);
         }
-      } else if (currentLen > targetLen) {
+      } else if (currentLength > targetLength) {
         displayedTextRef.current = targetTextRef.current;
         setDisplayedText(targetTextRef.current);
         lastRenderTimeRef.current = time;

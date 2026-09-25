@@ -14,10 +14,10 @@ interface LastActiveSessionSyncStore {
  * 值比较（而非对象引用比较）：settings 对象可能被广播刷新重建（新引用、同值），
  * 引用比较会产生大量冗余写入。值未变就不写，保持快照稳定。
  */
-const settingsValuesEqual = (a: unknown, b: unknown): boolean => {
-  if (a === b) return true;
+const settingsValuesEqual = (previousValue: unknown, nextValue: unknown): boolean => {
+  if (previousValue === nextValue) return true;
   try {
-    return JSON.stringify(a) === JSON.stringify(b);
+    return JSON.stringify(previousValue) === JSON.stringify(nextValue);
   } catch {
     return false;
   }

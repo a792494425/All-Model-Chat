@@ -28,13 +28,13 @@ export const CHART_RENDERER_SCRIPT = `
   const ERROR_ATTR = 'data-amc-chart-error';
   const RENDERED_ATTR = 'data-amc-chart-rendered';
 
-  const hash = (s) => {
-    let h = 0;
-    for (let i = 0; i < s.length; i += 1) h = (h * 31 + s.charCodeAt(i)) | 0;
-    return (h >>> 0).toString(36);
+  const hash = (sourceString) => {
+    let hashValue = 0;
+    for (let index = 0; index < sourceString.length; index += 1) hashValue = (hashValue * 31 + sourceString.charCodeAt(index)) | 0;
+    return (hashValue >>> 0).toString(36);
   };
-  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-  const isFiniteNum = (v) => typeof v === 'number' && Number.isFinite(v);
+  const clamp = (value, lowerBound, upperBound) => Math.min(upperBound, Math.max(lowerBound, value));
+  const isFiniteNum = (value) => typeof value === 'number' && Number.isFinite(value);
 
   // d3-style tick step: 1/2/5 x 10^k.
   function tickStep(min, max, count) {
@@ -54,22 +54,22 @@ export const CHART_RENDERER_SCRIPT = `
     const lo = Math.floor(min / step) * step;
     const hi = Math.ceil(max / step) * step;
     const ticks = [];
-    for (let v = lo; v <= hi + step * 1e-9; v += step) ticks.push(Number(v.toFixed(6)));
+    for (let tickValue = lo; tickValue <= hi + step * 1e-9; tickValue += step) ticks.push(Number(tickValue.toFixed(6)));
     return { lo, hi, step, ticks };
   };
 
-  const formatTick = (v) => {
-    const abs = Math.abs(v);
+  const formatTick = (tickValue) => {
+    const abs = Math.abs(tickValue);
     return abs >= 1000
-      ? v.toLocaleString('en-US', { maximumFractionDigits: 1 })
-      : Number(v.toFixed(2)).toString();
+      ? tickValue.toLocaleString('en-US', { maximumFractionDigits: 1 })
+      : Number(tickValue.toFixed(2)).toString();
   };
 
   const NS = 'http://www.w3.org/2000/svg';
-  const el = (name, attrs = {}, text) => {
-    const node = document.createElementNS(NS, name);
-    for (const k of Object.keys(attrs)) node.setAttribute(k, String(attrs[k]));
-    if (text != null) node.textContent = text;
+  const el = (elementName, attributes = {}, textContent) => {
+    const node = document.createElementNS(NS, elementName);
+    for (const key of Object.keys(attributes)) node.setAttribute(key, String(attributes[key]));
+    if (textContent != null) node.textContent = textContent;
     return node;
   };
   const TEXT_MUTED = 'var(--amc-live-artifact-muted)';
@@ -242,9 +242,9 @@ export const CHART_RENDERER_SCRIPT = `
     return { lo, hi, ticks, xAt: (v) => plot.x + ((v - lo) / range) * plot.w };
   }
 
-  function makeCategoryXScale(n, plot) {
-    const band = plot.w / n;
-    return { kind: 'category', n, band, xAt: (i) => plot.x + (i + 0.5) * band };
+  function makeCategoryXScale(categoryCount, plot) {
+    const band = plot.w / categoryCount;
+    return { kind: 'category', n: categoryCount, band, xAt: (categoryIndex) => plot.x + (categoryIndex + 0.5) * band };
   }
 
   function drawAxes(spec, plot, xScale, yScale, svg) {

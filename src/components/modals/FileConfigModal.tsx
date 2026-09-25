@@ -33,8 +33,11 @@ const buildDraft = (file: UploadedFile): FileConfigurationDraft => ({
   mediaResolution: file.mediaResolution || '',
 });
 
+/** Matches protobuf Duration strings ending in 's', e.g. `12s` or `12.5s`. */
 const SECONDS_DURATION_PATTERN = /^\d+(?:\.\d{1,9})?s$/;
+/** Matches bare numeric seconds entered by the user without the 's' unit. */
 const SECONDS_INPUT_PATTERN = /^\d+(?:\.\d{1,9})?$/;
+/** Matches the seconds component of timestamp strings (e.g. `45` or `45.25` in `01:45.25`). */
 const TIMESTAMP_SECONDS_PATTERN = /^(\d+)(\.\d{1,9})?$/;
 
 const normalizeTimestampOffset = (value: string): string | undefined => {

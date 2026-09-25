@@ -3,7 +3,11 @@ import { type DragEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { type UploadedFile } from '@/types';
 import { generateUniqueId } from '@/utils/chat/ids';
 import { useI18n } from '@/contexts/I18nContext';
-import { createProcessingPlaceholderFile, DIRECTORY_PLACEHOLDER_MIME_TYPE } from '@/utils/file-upload/fileUploadPolicy';
+import {
+  createProcessingPlaceholderFile,
+  DIRECTORY_PLACEHOLDER_MIME_TYPE,
+  isFileDrag,
+} from '@/utils/file-upload/fileUploadPolicy';
 import { createEmptyDroppedItemsSnapshot, snapshotDroppedItems } from '@/utils/import-context/droppedItemsSnapshot';
 
 interface UseFileDragDropProps {
@@ -17,18 +21,6 @@ export const useFileDragDrop = ({ onFilesDropped, onAddTempFile, onRemoveTempFil
   const [isAppDraggingOver, setIsAppDraggingOver] = useState<boolean>(false);
   const [isProcessingDrop, setIsProcessingDrop] = useState<boolean>(false);
   const dragCounterRef = useRef<number>(0);
-
-  const isFileDrag = (event: globalThis.DragEvent | DragEvent<HTMLElement>): boolean => {
-    const types = event.dataTransfer?.types;
-    if (!types) return false;
-    for (let i = 0; i < types.length; i++) {
-      const type = types[i];
-      if (type === 'Files' || type.toLowerCase() === 'files') {
-        return true;
-      }
-    }
-    return false;
-  };
 
   useEffect(() => {
     const onWindowDragEnter = (event: globalThis.DragEvent) => {

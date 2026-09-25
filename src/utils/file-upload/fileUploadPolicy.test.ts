@@ -6,6 +6,7 @@ import {
   checkBatchNeedsApiKey,
   getEffectiveMimeType,
   getFilesRequiringFileApi,
+  isFileDrag,
   shouldUseFileApi,
 } from './fileUploadPolicy';
 
@@ -235,5 +236,40 @@ describe('buildFileUploadPreflight', () => {
     expect(result.notice).toContain('Unsupported file types: app.exe');
     expect(result.notice).not.toContain('output.zip');
     expect(result.notice).not.toContain('slides.pptx');
+  });
+
+  describe('isFileDrag', () => {
+    it('returns true when dataTransfer types contains Files', () => {
+      const mockEvent = {
+        dataTransfer: {
+          types: ['text/plain', 'Files'] as unknown as DOMStringList,
+        },
+      };
+      expect(isFileDrag(mockEvent as unknown as DragEvent)).toBe(true);
+    });
+
+    it('returns true when dataTransfer types contains lowercase files', () => {
+      const mockEvent = {
+        dataTransfer: {
+          types: ['files'] as unknown as DOMStringList,
+        },
+      };
+      expect(isFileDrag(mockEvent as unknown as DragEvent)).toBe(true);
+    });
+
+    it('returns false when types does not contain files', () => {
+      const mockEvent = {
+        dataTransfer: {
+          types: ['text/plain', 'text/html'] as unknown as DOMStringList,
+        },
+      };
+      expect(isFileDrag(mockEvent as unknown as DragEvent)).toBe(false);
+    });
+
+    it('returns false when dataTransfer or types is missing', () => {
+      expect(isFileDrag({})).toBe(false);
+      expect(isFileDrag({ dataTransfer: null })).toBe(false);
+      expect(isFileDrag({ dataTransfer: {} as DataTransfer })).toBe(false);
+    });
   });
 });

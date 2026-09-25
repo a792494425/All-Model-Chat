@@ -129,10 +129,10 @@ export const GRAPHVIZ_RENDERER_SCRIPT = `
   const diagramClickEvent = ${JSON.stringify(HTML_PREVIEW_DIAGRAM_CLICK_EVENT)};
   const parentWindow = window.parent;
 
-  const hash = (s) => {
-    let h = 0;
-    for (let i = 0; i < s.length; i += 1) h = (h * 31 + s.charCodeAt(i)) | 0;
-    return (h >>> 0).toString(36);
+  const hash = (sourceString) => {
+    let hashValue = 0;
+    for (let index = 0; index < sourceString.length; index += 1) hashValue = (hashValue * 31 + sourceString.charCodeAt(index)) | 0;
+    return (hashValue >>> 0).toString(36);
   };
 
   const isProbablyCompleteDot = ${isProbablyCompleteDot.toString()};

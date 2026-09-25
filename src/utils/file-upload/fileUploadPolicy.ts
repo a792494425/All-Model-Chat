@@ -251,3 +251,19 @@ export const buildFileUploadPreflight = (
     notice: noticeParts.length > 0 ? noticeParts.join(' ') : null,
   };
 };
+
+/**
+ * Checks whether a drag event involves OS files rather than text or DOM elements.
+ * Supports both React.DragEvent and native DOM DragEvent.
+ */
+export const isFileDrag = (event: { dataTransfer?: DataTransfer | null }): boolean => {
+  const types = event.dataTransfer?.types;
+  if (!types) return false;
+  for (let index = 0; index < types.length; index += 1) {
+    const type = types[index];
+    if (type === 'Files' || type.toLowerCase() === 'files') {
+      return true;
+    }
+  }
+  return false;
+};

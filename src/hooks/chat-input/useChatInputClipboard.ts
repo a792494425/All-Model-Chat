@@ -6,6 +6,7 @@ import { useI18n } from '@/contexts/I18nContext';
 import { MIME_TO_EXTENSION_MAP, SUPPORTED_IMAGE_MIME_TYPES } from '@/constants/fileTypeSupport';
 import { isYoutubeUrl, normalizeYoutubeUrl } from '@/utils/file/youtubeUrl';
 const DEFAULT_CLIPBOARD_IMAGE_EXTENSION = '.image';
+/** Matches pasted file paths or file:/// URIs pointing to supported image extensions. */
 const IMAGE_FILE_NAME_TEXT_REGEX = /^(?:file:\/\/\/)?[^\r\n]+\.(?:png|jpe?g|webp|gif|heic|heif|avif|bmp|tiff?)$/i;
 const LOCAL_CLIPBOARD_IMAGE_ENDPOINT = '/api/local-clipboard-image';
 

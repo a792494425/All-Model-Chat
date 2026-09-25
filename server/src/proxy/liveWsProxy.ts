@@ -94,14 +94,14 @@ export const resolveUpstream = (
   return { url: upstreamUrl, hadBrowserKey };
 };
 
-const closeBoth = (a: WebSocket, b: WebSocket | null, code: number, reason: string) => {
+const closeBoth = (clientSocket: WebSocket, upstreamSocket: WebSocket | null, code: number, reason: string) => {
   try {
-    if (b && b.readyState === WebSocket.OPEN) b.close(code, reason);
+    if (upstreamSocket && upstreamSocket.readyState === WebSocket.OPEN) upstreamSocket.close(code, reason);
   } catch {
     // ignore
   }
   try {
-    if (a.readyState === WebSocket.OPEN) a.close(code, reason);
+    if (clientSocket.readyState === WebSocket.OPEN) clientSocket.close(code, reason);
   } catch {
     // ignore
   }
@@ -112,7 +112,7 @@ const MAX_PENDING_UPSTREAM_BYTES = 10 * 1024 * 1024;
 
 const getRawDataSize = (data: WebSocket.RawData): number => {
   if (Buffer.isBuffer(data)) return data.byteLength;
-  if (Array.isArray(data)) return data.reduce((acc, b) => acc + b.byteLength, 0);
+  if (Array.isArray(data)) return data.reduce((accumulatedSize, chunk) => accumulatedSize + chunk.byteLength, 0);
   if (data instanceof ArrayBuffer) return data.byteLength;
   return 0;
 };

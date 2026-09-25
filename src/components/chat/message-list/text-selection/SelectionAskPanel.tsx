@@ -4,6 +4,7 @@ import { useWindowContext } from '@/contexts/WindowContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSelectionAsk } from '@/hooks/text-selection/useSelectionAsk';
+import { isEditableElement } from '@/hooks/text-selection/selectionDomUtils';
 import { PANEL_Z_INDEX, useAskPanelFloating } from './useAskPanelFloating';
 import { AskPanelDockHandle } from './AskPanelDockHandle';
 import { AskPanelHeader } from './AskPanelHeader';
@@ -78,31 +79,28 @@ export const SelectionAskPanel: React.FC<SelectionAskPanelProps> = ({
 
   // 全局快捷键 Escape 监听
   useEffect(() => {
-    const isEditableElement = (el: Element | null): boolean =>
-      el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      if (e.defaultPrevented) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (event.defaultPrevented) return;
       const active = targetDocument.activeElement;
 
       // 停靠状态下面板已卸载：焦点不在任何可编辑元素里时，Escape 直接关闭整个询问会话
       if (docked) {
         if (isEditableElement(active)) return;
-        e.stopPropagation();
+        event.stopPropagation();
         onClose();
         return;
       }
 
       if (panelRef.current && active && panelRef.current.contains(active)) {
-        e.stopPropagation();
+        event.stopPropagation();
         onClose();
       } else if (!panelRef.current?.contains(active as Node | null)) {
         return;
       }
     };
-    targetDocument.addEventListener('keydown', onKey);
-    return () => targetDocument.removeEventListener('keydown', onKey);
+    targetDocument.addEventListener('keydown', handleKeyDown);
+    return () => targetDocument.removeEventListener('keydown', handleKeyDown);
   }, [docked, onClose, panelRef, targetDocument]);
 
   const handleAsk = useCallback(

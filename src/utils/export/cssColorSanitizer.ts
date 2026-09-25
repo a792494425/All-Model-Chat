@@ -324,13 +324,13 @@ const parseHwbColor = (value: string): ColorChannels | null => {
   let hNorm = (hueDeg % 360) / 360;
   if (hNorm < 0) hNorm += 1;
 
-  const hue2rgb = (t: number): number => {
-    let tt = t;
-    if (tt < 0) tt += 1;
-    if (tt > 1) tt -= 1;
-    if (tt < 1 / 6) return 6 * tt;
-    if (tt < 1 / 2) return 1;
-    if (tt < 2 / 3) return (2 / 3 - tt) * 6;
+  const hue2rgb = (channelOffset: number): number => {
+    let normalizedOffset = channelOffset;
+    if (normalizedOffset < 0) normalizedOffset += 1;
+    if (normalizedOffset > 1) normalizedOffset -= 1;
+    if (normalizedOffset < 1 / 6) return 6 * normalizedOffset;
+    if (normalizedOffset < 1 / 2) return 1;
+    if (normalizedOffset < 2 / 3) return (2 / 3 - normalizedOffset) * 6;
     return 0;
   };
 
@@ -539,11 +539,11 @@ export const sanitizeDocumentStylesForPngExport = (doc: Document): void => {
     }
   });
 
-  SVG_COLOR_ATTRIBUTES.forEach((attr) => {
-    doc.querySelectorAll(`[${attr}]`).forEach((element) => {
-      const val = element.getAttribute(attr);
-      if (val && COLOR_FUNCTION_LOOKAHEAD.test(val)) {
-        element.setAttribute(attr, sanitizeCssColorFunctionsForPngExport(val));
+  SVG_COLOR_ATTRIBUTES.forEach((attributeName) => {
+    doc.querySelectorAll(`[${attributeName}]`).forEach((element) => {
+      const attributeValue = element.getAttribute(attributeName);
+      if (attributeValue && COLOR_FUNCTION_LOOKAHEAD.test(attributeValue)) {
+        element.setAttribute(attributeName, sanitizeCssColorFunctionsForPngExport(attributeValue));
       }
     });
   });

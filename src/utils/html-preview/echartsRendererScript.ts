@@ -283,10 +283,10 @@ export const ECHARTS_RENDERER_SCRIPT = `
     (document.head || document.documentElement).appendChild(script);
   };
 
-  const hash = (s) => {
-    let h = 0;
-    for (let i = 0; i < s.length; i += 1) h = (h * 31 + s.charCodeAt(i)) | 0;
-    return (h >>> 0).toString(36);
+  const hash = (sourceString) => {
+    let hashValue = 0;
+    for (let index = 0; index < sourceString.length; index += 1) hashValue = (hashValue * 31 + sourceString.charCodeAt(index)) | 0;
+    return (hashValue >>> 0).toString(36);
   };
 
   const THEME_NAME = 'amc-live-artifact-theme';

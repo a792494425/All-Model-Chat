@@ -77,23 +77,23 @@ export const SpreadsheetThumbnail: React.FC<SpreadsheetThumbnailProps> = ({
           </div>
 
           <div className="flex flex-col gap-0.5 flex-1 overflow-hidden">
-            {rowsToDisplay.map((row, rIdx) => (
-              <div key={rIdx} className="grid grid-cols-5 gap-0.5 items-center">
+            {rowsToDisplay.map((row, rowIndex) => (
+              <div key={rowIndex} className="grid grid-cols-5 gap-0.5 items-center">
                 <div className="text-center py-0.5 text-[8px] text-emerald-500/40 bg-emerald-950/30 rounded-xs select-none">
-                  {rIdx + 1}
+                  {rowIndex + 1}
                 </div>
-                {Array.from({ length: numCols }).map((_, cIdx) => {
-                  const val = row[cIdx] !== undefined ? String(row[cIdx]) : '';
+                {Array.from({ length: numCols }).map((_, columnIndex) => {
+                  const cellValue = row[columnIndex] !== undefined ? String(row[columnIndex]) : '';
                   return (
                     <div
-                      key={cIdx}
+                      key={columnIndex}
                       className={`truncate px-1 py-0.5 text-[8.5px] rounded-xs ${
-                        rIdx === 0 && spreadsheetRows.length > 0
+                        rowIndex === 0 && spreadsheetRows.length > 0
                           ? 'font-bold text-emerald-200 bg-emerald-900/40'
                           : 'text-emerald-100/80 bg-emerald-950/20'
                       }`}
                     >
-                      {val || '\u00A0'}
+                      {cellValue || '\u00A0'}
                     </div>
                   );
                 })}

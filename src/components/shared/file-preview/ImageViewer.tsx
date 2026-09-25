@@ -64,20 +64,20 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
 
   // Initialize Panzoom
   useEffect(() => {
-    const elem = panzoomElementRef.current;
-    if (!elem) return;
+    const panzoomElement = panzoomElementRef.current;
+    if (!panzoomElement) return;
 
-    const pz = Panzoom(elem, {
+    const panzoomInstance = Panzoom(panzoomElement, {
       minScale: MIN_SCALE,
       maxScale: MAX_SCALE,
       canvas: true,
       cursor: 'grab',
       animate: false,
     });
-    panzoomRef.current = pz;
+    panzoomRef.current = panzoomInstance;
 
-    const handlePanzoomChange = (e: Event) => {
-      const detail = (e as CustomEvent<{ scale: number; x: number; y: number }>).detail;
+    const handlePanzoomChange = (event: Event) => {
+      const detail = (event as CustomEvent<{ scale: number; x: number; y: number }>).detail;
       if (!detail) return;
       if (typeof detail.scale === 'number') setScale(detail.scale);
       if (typeof detail.x === 'number' && typeof detail.y === 'number') {
@@ -85,11 +85,11 @@ const ImageViewerContent: React.FC<ImageViewerProps> = ({ file, highlight }) => 
       }
     };
 
-    elem.addEventListener('panzoomchange', handlePanzoomChange);
+    panzoomElement.addEventListener('panzoomchange', handlePanzoomChange);
 
     return () => {
-      elem.removeEventListener('panzoomchange', handlePanzoomChange);
-      pz.destroy();
+      panzoomElement.removeEventListener('panzoomchange', handlePanzoomChange);
+      panzoomInstance.destroy();
       panzoomRef.current = null;
     };
   }, []);

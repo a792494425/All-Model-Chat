@@ -67,7 +67,7 @@ export const useVideoVolumeStore = create<VideoVolumeState>((set, get) => {
       const clamped = clampVolume(newVolume);
       const isZero = clamped === 0;
       const nextLastNonZero = isZero ? get().lastNonZeroVolume : clamped;
-      const nextMuted = isZero ? true : false;
+      const nextMuted = isZero;
 
       const nextData: PersistedVideoVolumeData = {
         volume: clamped,

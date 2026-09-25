@@ -29,19 +29,19 @@ ${STREAM_SANITIZER_SCRIPT}
     });
   };
 
-  const isChartNode = (n) =>
-    n && n.nodeType === Node.ELEMENT_NODE && (n.hasAttribute('data-amc-chart') || n.hasAttribute('data-amc-echarts'));
-  const chartAttr = (n) => (n.getAttribute('data-amc-chart') || n.getAttribute('data-amc-echarts') || '');
-  const chartAttrEqual = (a, b) => chartAttr(a) === chartAttr(b);
+  const isChartNode = (node) =>
+    node && node.nodeType === Node.ELEMENT_NODE && (node.hasAttribute('data-amc-chart') || node.hasAttribute('data-amc-echarts'));
+  const chartAttr = (node) => (node.getAttribute('data-amc-chart') || node.getAttribute('data-amc-echarts') || '');
+  const chartAttrEqual = (firstNode, secondNode) => chartAttr(firstNode) === chartAttr(secondNode);
 
   // Rendered graphviz is patched in asynchronously through the parent bridge,
   // so its sig/state attributes and SVG subtree must survive attribute-unchanged
   // patches. Unlike the chart branch, we do NOT syncAttributes here: the patch
   // would overwrite the runtime-added data-amc-graphviz-sig/-state attributes
   // back to nothing and force a pointless re-request.
-  const isGraphvizNode = (n) => n && n.nodeType === Node.ELEMENT_NODE && n.hasAttribute('data-amc-graphviz');
-  const graphvizAttrEqual = (a, b) =>
-    a.getAttribute('data-amc-graphviz') === b.getAttribute('data-amc-graphviz');
+  const isGraphvizNode = (node) => node && node.nodeType === Node.ELEMENT_NODE && node.hasAttribute('data-amc-graphviz');
+  const graphvizAttrEqual = (firstNode, secondNode) =>
+    firstNode.getAttribute('data-amc-graphviz') === secondNode.getAttribute('data-amc-graphviz');
 
   const canPatchNode = (currentNode, nextNode) => {
     if (currentNode.nodeType !== nextNode.nodeType) return false;

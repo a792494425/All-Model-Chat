@@ -106,10 +106,10 @@ export const createChatMemoryVirtualMcpServer = (deps: ChatMemoryVirtualMcpDeps 
 
         const lines: string[] = [`找到 ${results.length} 个与 "${query}" 相关的历史会话：`, ''];
 
-        for (let i = 0; i < results.length; i++) {
-          const item = results[i];
+        for (let index = 0; index < results.length; index++) {
+          const item = results[index];
           lines.push(
-            `### ${i + 1}. ${item.title} (ID: \`${item.sessionId}\`)`,
+            `### ${index + 1}. ${item.title} (ID: \`${item.sessionId}\`)`,
             `- **更新时间**: ${item.updatedAt} | **总消息数**: ${item.messageCount}`,
             `- **匹配片段**:`,
             `  > ${item.snippet.replace(/\n/g, '\n  > ')}`,
@@ -151,15 +151,15 @@ export const createChatMemoryVirtualMcpServer = (deps: ChatMemoryVirtualMcpDeps 
             : undefined;
 
         const fetcher = deps.getChatDetail ?? getChatDetail;
-        const res = await fetcher(sessionId, { maxMessages });
+        const detailResult = await fetcher(sessionId, { maxMessages });
 
-        if (!res.found) {
+        if (!detailResult.found) {
           return {
             isError: true,
             content: [
               {
                 type: 'text',
-                text: res.text,
+                text: detailResult.text,
               },
             ],
           };
@@ -169,7 +169,7 @@ export const createChatMemoryVirtualMcpServer = (deps: ChatMemoryVirtualMcpDeps 
           content: [
             {
               type: 'text',
-              text: res.text,
+              text: detailResult.text,
             },
           ],
         };
