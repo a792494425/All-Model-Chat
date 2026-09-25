@@ -18,7 +18,7 @@ export const extractSnippetLines = (content: string): string[] => {
     .slice(0, 2048)
     .split(/\r?\n/)
     .slice(0, 6)
-    .map((l) => (l.length > 80 ? l.slice(0, 80) + '…' : l));
+    .map((line) => (line.length > 80 ? line.slice(0, 80) + '…' : line));
 };
 
 const CODE_KEYWORDS = new Set([
@@ -100,36 +100,44 @@ export const renderHighlightedCodeLine = (text: string, ext: string): React.Reac
     .filter(Boolean);
   return (
     <>
-      {tokens.map((tok, i) => {
-        if (tok.startsWith('"') || tok.startsWith("'") || tok.startsWith('`')) {
+      {tokens.map((token, tokenIndex) => {
+        if (token.startsWith('"') || token.startsWith("'") || token.startsWith('`')) {
           return (
-            <span key={i} className="text-[#a6e3a1]">
-              {tok}
+            <span key={tokenIndex} className="text-[#a6e3a1]">
+              {token}
             </span>
           );
         }
-        if (CODE_KEYWORDS.has(tok)) {
+        if (CODE_KEYWORDS.has(token)) {
           return (
-            <span key={i} className="text-[#cba6f7] font-medium">
-              {tok}
+            <span key={tokenIndex} className="text-[#cba6f7] font-medium">
+              {token}
             </span>
           );
         }
-        if (/^\d+(\.\d+)?$/.test(tok)) {
+        if (/^\d+(\.\d+)?$/.test(token)) {
           return (
-            <span key={i} className="text-[#fab387]">
-              {tok}
+            <span key={tokenIndex} className="text-[#fab387]">
+              {token}
             </span>
           );
         }
-        if (tok === '=' || tok === '=>' || tok === '==' || tok === '===' || tok === ':' || tok === '+' || tok === '-') {
+        if (
+          token === '=' ||
+          token === '=>' ||
+          token === '==' ||
+          token === '===' ||
+          token === ':' ||
+          token === '+' ||
+          token === '-'
+        ) {
           return (
-            <span key={i} className="text-[#89dceb]">
-              {tok}
+            <span key={tokenIndex} className="text-[#89dceb]">
+              {token}
             </span>
           );
         }
-        return <span key={i}>{tok}</span>;
+        return <span key={tokenIndex}>{token}</span>;
       })}
     </>
   );
