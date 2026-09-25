@@ -180,7 +180,7 @@ export const createSnapshotContainer = async (
 
   tempContainer.innerHTML = `
         ${allStyles}
-        <div class="theme-${safeThemeId} ${bodyClasses} is-exporting-png" style="background-color: ${safeBgColor}; color: var(--theme-text-primary); min-height: 100vh;">
+        <div class="theme-${safeThemeId} ${bodyClasses} is-exporting-png" style="background-color: ${safeBgColor}; color: var(--theme-text-primary); min-height: auto;">
             <div style="background-color: ${safeBgColor}; padding: 0;">
                 <div class="exported-chat-container" style="width: 100%; max-width: 100%; margin: 0 auto;">
                 </div>
@@ -288,6 +288,7 @@ export const prepareElementForExport = async (
     '.code-block-utility-button',
     '[role="tooltip"]',
     '.loading-dots-container',
+    '[data-testid="message-bottom-bar"]',
   ];
   clone.querySelectorAll(selectorsToRemove.join(',')).forEach((element) => element.remove());
 

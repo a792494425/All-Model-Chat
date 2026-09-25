@@ -67,6 +67,34 @@ describe('useMessageExport', () => {
     unmount();
   });
 
+  it('exports PNG with message content only and omits title, time, and model header metadata', async () => {
+    document.body.innerHTML = `
+      <div data-message-id="message-123456">
+        <div class="message-content-container">hello content</div>
+      </div>
+    `;
+    generateSnapshotPng.mockResolvedValueOnce(true);
+    const onSuccess = vi.fn();
+
+    const { result, unmount } = renderHook(() =>
+      useMessageExport({
+        message,
+        sessionTitle: 'My Chat Session',
+        themeId: 'pearl',
+      }),
+    );
+
+    await act(async () => {
+      await result.current.handleExport('png', onSuccess);
+    });
+
+    expect(generateSnapshotPng).toHaveBeenCalledTimes(1);
+    const [, , , headerConfig] = generateSnapshotPng.mock.calls[0];
+    expect(headerConfig).toBeNull();
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+
   it('exports TXT with message content and thoughts', async () => {
     const messageWithThoughts: ChatMessage = {
       ...message,

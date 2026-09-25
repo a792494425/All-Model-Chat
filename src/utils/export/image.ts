@@ -239,15 +239,21 @@ export const exportElementAsPng = async (
   }
 };
 
+export interface SnapshotHeaderConfig {
+  title: string;
+  metaLeft: string;
+  metaRight: string;
+}
+
 /**
- * Orchestrates the full process of creating a snapshot container, injecting a header,
+ * Orchestrates the full process of creating a snapshot container, optionally injecting a header,
  * capturing the content, and downloading the PNG.
  */
 export const generateSnapshotPng = async (
   contentElement: HTMLElement,
   filename: string,
   themeId: string,
-  headerConfig: { title: string; metaLeft: string; metaRight: string },
+  headerConfig: SnapshotHeaderConfig | null = null,
   options: { width?: string; scale?: number; messages: PngExportMessages },
 ): Promise<boolean> => {
   let cleanup = () => {};
@@ -256,11 +262,13 @@ export const generateSnapshotPng = async (
     const { container, innerContent, remove, rootBgColor } = await createSnapshotContainer(themeId, targetWidth);
     cleanup = remove;
 
-    const headerElement = createExportDOMHeader(headerConfig.title, headerConfig.metaLeft, headerConfig.metaRight);
-    innerContent.appendChild(headerElement);
+    if (headerConfig) {
+      const headerElement = createExportDOMHeader(headerConfig.title, headerConfig.metaLeft, headerConfig.metaRight);
+      innerContent.appendChild(headerElement);
+    }
 
     const bodyElement = document.createElement('div');
-    bodyElement.style.padding = '0 2rem 2rem 2rem';
+    bodyElement.style.padding = headerConfig ? '0 2rem 2rem 2rem' : '2rem';
     bodyElement.appendChild(contentElement);
     innerContent.appendChild(bodyElement);
 

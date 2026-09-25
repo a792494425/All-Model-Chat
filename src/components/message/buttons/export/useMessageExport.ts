@@ -93,23 +93,13 @@ export const useMessageExport = ({ message, sessionTitle, messageIndex, themeId 
         });
 
         if (type === 'png') {
-          const didExport = await generateSnapshotPng(
-            cleanedContent,
-            `${filenameBase}.png`,
-            themeId,
-            {
-              title: exportTitle,
-              metaLeft: dateLabel,
-              metaRight: exportModel,
+          const didExport = await generateSnapshotPng(cleanedContent, `${filenameBase}.png`, themeId, null, {
+            scale: MESSAGE_PNG_EXPORT_SCALE,
+            messages: {
+              imageTooLarge: t('exportImageTooLarge'),
+              exportFailed: (message) => formatI18nErrorMessage(t, 'exportFailedWithMessage', message),
             },
-            {
-              scale: MESSAGE_PNG_EXPORT_SCALE,
-              messages: {
-                imageTooLarge: t('exportImageTooLarge'),
-                exportFailed: (message) => formatI18nErrorMessage(t, 'exportFailedWithMessage', message),
-              },
-            },
-          );
+          });
           if (didExport === false) {
             return;
           }
