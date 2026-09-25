@@ -36,24 +36,24 @@ export interface SyncedPersistOptions<T> {
 }
 
 // --- isEqual (deep) -------------------------------------------------------
-function isEqual(a: unknown, b: unknown): boolean {
-  if (a === b) return true;
-  if (a === null || b === null) return a === b;
-  if (typeof a !== typeof b) return false;
+function isEqual(first: unknown, second: unknown): boolean {
+  if (first === second) return true;
+  if (first === null || second === null) return first === second;
+  if (typeof first !== typeof second) return false;
 
-  if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (!isEqual(a[i], b[i])) return false;
+  if (Array.isArray(first) && Array.isArray(second)) {
+    if (first.length !== second.length) return false;
+    for (let i = 0; i < first.length; i++) {
+      if (!isEqual(first[i], second[i])) return false;
     }
     return true;
   }
 
-  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  if (Array.isArray(first) !== Array.isArray(second)) return false;
 
-  if (typeof a === 'object' && typeof b === 'object') {
-    const objA = a as Record<string, unknown>;
-    const objB = b as Record<string, unknown>;
+  if (typeof first === 'object' && typeof second === 'object') {
+    const objA = first as Record<string, unknown>;
+    const objB = second as Record<string, unknown>;
     const keysA = Object.keys(objA);
     const keysB = Object.keys(objB);
     if (keysA.length !== keysB.length) return false;

@@ -287,7 +287,7 @@ export const indexAllHistoricalItems = async (
   }
 
   const allFiles = Array.from(fileMap.values());
-  const pendingFiles = options.forceReindex ? allFiles : allFiles.filter((f) => !storedIds.has(f.id));
+  const pendingFiles = options.forceReindex ? allFiles : allFiles.filter((file) => !storedIds.has(file.id));
 
   const total = pendingFiles.length;
   let indexed = 0;

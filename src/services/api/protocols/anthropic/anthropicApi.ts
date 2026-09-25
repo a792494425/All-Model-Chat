@@ -320,18 +320,18 @@ export const generateAnthropicTurnStreamApi = async (
     .map(Number)
     .sort((a, b) => a - b)
     .map((idx) => {
-      const b = toolUseBlocks[idx];
+      const block = toolUseBlocks[idx];
       let parsedArgs: Record<string, unknown> = {};
-      if (b.inputJson) {
+      if (block.inputJson) {
         try {
-          parsedArgs = JSON.parse(b.inputJson);
+          parsedArgs = JSON.parse(block.inputJson);
         } catch {
-          parsedArgs = { raw: b.inputJson };
+          parsedArgs = { raw: block.inputJson };
         }
       }
       return {
-        id: b.id,
-        name: b.name,
+        id: block.id,
+        name: block.name,
         args: parsedArgs,
       };
     });

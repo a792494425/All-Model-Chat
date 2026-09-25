@@ -18,11 +18,11 @@ interface Store {
 export const useMcpStatusStore = create<Store>((set, get) => ({
   states: {},
   setStatus: (id, patch) =>
-    set((s) => ({
+    set((state) => ({
       states: {
-        ...s.states,
+        ...state.states,
         [id]: {
-          ...(s.states[id] ?? ({ lastCheckedAt: 0 } as McpStatus)),
+          ...(state.states[id] ?? ({ lastCheckedAt: 0 } as McpStatus)),
           ...patch,
           lastCheckedAt: patch.lastCheckedAt ?? Date.now(),
         },

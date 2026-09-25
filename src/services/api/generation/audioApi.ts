@@ -294,7 +294,7 @@ const extractTranscriptionText = (response: GenerateContentResponse, options?: A
 
   if (extractedSegments.length > 0) {
     const hasStructuredSegments = extractedSegments.some(
-      (s) => s.startsWith('[') || s.includes(' -> ') || s.includes('\n'),
+      (segment) => segment.startsWith('[') || segment.includes(' -> ') || segment.includes('\n'),
     );
     return extractedSegments.join(hasStructuredSegments ? '\n\n' : '').trim();
   }

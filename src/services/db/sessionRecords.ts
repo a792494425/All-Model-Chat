@@ -72,7 +72,7 @@ export const setAllSessions = async (sessions: SavedChatSession[]): Promise<void
     sessionStore.clear();
     fileStore.clear();
 
-    const retainedSessionIds = new Set<string>(sessions.map((s) => s.id));
+    const retainedSessionIds = new Set<string>(sessions.map((session) => session.id));
     const retainedFileIds = new Set<string>();
 
     sessions.forEach((session) => {
@@ -273,9 +273,9 @@ export const deleteFilesFromSessions = async (fileIds: string[]): Promise<void> 
         if (session.messages && session.messages.length > 0) {
           let sessionChanged = false;
           const updatedMessages = session.messages.map((msg) => {
-            if (msg.files && msg.files.some((f) => targetIds.has(f.id))) {
+            if (msg.files && msg.files.some((file) => targetIds.has(file.id))) {
               sessionChanged = true;
-              const remainingFiles = msg.files.filter((f) => !targetIds.has(f.id));
+              const remainingFiles = msg.files.filter((file) => !targetIds.has(file.id));
               return {
                 ...msg,
                 files: remainingFiles.length > 0 ? remainingFiles : undefined,

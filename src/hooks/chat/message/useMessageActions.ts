@@ -205,16 +205,16 @@ export const useMessageActions = ({
       try {
         const rehydratedFiles = userMessageToResend.files
           ? await Promise.all(
-              userMessageToResend.files.map(async (f) => {
-                const uploadable = await resolveUploadableFile(f);
+              userMessageToResend.files.map(async (file) => {
+                const uploadable = await resolveUploadableFile(file);
                 const isFailedOrInvalid =
-                  f.fileApiKeyFingerprint === INVALID_FILE_API_KEY_FINGERPRINT ||
-                  f.uploadState === 'failed' ||
-                  Boolean(f.error);
+                  file.fileApiKeyFingerprint === INVALID_FILE_API_KEY_FINGERPRINT ||
+                  file.uploadState === 'failed' ||
+                  Boolean(file.error);
 
                 return {
-                  ...f,
-                  rawFile: uploadable ?? f.rawFile,
+                  ...file,
+                  rawFile: uploadable ?? file.rawFile,
                   error: undefined,
                   uploadState: 'active' as const,
                   ...(isFailedOrInvalid ? { fileApiKeyFingerprint: INVALID_FILE_API_KEY_FINGERPRINT } : {}),

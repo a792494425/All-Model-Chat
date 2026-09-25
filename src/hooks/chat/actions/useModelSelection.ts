@@ -54,7 +54,9 @@ export const useModelSelection = ({
   const handleSelectModelInHeader = useCallback(
     (modelId: string, explicitProviderId?: ChatProviderId) => {
       const thirdPartyModels = getEnabledThirdPartyProviders(appSettings);
-      const isThirdPartyModel = thirdPartyModels.some(({ config }) => config.models.some((m) => m.id === modelId));
+      const isThirdPartyModel = thirdPartyModels.some(({ config }) =>
+        config.models.some((model) => model.id === modelId),
+      );
       const explicitConnection =
         explicitProviderId && explicitProviderId !== GEMINI_PROVIDER_ID
           ? findThirdPartyConnection(appSettings, explicitProviderId)

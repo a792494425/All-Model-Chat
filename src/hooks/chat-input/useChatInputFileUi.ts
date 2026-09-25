@@ -162,13 +162,15 @@ export const useChatInputFileUi = ({
 
       const newUploadedFiles: UploadedFile[] = await Promise.all(
         items.map((item) =>
-          resolveLibraryItemToUploadedFile(item, (i) => dbService.fetchLibraryFileBlob(i), { generateNewId: true }),
+          resolveLibraryItemToUploadedFile(item, (libraryItem) => dbService.fetchLibraryFileBlob(libraryItem), {
+            generateNewId: true,
+          }),
         ),
       );
 
       setSelectedFiles((prev) => {
-        const existingIds = new Set(prev.map((f) => f.id));
-        const nonDuplicates = newUploadedFiles.filter((f) => !existingIds.has(f.id));
+        const existingIds = new Set(prev.map((file) => file.id));
+        const nonDuplicates = newUploadedFiles.filter((file) => !existingIds.has(file.id));
         return [...prev, ...nonDuplicates];
       });
 

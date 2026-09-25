@@ -498,11 +498,11 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
 
       let hasActiveChange = false;
       const nextActiveMessages = state.activeMessages.map((message) => {
-        if (message.files && message.files.some((f) => f.id === fileId)) {
+        if (message.files && message.files.some((file) => file.id === fileId)) {
           hasActiveChange = true;
           return {
             ...message,
-            files: message.files.map((f) => (f.id === fileId ? { ...f, ...patch } : f)),
+            files: message.files.map((file) => (file.id === fileId ? { ...file, ...patch } : file)),
           };
         }
         return message;
@@ -518,11 +518,11 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
 
         let hasMsgChange = false;
         const nextMessages = session.messages.map((message) => {
-          if (message.files && message.files.some((f) => f.id === fileId)) {
+          if (message.files && message.files.some((file) => file.id === fileId)) {
             hasMsgChange = true;
             return {
               ...message,
-              files: message.files.map((f) => (f.id === fileId ? { ...f, ...patch } : f)),
+              files: message.files.map((file) => (file.id === fileId ? { ...file, ...patch } : file)),
             };
           }
           return message;
@@ -553,7 +553,7 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
       const currentActiveSessionId = get().activeSessionId;
 
       for (const sessionId of changedSessionIds) {
-        const session = currentSessions.find((s) => s.id === sessionId);
+        const session = currentSessions.find((sess) => sess.id === sessionId);
         if (session) {
           const fullSession: SavedChatSession = {
             ...session,
@@ -574,14 +574,14 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
     const targetSet = new Set(fileIds);
 
     set((state) => {
-      const nextSelected = state.selectedFiles.filter((f) => !targetSet.has(f.id));
+      const nextSelected = state.selectedFiles.filter((file) => !targetSet.has(file.id));
       const hasSelectedChange = nextSelected.length !== state.selectedFiles.length;
 
       let hasActiveChange = false;
       const nextActiveMessages = state.activeMessages.map((message) => {
-        if (message.files && message.files.some((f) => targetSet.has(f.id))) {
+        if (message.files && message.files.some((file) => targetSet.has(file.id))) {
           hasActiveChange = true;
-          const remainingFiles = message.files.filter((f) => !targetSet.has(f.id));
+          const remainingFiles = message.files.filter((file) => !targetSet.has(file.id));
           return {
             ...message,
             files: remainingFiles.length > 0 ? remainingFiles : undefined,
@@ -595,9 +595,9 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
         if (!session.messages || session.messages.length === 0) return session;
         let hasMsgChange = false;
         const nextMessages = session.messages.map((message) => {
-          if (message.files && message.files.some((f) => targetSet.has(f.id))) {
+          if (message.files && message.files.some((file) => targetSet.has(file.id))) {
             hasMsgChange = true;
-            const remainingFiles = message.files.filter((f) => !targetSet.has(f.id));
+            const remainingFiles = message.files.filter((file) => !targetSet.has(file.id));
             return {
               ...message,
               files: remainingFiles.length > 0 ? remainingFiles : undefined,

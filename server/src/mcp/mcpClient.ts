@@ -387,13 +387,17 @@ export const createMcpClientBridge = (options: McpClientBridgeOptions = {}): Mcp
         ensureEvictionTimer();
         // Capture stdio stderr output for log buffer (I7)
         if (server.transport === 'stdio') {
-          const t = connected.transport as unknown as {
+          const stdioTransport = connected.transport as unknown as {
             stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void };
             _process?: { stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void } };
             process?: { stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void } };
             subprocess?: { stderr?: { on?: (ev: string, cb: (c: Buffer | string) => void) => void } };
           };
-          const maybeStderr = t.stderr ?? t._process?.stderr ?? t.process?.stderr ?? t.subprocess?.stderr;
+          const maybeStderr =
+            stdioTransport.stderr ??
+            stdioTransport._process?.stderr ??
+            stdioTransport.process?.stderr ??
+            stdioTransport.subprocess?.stderr;
           if (maybeStderr?.on) {
             maybeStderr.on('data', (chunk: Buffer | string) => {
               const text = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);

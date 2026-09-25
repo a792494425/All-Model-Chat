@@ -138,21 +138,23 @@ const buildOpenAICompatibleMessages = (
 
   for (const item of history) {
     const functionCalls = item.parts
-      .filter((p) => Boolean(p.functionCall))
-      .map((p, idx) => ({
-        id: p.functionCall?.id || `call_${idx}`,
+      .filter((part) => Boolean(part.functionCall))
+      .map((part, idx) => ({
+        id: part.functionCall?.id || `call_${idx}`,
         type: 'function' as const,
         function: {
-          name: p.functionCall?.name || '',
+          name: part.functionCall?.name || '',
           arguments:
-            typeof p.functionCall?.args === 'string' ? p.functionCall.args : JSON.stringify(p.functionCall?.args ?? {}),
+            typeof part.functionCall?.args === 'string'
+              ? part.functionCall.args
+              : JSON.stringify(part.functionCall?.args ?? {}),
         },
       }));
 
-    const functionResponses = item.parts.filter((p) => Boolean(p.functionResponse));
+    const functionResponses = item.parts.filter((part) => Boolean(part.functionResponse));
 
     if (item.role === 'model' && functionCalls.length > 0) {
-      const nonCallParts = item.parts.filter((p) => !p.functionCall);
+      const nonCallParts = item.parts.filter((part) => !part.functionCall);
       const textContent = partsToOpenAIContent(nonCallParts);
       messages.push({
         role: 'assistant',
@@ -193,21 +195,23 @@ const buildOpenAICompatibleMessages = (
   }
 
   const currentFunctionCalls = parts
-    .filter((p) => Boolean(p.functionCall))
-    .map((p, idx) => ({
-      id: p.functionCall?.id || `call_${idx}`,
+    .filter((part) => Boolean(part.functionCall))
+    .map((part, idx) => ({
+      id: part.functionCall?.id || `call_${idx}`,
       type: 'function' as const,
       function: {
-        name: p.functionCall?.name || '',
+        name: part.functionCall?.name || '',
         arguments:
-          typeof p.functionCall?.args === 'string' ? p.functionCall.args : JSON.stringify(p.functionCall?.args ?? {}),
+          typeof part.functionCall?.args === 'string'
+            ? part.functionCall.args
+            : JSON.stringify(part.functionCall?.args ?? {}),
       },
     }));
 
-  const currentFunctionResponses = parts.filter((p) => Boolean(p.functionResponse));
+  const currentFunctionResponses = parts.filter((part) => Boolean(part.functionResponse));
 
   if (role === 'model' && currentFunctionCalls.length > 0) {
-    const nonCallParts = parts.filter((p) => !p.functionCall);
+    const nonCallParts = parts.filter((part) => !part.functionCall);
     const textContent = partsToOpenAIContent(nonCallParts);
     messages.push({
       role: 'assistant',
@@ -267,7 +271,7 @@ export const buildOpenAICompatibleRequestBody = (
     body.max_tokens = config.maxOutputTokens;
   }
   if (Array.isArray(config.stopSequences) && config.stopSequences.length > 0) {
-    const validStops = config.stopSequences.map((s) => s.trim()).filter(Boolean);
+    const validStops = config.stopSequences.map((stopSequence) => stopSequence.trim()).filter(Boolean);
     if (validStops.length > 0) {
       body.stop = validStops.length === 1 ? validStops[0] : validStops;
     }

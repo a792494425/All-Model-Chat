@@ -182,7 +182,7 @@ export const buildAnthropicRequestBody = (
   appendSamplingParameters(body, config);
 
   if (Array.isArray(config.stopSequences) && config.stopSequences.length > 0) {
-    const validStops = config.stopSequences.map((s) => s.trim()).filter(Boolean);
+    const validStops = config.stopSequences.map((stopSequence) => stopSequence.trim()).filter(Boolean);
     if (validStops.length > 0) {
       body.stop_sequences = validStops;
     }

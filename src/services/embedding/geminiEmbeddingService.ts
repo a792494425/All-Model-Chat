@@ -64,8 +64,8 @@ const getEmbeddingClient = async (resolved: ResolvedEmbeddingApiKey) => {
  * Gemini Embedding 2 output dimensionality (e.g. 768) is auto-renormalized,
  * but calculating full cosine similarity ensures safety for any dimension or model.
  */
-export const computeCosineSimilarity = (a: number[], b: number[]): number => {
-  if (!a || !b || a.length === 0 || b.length === 0 || a.length !== b.length) {
+export const computeCosineSimilarity = (vectorA: number[], vectorB: number[]): number => {
+  if (!vectorA || !vectorB || vectorA.length === 0 || vectorB.length === 0 || vectorA.length !== vectorB.length) {
     return 0;
   }
 
@@ -73,9 +73,9 @@ export const computeCosineSimilarity = (a: number[], b: number[]): number => {
   let normA = 0;
   let normB = 0;
 
-  for (let i = 0; i < a.length; i++) {
-    const valA = a[i];
-    const valB = b[i];
+  for (let i = 0; i < vectorA.length; i++) {
+    const valA = vectorA[i];
+    const valB = vectorB[i];
     dotProduct += valA * valB;
     normA += valA * valA;
     normB += valB * valB;

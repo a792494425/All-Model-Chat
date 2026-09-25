@@ -11,15 +11,15 @@ export const useImageNavigation = (
   // If non-image files are present, allows cycling across all valid (non-error) files.
   const images = useMemo(() => {
     if (!sourceFiles) return [];
-    const validFiles = sourceFiles.filter((f) => !f.error);
-    const imageFiles = validFiles.filter((f) => isImageMimeType(f.type));
+    const validFiles = sourceFiles.filter((file) => !file.error);
+    const imageFiles = validFiles.filter((file) => isImageMimeType(file.type));
     return validFiles.length > imageFiles.length ? validFiles : imageFiles;
   }, [sourceFiles]);
 
   const currentIndex = useMemo(() => {
     if (!currentFile) return -1;
     return images.findIndex(
-      (f) => f.id === currentFile.id || (Boolean(f.dataUrl) && f.dataUrl === currentFile.dataUrl),
+      (file) => file.id === currentFile.id || (Boolean(file.dataUrl) && file.dataUrl === currentFile.dataUrl),
     );
   }, [images, currentFile]);
 
