@@ -17,17 +17,17 @@ const parseNumericValues = (raw: string | number[]): number[] => {
       .map((val) => {
         if (typeof val === 'number') return Number.isFinite(val) ? val : null;
         if (typeof val === 'string') {
-          const s = (val as string).trim();
-          if (s.endsWith('%')) {
-            const num = Number.parseFloat(s.slice(0, -1));
+          const stringValue = (val as string).trim();
+          if (stringValue.endsWith('%')) {
+            const num = Number.parseFloat(stringValue.slice(0, -1));
             return Number.isFinite(num) ? num * 10 : null;
           }
-          const num = Number.parseFloat(s);
+          const num = Number.parseFloat(stringValue);
           return Number.isFinite(num) ? num : null;
         }
         return null;
       })
-      .filter((v): v is number => v !== null);
+      .filter((value): value is number => value !== null);
   }
 
   if (typeof raw !== 'string') return [];
@@ -38,7 +38,7 @@ const parseNumericValues = (raw: string | number[]): number[] => {
   const tokens = text
     .replace(/[()[\]]/g, ' ')
     .split(/[,;\s]+/)
-    .map((t) => t.trim())
+    .map((rawToken) => rawToken.trim())
     .filter(Boolean);
 
   const numbers: number[] = [];

@@ -12,7 +12,7 @@ const loadImage = (src: string): Promise<HTMLImageElement> =>
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
-    img.onerror = (e) => reject(e);
+    img.onerror = (loadError) => reject(loadError);
     img.src = src;
   });
 
@@ -38,18 +38,18 @@ export const exportAnnotatedImage = async (options: ExportAnnotatedImageOptions)
   const canvas = document.createElement('canvas');
   canvas.width = canvasW;
   canvas.height = canvasH;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  const canvasContext = canvas.getContext('2d');
+  if (!canvasContext) return;
 
-  ctx.save();
+  canvasContext.save();
 
   // Position and rotate
-  ctx.translate(canvasW / 2, canvasH / 2);
-  ctx.rotate(rad);
-  ctx.drawImage(img, -naturalW / 2, -naturalH / 2, naturalW, naturalH);
+  canvasContext.translate(canvasW / 2, canvasH / 2);
+  canvasContext.rotate(rad);
+  canvasContext.drawImage(img, -naturalW / 2, -naturalH / 2, naturalW, naturalH);
 
   // Draw annotations in original image coordinate space
-  ctx.translate(-naturalW / 2, -naturalH / 2);
+  canvasContext.translate(-naturalW / 2, -naturalH / 2);
 
   // Base scale for line thickness and fonts based on image resolution
   const resScale = Math.max(0.6, Math.min(3.5, naturalW / 1000));
@@ -58,9 +58,9 @@ export const exportAnnotatedImage = async (options: ExportAnnotatedImageOptions)
   const bracketWidth = Math.max(3, Math.round(4.5 * resScale));
   const fontSize = Math.max(13, Math.round(15 * resScale));
 
-  highlights.forEach((hl, idx) => {
-    const { box2d, point, label, snippet, index } = hl;
-    const itemIndex = typeof index === 'number' ? index : idx + 1;
+  highlights.forEach((highlight, highlightIndex) => {
+    const { box2d, point, label, snippet, index } = highlight;
+    const itemIndex = typeof index === 'number' ? index : highlightIndex + 1;
     const displayText = (highlights.length > 1 ? `[${itemIndex}] ` : '') + (label || snippet || '目标定位');
 
     // 1. Draw Bounding Box
@@ -72,52 +72,52 @@ export const exportAnnotatedImage = async (options: ExportAnnotatedImageOptions)
       const h = (Math.abs(ymax - ymin) / 1000) * naturalH;
 
       // Fill semi-transparent
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
-      ctx.fillRect(x, y, w, h);
+      canvasContext.fillStyle = 'rgba(239, 68, 68, 0.12)';
+      canvasContext.fillRect(x, y, w, h);
 
       // Bounding box border
-      ctx.strokeStyle = 'rgba(239, 68, 68, 0.65)';
-      ctx.lineWidth = lineWidth;
-      ctx.strokeRect(x, y, w, h);
+      canvasContext.strokeStyle = 'rgba(239, 68, 68, 0.65)';
+      canvasContext.lineWidth = lineWidth;
+      canvasContext.strokeRect(x, y, w, h);
 
       // 4 Cyber HUD Corner brackets
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = bracketWidth;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'miter';
+      canvasContext.strokeStyle = '#ef4444';
+      canvasContext.lineWidth = bracketWidth;
+      canvasContext.lineCap = 'round';
+      canvasContext.lineJoin = 'miter';
 
       // Top-Left
-      ctx.beginPath();
-      ctx.moveTo(x, y + cornerLen);
-      ctx.lineTo(x, y);
-      ctx.lineTo(x + cornerLen, y);
-      ctx.stroke();
+      canvasContext.beginPath();
+      canvasContext.moveTo(x, y + cornerLen);
+      canvasContext.lineTo(x, y);
+      canvasContext.lineTo(x + cornerLen, y);
+      canvasContext.stroke();
 
       // Top-Right
-      ctx.beginPath();
-      ctx.moveTo(x + w - cornerLen, y);
-      ctx.lineTo(x + w, y);
-      ctx.lineTo(x + w, y + cornerLen);
-      ctx.stroke();
+      canvasContext.beginPath();
+      canvasContext.moveTo(x + w - cornerLen, y);
+      canvasContext.lineTo(x + w, y);
+      canvasContext.lineTo(x + w, y + cornerLen);
+      canvasContext.stroke();
 
       // Bottom-Left
-      ctx.beginPath();
-      ctx.moveTo(x, y + h - cornerLen);
-      ctx.lineTo(x, y + h);
-      ctx.lineTo(x + cornerLen, y + h);
-      ctx.stroke();
+      canvasContext.beginPath();
+      canvasContext.moveTo(x, y + h - cornerLen);
+      canvasContext.lineTo(x, y + h);
+      canvasContext.lineTo(x + cornerLen, y + h);
+      canvasContext.stroke();
 
       // Bottom-Right
-      ctx.beginPath();
-      ctx.moveTo(x + w - cornerLen, y + h);
-      ctx.lineTo(x + w, y + h);
-      ctx.lineTo(x + w, y + h - cornerLen);
-      ctx.stroke();
+      canvasContext.beginPath();
+      canvasContext.moveTo(x + w - cornerLen, y + h);
+      canvasContext.lineTo(x + w, y + h);
+      canvasContext.lineTo(x + w, y + h - cornerLen);
+      canvasContext.stroke();
 
       // Badge on top of box
       const badgeX = x + w / 2;
       const badgeY = y > 40 * resScale ? y - 10 * resScale : y + h + 24 * resScale;
-      drawBadge(ctx, displayText, badgeX, badgeY, fontSize, resScale);
+      drawBadge(canvasContext, displayText, badgeX, badgeY, fontSize, resScale);
     } else if (point && point.length === 2) {
       // 2. Draw Point Reticle
       const [py, px] = point;
@@ -125,24 +125,24 @@ export const exportAnnotatedImage = async (options: ExportAnnotatedImageOptions)
       const y = (py / 1000) * naturalH;
       const radius = 10 * resScale;
 
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = bracketWidth;
-      ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
-      ctx.stroke();
+      canvasContext.strokeStyle = '#ef4444';
+      canvasContext.lineWidth = bracketWidth;
+      canvasContext.beginPath();
+      canvasContext.arc(x, y, radius, 0, Math.PI * 2);
+      canvasContext.stroke();
 
-      ctx.fillStyle = '#ef4444';
-      ctx.beginPath();
-      ctx.arc(x, y, radius * 0.4, 0, Math.PI * 2);
-      ctx.fill();
+      canvasContext.fillStyle = '#ef4444';
+      canvasContext.beginPath();
+      canvasContext.arc(x, y, radius * 0.4, 0, Math.PI * 2);
+      canvasContext.fill();
 
       // Badge near point
       const badgeY = y > 40 * resScale ? y - 16 * resScale : y + 24 * resScale;
-      drawBadge(ctx, displayText, x, badgeY, fontSize, resScale);
+      drawBadge(canvasContext, displayText, x, badgeY, fontSize, resScale);
     }
   });
 
-  ctx.restore();
+  canvasContext.restore();
 
   // Export to Blob and download
   await new Promise<void>((resolve) => {
@@ -152,11 +152,11 @@ export const exportAnnotatedImage = async (options: ExportAnnotatedImageOptions)
         return;
       }
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const downloadAnchor = document.createElement('a');
       const baseName = fileName.replace(/\.[^/.]+$/, '');
-      a.download = `${baseName}_annotated.png`;
-      a.href = url;
-      a.click();
+      downloadAnchor.download = `${baseName}_annotated.png`;
+      downloadAnchor.href = url;
+      downloadAnchor.click();
       setTimeout(() => {
         URL.revokeObjectURL(url);
         resolve();
@@ -166,19 +166,19 @@ export const exportAnnotatedImage = async (options: ExportAnnotatedImageOptions)
 };
 
 const drawBadge = (
-  ctx: CanvasRenderingContext2D,
+  canvasContext: CanvasRenderingContext2D,
   text: string,
   centerX: number,
   centerY: number,
   fontSize: number,
   scale: number,
 ) => {
-  ctx.save();
-  ctx.font = `600 ${fontSize}px sans-serif`;
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'center';
+  canvasContext.save();
+  canvasContext.font = `600 ${fontSize}px sans-serif`;
+  canvasContext.textBaseline = 'middle';
+  canvasContext.textAlign = 'center';
 
-  const textMetrics = ctx.measureText(text);
+  const textMetrics = canvasContext.measureText(text);
   const paddingX = 10 * scale;
   const paddingY = 6 * scale;
   const badgeWidth = textMetrics.width + paddingX * 2;
@@ -188,21 +188,21 @@ const drawBadge = (
   const radius = 6 * scale;
 
   // Background rounded rect
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-  ctx.lineWidth = 1.5 * scale;
+  canvasContext.fillStyle = 'rgba(15, 23, 42, 0.88)';
+  canvasContext.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+  canvasContext.lineWidth = 1.5 * scale;
 
-  ctx.beginPath();
-  if (typeof ctx.roundRect === 'function') {
-    ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, radius);
+  canvasContext.beginPath();
+  if (typeof canvasContext.roundRect === 'function') {
+    canvasContext.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, radius);
   } else {
-    ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+    canvasContext.rect(badgeX, badgeY, badgeWidth, badgeHeight);
   }
-  ctx.fill();
-  ctx.stroke();
+  canvasContext.fill();
+  canvasContext.stroke();
 
   // Text
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText(text, centerX, centerY);
-  ctx.restore();
+  canvasContext.fillStyle = '#ffffff';
+  canvasContext.fillText(text, centerX, centerY);
+  canvasContext.restore();
 };

@@ -103,16 +103,16 @@ const unwrapLoneTimestampBackticks = (text: string): string => {
 const checkPrecedingTextHasMatchingTimestamp = (precedingText: string, startSec: number): boolean => {
   const clean = precedingText.replace(TIME_LOCATE_TAG_RE, '');
   TIMESTAMP_PATTERN.lastIndex = 0;
-  let tm: RegExpExecArray | null;
-  while ((tm = TIMESTAMP_PATTERN.exec(clean)) !== null) {
-    const s = parseTimestamp(tm[1]);
-    const e = tm[2] ? parseTimestamp(tm[2]) : null;
-    if (s !== null) {
-      if (e !== null) {
-        if (startSec >= s - 1 && startSec <= e + 1) return true;
-      } else if (Math.abs(s - startSec) <= 2) {
-        return true;
-      }
+  let timestampMatch: RegExpExecArray | null;
+  while ((timestampMatch = TIMESTAMP_PATTERN.exec(clean)) !== null) {
+    const matchedStartSec = parseTimestamp(timestampMatch[1]);
+    if (matchedStartSec === null) continue;
+
+    const matchedEndSec = timestampMatch[2] ? parseTimestamp(timestampMatch[2]) : null;
+    if (matchedEndSec !== null) {
+      if (startSec >= matchedStartSec - 1 && startSec <= matchedEndSec + 1) return true;
+    } else if (Math.abs(matchedStartSec - startSec) <= 2) {
+      return true;
     }
   }
   return false;

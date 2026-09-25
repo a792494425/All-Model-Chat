@@ -82,17 +82,17 @@ export function groupWordsIntoCues(words: WordAnnotation[]): SubtitleCue[] {
 
     // Combine words cleanly (avoid spaces between adjacent CJK characters)
     let combinedText = '';
-    for (let i = 0; i < currentWords.length; i++) {
-      const w = currentWords[i].text.trim();
-      if (!w) continue;
+    for (const annotation of currentWords) {
+      const wordText = annotation.text.trim();
+      if (!wordText) continue;
 
       if (combinedText.length === 0) {
-        combinedText = w;
+        combinedText = wordText;
       } else {
         const lastChar = combinedText[combinedText.length - 1];
-        const firstChar = w[0];
+        const firstChar = wordText[0];
         const isBothCjk = CJK_REGEX.test(lastChar) && CJK_REGEX.test(firstChar);
-        combinedText += isBothCjk ? w : ` ${w}`;
+        combinedText += isBothCjk ? wordText : ` ${wordText}`;
       }
     }
 
@@ -126,7 +126,7 @@ export function groupWordsIntoCues(words: WordAnnotation[]): SubtitleCue[] {
 
       const firstStart = parseOffsetSeconds(currentWords[0].start_offset);
       const isDurationLimit = currStart - firstStart >= 5.5;
-      const textLength = currentWords.reduce((acc, w) => acc + w.text.length, 0);
+      const textLength = currentWords.reduce((totalLength, currentWord) => totalLength + currentWord.text.length, 0);
       const isLengthLimit = textLength >= 60;
 
       if (isPauseBreak || isPunctuationBreak || isSpeakerChange || isDurationLimit || isLengthLimit) {
@@ -197,11 +197,11 @@ export function generateVttContent(
 export function downloadTextFile(filename: string, content: string, mimeType = 'text/plain'): void {
   const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.href = url;
+  downloadAnchor.download = filename;
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  document.body.removeChild(downloadAnchor);
   URL.revokeObjectURL(url);
 }

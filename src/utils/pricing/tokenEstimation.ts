@@ -100,17 +100,17 @@ export const estimateVideoTokensForFiles = async (
   modelId: string,
   globalResolution: MediaResolution,
 ): Promise<number> => {
-  const videoFiles = files.filter((f) => isVideoMimeType(f.type));
+  const videoFiles = files.filter((file) => isVideoMimeType(file.type));
   if (videoFiles.length === 0) return 0;
 
   const estimates = await Promise.all(
-    videoFiles.map(async (f) => {
-      const duration = await getVideoDurationSeconds(f);
+    videoFiles.map(async (videoFile) => {
+      const duration = await getVideoDurationSeconds(videoFile);
       if (duration === null) return 0;
-      const resolution = normalizeResolutionForVideo(f.mediaResolution ?? globalResolution);
-      return estimateVideoTokens(duration, modelId, resolution, f.videoMetadata?.fps);
+      const resolution = normalizeResolutionForVideo(videoFile.mediaResolution ?? globalResolution);
+      return estimateVideoTokens(duration, modelId, resolution, videoFile.videoMetadata?.fps);
     }),
   );
 
-  return estimates.reduce((sum, n) => sum + n, 0);
+  return estimates.reduce((totalTokens, currentEstimate) => totalTokens + currentEstimate, 0);
 };

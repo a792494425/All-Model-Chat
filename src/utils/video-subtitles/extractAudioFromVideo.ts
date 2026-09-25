@@ -42,10 +42,10 @@ export async function extractAudioFromVideo(videoBlob: Blob, signal?: AbortSigna
     const originalLength = audioBuffer.length;
     const monoData = new Float32Array(originalLength);
 
-    for (let c = 0; c < numChannels; c++) {
-      const channelData = audioBuffer.getChannelData(c);
-      for (let i = 0; i < originalLength; i++) {
-        monoData[i] += channelData[i] / numChannels;
+    for (let channelIndex = 0; channelIndex < numChannels; channelIndex++) {
+      const channelData = audioBuffer.getChannelData(channelIndex);
+      for (let sampleIndex = 0; sampleIndex < originalLength; sampleIndex++) {
+        monoData[sampleIndex] += channelData[sampleIndex] / numChannels;
       }
     }
 
@@ -61,12 +61,12 @@ export async function extractAudioFromVideo(videoBlob: Blob, signal?: AbortSigna
       const newLength = Math.round(originalLength / ratio);
       resampledData = new Float32Array(newLength);
 
-      for (let i = 0; i < newLength; i++) {
-        const originIndex = i * ratio;
+      for (let sampleIndex = 0; sampleIndex < newLength; sampleIndex++) {
+        const originIndex = sampleIndex * ratio;
         const leftIndex = Math.floor(originIndex);
         const rightIndex = Math.min(leftIndex + 1, originalLength - 1);
         const fraction = originIndex - leftIndex;
-        resampledData[i] = monoData[leftIndex] * (1 - fraction) + monoData[rightIndex] * fraction;
+        resampledData[sampleIndex] = monoData[leftIndex] * (1 - fraction) + monoData[rightIndex] * fraction;
       }
     }
 
@@ -98,13 +98,13 @@ function encodeWav(samples: Float32Array, sampleRate: number): ArrayBuffer {
   const view = new DataView(buffer);
 
   // RIFF identifier
-  writeString(view, 0, 'RIFF');
+  writeAsciiString(view, 0, 'RIFF');
   // RIFF chunk length
   view.setUint32(4, 36 + dataSize, true);
   // RIFF type
-  writeString(view, 8, 'WAVE');
+  writeAsciiString(view, 8, 'WAVE');
   // format chunk identifier
-  writeString(view, 12, 'fmt ');
+  writeAsciiString(view, 12, 'fmt ');
   // format chunk length
   view.setUint32(16, 16, true);
   // sample format (1 = PCM)
@@ -120,23 +120,23 @@ function encodeWav(samples: Float32Array, sampleRate: number): ArrayBuffer {
   // bits per sample
   view.setUint16(34, 16, true);
   // data chunk identifier
-  writeString(view, 36, 'data');
+  writeAsciiString(view, 36, 'data');
   // data chunk length
   view.setUint32(40, dataSize, true);
 
   // Write PCM 16-bit samples
   let offset = 44;
-  for (let i = 0; i < samples.length; i++, offset += 2) {
-    const s = Math.max(-1, Math.min(1, samples[i]));
-    const val = s < 0 ? s * 0x8000 : s * 0x7fff;
-    view.setInt16(offset, val, true);
+  for (let sampleIndex = 0; sampleIndex < samples.length; sampleIndex++, offset += 2) {
+    const clampedSample = Math.max(-1, Math.min(1, samples[sampleIndex]));
+    const pcmSample = clampedSample < 0 ? clampedSample * 0x8000 : clampedSample * 0x7fff;
+    view.setInt16(offset, pcmSample, true);
   }
 
   return buffer;
 }
 
-function writeString(view: DataView, offset: number, string: string): void {
-  for (let i = 0; i < string.length; i++) {
-    view.setUint8(offset + i, string.charCodeAt(i));
+function writeAsciiString(view: DataView, offset: number, text: string): void {
+  for (let charIndex = 0; charIndex < text.length; charIndex++) {
+    view.setUint8(offset + charIndex, text.charCodeAt(charIndex));
   }
 }
