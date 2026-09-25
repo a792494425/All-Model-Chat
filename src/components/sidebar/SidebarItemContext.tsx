@@ -35,6 +35,8 @@ export interface SidebarItemContextValue {
   onReorderSession?: (activeId: string, overId: string, position: 'before' | 'after') => void;
   /** 时间视图下关闭原生拖拽（含落点处理），避免"拖了但排不了"的错觉。 */
   disableNativeDrag?: boolean;
+  /** 侧边栏实际滚动父容器引用，供虚拟列表首帧直接使用以消除多轮渲染。 */
+  scrollContainerRef?: RefObject<HTMLDivElement | null>;
 }
 
 export const SidebarItemContext = createContext<SidebarItemContextValue | null>(null);

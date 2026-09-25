@@ -7,12 +7,14 @@ import { type SessionItemPassedProps } from './sidebarTypes';
 import { useSidebarItemContext } from './SidebarItemContext';
 
 const VIRTUALIZATION_THRESHOLD = 50;
+const ESTIMATED_ITEM_HEIGHT = 38;
 
 interface LimitedSessionListProps {
   sessions: SavedChatSession[];
   sessionItemProps?: SessionItemPassedProps;
   className?: string;
   isDragging?: boolean;
+  scrollParent?: HTMLElement | null;
 }
 
 export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({
@@ -20,23 +22,27 @@ export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({
   sessionItemProps,
   className,
   isDragging,
+  scrollParent: propScrollParent,
 }) => {
   const [animatedParent] = useAutoAnimate<HTMLUListElement>({ duration: 200 });
   const containerRef = useRef<HTMLDivElement>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
-  const [scrollParent, setScrollParent] = useState<HTMLElement | undefined>(undefined);
   const context = useSidebarItemContext();
+  const [internalScrollParent, setInternalScrollParent] = useState<HTMLElement | undefined>(undefined);
+
+  const scrollParent = propScrollParent ?? context?.scrollContainerRef?.current ?? internalScrollParent;
 
   const isLargeList = sessions.length > VIRTUALIZATION_THRESHOLD;
 
   useLayoutEffect(() => {
+    if (scrollParent) return;
     if (containerRef.current) {
       const parent = containerRef.current.closest<HTMLElement>('.overflow-y-auto');
       if (parent) {
-        setScrollParent(parent);
+        setInternalScrollParent(parent);
       }
     }
-  }, []);
+  }, [scrollParent]);
 
   const activeSessionId = sessionItemProps?.activeSessionId ?? context?.activeSessionId ?? null;
 
@@ -85,6 +91,7 @@ export const LimitedSessionList: React.FC<LimitedSessionListProps> = ({
           computeItemKey={(_index, session) => session.id}
           itemContent={(_index, session) => <SessionItem key={session.id} session={session} {...sessionItemProps} />}
           components={virtuosoComponents}
+          defaultItemHeight={ESTIMATED_ITEM_HEIGHT}
           initialItemCount={Math.min(sessions.length, 50)}
           increaseViewportBy={{ top: 200, bottom: 200 }}
         />
