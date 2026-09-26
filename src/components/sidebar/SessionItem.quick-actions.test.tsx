@@ -93,7 +93,7 @@ describe('SessionItem quick actions and title mask', () => {
           id: 'm-1',
           role: 'user',
           content: 'We need to discuss state persistence across reloads.',
-          timestamp: Date.now(),
+          timestamp: new Date(),
         },
       ],
     };
