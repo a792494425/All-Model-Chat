@@ -12,6 +12,8 @@ import { useChatStore } from '@/stores/chatStore';
 import { SESSION_DRAG_TYPE, isSessionDrag, resolveDropPosition } from './sidebarDragTypes';
 import { Z_INDEX_TOPMOST_OVERLAY } from '@/constants/layout';
 import { useSidebarItemContext, type SidebarItemContextValue } from './SidebarItemContext';
+import { formatRelativeTime } from '@/utils/relativeTime';
+import { useTitleMarquee } from './useTitleMarquee';
 
 export interface SessionItemProps extends Partial<SidebarItemContextValue> {
   session: SavedChatSession;
@@ -71,6 +73,8 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
   const displayTitle = session.title === 'New Chat' ? t('newChat') : session.title;
   const isBeingDragged = draggingSessionId === session.id;
   const completedOutcome = useChatStore((state) => state.completedSessions[session.id]);
+  const titleRef = useRef<HTMLSpanElement>(null);
+  const marquee = useTitleMarquee(titleRef);
 
   const dragLifecycleRef = useRef({ isBeingDragged, onSessionDragEnd });
 
@@ -241,6 +245,8 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
                 draggable={!disableNativeDrag}
                 onDragStart={disableNativeDrag ? undefined : handleDragStart}
                 onDragEnd={disableNativeDrag ? undefined : handleDragEnd}
+                onPointerEnter={marquee.onPointerEnter}
+                onPointerLeave={marquee.onPointerLeave}
                 onClick={(event) => {
                   if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
                     event.preventDefault();
@@ -268,7 +274,11 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
                 {session.isPinned && (
                   <Pin size={12} className="mr-2 text-[var(--theme-text-link)] flex-shrink-0" strokeWidth={2} />
                 )}
-                <span className="font-medium truncate fade-mask-x-r" title={displayTitle}>
+                <span
+                  ref={titleRef}
+                  className="font-medium truncate marquee-title fade-mask-x-r"
+                  title={displayTitle}
+                >
                   {generatingTitleSessionIds.has(session.id) ? (
                     <div className="flex items-center gap-2 text-xs text-[var(--theme-text-secondary)]">
                       <LoadingDots />
@@ -286,18 +296,32 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
               </span>
             ) : (
               <>
-                {completedOutcome && (
-                  <span
-                    className={`absolute right-2 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full ${
-                      completedOutcome === 'error' ? 'bg-[#ef4444]' : 'bg-[#22c55e]'
+                {!generatingTitleSessionIds.has(session.id) && (
+                  <div
+                    data-testid="session-relative-time"
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 transition-opacity duration-150 select-none pointer-events-none ${
+                      isActive || isContextMenuOpen
+                        ? 'opacity-0'
+                        : 'opacity-100 group-hover:opacity-0 group-focus-within:opacity-0'
                     }`}
-                    title={t(completedOutcome === 'error' ? 'sessionCompletedWithError' : 'sessionCompleted')}
-                    aria-label={t(completedOutcome === 'error' ? 'sessionCompletedWithError' : 'sessionCompleted')}
-                  />
+                  >
+                    {completedOutcome && (
+                      <span
+                        className={`h-2 w-2 rounded-full ${
+                          completedOutcome === 'error' ? 'bg-[#ef4444]' : 'bg-[#22c55e]'
+                        }`}
+                        title={t(completedOutcome === 'error' ? 'sessionCompletedWithError' : 'sessionCompleted')}
+                        aria-label={t(completedOutcome === 'error' ? 'sessionCompletedWithError' : 'sessionCompleted')}
+                      />
+                    )}
+                    <span className="text-[10px] text-[var(--theme-text-secondary)]">
+                      {formatRelativeTime(session.timestamp, t)}
+                    </span>
+                  </div>
                 )}
                 {!generatingTitleSessionIds.has(session.id) && (
                   <div
-                    className={`absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 transition-opacity ${
+                    className={`absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 transition-opacity duration-150 ${
                       isActive || isContextMenuOpen
                         ? 'opacity-100 pointer-events-auto'
                         : 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-within:opacity-100 focus-within:pointer-events-auto'

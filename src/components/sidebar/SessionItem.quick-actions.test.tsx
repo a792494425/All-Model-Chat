@@ -66,4 +66,21 @@ describe('SessionItem quick actions and title mask', () => {
     expect(titleEl).not.toBeNull();
     expect(titleEl?.textContent).toBe('Chat s-3');
   });
+
+  it('renders compact relative time in resting state and hides on hover', () => {
+    // 5 minutes ago
+    const session = {
+      ...makeSession('s-4', false),
+      timestamp: Date.now() - 5 * 60_000,
+    };
+
+    act(() => {
+      renderer.render(<SessionItem session={session} />);
+    });
+
+    const timeEl = renderer.container.querySelector('[data-testid="session-relative-time"]');
+    expect(timeEl).not.toBeNull();
+    expect(timeEl?.textContent).toBe('5m');
+    expect(timeEl?.className).toContain('group-hover:opacity-0');
+  });
 });
