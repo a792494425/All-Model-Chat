@@ -12,8 +12,9 @@ import { useChatStore } from '@/stores/chatStore';
 import { SESSION_DRAG_TYPE, isSessionDrag, resolveDropPosition } from './sidebarDragTypes';
 import { Z_INDEX_TOPMOST_OVERLAY } from '@/constants/layout';
 import { useSidebarItemContext, type SidebarItemContextValue } from './SidebarItemContext';
-import { formatRelativeTime } from '@/utils/relativeTime';
+import { formatRelativeTime, formatDateTime } from '@/utils/relativeTime';
 import { useTitleMarquee } from './useTitleMarquee';
+import { HoverCard } from '@/components/shared/HoverCard';
 
 export interface SessionItemProps extends Partial<SidebarItemContextValue> {
   session: SavedChatSession;
@@ -177,6 +178,25 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
   const showAfter = dropIndicator?.id === session.id && dropIndicator.position === 'after';
   const showPinHint = !!dropIndicator?.willPin && dropIndicator.id === session.id;
   const isBlockedByGroupDrag = !!draggingGroupId;
+  const isEditing = editingItem?.type === 'session' && editingItem.id === session.id;
+  const groupName = session.groupId
+    ? groups.find((g) => g.id === session.groupId)?.title || t('historyMoveToUngrouped')
+    : t('historyMoveToUngrouped');
+
+  const hoverCardContent = (
+    <div className="flex flex-col gap-1.5 min-w-[200px] max-w-[280px]">
+      <div className="font-semibold text-xs leading-snug break-words text-[var(--theme-text-primary)]">
+        {displayTitle}
+      </div>
+      <div className="flex items-center justify-between text-[10px] text-[var(--theme-text-secondary)] border-t border-[var(--theme-border-secondary)] pt-1.5 mt-0.5">
+        <span className="truncate max-w-[130px]">{groupName}</span>
+        <span>{formatDateTime(session.timestamp)}</span>
+      </div>
+      <div className="text-[10px] text-[var(--theme-text-link)] opacity-80 pt-0.5 text-right font-medium">
+        {t('historyCopyTitleAction')}
+      </div>
+    </div>
+  );
 
   return (
     <ContextMenu
@@ -240,55 +260,65 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
                 className="flex-grow bg-transparent border border-[var(--theme-border-focus)] rounded-md px-1 py-0 text-sm w-full"
               />
             ) : (
-              <a
-                href={`/chat/${session.id}`}
-                draggable={!disableNativeDrag}
-                onDragStart={disableNativeDrag ? undefined : handleDragStart}
-                onDragEnd={disableNativeDrag ? undefined : handleDragEnd}
-                onPointerEnter={marquee.onPointerEnter}
-                onPointerLeave={marquee.onPointerLeave}
-                onClick={(event) => {
-                  if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
-                    event.preventDefault();
-                    if (event.detail > 1) {
-                      // 双击的第二下：只进 onDoubleClick（重命名），不再重复选中。
-                      return;
-                    }
-                    // 双击第一下会先触发一次 micro-drag，click 被吞掉；这里不能把它
-                    // 当成普通单击放行，否则双击后会话仍被选中一次。跳过它，让第二下
-                    // 的 dblclick 专心处理。
-                    if (isDoubleClickDrag(event)) {
-                      return;
-                    }
-                    onSelectSession(session.id);
-                  }
-                }}
-                onDoubleClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  handleStartEdit(session);
-                }}
-                className="flex w-full min-w-0 items-center pr-14 no-underline text-inherit"
-                aria-current={session.id === activeSessionId ? 'page' : undefined}
-              >
-                {session.isPinned && (
-                  <Pin size={12} className="mr-2 text-[var(--theme-text-link)] flex-shrink-0" strokeWidth={2} />
-                )}
-                <span
-                  ref={titleRef}
-                  className="font-medium truncate marquee-title fade-mask-x-r"
-                  title={displayTitle}
-                >
-                  {generatingTitleSessionIds.has(session.id) ? (
-                    <div className="flex items-center gap-2 text-xs text-[var(--theme-text-secondary)]">
-                      <LoadingDots />
-                      <span>{t('generatingTitle')}</span>
-                    </div>
-                  ) : (
-                    displayTitle
-                  )}
-                </span>
-              </a>
+              <HoverCard
+                anchor={
+                  <a
+                    href={`/chat/${session.id}`}
+                    draggable={!disableNativeDrag}
+                    onDragStart={disableNativeDrag ? undefined : handleDragStart}
+                    onDragEnd={disableNativeDrag ? undefined : handleDragEnd}
+                    onPointerEnter={marquee.onPointerEnter}
+                    onPointerLeave={marquee.onPointerLeave}
+                    onClick={(event) => {
+                      if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+                        event.preventDefault();
+                        if (event.detail > 1) {
+                          // 双击的第二下：只进 onDoubleClick（重命名），不再重复选中。
+                          return;
+                        }
+                        // 双击第一下会先触发一次 micro-drag，click 被吞掉；这里不能把它
+                        // 当成普通单击放行，否则双击后会话仍被选中一次。跳过它，让第二下
+                        // 的 dblclick 专心处理。
+                        if (isDoubleClickDrag(event)) {
+                          return;
+                        }
+                        onSelectSession(session.id);
+                      }
+                    }}
+                    onDoubleClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      handleStartEdit(session);
+                    }}
+                    className="flex w-full min-w-0 items-center pr-14 no-underline text-inherit"
+                    aria-current={session.id === activeSessionId ? 'page' : undefined}
+                  >
+                    {session.isPinned && (
+                      <Pin size={12} className="mr-2 text-[var(--theme-text-link)] flex-shrink-0" strokeWidth={2} />
+                    )}
+                    <span
+                      ref={titleRef}
+                      className="font-medium truncate marquee-title fade-mask-x-r"
+                      title={displayTitle}
+                    >
+                      {generatingTitleSessionIds.has(session.id) ? (
+                        <div className="flex items-center gap-2 text-xs text-[var(--theme-text-secondary)]">
+                          <LoadingDots />
+                          <span>{t('generatingTitle')}</span>
+                        </div>
+                      ) : (
+                        displayTitle
+                      )}
+                    </span>
+                  </a>
+                }
+                content={hoverCardContent}
+                openDelayMs={800}
+                disabled={isActive || isContextMenuOpen || isBeingDragged || isEditing || isBlockedByGroupDrag}
+                copyText={displayTitle}
+                copyLabel={t('historyCopyTitleAction')}
+                copiedLabel={t('historyTitleCopied')}
+              />
             )}
             {loadingSessionIds.has(session.id) ? (
               <span className="absolute right-1 top-1/2 -translate-y-1/2">
