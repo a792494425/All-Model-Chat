@@ -74,6 +74,7 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
   const [isRightClickAnimating, setIsRightClickAnimating] = useState(false);
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const dragStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  const isSelected = session.id === activeSessionId;
   const isActive = activeMenu === session.id;
   const displayTitle = session.title === 'New Chat' ? t('newChat') : session.title;
   const isBeingDragged = draggingSessionId === session.id;
@@ -227,12 +228,22 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
           }
           onDragLeave={disableNativeDrag ? undefined : onSessionDropIndicatorClear}
           onDrop={disableNativeDrag ? undefined : handleItemDrop}
+          role="treeitem"
+          aria-selected={isSelected}
+          data-selected={isSelected ? 'true' : undefined}
           className={`group relative rounded-lg my-0.5 transition-all duration-150 ease-out ${
-            session.id === activeSessionId || isRightClickAnimating || isContextMenuOpen
-              ? 'bg-[var(--theme-bg-accent)]/10'
-              : ''
-          } ${newlyTitledSessionIds.has(session.id) ? 'title-update-animate' : ''} ${isActive || isContextMenuOpen ? 'z-20' : ''} ${isBlockedByGroupDrag ? 'opacity-50 pointer-events-none' : ''}`}
+            isSelected || isRightClickAnimating || isContextMenuOpen
+              ? 'bg-[var(--theme-bg-accent)]/12 hover:bg-[var(--theme-bg-accent)]/18 border border-[var(--theme-bg-accent)]/25 shadow-xs'
+              : 'hover:bg-[var(--theme-bg-tertiary)] border border-transparent'
+          } ${newlyTitledSessionIds.has(session.id) ? 'title-update-animate' : ''} ${isSelected || isActive || isContextMenuOpen ? 'z-20' : ''} ${isBlockedByGroupDrag ? 'opacity-50 pointer-events-none' : ''}`}
         >
+          {isSelected && (
+            <span
+              data-testid="session-active-indicator"
+              className="absolute left-1 top-2.5 bottom-2.5 w-[3px] rounded-full bg-[var(--theme-bg-accent)] shadow-[0_0_8px_var(--theme-bg-accent)] pointer-events-none z-10 animate-in fade-in zoom-in-95 duration-150"
+              aria-hidden="true"
+            />
+          )}
           {showBefore && (
             <div className="absolute -top-[1px] left-1 right-1 h-0.5 rounded-full bg-[var(--theme-bg-accent)] shadow-[0_0_8px_var(--theme-bg-accent)] pointer-events-none z-10 animate-in fade-in duration-100 flex items-center">
               <div className="h-1.5 w-1.5 -ml-0.5 rounded-full bg-[var(--theme-bg-accent)] shadow-[0_0_6px_var(--theme-bg-accent)]" />
@@ -251,8 +262,8 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
           )}
           <div
             className={`relative w-full text-left pl-2.5 pr-1 py-2 text-sm transition-colors rounded-lg text-[var(--theme-text-primary)] ${
-              session.id === activeSessionId ? 'font-medium' : 'hover:bg-[var(--theme-bg-tertiary)]'
-            } ${isBeingDragged ? 'opacity-35 scale-[0.98] border border-dashed border-[var(--theme-border-focus)]/60 bg-[var(--theme-bg-tertiary)]/40 shadow-xs' : ''} ${isBlockedByGroupDrag ? 'opacity-40' : ''}`}
+              isBeingDragged ? 'opacity-35 scale-[0.98] border border-dashed border-[var(--theme-border-focus)]/60 bg-[var(--theme-bg-tertiary)]/40 shadow-xs' : ''
+            } ${isBlockedByGroupDrag ? 'opacity-40' : ''}`}
           >
             {editingItem?.type === 'session' && editingItem.id === session.id ? (
               <InlineRenameInput
@@ -304,7 +315,11 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
                       <div className="flex items-center min-w-0">
                         <span
                           ref={titleRef}
-                          className="font-medium truncate marquee-title fade-mask-x-r"
+                          className={`truncate marquee-title fade-mask-x-r ${
+                            isSelected
+                              ? 'font-semibold text-[var(--theme-text-primary)]'
+                              : 'font-medium text-[var(--theme-text-primary)]/90 group-hover:text-[var(--theme-text-primary)]'
+                          }`}
                           title={displayTitle}
                         >
                           {generatingTitleSessionIds.has(session.id) ? (
@@ -390,7 +405,11 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
                         event.stopPropagation();
                         onTogglePinSession(session.id);
                       }}
-                      className="rounded-full bg-[var(--theme-bg-secondary)] p-1 text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)] cursor-pointer"
+                      className={`rounded-full p-1 text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)] cursor-pointer ${
+                        isSelected
+                          ? 'bg-[var(--theme-bg-accent)]/20 hover:bg-[var(--theme-bg-accent)]/30'
+                          : 'bg-[var(--theme-bg-secondary)] hover:bg-[var(--theme-bg-tertiary)]'
+                      }`}
                     >
                       {session.isPinned ? (
                         <PinOff size={14} strokeWidth={2.2} />
@@ -406,7 +425,11 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
                         <button
                           title={t('sessionMoreOptions')}
                           aria-label={t('sessionMoreOptions')}
-                          className="rounded-full bg-[var(--theme-bg-secondary)] p-1 text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)] cursor-pointer"
+                          className={`rounded-full p-1 text-[var(--theme-text-primary)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)] cursor-pointer ${
+                            isSelected
+                              ? 'bg-[var(--theme-bg-accent)]/20 hover:bg-[var(--theme-bg-accent)]/30'
+                              : 'bg-[var(--theme-bg-secondary)] hover:bg-[var(--theme-bg-tertiary)]'
+                          }`}
                         >
                           <MoreHorizontal size={16} strokeWidth={2.2} />
                         </button>

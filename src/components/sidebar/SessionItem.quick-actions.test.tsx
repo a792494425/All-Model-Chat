@@ -107,4 +107,43 @@ describe('SessionItem quick actions and title mask', () => {
     expect(marks[0].textContent).toBe('persistence');
     expect(renderer.container.textContent).toContain('state persistence across');
   });
+
+  it('renders active session with left indicator pill, aria-selected=true, and active styling', () => {
+    const session = makeSession('s-active', false);
+
+    act(() => {
+      renderer.render(<SessionItem session={session} activeSessionId="s-active" />);
+    });
+
+    const li = renderer.container.querySelector('li');
+    expect(li).not.toBeNull();
+    expect(li?.getAttribute('aria-selected')).toBe('true');
+    expect(li?.className).toContain('bg-[var(--theme-bg-accent)]/12');
+
+    const indicator = renderer.container.querySelector('[data-testid="session-active-indicator"]');
+    expect(indicator).not.toBeNull();
+
+    const titleEl = renderer.container.querySelector('.marquee-title');
+    expect(titleEl?.className).toContain('font-semibold');
+  });
+
+  it('renders unselected session with aria-selected=false, no indicator, and resting styling', () => {
+    const session = makeSession('s-inactive', false);
+
+    act(() => {
+      renderer.render(<SessionItem session={session} activeSessionId="s-other" />);
+    });
+
+    const li = renderer.container.querySelector('li');
+    expect(li).not.toBeNull();
+    expect(li?.getAttribute('aria-selected')).toBe('false');
+    expect(li?.className).toContain('hover:bg-[var(--theme-bg-tertiary)]');
+
+    const indicator = renderer.container.querySelector('[data-testid="session-active-indicator"]');
+    expect(indicator).toBeNull();
+
+    const titleEl = renderer.container.querySelector('.marquee-title');
+    expect(titleEl?.className).toContain('font-medium');
+  });
 });
+

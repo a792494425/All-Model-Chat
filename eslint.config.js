@@ -48,6 +48,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-console': 'error',
       'react-hooks/immutability': 'off',
+      'react-hooks/incompatible-library': 'off',
       'react-hooks/preserve-manual-memoization': 'off',
       'react-hooks/purity': 'off',
       'react-hooks/refs': 'off',
@@ -100,6 +101,7 @@ export default tseslint.config(
       'src/contexts/I18nContext.tsx',
       'src/contexts/WindowContext.tsx',
       'src/hooks/data-management/ChatExportRenderer.tsx',
+      'src/utils/searchHighlight.tsx',
     ],
     rules: {
       'react-refresh/only-export-components': 'off',
