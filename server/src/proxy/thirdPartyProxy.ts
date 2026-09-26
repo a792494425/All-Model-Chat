@@ -21,6 +21,11 @@ const STRIPPED_PROXY_REQUEST_HEADERS = new Set([
   // BYOK 兜底 the browser key wins; otherwise the server route table key wins.
   'authorization',
   'x-api-key',
+  // The deployment gatekeeper password rides in x-access-token (see
+  // src/services/api/apiAuthHeaders.ts). It authenticates the *browser →
+  // this server* hop only; forwarding it would hand the password to whatever
+  // upstream host this request ends at, including an arbitrary BYOK baseUrl.
+  'x-access-token',
   // The browser supplies the provider's real baseUrl in pure-BYOK mode (no
   // route table entry). It is consumed by resolveRoute and must not leak
   // upstream.

@@ -2,6 +2,7 @@ import { getRuntimeConfigAppSettingsOverrides } from '@/runtime/runtimeConfig';
 import {
   MediaResolution,
   type AppSettings,
+  type ReadingFontFamily,
   type ChatSettings,
   type FilesApiConfig,
   type ThinkingLevel,
@@ -29,6 +30,7 @@ export const DEFAULT_SYSTEM_INSTRUCTION = '';
 
 const DEFAULT_IS_STREAMING_ENABLED = true;
 const DEFAULT_BASE_FONT_SIZE = 16;
+export const DEFAULT_READING_FONT_FAMILY: ReadingFontFamily = 'sans';
 const DEFAULT_LIVE_ARTIFACTS_CUSTOM_FONT_SIZE = 16;
 const DEFAULT_IS_AUDIO_COMPRESSION_ENABLED = true;
 const DEFAULT_MEDIA_RESOLUTION = MediaResolution.MEDIA_RESOLUTION_UNSPECIFIED;
@@ -89,6 +91,7 @@ const BASE_DEFAULT_APP_SETTINGS: Omit<AppSettings, 'thirdPartyApi'> = {
   ...DEFAULT_CHAT_SETTINGS,
   themeId: DEFAULT_THEME_ID,
   baseFontSize: DEFAULT_BASE_FONT_SIZE,
+  readingFontFamily: DEFAULT_READING_FONT_FAMILY,
   useCustomApiConfig: false,
   serverManagedApi: false,
   serverAccessPassword: null,

@@ -192,6 +192,18 @@ export const isAnthropicThinkingModel = (modelId: string): boolean => {
 /** GLM-5 series models use the OpenAI-compatible thinking parameter. */
 export const isGlmModel = (modelId: string): boolean => modelId.toLowerCase().startsWith('glm-');
 
+/**
+ * Retired DeepSeek ids that predate thinking mode. DeepSeek's docs draw no
+ * per-model split for the current ids — `deepseek-flash` and `deepseek-v4-pro`
+ * both accept `thinking` — so the parameter is gated by excluding these legacy
+ * names rather than by matching a version string (the flash tier was renamed
+ * off `deepseek-v4-flash`, so a `v4` test silently stopped matching).
+ */
+export const isLegacyDeepSeekModel = (modelId: string): boolean => {
+  const id = modelId.toLowerCase();
+  return id.includes('deepseek-chat') || id.includes('deepseek-reasoner');
+};
+
 const supportsThinkingLevel = (modelId: string): boolean => {
   // GLM-5 series and specialized reasoning models support thinking.
   if (

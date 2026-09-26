@@ -76,4 +76,8 @@ export const applyThemeToDocument = (doc: Document, theme: Theme, settings: AppS
   if (Number.isFinite(fontSize) && fontSize > 0) {
     doc.body.style.fontSize = `${fontSize}px`;
   }
+
+  // Reading font family: sans or serif (targets chat body text via --app-font-reading)
+  const readingFont = settings?.readingFontFamily === 'serif' ? 'var(--app-font-serif)' : 'var(--app-font-sans)';
+  doc.documentElement.style.setProperty('--app-font-reading', readingFont);
 };

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import type { SavedChatSession, ChatGroup } from '@/types';
 import { useWindowContext } from '@/contexts/WindowContext';
 import { useI18n } from '@/contexts/I18nContext';
@@ -115,10 +115,24 @@ export const useHistorySidebarLogic = ({
     t,
   });
 
+  const [searchOnExpand, setSearchOnExpand] = useState(false);
+
   const handleMiniSearchClick = useCallback(() => {
     onToggle();
     setIsSearching(true);
+    setSearchOnExpand(true);
   }, [onToggle, setIsSearching]);
+
+  useEffect(() => {
+    if (!isOpen || !searchOnExpand) {
+      return undefined;
+    }
+    const timer = targetWindow.setTimeout(() => {
+      searchInputRef.current?.focus({ preventScroll: true });
+      setSearchOnExpand(false);
+    }, 300);
+    return () => targetWindow.clearTimeout(timer);
+  }, [isOpen, searchOnExpand, searchInputRef, targetWindow]);
 
   const handleEmptySpaceClick = useCallback(
     (event: React.MouseEvent) => {
@@ -186,5 +200,6 @@ export const useHistorySidebarLogic = ({
     handleEmptySpaceClick,
     handleSessionSelect,
     handleRegenerateTitle,
+    searchOnExpand,
   };
 };

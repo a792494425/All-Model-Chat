@@ -112,8 +112,10 @@ export const useChatInputRuntimeValues = ({
   const isVisualFormattingActive = Boolean(currentChatSettings?.isVisualFormattingActive);
 
   const handleToggleVisualFormatting = useCallback(() => {
+    let nextValue = false;
     setCurrentChatSettings((prev) => {
       const next = !prev.isVisualFormattingActive;
+      nextValue = next;
       if (next) {
         closeMediaNavPanel();
       }
@@ -133,14 +135,31 @@ export const useChatInputRuntimeValues = ({
           : {}),
       };
     });
-  }, [setCurrentChatSettings]);
+    setAppSettings((prev) => ({
+      ...prev,
+      isVisualFormattingActive: nextValue,
+      ...(nextValue
+        ? {
+            isLiveArtifactsEnabled: true,
+            isPdfNavEnabled: false,
+            isVideoNavEnabled: false,
+            isAudioNavEnabled: false,
+            isImageNavEnabled: false,
+          }
+        : {}),
+    }));
+  }, [setCurrentChatSettings, setAppSettings]);
 
   const handleDeactivateVisualFormatting = useCallback(() => {
     setCurrentChatSettings((prev) => ({
       ...prev,
       isVisualFormattingActive: false,
     }));
-  }, [setCurrentChatSettings]);
+    setAppSettings((prev) => ({
+      ...prev,
+      isVisualFormattingActive: false,
+    }));
+  }, [setCurrentChatSettings, setAppSettings]);
 
   return useMemo<ChatInputRuntimeValue>(
     () => ({

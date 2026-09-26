@@ -22,6 +22,7 @@ interface SidebarActionsProps {
   searchChatsShortcut?: string;
   /** 活跃会话 id，用于构造携带 ?from 的新标签页链接（Cmd/Ctrl+点击时继承来源会话）。 */
   activeSessionId?: string | null;
+  searchOnExpand?: boolean;
 }
 
 const COMPACT_SHORTCUT_ORDER: Record<string, number> = {
@@ -100,6 +101,7 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
   newChatShortcut,
   searchChatsShortcut,
   activeSessionId,
+  searchOnExpand,
 }) => {
   const { t } = useI18n();
   const activeView = useUIStore((state) => state.activeView);
@@ -175,7 +177,7 @@ export const SidebarActions: React.FC<SidebarActionsProps> = ({
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               className="w-full bg-transparent border-0 h-full py-0 text-sm focus:ring-0 outline-none text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-tertiary)]"
-              autoFocus
+              autoFocus={!searchOnExpand}
               onKeyDown={(event) => {
                 if (event.key === 'Escape') closeSearch();
               }}

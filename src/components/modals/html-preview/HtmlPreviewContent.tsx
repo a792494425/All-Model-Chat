@@ -1,6 +1,8 @@
 import { logService } from '@/services/logService';
 import React, { useRef, useState, useEffect, useMemo, type RefObject } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
+import type { ReadingFontFamily } from '@/types';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { buildHtmlPreviewSrcDoc, isKatexLoaded, whenKatexReady } from '@/utils/html-preview/previewDocument';
 import {
   DEFAULT_HTML_PREVIEW_PRIVILEGE,
@@ -17,6 +19,7 @@ interface HtmlPreviewContentProps {
   privilege?: HtmlPreviewPrivilege;
   themeId?: string;
   baseFontSize?: number;
+  readingFontFamily?: ReadingFontFamily;
   deviceMode?: HtmlPreviewDeviceMode;
 }
 
@@ -28,9 +31,12 @@ export const HtmlPreviewContent: React.FC<HtmlPreviewContentProps> = ({
   privilege = DEFAULT_HTML_PREVIEW_PRIVILEGE,
   themeId,
   baseFontSize,
+  readingFontFamily,
   deviceMode = 'desktop',
 }) => {
   const { t } = useI18n();
+  const storeReadingFont = useSettingsStore((state) => state.appSettings.readingFontFamily);
+  const resolvedReadingFont = readingFontFamily ?? storeReadingFont ?? 'sans';
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
   const [katexReadyTick, setKatexReadyTick] = useState(0);
@@ -76,13 +82,14 @@ export const HtmlPreviewContent: React.FC<HtmlPreviewContentProps> = ({
       privilege,
       themeId,
       baseFontSize,
+      readingFontFamily: resolvedReadingFont,
       isExpanded: true,
     });
-  }, [baseFontSize, htmlContent, katexReadyTick, privilege, themeId]);
+  }, [baseFontSize, htmlContent, katexReadyTick, privilege, resolvedReadingFont, themeId]);
 
   const frameInner = (
     <iframe
-      key={`${katexReadyTick}:${privilege}:${themeId ?? ''}:${baseFontSize ?? ''}`}
+      key={`${katexReadyTick}:${privilege}:${themeId ?? ''}:${baseFontSize ?? ''}:${resolvedReadingFont}`}
       ref={iframeRef}
       srcDoc={srcDoc}
       title={t('htmlPreviewIframeTitle')}

@@ -8,6 +8,7 @@ import { sanitizeElementTree } from './previewSanitizer';
 import { sanitizeDocumentStylesForPngExport } from '@/utils/export/cssColorSanitizer';
 import { STREAMING_PREVIEW_RUNNER_SCRIPT } from './streamingPreviewRunnerScript';
 import type { HtmlPreviewPrivilege } from './previewPrivilege';
+import type { ReadingFontFamily } from '@/types';
 
 export {
   HTML_PREVIEW_CLEAR_SELECTION_EVENT,
@@ -328,15 +329,27 @@ const resolvePreviewTheme = (themeId?: string) => {
   );
 };
 
+const APP_FONT_SANS_STACK =
+  "system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC',sans-serif,'Apple Color Emoji','Segoe UI Emoji'";
+const APP_FONT_SERIF_STACK =
+  "Charter,'Bitstream Charter',Georgia,Cambria,'Times New Roman',Times,'Source Han Serif SC','Noto Serif CJK SC','Source Han Serif CN','Songti SC','STSong',SimSun,'Noto Serif SC',serif,'Apple Color Emoji','Segoe UI Emoji'";
+
 const buildPreviewThemeStyle = (
   themeId?: string,
-  options: { varsOnly?: boolean; baseFontSize?: number; isExpanded?: boolean } = {},
+  options: {
+    varsOnly?: boolean;
+    baseFontSize?: number;
+    readingFontFamily?: ReadingFontFamily;
+    isExpanded?: boolean;
+  } = {},
 ): string => {
   const theme = resolvePreviewTheme(themeId);
   const colorScheme = theme.isDark ? 'dark' : 'light';
   // Shared with themeDom.ts (host-document fallback rendering) so both channels
   // cannot drift; see liveArtifactThemeTokens.buildLiveArtifactThemeVars.
   const cssVars = buildLiveArtifactThemeVars(theme.colors);
+  const readingFontChoice = options.readingFontFamily === 'serif' ? 'var(--app-font-serif)' : 'var(--app-font-sans)';
+  const fontVars = `--app-font-sans:${APP_FONT_SANS_STACK};--app-font-serif:${APP_FONT_SERIF_STACK};--app-font-reading:${readingFontChoice};`;
   // Static snapshots (PNG / standalone HTML export) have no separate font-size
   // style element, so the size rides along in the vars block the chart hydrator
   // already parses. The live iframe injects it separately (see
@@ -347,7 +360,7 @@ const buildPreviewThemeStyle = (
       : '';
 
   if (options.varsOnly) {
-    return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};${baseFontSize}}</style>`;
+    return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};${fontVars}${baseFontSize}}</style>`;
   }
 
   // height/min-height auto: model CSS often uses min-height:100vh / height:100%, which
@@ -382,10 +395,14 @@ const buildPreviewThemeStyle = (
   const layoutStyles = options.isExpanded
     ? `html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}body{box-sizing:border-box;max-width:1120px;margin:0 auto!important;}@media (max-width:640px){body{padding:16px 16px 36px 16px!important;}}@media (min-width:641px){body{padding:28px 36px 56px 36px!important;}}`
     : `html,body{margin:0;padding:0;height:auto!important;min-height:0!important;max-height:none!important;background:transparent!important;color:var(--amc-live-artifact-text);}`;
-  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};}${layoutStyles}body{overflow-x:auto;}${overflowGuard}${tableAndTagStyles}${scrollbarStyles}${graphvizStyles}${gridSymmetryStyles}${microComponentStyles}</style>`;
+  return `<style ${PREVIEW_THEME_ATTRIBUTE}="true">:root{color-scheme:${colorScheme};${cssVars};${fontVars}}${layoutStyles}body{overflow-x:auto;font-family:var(--app-font-reading);}${overflowGuard}${tableAndTagStyles}${scrollbarStyles}${graphvizStyles}${gridSymmetryStyles}${microComponentStyles}</style>`;
 };
 
-const injectPreviewTheme = (srcDoc: string, themeId?: string, options: { isExpanded?: boolean } = {}): string => {
+const injectPreviewTheme = (
+  srcDoc: string,
+  themeId?: string,
+  options: { readingFontFamily?: ReadingFontFamily; isExpanded?: boolean } = {},
+): string => {
   // Guard on the <style> ELEMENT carrying the theme marker, not the bare marker
   // string or the attribute text. A model output that merely references the
   // attribute (e.g. shows `data-amc-live-artifact-theme` in a demo) must not
@@ -462,12 +479,20 @@ const injectEchartsScript = (srcDoc: string): string => {
 
 const prepareHtmlPreviewSrcDoc = (
   srcDoc: string,
-  options: { baseFontSize?: number; themeId?: string; isExpanded?: boolean } = {},
+  options: {
+    baseFontSize?: number;
+    readingFontFamily?: ReadingFontFamily;
+    themeId?: string;
+    isExpanded?: boolean;
+  } = {},
 ): string =>
   injectEchartsScript(
     renderPreviewMath(
       injectPreviewBaseFontSize(
-        injectPreviewTheme(injectPreviewSecurityPolicy(srcDoc), options.themeId, { isExpanded: options.isExpanded }),
+        injectPreviewTheme(injectPreviewSecurityPolicy(srcDoc), options.themeId, {
+          readingFontFamily: options.readingFontFamily,
+          isExpanded: options.isExpanded,
+        }),
         options.baseFontSize,
       ),
     ),
@@ -527,6 +552,7 @@ const appendBridgeScriptToDocument = (parsedDocument: Document): string => {
 
 export type HtmlPreviewSrcDocOptions = {
   baseFontSize?: number;
+  readingFontFamily?: ReadingFontFamily;
   themeId?: string;
   privilege?: HtmlPreviewPrivilege;
   isExpanded?: boolean;
@@ -582,7 +608,12 @@ export const buildHtmlPreviewSrcDoc = (htmlContent: string, options: HtmlPreview
 };
 
 export const buildStreamingHtmlPreviewSrcDoc = (
-  options: { baseFontSize?: number; themeId?: string; isExpanded?: boolean } = {},
+  options: {
+    baseFontSize?: number;
+    readingFontFamily?: ReadingFontFamily;
+    themeId?: string;
+    isExpanded?: boolean;
+  } = {},
 ): string => {
   const srcDoc = `<!DOCTYPE html><html><body><div data-amc-stream-preview-root="true"></div></body></html>`;
   const parsedDocument = parsePreviewDocument(srcDoc);
@@ -606,7 +637,7 @@ export const buildStreamingHtmlPreviewSrcDoc = (
  */
 export const buildUnrestrictedHtmlPreviewSrcDoc = (
   htmlContent: string,
-  options: { baseFontSize?: number; themeId?: string } = {},
+  options: { baseFontSize?: number; themeId?: string; readingFontFamily?: ReadingFontFamily } = {},
 ): string => {
   return buildHtmlPreviewSrcDoc(htmlContent, { ...options, privilege: 'unrestricted' });
 };
@@ -614,7 +645,7 @@ export const buildUnrestrictedHtmlPreviewSrcDoc = (
 export const createStaticPreviewSnapshotContainer = async (
   htmlContent: string,
   targetDocument: Document,
-  options: { themeId?: string; sanitize?: boolean; baseFontSize?: number } = {},
+  options: { themeId?: string; sanitize?: boolean; baseFontSize?: number; readingFontFamily?: ReadingFontFamily } = {},
 ): Promise<{ container: HTMLElement; cleanup: () => void }> => {
   const parser = new DOMParser();
   const parsedDocument = parser.parseFromString(htmlContent, 'text/html');
@@ -645,6 +676,7 @@ export const createStaticPreviewSnapshotContainer = async (
     themeStyle: buildPreviewThemeStyle(options.themeId, {
       varsOnly: true,
       baseFontSize: options.baseFontSize,
+      readingFontFamily: options.readingFontFamily,
     }),
   });
   // Graphviz hydration needs the lazy viz-js runtime, so the snapshot build is
@@ -681,6 +713,7 @@ export const createStaticPreviewSnapshotContainer = async (
   const themeStyleMarkup = buildPreviewThemeStyle(options.themeId, {
     varsOnly: false,
     baseFontSize: options.baseFontSize,
+    readingFontFamily: options.readingFontFamily,
   });
   const themeTemplate = targetDocument.createElement('template');
   themeTemplate.innerHTML = themeStyleMarkup;

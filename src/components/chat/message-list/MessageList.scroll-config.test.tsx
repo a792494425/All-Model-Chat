@@ -39,10 +39,10 @@ vi.mock('./hooks/useMessageListScroll', async () => {
   return createMessageListScrollMock({ scrollerRef: null });
 });
 
-vi.mock('./ScrollNavigation', async () => {
+vi.mock('./TurnNavigator', async () => {
   const { createNullComponentMock } = await import('@/test/message-list/doubles');
 
-  return createNullComponentMock('ScrollNavigation');
+  return createNullComponentMock('TurnNavigator');
 });
 
 vi.mock('./TextSelectionToolbar', async () => {

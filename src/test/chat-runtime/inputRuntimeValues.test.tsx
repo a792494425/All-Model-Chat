@@ -272,6 +272,16 @@ describe('chat-runtime input visual formatting mode decoupling', () => {
     expect(nextState.isAudioNavEnabled).toBe(false);
     expect(nextState.isImageNavEnabled).toBe(false);
     expect(nextState.visionPromptMode).toBeNull();
+
+    expect(appMembers.setAppSettings).toHaveBeenCalled();
+    const appUpdater = (appMembers.setAppSettings as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const nextAppSettings = appUpdater({
+      isVisualFormattingActive: false,
+      isPdfNavEnabled: true,
+    });
+    expect(nextAppSettings.isVisualFormattingActive).toBe(true);
+    expect(nextAppSettings.isLiveArtifactsEnabled).toBe(true);
+    expect(nextAppSettings.isPdfNavEnabled).toBe(false);
   });
 
   it('deactivates visual formatting when a task suggestion mode is toggled on', () => {

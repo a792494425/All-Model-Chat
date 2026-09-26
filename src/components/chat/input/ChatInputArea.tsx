@@ -12,6 +12,7 @@ import { HiddenFileInputs } from './files/HiddenFileInputs';
 import { getChatInputAreaLayout } from './chatInputAreaLayout';
 import { closeMediaNavPanel, useMediaNavStore, type MediaNavKind } from '@/stores/mediaNavStore';
 import { useChatStore } from '@/stores/chatStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { CHAT_INPUT_MAX_WIDTH_CLASS, FOCUS_BLOCKING_SELECTOR } from '@/constants/layout';
 import { applyMediaNavKindToSettings } from '@/utils/media-nav/mediaNavSettings';
 import { collapseSidebarIfNarrowScreen } from '@/utils/media-nav/mediaNavResponsive';
@@ -86,6 +87,15 @@ export const ChatInputArea: React.FC = () => {
               isVisualFormattingActive: false,
               taskSuggestionMode: null,
               visionPromptMode: null,
+            }
+          : {}),
+      }));
+      useSettingsStore.getState().setAppSettings((prev) => ({
+        ...prev,
+        ...applyMediaNavKindToSettings(prev, next ? kind : null, { preserveLiveArtifacts: true }),
+        ...(next
+          ? {
+              isVisualFormattingActive: false,
             }
           : {}),
       }));

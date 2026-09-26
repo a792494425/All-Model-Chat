@@ -53,9 +53,19 @@ export interface TemplatePresetMeta {
 
 export const TEMPLATE_PRESETS: TemplatePresetMeta[] = [
   // Recommended / International
-  { id: 'deepseek', name: 'DeepSeek', category: 'recommended', description: '深度求索官方 API (DeepSeek-V3, R1)' },
-  { id: 'openai', name: 'OpenAI', category: 'recommended', description: 'GPT-4o, o1, o3-mini, GPT-4.5' },
-  { id: 'anthropic', name: 'Anthropic', category: 'recommended', description: 'Claude 3.7 Sonnet, Claude 3.5' },
+  {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    category: 'recommended',
+    description: '深度求索官方 API (DeepSeek Flash, V4 Pro)',
+  },
+  { id: 'openai', name: 'OpenAI', category: 'recommended', description: 'GPT-6 系列官方接口 (Sol / Astra / Luna)' },
+  {
+    id: 'anthropic',
+    name: 'Anthropic',
+    category: 'recommended',
+    description: 'Claude Fable / Opus / Sonnet / Haiku 现役档位',
+  },
   { id: 'openrouter', name: 'OpenRouter', category: 'recommended', description: '聚合全球领先 AI 模型与路由' },
   { id: 'groq', name: 'Groq', category: 'recommended', description: 'LPU 极速推理平台' },
   { id: 'together', name: 'Together AI', category: 'recommended', description: '开源模型云端高性能托管' },
@@ -109,8 +119,12 @@ export const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateD
   openai: {
     name: 'OpenAI',
     baseUrl: 'https://api.openai.com/v1',
-    modelId: 'gpt-5.6-sol',
-    models: [{ id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true }],
+    modelId: 'gpt-6-sol',
+    models: [
+      { id: 'gpt-6-sol', name: 'GPT-6 Sol', isPinned: true },
+      { id: 'gpt-6-astra', name: 'GPT-6 Astra' },
+      { id: 'gpt-6-luna', name: 'GPT-6 Luna' },
+    ],
     protocol: 'openai-compatible',
     apiKeyUrl: 'https://platform.openai.com/api-keys',
     docUrl: 'https://platform.openai.com/docs',
@@ -118,9 +132,9 @@ export const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateD
   deepseek: {
     name: 'DeepSeek',
     baseUrl: 'https://api.deepseek.com',
-    modelId: 'deepseek-v4-flash',
+    modelId: 'deepseek-flash',
     models: [
-      { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', isPinned: true },
+      { id: 'deepseek-flash', name: 'DeepSeek Flash', isPinned: true },
       { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro' },
     ],
     protocol: 'openai-compatible',
@@ -130,10 +144,10 @@ export const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateD
   anthropic: {
     name: 'Anthropic',
     baseUrl: 'https://api.anthropic.com',
-    modelId: 'claude-fable-5',
+    modelId: 'claude-fable-5-1',
     models: [
-      { id: 'claude-fable-5', name: 'Claude Fable 5', isPinned: true },
-      { id: 'claude-opus-5', name: 'Claude Opus 5' },
+      { id: 'claude-fable-5-1', name: 'Claude Fable 5.1', isPinned: true },
+      { id: 'claude-opus-5-5', name: 'Claude Opus 5.5' },
       { id: 'claude-sonnet-5', name: 'Claude Sonnet 5' },
       { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5' },
     ],
@@ -153,14 +167,16 @@ export const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateD
   qwen: {
     name: 'Qwen',
     baseUrl: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
-    modelId: 'qwen3.7-max',
+    modelId: 'qwen3.8-max',
     models: [
-      { id: 'qwen3.7-max', name: 'Qwen3.7 Max', isPinned: true },
+      { id: 'qwen3.8-max', name: 'Qwen3.8 Max', isPinned: true },
       { id: 'qwen3.7-plus', name: 'Qwen3.7 Plus' },
     ],
     protocol: 'openai-compatible',
-    apiKeyUrl: 'https://bailian.console.aliyun.com/?apiKey=1',
-    docUrl: 'https://help.aliyun.com/zh/model-studio',
+    // Intl (Singapore) console — mainland Bailian keys are region-bound and 401
+    // against the -intl host.
+    apiKeyUrl: 'https://modelstudio.console.alibabacloud.com/model/settings/api-key',
+    docUrl: 'https://www.alibabacloud.com/help/en/model-studio/models',
   },
   kimi: {
     name: 'Kimi',
@@ -168,8 +184,8 @@ export const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateD
     modelId: 'kimi-k3',
     models: [{ id: 'kimi-k3', name: 'Kimi K3', isPinned: true }],
     protocol: 'openai-compatible',
-    apiKeyUrl: 'https://platform.moonshot.cn/console/api-keys',
-    docUrl: 'https://platform.moonshot.cn/docs',
+    apiKeyUrl: 'https://platform.kimi.ai/console/api-keys',
+    docUrl: 'https://platform.kimi.ai/docs',
   },
   glm: {
     name: 'GLM',
@@ -196,10 +212,10 @@ export const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateD
   groq: {
     name: 'Groq',
     baseUrl: 'https://api.groq.com/openai/v1',
-    modelId: 'llama-3.3-70b-versatile',
+    modelId: 'openai/gpt-oss-120b',
     models: [
-      { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B Versatile', isPinned: true },
-      { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant' },
+      { id: 'openai/gpt-oss-120b', name: 'GPT OSS 120B', isPinned: true },
+      { id: 'qwen/qwen3.8-27b', name: 'Qwen3.8 27B' },
     ],
     protocol: 'openai-compatible',
     apiKeyUrl: 'https://console.groq.com/keys',
@@ -207,11 +223,11 @@ export const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateD
   },
   together: {
     name: 'Together AI',
-    baseUrl: 'https://api.together.xyz/v1',
+    baseUrl: 'https://api.together.ai/v1',
     modelId: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
     models: [
       { id: 'meta-llama/Llama-3.3-70B-Instruct-Turbo', name: 'Llama 3.3 70B Instruct Turbo', isPinned: true },
-      { id: 'deepseek-ai/DeepSeek-R1', name: 'DeepSeek R1' },
+      { id: 'deepseek-ai/DeepSeek-V4.1-Flash', name: 'DeepSeek V4.1 Flash' },
     ],
     protocol: 'openai-compatible',
     apiKeyUrl: 'https://api.together.ai/settings/api-keys',
@@ -239,23 +255,21 @@ export const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateD
     ],
     protocol: 'openai-compatible',
     apiKeyUrl: 'https://platform.minimaxi.com/user-center/basic-information/interface-key',
-    docUrl: 'https://platform.minimaxi.com/document',
+    docUrl: 'https://www.minimaxi.com/document',
   },
   grok: {
     name: 'Grok',
     baseUrl: 'https://api.x.ai/v1',
-    modelId: 'grok-4.6',
+    modelId: 'grok-4.7',
     models: [
-      { id: 'grok-4.6', name: 'Grok 4.6', isPinned: true },
-      { id: 'grok-build-0.1', name: 'Grok Build 0.1' },
+      { id: 'grok-4.7', name: 'Grok 4.7', isPinned: true },
+      { id: 'grok-4.6', name: 'Grok 4.6' },
       { id: 'grok-4.5', name: 'Grok 4.5' },
       { id: 'grok-4.3', name: 'Grok 4.3' },
+      { id: 'grok-build-0.1', name: 'Grok Build 0.1' },
       { id: 'grok-4.20-0309-reasoning', name: 'Grok 4.20 Reasoning' },
       { id: 'grok-4.20-0309-non-reasoning', name: 'Grok 4.20 Non-Reasoning' },
       { id: 'grok-4.20-multi-agent-0309', name: 'Grok 4.20 Multi-Agent' },
-      { id: 'grok-4', name: 'Grok 4' },
-      { id: 'grok-2', name: 'Grok 2' },
-      { id: 'grok-2-vision-1212', name: 'Grok 2 Vision' },
     ],
     protocol: 'openai-compatible',
     apiKeyUrl: 'https://console.x.ai',
@@ -307,11 +321,11 @@ export const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateD
   opencode: {
     name: 'OpenCode Go',
     baseUrl: 'https://opencode.ai/zen/go/v1',
-    modelId: 'claude-3-7-sonnet',
+    modelId: 'kimi-k3',
     models: [
-      { id: 'claude-3-7-sonnet', name: 'Claude 3.7 Sonnet', isPinned: true },
-      { id: 'gpt-4o', name: 'GPT-4o' },
-      { id: 'deepseek-chat', name: 'DeepSeek Chat' },
+      { id: 'kimi-k3', name: 'Kimi K3', isPinned: true },
+      { id: 'glm-5.3', name: 'GLM 5.3' },
+      { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro' },
     ],
     protocol: 'openai-compatible',
     apiKeyUrl: 'https://opencode.ai/auth',
@@ -320,12 +334,8 @@ export const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateD
   hunyuan: {
     name: 'Tencent Hunyuan',
     baseUrl: 'https://api.hunyuan.cloud.tencent.com/v1',
-    modelId: 'hunyuan-standard',
-    models: [
-      { id: 'hunyuan-standard', name: 'Hunyuan Standard', isPinned: true },
-      { id: 'hunyuan-pro', name: 'Hunyuan Pro' },
-      { id: 'hunyuan-turbo', name: 'Hunyuan Turbo' },
-    ],
+    modelId: 'hunyuan-turbos-latest',
+    models: [{ id: 'hunyuan-turbos-latest', name: 'Hunyuan Turbos', isPinned: true }],
     protocol: 'openai-compatible',
     apiKeyUrl: 'https://console.cloud.tencent.com/hunyuan/api-key',
     docUrl: 'https://cloud.tencent.com/document/product/1729',
@@ -341,15 +351,15 @@ export const TEMPLATE_DEFAULTS: Record<ThirdPartyTemplateId, ThirdPartyTemplateD
     ],
     protocol: 'openai-compatible',
     apiKeyUrl: 'https://huggingface.co/settings/tokens',
-    docUrl: 'https://huggingface.co/docs/api-inference/',
+    docUrl: 'https://huggingface.co/docs/inference-providers/',
   },
   cerebras: {
     name: 'Cerebras',
     baseUrl: 'https://api.cerebras.ai/v1',
-    modelId: 'llama-3.3-70b',
+    modelId: 'gpt-oss-120b',
     models: [
-      { id: 'llama-3.3-70b', name: 'Llama 3.3 70B (Fast)', isPinned: true },
-      { id: 'llama3.1-8b', name: 'Llama 3.1 8B' },
+      { id: 'gpt-oss-120b', name: 'GPT OSS 120B', isPinned: true },
+      { id: 'qwen-3.8-27b', name: 'Qwen 3.8 27B' },
     ],
     protocol: 'openai-compatible',
     apiKeyUrl: 'https://cloud.cerebras.ai/',

@@ -1,8 +1,8 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import type { VirtuosoHandle } from 'react-virtuoso';
 import type { ChatMessage } from '@/types';
+import type { TurnNavigationItem } from './useTurnNavigationItems';
 import { useMessageListBottomLock } from './useMessageListBottomLock';
-import { useMessageListTurnNavigation } from './useMessageListTurnNavigation';
 import { useMessageListScrollRestoration } from './useMessageListScrollRestoration';
 import { useMessageListNewTurnAnchor } from './useMessageListNewTurnAnchor';
 
@@ -94,18 +94,26 @@ export const useMessageListScroll = ({
     activeSessionIdRef,
   });
 
-  const { scrollToPrevTurn, scrollToNextTurn, scrollToTop, scrollToBottom, showScrollDown, showScrollUp } =
-    useMessageListTurnNavigation({
-      messages,
-      scrollerRef,
-      virtuosoRef,
-      visibleRangeRef,
-      visibleStartIndex,
-      atBottom,
-      lastScrollTarget,
-      clearAnchorTimeout,
-      scrollToRealBottom,
-    });
+  const scrollToTurn = useCallback(
+    (item: TurnNavigationItem) => {
+      clearAnchorTimeout();
+      lastScrollTarget.current = item.messageIndex;
+      virtuosoRef.current?.scrollToIndex({
+        index: item.messageIndex,
+        align: 'start',
+        behavior: 'smooth',
+      });
+    },
+    [clearAnchorTimeout],
+  );
+
+  const scrollToBottom = useCallback(
+    (behavior: 'auto' | 'smooth' = 'smooth') => {
+      clearAnchorTimeout();
+      scrollToRealBottom(behavior);
+    },
+    [clearAnchorTimeout, scrollToRealBottom],
+  );
 
   useEffect(() => {
     return () => {
@@ -116,15 +124,13 @@ export const useMessageListScroll = ({
   return {
     virtuosoRef,
     handleScrollerRef,
+    atBottom,
     setAtBottom,
     onRangeChanged,
     handleTotalListHeightChanged,
-    scrollToPrevTurn,
-    scrollToNextTurn,
-    scrollToTop,
+    scrollToTurn,
     scrollToBottom,
-    showScrollDown,
-    showScrollUp,
+    visibleStartIndex,
     scrollerRef,
     handleScroll,
   };

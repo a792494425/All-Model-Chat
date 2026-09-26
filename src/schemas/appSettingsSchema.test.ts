@@ -301,4 +301,18 @@ describe('appSettingsSchema', () => {
 
     expect(settings.showVoiceInputButton).toBe(false);
   });
+
+  it('preserves an explicit readingFontFamily from imported settings', () => {
+    const settings = sanitizeImportedAppSettings({ readingFontFamily: 'serif' });
+
+    expect(settings.readingFontFamily).toBe('serif');
+  });
+
+  it('defaults a missing or invalid readingFontFamily to sans', () => {
+    const defaultSettings = sanitizeImportedAppSettings({});
+    const invalidSettings = sanitizeImportedAppSettings({ readingFontFamily: 'unknown-font' });
+
+    expect(defaultSettings.readingFontFamily).toBe('sans');
+    expect(invalidSettings.readingFontFamily).toBe('sans');
+  });
 });

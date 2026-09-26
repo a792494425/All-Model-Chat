@@ -15,6 +15,7 @@ describe('applyThemeToDocument', () => {
     AVAILABLE_THEMES.forEach((theme) => document.body.classList.remove(`theme-${theme.id}`));
     document.body.classList.remove('dark');
     document.body.style.removeProperty('font-size');
+    document.documentElement.style.removeProperty('--app-font-reading');
   });
 
   const getTheme = (themeId: string) => {
@@ -101,5 +102,17 @@ describe('applyThemeToDocument', () => {
 
       tag.remove();
     }
+  });
+
+  it('sets the reading font CSS variable to serif when configured', () => {
+    applyThemeToDocument(document, getTheme('pearl'), { ...baseSettings, readingFontFamily: 'serif' });
+
+    expect(document.documentElement.style.getPropertyValue('--app-font-reading')).toBe('var(--app-font-serif)');
+  });
+
+  it('sets the reading font CSS variable to sans by default', () => {
+    applyThemeToDocument(document, getTheme('pearl'), { ...baseSettings, readingFontFamily: 'sans' });
+
+    expect(document.documentElement.style.getPropertyValue('--app-font-reading')).toBe('var(--app-font-sans)');
   });
 });

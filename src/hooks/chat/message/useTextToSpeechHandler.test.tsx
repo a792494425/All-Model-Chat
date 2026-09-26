@@ -58,7 +58,7 @@ describe('useTextToSpeechHandler', () => {
     const { result, unmount } = renderHook(() =>
       useTextToSpeechHandler({
         appSettings: DEFAULT_APP_SETTINGS,
-        currentChatSettings: createChatSettings('gemini-3.1-flash-tts-preview'),
+        currentChatSettings: createChatSettings('gemini-3.8-flash-tts'),
       }),
     );
 
@@ -67,7 +67,7 @@ describe('useTextToSpeechHandler', () => {
     expect(ttsResult).toEqual({ url: 'blob:wav-url' });
     expect(generateSpeechMock).toHaveBeenCalledWith(
       'api-key',
-      'gemini-3.1-flash-tts-preview',
+      'gemini-3.8-flash-tts',
       'hello world',
       DEFAULT_APP_SETTINGS.ttsVoice,
       expect.any(AbortSignal),
@@ -87,7 +87,7 @@ describe('useTextToSpeechHandler', () => {
 
     expect(generateSpeechMock).toHaveBeenCalledWith(
       'api-key',
-      'gemini-3.1-flash-tts-preview',
+      'gemini-3.8-flash-tts',
       'hello world',
       DEFAULT_APP_SETTINGS.ttsVoice,
       expect.any(AbortSignal),
@@ -117,7 +117,7 @@ describe('useTextToSpeechHandler', () => {
     expect(getKeyForRequestMock).not.toHaveBeenCalled();
     expect(generateSpeechMock).toHaveBeenCalledWith(
       'gemini-key',
-      'gemini-3.1-flash-tts-preview',
+      'gemini-3.8-flash-tts',
       'hello world',
       DEFAULT_APP_SETTINGS.ttsVoice,
       expect.any(AbortSignal),
@@ -133,7 +133,7 @@ describe('useTextToSpeechHandler', () => {
     const { result, unmount } = renderHook(() =>
       useTextToSpeechHandler({
         appSettings: DEFAULT_APP_SETTINGS,
-        currentChatSettings: createChatSettings('gemini-3.1-flash-tts-preview'),
+        currentChatSettings: createChatSettings('gemini-3.8-flash-tts'),
       }),
     );
 
@@ -151,7 +151,7 @@ describe('useTextToSpeechHandler', () => {
     const { result, unmount } = renderHook(() =>
       useTextToSpeechHandler({
         appSettings: DEFAULT_APP_SETTINGS,
-        currentChatSettings: createChatSettings('gemini-3.1-flash-tts-preview'),
+        currentChatSettings: createChatSettings('gemini-3.8-flash-tts'),
       }),
     );
 

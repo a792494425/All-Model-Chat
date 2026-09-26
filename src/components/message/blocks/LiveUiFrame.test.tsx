@@ -15,6 +15,7 @@ import {
   loadKatex,
 } from '@/utils/html-preview/previewDocument';
 import { LiveUiFrame } from './LiveUiFrame';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 vi.mock('@/features/graphviz/vizRuntime', () => ({
   renderDotToSvgCached: vi.fn(),
@@ -790,5 +791,41 @@ describe('LiveUiFrame', () => {
 
     iframe = renderer.container.querySelector('iframe');
     expect(iframe?.className).not.toContain('pointer-events-none');
+  });
+
+  it('injects serif reading font variable into iframe when readingFontFamily is serif', () => {
+    act(() => {
+      renderer.root.render(
+        <LiveUiFrame html="<section><p>Artifact text</p></section>" readingFontFamily="serif" />,
+      );
+    });
+
+    const iframe = renderer.container.querySelector('iframe');
+    expect(iframe?.getAttribute('srcdoc')).toContain('--app-font-reading:var(--app-font-serif)');
+    expect(iframe?.getAttribute('srcdoc')).toContain('font-family:var(--app-font-reading)');
+  });
+
+  it('uses appSettings readingFontFamily when readingFontFamily prop is omitted', () => {
+    const originalFont = useSettingsStore.getState().appSettings.readingFontFamily;
+    act(() => {
+      useSettingsStore.setState((s) => ({
+        appSettings: { ...s.appSettings, readingFontFamily: 'serif' },
+      }));
+    });
+
+    try {
+      act(() => {
+        renderer.root.render(<LiveUiFrame html="<section><p>Artifact text</p></section>" />);
+      });
+
+      const iframe = renderer.container.querySelector('iframe');
+      expect(iframe?.getAttribute('srcdoc')).toContain('--app-font-reading:var(--app-font-serif)');
+    } finally {
+      act(() => {
+        useSettingsStore.setState((s) => ({
+          appSettings: { ...s.appSettings, readingFontFamily: originalFont },
+        }));
+      });
+    }
   });
 });

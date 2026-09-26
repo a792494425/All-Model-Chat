@@ -148,7 +148,11 @@ export const AppearanceLivePreview: React.FC<AppearanceLivePreviewProps> = ({ se
               </>
             ) : (
               <div
-                style={{ fontSize: `${fontSize}px`, lineHeight: 1.5 }}
+                style={{
+                  fontSize: `${fontSize}px`,
+                  fontFamily: settings.readingFontFamily === 'serif' ? 'var(--app-font-serif)' : 'var(--app-font-sans)',
+                  lineHeight: 1.5,
+                }}
                 className="space-y-2 text-[var(--theme-text-primary)] transition-all"
               >
                 <p>{t('settingsLivePreviewTextSample')}</p>

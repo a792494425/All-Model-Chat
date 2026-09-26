@@ -85,6 +85,9 @@ const STRIPPED_GEMINI_REQUEST_HEADERS = new Set([
   'content-length',
   'cookie',
   'host',
+  // Gatekeeper password: authenticates the browser → this server hop only.
+  // Must never continue upstream to Google.
+  'x-access-token',
   'x-gemini-upstream-base-url',
 ]);
 

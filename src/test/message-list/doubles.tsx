@@ -20,14 +20,13 @@ type MessageListScrollMockResult = {
   virtuosoRef: { current: null };
   handleScrollerRef: () => void;
   handleScroll: () => void;
+  atBottom: boolean;
   setAtBottom: () => void;
   onRangeChanged: () => void;
-  scrollToPrevTurn: () => void;
-  scrollToNextTurn: () => void;
-  scrollToTop: () => void;
+  handleTotalListHeightChanged: () => void;
+  scrollToTurn: () => void;
   scrollToBottom: () => void;
-  showScrollDown: boolean;
-  showScrollUp: boolean;
+  visibleStartIndex: number;
   scrollerRef: { current: null } | null;
 };
 
@@ -109,14 +108,13 @@ export const createMessageListScrollMock = (overrides: Partial<MessageListScroll
     virtuosoRef: { current: null },
     handleScrollerRef: noop,
     handleScroll: noop,
+    atBottom: true,
     setAtBottom: noop,
     onRangeChanged: noop,
-    scrollToPrevTurn: noop,
-    scrollToNextTurn: noop,
-    scrollToTop: noop,
+    handleTotalListHeightChanged: noop,
+    scrollToTurn: noop,
     scrollToBottom: noop,
-    showScrollDown: false,
-    showScrollUp: false,
+    visibleStartIndex: 0,
     scrollerRef: { current: null },
     ...overrides,
   }),

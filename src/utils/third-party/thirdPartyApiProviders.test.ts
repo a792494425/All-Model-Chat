@@ -9,6 +9,7 @@ import {
   getProxyProviderHeader,
   getThirdPartyConnectionStatus,
   getThirdPartyTemplateLinks,
+  getThirdPartyTemplateDefaults,
   isDashScopeOfficialEndpoint,
   isDeepSeekOfficialEndpoint,
   isLocalEngineEndpoint,
@@ -75,8 +76,8 @@ describe('sanitizeThirdPartyApiSettings', () => {
           enabled: true,
           apiKey: 'sk-openai',
           baseUrl: 'https://api.openai.com/v1',
-          modelId: 'gpt-5.6-sol',
-          models: [{ id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true }],
+          modelId: 'gpt-6-sol',
+          models: [{ id: 'gpt-6-sol', name: 'GPT-6 Sol', isPinned: true }],
           protocol: 'openai-compatible',
         },
         custom: {
@@ -107,15 +108,18 @@ describe('sanitizeThirdPartyApiSettings', () => {
   });
 
   it('skips untouched default disabled slots so a fresh install stays empty', () => {
+    // Built from the template itself: hardcoding vendor model lists here would
+    // make this test fail on every preset refresh instead of detecting drift.
+    const defaults = getThirdPartyTemplateDefaults('openai');
     const result = sanitizeThirdPartyApiSettings({
       providers: {
         openai: {
           enabled: false,
           apiKey: null,
-          baseUrl: 'https://api.openai.com/v1',
-          modelId: 'gpt-5.6-sol',
-          models: [{ id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', isPinned: true }],
-          protocol: 'openai-compatible',
+          baseUrl: defaults.baseUrl,
+          modelId: defaults.modelId,
+          models: defaults.models,
+          protocol: defaults.protocol,
         },
       },
     });
@@ -499,8 +503,12 @@ describe('provider endpoint type classification', () => {
   });
 
   it('detects DashScope official endpoint by templateId or baseUrl', () => {
-    expect(isDashScopeOfficialEndpoint('dashscope', 'https://example.com/v1')).toBe(true);
+    expect(isDashScopeOfficialEndpoint('qwen', 'https://example.com/v1')).toBe(true);
     expect(isDashScopeOfficialEndpoint('custom', 'https://dashscope.aliyuncs.com/compatible-mode/v1')).toBe(true);
+    // The Qwen preset ships the Singapore host, which does not contain the
+    // mainland host as a substring — matching it is what keeps enable_thinking
+    // from falling through to a reasoning_effort DashScope rejects.
+    expect(isDashScopeOfficialEndpoint('custom', 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1')).toBe(true);
     expect(isDashScopeOfficialEndpoint('openrouter', 'https://openrouter.ai/api/v1')).toBe(false);
   });
 

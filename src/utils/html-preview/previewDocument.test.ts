@@ -562,7 +562,7 @@ describe('htmlPreview utilities', () => {
   it('injects a horizontal-scroll fallback so wide artifacts are not clipped', () => {
     const srcDoc = buildHtmlPreviewSrcDoc('<section>wide</section>');
 
-    expect(srcDoc).toContain('body{overflow-x:auto;}');
+    expect(srcDoc).toContain('overflow-x:auto;');
   });
 
   it('injects compact layout styles by default without outer body padding', () => {
@@ -578,6 +578,27 @@ describe('htmlPreview utilities', () => {
     expect(srcDoc).toContain('max-width:1120px;margin:0 auto!important;');
     expect(srcDoc).toContain('padding:28px 36px 56px 36px!important;');
     expect(srcDoc).toContain('padding:16px 16px 36px 16px!important;');
+  });
+
+  it('injects serif reading font variable and body font-family when readingFontFamily is serif', () => {
+    const srcDoc = buildHtmlPreviewSrcDoc('<section>content</section>', { readingFontFamily: 'serif' });
+
+    expect(srcDoc).toContain('--app-font-reading:var(--app-font-serif)');
+    expect(srcDoc).toContain('font-family:var(--app-font-reading)');
+  });
+
+  it('injects sans reading font variable and body font-family by default', () => {
+    const srcDoc = buildHtmlPreviewSrcDoc('<section>content</section>', { readingFontFamily: 'sans' });
+
+    expect(srcDoc).toContain('--app-font-reading:var(--app-font-sans)');
+    expect(srcDoc).toContain('font-family:var(--app-font-reading)');
+  });
+
+  it('injects reading font variable into streaming live artifact preview', () => {
+    const srcDoc = buildStreamingHtmlPreviewSrcDoc({ readingFontFamily: 'serif' });
+
+    expect(srcDoc).toContain('--app-font-reading:var(--app-font-serif)');
+    expect(srcDoc).toContain('font-family:var(--app-font-reading)');
   });
 
   it('builds unrestricted code-block previews without CSP, sanitization, or theme height clamps', () => {

@@ -2,6 +2,7 @@ import React from 'react';
 import { type AppSettings } from '@/types';
 import { AppearanceLivePreview } from './appearance/AppearanceLivePreview';
 import { ThemeLanguageSelector } from './appearance/ThemeLanguageSelector';
+import { FontFamilyControl } from './appearance/FontFamilyControl';
 import { FontSizeControl } from './appearance/FontSizeControl';
 import { LiveUiFontSizeControl } from './appearance/LiveUiFontSizeControl';
 import { InterfaceToggles } from './appearance/InterfaceToggles';
@@ -17,6 +18,8 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({ settings, 
       <AppearanceLivePreview settings={settings} />
 
       <ThemeLanguageSelector settings={settings} onUpdate={onUpdate} />
+
+      <FontFamilyControl settings={settings} onUpdate={onUpdate} />
 
       <FontSizeControl settings={settings} onUpdate={onUpdate} />
 

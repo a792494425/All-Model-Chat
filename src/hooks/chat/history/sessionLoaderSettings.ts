@@ -46,6 +46,10 @@ export const createSettingsForNewChat = ({
 
   const sanitizedTemplateSettings = sanitizeSessionModel(templateSession).settings;
 
+  const isVisualFormattingActive = Boolean(
+    sanitizedTemplateSettings.isVisualFormattingActive ?? baseSettings.isVisualFormattingActive ?? false,
+  );
+
   return {
     ...baseSettings,
     // 全量继承模板会话的设置：modelId、providerId、temperature/topP/topK、
@@ -54,18 +58,28 @@ export const createSettingsForNewChat = ({
     ...sanitizedTemplateSettings,
     // systemInstruction 属于会话内容（如场景提示词），沿用全局默认，剥离陈旧遗留协议标记保持纯净人设。
     systemInstruction: stripLegacyFeatureMarkers(baseSettings.systemInstruction),
-    isLiveArtifactsEnabled: explicitTemplateSession
-      ? (sanitizedTemplateSettings.isLiveArtifactsEnabled ?? baseSettings.isLiveArtifactsEnabled ?? false)
-      : (baseSettings.isLiveArtifactsEnabled ?? false),
-    isVisualFormattingActive: false,
+    isLiveArtifactsEnabled:
+      isVisualFormattingActive ||
+      (explicitTemplateSession
+        ? (sanitizedTemplateSettings.isLiveArtifactsEnabled ?? baseSettings.isLiveArtifactsEnabled ?? false)
+        : (baseSettings.isLiveArtifactsEnabled ?? false)),
+    isVisualFormattingActive,
     visionPromptMode: explicitTemplateSession
       ? (sanitizedTemplateSettings.visionPromptMode ?? baseSettings.visionPromptMode ?? null)
       : (baseSettings.visionPromptMode ?? null),
     taskSuggestionMode: null,
-    isPdfNavEnabled: false,
-    isVideoNavEnabled: false,
-    isAudioNavEnabled: false,
-    isImageNavEnabled: false,
+    isPdfNavEnabled: Boolean(
+      sanitizedTemplateSettings.isPdfNavEnabled ?? baseSettings.isPdfNavEnabled ?? false,
+    ),
+    isVideoNavEnabled: Boolean(
+      sanitizedTemplateSettings.isVideoNavEnabled ?? baseSettings.isVideoNavEnabled ?? false,
+    ),
+    isAudioNavEnabled: Boolean(
+      sanitizedTemplateSettings.isAudioNavEnabled ?? baseSettings.isAudioNavEnabled ?? false,
+    ),
+    isImageNavEnabled: Boolean(
+      sanitizedTemplateSettings.isImageNavEnabled ?? baseSettings.isImageNavEnabled ?? false,
+    ),
     // 锁定 API Key 始终重置，新聊天重新轮换。
     lockedApiKey: null,
   };

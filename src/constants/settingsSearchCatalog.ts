@@ -16,6 +16,13 @@ export interface SettingsSearchEntry {
 const interfaceEntries: SettingsSearchEntry[] = [
   { id: 'interface-theme', tab: 'interface', labelKey: 'settingsTheme', groupKey: 'settingsTabInterface' },
   { id: 'interface-language', tab: 'interface', labelKey: 'settingsLanguage', groupKey: 'settingsTabInterface' },
+  {
+    id: 'interface-reading-font',
+    tab: 'interface',
+    labelKey: 'settingsReadingFont',
+    descriptionKey: 'settingsReadingFontTooltip',
+    groupKey: 'settingsTabInterface',
+  },
   { id: 'interface-font-size', tab: 'interface', labelKey: 'settingsFontSize', groupKey: 'settingsTabInterface' },
   {
     id: 'interface-live-artifacts-font',

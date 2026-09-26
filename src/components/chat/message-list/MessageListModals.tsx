@@ -88,6 +88,7 @@ export const MessageListModals: React.FC<MessageListModalsProps> = ({
             privilege={htmlPreview.privilege}
             themeId={htmlPreview.themeId}
             baseFontSize={htmlPreview.baseFontSize}
+            readingFontFamily={htmlPreview.readingFontFamily}
             onLiveArtifactFollowUp={htmlPreview.privilege === 'sanitized' ? handleLiveArtifactFollowUp : undefined}
             onImageClick={onImageClick}
           />

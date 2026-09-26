@@ -20,7 +20,7 @@ Artifacts must look like modern SaaS UI (Linear / Stripe / GitHub), not stacked 
    Don't ask (output HTML directly): general Q&A, explanations, comparisons, guides, code, analysis; HTML may still include data-amc-followup buttons.
 3. Do not translate Markdown structure 1:1 into HTML. Route by content: comparison/decision uses a matrix; process: timeline; data: metrics, micro-components (BarList for rankings & distributions); concept uses relationship diagram. Distinguish layout context (Executive Dashboard vs Deep Technical Explainer; never cross-contaminate):
    - Executive Dashboard: conclusion first.
-   - Deep Technical Explainer: flowing narrative. STRICT BAN: never force metric KPI cards or synthetic scorecards onto conceptual/explanatory questions (no Fake KPI dashboards on explanatory questions).
+   - Deep Technical Explainer: flowing narrative. STRICT BAN: never force metric KPI cards or synthetic scorecards onto conceptual/explanatory questions (no Fake KPI dashboards on explanatory questions). Anti-pill fatigue: NEVER add decorative, meaningless status tags (e.g. "Status: OK", "Type: Tech") to normal text statements.
 4. Density tiers:
    - Minimal tier: Even for simple input, return a compact inline HTML fragment; ban cards.
    - Standard tier: follow Standard-tier example; h2 + paragraphs.
@@ -68,7 +68,7 @@ Example:
 - Metric cards: ≤3 quantifiable values. Linear layout: hero number (font-variant-numeric:tabular-nums;). The value slot accepts a quantifiable number only; never put a phrase or sentence there; keep value text ≤ 8 characters. Metric thematic coherence: cards match. Grid container: align-items:stretch; cards: justify-content:space-between;box-sizing:border-box;height:100%.
 - Native micro-components (Tremor-style; ALWAYS prefer for rankings & distributions over external charts):
   - BarList (rankings & distributions): <div style="position:relative;display:flex;justify-content:space-between;padding:0.25rem 0.5rem;background:var(--amc-live-artifact-surface-muted);"><div style="position:absolute;width:68%;background:var(--amc-live-artifact-accent-surface);"></div><span>[Label]</span><span style="font-variant-numeric:tabular-nums;">68%</span></div>
-- Code blocks & snippets: Inline: <code>...</code>. Multi-line: relative box with overflow-x:auto and <button data-amc-copy style="cursor:pointer;">[Copy]</button>.
+- Code blocks & snippets: Multi-line code must be presented in full without fragmentation or truncation. Use a clean container with overflow-x:auto: <div style="position:relative;background:var(--amc-live-artifact-surface-muted);border:1px solid var(--amc-live-artifact-border);border-radius:0.5rem;padding:0.75rem 1rem;margin:0.5rem 0;overflow-x:auto;"><button data-amc-copy="[exact code]" style="position:absolute;top:0.5rem;right:0.5rem;cursor:pointer;">[Copy]</button><pre style="margin:0;"><code class="language-[lang]" style="font-family:var(--app-font-mono);font-size:0.875em;">[Code Content]</code></pre></div>. Never chop code into tiny cards. Inline: <code>...</code>.
 - Table (Modern frameless, vertical-line free): strictly NO vertical lines (no border-left/right/column dividers); NO outer border box (wrapper div must NOT have border/radius, only overflow-x:auto). <table style="width:100%;border-collapse:collapse;font-size:0.875em;text-align:left;">; thead th: transparent background, muted uppercase text (color:var(--amc-live-artifact-muted);font-weight:500;font-size:0.75em;border-bottom:1px solid var(--amc-live-artifact-border);padding:0.5rem 1rem;); for >4 rows sticky thead style="position:sticky;top:0;z-index:1;background:var(--amc-live-artifact-surface);"; tbody td: hairline rule (border-bottom:1px solid color-mix(in srgb,var(--amc-live-artifact-border) 40%,transparent);padding:0.75rem 1rem;vertical-align:top;font-variant-numeric:tabular-nums;); tr:last-child td border-bottom:none.
 - Grid symmetry & columns: Exactly 4 items use 2x2 grid (grid-template-columns:repeat(2,minmax(0,1fr))); dynamic items use repeat(auto-fit,minmax(min(100%,12em),1fr)).
 
@@ -80,48 +80,57 @@ Chart routing: ALWAYS prefer native micro-components (BarList) for rankings & di
 ## Declarative graph DSL (data-amc-graphviz)
 Use data-amc-graphviz for structure/flow/organization (host renders layout).
 - Usage: <div data-amc-graphviz='digraph { start[label="[Start]"]; parse[label="[Parse Request]"]; start->parse; }'></div>
-- Rules: single-quoted attribute; strings double quotes only; no apostrophes \`'\`; no HTML labels. Limits: DOT ≤ ${DOT_MAX_CHARS} chars; nodes ≤ ${DOT_MAX_NODES}; edges ≤ ${DOT_MAX_EDGES}.
-- Standard shapes (diamond for decisions: shape=diamond); parallel branches: subgraph cluster_* { label="[Lane Name]" }; Do not wrap a straight pipeline in lanes; back-edges style=dashed; declare style="filled" when setting fillcolor.
-- Flow & colors: rankdir=TB for multi-step pipelines (>3 steps) to fit bubble width; use semantic color names (accent, success, warning, danger, muted) or hex; never use var(--amc-...) inside DOT.
+- Syntax & Escape Safety (STRICT):
+  - The attribute is single-quoted: data-amc-graphviz='...'.
+  - Strings inside MUST use double quotes only: node[label="Text"].
+  - STRICT BAN on raw apostrophes/single quotes (') inside the attribute: never write it's, don't, or 'text' inside DOT labels (use full words "it is", "do not" or curly apostrophe ’); a raw single quote terminates the HTML attribute and crashes rendering.
+  - No HTML-like labels (<...>).
+- Limits & Complexity Routing:
+  - Hard limits: DOT ≤ ${DOT_MAX_CHARS} chars; nodes ≤ ${DOT_MAX_NODES}; edges ≤ ${DOT_MAX_EDGES}.
+  - Hierarchical decomposition: If a system or business architecture is large (>15 nodes or dense branches), NEVER squeeze everything into a single diagram. Decompose into a high-level overview diagram followed by focused sub-process diagrams or narrative steps, keeping each diagram clean and well below limits.
+- Shapes, Flow & Colors:
+  - Standard shapes (decision: shape=diamond); parallel branches: subgraph cluster_* { label="[Lane Name]" }; Do not wrap a straight pipeline in lanes; back-edges style=dashed; declare style="filled" when setting fillcolor.
+  - Multi-step pipelines (>3 steps): rankdir=TB to fit bubble width.
+  - Colors: use semantic color names (accent, success, warning, danger, muted) or concrete hex (e.g. fillcolor="#E0E7FF"); STRICTLY FORBIDDEN to write var(--amc-...) inside DOT attributes.
 Example:
 <div data-amc-graphviz='digraph { rankdir=TB; start[label="[Start]" shape=ellipse]; decide[label="[Branch?]" shape=diamond style="filled" fillcolor=accent]; subgraph cluster_ok { label="[Pass]"; done[label="[Done]" style="filled" fillcolor=success]; } start->decide; decide->done; retry->decide [style=dashed]; }'></div>
 
 ## Standard-tier example
 <div style="display:block;width:100%;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere;">
   <h2 style="font-size:1.35em;font-weight:700;margin:0 0 0.5rem;">[Overview Title]</h2>
-  <p style="margin:0 0 0.75rem;max-width:60ch;line-height:1.55;">[Concise summary explaining the key finding or answer directly.]</p>
+  <p style="margin:0 0 0.75rem;max-width:60ch;line-height:1.55;">[Direct concise explanation addressing the core question with facts.]</p>
   <div style="background:var(--amc-live-artifact-surface-muted);border-left:3px solid var(--amc-live-artifact-accent);padding:0.5rem 0.75rem;border-radius:0.5rem;font-size:0.85em;">[Key callout takeaway]</div>
 </div>
 
-## Rich-tier golden example (match structure and polish; swap in user content; all UI labels, headers, and badges MUST be localized to the user's language)
+## Rich-tier golden example (match structure and polish; swap in user content; all UI labels, headers, and badges MUST be localized to the user's language; never output English placeholders in non-English responses):
 <div style="display:block;width:100%;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere;">
   <div style="padding:0.25rem 0 0.5rem;border-bottom:1px solid var(--amc-live-artifact-border);">
-    <h2 style="font-size:1.35em;margin:0 0 0.25rem;">[Migration]</h2>
+    <h2 style="font-size:1.35em;margin:0 0 0.25rem;">[Topic Overview]</h2>
   </div>
   <h3 style="font-size:1em;margin:0 0 0.4rem;">Partition traffic distribution</h3>
   <div style="position:relative;display:flex;padding:0.25rem 0.5rem;background:var(--amc-live-artifact-surface-muted);"><div style="position:absolute;width:68%;background:var(--amc-live-artifact-accent-surface);"></div><span>Partition A</span><span style="font-variant-numeric:tabular-nums;">68%</span></div>
-  <h3 style="font-size:1em;margin:0 0 0.4rem;">Engine evaluation matrix</h3>
+  <h3 style="font-size:1em;margin:0 0 0.4rem;">[Evaluation Matrix]</h3>
   <div style="overflow-x:auto;width:100%;margin:0.5rem 0;">
     <table style="width:100%;border-collapse:collapse;font-size:0.875em;text-align:left;line-height:1.6;">
       <thead>
         <tr>
-          <th style="padding:0.5rem 1rem;border:none;border-bottom:1px solid var(--amc-live-artifact-border);color:var(--amc-live-artifact-muted);font-weight:500;font-size:0.75em;text-transform:uppercase;letter-spacing:0.05em;background:transparent;">[Engine]</th>
+          <th style="padding:0.5rem 1rem;border:none;border-bottom:1px solid var(--amc-live-artifact-border);color:var(--amc-live-artifact-muted);font-weight:500;font-size:0.75em;text-transform:uppercase;letter-spacing:0.05em;background:transparent;">[Dimension]</th>
           <th style="padding:0.5rem 1rem;border:none;border-bottom:1px solid var(--amc-live-artifact-border);color:var(--amc-live-artifact-muted);font-weight:500;font-size:0.75em;text-transform:uppercase;letter-spacing:0.05em;background:transparent;white-space:nowrap;">[Recommendation]</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td style="padding:0.75rem 1rem;border:none;border-bottom:1px solid color-mix(in srgb,var(--amc-live-artifact-border) 40%,transparent);font-variant-numeric:tabular-nums;vertical-align:top;">512 MB</td>
+          <td style="padding:0.75rem 1rem;border:none;border-bottom:1px solid color-mix(in srgb,var(--amc-live-artifact-border) 40%,transparent);font-variant-numeric:tabular-nums;vertical-align:top;">[Option A Spec]</td>
           <td style="padding:0.75rem 1rem;border:none;border-bottom:1px solid color-mix(in srgb,var(--amc-live-artifact-border) 40%,transparent);vertical-align:top;"><span style="background:var(--amc-live-artifact-success-surface);border:1px solid var(--amc-live-artifact-success);">[Recommended Status]</span></td>
         </tr>
         <tr>
-          <td style="padding:0.75rem 1rem;border:none;vertical-align:top;">Legacy Buffer</td>
+          <td style="padding:0.75rem 1rem;border:none;vertical-align:top;">[Option B Spec]</td>
           <td style="padding:0.75rem 1rem;border:none;vertical-align:top;"><span style="background:var(--amc-live-artifact-warning-surface);">[Deprecated Status]</span></td>
         </tr>
       </tbody>
     </table>
   </div>
-  <div style="background:var(--amc-live-artifact-surface-muted);border-left:3px solid var(--amc-live-artifact-warning);padding:0.5rem 0.75rem;font-size:0.85em;"><strong style="color:var(--amc-live-artifact-text);">[Important]:</strong> [Notice text]</div>
+  <div style="background:var(--amc-live-artifact-surface-muted);border-left:3px solid var(--amc-live-artifact-warning);padding:0.5rem 0.75rem;font-size:0.85em;"><strong style="color:var(--amc-live-artifact-text);">[Important Notice]:</strong> [Explanation text]</div>
 </div>
 
 ## SHOULD

@@ -3,7 +3,8 @@ import React, { useEffect, useMemo } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { Message } from '@/components/message/Message';
 import { WelcomeScreen } from './WelcomeScreen';
-import { ScrollNavigation } from './ScrollNavigation';
+import { TurnNavigator } from './TurnNavigator';
+import { useTurnNavigationItems } from './hooks/useTurnNavigationItems';
 import { TextSelectionToolbar } from './TextSelectionToolbar';
 import { SelectionAskPanel } from './text-selection/SelectionAskPanel';
 import { useMessageListUi } from './hooks/useMessageListUi';
@@ -23,7 +24,7 @@ import { formatLiveArtifactFollowupPrompt, type LiveArtifactFollowupPayload } fr
 
 const MessageListComponent: React.FC = () => {
   const appSettings = useSettingsStore((state) => state.appSettings);
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const messages = useChatStore((state) => state.activeMessages);
   const setCommandedInput = useChatStore((state) => state.setCommandedInput);
   const { activeSessionId, currentChatSettings, isLoading } = useChatState(appSettings);
@@ -108,18 +109,39 @@ const MessageListComponent: React.FC = () => {
   const {
     virtuosoRef,
     handleScrollerRef,
+    atBottom,
     setAtBottom,
     onRangeChanged,
     handleTotalListHeightChanged,
-    scrollToPrevTurn,
-    scrollToNextTurn,
-    scrollToTop,
-    scrollToBottom,
-    showScrollDown,
-    showScrollUp,
+    scrollToTurn,
+    visibleStartIndex,
     scrollerRef,
     handleScroll,
   } = useMessageListScroll({ messages: visibleMessages, setScrollContainerRef, activeSessionId });
+
+  const turnItems = useTurnNavigationItems(visibleMessages);
+  const activeTurn = useMemo(() => {
+    if (turnItems.length === 0) return null;
+    if (atBottom) {
+      return turnItems[turnItems.length - 1].turn;
+    }
+    let current = turnItems[0].turn;
+    for (const item of turnItems) {
+      if (item.messageIndex <= visibleStartIndex) {
+        current = item.turn;
+      } else {
+        break;
+      }
+    }
+    return current;
+  }, [turnItems, visibleStartIndex, atBottom]);
+
+  const busyTurn = useMemo(() => {
+    if (turnItems.length === 0) return null;
+    const lastMsg = visibleMessages[visibleMessages.length - 1];
+    const isBusy = lastMsg?.role === 'model' && Boolean(lastMsg?.isLoading);
+    return isBusy ? turnItems[turnItems.length - 1].turn : null;
+  }, [turnItems, visibleMessages]);
 
   const isGemini3 = useMemo(() => isGemini3Model(currentChatSettings.modelId), [currentChatSettings.modelId]);
   const followOutput = React.useCallback((isAtBottom: boolean) => (isAtBottom ? 'auto' : false), []);
@@ -237,14 +259,12 @@ const MessageListComponent: React.FC = () => {
           />
         )}
 
-        <ScrollNavigation
-          showUp={showScrollUp}
-          showDown={showScrollDown}
-          onScrollToPrev={scrollToPrevTurn}
-          onScrollToNext={scrollToNextTurn}
-          onScrollToTop={scrollToTop}
-          onScrollToBottom={scrollToBottom}
-          bottomOffset={chatInputHeight}
+        <TurnNavigator
+          items={turnItems}
+          activeTurn={activeTurn}
+          busyTurn={busyTurn}
+          onNavigate={scrollToTurn}
+          t={t}
         />
       </div>
 

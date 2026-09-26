@@ -1,7 +1,5 @@
 import { CHAT_SCROLL_POS_STORAGE_PREFIX } from '@/constants/storageKeys';
 import { safeJsonParse } from '@/utils/safeJsonParse';
-
-export const CURRENT_TURN_VIEWPORT_OFFSET_PX = 96;
 const SCROLL_BOTTOM_THRESHOLD_PX = 150;
 export const ANCHOR_SCROLL_DELAY_MS = 50;
 export const RESTORE_SCROLL_DELAY_MS = 50;

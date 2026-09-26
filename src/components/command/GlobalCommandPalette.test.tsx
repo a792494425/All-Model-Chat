@@ -21,7 +21,7 @@ describe('GlobalCommandPalette', () => {
           title: 'Vue Migration Plan',
           timestamp: Date.now(),
           messages: [],
-          settings: { modelId: 'claude-3-5-sonnet' } as never,
+          settings: { modelId: 'claude-sonnet-5' } as never,
           isPinned: false,
           groupId: null,
         },
@@ -30,7 +30,7 @@ describe('GlobalCommandPalette', () => {
           title: 'React 19 Hooks',
           timestamp: Date.now(),
           messages: [],
-          settings: { modelId: 'gpt-4o' } as never,
+          settings: { modelId: 'gpt-6-sol' } as never,
           isPinned: true,
           groupId: null,
         },
@@ -57,8 +57,8 @@ describe('GlobalCommandPalette', () => {
     expect(screen.getByText('Vue Migration Plan')).toBeInTheDocument();
     expect(screen.getByText('React 19 Hooks')).toBeInTheDocument();
     expect(screen.getByText('Switch AI Model')).toBeInTheDocument();
-    expect(screen.getByText('Claude 3.5 Sonnet')).toBeInTheDocument();
-    expect(screen.getByText('GPT-4o')).toBeInTheDocument();
+    expect(screen.getByText('Claude Sonnet 5')).toBeInTheDocument();
+    expect(screen.getByText('GPT-6 Sol')).toBeInTheDocument();
   });
 
   it('renders command palette in Chinese when language is zh', () => {
@@ -104,11 +104,11 @@ describe('GlobalCommandPalette', () => {
   it('allows switching model by selecting a model item', () => {
     render(<GlobalCommandPalette />);
 
-    const gptItem = screen.getByText('GPT-4o');
+    const gptItem = screen.getByText('GPT-6 Sol');
     fireEvent.click(gptItem);
 
     const session = useChatStore.getState().savedSessions.find((s) => s.id === 'session-1');
-    expect(session?.settings?.modelId).toBe('gpt-4o');
+    expect(session?.settings?.modelId).toBe('gpt-6-sol');
     expect(useUIStore.getState().isCommandPaletteOpen).toBe(false);
   });
 

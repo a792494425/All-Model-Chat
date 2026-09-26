@@ -116,7 +116,7 @@ describe('createSettingsForNewChat', () => {
     expect(settings.visionPromptMode).toBeNull();
   });
 
-  it('resets visual formatting, task suggestions, and media navigation flags when creating new chat', () => {
+  it('inherits visual formatting and media navigation flags from template session when creating new chat, while resetting task suggestions', () => {
     const appSettings = createAppSettings();
     const templateSession = createSavedChatSession({
       id: 'template',
@@ -138,12 +138,28 @@ describe('createSettingsForNewChat', () => {
       savedSessions: [templateSession],
     });
 
-    expect(settings.isVisualFormattingActive).toBe(false);
+    expect(settings.isVisualFormattingActive).toBe(true);
+    expect(settings.isLiveArtifactsEnabled).toBe(true);
     expect(settings.taskSuggestionMode).toBeNull();
-    expect(settings.isPdfNavEnabled).toBe(false);
-    expect(settings.isVideoNavEnabled).toBe(false);
-    expect(settings.isAudioNavEnabled).toBe(false);
-    expect(settings.isImageNavEnabled).toBe(false);
+    expect(settings.isPdfNavEnabled).toBe(true);
+    expect(settings.isVideoNavEnabled).toBe(true);
+    expect(settings.isAudioNavEnabled).toBe(true);
+    expect(settings.isImageNavEnabled).toBe(true);
+  });
+
+  it('inherits visual formatting and media navigation flags from appSettings when no saved sessions exist', () => {
+    const appSettings = createAppSettings({
+      isVisualFormattingActive: true,
+      isPdfNavEnabled: true,
+    });
+
+    const settings = createSettingsForNewChat({
+      appSettings,
+      savedSessions: [],
+    });
+
+    expect(settings.isVisualFormattingActive).toBe(true);
+    expect(settings.isPdfNavEnabled).toBe(true);
   });
 
   it('inherits isLiveArtifactsEnabled and visionPromptMode when an explicitTemplateSession is provided', () => {

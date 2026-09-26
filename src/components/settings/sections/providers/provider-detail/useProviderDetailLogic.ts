@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import type { ModelOption, ThirdPartyConnection } from '@/types';
 import { useI18n } from '@/contexts/I18nContext';
 import { useProviderUiStore } from '@/stores/providerUiStore';
-import { getThirdPartyTemplateLinks } from '@/utils/third-party/thirdPartyApiProviders';
+import { getProxyProviderHeader, getThirdPartyTemplateLinks } from '@/utils/third-party/thirdPartyApiProviders';
 import {
   probeThirdPartyConnection,
   formatLatency,
@@ -194,13 +194,17 @@ export function useProviderDetailLogic({ connection, onUpdateConnection }: UsePr
     try {
       let fetchedModels: ModelOption[] = [];
       const controller = new AbortController();
+      // The proxy resolves its route table by templateId, not by connection id —
+      // a connection UUID misses every entry and silently falls back to the
+      // `openai` route, which would send this provider's key to OpenAI.
+      const proxyProviderId = getProxyProviderHeader(connection.templateId);
 
       if (connection.protocol === 'anthropic') {
         fetchedModels = await fetchAnthropicModels(
           activeKey,
           connection.baseUrl,
           controller.signal,
-          connection.id,
+          proxyProviderId,
           connection.extraHeaders,
         );
       } else if (connection.protocol === 'openai-responses') {
@@ -208,7 +212,7 @@ export function useProviderDetailLogic({ connection, onUpdateConnection }: UsePr
           activeKey,
           connection.baseUrl,
           controller.signal,
-          connection.id,
+          proxyProviderId,
           connection.extraHeaders,
         );
       } else {
@@ -216,7 +220,7 @@ export function useProviderDetailLogic({ connection, onUpdateConnection }: UsePr
           activeKey || AUTH_OPTIONAL_API_KEY,
           connection.baseUrl,
           controller.signal,
-          connection.id,
+          proxyProviderId,
           connection.extraHeaders,
         );
       }

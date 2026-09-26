@@ -32,37 +32,6 @@ const createMessages = (): ChatMessage[] => [
   },
 ];
 
-const createSingleTurnMessages = (): ChatMessage[] => [
-  {
-    id: 'message-single-1',
-    role: 'user',
-    content: 'Only turn',
-    timestamp: new Date('2026-04-15T00:00:00.000Z'),
-  },
-  {
-    id: 'message-single-2',
-    role: 'model',
-    content: 'A very long answer',
-    timestamp: new Date('2026-04-15T00:00:01.000Z'),
-  },
-];
-
-const createThreeTurnMessages = (): ChatMessage[] => [
-  ...createMessages(),
-  {
-    id: 'message-5',
-    role: 'user',
-    content: 'Third turn',
-    timestamp: new Date('2026-04-15T00:00:04.000Z'),
-  },
-  {
-    id: 'message-6',
-    role: 'model',
-    content: 'Third response',
-    timestamp: new Date('2026-04-15T00:00:05.000Z'),
-  },
-];
-
 const createLongThreadMessages = (count: number): ChatMessage[] =>
   Array.from({ length: count }, (_, index) => ({
     id: `long-message-${index + 1}`,
@@ -155,7 +124,7 @@ describe('useMessageListScroll', () => {
       scrollTop: 220,
       topOffset: 16,
     });
-    expect(result.current.showScrollDown).toBe(true);
+    expect(result.current.atBottom).toBe(false);
 
     unmount();
   });
@@ -273,24 +242,6 @@ describe('useMessageListScroll', () => {
       atBottom: true,
       scrollTop: 946,
     });
-
-    unmount();
-  });
-
-  it('shows the previous-turn control while reading a long single-turn response', () => {
-    const { result, unmount } = renderHook(() =>
-      useMessageListScroll({
-        messages: createSingleTurnMessages(),
-        setScrollContainerRef: vi.fn(),
-        activeSessionId: 'session-single-turn',
-      }),
-    );
-
-    act(() => {
-      result.current.onRangeChanged({ startIndex: 1, endIndex: 1 });
-    });
-
-    expect(result.current.showScrollUp).toBe(true);
 
     unmount();
   });
@@ -628,7 +579,7 @@ describe('useMessageListScroll', () => {
     expect(scrollTo).not.toHaveBeenCalled();
   });
 
-  it('does not let a pending new-turn anchor pull the view upward after jumping to bottom', () => {
+  it('does not let a pending new-turn anchor pull the view upward after navigating to a turn', () => {
     let messages = [createMessages()[0]];
     const { result, rerender, unmount } = renderHook(() =>
       useMessageListScroll({
@@ -659,14 +610,20 @@ describe('useMessageListScroll', () => {
     });
 
     act(() => {
-      result.current.scrollToBottom();
+      result.current.scrollToTurn({
+        turn: 2,
+        messageIndex: 1,
+        messageId: 'message-2',
+        prompt: 'Second question',
+        response: '',
+      });
       vi.advanceTimersByTime(50);
     });
 
     expect(scrollTo).not.toHaveBeenCalled();
     expect(scrollToIndex).toHaveBeenCalledWith({
-      index: 'LAST',
-      align: 'end',
+      index: 1,
+      align: 'start',
       behavior: 'smooth',
     });
 
@@ -982,17 +939,17 @@ describe('useMessageListScroll', () => {
       vi.advanceTimersByTime(300);
     });
 
-    expect(result.current.showScrollDown).toBe(true);
+    expect(result.current.atBottom).toBe(false);
 
     unmount();
   });
 
-  it('navigates to previous user turns based on the visible range', () => {
+  it('scrolls directly to the target turn using scrollToTurn', () => {
     const { result, unmount } = renderHook(() =>
       useMessageListScroll({
         messages: createMessages(),
         setScrollContainerRef: vi.fn(),
-        activeSessionId: 'session-nav',
+        activeSessionId: 'session-scroll-to-turn',
       }),
     );
 
@@ -1004,216 +961,18 @@ describe('useMessageListScroll', () => {
     } as unknown as VirtuosoHandle;
 
     act(() => {
-      result.current.onRangeChanged({ startIndex: 2, endIndex: 3 });
-      result.current.scrollToPrevTurn();
+      result.current.scrollToTurn({
+        turn: 2,
+        messageIndex: 2,
+        messageId: 'message-3',
+        prompt: 'Second question',
+        response: 'Second response',
+      });
     });
 
     expect(scrollToIndex).toHaveBeenCalledWith({
-      index: 0,
-      align: 'start',
-      behavior: 'smooth',
-    });
-
-    unmount();
-  });
-
-  it('uses rendered message positions when range start is stale from overscan', () => {
-    const messages = createThreeTurnMessages();
-    const { result, unmount } = renderHook(() =>
-      useMessageListScroll({
-        messages,
-        setScrollContainerRef: vi.fn(),
-        activeSessionId: 'session-nav-dom',
-      }),
-    );
-
-    const scrollToIndex = vi.fn();
-    const virtuosoRef = result.current.virtuosoRef as unknown as { current: VirtuosoHandle | null };
-    virtuosoRef.current = {
-      scrollTo: vi.fn(),
-      scrollToIndex,
-    } as unknown as VirtuosoHandle;
-
-    const scroller = document.createElement('div');
-    setElementTop(scroller, 0);
-
-    const firstTurn = document.createElement('div');
-    firstTurn.dataset.messageId = 'message-1';
-    firstTurn.dataset.messageRole = 'user';
-    setElementTop(firstTurn, -500);
-    scroller.appendChild(firstTurn);
-
-    const secondTurn = document.createElement('div');
-    secondTurn.dataset.messageId = 'message-3';
-    secondTurn.dataset.messageRole = 'user';
-    setElementTop(secondTurn, 24);
-    scroller.appendChild(secondTurn);
-
-    const thirdTurn = document.createElement('div');
-    thirdTurn.dataset.messageId = 'message-5';
-    thirdTurn.dataset.messageRole = 'user';
-    setElementTop(thirdTurn, 360);
-    scroller.appendChild(thirdTurn);
-
-    act(() => {
-      result.current.handleScrollerRef(scroller);
-    });
-
-    act(() => {
-      result.current.onRangeChanged({ startIndex: 0, endIndex: 5 });
-    });
-
-    act(() => {
-      result.current.scrollToNextTurn();
-    });
-
-    expect(scrollToIndex).toHaveBeenCalledWith({
-      index: 4,
-      align: 'start',
-      behavior: 'smooth',
-    });
-
-    unmount();
-  });
-
-  it('advances repeated next-turn clicks even before the visible range catches up', () => {
-    const { result, unmount } = renderHook(() =>
-      useMessageListScroll({
-        messages: createThreeTurnMessages(),
-        setScrollContainerRef: vi.fn(),
-        activeSessionId: 'session-repeated-next',
-      }),
-    );
-
-    const scrollToIndex = vi.fn();
-    const virtuosoRef = result.current.virtuosoRef as unknown as { current: VirtuosoHandle | null };
-    virtuosoRef.current = {
-      scrollTo: vi.fn(),
-      scrollToIndex,
-    } as unknown as VirtuosoHandle;
-
-    act(() => {
-      result.current.onRangeChanged({ startIndex: 0, endIndex: 2 });
-      result.current.scrollToNextTurn();
-      result.current.scrollToNextTurn();
-    });
-
-    expect(scrollToIndex).toHaveBeenNthCalledWith(1, {
       index: 2,
       align: 'start',
-      behavior: 'smooth',
-    });
-    expect(scrollToIndex).toHaveBeenNthCalledWith(2, {
-      index: 4,
-      align: 'start',
-      behavior: 'smooth',
-    });
-
-    unmount();
-  });
-
-  it('does not fall back to scrolling the bottom when there is no next user turn', () => {
-    const { result, unmount } = renderHook(() =>
-      useMessageListScroll({
-        messages: createMessages(),
-        setScrollContainerRef: vi.fn(),
-        activeSessionId: 'session-no-next-turn',
-      }),
-    );
-
-    const scrollToIndex = vi.fn();
-    const virtuosoRef = result.current.virtuosoRef as unknown as { current: VirtuosoHandle | null };
-    virtuosoRef.current = {
-      scrollTo: vi.fn(),
-      scrollToIndex,
-    } as unknown as VirtuosoHandle;
-
-    act(() => {
-      result.current.onRangeChanged({ startIndex: 2, endIndex: 3 });
-      result.current.scrollToNextTurn();
-    });
-
-    expect(scrollToIndex).not.toHaveBeenCalled();
-
-    unmount();
-  });
-
-  it('does not retarget the current rendered turn when stale range has no later turn', () => {
-    const { result, unmount } = renderHook(() =>
-      useMessageListScroll({
-        messages: createMessages(),
-        setScrollContainerRef: vi.fn(),
-        activeSessionId: 'session-stale-no-next-turn',
-      }),
-    );
-
-    const scrollToIndex = vi.fn();
-    const virtuosoRef = result.current.virtuosoRef as unknown as { current: VirtuosoHandle | null };
-    virtuosoRef.current = {
-      scrollTo: vi.fn(),
-      scrollToIndex,
-    } as unknown as VirtuosoHandle;
-
-    const scroller = document.createElement('div');
-    setElementTop(scroller, 0);
-
-    const firstTurn = document.createElement('div');
-    firstTurn.dataset.messageId = 'message-1';
-    firstTurn.dataset.messageRole = 'user';
-    setElementTop(firstTurn, -500);
-    scroller.appendChild(firstTurn);
-
-    const secondTurn = document.createElement('div');
-    secondTurn.dataset.messageId = 'message-3';
-    secondTurn.dataset.messageRole = 'user';
-    setElementTop(secondTurn, 24);
-    scroller.appendChild(secondTurn);
-
-    act(() => {
-      result.current.handleScrollerRef(scroller);
-    });
-
-    act(() => {
-      result.current.onRangeChanged({ startIndex: 0, endIndex: 3 });
-      result.current.scrollToNextTurn();
-    });
-
-    expect(scrollToIndex).not.toHaveBeenCalled();
-
-    unmount();
-  });
-
-  it('scrolls directly to top and through the footer spacer for double-click navigation shortcuts', () => {
-    const { result, unmount } = renderHook(() =>
-      useMessageListScroll({
-        messages: createMessages(),
-        setScrollContainerRef: vi.fn(),
-        activeSessionId: 'session-top-bottom',
-      }),
-    );
-
-    const scrollTo = vi.fn();
-    const scrollToIndex = vi.fn();
-    const virtuosoRef = result.current.virtuosoRef as unknown as { current: VirtuosoHandle | null };
-    virtuosoRef.current = {
-      scrollTo,
-      scrollToIndex,
-    } as unknown as VirtuosoHandle;
-
-    act(() => {
-      result.current.scrollToTop();
-      result.current.scrollToBottom();
-    });
-
-    expect(scrollToIndex).toHaveBeenNthCalledWith(1, {
-      index: 0,
-      align: 'start',
-      behavior: 'smooth',
-    });
-    expect(scrollTo).not.toHaveBeenCalled();
-    expect(scrollToIndex).toHaveBeenNthCalledWith(2, {
-      index: 'LAST',
-      align: 'end',
       behavior: 'smooth',
     });
 

@@ -148,6 +148,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
     handleEmptySpaceClick,
     handleSessionSelect,
     handleRegenerateTitle,
+    searchOnExpand,
   } = useHistorySidebarLogic({
     isOpen,
     onToggle,
@@ -240,9 +241,53 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
     }
   }, [isOpen]);
 
+  // P1: Freeze layout width during collapse so children never wrap/reflow mid-slide
+  const lastWideWidth = React.useRef(sidebarWidth);
+  if (isOpen) {
+    lastWideWidth.current = sidebarWidth;
+  }
+  const effectivePaneWidth = isMobile
+    ? undefined
+    : isOpen
+      ? `${sidebarWidth}px`
+      : `${lastWideWidth.current}px`;
+
+  // P3: Quiet Scrollbar with 2s linger (DeepSeek-style pointer affordance)
+  const SCROLLBAR_LINGER_MS = 2000;
+  const [pointerInsideSidebar, setPointerInsideSidebar] = React.useState(false);
+  const scrollbarLingerTimerRef = React.useRef<number | null>(null);
+
+  const handlePointerEnterSidebar = React.useCallback(() => {
+    if (scrollbarLingerTimerRef.current !== null) {
+      window.clearTimeout(scrollbarLingerTimerRef.current);
+      scrollbarLingerTimerRef.current = null;
+    }
+    setPointerInsideSidebar(true);
+  }, []);
+
+  const handlePointerLeaveSidebar = React.useCallback(() => {
+    if (scrollbarLingerTimerRef.current !== null) {
+      window.clearTimeout(scrollbarLingerTimerRef.current);
+    }
+    scrollbarLingerTimerRef.current = window.setTimeout(() => {
+      scrollbarLingerTimerRef.current = null;
+      setPointerInsideSidebar(false);
+    }, SCROLLBAR_LINGER_MS);
+  }, []);
+
+  React.useEffect(() => {
+    return () => {
+      if (scrollbarLingerTimerRef.current !== null) {
+        window.clearTimeout(scrollbarLingerTimerRef.current);
+      }
+    };
+  }, []);
+
   return (
     <aside
       data-history-sidebar-root="true"
+      onPointerEnter={handlePointerEnterSidebar}
+      onPointerLeave={handlePointerLeaveSidebar}
       className={`h-full flex flex-col bg-[var(--theme-bg-secondary)] flex-shrink-0
                  transition-transform duration-300 ease-[cubic-bezier(0.19,1,0.22,1)] ${isResizingSidebar ? 'transition-none' : 'md:transition-[width]'} transform-gpu
                  absolute md:relative top-0 left-0 z-50
@@ -251,7 +296,9 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
                  border-r border-[var(--theme-border-primary)]`}
       style={{
         width: isOpen ? (isMobile ? undefined : `${sidebarWidth}px`) : undefined,
-      }}
+        '--sidebar-scrollbar-thumb':
+          pointerInsideSidebar || isResizingSidebar ? 'var(--theme-scrollbar-thumb)' : 'transparent',
+      } as React.CSSProperties}
       role="complementary"
       aria-label={t('historyTitle')}
     >
@@ -263,8 +310,8 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-100 pointer-events-none md:opacity-0'
         }`}
         style={{
-          width: isOpen ? (isMobile ? undefined : `${sidebarWidth}px`) : undefined,
-          minWidth: isOpen ? (isMobile ? undefined : `${sidebarWidth}px`) : undefined,
+          width: effectivePaneWidth,
+          minWidth: effectivePaneWidth,
         }}
       >
         <SidebarItemContext.Provider value={sessionItemSharedProps}>
@@ -287,10 +334,11 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
             newChatShortcut={newChatShortcut}
             searchChatsShortcut={searchChatsShortcut}
             activeSessionId={activeSessionId}
+            searchOnExpand={searchOnExpand}
           />
           <div
             ref={scrollContainerRef}
-            className="flex-grow overflow-y-auto custom-scrollbar p-2 cursor-ew-resize"
+            className="flex-grow overflow-y-auto quiet-scrollbar custom-scrollbar p-2 cursor-ew-resize"
             onClick={handleEmptySpaceClick}
             onDragOver={handleScrollContainerDragOver}
             onDrop={stopEdgeScroll}

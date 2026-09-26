@@ -47,6 +47,7 @@ describe('AppearanceSection', () => {
 
     expect(renderer.container.textContent).toContain('Theme');
     expect(renderer.container.textContent).toContain('System');
+    expect(renderer.container.textContent).toContain('Reading Font');
     expect(renderer.container.textContent).toContain('Reading Size');
     expect(renderer.container.textContent).toContain('LiveUI Base Size');
     expect(renderer.container.textContent).toContain('default font size for inline LiveUI in chat');
@@ -69,6 +70,7 @@ describe('AppearanceSection', () => {
 
     expect(renderer.container.textContent).toContain('主题');
     expect(renderer.container.textContent).toContain('系统');
+    expect(renderer.container.textContent).toContain('阅读字体');
     expect(renderer.container.textContent).toContain('阅读字号');
     expect(renderer.container.textContent).toContain('LiveUI 基础字号');
     expect(renderer.container.textContent).toContain('设置聊天内嵌 LiveUI 的默认字号');
@@ -250,5 +252,28 @@ describe('AppearanceSection', () => {
     });
 
     expect(onUpdate).toHaveBeenCalledWith('isCopySelectionFormattingEnabled', true);
+  });
+
+  it('updates the reading font family from AppearanceSection', async () => {
+    const onUpdate = vi.fn();
+
+    await renderAppearanceSection({
+      language: 'en',
+      settings: {
+        readingFontFamily: 'sans',
+      },
+      onUpdate,
+    });
+
+    const serifButton = renderer.container.querySelector<HTMLButtonElement>(
+      '[data-settings-item="interface-reading-font"] button[aria-label="Serif"]',
+    );
+    expect(serifButton).not.toBeNull();
+
+    act(() => {
+      fireEvent.click(serifButton!);
+    });
+
+    expect(onUpdate).toHaveBeenCalledWith('readingFontFamily', 'serif');
   });
 });

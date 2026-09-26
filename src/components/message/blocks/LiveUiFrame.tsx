@@ -21,7 +21,8 @@ import { useHtmlPreviewGraphvizRelay } from '@/hooks/ui/useHtmlPreviewGraphvizRe
 import { type LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup';
 import { LIVE_ARTIFACT_CLEAR_SELECTION_EVENT } from '@/utils/text-selection/liveUiSelection';
 import { dispatchMediaSeekFromBridge } from '@/utils/media-nav/mediaNavBridgeDispatch';
-import { type UploadedFile } from '@/types';
+import { type ReadingFontFamily, type UploadedFile } from '@/types';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { svgToUploadedFile } from '@/utils/export/svgToUploadedFile';
 import { copyTextToClipboard } from '@/utils/clipboard';
 
@@ -30,6 +31,7 @@ export interface LiveUiFrameProps {
   cacheKey?: string;
   isLoading?: boolean;
   baseFontSize?: number;
+  readingFontFamily?: ReadingFontFamily;
   themeId?: string;
   onFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   onOpenPreview?: () => void;
@@ -89,6 +91,7 @@ export const LiveUiFrame: React.FC<LiveUiFrameProps> = ({
   cacheKey,
   isLoading = false,
   baseFontSize,
+  readingFontFamily,
   themeId,
   onFollowUp,
   onOpenPreview,
@@ -96,6 +99,8 @@ export const LiveUiFrame: React.FC<LiveUiFrameProps> = ({
 }) => {
   const { t } = useI18n();
   const { window: targetWindow } = useWindowContext();
+  const storeReadingFont = useSettingsStore((state) => state.appSettings.readingFontFamily);
+  const resolvedReadingFont = readingFontFamily ?? storeReadingFont ?? 'sans';
   const iframeRef = useRef<HTMLIFrameElement>(null);
   useHtmlPreviewGraphvizRelay({
     iframeRef,
@@ -163,8 +168,8 @@ export const LiveUiFrame: React.FC<LiveUiFrameProps> = ({
   const streamingHeightCacheKey = useMemo(() => getStreamingFrameHeightCacheKey(cacheKey), [cacheKey]);
   const heightCacheKey = isLoading && streamingHeightCacheKey ? streamingHeightCacheKey : contentHeightCacheKey;
   const streamingSrcDoc = useMemo(
-    () => buildStreamingHtmlPreviewSrcDoc({ baseFontSize, themeId }),
-    [baseFontSize, themeId],
+    () => buildStreamingHtmlPreviewSrcDoc({ baseFontSize, themeId, readingFontFamily: resolvedReadingFont }),
+    [baseFontSize, resolvedReadingFont, themeId],
   );
   const [frameHeightState, setFrameHeightState] = useState(() => ({
     heightCacheKey,
@@ -184,8 +189,8 @@ export const LiveUiFrame: React.FC<LiveUiFrameProps> = ({
     // memo to the lazy KaTeX load so the first render (which skips formulas)
     // is recomputed once the chunk has arrived.
     void katexReadyTick;
-    return buildHtmlPreviewSrcDoc(html, { baseFontSize, themeId });
-  }, [baseFontSize, html, isRunnerMode, katexReadyTick, themeId]);
+    return buildHtmlPreviewSrcDoc(html, { baseFontSize, themeId, readingFontFamily: resolvedReadingFont });
+  }, [baseFontSize, html, isRunnerMode, katexReadyTick, resolvedReadingFont, themeId]);
   const frameHeight =
     frameHeightState.heightCacheKey === heightCacheKey || (isRunnerMode && frameHeightState.height > 0)
       ? frameHeightState.height
@@ -196,8 +201,8 @@ export const LiveUiFrame: React.FC<LiveUiFrameProps> = ({
   // reload, blank flicker, and scroll reset. It only invalidates when theme,
   // base font size, or (for static messages) content changes.
   const iframeKey = isRunnerMode
-    ? `streaming:${themeId ?? ''}:${baseFontSize ?? ''}`
-    : `final:${katexReadyTick}:${themeId ?? ''}:${baseFontSize ?? ''}:${contentHeightCacheKey}`;
+    ? `streaming:${themeId ?? ''}:${baseFontSize ?? ''}:${resolvedReadingFont}`
+    : `final:${katexReadyTick}:${themeId ?? ''}:${baseFontSize ?? ''}:${resolvedReadingFont}:${contentHeightCacheKey}`;
 
   useLayoutEffect(() => {
     latestStreamingHtmlRef.current = html;

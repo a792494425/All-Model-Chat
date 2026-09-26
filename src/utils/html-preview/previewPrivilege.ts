@@ -9,6 +9,8 @@
  * Fence language picks the default tier; expanding a preview must keep the
  * same tier rather than silently switching engines.
  */
+import type { ReadingFontFamily } from '@/types';
+
 export type HtmlPreviewPrivilege = 'sanitized' | 'unrestricted';
 
 export interface HtmlPreviewOpenOptions {
@@ -16,6 +18,7 @@ export interface HtmlPreviewOpenOptions {
   privilege?: HtmlPreviewPrivilege;
   themeId?: string;
   baseFontSize?: number;
+  readingFontFamily?: ReadingFontFamily;
 }
 
 export type OpenHtmlPreviewHandler = (html: string, options?: HtmlPreviewOpenOptions) => void;
@@ -25,6 +28,7 @@ export interface HtmlPreviewRequest {
   privilege: HtmlPreviewPrivilege;
   themeId?: string;
   baseFontSize?: number;
+  readingFontFamily?: ReadingFontFamily;
   initialTrueFullscreen: boolean;
 }
 
@@ -61,4 +65,5 @@ export const createHtmlPreviewRequest = (html: string, options: HtmlPreviewOpenO
   initialTrueFullscreen: options.initialTrueFullscreen ?? false,
   ...(options.themeId ? { themeId: options.themeId } : {}),
   ...(typeof options.baseFontSize === 'number' ? { baseFontSize: options.baseFontSize } : {}),
+  ...(options.readingFontFamily ? { readingFontFamily: options.readingFontFamily } : {}),
 });

@@ -46,6 +46,12 @@ const REMOVED_MODEL_ID_MIGRATIONS: Readonly<Record<string, string>> = {
   'models/gemini-3.1-flash-live-preview': 'gemini-3.8-live',
   'gemini-3.1-flash-live': 'gemini-3.8-live',
   'models/gemini-3.1-flash-live': 'gemini-3.8-live',
+  // Gemini 2.0 Flash shut down 2026-06-01; Google names 3.6 Flash the replacement.
+  'gemini-2.0-flash': 'gemini-3.6-flash',
+  'models/gemini-2.0-flash': 'gemini-3.6-flash',
+  // Docs label 3.1 Flash TTS preview "Legacy" and point at the stable 3.8 TTS models.
+  'gemini-3.1-flash-tts-preview': 'gemini-3.8-flash-tts',
+  'models/gemini-3.1-flash-tts-preview': 'gemini-3.8-flash-tts',
 };
 
 export const migrateRemovedModelId = (modelId: string | null | undefined): string | undefined => {
@@ -95,6 +101,6 @@ export const DEFAULT_THINKING_BUDGET = -1; // -1 for auto/unlimited budget
 export const DEFAULT_TTS_VOICE = 'Zephyr';
 
 export const DEFAULT_TRANSCRIPTION_MODEL_ID = 'gemini-3.5-transcribe';
-export const DEFAULT_TTS_MODEL_ID = 'gemini-3.1-flash-tts-preview';
+export const DEFAULT_TTS_MODEL_ID = 'gemini-3.8-flash-tts';
 export const DEFAULT_LIVE_ARTIFACTS_MODEL_ID = 'gemini-3.8-flash';
 export const DEFAULT_THOUGHT_TRANSLATION_MODEL_ID = 'gemini-3.5-flash-lite';

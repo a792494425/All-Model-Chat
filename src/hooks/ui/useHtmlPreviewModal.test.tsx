@@ -602,6 +602,7 @@ describe('useHtmlPreviewModal', () => {
           privilege: 'sanitized',
           themeId: 'onyx',
           baseFontSize: 18,
+          readingFontFamily: 'serif',
           iframeRef,
         }),
       { attachToDocument: true, wrapper: HtmlPreviewWrapper },
@@ -626,6 +627,7 @@ describe('useHtmlPreviewModal', () => {
     expect(capturedTarget).toBeTruthy();
     // Verify container received the onyx theme background color (#0c0c0e) instead of hardcoded white
     expect(capturedTarget.style.background).toBe('rgb(12, 12, 14)');
+    expect(capturedTarget.innerHTML).toContain('--app-font-reading:var(--app-font-serif)');
 
     unmount();
   });

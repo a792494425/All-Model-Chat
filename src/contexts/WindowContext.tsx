@@ -23,10 +23,13 @@ export const WindowProvider: React.FC<WindowProviderProps> = ({
   document: propDocument,
   children,
 }) => {
-  const value = {
-    window: propWindow || (typeof window !== 'undefined' ? window : ({} as Window)),
-    document: propDocument || (typeof document !== 'undefined' ? document : ({} as Document)),
-  };
+  const value = React.useMemo(
+    () => ({
+      window: propWindow || (typeof window !== 'undefined' ? window : ({} as Window)),
+      document: propDocument || (typeof document !== 'undefined' ? document : ({} as Document)),
+    }),
+    [propWindow, propDocument],
+  );
 
   return <WindowContext.Provider value={value}>{children}</WindowContext.Provider>;
 };

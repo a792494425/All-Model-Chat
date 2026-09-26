@@ -13,7 +13,7 @@ import type { LiveArtifactFollowupPayload } from '@/utils/live-ui/liveUiFollowup
 import { DEFAULT_HTML_PREVIEW_PRIVILEGE, type HtmlPreviewPrivilege } from '@/utils/html-preview/previewPrivilege';
 import { copyTextToClipboard } from '@/utils/clipboard';
 
-import { type UploadedFile } from '@/types';
+import { type ReadingFontFamily, type UploadedFile } from '@/types';
 
 interface HtmlPreviewModalProps {
   isOpen: boolean;
@@ -23,6 +23,7 @@ interface HtmlPreviewModalProps {
   privilege?: HtmlPreviewPrivilege;
   themeId?: string;
   baseFontSize?: number;
+  readingFontFamily?: ReadingFontFamily;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   onImageClick?: (file: UploadedFile) => void;
 }
@@ -35,6 +36,7 @@ export const HtmlPreviewModal: React.FC<HtmlPreviewModalProps> = ({
   privilege = DEFAULT_HTML_PREVIEW_PRIVILEGE,
   themeId,
   baseFontSize,
+  readingFontFamily,
   onLiveArtifactFollowUp,
   onImageClick,
 }) => {
@@ -77,6 +79,7 @@ export const HtmlPreviewModal: React.FC<HtmlPreviewModalProps> = ({
     privilege,
     themeId,
     baseFontSize,
+    readingFontFamily,
     iframeRef,
     onLiveArtifactFollowUp: privilege === 'sanitized' ? onLiveArtifactFollowUp : undefined,
     onImageClick,
@@ -167,6 +170,7 @@ export const HtmlPreviewModal: React.FC<HtmlPreviewModalProps> = ({
             privilege={privilege}
             themeId={themeId}
             baseFontSize={baseFontSize}
+            readingFontFamily={readingFontFamily}
             deviceMode={deviceMode}
           />
         )}

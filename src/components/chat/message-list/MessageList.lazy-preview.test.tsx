@@ -36,7 +36,7 @@ const mockedModuleIds = [
   '../modals/FilePreviewModal',
   '../modals/FileConfigModal',
   './hooks/useMessageListScroll',
-  './ScrollNavigation',
+  './TurnNavigator',
   './TextSelectionToolbar',
   './MessageListFooter',
   './WelcomeScreen',
@@ -68,7 +68,7 @@ const loadMessageList = async (moduleLoadTracker: { count: number }) => {
 
   vi.doMock('./hooks/useMessageListScroll', () => createMessageListScrollMock());
 
-  vi.doMock('./ScrollNavigation', () => createNullComponentMock('ScrollNavigation'));
+  vi.doMock('./TurnNavigator', () => createNullComponentMock('TurnNavigator'));
 
   vi.doMock('./TextSelectionToolbar', () => createNullComponentMock('TextSelectionToolbar'));
 

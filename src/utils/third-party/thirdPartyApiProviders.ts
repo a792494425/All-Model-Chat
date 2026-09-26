@@ -428,9 +428,13 @@ export const isDeepSeekOfficialEndpoint = (templateId?: string | null, baseUrl?:
 };
 
 export const isDashScopeOfficialEndpoint = (templateId?: string | null, baseUrl?: string | null): boolean => {
-  if (templateId === 'dashscope') return true;
+  if (templateId === 'qwen') return true;
   if (!baseUrl) return false;
-  return baseUrl.toLowerCase().includes('dashscope.aliyuncs.com');
+  // Both the mainland (`dashscope.aliyuncs.com`) and Singapore
+  // (`dashscope-intl.aliyuncs.com`) hosts are DashScope. The intl form does
+  // NOT contain the mainland host as a substring, so a single-host check
+  // silently disabled the app's own Qwen preset.
+  return /dashscope(?:-intl)?\.aliyuncs\.com/i.test(baseUrl);
 };
 
 export const isLocalEngineEndpoint = (templateId?: string | null, baseUrl?: string | null): boolean => {

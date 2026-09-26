@@ -19,7 +19,8 @@ import { LIVE_ARTIFACT_CLEAR_SELECTION_EVENT } from '@/utils/text-selection/live
 import { useHtmlPreviewBridge } from './useHtmlPreviewBridge';
 import { formatI18nErrorMessage } from '@/i18n/interpolate';
 
-import { type UploadedFile } from '@/types';
+import { type ReadingFontFamily, type UploadedFile } from '@/types';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { svgToUploadedFile } from '@/utils/export/svgToUploadedFile';
 import { dispatchMediaSeekFromBridge } from '@/utils/media-nav/mediaNavBridgeDispatch';
 
@@ -36,6 +37,7 @@ interface UseHtmlPreviewModalProps {
   privilege?: HtmlPreviewPrivilege;
   themeId?: string;
   baseFontSize?: number;
+  readingFontFamily?: ReadingFontFamily;
   iframeRef: RefObject<HTMLIFrameElement>;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   onImageClick?: (file: UploadedFile) => void;
@@ -71,11 +73,14 @@ export const useHtmlPreviewModal = ({
   privilege = DEFAULT_HTML_PREVIEW_PRIVILEGE,
   themeId,
   baseFontSize,
+  readingFontFamily,
   iframeRef,
   onLiveArtifactFollowUp,
   onImageClick,
 }: UseHtmlPreviewModalProps) => {
   const { t } = useI18n();
+  const storeReadingFont = useSettingsStore((state) => state.appSettings.readingFontFamily);
+  const resolvedReadingFont = readingFontFamily ?? storeReadingFont ?? 'sans';
   const [isTrueFullscreen, setIsTrueFullscreen] = useState(false);
   const [isActuallyOpen, setIsActuallyOpen] = useState(isOpen);
   const [scale, setScale] = useState(1);
@@ -346,6 +351,7 @@ export const useHtmlPreviewModal = ({
           sanitize: privilege !== 'unrestricted',
           themeId,
           baseFontSize,
+          readingFontFamily: resolvedReadingFont,
         });
         snapshotCleanup = snapshot.cleanup;
         exportTarget = snapshot.container;
@@ -379,6 +385,7 @@ export const useHtmlPreviewModal = ({
     privilege,
     themeId,
     baseFontSize,
+    resolvedReadingFont,
   ]);
 
   const handleRefresh = useCallback(() => {

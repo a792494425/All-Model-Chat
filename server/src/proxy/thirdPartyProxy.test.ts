@@ -446,6 +446,7 @@ describe('third-party proxy routing + BYOK 兜底', () => {
         connection: 'keep-alive',
         cookie: 'session=abc',
         'accept-encoding': 'gzip',
+        'x-access-token': 'gatekeeper-password',
         'x-client-header': 'present',
       },
       body: JSON.stringify({}),
@@ -454,6 +455,9 @@ describe('third-party proxy routing + BYOK 兜底', () => {
     const headers = new Headers(calls[0].init.headers as HeadersInit);
     expect(headers.get('cookie')).toBeNull();
     expect(headers.get('accept-encoding')).toBeNull();
+    // The deployment gatekeeper password authenticates the browser → server hop
+    // only; leaking it to the vendor (or any BYOK baseUrl) is a credential leak.
+    expect(headers.get('x-access-token')).toBeNull();
     expect(headers.get('x-client-header')).toBe('present');
   });
 

@@ -153,3 +153,55 @@ describe('handleRegenerateTitle', () => {
     unmount();
   });
 });
+
+describe('handleMiniSearchClick', () => {
+  it('triggers onToggle, opens search, and focuses after expand delay', () => {
+    vi.useFakeTimers();
+    let isOpen = false;
+    const onToggle = vi.fn(() => {
+      isOpen = true;
+    });
+    const { result, rerender, unmount } = renderHook(() =>
+      useHistorySidebarLogic({
+        isOpen,
+        onToggle,
+        onAutoClose: () => {},
+        sessions: [],
+        groups: [],
+        generatingTitleSessionIds: new Set(),
+        onRenameSession: () => {},
+        onRenameGroup: () => {},
+        onMoveSessionToGroup: () => {},
+        onSelectSession: () => {},
+      }),
+    );
+
+    const mockFocus = vi.fn();
+    const inputElement = document.createElement('input');
+    inputElement.focus = mockFocus;
+    (result.current.searchInputRef as { current: HTMLInputElement }).current = inputElement;
+
+    act(() => {
+      result.current.handleMiniSearchClick();
+    });
+
+    expect(onToggle).toHaveBeenCalledTimes(1);
+    expect(result.current.isSearching).toBe(true);
+    expect(result.current.searchOnExpand).toBe(true);
+    expect(mockFocus).not.toHaveBeenCalled();
+
+    rerender();
+
+    expect(mockFocus).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(mockFocus).toHaveBeenCalledWith({ preventScroll: true });
+    expect(result.current.searchOnExpand).toBe(false);
+
+    vi.useRealTimers();
+    unmount();
+  });
+});

@@ -303,6 +303,7 @@ const appSettingsSchema: z.ZodType<AppSettings> = z.object({
   mediaResolution: optionalWithDefault(z.nativeEnum(MediaResolution), DEFAULT_APP_SETTINGS.mediaResolution),
   themeId: withDefault(z.enum(THEME_IDS), DEFAULT_APP_SETTINGS.themeId),
   baseFontSize: numberWithDefault(DEFAULT_APP_SETTINGS.baseFontSize),
+  readingFontFamily: withDefault(z.enum(['sans', 'serif']), DEFAULT_APP_SETTINGS.readingFontFamily ?? 'sans'),
   useCustomApiConfig: booleanWithDefault(DEFAULT_APP_SETTINGS.useCustomApiConfig),
   serverManagedApi: optionalBooleanWithDefault(DEFAULT_APP_SETTINGS.serverManagedApi),
   serverAccessPassword: nullableStringWithDefault(DEFAULT_APP_SETTINGS.serverAccessPassword),

@@ -232,7 +232,7 @@ describe('openaiCompatibleMessages', () => {
         'qwq-32b',
         [],
         [{ text: 'solve math' }],
-        { templateId: 'dashscope', thinkingLevel: 'HIGH', thinkingBudget: 4096 },
+        { templateId: 'qwen', thinkingLevel: 'HIGH', thinkingBudget: 4096 },
         'user',
         false,
       );

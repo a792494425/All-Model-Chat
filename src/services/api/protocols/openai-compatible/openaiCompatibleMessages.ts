@@ -6,6 +6,7 @@ import { getInlineAudioFormat } from '@/features/audio/audioProcessing';
 import {
   isGlmModel,
   isKimiK3Model,
+  isLegacyDeepSeekModel,
   isOpenAIGpt5FamilyModel,
   isOpenAIReasoningModel,
 } from '@/utils/model/modelCapabilities';
@@ -300,14 +301,17 @@ export const buildOpenAICompatibleRequestBody = (
     body.thinking = { type: thinkingEnabled ? 'enabled' : 'disabled' };
   }
   // 2. DeepSeek official endpoint:
-  // - deepseek-reasoner / deepseek-chat handle reasoning server-side; NEVER send reasoning_effort (causes HTTP 400).
-  // - DeepSeek V4 models accept { thinking: { type: "enabled" | "disabled" } }.
+  // - Both current ids accept { thinking: { type: "enabled" | "disabled" } },
+  //   defaulting to enabled with effort high. Docs draw no per-model split, so
+  //   only the pre-thinking legacy ids are excluded.
+  // - reasoning_effort is also documented (none/low/high/max); it stays
+  //   un-emitted here because `thinking` already carries the intent and the
+  //   mapping from ThinkingLevel is not one-to-one.
   else if (isDeepSeekOfficial) {
-    if (modelId.toLowerCase().includes('v4')) {
+    if (!isLegacyDeepSeekModel(modelId)) {
       const thinkingEnabled = config.thinkingLevel !== 'NONE' && config.thinkingLevel !== 'MINIMAL';
       body.thinking = { type: thinkingEnabled ? 'enabled' : 'disabled' };
     }
-    // Deliberately omit reasoning_effort to prevent DeepSeek official 400 Bad Request.
   }
   // 3. DashScope (Qwen official):
   // - Chat completions uses enable_thinking: boolean (and optional thinking_budget).

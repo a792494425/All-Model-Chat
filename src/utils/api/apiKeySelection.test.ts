@@ -126,7 +126,7 @@ describe('getKeyForRequest', () => {
       },
       {
         ...chatSettings,
-        modelId: 'gpt-5.6-sol',
+        modelId: 'gpt-6-sol',
         providerId: undefined,
       },
     );
@@ -173,7 +173,7 @@ describe('getKeyForRequest', () => {
       },
       {
         ...chatSettings,
-        modelId: 'gpt-5.6-sol',
+        modelId: 'gpt-6-sol',
         providerId: 'openai',
       },
     );
@@ -336,7 +336,7 @@ describe('getKeyForRequest', () => {
       },
       {
         ...chatSettings,
-        modelId: 'gpt-5.6-sol',
+        modelId: 'gpt-6-sol',
         providerId: 'openai',
       },
     );
@@ -358,7 +358,7 @@ describe('getKeyForRequest', () => {
     };
     const openaiChat = {
       ...chatSettings,
-      modelId: 'gpt-5.6-sol',
+      modelId: 'gpt-6-sol',
       providerId: 'openai',
     };
 

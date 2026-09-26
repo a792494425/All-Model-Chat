@@ -52,7 +52,7 @@ describe('UI clarity regressions', () => {
       'components/message/blocks/parts/CodeHeader.tsx',
       'components/chat/overlays/DragDropOverlay.tsx',
       'components/scenarios/editor/ScenarioMessageInput.tsx',
-      'components/chat/message-list/ScrollNavigation.tsx',
+      'components/chat/message-list/TurnNavigator.tsx',
       'components/message/FileDisplay.tsx',
       'components/shared/file-preview/pdf-viewer/PdfSidebar.tsx',
       'components/shared/file-preview/pdf-viewer/PdfMainContent.tsx',

@@ -311,9 +311,12 @@ export const normalizeProviderId = (value: unknown): ChatProviderId | undefined 
   return trimmed;
 };
 
+export type ReadingFontFamily = 'sans' | 'serif';
+
 export interface AppSettings extends ChatSettings {
   themeId: 'system' | 'onyx' | 'graphite' | 'pearl' | 'sepia';
   baseFontSize: number;
+  readingFontFamily?: ReadingFontFamily;
   useCustomApiConfig: boolean;
   serverManagedApi?: boolean;
   serverAccessPassword?: string | null;
@@ -379,6 +382,7 @@ export interface AppSettings extends ChatSettings {
 export type MessageAppSettings = Pick<
   AppSettings,
   | 'baseFontSize'
+  | 'readingFontFamily'
   | 'expandCodeBlocksByDefault'
   | 'isMermaidRenderingEnabled'
   | 'isGraphvizRenderingEnabled'

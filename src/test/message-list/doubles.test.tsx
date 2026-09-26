@@ -55,12 +55,12 @@ describe('messageListTestDoubles', () => {
   });
 
   it('provides a reusable no-op scroll hook result', () => {
-    const { useMessageListScroll } = createMessageListScrollMock({ showScrollDown: true });
+    const { useMessageListScroll } = createMessageListScrollMock({ visibleStartIndex: 2 });
 
     expect(useMessageListScroll()).toEqual(
       expect.objectContaining({
-        showScrollDown: true,
-        showScrollUp: false,
+        atBottom: true,
+        visibleStartIndex: 2,
         virtuosoRef: { current: null },
       }),
     );

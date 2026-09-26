@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect } from 'react';
-import type { SideViewContent, UploadedFile } from '@/types';
+import type { ReadingFontFamily, SideViewContent, UploadedFile } from '@/types';
 import type { OpenHtmlPreviewHandler } from '@/utils/html-preview/previewPrivilege';
 import { useCodeBlock } from '@/hooks/ui/useCodeBlock';
 import { CodeHeader } from './parts/CodeHeader';
@@ -34,6 +34,7 @@ interface CodeBlockProps {
   showPreviewControls?: boolean;
   isLoading?: boolean;
   liveArtifactFontSize?: number;
+  readingFontFamily?: ReadingFontFamily;
   themeId?: string;
   onLiveArtifactFollowUp?: (payload: LiveArtifactFollowupPayload) => void;
   liveArtifactsMode?: boolean;
@@ -168,6 +169,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
         cacheKey={props.cacheKey}
         isLoading={props.isLoading}
         baseFontSize={props.liveArtifactFontSize}
+        readingFontFamily={props.readingFontFamily}
         themeId={props.themeId}
         onFollowUp={props.onLiveArtifactFollowUp}
         onImageClick={props.onImageClick}
@@ -176,6 +178,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = (props) => {
             privilege: 'sanitized',
             themeId: props.themeId,
             baseFontSize: props.liveArtifactFontSize,
+            readingFontFamily: props.readingFontFamily,
           })
         }
       />

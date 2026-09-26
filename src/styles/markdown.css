@@ -2,7 +2,7 @@
 .markdown-body {
   background-color: transparent !important;
   color: inherit !important;
-  font-family: inherit !important;
+  font-family: var(--app-font-reading, inherit) !important;
   font-size: inherit !important;
   line-height: 1.75 !important; /* Refined line spacing */
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, type RefObject } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { Pin, MoreHorizontal } from 'lucide-react';
+import { Pin, PinOff, MoreHorizontal } from 'lucide-react';
 import { type ChatGroup, type SavedChatSession } from '@/types';
 import { SessionItemMenu } from './SessionItemMenu';
 import { SessionItemContextMenu } from './SessionItemContextMenu';
@@ -262,13 +262,13 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
                   event.stopPropagation();
                   handleStartEdit(session);
                 }}
-                className="flex w-full min-w-0 items-center pr-8 no-underline text-inherit"
+                className="flex w-full min-w-0 items-center pr-14 no-underline text-inherit"
                 aria-current={session.id === activeSessionId ? 'page' : undefined}
               >
                 {session.isPinned && (
                   <Pin size={12} className="mr-2 text-[var(--theme-text-link)] flex-shrink-0" strokeWidth={2} />
                 )}
-                <span className="font-medium truncate" title={displayTitle}>
+                <span className="font-medium truncate fade-mask-x-r" title={displayTitle}>
                   {generatingTitleSessionIds.has(session.id) ? (
                     <div className="flex items-center gap-2 text-xs text-[var(--theme-text-secondary)]">
                       <LoadingDots />
@@ -296,55 +296,81 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
                   />
                 )}
                 {!generatingTitleSessionIds.has(session.id) && (
-                  <DropdownMenu
-                    open={activeMenu === session.id}
-                    onOpenChange={(open) => setActiveMenu(open ? session.id : null)}
+                  <div
+                    className={`absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 transition-opacity ${
+                      isActive || isContextMenuOpen
+                        ? 'opacity-100 pointer-events-auto'
+                        : 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-within:opacity-100 focus-within:pointer-events-auto'
+                    }`}
+                    onClick={(event) => event.stopPropagation()}
                   >
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        title={t('sessionMoreOptions')}
-                        aria-label={t('sessionMoreOptions')}
-                        className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-[var(--theme-bg-secondary)] p-1 text-[var(--theme-text-primary)] opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)]"
-                      >
-                        <MoreHorizontal size={16} strokeWidth={2.2} />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <SessionItemMenu
-                      session={session}
-                      menuRef={menuRef}
-                      groups={groups}
-                      onMoveSessionToGroup={onMoveSessionToGroup}
-                      onStartEdit={() => {
-                        handleStartEdit(session);
-                        setActiveMenu(null);
-                      }}
-                      onTogglePin={() => {
+                    <button
+                      type="button"
+                      title={session.isPinned ? t('historyUnpin') : t('historyPin')}
+                      aria-label={session.isPinned ? t('historyUnpin') : t('historyPin')}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
                         onTogglePinSession(session.id);
-                        setActiveMenu(null);
                       }}
-                      onDuplicate={() => {
-                        onDuplicateSession(session.id);
-                        setActiveMenu(null);
-                      }}
-                      onExport={() => {
-                        onOpenExportModal(session.id);
-                        setActiveMenu(null);
-                      }}
-                      onDelete={() => {
-                        onDeleteSession(session.id);
-                        setActiveMenu(null);
-                      }}
-                      onRegenerateTitle={
-                        onRegenerateTitleSession
-                          ? () => {
-                              onRegenerateTitleSession(session.id);
-                              setActiveMenu(null);
-                            }
-                          : undefined
-                      }
-                      isGeneratingTitle={generatingTitleSessionIds.has(session.id)}
-                    />
-                  </DropdownMenu>
+                      className="rounded-full bg-[var(--theme-bg-secondary)] p-1 text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)] cursor-pointer"
+                    >
+                      {session.isPinned ? (
+                        <PinOff size={14} strokeWidth={2.2} />
+                      ) : (
+                        <Pin size={14} strokeWidth={2.2} />
+                      )}
+                    </button>
+                    <DropdownMenu
+                      open={activeMenu === session.id}
+                      onOpenChange={(open) => setActiveMenu(open ? session.id : null)}
+                    >
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          title={t('sessionMoreOptions')}
+                          aria-label={t('sessionMoreOptions')}
+                          className="rounded-full bg-[var(--theme-bg-secondary)] p-1 text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--theme-border-focus)] cursor-pointer"
+                        >
+                          <MoreHorizontal size={16} strokeWidth={2.2} />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <SessionItemMenu
+                        session={session}
+                        menuRef={menuRef}
+                        groups={groups}
+                        onMoveSessionToGroup={onMoveSessionToGroup}
+                        onStartEdit={() => {
+                          handleStartEdit(session);
+                          setActiveMenu(null);
+                        }}
+                        onTogglePin={() => {
+                          onTogglePinSession(session.id);
+                          setActiveMenu(null);
+                        }}
+                        onDuplicate={() => {
+                          onDuplicateSession(session.id);
+                          setActiveMenu(null);
+                        }}
+                        onExport={() => {
+                          onOpenExportModal(session.id);
+                          setActiveMenu(null);
+                        }}
+                        onDelete={() => {
+                          onDeleteSession(session.id);
+                          setActiveMenu(null);
+                        }}
+                        onRegenerateTitle={
+                          onRegenerateTitleSession
+                            ? () => {
+                                onRegenerateTitleSession(session.id);
+                                setActiveMenu(null);
+                              }
+                            : undefined
+                        }
+                        isGeneratingTitle={generatingTitleSessionIds.has(session.id)}
+                      />
+                    </DropdownMenu>
+                  </div>
                 )}
               </>
             )}

@@ -91,4 +91,21 @@ describe('AppearanceLivePreview', () => {
 
     expect(container.textContent).not.toContain('⚡ 64 tokens');
   });
+
+  it('applies serif font-family to typography sample when configured', () => {
+    const { container } = renderWithProviders(
+      <AppearanceLivePreview settings={{ ...baseSettings, readingFontFamily: 'serif' }} />,
+      { language: 'en' },
+    );
+
+    const textTabBtn = Array.from(container.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Typography'),
+    );
+    act(() => {
+      fireEvent.click(textTabBtn!);
+    });
+
+    const textSample = container.querySelector('div[style*="font-family: var(--app-font-serif)"]');
+    expect(textSample).not.toBeNull();
+  });
 });

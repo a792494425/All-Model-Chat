@@ -7,6 +7,19 @@ import { ContextMenu, ContextMenuTrigger } from '@/components/shared/ContextMenu
 import { createChatSettings } from '@/test/data/factories';
 import type { SavedChatSession, ChatGroup } from '@/types';
 
+const mockCopyToClipboard = vi.fn().mockResolvedValue(true);
+vi.mock('@/hooks/ui/useCopyToClipboard', () => ({
+  useCopyToClipboard: () => ({
+    isCopied: false,
+    copyToClipboard: (...args: unknown[]) => mockCopyToClipboard(...args),
+  }),
+}));
+
+const mockToastSuccess = vi.fn();
+vi.mock('@/stores/toastStore', () => ({
+  toastSuccess: (...args: unknown[]) => mockToastSuccess(...args),
+}));
+
 const mockSession: SavedChatSession = {
   id: 'session-123',
   title: 'Test Session',
@@ -243,5 +256,86 @@ describe('SessionItemMenu and SessionItemContextMenu', () => {
     fireEvent.pointerDown(screen.getByText('Options'), { button: 0 });
     const regenItem = screen.getByText('Regenerate Title').closest('[role="menuitem"]');
     expect(regenItem).toHaveAttribute('data-disabled');
+  });
+
+  it('renders Copy Link and copies URL to clipboard on click', async () => {
+    mockCopyToClipboard.mockClear();
+    mockToastSuccess.mockClear();
+
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button>Options</button>
+        </DropdownMenuTrigger>
+        <SessionItemMenu
+          session={mockSession}
+          groups={mockGroups}
+          onMoveSessionToGroup={vi.fn()}
+          onStartEdit={vi.fn()}
+          onTogglePin={vi.fn()}
+          onDuplicate={vi.fn()}
+          onExport={vi.fn()}
+          onDelete={vi.fn()}
+        />
+      </DropdownMenu>,
+    );
+
+    fireEvent.pointerDown(screen.getByText('Options'), { button: 0 });
+    const copyLinkItem = screen.getByText('Copy Link');
+    expect(copyLinkItem).toBeInTheDocument();
+    fireEvent.click(copyLinkItem);
+
+    expect(mockCopyToClipboard).toHaveBeenCalledWith(expect.stringContaining('/chat/session-123'));
+  });
+
+  it('handles inline delete confirmation: cancel cancels, confirm deletes', () => {
+    const onDelete = vi.fn();
+
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button>Options</button>
+        </DropdownMenuTrigger>
+        <SessionItemMenu
+          session={mockSession}
+          groups={mockGroups}
+          onMoveSessionToGroup={vi.fn()}
+          onStartEdit={vi.fn()}
+          onTogglePin={vi.fn()}
+          onDuplicate={vi.fn()}
+          onExport={vi.fn()}
+          onDelete={onDelete}
+        />
+      </DropdownMenu>,
+    );
+
+    fireEvent.pointerDown(screen.getByText('Options'), { button: 0 });
+    const deleteItem = screen.getByText('Delete');
+    expect(deleteItem).toBeInTheDocument();
+
+    // First click: triggers confirmation state
+    fireEvent.click(deleteItem);
+    expect(onDelete).not.toHaveBeenCalled();
+
+    // Confirm box appears with cancel and delete buttons
+    const confirmBox = screen.getByTestId('inline-delete-confirm');
+    expect(confirmBox).toBeInTheDocument();
+    expect(confirmBox).toHaveTextContent('Delete this chat?');
+
+    // Click Cancel
+    const cancelBtn = screen.getByText('Cancel');
+    fireEvent.click(cancelBtn);
+    expect(screen.queryByTestId('inline-delete-confirm')).toBeNull();
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+    expect(onDelete).not.toHaveBeenCalled();
+
+    // Click Delete again to show confirm
+    fireEvent.click(screen.getByText('Delete'));
+    expect(screen.getByTestId('inline-delete-confirm')).toBeInTheDocument();
+
+    // Click the confirm Delete button
+    const confirmDeleteBtn = screen.getByRole('button', { name: 'Delete' });
+    fireEvent.click(confirmDeleteBtn);
+    expect(onDelete).toHaveBeenCalledTimes(1);
   });
 });
