@@ -205,6 +205,23 @@ body {
   mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
 }
 
+/* Sidebar session item marquee masks */
+.marquee-title[data-scrolled] {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 16px);
+  mask-image: linear-gradient(to right, transparent, black 16px);
+  text-overflow: clip;
+}
+.marquee-title[data-clipped] {
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 16px), transparent);
+  mask-image: linear-gradient(to right, black calc(100% - 16px), transparent);
+  text-overflow: clip;
+}
+.marquee-title[data-scrolled][data-clipped] {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+  mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+  text-overflow: clip;
+}
+
 /* Fade Mask for vertical lists — bottom edge only, applied while content
    remains below the fold (removed at scroll end so the last row stays crisp). */
 .fade-mask-y-b {
