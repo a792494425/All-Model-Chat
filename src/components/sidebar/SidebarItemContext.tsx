@@ -37,6 +37,7 @@ export interface SidebarItemContextValue {
   disableNativeDrag?: boolean;
   /** 侧边栏实际滚动父容器引用，供虚拟列表首帧直接使用以消除多轮渲染。 */
   scrollContainerRef?: RefObject<HTMLDivElement | null>;
+  searchQuery?: string;
 }
 
 export const SidebarItemContext = createContext<SidebarItemContextValue | null>(null);

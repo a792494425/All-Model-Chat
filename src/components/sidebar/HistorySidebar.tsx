@@ -202,6 +202,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = (props) => {
     onReorderSession,
     disableNativeDrag: displayMode === 'time',
     scrollContainerRef,
+    searchQuery,
   };
 
   const [listParentRef] = useAutoAnimate<HTMLDivElement>({ duration: 200 });

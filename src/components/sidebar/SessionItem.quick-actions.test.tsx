@@ -83,4 +83,28 @@ describe('SessionItem quick actions and title mask', () => {
     expect(timeEl?.textContent).toBe('5m');
     expect(timeEl?.className).toContain('group-hover:opacity-0');
   });
+
+  it('renders search snippet and highlights matches when searchQuery is present', () => {
+    const session: SavedChatSession = {
+      ...makeSession('s-5', false),
+      title: 'React Architecture Discussion',
+      messages: [
+        {
+          id: 'm-1',
+          role: 'user',
+          content: 'We need to discuss state persistence across reloads.',
+          timestamp: Date.now(),
+        },
+      ],
+    };
+
+    act(() => {
+      renderer.render(<SessionItem session={session} searchQuery="persistence" />);
+    });
+
+    const marks = renderer.container.querySelectorAll('mark');
+    expect(marks.length).toBeGreaterThan(0);
+    expect(marks[0].textContent).toBe('persistence');
+    expect(renderer.container.textContent).toContain('state persistence across');
+  });
 });

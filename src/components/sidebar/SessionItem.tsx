@@ -15,6 +15,7 @@ import { useSidebarItemContext, type SidebarItemContextValue } from './SidebarIt
 import { formatRelativeTime, formatDateTime } from '@/utils/relativeTime';
 import { useTitleMarquee } from './useTitleMarquee';
 import { HoverCard } from '@/components/shared/HoverCard';
+import { extractSearchSnippet, SearchHighlight } from '@/utils/searchHighlight';
 
 export interface SessionItemProps extends Partial<SidebarItemContextValue> {
   session: SavedChatSession;
@@ -66,6 +67,9 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
   const onReorderSession = props.onReorderSession ?? context?.onReorderSession;
   const disableNativeDrag =
     props.disableNativeDrag !== undefined ? props.disableNativeDrag : (context?.disableNativeDrag ?? false);
+  const searchQuery = props.searchQuery !== undefined ? props.searchQuery : (context?.searchQuery ?? '');
+  const isSearchActive = Boolean(searchQuery && searchQuery.trim().length > 0);
+  const searchSnippet = isSearchActive ? extractSearchSnippet(session.messages, searchQuery) : null;
 
   const [isRightClickAnimating, setIsRightClickAnimating] = useState(false);
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
@@ -296,20 +300,39 @@ export const SessionItem: React.FC<SessionItemProps> = (props) => {
                     {session.isPinned && (
                       <Pin size={12} className="mr-2 text-[var(--theme-text-link)] flex-shrink-0" strokeWidth={2} />
                     )}
-                    <span
-                      ref={titleRef}
-                      className="font-medium truncate marquee-title fade-mask-x-r"
-                      title={displayTitle}
-                    >
-                      {generatingTitleSessionIds.has(session.id) ? (
-                        <div className="flex items-center gap-2 text-xs text-[var(--theme-text-secondary)]">
-                          <LoadingDots />
-                          <span>{t('generatingTitle')}</span>
+                    <div className="flex flex-col min-w-0 flex-grow py-0.5">
+                      <div className="flex items-center min-w-0">
+                        <span
+                          ref={titleRef}
+                          className="font-medium truncate marquee-title fade-mask-x-r"
+                          title={displayTitle}
+                        >
+                          {generatingTitleSessionIds.has(session.id) ? (
+                            <div className="flex items-center gap-2 text-xs text-[var(--theme-text-secondary)]">
+                              <LoadingDots />
+                              <span>{t('generatingTitle')}</span>
+                            </div>
+                          ) : isSearchActive ? (
+                            <SearchHighlight text={displayTitle} query={searchQuery} />
+                          ) : (
+                            displayTitle
+                          )}
+                        </span>
+                      </div>
+                      {searchSnippet && (
+                        <div className="flex items-center gap-1 text-[11px] text-[var(--theme-text-secondary)] truncate mt-0.5 select-none">
+                          {session.groupId && (
+                            <>
+                              <span className="truncate max-w-[80px] font-medium shrink-0">{groupName}</span>
+                              <span className="shrink-0 opacity-50">·</span>
+                            </>
+                          )}
+                          <span className="truncate">
+                            <SearchHighlight text={searchSnippet} query={searchQuery} />
+                          </span>
                         </div>
-                      ) : (
-                        displayTitle
                       )}
-                    </span>
+                    </div>
                   </a>
                 }
                 content={hoverCardContent}
